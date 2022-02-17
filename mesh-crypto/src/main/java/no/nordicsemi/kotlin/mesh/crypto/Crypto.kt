@@ -113,11 +113,13 @@ object Crypto {
 
     /**
      * Calculates the 64-bit Network ID.
-     * The Network ID is derived from the network key such that each network key generates one Network ID. This identifier becomes public information.
+     * The Network ID is derived from the network key such that each network key generates one Network ID.
+     * This identifier becomes public information.
      *
      * @param N     128-bit Network key.
      * @return 64-bit Network ID.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
 
     /**
@@ -182,10 +184,10 @@ object Crypto {
      */
     internal fun k2(N: ByteArray, P: ByteArray): Triple<Int, ByteArray, ByteArray> {
         require(N.size == 16) {
-            "N must be 128-bits"
+            "N must be 128-bits."
         }
         require(P.isNotEmpty()) {
-            "P must be 1 or more octets"
+            "P must be 1 or more octets."
         }
         val s1 = salt(smk2)
         val T = cmac(N, s1)
