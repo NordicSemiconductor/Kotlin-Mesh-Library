@@ -118,7 +118,7 @@ object Crypto {
      * @param N     128-bit Network key.
      * @return 64-bit Network ID.
      */
-    private fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
+    fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
 
     /**
      * Calculates the 128-bit IdentityKey.
@@ -178,7 +178,7 @@ object Crypto {
      *
      * @param N     128-bit key.
      * @param P     1 or more octets.
-     * @return 128-bit key T.
+     * @return a Triple containing the NID, EncryptionKey and PrivacyKey.
      */
     internal fun k2(N: ByteArray, P: ByteArray): Triple<Int, ByteArray, ByteArray> {
         require(N.size == 16) {
