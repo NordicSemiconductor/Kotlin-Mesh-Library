@@ -29,15 +29,17 @@ object Crypto {
      * @param N 128-bit NetworkKey
      * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey))
      */
-    fun calculateKeyDerivatives(N: ByteArray): Pair<Triple<Int, ByteArray, ByteArray>, Triple<ByteArray, ByteArray, ByteArray>> =
-        Pair(
-            first = k2(N = N, P = byteArrayOf(0x00)),
-            second = Triple(
-                first = calculateNetworkId(N),
-                second = calculateIdentityKey(N = N),
-                third = calculateBeaconKey(N = N)
-            )
+    fun calculateKeyDerivatives(N: ByteArray): KeyDerivatives {
+        val k2 = k2(N = N, P = byteArrayOf(0x00))
+        return KeyDerivatives(
+            nid = k2.first.toUByte(),
+            encryptionKey = k2.second,
+            privacyKey = k2.third,
+            networkId = calculateNetworkId(N = N),
+            identityKey = calculateIdentityKey(N = N),
+            beaconKey = calculateBeaconKey(N = N)
         )
+    }
 
     /**
      * Encrypts the [data] with the EncryptionKey , Nonce and concatenates the MIC(Message Integrity Check).
