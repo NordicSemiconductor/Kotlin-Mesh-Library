@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'kotlin'
+    id 'kotlinx-serialization'
 }
 
 java {
@@ -10,4 +11,5 @@ java {
 
 dependencies {
     api project(':mesh-crypto')
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 }
