@@ -17,7 +17,31 @@ data class Provisioner(
     @SerialName("provisionerName")
     val name: String,
     val uuid: UUID,
-    val allocatedUnicastRanges: List<AllocatedUnicastRange>,
-    val allocatedGroupRanges: List<AllocatedGroupRange>,
-    val allocatedSceneRanges: List<AllocatedSceneRange>
-)
+    val allocatedUnicastRanges: Array<AllocatedUnicastRange>,
+    val allocatedGroupRanges: Array<AllocatedGroupRange>,
+    val allocatedSceneRanges: Array<AllocatedSceneRange>
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Provisioner
+
+        if (name != other.name) return false
+        if (uuid != other.uuid) return false
+        if (!allocatedUnicastRanges.contentEquals(other.allocatedUnicastRanges)) return false
+        if (!allocatedGroupRanges.contentEquals(other.allocatedGroupRanges)) return false
+        if (!allocatedSceneRanges.contentEquals(other.allocatedSceneRanges)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + uuid.hashCode()
+        result = 31 * result + allocatedUnicastRanges.contentHashCode()
+        result = 31 * result + allocatedGroupRanges.contentHashCode()
+        result = 31 * result + allocatedSceneRanges.contentHashCode()
+        return result
+    }
+}
