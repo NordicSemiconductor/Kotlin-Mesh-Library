@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 /**
