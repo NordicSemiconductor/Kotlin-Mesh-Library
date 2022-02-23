@@ -15,22 +15,22 @@ typealias Address = UShort
  */
 fun Address.toHex() = "%04X".format(this)
 
-private val minUnicastAddress: Address = 0x0001u
-private val maxUnicastAddress: Address = 0x7FFFu
+private const val minUnicastAddress: Address = 0x0001u
+private const val maxUnicastAddress: Address = 0x7FFFu
 
 //TODO is this really needed?
-private val minVirtualAddress: Address = 0x8000u
-private val maxVirtualAddress: Address = 0xBFFFu
+private const val minVirtualAddress: Address = 0x8000u
+private const val maxVirtualAddress: Address = 0xBFFFu
 
-private val minGroupAddress: Address = 0xC000u
-private val maxGroupAddress: Address = 0xFEFFu
+private const val minGroupAddress: Address = 0xC000u
+private const val maxGroupAddress: Address = 0xFEFFu
 
 //TODO is this really needed?
-private val unassignedAddress: Address = 0x0000u
-private val allProxies: Address = 0xFFFCu
-private val allFriends: Address = 0xFFFDu
-private val allRelays: Address = 0xFFFEu
-private val allNodes: Address = 0xFFFFu
+private const val unassignedAddress: Address = 0x0000u
+private const val allProxies: Address = 0xFFFCu
+private const val allFriends: Address = 0xFFFDu
+private const val allRelays: Address = 0xFFFEu
+private const val allNodes: Address = 0xFFFFu
 
 /**
  * Wrapper class for [Address].
