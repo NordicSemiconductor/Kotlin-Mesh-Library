@@ -27,9 +27,9 @@ internal class MeshUuid(private val meshUuid: String) {
      * Drops the dashes in the UUID
      * @return a UUID string without dashes.
      */
-    fun encode(): String = uuid.toString().filter {
-        !it.isLetterOrDigit()
-    }.uppercase()
+    fun encode(): String = uuid.toString()
+        .filter { !it.isLetterOrDigit() }
+        .uppercase()
 
     companion object {
         val HEX_UUID_PATTERN = Regex("[0-9a-fA-F]{32}")
