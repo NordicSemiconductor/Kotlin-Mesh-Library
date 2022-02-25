@@ -3,19 +3,19 @@ package no.nordicsemi.kotlin.mesh.core.model
 /**
  * Represents a configured state of a mesh model.
  *
- * @param modelId    	The [ModelId] property contains a 16-bit [SigModelId] that represents a Bluetooth SIG defined model
-                        identifier field or a 32-bit [VendorModelId] that represents a vendor-defined model identifier.
- * @param subscribe 	The subscribe property contains an array [MeshAddress].
- * @param publish    	The publish property contains a [Publish] that describes the configuration of this model’s publication.
- * @param bind        	The bind property contains an array of integers that represents indexes of the [ApplicationKey] to which
-						this model is bound. Each application key index corresponds to the index values of one of the application
-						key entries in the node’s [ApplicationKey] array.
+ * @param modelId       The [ModelId] property contains a 16-bit [SigModelId] that represents a Bluetooth SIG defined model
+ *                      identifier field or a 32-bit [VendorModelId] that represents a vendor-defined model identifier.
+ * @param subscribe     The subscribe property contains an array [MeshAddress].
+ * @param publish       The publish property contains a [Publish] that describes the configuration of this model’s publication.
+ * @param bind          The bind property contains an array of integers that represents indexes of the [ApplicationKey] to which
+this model is bound. Each application key index corresponds to the index values of one of the application
+key entries in the node’s [ApplicationKey] array.
  */
 data class Model internal constructor(
     val modelId: ModelId,
-    val subscribe: Array<MeshAddress>,
+    internal val subscribe: Array<MeshAddress>,
     val publish: Publish,
-    val bind: Array<Int>,
+    internal val bind: Array<Int>,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

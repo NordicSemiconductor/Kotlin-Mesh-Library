@@ -10,6 +10,6 @@ import kotlinx.serialization.SerialName
  *
  * @param steps         Integer from 0 to 63 that represents the number of steps used to calculate the publish period.
  * @param resolution    The resolution property contains an integer that represents the publish step resolution in milliseconds.
-                        The allowed values are: 100, 1000, 10000, and 600000.
+ *                      The allowed values are: 100, 1000, 10000, and 600000.
  */
 data class PublishPeriod(@SerialName("numberOfSteps") val steps: Int, val resolution: Int)
