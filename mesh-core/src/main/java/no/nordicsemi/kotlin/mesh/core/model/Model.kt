@@ -8,8 +8,8 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param subscribe     The subscribe property contains an array [MeshAddress].
  * @param publish       The publish property contains a [Publish] that describes the configuration of this model’s publication.
  * @param bind          The bind property contains an array of integers that represents indexes of the [ApplicationKey] to which
-this model is bound. Each application key index corresponds to the index values of one of the application
-key entries in the node’s [ApplicationKey] array.
+ *                      this model is bound. Each application key index corresponds to the index values of one of the application
+ *                      key entries in the node’s [ApplicationKey] array.
  */
 data class Model internal constructor(
     val modelId: ModelId,
