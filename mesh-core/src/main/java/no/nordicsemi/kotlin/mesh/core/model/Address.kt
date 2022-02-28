@@ -43,7 +43,8 @@ sealed class MeshAddress(open val address: Address)
  * An unassigned address is an address in which the element of a node has not been configured yet or no address has been allocated.
  * The unassigned address has the value 0x0000.
  */
-object UnassignedAddress : MeshAddress(address = unassignedAddress)
+object UnassignedAddress : MeshAddress(address = unassignedAddress),
+    HeartbeatPublicationDestination, HeartbeatSubscriptionSource, HeartbeatSubscriptionDestination
 
 /**
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address
@@ -51,7 +52,10 @@ object UnassignedAddress : MeshAddress(address = unassignedAddress)
  *
  * @param address Unsigned 16-bit [Address].
  */
-data class UnicastAddress(override val address: Address) : MeshAddress(address = address) {
+data class UnicastAddress(override val address: Address) : MeshAddress(address = address),
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionSource,
+    HeartbeatSubscriptionDestination {
     init {
         require(address in minUnicastAddress..maxUnicastAddress) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
     }
@@ -72,7 +76,9 @@ data class VirtualAddress(val uuid: UUID) :
  *
  * @param address Unsigned 16-bit [Address].
  */
-data class GroupAddress(override val address: Address) : MeshAddress(address = address) {
+data class GroupAddress(override val address: Address) : MeshAddress(address = address),
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionDestination {
     init {
         require(address in minGroupAddress..maxGroupAddress) { "A valid group address must range from 0xC000 to 0xFEFF!" }
     }
@@ -98,3 +104,18 @@ object AllRelays : FixedGroupAddress(address = allRelays)
 
 /** A message sent to the all-nodes address shall be processed by the primary element of all nodes. */
 object AllNodes : FixedGroupAddress(address = allNodes)
+
+/**
+ * Heartbeat publication destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnicastAddress].
+ */
+sealed interface HeartbeatPublicationDestination
+
+/**
+ * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress] or an [UnassignedAddress].
+ */
+sealed interface HeartbeatSubscriptionSource
+
+/**
+ * Heartbeat subscription destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
+ */
+sealed interface HeartbeatSubscriptionDestination
