@@ -1,0 +1,45 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
+package no.nordicsemi.kotlin.mesh.core.model
+
+/**
+ * Represents the unicast addresses that are excluded by a Mesh Manager for a particular IV index.
+ *
+ * @property ivIndex       32-bit value that is a shared network resource known by all nodes in a given network.
+ * @property addresses     List of excluded addresses for a given ivIndex.
+ */
+data class ExclusionList internal constructor(val ivIndex: UInt) {
+    var addresses = listOf<UnicastAddress>()
+        private set
+
+    /**
+     * Excludes a given unicast address.
+     *
+     * @param address Unicast address to be excluded.
+     */
+    fun exclude(address: UnicastAddress): Boolean {
+        if (address !in addresses) {
+            addresses = addresses + address
+        }
+        return true
+    }
+
+    /**
+     * Excludes all the unicast addresses of the elements in a given node.
+     *
+     * @param node Node containing the element addresses to be excluded.
+     */
+    fun exclude(node: Node) {
+        val lastAddress = node.elements.size
+        for (i in node.unicastAddress.address.toInt()..lastAddress) {
+            exclude(UnicastAddress(address = i.toUShort()))
+        }
+    }
+
+    /**
+     * Returns true if the address is excluded.
+     *
+     * @param address unicast address to be verified.
+     */
+    fun isExcluded(address: UnicastAddress): Boolean = address in addresses
+}
