@@ -4,6 +4,8 @@ import java.util.*
 
 /**
  * Wrapper class representing a standard UUID formatted with dashes.
+ *
+ * @property meshUuid UUID imported from json with/without dashes.
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 internal class MeshUuid(private val meshUuid: String) {
@@ -15,7 +17,7 @@ internal class MeshUuid(private val meshUuid: String) {
     private fun format(): String = meshUuid.takeIf {
         HEX_UUID_PATTERN.matches(it)
     }?.apply {
-        StringBuilder(str = this).apply {
+        StringBuilder(this).apply {
             insert(8, "-")
             insert(13, "-")
             insert(18, "-")
