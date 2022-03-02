@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 import java.util.*
@@ -5,7 +7,7 @@ import java.util.*
 /**
  * The node represents a configured state of a mesh node.
  *
- * @property uuid                       128-bit device uuid.
+ * @property uuid                       128-bit uuid.
  * @property deviceKey                  128-bit device key.
  * @property security                   Represents the level of [Security] for the subnet on which the node has been originally provisioned.
  * @property netKeys                    Array of [NodeKey] that includes information about the network keys known to this node.
@@ -27,29 +29,41 @@ import java.util.*
  * @property excluded                   True if the node is in the process of being deleted and is excluded from the new network key distribution during the
  *                                      Key Refresh procedure; otherwise, it is set to “false”.
  *
- *
  */
-data class Node internal constructor(
+data class Node(
     val uuid: UUID,
     val deviceKey: ByteArray,
-    val security: Security,
-    val netKeys: Array<NodeKey>,
-    val configComplete: Boolean,
+    val netKeys: List<NodeKey>,
     val name: String,
-    val cid: Int,
-    val pid: Int,
-    val vid: Int,
-    val crpl: Int,
-    val features: Features,
-    val secureNetworkBeacon: Boolean,
     val unicastAddress: UnicastAddress,
-    val elements: Array<Element>,
-    val appKeys: Array<NodeKey>,
-    val networkTransmit: NetworkTransmit,
-    val relayRetransmit: RelayRetransmit,
-    val defaultTTL: Int,
-    val excluded: Boolean
+    val elements: List<Element>,
+    val appKeys: List<NodeKey>,
 ) {
+
+    var security: Security = Security.INSECURE
+        internal set
+    var configComplete: Boolean = false
+        internal set
+    var cid: Int? = null
+        internal set
+    var pid: Int? = null
+        internal set
+    var vid: Int? = null
+        internal set
+    var crpl: Int? = null
+        internal set
+    var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
+        internal set
+    var secureNetworkBeacon: Boolean = false
+    var networkTransmit: NetworkTransmit? = null
+        internal set
+    var relayRetransmit: RelayRetransmit? = null
+        internal set
+    var defaultTTL: Int = 127
+        internal set
+    var excluded: Boolean = false
+        internal set
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -57,20 +71,22 @@ data class Node internal constructor(
         other as Node
 
         if (uuid != other.uuid) return false
-        if (name != other.name) return false
         if (!deviceKey.contentEquals(other.deviceKey)) return false
+        if (netKeys != other.netKeys) return false
+        if (name != other.name) return false
         if (unicastAddress != other.unicastAddress) return false
+        if (elements != other.elements) return false
+        if (appKeys != other.appKeys) return false
         if (security != other.security) return false
+        if (configComplete != other.configComplete) return false
         if (cid != other.cid) return false
         if (pid != other.pid) return false
         if (vid != other.vid) return false
         if (crpl != other.crpl) return false
         if (features != other.features) return false
-        if (!elements.contentEquals(other.elements)) return false
-        if (configComplete != other.configComplete) return false
-        if (!netKeys.contentEquals(other.netKeys)) return false
-        if (!appKeys.contentEquals(other.appKeys)) return false
+        if (secureNetworkBeacon != other.secureNetworkBeacon) return false
         if (networkTransmit != other.networkTransmit) return false
+        if (relayRetransmit != other.relayRetransmit) return false
         if (defaultTTL != other.defaultTTL) return false
         if (excluded != other.excluded) return false
 
@@ -79,20 +95,22 @@ data class Node internal constructor(
 
     override fun hashCode(): Int {
         var result = uuid.hashCode()
-        result = 31 * result + name.hashCode()
         result = 31 * result + deviceKey.contentHashCode()
+        result = 31 * result + netKeys.hashCode()
+        result = 31 * result + name.hashCode()
         result = 31 * result + unicastAddress.hashCode()
+        result = 31 * result + elements.hashCode()
+        result = 31 * result + appKeys.hashCode()
         result = 31 * result + security.hashCode()
-        result = 31 * result + cid
-        result = 31 * result + pid
-        result = 31 * result + vid
-        result = 31 * result + crpl
-        result = 31 * result + features.hashCode()
-        result = 31 * result + elements.contentHashCode()
         result = 31 * result + configComplete.hashCode()
-        result = 31 * result + netKeys.contentHashCode()
-        result = 31 * result + appKeys.contentHashCode()
-        result = 31 * result + networkTransmit.hashCode()
+        result = 31 * result + (cid ?: 0)
+        result = 31 * result + (pid ?: 0)
+        result = 31 * result + (vid ?: 0)
+        result = 31 * result + (crpl ?: 0)
+        result = 31 * result + features.hashCode()
+        result = 31 * result + secureNetworkBeacon.hashCode()
+        result = 31 * result + (networkTransmit?.hashCode() ?: 0)
+        result = 31 * result + (relayRetransmit?.hashCode() ?: 0)
         result = 31 * result + defaultTTL
         result = 31 * result + excluded.hashCode()
         return result
