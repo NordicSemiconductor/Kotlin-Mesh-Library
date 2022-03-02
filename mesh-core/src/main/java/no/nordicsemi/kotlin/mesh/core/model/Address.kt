@@ -35,7 +35,7 @@ private const val allNodes: Address = 0xFFFFu
 /**
  * Wrapper class for [Address].
  *
- * @param address Unsigned 16-bit [Address].
+ * @property address Unsigned 16-bit [Address].
  */
 sealed class MeshAddress(open val address: Address)
 
@@ -50,7 +50,7 @@ object UnassignedAddress : MeshAddress(address = unassignedAddress),
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address
  * shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.
  *
- * @param address Unsigned 16-bit [Address].
+ * @property address Unsigned 16-bit [Address].
  */
 data class UnicastAddress(override val address: Address) : MeshAddress(address = address),
     HeartbeatPublicationDestination,
@@ -74,7 +74,7 @@ data class VirtualAddress(val uuid: UUID) :
  * Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses in the range
  * 0xC000 through 0xFEFF are generally available for other usage.
  *
- * @param address Unsigned 16-bit [Address].
+ * @property address Unsigned 16-bit [Address].
  */
 data class GroupAddress(override val address: Address) : MeshAddress(address = address),
     HeartbeatPublicationDestination,
@@ -88,7 +88,7 @@ data class GroupAddress(override val address: Address) : MeshAddress(address = a
  * There are two types of group address; those that can be assigned dynamically and those that are fixed.
  * Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  *
- * @param address Unsigned 16-bit [Address].
+ * @property address Unsigned 16-bit [Address].
  */
 sealed class FixedGroupAddress private constructor(override val address: Address) :
     MeshAddress(address = address)
