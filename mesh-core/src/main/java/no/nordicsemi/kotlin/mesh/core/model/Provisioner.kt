@@ -1,11 +1,13 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
 /**
  * A Provisioner is a mesh node that is capable of provisioning a device to the mesh network and,
- * is represented by a provisioner object in the Mesh Configuration Database
+ * is represented by a provisioner object in the Mesh Configuration Database.
  *
  * @param name                      Provisioner name.
  * @param uuid                      UUID of the provisioner.
@@ -13,35 +15,13 @@ import java.util.*
  * @param allocatedGroupRanges      List of allocated group ranges for a given provisioner.
  * @param allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
  */
+@Serializable
 data class Provisioner(
     @SerialName("provisionerName")
     val name: String,
+    @Serializable(with = UuidSerializer::class)
     val uuid: UUID,
-    val allocatedUnicastRanges: Array<AllocatedUnicastRange>,
-    val allocatedGroupRanges: Array<AllocatedGroupRange>,
-    val allocatedSceneRanges: Array<AllocatedSceneRange>
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Provisioner
-
-        if (name != other.name) return false
-        if (uuid != other.uuid) return false
-        if (!allocatedUnicastRanges.contentEquals(other.allocatedUnicastRanges)) return false
-        if (!allocatedGroupRanges.contentEquals(other.allocatedGroupRanges)) return false
-        if (!allocatedSceneRanges.contentEquals(other.allocatedSceneRanges)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + uuid.hashCode()
-        result = 31 * result + allocatedUnicastRanges.contentHashCode()
-        result = 31 * result + allocatedGroupRanges.contentHashCode()
-        result = 31 * result + allocatedSceneRanges.contentHashCode()
-        return result
-    }
-}
+    val allocatedUnicastRanges: List<AllocatedUnicastRange>,
+    val allocatedGroupRanges: List<AllocatedGroupRange>,
+    val allocatedSceneRanges: List<AllocatedSceneRange>
+)

@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Represents a configured state of a mesh model.
  *
@@ -11,6 +13,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  *                          this model is bound. Each application key index corresponds to the index values of one of the application
  *                          key entries in the node’s [ApplicationKey] list.
  */
+@Serializable
 data class Model internal constructor(
     val modelId: ModelId,
     internal val subscribe: List<MeshAddress>,

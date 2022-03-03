@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Application Keys are used to secure communications at the upper transport layer.
  * The application key (AppKey) shall be generated using a random number generator
@@ -12,7 +14,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param minSecurity   A
  * @param oldKey        OldKey property contains the previous application key.
  */
-@Suppress("unused")
+@Serializable
 data class NetworkKey internal constructor(
     val name: String,
     val index: Int,

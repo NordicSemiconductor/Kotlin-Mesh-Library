@@ -2,9 +2,12 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Wrapper class for 16-bit or 32-bit model identifier.
  */
+@Serializable
 sealed class ModelId(internal val modelId: UInt)
 
 /**

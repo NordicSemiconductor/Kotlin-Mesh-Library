@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * The AllocatedGroupRange represents the range of group addresses that the Provisioner can allocate to
  * newly created groups, without needing to coordinate the group additions with other Provisioners.
@@ -9,6 +11,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param lowAddress    Low address for a given range.
  * @param highAddress	High address for a given  range.
  */
+@Serializable
 data class AllocatedGroupRange(
     val lowAddress: Int,
     val highAddress: Int

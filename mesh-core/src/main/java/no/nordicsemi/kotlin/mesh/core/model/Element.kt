@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
  *
@@ -9,6 +11,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @property location       Describes the element location.
  * @property models         List of [Model] within an element.
  */
+@Serializable
 data class Element internal constructor(
     val name: String,
     val index: Int,

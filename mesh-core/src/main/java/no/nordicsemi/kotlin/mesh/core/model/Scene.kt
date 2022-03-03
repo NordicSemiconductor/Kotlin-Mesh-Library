@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Scene
  *
@@ -7,6 +9,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param number        Scene number.
  * @param addresses     Addresses containing the scene.
  */
+@Serializable
 data class Scene(
     val name: String,
     val number: Int,

@@ -16,7 +16,7 @@ class ExclusionListTest {
         deviceKey = byteArrayOf(),
         netKeys = listOf(),
         name = "Node",
-        unicastAddress = UnicastAddress(address = 1.toUShort()),
+        unicastAddress = UnicastAddress(unicastAddress = 1.toUShort()),
         elements = elements,
         appKeys = listOf()
     )
@@ -24,26 +24,26 @@ class ExclusionListTest {
     @Test
     fun testExcludeUnicast() {
         val exclusionList = ExclusionList(ivIndex = 1u)
-        exclusionList.exclude(address = UnicastAddress(address = 1u))
-        Assert.assertEquals(UnicastAddress(address = 1.toUShort()), exclusionList.addresses[0])
+        exclusionList.exclude(address = UnicastAddress(unicastAddress = 1u))
+        Assert.assertEquals(UnicastAddress(unicastAddress = 1.toUShort()), exclusionList.addresses[0])
     }
 
     @Test
     fun testExcludeNode() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(node = node)
-        Assert.assertEquals(UnicastAddress(address = 1.toUShort()), exclusionList.addresses[0])
-        Assert.assertEquals(UnicastAddress(address = 2.toUShort()), exclusionList.addresses[1])
-        Assert.assertEquals(UnicastAddress(address = 3.toUShort()), exclusionList.addresses[2])
+        Assert.assertEquals(UnicastAddress(unicastAddress = 1.toUShort()), exclusionList.addresses[0])
+        Assert.assertEquals(UnicastAddress(unicastAddress = 2.toUShort()), exclusionList.addresses[1])
+        Assert.assertEquals(UnicastAddress(unicastAddress = 3.toUShort()), exclusionList.addresses[2])
     }
 
     @Test
     fun testIsExcluded() {
         val exclusionList = ExclusionList(ivIndex = 1u)
-        val expected = exclusionList.exclude(address = UnicastAddress(address = 1u))
+        val expected = exclusionList.exclude(address = UnicastAddress(unicastAddress = 1u))
         Assert.assertEquals(
             expected,
-            exclusionList.isExcluded(address = UnicastAddress(address = 1u))
+            exclusionList.isExcluded(address = UnicastAddress(unicastAddress = 1u))
         )
     }
 }

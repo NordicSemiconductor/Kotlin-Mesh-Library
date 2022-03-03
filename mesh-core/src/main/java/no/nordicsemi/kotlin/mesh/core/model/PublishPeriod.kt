@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * The publish period object determines the interval at which messages are published by a model and is defined
@@ -12,4 +13,5 @@ import kotlinx.serialization.SerialName
  * @property resolution     The resolution property contains an integer that represents the publish step resolution in milliseconds.
  *                          The allowed values are: 100, 1000, 10000, and 600000.
  */
+@Serializable
 data class PublishPeriod(@SerialName("numberOfSteps") val steps: Int, val resolution: Int)

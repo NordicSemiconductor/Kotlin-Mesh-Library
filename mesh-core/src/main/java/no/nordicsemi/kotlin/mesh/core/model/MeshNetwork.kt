@@ -3,6 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
 /**
@@ -21,7 +23,8 @@ import java.util.*
  * @property networkExclusions      List of [ExclusionList]
  *
  */
-class MeshNetwork(val meshUUID: UUID = UUID.randomUUID()) {
+@Serializable
+class MeshNetwork(@Serializable(with = UuidSerializer::class) val meshUUID: UUID = UUID.randomUUID()) {
 
     var meshName: String = "Mesh Network"
         set(value) {

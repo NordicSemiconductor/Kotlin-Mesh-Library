@@ -2,12 +2,15 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Represents the unicast addresses that are excluded by a Mesh Manager for a particular IV index.
  *
  * @property ivIndex       32-bit value that is a shared network resource known by all nodes in a given network.
  * @property addresses     List of excluded addresses for a given ivIndex.
  */
+@Serializable
 data class ExclusionList internal constructor(val ivIndex: UInt) {
     var addresses = listOf<UnicastAddress>()
         private set
@@ -31,8 +34,8 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
      */
     fun exclude(node: Node) {
         val lastAddress = node.elements.size
-        for (i in node.unicastAddress.address.toInt()..lastAddress) {
-            exclude(UnicastAddress(address = i.toUShort()))
+        for (i in node.unicastAddress.unicastAddress.toInt()..lastAddress) {
+            exclude(UnicastAddress(unicastAddress = i.toUShort()))
         }
     }
 

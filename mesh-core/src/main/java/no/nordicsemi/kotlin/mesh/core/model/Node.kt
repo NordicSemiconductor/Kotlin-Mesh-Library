@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
 /**
@@ -30,7 +32,9 @@ import java.util.*
  *                                      Key Refresh procedure; otherwise, it is set to “false”.
  *
  */
+@Serializable
 data class Node(
+    @Serializable(with = UuidSerializer::class)
     val uuid: UUID,
     val deviceKey: ByteArray,
     val netKeys: List<NodeKey>,

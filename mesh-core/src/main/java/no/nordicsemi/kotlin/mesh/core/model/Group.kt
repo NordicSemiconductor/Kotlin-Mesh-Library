@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Group
  *
@@ -7,6 +9,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param address          Address of the group.
  * @param parentAddress    Parent address of the group if the given group is a sub group.
  */
+@Serializable
 data class Group(
     val name: String,
     val address: Int,

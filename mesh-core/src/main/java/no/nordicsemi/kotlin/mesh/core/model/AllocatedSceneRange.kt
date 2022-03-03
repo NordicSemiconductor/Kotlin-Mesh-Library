@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to register
  * new scenes in the mesh network, without needing to coordinate the allocated scene numbers with other
@@ -9,6 +11,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @param lowAddress    Low address for a given range.
  * @param highAddress   High address for a given  range.
  */
+@Serializable
 data class AllocatedSceneRange(
     val lowAddress: Int,
     val highAddress: Int

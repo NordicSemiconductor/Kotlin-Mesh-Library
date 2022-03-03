@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -37,12 +39,14 @@ private const val allNodes: Address = 0xFFFFu
  *
  * @property address Unsigned 16-bit [Address].
  */
+@Serializable
 sealed class MeshAddress(open val address: Address)
 
 /**
  * An unassigned address is an address in which the element of a node has not been configured yet or no address has been allocated.
  * The unassigned address has the value 0x0000.
  */
+@Serializable
 object UnassignedAddress : MeshAddress(address = unassignedAddress),
     HeartbeatPublicationDestination, HeartbeatSubscriptionSource, HeartbeatSubscriptionDestination
 
@@ -50,14 +54,15 @@ object UnassignedAddress : MeshAddress(address = unassignedAddress),
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address
  * shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.
  *
- * @property address Unsigned 16-bit [Address].
+ * @property unicastAddress Unsigned 16-bit [Address].
  */
-data class UnicastAddress(override val address: Address) : MeshAddress(address = address),
+@Serializable
+data class UnicastAddress(val unicastAddress: Address) : MeshAddress(address = unicastAddress),
     HeartbeatPublicationDestination,
     HeartbeatSubscriptionSource,
     HeartbeatSubscriptionDestination {
     init {
-        require(address in minUnicastAddress..maxUnicastAddress) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
+        require(unicastAddress in minUnicastAddress..maxUnicastAddress) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
     }
 }
 
@@ -66,7 +71,8 @@ data class UnicastAddress(override val address: Address) : MeshAddress(address =
  * value that does not have to be managed centrally. One or more elements may be programmed to publish or subscribe to a Label UUID.
  * The Label UUID is not transmitted and shall be used as the Additional Data field of the message integrity check value in the upper transport layer.
  */
-data class VirtualAddress(val uuid: UUID) :
+@Serializable
+data class VirtualAddress(@Serializable(with = UuidSerializer::class) val uuid: UUID) :
     MeshAddress(address = Crypto.createVirtualAddress(uuid))
 
 /**
@@ -74,13 +80,14 @@ data class VirtualAddress(val uuid: UUID) :
  * Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses in the range
  * 0xC000 through 0xFEFF are generally available for other usage.
  *
- * @property address Unsigned 16-bit [Address].
+ * @property groupAddress Unsigned 16-bit [Address].
  */
-data class GroupAddress(override val address: Address) : MeshAddress(address = address),
+@Serializable
+data class GroupAddress(val groupAddress: Address) : MeshAddress(address = groupAddress),
     HeartbeatPublicationDestination,
     HeartbeatSubscriptionDestination {
     init {
-        require(address in minGroupAddress..maxGroupAddress) { "A valid group address must range from 0xC000 to 0xFEFF!" }
+        require(groupAddress in minGroupAddress..maxGroupAddress) { "A valid group address must range from 0xC000 to 0xFEFF!" }
     }
 }
 

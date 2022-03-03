@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
 /**
@@ -21,8 +23,10 @@ import java.util.*
  * @property relayRetransmit    The [RelayRetransmit] property describes the number of times a message is published and the interval between
  *                              retransmissions of the published messages.
  */
+@Serializable
 data class Publish(
     val address: MeshAddress,
+    @Serializable(with = UuidSerializer::class)
     var label: UUID,
     val index: Int,
     val ttl: Int,
