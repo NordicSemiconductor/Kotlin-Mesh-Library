@@ -100,19 +100,19 @@ class CryptoTest {
     @Test
     fun testNetworkKeyDerivatives() {
         val N = "7dd7364cd842ad18c17c2b820c84c3d6".decodeHex()
-        val NID = "68".toInt(16)
+        val NID = "68".toInt(16).toUByte()
         val encryptionKey = "0953fa93e7caac9638f58820220a398e".uppercase(Locale.US).decodeHex()
         val privacyKey = "8b84eedec100067d670971dd2aa700cf".uppercase(Locale.US).decodeHex()
         val networkId = "3ecaff672f673370".uppercase(Locale.US).decodeHex()
         val identityKey = "84396c435ac48560b5965385253e210c".uppercase(Locale.US).decodeHex()
         val beaconKey = "5423d967da639a99cb02231a83f7d254".uppercase(Locale.US).decodeHex()
-        val (first, second) = Crypto.calculateKeyDerivatives(N)
-        Assert.assertTrue("NID do not match!", NID == first.first)
-        Assert.assertTrue("EncryptionKeys do not match!", encryptionKey.contentEquals(first.second))
-        Assert.assertTrue("PrivacyKeys do not match!", privacyKey.contentEquals(first.third))
-        Assert.assertTrue("Network IDs do not match!", networkId.contentEquals(second.first))
-        Assert.assertTrue("Identity Keys do not match!", identityKey.contentEquals(second.second))
-        Assert.assertTrue("Beacon Keys do not match!", beaconKey.contentEquals(second.third))
+        val keyDerivatives = Crypto.calculateKeyDerivatives(N)
+        Assert.assertTrue("NID do not match!", NID == keyDerivatives.nid)
+        Assert.assertTrue("EncryptionKeys do not match!", encryptionKey.contentEquals(keyDerivatives.encryptionKey))
+        Assert.assertTrue("PrivacyKeys do not match!", privacyKey.contentEquals(keyDerivatives.privacyKey))
+        Assert.assertTrue("Network IDs do not match!", networkId.contentEquals(keyDerivatives.networkId))
+        Assert.assertTrue("Identity Keys do not match!", identityKey.contentEquals(keyDerivatives.identityKey))
+        Assert.assertTrue("Beacon Keys do not match!", beaconKey.contentEquals(keyDerivatives.beaconKey))
     }
 
     /**
