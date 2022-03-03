@@ -1,4 +1,4 @@
-@file:Suppress("LocalVariableName")
+@file:Suppress("LocalVariableName", "unused", "UNUSED_PARAMETER")
 
 package no.nordicsemi.kotlin.mesh.crypto
 
@@ -9,6 +9,7 @@ import org.bouncycastle.crypto.macs.CMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
+import java.util.*
 
 object Crypto {
 
@@ -22,6 +23,14 @@ object Crypto {
     private val NKIK = "nkik".encodeToByteArray()
     private val NKBK = "nkbk".encodeToByteArray()
     private val ID128 = "id128".encodeToByteArray()
+
+    /**
+     * Creates a 16-bit virtual address for a given UUID.
+     * @param uuid 128-bit Label UUID
+     */
+    fun createVirtualAddress(uuid: UUID): UShort {
+        TODO("Not yet implemented")
+    }
 
     /**
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
@@ -104,7 +113,6 @@ object Crypto {
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
      *
      */
-    @Suppress("UNUSED_PARAMETER")
     fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: Int, privacyKey: ByteArray) {
         // TODO
     }
@@ -121,7 +129,6 @@ object Crypto {
      * @param N     128-bit Network key.
      * @return 64-bit Network ID.
      */
-    @Suppress("MemberVisibilityCanBePrivate")
     fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
 
     /**
