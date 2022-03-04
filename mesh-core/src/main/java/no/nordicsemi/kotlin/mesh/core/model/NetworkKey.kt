@@ -1,6 +1,9 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.KeyRefreshPhaseSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 
 /**
  * Application Keys are used to secure communications at the upper transport layer.
@@ -18,10 +21,14 @@ import kotlinx.serialization.Serializable
 data class NetworkKey internal constructor(
     val name: String,
     val index: Int,
+    @Serializable(with = KeyRefreshPhaseSerializer::class)
     val phase: KeyRefreshPhase,
+    @Serializable(with = KeySerializer::class)
     val key: ByteArray,
     val minSecurity: Security,
+    @Serializable(with = KeySerializer::class)
     var oldKey: ByteArray?,
+    @Serializable(with = TimestampSerializer::class)
     val timestamp: Long
 ) {
     override fun equals(other: Any?): Boolean {
