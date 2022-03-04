@@ -1,6 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -11,15 +13,14 @@ import no.nordicsemi.kotlin.mesh.core.model.*
  */
 internal object RelaySerializer : KSerializer<Relay?> {
 
-    override fun deserialize(decoder: Decoder): Relay? {
-        TODO("Not yet implemented")
-    }
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(serialName = "relay", PrimitiveKind.INT)
 
-    override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
+    override fun deserialize(decoder: Decoder) =
+        Relay(featureState = FeatureState.from(decoder.decodeInt()))
 
     override fun serialize(encoder: Encoder, value: Relay?) {
-        TODO("Not yet implemented")
+        value?.let { relay -> encoder.encodeInt(relay.featureState.state) }
     }
 }
 
@@ -28,15 +29,14 @@ internal object RelaySerializer : KSerializer<Relay?> {
  */
 internal object ProxySerializer : KSerializer<Proxy?> {
 
-    override fun deserialize(decoder: Decoder): Proxy? {
-        TODO("Not yet implemented")
-    }
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(serialName = "proxy", PrimitiveKind.INT)
 
-    override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
+    override fun deserialize(decoder: Decoder) =
+        Proxy(featureState = FeatureState.from(decoder.decodeInt()))
 
     override fun serialize(encoder: Encoder, value: Proxy?) {
-        TODO("Not yet implemented")
+        value?.let { proxy -> encoder.encodeInt(proxy.featureState.state) }
     }
 }
 
@@ -45,15 +45,14 @@ internal object ProxySerializer : KSerializer<Proxy?> {
  */
 internal object FriendSerializer : KSerializer<Friend?> {
 
-    override fun deserialize(decoder: Decoder): Friend? {
-        TODO("Not yet implemented")
-    }
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(serialName = "friend", PrimitiveKind.INT)
 
-    override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
+    override fun deserialize(decoder: Decoder): Friend =
+        Friend(featureState = FeatureState.from(decoder.decodeInt()))
 
     override fun serialize(encoder: Encoder, value: Friend?) {
-        TODO("Not yet implemented")
+        value?.let { friend -> encoder.encodeInt(friend.featureState.state) }
     }
 }
 
@@ -62,28 +61,13 @@ internal object FriendSerializer : KSerializer<Friend?> {
  */
 internal object LowPowerSerializer : KSerializer<LowPower?> {
 
-    override fun deserialize(decoder: Decoder): LowPower? {
-        TODO("Not yet implemented")
-    }
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(serialName = "lowPower", PrimitiveKind.INT)
 
-    override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
+    override fun deserialize(decoder: Decoder): LowPower =
+        LowPower(featureState = FeatureState.from(decoder.decodeInt()))
 
     override fun serialize(encoder: Encoder, value: LowPower?) {
-        TODO("Not yet implemented")
-    }
-}
-
-internal object FeatureSerializer : KSerializer<Feature?> {
-
-    override fun deserialize(decoder: Decoder): Feature? {
-        TODO("Not yet implemented")
-    }
-
-    override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
-
-    override fun serialize(encoder: Encoder, value: Feature?) {
-        TODO("Not yet implemented")
+        value?.let { lowPower -> encoder.encodeInt(lowPower.featureState.state) }
     }
 }
