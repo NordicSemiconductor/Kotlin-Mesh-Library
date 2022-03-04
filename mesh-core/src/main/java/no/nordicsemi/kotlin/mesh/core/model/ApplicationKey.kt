@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 
 /**
  * Application Keys are used to secure communications at the upper transport layer.
@@ -18,7 +19,9 @@ data class ApplicationKey internal constructor(
     val name: String,
     val index: Int,
     val boundNetKey: Int,
+    @Serializable(with = KeySerializer::class)
     val key: ByteArray,
+    @Serializable(with = KeySerializer::class)
     val oldKey: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {

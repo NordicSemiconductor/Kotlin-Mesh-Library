@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
@@ -43,8 +44,8 @@ data class Node(
     val elements: List<Element>,
     val appKeys: List<NodeKey>,
 ) {
-
-    var security: Security = Security.INSECURE
+    @Serializable(with = SecuritySerializer::class)
+    var security: Security = Insecure
         internal set
     var configComplete: Boolean = false
         internal set

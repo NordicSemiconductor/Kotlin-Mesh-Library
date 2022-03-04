@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 /**
@@ -7,23 +9,23 @@ package no.nordicsemi.kotlin.mesh.core.model
  * to “secure”; otherwise, the value of the minSecurity is set to “insecure”.
  */
 @Suppress("unused")
-enum class Security(val security: String) {
-    // TODO to be verified
-    INSECURE("insecure"),
-    SECURE("secure");
-
+sealed class Security(val security: String) {
     companion object {
 
         /**
          * Parses the security level from the security level description.
+         * 
          * @param security Security level.
          * @return Security level
          * @throws IllegalArgumentException  if the security level is not "insecure" or "secure"
          */
         fun from(security: String): Security = when (security) {
-            "insecure" -> INSECURE
-            "secure" -> SECURE
-            else -> throw IllegalArgumentException("Security level must be either insecure or secure!");
+            "insecure" -> Insecure
+            "secure" -> Secure
+            else -> throw IllegalArgumentException("Security level must be either insecure or secure!")
         }
     }
 }
+
+object Insecure : Security(security = "insecure")
+object Secure : Security(security = "secure")

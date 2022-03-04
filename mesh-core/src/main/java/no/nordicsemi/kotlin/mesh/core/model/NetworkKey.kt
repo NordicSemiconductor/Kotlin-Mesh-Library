@@ -1,8 +1,10 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeyRefreshPhaseSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 
 /**
@@ -25,6 +27,8 @@ data class NetworkKey internal constructor(
     val phase: KeyRefreshPhase,
     @Serializable(with = KeySerializer::class)
     val key: ByteArray,
+    @SerialName(value = "minSecurity")
+    @Serializable(with = SecuritySerializer::class)
     val minSecurity: Security,
     @Serializable(with = KeySerializer::class)
     var oldKey: ByteArray?,

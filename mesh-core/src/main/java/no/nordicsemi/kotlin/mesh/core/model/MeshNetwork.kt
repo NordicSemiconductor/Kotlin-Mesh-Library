@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import java.util.*
 
@@ -26,6 +27,12 @@ import java.util.*
 @Serializable
 class MeshNetwork(@Serializable(with = UuidSerializer::class) val meshUUID: UUID = UUID.randomUUID()) {
 
+    @SerialName(value = "\$schema")
+    internal var schema = "http://json-schema.org/draft-04/schema#"
+    internal var id =
+        "http://www.bluetooth.com/specifications/assigned-numbers/meshprofile/cdb-schema.json#"
+    internal var version = "1.0.0"
+
     var meshName: String = "Mesh Network"
         set(value) {
             require(meshName.isNotBlank()) { "Network name cannot be empty!" }
@@ -33,6 +40,7 @@ class MeshNetwork(@Serializable(with = UuidSerializer::class) val meshUUID: UUID
             updateTimestamp()
         }
 
+    @Serializable(with = TimestampSerializer::class)
     var timestamp: Long = System.currentTimeMillis()
         private set
 
