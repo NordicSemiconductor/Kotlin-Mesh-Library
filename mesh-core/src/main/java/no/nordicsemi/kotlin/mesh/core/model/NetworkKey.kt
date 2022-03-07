@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
@@ -16,7 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
  * @param index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
  * @param phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
  * @param key           128-bit application key.
- * @param minSecurity   A
+ * @param security   A
  * @param oldKey        OldKey property contains the previous application key.
  */
 @Serializable
@@ -29,12 +31,31 @@ data class NetworkKey internal constructor(
     val key: ByteArray,
     @SerialName(value = "minSecurity")
     @Serializable(with = SecuritySerializer::class)
-    val minSecurity: Security,
+    val security: Security,
+    @SerialName(value = "oldKey")
     @Serializable(with = KeySerializer::class)
-    var oldKey: ByteArray?,
+    var oldKey: ByteArray? = null,
     @Serializable(with = TimestampSerializer::class)
     val timestamp: Long
 ) {
+
+    internal constructor(
+        name: String,
+        index: Int,
+        phase: KeyRefreshPhase,
+        key: ByteArray,
+        security: Security,
+        timestamp: Long
+    ) : this(
+        name = name,
+        index = index,
+        phase = phase,
+        key = key,
+        security = security,
+        oldKey = null,
+        timestamp = timestamp
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -45,7 +66,7 @@ data class NetworkKey internal constructor(
         if (index != other.index) return false
         if (phase != other.phase) return false
         if (!key.contentEquals(other.key)) return false
-        if (minSecurity != other.minSecurity) return false
+        if (security != other.security) return false
         if (timestamp != other.timestamp) return false
 
         return true
@@ -56,7 +77,7 @@ data class NetworkKey internal constructor(
         result = 31 * result + index
         result = 31 * result + phase.hashCode()
         result = 31 * result + key.contentHashCode()
-        result = 31 * result + minSecurity.hashCode()
+        result = 31 * result + security.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
         return result

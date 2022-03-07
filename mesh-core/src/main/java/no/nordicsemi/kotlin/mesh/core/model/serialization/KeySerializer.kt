@@ -12,8 +12,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
  * Custom JSON serializer/deserializer for byte arrays.
  */
 internal object KeySerializer : KSerializer<ByteArray> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "key", kind = PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName = "Key", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder) = decoder.decodeString().toByteArray()
 

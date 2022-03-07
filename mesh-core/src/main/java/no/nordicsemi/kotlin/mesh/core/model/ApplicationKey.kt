@@ -22,7 +22,7 @@ data class ApplicationKey internal constructor(
     @Serializable(with = KeySerializer::class)
     val key: ByteArray,
     @Serializable(with = KeySerializer::class)
-    val oldKey: ByteArray
+    val oldKey: ByteArray? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
