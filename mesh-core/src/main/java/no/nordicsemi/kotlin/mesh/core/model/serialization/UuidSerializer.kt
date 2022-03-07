@@ -18,7 +18,7 @@ internal object UuidSerializer : KSerializer<UUID> {
     private val HEX_UUID_PATTERN = Regex("[0-9a-fA-F]{32}")
 
     override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor(serialName = "meshUUID", kind = PrimitiveKind.STRING)
+        get() = PrimitiveSerialDescriptor(serialName = "UUID", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UUID =
         decode(uuid = decoder.decodeString())
@@ -38,7 +38,7 @@ internal object UuidSerializer : KSerializer<UUID> {
     /**
      * Formats a UUID string to a standard UUID format.
      */
-    private fun decode(uuid: String) = UUID.fromString(uuid.takeIf {
+    private fun decode(uuid: String) = UUID.fromString(uuid.uppercase().takeIf {
         HEX_UUID_PATTERN.matches(it)
     }?.apply {
         StringBuilder(this).apply {
@@ -46,6 +46,6 @@ internal object UuidSerializer : KSerializer<UUID> {
             insert(13, "-")
             insert(18, "-")
             insert(23, "-")
-        }.toString().uppercase()
+        }
     } ?: uuid)
 }
