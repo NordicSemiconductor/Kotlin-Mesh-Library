@@ -31,8 +31,4 @@ object ModelIdSerializer : KSerializer<ModelId> {
     override fun serialize(encoder: Encoder, value: ModelId) {
         TODO("Not yet implemented")
     }
-
-    fun isSigModel(modelId: UInt){
-
-    }
 }
