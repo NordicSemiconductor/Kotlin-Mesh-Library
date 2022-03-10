@@ -2,6 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
+
 /**
  * Security level describes a minimum security level of a subnet associated with this network key.
  * If all the nodes on the subnet associated with this network key have been provisioned using the
@@ -9,6 +12,7 @@ package no.nordicsemi.kotlin.mesh.core.model
  * to “secure”; otherwise, the value of the minSecurity is set to “insecure”.
  */
 @Suppress("unused")
+@Serializable(with = SecuritySerializer::class)
 sealed class Security(val security: String) {
     companion object {
 

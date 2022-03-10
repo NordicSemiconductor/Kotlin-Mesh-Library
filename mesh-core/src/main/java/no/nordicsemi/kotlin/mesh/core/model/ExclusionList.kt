@@ -34,8 +34,8 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
      */
     fun exclude(node: Node) {
         val lastAddress = node.elements.size
-        for (i in node.unicastAddress.unicastAddress.toInt()..lastAddress) {
-            exclude(UnicastAddress(unicastAddress = i.toUShort()))
+        for (i in node.unicastAddress.address.toInt()..lastAddress) {
+            exclude(UnicastAddress(address = i.toUShort()))
         }
     }
 

@@ -1,5 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,17 +13,19 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Group(
     val name: String,
-    val address: Int,
-    val parentAddress: Int = 0x0000
+    @Contextual
+    val address: GroupAddress,
+    @Contextual
+    val parentAddress: GroupAddress = GroupAddress(address = 0x0000u)
 ) {
     init {
         require(name.isNotBlank()) { "Group name cannot be blank!" }
-        require(address in LOWER_BOUND..HIGHER_BOUND) { "Group address must be within 0xC000 and 0xFFFF!" }
-        require(parentAddress != 0x0000 && parentAddress in LOWER_BOUND..HIGHER_BOUND) { "Group address must be within 0xC000 and 0xFFFF!" }
+        require(address.address in LOWER_BOUND..HIGHER_BOUND) { "Group address must be within 0xC000 and 0xFFFF!" }
+        require(parentAddress.address.toInt() == 0x0000 && parentAddress.address in LOWER_BOUND..HIGHER_BOUND) { "Group address must be within 0xC000 and 0xFFFF!" }
     }
 
     companion object {
-        const val LOWER_BOUND = 0xC000
-        const val HIGHER_BOUND = 0xFFFF
+        const val LOWER_BOUND = 0xC000u
+        const val HIGHER_BOUND = 0xFEFFu
     }
 }

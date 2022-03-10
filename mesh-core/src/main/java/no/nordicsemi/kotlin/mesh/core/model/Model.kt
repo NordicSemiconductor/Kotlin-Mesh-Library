@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
@@ -16,7 +18,19 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Model internal constructor(
     val modelId: ModelId,
-    internal val subscribe: List<MeshAddress>,
-    val publish: Publish,
-    internal val bind: List<Int>,
-)
+) {
+    var subscribe = listOf<SubscriptionAddress>()
+        private set
+    var publish: Publish? = null
+        internal set
+    var bind = listOf<Int>()
+        private set
+
+    internal fun addSubscription(address: SubscriptionAddress) {
+        this.subscribe += address
+    }
+
+    internal fun bind(index: Int) {
+        this.bind += index
+    }
+}

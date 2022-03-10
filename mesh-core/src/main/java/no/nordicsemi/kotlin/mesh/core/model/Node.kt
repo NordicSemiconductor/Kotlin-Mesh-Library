@@ -2,9 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
-import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 
 /**
@@ -35,8 +37,10 @@ import java.util.*
  */
 @Serializable
 data class Node(
-    @Serializable(with = UuidSerializer::class)
+    @SerialName(value = "UUID")
+    @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
+    @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray,
     val netKeys: List<NodeKey>,
     val name: String,
@@ -44,18 +48,21 @@ data class Node(
     val elements: List<Element>,
     val appKeys: List<NodeKey>,
 ) {
-    @Serializable(with = SecuritySerializer::class)
     var security: Security = Insecure
         internal set
     var configComplete: Boolean = false
         internal set
-    var cid: Int? = null
+    @Serializable(IdentifiersSerializer::class)
+    var cid: UShort? = null
         internal set
-    var pid: Int? = null
+    @Serializable(IdentifiersSerializer::class)
+    var pid: UShort? = null
         internal set
-    var vid: Int? = null
+    @Serializable(IdentifiersSerializer::class)
+    var vid: UShort? = null
         internal set
-    var crpl: Int? = null
+    @Serializable(IdentifiersSerializer::class)
+    var crpl: UShort? = null
         internal set
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
         internal set
@@ -108,10 +115,10 @@ data class Node(
         result = 31 * result + appKeys.hashCode()
         result = 31 * result + security.hashCode()
         result = 31 * result + configComplete.hashCode()
-        result = 31 * result + (cid ?: 0)
-        result = 31 * result + (pid ?: 0)
-        result = 31 * result + (vid ?: 0)
-        result = 31 * result + (crpl ?: 0)
+        result = 31 * result + (cid?.hashCode() ?: 0)
+        result = 31 * result + (pid?.hashCode() ?: 0)
+        result = 31 * result + (vid?.hashCode() ?: 0)
+        result = 31 * result + (crpl?.hashCode() ?: 0)
         result = 31 * result + features.hashCode()
         result = 31 * result + secureNetworkBeacon.hashCode()
         result = 31 * result + (networkTransmit?.hashCode() ?: 0)

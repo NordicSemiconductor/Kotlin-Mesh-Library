@@ -13,7 +13,7 @@ import java.util.*
  * as string with and without dashes and this Helper class encodes and decodes them accordingly.
  */
 
-internal object UuidSerializer : KSerializer<UUID> {
+internal object UUIDSerializer : KSerializer<UUID> {
 
     private val HEX_UUID_PATTERN = Regex("[0-9a-fA-F]{32}")
 
@@ -38,14 +38,14 @@ internal object UuidSerializer : KSerializer<UUID> {
     /**
      * Formats a UUID string to a standard UUID format.
      */
-    private fun decode(uuid: String) = UUID.fromString(uuid.uppercase().takeIf {
+    internal fun decode(uuid: String) = UUID.fromString(uuid.uppercase().takeIf {
         HEX_UUID_PATTERN.matches(it)
-    }?.apply {
-        StringBuilder(this).apply {
+    }?.let { it ->
+        StringBuilder(it).apply {
             insert(8, "-")
             insert(13, "-")
             insert(18, "-")
             insert(23, "-")
-        }
+        }.toString()
     } ?: uuid)
 }
