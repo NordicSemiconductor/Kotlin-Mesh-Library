@@ -147,8 +147,7 @@ sealed interface HeartbeatSubscriptionSource
 /** Heartbeat subscription destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnassignedAddress]. */
 sealed interface HeartbeatSubscriptionDestination
 
-
-/** Subscription address a model may subscribe to. This represents a [GroupAddress], [VirtualAddress], [AllProxies], [AllFriends] or an [AllRelays] address. */
+/** Publication address a model may subscribe to. This represents a [UnicastAddress], [GroupAddress] or a [VirtualAddress]. */
 sealed interface PublicationAddress
 
 /** Subscription address a model may subscribe to. This represents a [GroupAddress], [VirtualAddress], [AllProxies], [AllFriends] or an [AllRelays] address. */
