@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.mesh.crypto.Crypto.createVirtualAddress
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k1
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k2
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k3
@@ -160,6 +161,14 @@ class CryptoTest {
             nonce = nonce,
             micSize = mic
         ).encodeHex()
+        Assert.assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testVirtualAddress() {
+        val uuid = UUID.fromString("0073e7e4-d8b9-440f-af84-15df4c56c0e1")
+        val expected = "B529".toUInt(radix = 16).toUShort()
+        val actual = createVirtualAddress(uuid = uuid)
         Assert.assertEquals(expected, actual)
     }
 }

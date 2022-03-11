@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
 import org.bouncycastle.crypto.engines.AESEngine
@@ -23,13 +25,18 @@ object Crypto {
     private val NKIK = "nkik".encodeToByteArray()
     private val NKBK = "nkbk".encodeToByteArray()
     private val ID128 = "id128".encodeToByteArray()
+    private val VTAD = "vtad".encodeToByteArray()
 
     /**
      * Creates a 16-bit virtual address for a given UUID.
      * @param uuid 128-bit Label UUID
      */
     fun createVirtualAddress(uuid: UUID): UShort {
-        TODO("Not yet implemented")
+        val uuidHex = uuid.toString().replace("-", "").decodeHex()
+        val salt = salt(VTAD)
+        val hash = cmac(input = uuidHex, key = salt)
+        return (0x8000 or (hash.copyOfRange(fromIndex = 14, toIndex = hash.count()).encodeHex()
+            .toInt(radix = 16) and 0x3FFF)).toUShort()
     }
 
     /**
