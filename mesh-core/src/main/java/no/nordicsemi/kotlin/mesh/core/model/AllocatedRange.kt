@@ -1,8 +1,19 @@
-@file:Suppress("unused", "EXPERIMENTAL_API_USAGE")
+@file:Suppress("unused", "EXPERIMENTAL_API_USAGE", "SERIALIZER_TYPE_INCOMPATIBLE")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+
+/**
+ * Range
+ *
+ * @property low    Lower bound of a given range.
+ * @property high   Higher bound of a given range.
+ */
+sealed interface Range {
+    val low: UShort
+    val high: UShort
+}
 
 /**
  *  Allocated Range.
@@ -12,7 +23,10 @@ import kotlinx.serialization.Serializable
  */
 // TODO Check IntRange
 @Serializable
-sealed class AllocatedRange(val low: UShort, val high: UShort)
+sealed class AllocatedRange : Range {
+    abstract override val low: UShort
+    abstract override val high: UShort
+}
 
 /**
  * Allocated address range
@@ -39,7 +53,10 @@ sealed class AllocatedAddressRange {
 data class AllocatedUnicastRange(
     override val lowAddress: UnicastAddress,
     override val highAddress: UnicastAddress
-) : AllocatedAddressRange()
+) : AllocatedAddressRange() {
+    val low = lowAddress.address
+    val high = highAddress.address
+}
 
 /**
  * The AllocatedGroupRange represents the range of group addresses that the Provisioner can allocate to
@@ -54,7 +71,10 @@ data class AllocatedUnicastRange(
 data class AllocatedGroupRange(
     override val lowAddress: GroupAddress,
     override val highAddress: GroupAddress
-) : AllocatedAddressRange()
+) : AllocatedAddressRange() {
+    val low = lowAddress.address
+    val high = highAddress.address
+}
 
 /**
  * The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to register
@@ -69,4 +89,7 @@ data class AllocatedGroupRange(
 data class AllocatedSceneRange(
     val firstScene: SceneNumber,
     val lastScene: SceneNumber
-) //: AllocatedRange(low = firstScene, high = lastScene)
+) : AllocatedRange() {
+    override val low = firstScene
+    override val high = lastScene
+}
