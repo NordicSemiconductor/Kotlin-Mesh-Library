@@ -7,16 +7,16 @@ import java.util.*
 class ExclusionListTest {
 
     private val elements = arrayListOf(
-        Element(name = "Element 0", 0, 0, models = listOf()),
-        Element(name = "Element 1", 1, 0, models = listOf()),
-        Element(name = "Element 2", 2, 0, models = listOf())
+        Element(name = "Element 0", 0, 0u, models = listOf()),
+        Element(name = "Element 1", 1, 0u, models = listOf()),
+        Element(name = "Element 2", 2, 0u, models = listOf())
     )
     private val node = Node(
         uuid = UUID.randomUUID(),
         deviceKey = byteArrayOf(),
         netKeys = listOf(),
         name = "Node",
-        unicastAddress = UnicastAddress(address = 1.toUShort()),
+        unicastAddress = UnicastAddress(address = 1u),
         elements = elements,
         appKeys = listOf()
     )
@@ -25,16 +25,16 @@ class ExclusionListTest {
     fun testExcludeUnicast() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(address = UnicastAddress(address = 1u))
-        Assert.assertEquals(UnicastAddress(address = 1.toUShort()), exclusionList.addresses[0])
+        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList.addresses[0])
     }
 
     @Test
     fun testExcludeNode() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(node = node)
-        Assert.assertEquals(UnicastAddress(address = 1.toUShort()), exclusionList.addresses[0])
-        Assert.assertEquals(UnicastAddress(address = 2.toUShort()), exclusionList.addresses[1])
-        Assert.assertEquals(UnicastAddress(address = 3.toUShort()), exclusionList.addresses[2])
+        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList.addresses[0])
+        Assert.assertEquals(UnicastAddress(address = 2u), exclusionList.addresses[1])
+        Assert.assertEquals(UnicastAddress(address = 3u), exclusionList.addresses[2])
     }
 
     @Test
