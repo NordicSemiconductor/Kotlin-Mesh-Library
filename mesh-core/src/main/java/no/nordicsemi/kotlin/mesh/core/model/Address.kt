@@ -46,7 +46,7 @@ sealed interface HasAddress {
 /**
  * Wrapper class for [Address].
  */
-@Serializable
+@Serializable(with = MeshAddressSerializer::class)
 sealed class MeshAddress : HasAddress {
     abstract override val address: Address
 
