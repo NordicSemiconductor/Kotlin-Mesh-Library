@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.util.*
@@ -25,6 +26,7 @@ import java.util.*
  */
 @Serializable
 data class Publish(
+    @Serializable
     val address: PublicationAddress,
     val index: Int,
     val ttl: Int,

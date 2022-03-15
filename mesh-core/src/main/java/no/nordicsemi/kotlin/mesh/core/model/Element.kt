@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationSerializer
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
@@ -16,7 +17,8 @@ import kotlinx.serialization.Transient
 data class Element(
     @Transient val name: String? = null,
     val index: Int,
-    val location: Int,
+    @Serializable(with = LocationSerializer::class)
+    val location: UShort,
     val models: List<Model>
 ) {
     init {

@@ -4,7 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.IdentifiersSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
@@ -44,6 +44,7 @@ data class Node(
     val deviceKey: ByteArray,
     val netKeys: List<NodeKey>,
     val name: String,
+    @Serializable
     val unicastAddress: UnicastAddress,
     val elements: List<Element>,
     val appKeys: List<NodeKey>,

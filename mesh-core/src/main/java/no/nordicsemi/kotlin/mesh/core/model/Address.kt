@@ -1,9 +1,9 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "SERIALIZER_TYPE_INCOMPATIBLE")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -35,32 +35,67 @@ private const val allRelays: Address = 0xFFFEu
 internal const val allNodes: Address = 0xFFFFu
 
 /**
- * Wrapper class for [Address].
+ * An interface containing a property type address.
  *
  * @property address Unsigned 16-bit [Address].
  */
+sealed interface HasAddress {
+    val address: Address
+}
+
+/**
+ * Wrapper class for [Address].
+ */
 @Serializable
-sealed class MeshAddress {
-    abstract val address: Address
+sealed class MeshAddress : HasAddress {
+    abstract override val address: Address
+
+    companion object {
+
+        /**
+         * Creates a Mesh address of type Unassigned, Unicast or Group address using the given address value.
+         *
+         * @param address Address value.
+         * @throws IllegalArgumentException if the given address value is not a valid Unassigned, Unicast or a Group address.
+         */
+        fun create(address: Address): MeshAddress = when {
+            UnassignedAddress.isValid(address = address) -> UnassignedAddress
+            UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
+            GroupAddress.isValid(address = address) -> GroupAddress(address = address)
+            else -> {
+                throw IllegalArgumentException("Unable to create an Address for the given address value!")
+            }
+        }
+
+        /**
+         * Creates a virtual address using the given UUID Label
+         *
+         * @param uuid UUID Label
+         */
+        fun create(uuid: UUID) = VirtualAddress(uuid = uuid)
+    }
 }
 
 /**
  * An unassigned address is an address in which the element of a node has not been configured yet or no address has been allocated.
  * The unassigned address has the value 0x0000.
  */
-@Serializable
+@Serializable(with = MeshAddressSerializer::class)
 object UnassignedAddress : MeshAddress(),
-    HeartbeatPublicationDestination, HeartbeatSubscriptionSource, HeartbeatSubscriptionDestination {
+    ParentGroupAddress,
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionSource,
+    HeartbeatSubscriptionDestination {
     override val address = unassignedAddress
+
+    fun isValid(address: Address): Boolean = address == unassignedAddress
 }
 
 /**
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address
  * shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.
- *
- * @property address Unsigned 16-bit [Address].
  */
-@Serializable
+@Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
     override val address: Address
 ) : MeshAddress(),
@@ -69,12 +104,12 @@ data class UnicastAddress(
     HeartbeatSubscriptionSource,
     HeartbeatSubscriptionDestination {
     init {
-        require(isInRange(address)) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
+        require(isValid(address)) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
     }
 
     companion object {
-        internal fun isInRange(unicastAddress: Address) =
-            unicastAddress in minUnicastAddress..maxUnicastAddress
+        fun isValid(address: Address) =
+            address in minUnicastAddress..maxUnicastAddress
     }
 }
 
@@ -83,10 +118,12 @@ data class UnicastAddress(
  * value that does not have to be managed centrally. One or more elements may be programmed to publish or subscribe to a Label UUID.
  * The Label UUID is not transmitted and shall be used as the Additional Data field of the message integrity check value in the upper transport layer.
  */
-@Serializable
+@Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
-    @Serializable(with = UUIDSerializer::class) val uuid: UUID
+    val uuid: UUID
 ) : MeshAddress(),
+    PrimaryGroupAddress,
+    ParentGroupAddress,
     PublicationAddress,
     SubscriptionAddress {
     override val address: Address = Crypto.createVirtualAddress(uuid)
@@ -96,35 +133,35 @@ data class VirtualAddress(
  * A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and bit 14 set to 1.
  * Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses in the range
  * 0xC000 through 0xFEFF are generally available for other usage.
- *
- * @property address Unsigned 16-bit [Address].
  */
-@Serializable
+@Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
     override val address: Address
 ) : MeshAddress(),
+    PrimaryGroupAddress,
+    ParentGroupAddress,
     PublicationAddress,
     SubscriptionAddress,
     HeartbeatPublicationDestination,
     HeartbeatSubscriptionDestination {
     init {
-        require(isInRange(address)) { "A valid group address must range from 0xC000 to 0xFEFF!" }
+        require(isValid(address)) { "A valid group address must range from 0xC000 to 0xFEFF!" }
     }
 
     companion object {
-        internal fun isInRange(groupAddress: Address) =
-            groupAddress in minGroupAddress..maxGroupAddress
+        fun isValid(address: Address) =
+            address in minGroupAddress..maxGroupAddress
     }
 }
 
 /**
  * There are two types of group address; those that can be assigned dynamically and those that are fixed.
  * Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
- *
- * @property address Unsigned 16-bit [Address].
  */
-sealed class FixedGroupAddress private constructor(override val address: Address) :
-    MeshAddress()
+@Serializable
+sealed class FixedGroupAddress private constructor(
+    override val address: Address
+) : MeshAddress()
 
 /** A message sent to the all-proxies address shall be processed by the primary element of all nodes that have the proxy functionality enabled. */
 object AllProxies : FixedGroupAddress(address = allProxies), SubscriptionAddress
@@ -139,16 +176,26 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
 object AllNodes : FixedGroupAddress(address = allNodes)
 
 /** Heartbeat publication destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnicastAddress]. */
-sealed interface HeartbeatPublicationDestination
+sealed interface HeartbeatPublicationDestination : HasAddress
 
 /** Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress] or an [UnassignedAddress]. */
-sealed interface HeartbeatSubscriptionSource
+sealed interface HeartbeatSubscriptionSource : HasAddress
 
 /** Heartbeat subscription destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnassignedAddress]. */
-sealed interface HeartbeatSubscriptionDestination
+sealed interface HeartbeatSubscriptionDestination : HasAddress
 
 /** Publication address a model may subscribe to. This represents a [UnicastAddress], [GroupAddress] or a [VirtualAddress]. */
-sealed interface PublicationAddress
+@Serializable(with = MeshAddressSerializer::class)
+sealed interface PublicationAddress : HasAddress
 
 /** Subscription address a model may subscribe to. This represents a [GroupAddress], [VirtualAddress], [AllProxies], [AllFriends] or an [AllRelays] address. */
-sealed interface SubscriptionAddress
+@Serializable(with = MeshAddressSerializer::class)
+sealed interface SubscriptionAddress : HasAddress
+
+/** Custom type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group */
+@Serializable(with = MeshAddressSerializer::class)
+sealed interface PrimaryGroupAddress : HasAddress
+
+/** Custom type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group */
+@Serializable(with = MeshAddressSerializer::class)
+sealed interface ParentGroupAddress : HasAddress

@@ -69,4 +69,4 @@ data class AllocatedGroupRange(
 data class AllocatedSceneRange(
     val firstScene: SceneNumber,
     val lastScene: SceneNumber
-)
+) //: AllocatedRange(low = firstScene, high = lastScene)

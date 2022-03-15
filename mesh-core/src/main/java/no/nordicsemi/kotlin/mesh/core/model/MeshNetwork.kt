@@ -21,8 +21,7 @@ import java.util.*
  * @property nodes                  List of nodes that includes information about mesh nodes in the mesh network.
  * @property groups                 List of groups that includes information about groups configured in the mesh network.
  * @property scenes                 List of scenes that includes information about scenes configured in the mesh network.
- * @property networkExclusions      List of [ExclusionList]
- *
+ * @property networkExclusions      List of [ExclusionList].
  */
 @Serializable
 class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID = UUID.randomUUID()) {

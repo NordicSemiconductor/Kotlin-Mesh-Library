@@ -9,18 +9,16 @@ import kotlinx.serialization.encoding.Encoder
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 /**
- * Custom JSON serializer/deserializer for Security.
+ * Custom JSON serializer/deserializer for location property of an Element.
  */
-object IdentifiersSerializer : KSerializer<UShort?> {
+object LocationSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "Identifiers", kind = PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(serialName = "Location", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UShort =
         decoder.decodeString().toUInt(radix = 16).toUShort()
 
-    override fun serialize(encoder: Encoder, value: UShort?) {
-        value?.let {
-            encoder.encodeString(it.toHex())
-        }
+    override fun serialize(encoder: Encoder, value: UShort) {
+        encoder.encodeString(value = value.toHex())
     }
 }

@@ -53,6 +53,62 @@
             "key": "A327BB410CF137455A4F234DF8134C78"
         }
     ],
+    "provisioners":
+    [
+        {
+            "provisionerName": "Brian's Phone",
+            "UUID": "70CF7C97-32A3-45B6-9149-4810D2E9CBF4",
+            "allocatedGroupRange":
+            [
+                {
+                    "highAddress": "C1FF",
+                    "lowAddress": "C100"
+                }
+            ],
+            "allocatedUnicastRange":
+            [
+                {
+                    "lowAddress": "0001",
+                    "highAddress": "00FF"
+                },
+                {
+                    "lowAddress": "0301",
+                    "highAddress": "03FF"
+                }
+            ],
+            "allocatedSceneRange":
+            []
+        },
+        {
+            "provisionerName": "Mary's Phone",
+            "UUID": "577C2832-B345-A694-4A48-10D2C9DFE456",
+            "allocatedGroupRange":
+            [
+                {
+                    "highAddress": "C0FF",
+                    "lowAddress": "C000"
+                },
+                {
+                    "highAddress": "C2FF",
+                    "lowAddress": "C200"
+                }
+            ],
+            "allocatedUnicastRange":
+            [
+                {
+                    "highAddress": "01FF",
+                    "lowAddress": "0100"
+                }
+            ],
+            "allocatedSceneRange":
+            [
+                {
+                    "firstScene": "0001",
+                    "lastScene": "0040"
+                }
+            ]
+        }
+    ],
     "nodes":
     [
         {
@@ -1336,62 +1392,6 @@
                 }
             ],
             "excluded": false
-        }
-    ],
-    "provisioners":
-    [
-        {
-            "provisionerName": "Brian's Phone",
-            "UUID": "70CF7C97-32A3-45B6-9149-4810D2E9CBF4",
-            "allocatedGroupRange":
-            [
-                {
-                    "highAddress": "C1FF",
-                    "lowAddress": "C100"
-                }
-            ],
-            "allocatedUnicastRange":
-            [
-                {
-                    "lowAddress": "0001",
-                    "highAddress": "00FF"
-                },
-                {
-                    "lowAddress": "0301",
-                    "highAddress": "03FF"
-                }
-            ],
-            "allocatedSceneRange":
-            []
-        },
-        {
-            "provisionerName": "Mary's Phone",
-            "UUID": "577C2832-B345-A694-4A48-10D2C9DFE456",
-            "allocatedGroupRange":
-            [
-                {
-                    "highAddress": "C0FF",
-                    "lowAddress": "C000"
-                },
-                {
-                    "highAddress": "C2FF",
-                    "lowAddress": "C200"
-                }
-            ],
-            "allocatedUnicastRange":
-            [
-                {
-                    "highAddress": "01FF",
-                    "lowAddress": "0100"
-                }
-            ],
-            "allocatedSceneRange":
-            [
-                {
-                    "firstScene": "0001",
-                    "lastScene": "0040"
-                }
-            ]
         }
     ],
     "groups":

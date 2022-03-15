@@ -31,7 +31,7 @@ internal object UUIDSerializer : KSerializer<UUID> {
      *
      * @return a UUID string without dashes.
      */
-    private fun encode(uuid: UUID) = uuid.toString()
+    internal fun encode(uuid: UUID) = uuid.toString()
         .filter { !it.isLetterOrDigit() }
         .uppercase()
 
