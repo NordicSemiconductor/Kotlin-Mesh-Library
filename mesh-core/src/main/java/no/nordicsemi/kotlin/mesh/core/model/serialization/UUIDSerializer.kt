@@ -24,16 +24,14 @@ internal object UUIDSerializer : KSerializer<UUID> {
         decode(uuid = decoder.decodeString())
 
     override fun serialize(encoder: Encoder, value: UUID) =
-        encoder.encodeString(encode(uuid = value))
+        encoder.encodeString(value = value.toString())
 
     /**
      * Drops the dashes in the UUID.
      *
      * @return a UUID string without dashes.
      */
-    internal fun encode(uuid: UUID) = uuid.toString()
-        .filter { !it.isLetterOrDigit() }
-        .uppercase()
+    internal fun encode(uuid: UUID) = uuid.toString().uppercase().filter { it.isLetterOrDigit() }
 
     /**
      * Formats a UUID string to a standard UUID format.
