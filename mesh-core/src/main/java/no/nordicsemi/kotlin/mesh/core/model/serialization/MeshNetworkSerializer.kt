@@ -39,7 +39,7 @@ internal object MeshNetworkSerializer {
      *
      * @param network MeshNetwork to be serialized.
      */
-    fun serialize(network: MeshNetwork) = JsonObject(content = jsonSerializer.run {
+    internal fun serialize(network: MeshNetwork) = JsonObject(content = jsonSerializer.run {
         encodeToJsonElement(value = buildMap<String, JsonElement> {
             put(KEY_SCHEMA, JsonPrimitive(value = schema))
             put(KEY_ID, JsonPrimitive(value = id))

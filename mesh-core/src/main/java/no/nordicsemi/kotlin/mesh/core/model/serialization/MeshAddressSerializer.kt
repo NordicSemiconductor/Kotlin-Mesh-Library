@@ -22,22 +22,23 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
             else -> { value.address.toHex()}
         })
     }
+
+    /**
+     * Parses the 4-character or a 32-character hexadecimal string to a Mesh address.
+     * @param hexAddress Hex address.
+     */
+    private fun parse(hexAddress: String) = hexAddress.takeIf {
+        it.length == 4
+    }?.let { it ->
+        val address = it.toUInt(16).toUShort()
+        when {
+            UnassignedAddress.isValid(address = address) -> UnassignedAddress
+            UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
+            GroupAddress.isValid(address = address) -> GroupAddress(address = address)
+            else -> throw IllegalArgumentException("Error while parsing address!")
+        }
+    } ?: run {
+        VirtualAddress(UUIDSerializer.decode(uuid = hexAddress))
+    }
 }
 
-/**
- * Parses the 4-character or a 32-character hexadecimal string to a Mesh address.
- * @param hexAddress Hex address.
- */
-private fun parse(hexAddress: String) = hexAddress.takeIf {
-    it.length == 4
-}?.let { it ->
-    val address = it.toUInt(16).toUShort()
-    when {
-        UnassignedAddress.isValid(address = address) -> UnassignedAddress
-        UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
-        GroupAddress.isValid(address = address) -> GroupAddress(address = address)
-        else -> throw IllegalArgumentException("Error while parsing address!")
-    }
-} ?: run {
-    VirtualAddress(UUIDSerializer.decode(uuid = hexAddress))
-}

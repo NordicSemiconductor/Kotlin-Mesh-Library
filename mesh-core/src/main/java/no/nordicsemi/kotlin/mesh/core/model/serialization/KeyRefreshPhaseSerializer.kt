@@ -13,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
  */
 object KeyRefreshPhaseSerializer : KSerializer<KeyRefreshPhase> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "phase", kind = PrimitiveKind.INT)
+        PrimitiveSerialDescriptor(serialName = "Phase", kind = PrimitiveKind.INT)
 
     override fun deserialize(decoder: Decoder) =
         KeyRefreshPhase.from(decoder.decodeInt())
