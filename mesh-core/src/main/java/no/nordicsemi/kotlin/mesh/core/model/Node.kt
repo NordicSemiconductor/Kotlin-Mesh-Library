@@ -44,7 +44,6 @@ data class Node(
     val deviceKey: ByteArray,
     val netKeys: List<NodeKey>,
     val name: String,
-    @Serializable
     val unicastAddress: UnicastAddress,
     val elements: List<Element>,
     val appKeys: List<NodeKey>,

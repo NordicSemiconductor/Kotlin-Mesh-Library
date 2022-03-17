@@ -26,7 +26,6 @@ import java.util.*
  */
 @Serializable
 data class Publish(
-    @Serializable
     val address: PublicationAddress,
     val index: Int,
     val ttl: Int,
