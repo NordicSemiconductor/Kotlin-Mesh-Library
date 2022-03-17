@@ -17,7 +17,7 @@ internal object TimestampSerializer : KSerializer<Long> {
         get() = PrimitiveSerialDescriptor(serialName = "timestamp", kind = PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: Long) {
-        Instant.fromEpochMilliseconds(epochMilliseconds = value)
+        encoder.encodeString(Instant.fromEpochMilliseconds(epochMilliseconds = value).toString())
     }
 
     override fun deserialize(decoder: Decoder): Long =
