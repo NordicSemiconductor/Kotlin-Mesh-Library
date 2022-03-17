@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Security
 /**
  * Custom JSON serializer/deserializer for Security.
  */
-object SecuritySerializer : KSerializer<Security> {
+internal object SecuritySerializer : KSerializer<Security> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Security", kind = PrimitiveKind.STRING)
 

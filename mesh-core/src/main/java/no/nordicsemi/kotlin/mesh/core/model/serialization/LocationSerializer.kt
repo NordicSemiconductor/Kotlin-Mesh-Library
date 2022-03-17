@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 /**
  * Custom JSON serializer/deserializer for location property of an Element.
  */
-object LocationSerializer : KSerializer<UShort> {
+internal object LocationSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Location", kind = PrimitiveKind.STRING)
 

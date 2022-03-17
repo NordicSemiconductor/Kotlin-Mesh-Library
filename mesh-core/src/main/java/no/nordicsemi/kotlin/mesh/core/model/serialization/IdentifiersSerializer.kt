@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 /**
  * Custom JSON serializer/deserializer for Identifier.
  */
-object IdentifiersSerializer : KSerializer<UShort?> {
+internal object IdentifiersSerializer : KSerializer<UShort?> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Identifiers", kind = PrimitiveKind.STRING)
 
