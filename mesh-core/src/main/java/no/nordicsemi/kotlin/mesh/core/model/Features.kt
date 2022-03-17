@@ -1,9 +1,9 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "SERIALIZER_TYPE_INCOMPATIBLE")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
 
 /**
  * Features represents the functionality of a [Node] that is determined by the set features that the node supports.
@@ -17,25 +17,20 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.*
  * @property lowPower       Ability to help a node supporting the Low Power feature to operate by storing messages destined for those nodes.
  *                          Null if the current [FeatureState] of the [LowPower] feature is unknown.
  */
-@Serializable
+@Serializable(with = FeaturesSerializer::class)
 data class Features internal constructor(
-    @Serializable(with = RelaySerializer::class)
-    val relay: Relay?,
-    @Serializable(with = ProxySerializer::class)
-    val proxy: Proxy?,
-    @Serializable(with = FriendSerializer::class)
-    val friend: Friend?,
-    @Serializable(with = LowPowerSerializer::class)
-    val lowPower: LowPower?
+    val relay: Relay? = null,
+    val proxy: Proxy? = null,
+    val friend: Friend? = null,
+    val lowPower: LowPower? = null
 )
 
 /**
- * Feature
+ * Represents a type feature.
  */
-sealed class Feature(
-    @Serializable(with = FeatureStateSerializer::class)
-    open val featureState: FeatureState
-)
+sealed class Feature {
+    abstract val featureState: FeatureState
+}
 
 /**
  * Relay feature is the ability to receive and retransmit mesh messages over the advertising
@@ -44,9 +39,8 @@ sealed class Feature(
  * @property featureState State of the relay feature.
  */
 data class Relay internal constructor(
-    @Serializable(with = FeatureStateSerializer::class)
     override val featureState: FeatureState
-) : Feature(featureState = featureState)
+) : Feature()
 
 /**
  * Proxy feature is the ability to receive and retransmit mesh messages between GATT and
@@ -55,9 +49,8 @@ data class Relay internal constructor(
  * @property featureState State of the proxy feature.
  */
 data class Proxy internal constructor(
-    @Serializable(with = FeatureStateSerializer::class)
     override val featureState: FeatureState
-) : Feature(featureState = featureState)
+) : Feature()
 
 /**
  * Friend feature is the ability to operate within a mesh network at significantly
@@ -66,9 +59,8 @@ data class Proxy internal constructor(
  * @property featureState State of friend feature.
  */
 data class Friend internal constructor(
-    @Serializable(with = FeatureStateSerializer::class)
     override val featureState: FeatureState
-) : Feature(featureState = featureState)
+) : Feature()
 
 /**
  * LowPower feature is the ability to help a node supporting the Low Power feature
@@ -77,17 +69,16 @@ data class Friend internal constructor(
  * @property featureState State of low power feature.
  */
 data class LowPower internal constructor(
-    @Serializable(with = FeatureStateSerializer::class)
     override val featureState: FeatureState
-) : Feature(featureState = featureState)
+) : Feature()
 
 /**
  * FeatureState describes the state of a given [Feature].
  *
  * @property state 0 = disabled, 1 = enabled, 2 = unsupported
  */
-@Serializable
-sealed class FeatureState private constructor(val state: Int) {
+sealed class FeatureState private constructor() {
+    abstract val state: Int
 
     companion object {
         /**
@@ -106,10 +97,16 @@ sealed class FeatureState private constructor(val state: Int) {
 }
 
 /** Disabled state. */
-object Disabled : FeatureState(state = 0)
+object Disabled : FeatureState() {
+    override val state = 0
+}
 
 /** Enabled state. */
-object Enabled : FeatureState(state = 1)
+object Enabled : FeatureState() {
+    override val state = 1
+}
 
 /** Unsupported state. */
-object Unsupported : FeatureState(state = 2)
+object Unsupported : FeatureState() {
+    override val state = 2
+}
