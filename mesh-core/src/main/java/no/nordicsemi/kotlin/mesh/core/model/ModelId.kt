@@ -11,6 +11,22 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 @Serializable(with = ModelIdSerializer::class)
 sealed class ModelId {
     internal abstract val modelId: UInt
+
+    /**
+     * Converts ModelID to hex.
+     *
+     * @param prefix0x If true prefixes hex value with 0x.
+     */
+    fun toHex(prefix0x: Boolean = false) = when (modelId and 0xFFFF0000u) {
+        0u -> "%04X".format(modelId.toShort())
+        else -> "%08X".format(modelId.toInt())
+    }.also {
+        return if (prefix0x) {
+            "0x$it"
+        } else {
+            it
+        }
+    }
 }
 
 /**
