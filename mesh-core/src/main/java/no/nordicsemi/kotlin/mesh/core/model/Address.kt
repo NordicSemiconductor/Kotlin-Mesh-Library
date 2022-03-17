@@ -15,7 +15,13 @@ typealias Address = UShort
 /**
  * Converts an Address to Hex
  */
-fun Address.toHex() = "%04X".format(this)
+fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).also {
+    return if (prefix0x) {
+        "0x$it"
+    } else {
+        it
+    }
+}
 
 internal const val minUnicastAddress: Address = 0x0001u
 internal const val maxUnicastAddress: Address = 0x7FFFu

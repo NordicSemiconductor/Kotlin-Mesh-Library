@@ -17,7 +17,10 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
     override fun deserialize(decoder: Decoder): MeshAddress = parse(decoder.decodeString())
 
     override fun serialize(encoder: Encoder, value: MeshAddress) {
-        encoder.encodeString(value = value.address.toHex())
+        encoder.encodeString(value = when(value) {
+            is VirtualAddress -> {UUIDSerializer.encode(uuid = value.uuid)}
+            else -> { value.address.toHex()}
+        })
     }
 }
 
