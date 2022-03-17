@@ -26,12 +26,6 @@ import java.util.*
 @Serializable
 class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID = UUID.randomUUID()) {
 
-    @SerialName(value = "\$schema")
-    internal var schema = "http://json-schema.org/draft-04/schema#"
-    internal var id =
-        "http://www.bluetooth.com/specifications/assigned-numbers/meshprofile/cdb-schema.json#"
-    internal var version = "1.0.0"
-
     var meshName: String = "Mesh Network"
         set(value) {
             require(meshName.isNotBlank()) { "Network name cannot be empty!" }
