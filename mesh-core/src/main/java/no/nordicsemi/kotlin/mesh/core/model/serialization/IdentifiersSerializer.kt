@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 /**
- * Custom JSON serializer/deserializer for Security.
+ * Custom JSON serializer/deserializer for Identifier.
  */
 object IdentifiersSerializer : KSerializer<UShort?> {
     override val descriptor: SerialDescriptor =
