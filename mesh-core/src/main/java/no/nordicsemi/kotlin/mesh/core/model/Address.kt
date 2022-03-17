@@ -202,6 +202,6 @@ sealed interface SubscriptionAddress : HasAddress
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PrimaryGroupAddress : HasAddress
 
-/** Custom type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group */
+/** Custom type used to identify a [GroupAddress], [VirtualAddress] or an [UnassignedAddress] that's used to create a group */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress
