@@ -11,9 +11,9 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 
 /**
- * Custom JSON serializer/deserializer for Security.
+ * Custom JSON serializer/deserializer for ModelID.
  */
-object ModelIdSerializer : KSerializer<ModelId> {
+internal object ModelIdSerializer : KSerializer<ModelId> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "ModelId", kind = PrimitiveKind.STRING)
 
@@ -29,6 +29,6 @@ object ModelIdSerializer : KSerializer<ModelId> {
     }
 
     override fun serialize(encoder: Encoder, value: ModelId) {
-        TODO("Not yet implemented")
+        encoder.encodeString(value = value.toHex())
     }
 }
