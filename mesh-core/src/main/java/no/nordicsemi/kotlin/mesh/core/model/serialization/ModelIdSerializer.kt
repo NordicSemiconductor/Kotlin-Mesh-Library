@@ -21,10 +21,7 @@ internal object ModelIdSerializer : KSerializer<ModelId> {
         val modelId = decoder.decodeString().toUInt(radix = 16)
         return when (modelId and 0xFFFF0000u) {
             0u -> SigModelId(modelIdentifier = modelId.toUShort())
-            else -> VendorModelId(
-                modelIdentifier = (modelId and 0x0000FFFFu).toUShort(),
-                companyIdentifier = ((modelId and 0xFFFF0000u) shr 16).toUShort()
-            )
+            else -> VendorModelId(modelId = modelId)
         }
     }
 

@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -6,7 +6,11 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 
 /**
- * Wrapper class for 16-bit or 32-bit model identifier.
+ * Represents ModelID of a Bluetooth mesh model.
+ *
+ * @property modelId    16-bit company identifier and the 16-bit model identifier where
+ *                      the company identifier being the 2-most significant bytes. In the
+ *                      case of a Bluetooth SIG defined model, the company identifier is 0.
  */
 @Serializable(with = ModelIdSerializer::class)
 sealed class ModelId {
@@ -44,12 +48,16 @@ data class SigModelId(
 /**
  * Wrapper class for 32-bit vendor model identifier.
  *
- * @property modelIdentifier 32-bit model identifier.
+ * @property modelIdentifier    16-bit model identifier.
+ * @property companyIdentifier  16-bit company identifier.
  */
 @Serializable
-data class VendorModelId(
-    val modelIdentifier: UShort,
-    val companyIdentifier: UShort
-) : ModelId() {
-    override val modelId = (modelIdentifier.toUInt()) or (companyIdentifier.toUInt() shl 16)
+data class VendorModelId internal constructor(override val modelId: UInt) : ModelId() {
+    val companyIdentifier: UShort = ((modelId and 0xFFFF0000u) shr 16).toUShort()
+    val modelIdentifier: UShort = (modelId and 0x0000FFFFu).toUShort()
+
+    constructor(
+        modelIdentifier: UShort,
+        companyIdentifier: UShort
+    ) : this((modelIdentifier.toUInt()) or (companyIdentifier.toUInt() shl 16))
 }
