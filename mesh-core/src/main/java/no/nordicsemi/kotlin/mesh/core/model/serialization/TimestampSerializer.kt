@@ -16,10 +16,10 @@ internal object TimestampSerializer : KSerializer<Long> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor(serialName = "timestamp", kind = PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: Long) {
-        encoder.encodeString(Instant.fromEpochMilliseconds(epochMilliseconds = value).toString())
-    }
-
     override fun deserialize(decoder: Decoder): Long =
         Instant.parse(isoString = decoder.decodeString()).toEpochMilliseconds()
+
+    override fun serialize(encoder: Encoder, value: Long) {
+        encoder.encodeString(value = Instant.fromEpochMilliseconds(epochMilliseconds = value).toString())
+    }
 }
