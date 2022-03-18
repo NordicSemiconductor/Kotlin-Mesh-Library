@@ -9,7 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 
 /**
- * MeshNetwork representing a bluetooth mesh network
+ * MeshNetwork representing a bluetooth mesh network.
  *
  * @property meshUUID               128-bit Universally Unique Identifier (UUID), which allows differentiation among multiple mesh networks.
  * @property meshName               Human-readable name for the mesh network.
