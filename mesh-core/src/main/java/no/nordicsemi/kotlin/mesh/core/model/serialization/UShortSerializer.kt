@@ -9,18 +9,16 @@ import kotlinx.serialization.encoding.Encoder
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 /**
- * Custom JSON serializer/deserializer for Identifier.
+ * Custom JSON serializer/deserializer for all properties formatted as a 4-digit hexadecimal string.
  */
-internal object IdentifiersSerializer : KSerializer<UShort?> {
+internal object UShortSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "Identifiers", kind = PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UShort =
         decoder.decodeString().toUInt(radix = 16).toUShort()
 
-    override fun serialize(encoder: Encoder, value: UShort?) {
-        value?.let {
-            encoder.encodeString(it.toHex())
-        }
+    override fun serialize(encoder: Encoder, value: UShort) {
+        encoder.encodeString(value = value.toHex())
     }
 }

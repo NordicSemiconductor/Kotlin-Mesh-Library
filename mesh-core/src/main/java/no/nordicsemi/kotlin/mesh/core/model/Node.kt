@@ -4,8 +4,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.IdentifiersSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 
@@ -52,16 +52,16 @@ data class Node(
         internal set
     var configComplete: Boolean = false
         internal set
-    @Serializable(IdentifiersSerializer::class)
+    @Serializable(UShortSerializer::class)
     var cid: UShort? = null
         internal set
-    @Serializable(IdentifiersSerializer::class)
+    @Serializable(UShortSerializer::class)
     var pid: UShort? = null
         internal set
-    @Serializable(IdentifiersSerializer::class)
+    @Serializable(UShortSerializer::class)
     var vid: UShort? = null
         internal set
-    @Serializable(IdentifiersSerializer::class)
+    @Serializable(UShortSerializer::class)
     var crpl: UShort? = null
         internal set
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
