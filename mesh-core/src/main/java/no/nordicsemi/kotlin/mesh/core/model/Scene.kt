@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.SceneNumberSerializer
 
 typealias SceneNumber = UShort
 
@@ -17,7 +16,6 @@ typealias SceneNumber = UShort
 @Serializable
 data class Scene(
     val name: String,
-    @Serializable(with = SceneNumberSerializer::class)
     val number: SceneNumber,
 ) {
     var addresses = listOf<UnicastAddress>()
