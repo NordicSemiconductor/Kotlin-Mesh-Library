@@ -28,6 +28,12 @@ sealed interface Range {
 sealed class AllocatedRange : Range {
     abstract override val low: UShort
     abstract override val high: UShort
+
+    /**
+     * Checks if the low value is lower than the high value.
+     */
+    protected fun isValid(low: UShort, high: UShort) =
+        low < high
 }
 
 /**
@@ -37,7 +43,7 @@ sealed class AllocatedRange : Range {
  * @property highAddress      High value for a given  range.
  */
 @Serializable
-sealed class AllocatedAddressRange {
+sealed class AllocatedAddressRange : AllocatedRange() {
     abstract val lowAddress: MeshAddress
     abstract val highAddress: MeshAddress
 }
@@ -57,9 +63,16 @@ data class AllocatedUnicastRange(
     override val highAddress: UnicastAddress
 ) : AllocatedAddressRange() {
     @Transient
-    val low = lowAddress.address
+    override val low = lowAddress.address
+
     @Transient
-    val high = highAddress.address
+    override val high = highAddress.address
+
+    init {
+        require(isValid(low = lowAddress.address, high = highAddress.address)) {
+            "Low address must be lower than the higher address"
+        }
+    }
 }
 
 /**
@@ -77,9 +90,16 @@ data class AllocatedGroupRange(
     override val highAddress: GroupAddress
 ) : AllocatedAddressRange() {
     @Transient
-    val low = lowAddress.address
+    override val low = lowAddress.address
+
     @Transient
-    val high = highAddress.address
+    override val high = highAddress.address
+
+    init {
+        require(isValid(low = lowAddress.address, high = highAddress.address)) {
+            "Low address must be lower than the higher address"
+        }
+    }
 }
 
 /**
@@ -100,6 +120,13 @@ data class AllocatedSceneRange(
 ) : AllocatedRange() {
     @Transient
     override val low = firstScene
+
     @Transient
     override val high = lastScene
+
+    init {
+        require(isValid(low = low, high = high)) {
+            "Low value lower than the high value"
+        }
+    }
 }
