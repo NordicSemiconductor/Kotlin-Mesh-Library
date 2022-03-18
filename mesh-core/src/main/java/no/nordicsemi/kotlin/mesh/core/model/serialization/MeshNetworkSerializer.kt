@@ -6,7 +6,12 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.ByteArrayInputStream
 
 internal object MeshNetworkSerializer {
-    private val jsonSerializer = Json { ignoreUnknownKeys = true }
+    @OptIn(ExperimentalSerializationApi::class)
+    private val jsonSerializer = Json {
+        encodeDefaults = true       // Encodes default values of properties.
+        explicitNulls = false       // Avoids encoding null values.
+        ignoreUnknownKeys = true    // Ignores the keys not available in the mesh network mode.
+    }
 
     private const val KEY_SCHEMA = "${'$'}schema"
     private const val KEY_ID = "id"
