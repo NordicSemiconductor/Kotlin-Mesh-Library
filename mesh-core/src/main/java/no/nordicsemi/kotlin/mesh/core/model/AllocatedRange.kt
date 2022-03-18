@@ -3,6 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.model.serialization.SceneNumberSerializer
 
 /**
  * Range
@@ -54,7 +56,9 @@ data class AllocatedUnicastRange(
     override val lowAddress: UnicastAddress,
     override val highAddress: UnicastAddress
 ) : AllocatedAddressRange() {
+    @Transient
     val low = lowAddress.address
+    @Transient
     val high = highAddress.address
 }
 
@@ -72,7 +76,9 @@ data class AllocatedGroupRange(
     override val lowAddress: GroupAddress,
     override val highAddress: GroupAddress
 ) : AllocatedAddressRange() {
+    @Transient
     val low = lowAddress.address
+    @Transient
     val high = highAddress.address
 }
 
@@ -87,9 +93,13 @@ data class AllocatedGroupRange(
  */
 @Serializable
 data class AllocatedSceneRange(
+    @Serializable(with = SceneNumberSerializer::class)
     val firstScene: SceneNumber,
+    @Serializable(with = SceneNumberSerializer::class)
     val lastScene: SceneNumber
 ) : AllocatedRange() {
+    @Transient
     override val low = firstScene
+    @Transient
     override val high = lastScene
 }
