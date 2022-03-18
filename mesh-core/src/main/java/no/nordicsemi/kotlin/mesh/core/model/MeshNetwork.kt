@@ -29,18 +29,21 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
     var meshName: String = "Mesh Network"
         set(value) {
             require(meshName.isNotBlank()) { "Network name cannot be empty!" }
+            if (field != value)
+                updateTimestamp()
             field = value
-            updateTimestamp()
         }
 
     @Serializable(with = TimestampSerializer::class)
     var timestamp: Long = System.currentTimeMillis()
         private set
 
+    @Suppress("RedundantSetter")
     var partial: Boolean = false
-        set(value) {
+        internal set(value) {
+            if (field != value)
+                updateTimestamp()
             field = value
-            updateTimestamp()
         }
 
     var provisioners = listOf<Provisioner>()
