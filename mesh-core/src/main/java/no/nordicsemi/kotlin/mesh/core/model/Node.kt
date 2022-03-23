@@ -52,15 +52,19 @@ data class Node(
         internal set
     var configComplete: Boolean = false
         internal set
+
     @Serializable(UShortSerializer::class)
     var cid: UShort? = null
         internal set
+
     @Serializable(UShortSerializer::class)
     var pid: UShort? = null
         internal set
+
     @Serializable(UShortSerializer::class)
     var vid: UShort? = null
         internal set
+
     @Serializable(UShortSerializer::class)
     var crpl: UShort? = null
         internal set
@@ -74,6 +78,10 @@ data class Node(
     var defaultTTL: Int = 127
         internal set
     var excluded: Boolean = false
+        internal set
+    var heartbeatPublication: HeartbeatPublication? = null
+        internal set
+    var heartbeatSubscription: HeartbeatSubscription? = null
         internal set
 
     override fun equals(other: Any?): Boolean {
