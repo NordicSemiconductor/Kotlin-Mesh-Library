@@ -7,28 +7,44 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortSerializer
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
  *
- * @property name           A human-readable name that can identify an element within the node.
- * @property index          The index property contains an integer from 0 to 255 that represents the numeric order of
- * 					        the element within this node and a node has at-least one element which is called the primary element.
- * @property location       Describes the element location.
- * @property models         List of [Model] within an element.
+ * @property location    Describes the element location.
+ * @property models      List of [Model] within an element.
+ * @property name        A human-readable name that can identify an element within the node
+ *                       and is optional according to Mesh CDB.
+ * @property index       The index property contains an integer from 0 to 255 that represents
+ *                       the numeric order of the element within this node and a node has at-least
+ *                       one element which is called the primary element.
+ * @property parentNode  Parent node that an element may belong to.
  */
 @Serializable
-data class Element(
-    @Transient val name: String? = null,
-    val index: Int,
+data class Element internal constructor(
     @Serializable(with = UShortSerializer::class)
     val location: UShort,
     val models: List<Model>
 ) {
+    var name: String? = null
+        set(value) {
+            name?.let {
+                require(it.isNotBlank()) { "Element name cannot be blank!" }
+            }
+            field = value
+        }
+
+    // Final index will be set when Element is added to the Node.
+    // Refer https://github.com/NordicSemiconductor/IOS-nRF-Mesh-Library/blob/
+    // c1755555f76fb6f393bfdad37a23566ddd581536/nRFMeshProvision/Classes/Mesh%20Model/Node.swift#L620
+    var index: Int = 0
+        internal set
+
+    @Transient
+    internal var parentNode: Node? = null
+
     init {
-        // TODO fix element name
-        //require(name.isNullOrBlank()) { "Element name cannot be blank!" }
-        require(index in LOWER_BOUND..HIGHER_BOUND) { " Index must be a value ranging from 0 to 256!" }
+        require(index in LOWER_BOUND..HIGHER_BOUND) { " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!" }
     }
 
     companion object {
         const val LOWER_BOUND = 0
-        const val HIGHER_BOUND = 256
+        const val HIGHER_BOUND = 255
     }
 }
