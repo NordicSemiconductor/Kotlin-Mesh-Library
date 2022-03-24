@@ -50,21 +50,24 @@ data class ApplicationKey internal constructor(
 
         other as ApplicationKey
 
-        if (name != other.name) return false
         if (index != other.index) return false
-        if (boundNetKey != other.boundNetKey) return false
         if (!_key.contentEquals(other._key)) return false
-        if (!oldKey.contentEquals(other.oldKey)) return false
+        if (name != other.name) return false
+        if (boundNetKey != other.boundNetKey) return false
+        if (oldKey != null) {
+            if (other.oldKey == null) return false
+            if (!oldKey.contentEquals(other.oldKey)) return false
+        } else if (other.oldKey != null) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + index
-        result = 31 * result + boundNetKey
+        var result = index
         result = 31 * result + _key.contentHashCode()
-        result = 31 * result + oldKey.contentHashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + boundNetKey
+        result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         return result
     }
 }
