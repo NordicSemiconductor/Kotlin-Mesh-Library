@@ -8,11 +8,11 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
  * The application key (AppKey) shall be generated using a random number generator
  * compatible with the requirements in Volume 2, Part H, Section 2 of the Core Specification [1].
  *
- * @param name			Human-readable name for the application functionality associated with this application key.
- * @param index			The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
- * @param boundNetKey	The boundNetKey property contains a corresponding NetKey index from the netKeys property of the Mesh Object.
- * @param key			128-bit application key.
- * @param oldKey		OldKey property contains the previous application key.
+ * @param name          Human-readable name for the application functionality associated with this application key.
+ * @param index	        The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
+ * @param boundNetKey   The boundNetKey property contains a corresponding NetKey index from the netKeys property of the Mesh Object.
+ * @param key           128-bit application key.
+ * @param oldKey        OldKey property contains the previous application key.
  */
 @Serializable
 data class ApplicationKey internal constructor(
