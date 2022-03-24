@@ -73,9 +73,9 @@ sealed class MeshAddress : HasAddress {
         }
 
         /**
-         * Creates a virtual address using the given UUID Label
+         * Creates a virtual address using the given UUID Label.
          *
-         * @param uuid UUID Label
+         * @param uuid UUID Label.
          */
         fun create(uuid: UUID) = VirtualAddress(uuid = uuid)
     }
@@ -86,11 +86,7 @@ sealed class MeshAddress : HasAddress {
  * The unassigned address has the value 0x0000.
  */
 @Serializable(with = MeshAddressSerializer::class)
-object UnassignedAddress : MeshAddress(),
-    ParentGroupAddress,
-    HeartbeatPublicationDestination,
-    HeartbeatSubscriptionSource,
-    HeartbeatSubscriptionDestination {
+object UnassignedAddress : MeshAddress(), ParentGroupAddress {
     override val address = unassignedAddress
 
     fun isValid(address: Address): Boolean = address == unassignedAddress
@@ -119,9 +115,10 @@ data class UnicastAddress(
 }
 
 /**
- * A virtual address represents a set of destination addresses. Each virtual address logically represents a Label UUID, which is a 128-bit
- * value that does not have to be managed centrally. One or more elements may be programmed to publish or subscribe to a Label UUID.
- * The Label UUID is not transmitted and shall be used as the Additional Data field of the message integrity check value in the upper transport layer.
+ * A virtual address represents a set of destination addresses. Each virtual address logically represents a Label UUID,
+ * which is a 128-bit value that does not have to be managed centrally. One or more elements may be programmed to publish
+ * or subscribe to a Label UUID. The Label UUID is not transmitted and shall be used as the Additional Data field of the
+ * message integrity check value in the upper transport layer.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
@@ -135,9 +132,9 @@ data class VirtualAddress(
 }
 
 /**
- * A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and bit 14 set to 1.
- * Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses in the range
- * 0xC000 through 0xFEFF are generally available for other usage.
+ * A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and
+ * bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses
+ * in the range 0xC000 through 0xFEFF are generally available for other usage.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
@@ -200,14 +197,13 @@ object AllNodes : FixedGroupAddress(address = allNodes)
 sealed interface HeartbeatPublicationDestination : HasAddress
 
 /**
- * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress]
- * or an [UnassignedAddress].
+ * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress]..
  */
 sealed interface HeartbeatSubscriptionSource : HasAddress
 
 /**
  * Heartbeat subscription destination address for heartbeat messages. This represents a
- * [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
+ * [UnicastAddress] or a [GroupAddress].
  */
 sealed interface HeartbeatSubscriptionDestination : HasAddress
 
