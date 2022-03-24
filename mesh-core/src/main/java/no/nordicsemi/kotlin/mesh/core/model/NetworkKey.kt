@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 
@@ -24,7 +25,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
  * @property oldKey        The oldKey property contains a 32-character hexadecimal string that represents the 128-bit network key,
  *                         and shall be present when the phase property has a non-zero value, such as when the Key Refresh
  *                         procedure is in progress. The value of the oldKey property contains the previous network key.
- * @property timestamp     Timestamp when network key was last modified.
+ * @property timestamp     The timestamp property contains a string that represents the last time the value of the phase property has
+ *                         been updated.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -37,11 +39,16 @@ data class NetworkKey internal constructor(
     var name: String = "Network Key"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            if (field != value) updateTimeStamp()
+            if (field != value)
+                network?.updateTimestamp()
             field = value
         }
     var phase: KeyRefreshPhase = NormalOperation
-        internal set
+        internal set(value) {
+            if (field != value)
+                updateTimeStamp()
+            field = value
+        }
 
     var key: ByteArray
         get() = _key
@@ -58,6 +65,9 @@ data class NetworkKey internal constructor(
     @Serializable(with = TimestampSerializer::class)
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
+
+    @Transient
+    internal var network: MeshNetwork? = null
 
     private fun updateTimeStamp() {
         timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())

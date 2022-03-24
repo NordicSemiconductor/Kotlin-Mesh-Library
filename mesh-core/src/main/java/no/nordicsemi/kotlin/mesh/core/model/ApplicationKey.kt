@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
@@ -14,7 +15,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *
  * @property index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
  * @property name          Human-readable name for the application functionality associated with this application key.
- * @property boundNetKey   The boundNetKey property contains a corresponding NetKey index from the netKeys property of the Mesh Object.
+ * @property boundNetKeyIndex   The boundNetKey property contains a corresponding NetKey index from the netKeys property of the Mesh Object.
  * @property key           128-bit application key.
  * @property oldKey        OldKey property contains the previous application key.
  * @param    _key          128-bit application key.
@@ -29,9 +30,13 @@ data class ApplicationKey internal constructor(
     var name: String = "Application Key $index"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            if (field != value)
+                network?.updateTimestamp()
             field = value
         }
-    var boundNetKey: Int = 0
+
+    @SerialName("boundNetKey")
+    var boundNetKeyIndex: Int = 0
         internal set
     var key: ByteArray
         get() = _key
@@ -44,6 +49,15 @@ data class ApplicationKey internal constructor(
     var oldKey: ByteArray? = null
         internal set
 
+    @Transient
+    internal var network: MeshNetwork? = null
+
+    @Transient
+    var netKey: NetworkKey? = network?.networkKeys?.find {
+        it.index == boundNetKeyIndex
+    }
+        private set
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -53,7 +67,7 @@ data class ApplicationKey internal constructor(
         if (index != other.index) return false
         if (!_key.contentEquals(other._key)) return false
         if (name != other.name) return false
-        if (boundNetKey != other.boundNetKey) return false
+        if (boundNetKeyIndex != other.boundNetKeyIndex) return false
         if (oldKey != null) {
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
@@ -66,7 +80,7 @@ data class ApplicationKey internal constructor(
         var result = index
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + name.hashCode()
-        result = 31 * result + boundNetKey
+        result = 31 * result + boundNetKeyIndex
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         return result
     }
