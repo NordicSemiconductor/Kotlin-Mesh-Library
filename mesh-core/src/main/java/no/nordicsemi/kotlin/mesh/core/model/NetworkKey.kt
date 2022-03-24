@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeyRefreshPhaseSerializer
@@ -18,7 +19,11 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
  * @param index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
  * @param phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
  * @param key           128-bit application key.
- * @param security   A
+ * @param security      Security property contains a string with a value of either “insecure” or “secure”, which describes a
+ *                      minimum security level for a subnet associated with this network key. If all the nodes on the subnet
+ *                      associated with this network key have been provisioned using the Secure Provisioning procedure,
+ *                      then the value of minSecurity property for the subnet is set to “secure”; otherwise, the value of the
+ *                      minSecurity is set to “insecure”.
  * @param oldKey        OldKey property contains the previous application key.
  */
 @Serializable
@@ -36,7 +41,7 @@ data class NetworkKey internal constructor(
     @Serializable(with = KeySerializer::class)
     var oldKey: ByteArray? = null,
     @Serializable(with = TimestampSerializer::class)
-    val timestamp: Long
+    val timestamp: Instant
 ) {
 
     internal constructor(
@@ -45,7 +50,7 @@ data class NetworkKey internal constructor(
         phase: KeyRefreshPhase,
         key: ByteArray,
         security: Security,
-        timestamp: Long
+        timestamp: Instant
     ) : this(
         name = name,
         index = index,

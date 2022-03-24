@@ -11,15 +11,14 @@ import kotlinx.serialization.encoding.Encoder
 /**
  * Custom serializer/deserializer for timestamp.
  */
-internal object TimestampSerializer : KSerializer<Long> {
+internal object TimestampSerializer : KSerializer<Instant> {
 
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor(serialName = "timestamp", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Long =
-        Instant.parse(isoString = decoder.decodeString()).toEpochMilliseconds()
+    override fun deserialize(decoder: Decoder): Instant = Instant.parse(isoString = decoder.decodeString())
 
-    override fun serialize(encoder: Encoder, value: Long) {
-        encoder.encodeString(value = Instant.fromEpochMilliseconds(epochMilliseconds = value).toString())
+    override fun serialize(encoder: Encoder, value: Instant) {
+        encoder.encodeString(value = value.toString())
     }
 }

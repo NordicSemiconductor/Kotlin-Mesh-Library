@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
@@ -35,8 +36,8 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
         }
 
     @Serializable(with = TimestampSerializer::class)
-    var timestamp: Long = System.currentTimeMillis()
-        private set
+    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        internal set
 
     @Suppress("RedundantSetter")
     var partial: Boolean = false
@@ -46,15 +47,15 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
             field = value
         }
 
-    var provisioners = listOf<Provisioner>()
+    var provisioners: List<Provisioner> = listOf()
         private set
 
     @SerialName("netKeys")
-    var networkKeys = listOf<NetworkKey>()
+    var networkKeys: List<NetworkKey> = listOf()
         private set
 
     @SerialName("appKeys")
-    var applicationKeys = listOf<ApplicationKey>()
+    var applicationKeys: List<ApplicationKey> = listOf()
         private set
 
     var nodes: List<Node> = listOf()
@@ -66,14 +67,14 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
     var scenes: List<Scene> = listOf()
         private set
 
-    var networkExclusions = listOf<ExclusionList>()
+    var networkExclusions: List<ExclusionList> = listOf()
         private set
 
     /**
      * Updates timestamp to the current time in milliseconds.
      */
     internal fun updateTimestamp() {
-        this.timestamp = System.currentTimeMillis()
+        this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
 
     /**
