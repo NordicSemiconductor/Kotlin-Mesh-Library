@@ -30,10 +30,10 @@ internal object FeaturesSerializer : KSerializer<Features> {
 
     override fun serialize(encoder: Encoder, value: Features) {
         val json = mutableMapOf<String, JsonElement>()
-        value.relay?.let { json.put("relay", JsonPrimitive(it.featureState.state)) }
-        value.proxy?.let { json.put("proxy", JsonPrimitive(it.featureState.state)) }
-        value.friend?.let { json.put("friend", JsonPrimitive(it.featureState.state)) }
-        value.lowPower?.let { json.put("lowPower", JsonPrimitive(it.featureState.state)) }
+        value.relay?.let { json.put("relay", JsonPrimitive(it.state.value)) }
+        value.proxy?.let { json.put("proxy", JsonPrimitive(it.state.value)) }
+        value.friend?.let { json.put("friend", JsonPrimitive(it.state.value)) }
+        value.lowPower?.let { json.put("lowPower", JsonPrimitive(it.state.value)) }
         (encoder as JsonEncoder).encodeJsonElement(JsonObject(json))
     }
 

@@ -28,85 +28,91 @@ data class Features internal constructor(
 /**
  * Represents a type feature.
  */
+@Serializable
 sealed class Feature {
-    abstract val featureState: FeatureState
+    abstract val state: FeatureState
 }
 
 /**
  * Relay feature is the ability to receive and retransmit mesh messages over the advertising
  * bearer to enable larger networks.
  *
- * @property featureState State of the relay feature.
+ * @property state State of the relay feature.
  */
+@Serializable
 data class Relay internal constructor(
-    override val featureState: FeatureState
+    override val state: FeatureState
 ) : Feature()
 
 /**
  * Proxy feature is the ability to receive and retransmit mesh messages between GATT and
  * advertising bearers.
  *
- * @property featureState State of the proxy feature.
+ * @property state State of the proxy feature.
  */
+@Serializable
 data class Proxy internal constructor(
-    override val featureState: FeatureState
+    override val state: FeatureState
 ) : Feature()
 
 /**
  * Friend feature is the ability to operate within a mesh network at significantly
  * reduced receiver duty cycles only in conjunction with a node supporting the Friend feature.
  *
- * @property featureState State of friend feature.
+ * @property state State of friend feature.
  */
+@Serializable
 data class Friend internal constructor(
-    override val featureState: FeatureState
+    override val state: FeatureState
 ) : Feature()
 
 /**
  * LowPower feature is the ability to help a node supporting the Low Power feature
  * to operate by storing messages destined for those nodes.
  *
- * @property featureState State of low power feature.
+ * @property state State of low power feature.
  */
+@Serializable
 data class LowPower internal constructor(
-    override val featureState: FeatureState
+    override val state: FeatureState
 ) : Feature()
 
 /**
  * FeatureState describes the state of a given [Feature].
  *
- * @property state 0 = disabled, 1 = enabled, 2 = unsupported
+ * @property value 0 = disabled, 1 = enabled, 2 = unsupported
  */
-sealed class FeatureState private constructor() {
-    abstract val state: Int
+@Serializable
+sealed class FeatureState private constructor(val value: Int) {
 
     companion object {
         /**
          * Returns the feature state for a given a feature.
          *
-         * @param state                         Integer value describing the state.
+         * @param value                         Integer value describing the state.
          * @throws IllegalArgumentException     if the feature value is not 0, 1 or 2.
          */
-        fun from(state: Int): FeatureState = when (state) {
+        fun from(value: Int): FeatureState = when (value) {
             0 -> Disabled
             1 -> Enabled
             2 -> Unsupported
-            else -> throw IllegalArgumentException("Feature value should be from 0 to 2!")
+            else -> throw IllegalArgumentException("Feature value should be from $DISABLED, $ENABLED or $UNSUPPORTED!")
         }
     }
 }
 
 /** Disabled state. */
-object Disabled : FeatureState() {
-    override val state = 0
-}
+@Serializable
+object Disabled : FeatureState(value = DISABLED)
 
 /** Enabled state. */
-object Enabled : FeatureState() {
-    override val state = 1
-}
+@Serializable
+object Enabled : FeatureState(value = ENABLED)
 
 /** Unsupported state. */
-object Unsupported : FeatureState() {
-    override val state = 2
-}
+@Serializable
+object Unsupported : FeatureState(value = UNSUPPORTED)
+
+private const val DISABLED = 0
+private const val ENABLED = 1
+private const val UNSUPPORTED = 2
