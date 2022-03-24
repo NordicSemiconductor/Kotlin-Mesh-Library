@@ -168,39 +168,72 @@ sealed class FixedGroupAddress private constructor(
     override val address: Address
 ) : MeshAddress()
 
-/** A message sent to the all-proxies address shall be processed by the primary element of all nodes that have the proxy functionality enabled. */
+/**
+ * A message sent to the all-proxies address shall be processed by the primary element of all nodes
+ * that have the proxy functionality enabled.
+ */
 object AllProxies : FixedGroupAddress(address = allProxies), SubscriptionAddress
 
-/** A message sent to the all-friends address shall be processed by the primary element of all nodes that have the friend functionality enabled. */
+/**
+ * A message sent to the all-friends address shall be processed by the primary element of all nodes
+ * that have the friend functionality enabled.
+ */
 object AllFriends : FixedGroupAddress(address = allFriends), SubscriptionAddress
 
-/** A message sent to the all-relays address shall be processed by the primary element of all nodes that have the relay functionality enabled. */
+/**
+ * A message sent to the all-relays address shall be processed by the primary element of all nodes
+ * that have the relay functionality enabled.
+ */
 object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
 
-/** A message sent to the all-nodes address shall be processed by the primary element of all nodes. */
+/**
+ * A message sent to the all-nodes address shall be processed by the primary element of all nodes.
+ *
+ * Note: AllNodes cannot be used as subscription address.
+ */
 object AllNodes : FixedGroupAddress(address = allNodes)
 
-/** Heartbeat publication destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnicastAddress]. */
+/**
+ * Heartbeat publication destination address for heartbeat messages. This represents a [UnicastAddress]
+ * or a [GroupAddress].
+ */
 sealed interface HeartbeatPublicationDestination : HasAddress
 
-/** Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress] or an [UnassignedAddress]. */
+/**
+ * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress]
+ * or an [UnassignedAddress].
+ */
 sealed interface HeartbeatSubscriptionSource : HasAddress
 
-/** Heartbeat subscription destination address for heartbeat messages. This represents a [UnicastAddress], [GroupAddress] or an [UnassignedAddress]. */
+/**
+ * Heartbeat subscription destination address for heartbeat messages. This represents a
+ * [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
+ */
 sealed interface HeartbeatSubscriptionDestination : HasAddress
 
-/** Publication address a model may subscribe to. This represents a [UnicastAddress], [GroupAddress] or a [VirtualAddress]. */
+/**
+ * An address a model may publish to. This represents a [UnicastAddress], [GroupAddress]
+ * or a [VirtualAddress].
+ */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PublicationAddress : HasAddress
 
-/** Subscription address a model may subscribe to. This represents a [GroupAddress], [VirtualAddress], [AllProxies], [AllFriends] or an [AllRelays] address. */
+/**
+ * An address a model may subscribe to. This represents a [GroupAddress], [VirtualAddress],
+ * [AllProxies], [AllFriends] or an [AllRelays] address.
+ */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface SubscriptionAddress : HasAddress
 
-/** Custom type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group */
+/**
+ * An address type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group.
+ */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PrimaryGroupAddress : HasAddress
 
-/** Custom type used to identify a [GroupAddress], [VirtualAddress] or an [UnassignedAddress] that's used to create a group */
+/**
+ * An address type used to identify a [GroupAddress], [VirtualAddress] or an [UnassignedAddress]
+ * that's used as a parent address of a group.
+ */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress
