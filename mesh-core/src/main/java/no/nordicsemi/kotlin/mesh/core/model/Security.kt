@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 
@@ -10,26 +11,31 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
  * If all the nodes on the subnet associated with this network key have been provisioned using the
  * Secure Provisioning procedure [1], then the value of minSecurity property for the subnet is set
  * to “secure”; otherwise, the value of the minSecurity is set to “insecure”.
+ *
+ * @property security Security type.
  */
-@Suppress("unused")
 @Serializable(with = SecuritySerializer::class)
+@SerialName(value = "minSecurity")
 sealed class Security(val security: String) {
     companion object {
 
         /**
          * Parses the security level from the security level description.
-         * 
-         * @param security Security level.
-         * @return Security level
+         *
+         * @param                            security Security level.
+         * @return                           Security level
          * @throws IllegalArgumentException  if the security level is not "insecure" or "secure"
          */
-        fun from(security: String): Security = when (security) {
-            "insecure" -> Insecure
-            "secure" -> Secure
-            else -> throw IllegalArgumentException("Security level must be either insecure or secure!")
+        internal fun from(security: String) = when (security) {
+            INSECURE -> Insecure
+            SECURE -> Secure
+            else -> throw IllegalArgumentException("Security level must be either $INSECURE or $SECURE!")
         }
     }
 }
 
 object Insecure : Security(security = "insecure")
 object Secure : Security(security = "secure")
+
+private const val INSECURE = "insecure"
+private const val SECURE = "secure"
