@@ -9,20 +9,21 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 
 /**
- * Application Keys are used to secure communications at the upper transport layer.
- * The application key (AppKey) shall be generated using a random number generator
- * compatible with the requirements in Volume 2, Part H, Section 2 of the Core Specification [1].
+ * AThe network key object represents the state of the mesh network key that is used for securing
+ * communication at the network layer.
  *
  * @property index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
- * @property key           128-bit application key.
+ * @property key           128-bit key.
  * @property security      Security property contains a string with a value of either “insecure” or “secure”, which describes a
  *                         minimum security level for a subnet associated with this network key. If all the nodes on the subnet
  *                         associated with this network key have been provisioned using the Secure Provisioning procedure,
  *                         then the value of minSecurity property for the subnet is set to “secure”; otherwise, the value of the
  *                         minSecurity is set to “insecure”.
- * @property name          Human-readable name for the application functionality associated with this application key.
+ * @property name          Human-readable name for the the mesh subnet associated with this network key.
  * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
- * @property oldKey        OldKey property contains the previous application key.
+ * @property oldKey        The oldKey property contains a 32-character hexadecimal string that represents the 128-bit network key,
+ *                         and shall be present when the phase property has a non-zero value, such as when the Key Refresh
+ *                         procedure is in progress. The value of the oldKey property contains the previous network key.
  * @property timestamp     Timestamp when network key was last modified.
  */
 @Serializable
