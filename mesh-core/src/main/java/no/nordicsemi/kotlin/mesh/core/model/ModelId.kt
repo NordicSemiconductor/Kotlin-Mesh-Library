@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 
 /**
- * Represents ModelID of a Bluetooth mesh model.
+ * Represents Model ID of a Bluetooth mesh model.
  *
  * @property modelId    16-bit company identifier and the 16-bit model identifier where
  *                      the company identifier being the 2-most significant bytes. In the
