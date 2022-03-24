@@ -5,7 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.Serializable
 
 /**
- * Represents a configured state of a mesh model.
+ * Represents Bluetooth mesh model contained in an element in a node.
  *
  * @property modelId        The [ModelId] property contains a 16-bit [SigModelId] that represents a Bluetooth SIG defined model
  *                          identifier field or a 32-bit [VendorModelId] that represents a vendor-defined model identifier.
@@ -19,18 +19,39 @@ import kotlinx.serialization.Serializable
 data class Model internal constructor(
     val modelId: ModelId,
 ) {
-    var subscribe = listOf<SubscriptionAddress>()
+    var subscribe: List<SubscriptionAddress> = listOf()
         private set
     var publish: Publish? = null
         internal set
-    var bind = listOf<Int>()
+    var bind: List<Int> = listOf()
         private set
 
-    internal fun addSubscription(address: SubscriptionAddress) {
-        this.subscribe += address
+    /**
+     * Subscribe this model to a given subscription address.
+     *
+     * @param address Subscription address to be added.
+     * @return        true if the address is added or false if the address is already exists in the list.
+     */
+    internal fun subscribe(address: SubscriptionAddress) = when {
+        subscribe.contains(element = address) -> false
+        else -> {
+            subscribe = subscribe + address
+            true
+        }
     }
 
-    internal fun bind(index: Int) {
-        this.bind += index
+
+    /**
+     * Binds the given application key index to a model.
+     *
+     * @param index Application key index.
+     * @return      true if the key index is bound or false if it's already bound.
+     */
+    internal fun bind(index: Int) = when {
+        bind.contains(element = index) -> false
+        else -> {
+            bind = bind + index
+            true
+        }
     }
 }
