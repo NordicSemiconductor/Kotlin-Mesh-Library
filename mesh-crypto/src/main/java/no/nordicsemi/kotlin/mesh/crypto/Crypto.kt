@@ -11,10 +11,12 @@ import org.bouncycastle.crypto.macs.CMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
+import java.security.SecureRandom
 import java.util.*
 
 object Crypto {
 
+    private val secureRandom = SecureRandom()
     private val blockCipher: BlockCipher = AESEngine()
     private val SALT_KEY = ByteArray(16) { 0x00 }
     private val smk2 = "smk2".encodeToByteArray()
@@ -27,9 +29,19 @@ object Crypto {
     private val ID128 = "id128".encodeToByteArray()
     private val VTAD = "vtad".encodeToByteArray()
 
+
+    /**
+     * Generates a 128-bit random key using a SecureRandom.
+     */
+    fun generateRandomKey() = secureRandom.let {
+        val random = byteArrayOf(16)
+        it.nextBytes(random)
+        random
+    }
+
     /**
      * Creates a 16-bit virtual address for a given UUID.
-     * @param uuid 128-bit Label UUID
+     * @param uuid 128-bit Label UUID.
      */
     fun createVirtualAddress(uuid: UUID): UShort {
         val uuidHex = uuid.toString().replace("-", "").decodeHex()
@@ -42,8 +54,8 @@ object Crypto {
     /**
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
      *
-     * @param N 128-bit NetworkKey
-     * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey))
+     * @param N 128-bit NetworkKey.
+     * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey)).
      */
     fun calculateKeyDerivatives(N: ByteArray): KeyDerivatives {
         val k2 = k2(N = N, P = byteArrayOf(0x00))
@@ -263,9 +275,9 @@ object Crypto {
 
     /**
      * This method  generates the ciphertext and MIC (Message Integrity Check) and validates the ciphertext
-     * RFC3610 [10] defines the AES Counter with CBC-MAC (CCM)
+     * RFC3610 [10] defines the AES Counter with CBC-MAC (CCM).
      *
-     * @param data                  Data to be encrypted and authenticated
+     * @param data                  Data to be encrypted and authenticated.
      * @param key                   128-bit key.
      * @param nonce                 104-bit nonce.
      * @param additionalData        Additional data to be authenticated.
