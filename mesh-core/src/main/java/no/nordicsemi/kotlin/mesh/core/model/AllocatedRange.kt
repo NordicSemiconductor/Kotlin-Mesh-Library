@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.SceneNumberSerializer
 
 /**
- * Range
+ * Type range containing a lower bound and higher bound for an allocated address range or a scene range.
  *
  * @property low    Lower bound of a given range.
  * @property high   Higher bound of a given range.
@@ -15,25 +15,24 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SceneNumberSerializer
 sealed interface Range {
     val low: UShort
     val high: UShort
-}
-
-/**
- *  Allocated Range.
- *
- * @property low       Low value for a given range.
- * @property high      High value for a given  range.
- */
-// TODO Check IntRange
-@Serializable
-sealed class AllocatedRange : Range {
-    abstract override val low: UShort
-    abstract override val high: UShort
 
     /**
      * Checks if the low value is lower than the high value.
      */
-    protected fun isValid(low: UShort, high: UShort) =
-        low < high
+    fun isValid() = low <= high
+}
+
+/**
+ * Allocated Range.
+ *
+ * @property low       Low value for a given range.
+ * @property high      High value for a given  range.
+ */
+// TODO Check IntRange, ClosedRange as an option when implementing mering/resolving allocated ranges.
+@Serializable
+sealed class AllocatedRange : Range {
+    abstract override val low: UShort
+    abstract override val high: UShort
 }
 
 /**
@@ -69,8 +68,8 @@ data class AllocatedUnicastRange(
     override val high = highAddress.address
 
     init {
-        require(isValid(low = lowAddress.address, high = highAddress.address)) {
-            "Low address must be lower than the higher address"
+        require(isValid()) {
+            "Low address must be less than or equal to the higher address!"
         }
     }
 }
@@ -96,8 +95,8 @@ data class AllocatedGroupRange(
     override val high = highAddress.address
 
     init {
-        require(isValid(low = lowAddress.address, high = highAddress.address)) {
-            "Low address must be lower than the higher address"
+        require(isValid()) {
+            "Low address must be less than or equal to the higher address!"
         }
     }
 }
@@ -125,8 +124,8 @@ data class AllocatedSceneRange(
     override val high = lastScene
 
     init {
-        require(isValid(low = low, high = high)) {
-            "Low value lower than the high value"
+        require(isValid()) {
+            "First scene must be lower than or equal to the last scene!"
         }
     }
 }
