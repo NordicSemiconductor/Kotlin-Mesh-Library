@@ -5,9 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.KeyRefreshPhaseSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
-import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 
 /**
@@ -15,51 +13,54 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
  * The application key (AppKey) shall be generated using a random number generator
  * compatible with the requirements in Volume 2, Part H, Section 2 of the Core Specification [1].
  *
- * @param name          Human-readable name for the application functionality associated with this application key.
- * @param index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
- * @param phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
- * @param key           128-bit application key.
- * @param security      Security property contains a string with a value of either “insecure” or “secure”, which describes a
- *                      minimum security level for a subnet associated with this network key. If all the nodes on the subnet
- *                      associated with this network key have been provisioned using the Secure Provisioning procedure,
- *                      then the value of minSecurity property for the subnet is set to “secure”; otherwise, the value of the
- *                      minSecurity is set to “insecure”.
- * @param oldKey        OldKey property contains the previous application key.
+ * @property index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
+ * @property key           128-bit application key.
+ * @property security      Security property contains a string with a value of either “insecure” or “secure”, which describes a
+ *                         minimum security level for a subnet associated with this network key. If all the nodes on the subnet
+ *                         associated with this network key have been provisioned using the Secure Provisioning procedure,
+ *                         then the value of minSecurity property for the subnet is set to “secure”; otherwise, the value of the
+ *                         minSecurity is set to “insecure”.
+ * @property name          Human-readable name for the application functionality associated with this application key.
+ * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
+ * @property oldKey        OldKey property contains the previous application key.
+ * @property timestamp     Timestamp when network key was last modified.
  */
 @Serializable
 data class NetworkKey internal constructor(
-    val name: String,
     val index: Int,
-    @Serializable(with = KeyRefreshPhaseSerializer::class)
-    val phase: KeyRefreshPhase,
     @Serializable(with = KeySerializer::class)
-    val key: ByteArray,
-    @SerialName(value = "minSecurity")
-    @Serializable(with = SecuritySerializer::class)
-    val security: Security,
-    @SerialName(value = "oldKey")
-    @Serializable(with = KeySerializer::class)
-    var oldKey: ByteArray? = null,
-    @Serializable(with = TimestampSerializer::class)
-    val timestamp: Instant
+    @SerialName("key")
+    private var _key: ByteArray,
+    val security: Security
 ) {
+    var name: String = "Network Key"
+        set(value) {
+            require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            if (field != value) updateTimeStamp()
+            field = value
+        }
+    var phase: KeyRefreshPhase = NormalOperation
+        internal set
 
-    internal constructor(
-        name: String,
-        index: Int,
-        phase: KeyRefreshPhase,
-        key: ByteArray,
-        security: Security,
-        timestamp: Instant
-    ) : this(
-        name = name,
-        index = index,
-        phase = phase,
-        key = key,
-        security = security,
-        oldKey = null,
-        timestamp = timestamp
-    )
+    var key: ByteArray
+        get() = _key
+        internal set(value) {
+            require(value = value.isNotEmpty()) { "Key cannot be empty!" }
+            this._key = value
+        }
+
+    @Serializable(with = KeySerializer::class)
+    @SerialName(value = "oldKey")
+    var oldKey: ByteArray? = null
+        internal set
+
+    @Serializable(with = TimestampSerializer::class)
+    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        internal set
+
+    private fun updateTimeStamp() {
+        timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -67,22 +68,26 @@ data class NetworkKey internal constructor(
 
         other as NetworkKey
 
-        if (name != other.name) return false
         if (index != other.index) return false
-        if (phase != other.phase) return false
-        if (!key.contentEquals(other.key)) return false
+        if (!_key.contentEquals(other._key)) return false
         if (security != other.security) return false
+        if (name != other.name) return false
+        if (phase != other.phase) return false
+        if (oldKey != null) {
+            if (other.oldKey == null) return false
+            if (!oldKey.contentEquals(other.oldKey)) return false
+        } else if (other.oldKey != null) return false
         if (timestamp != other.timestamp) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + index
-        result = 31 * result + phase.hashCode()
-        result = 31 * result + key.contentHashCode()
+        var result = index
+        result = 31 * result + _key.contentHashCode()
         result = 31 * result + security.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + phase.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
         return result
