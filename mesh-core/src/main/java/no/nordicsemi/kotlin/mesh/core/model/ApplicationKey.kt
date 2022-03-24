@@ -28,7 +28,7 @@ data class ApplicationKey internal constructor(
 ) {
     var name: String = "Application Key $index"
         set(value) {
-            require(value = value.isNotBlank()) { "Name cannot be empty" }
+            require(value = value.isNotBlank()) { "Name cannot be empty!" }
             field = value
         }
     var boundNetKey: Int = 0
@@ -36,7 +36,7 @@ data class ApplicationKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.isNotEmpty()) { "Key cannot be empty" }
+            require(value = value.isNotEmpty()) { "Key cannot be empty!" }
             this._key = value
         }
 
