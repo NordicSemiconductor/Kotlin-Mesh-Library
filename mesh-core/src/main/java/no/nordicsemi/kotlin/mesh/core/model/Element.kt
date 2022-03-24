@@ -33,11 +33,15 @@ data class Element internal constructor(
     // Final index will be set when Element is added to the Node.
     // Refer https://github.com/NordicSemiconductor/IOS-nRF-Mesh-Library/blob/
     // c1755555f76fb6f393bfdad37a23566ddd581536/nRFMeshProvision/Classes/Mesh%20Model/Node.swift#L620
-    var index: Int = 0
+    var index: Int = models.size
         internal set
 
     @Transient
     internal var parentNode: Node? = null
+
+    @Transient
+    var unicastAddress = parentNode?.unicastAddress ?: UnicastAddress(address = models.size.toUShort())
+        internal set
 
     init {
         require(index in LOWER_BOUND..HIGHER_BOUND) { " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!" }
