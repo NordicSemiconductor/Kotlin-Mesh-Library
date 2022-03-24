@@ -92,7 +92,7 @@ sealed class FeatureState private constructor(val value: Int) {
          * @param value                         Integer value describing the state.
          * @throws IllegalArgumentException     if the feature value is not 0, 1 or 2.
          */
-        fun from(value: Int): FeatureState = when (value) {
+        fun from(value: Int) = when (value) {
             DISABLED -> Disabled
             ENABLED -> Enabled
             UNSUPPORTED -> Unsupported
