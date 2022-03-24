@@ -93,9 +93,9 @@ sealed class FeatureState private constructor(val value: Int) {
          * @throws IllegalArgumentException     if the feature value is not 0, 1 or 2.
          */
         fun from(value: Int): FeatureState = when (value) {
-            0 -> Disabled
-            1 -> Enabled
-            2 -> Unsupported
+            DISABLED -> Disabled
+            ENABLED -> Enabled
+            UNSUPPORTED -> Unsupported
             else -> throw IllegalArgumentException("Feature value should be from $DISABLED, $ENABLED or $UNSUPPORTED!")
         }
     }
