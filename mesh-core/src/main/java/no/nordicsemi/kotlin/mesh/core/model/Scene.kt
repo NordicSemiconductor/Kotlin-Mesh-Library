@@ -25,15 +25,27 @@ data class Scene(
 
     init {
         require(name.isNotBlank()) { "Scene name cannot be blank!" }
-        require(number in LOWER_BOUND..HIGHER_BOUND) { "Scene number must be within 0xC000 and 0xFFFF!" }
+        require(number in LOWER_BOUND..HIGHER_BOUND) { "Scene number must be within $LOWER_BOUND and $HIGHER_BOUND!" }
     }
 
-    fun addAddress(address: UnicastAddress) {
-        this.addresses += address
+    /**
+     * Adds the given unicast address to a scene
+     */
+    fun add(address: UnicastAddress) = when {
+        addresses.contains(address) -> false
+        else -> {
+            addresses = addresses + address
+            true
+        }
     }
 
-    fun addAddresses(addresses: List<UnicastAddress>) {
-        this.addresses += addresses
+    /**
+     * Adds the given list of unicast addresses to a scene
+     *
+     * @param addresses List of unicast address.
+     */
+    fun add(addresses: List<UnicastAddress>) {
+        this.addresses = this.addresses.union(addresses).toList()
     }
 
     companion object {
