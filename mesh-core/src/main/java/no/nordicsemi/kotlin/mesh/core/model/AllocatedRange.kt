@@ -4,7 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.model.serialization.SceneNumberSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 
 /**
  * Type range containing a lower bound and higher bound for an allocated address range or a scene range.
@@ -112,9 +112,9 @@ data class AllocatedGroupRange(
  */
 @Serializable
 data class AllocatedSceneRange(
-    @Serializable(with = SceneNumberSerializer::class)
+    @Serializable(with = UShortAsStringSerializer::class)
     val firstScene: SceneNumber,
-    @Serializable(with = SceneNumberSerializer::class)
+    @Serializable(with = UShortAsStringSerializer::class)
     val lastScene: SceneNumber
 ) : AllocatedRange() {
     @Transient
