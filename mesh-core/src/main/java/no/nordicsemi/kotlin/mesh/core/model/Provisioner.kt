@@ -17,12 +17,19 @@ import java.util.*
  */
 @Serializable
 data class Provisioner(
-    @SerialName(value = "provisionerName")
-    val name: String,
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID
 ) {
+
+    @SerialName(value = "provisionerName")
+    var name: String = "nRF Mesh Provisioner"
+        set(value) {
+            require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            network?.updateTimestamp()
+            field = value
+        }
+
     @SerialName(value = "allocatedUnicastRange")
     var allocatedUnicastRanges = listOf<AllocatedUnicastRange>()
         private set
@@ -35,30 +42,35 @@ data class Provisioner(
     var allocatedSceneRanges = listOf<AllocatedSceneRange>()
         private set
 
+    internal var network: MeshNetwork? = null
+
     /**
-     * Adds an allocated unicast range to a provisioner.
+     * Allocates a given unicast range to a provisioner.
      *
      * @param range Allocated unicast range.
      */
-    fun addAllocatedUnicastRange(range: AllocatedUnicastRange) {
-        this.allocatedUnicastRanges += range
+    fun allocate(range: AllocatedUnicastRange) {
+        // TODO Merge
+        allocatedUnicastRanges = allocatedUnicastRanges + range
     }
 
     /**
-     * Adds an allocated unicast group to a provisioner.
+     * Allocates the given group range to a provisioner.
      *
      * @param range Allocated group range.
      */
-    fun addAllocatedGroupRange(range: AllocatedGroupRange) {
-        this.allocatedGroupRanges += range
+    fun allocate(range: AllocatedGroupRange) {
+        // TODO Merge
+        allocatedGroupRanges = allocatedGroupRanges + range
     }
 
     /**
-     * Adds an allocated scene range to a provisioner.
+     * Allocates the given scene range to a provisioner.
      *
      * @param range Allocated scene range.
      */
-    fun addAllocatedSceneRange(range: AllocatedSceneRange) {
-        this.allocatedSceneRanges += range
+    fun allocate(range: AllocatedSceneRange) {
+        // TODO Merge
+        allocatedSceneRanges = allocatedSceneRanges + range
     }
 }
