@@ -53,6 +53,7 @@ data class Node internal constructor(
     var name: String = "Mesh Network"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            network?.updateTimestamp()
             field = value
         }
     var netKeys: List<NodeKey>
