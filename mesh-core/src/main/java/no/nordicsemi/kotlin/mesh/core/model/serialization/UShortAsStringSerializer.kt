@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 /**
  * Custom JSON serializer/deserializer for all properties formatted as a 4-digit hexadecimal string.
  */
-internal object UShortSerializer : KSerializer<UShort> {
+internal object UShortAsStringSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
 
