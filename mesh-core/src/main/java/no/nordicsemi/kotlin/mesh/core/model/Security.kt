@@ -12,11 +12,11 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
  * Secure Provisioning procedure [1], then the value of minSecurity property for the subnet is set
  * to “secure”; otherwise, the value of the minSecurity is set to “insecure”.
  *
- * @property security Security type.
+ * @property value Security type.
  */
 @Serializable(with = SecuritySerializer::class)
 @SerialName(value = "minSecurity")
-sealed class Security(val security: String) {
+sealed class Security(internal val value: String) {
     companion object {
 
         /**
@@ -34,8 +34,8 @@ sealed class Security(val security: String) {
     }
 }
 
-object Insecure : Security(security = "insecure")
-object Secure : Security(security = "secure")
+object Insecure : Security(value = "insecure")
+object Secure : Security(value = "secure")
 
 private const val INSECURE = "insecure"
 private const val SECURE = "secure"
