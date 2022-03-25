@@ -29,7 +29,10 @@ data class Scene(
     }
 
     /**
-     * Adds the given unicast address to a scene
+     * Adds the given unicast address to a scene.
+     *
+     * @param address Unicast address to be added.
+     * @return true if the address was added or false if it alraedy exists.
      */
     fun add(address: UnicastAddress) = when {
         addresses.contains(address) -> false
