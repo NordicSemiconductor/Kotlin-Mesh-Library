@@ -14,12 +14,13 @@ class ExclusionListTest {
     private val node = Node(
         uuid = UUID.randomUUID(),
         deviceKey = byteArrayOf(),
-        netKeys = listOf(),
-        name = "Node",
         unicastAddress = UnicastAddress(address = 1u),
         elements = elements,
-        appKeys = listOf()
-    )
+        _netKeys = listOf(),
+        _appKeys = listOf()
+    ).apply {
+        name = "Node"
+    }
 
     @Test
     fun testExcludeUnicast() {
