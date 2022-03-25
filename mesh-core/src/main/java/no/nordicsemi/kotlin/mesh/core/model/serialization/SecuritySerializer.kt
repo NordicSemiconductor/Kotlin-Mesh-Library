@@ -19,6 +19,6 @@ internal object SecuritySerializer : KSerializer<Security> {
         Security.from(decoder.decodeString())
 
     override fun serialize(encoder: Encoder, value: Security) {
-        encoder.encodeString(value = value.security)
+        encoder.encodeString(value = value.value)
     }
 }
