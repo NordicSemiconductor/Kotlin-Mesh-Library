@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.util.*
@@ -30,10 +29,6 @@ data class Publish(
     val index: Int,
     val ttl: Int,
     val period: PublishPeriod,
-    val credentials: Int,
+    val credentials: Credentials,
     val retransmit: Retransmit
-) {
-    @Transient
-    var label: UUID? = null
-        internal set
-}
+)
