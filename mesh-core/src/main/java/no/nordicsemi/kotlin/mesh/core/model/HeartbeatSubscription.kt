@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
  * @property destination    The destination property represents the destination address for the Heartbeat messages.
  */
 @Serializable
-@SerialName(value = "heartbeatSub")
 data class HeartbeatSubscription internal constructor(
     val source: UnicastAddress,
     val destination: HeartbeatSubscriptionDestination,
