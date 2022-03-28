@@ -109,8 +109,10 @@ data class Node internal constructor(
         internal set
     var excluded: Boolean = false
         internal set
+    @SerialName(value = "heartbeatPub")
     var heartbeatPublication: HeartbeatPublication? = null
         internal set
+    @SerialName(value = "heartbeatSub")
     var heartbeatSubscription: HeartbeatSubscription? = null
         internal set
 
