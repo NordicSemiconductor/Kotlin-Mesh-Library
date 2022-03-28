@@ -15,7 +15,6 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
  * @property value Security type.
  */
 @Serializable(with = SecuritySerializer::class)
-@SerialName(value = "minSecurity")
 sealed class Security(internal val value: String) {
     companion object {
 

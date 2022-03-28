@@ -34,6 +34,7 @@ data class NetworkKey internal constructor(
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
     private var _key: ByteArray,
+    @SerialName(value = "minSecurity")
     val security: Security
 ) {
     var name: String = "Network Key"
