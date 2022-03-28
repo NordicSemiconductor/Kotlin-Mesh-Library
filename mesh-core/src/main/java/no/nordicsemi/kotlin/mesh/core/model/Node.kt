@@ -46,8 +46,11 @@ data class Node internal constructor(
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray,
     val unicastAddress: UnicastAddress,
-    val elements: List<Element>,
+    @SerialName(value = "elements")
+    var _elements: List<Element>,
+    @SerialName(value = "netKeys")
     private var _netKeys: List<NodeKey>,
+    @SerialName(value = "appKeys")
     private var _appKeys: List<NodeKey>,
 ) {
     var name: String = "Mesh Network"
@@ -62,14 +65,18 @@ data class Node internal constructor(
             _netKeys = value
             network?.updateTimestamp()
         }
-
     var appKeys: List<NodeKey>
         get() = _appKeys
         internal set(value) {
             _appKeys = value
             network?.updateTimestamp()
         }
-
+    var elements: List<Element>
+        get() = _elements
+        internal set(value) {
+            _elements = value
+            network?.updateTimestamp()
+        }
     var security: Security = Insecure
         internal set
     var configComplete: Boolean = false
@@ -116,7 +123,7 @@ data class Node internal constructor(
      * @param key     Network key to be added.
      * @return        True if success or false if the key already exists.
      */
-    internal fun addKey(key: NetworkKey) = NodeKey(key = key).run {
+    internal fun add(key: NetworkKey) = NodeKey(key = key).run {
         when {
             _netKeys.contains(this) -> false
             else -> {
@@ -133,7 +140,7 @@ data class Node internal constructor(
      * @param key     Application key to be added.
      * @return        True if success or false if the key already exists.
      */
-    internal fun addKey(key: ApplicationKey) = NodeKey(key = key).run {
+    internal fun add(key: ApplicationKey) = NodeKey(key = key).run {
         when {
             _appKeys.contains(this) -> false
             else -> {
@@ -141,6 +148,20 @@ data class Node internal constructor(
                 network?.updateTimestamp()
                 true
             }
+        }
+    }
+
+    /**
+     * Adds an Element to a node.
+     *
+     * @param element     Element to be added.
+     * @return            True if success or false if the element already exists.
+     */
+    internal fun add(element: Element): Boolean = when {
+        _elements.contains(element) -> false
+        else -> {
+            _elements = elements + element
+            true
         }
     }
 
@@ -153,7 +174,7 @@ data class Node internal constructor(
         if (uuid != other.uuid) return false
         if (!deviceKey.contentEquals(other.deviceKey)) return false
         if (unicastAddress != other.unicastAddress) return false
-        if (elements != other.elements) return false
+        if (_elements != other._elements) return false
         if (_netKeys != other._netKeys) return false
         if (_appKeys != other._appKeys) return false
         if (name != other.name) return false
@@ -180,7 +201,7 @@ data class Node internal constructor(
         var result = uuid.hashCode()
         result = 31 * result + deviceKey.contentHashCode()
         result = 31 * result + unicastAddress.hashCode()
-        result = 31 * result + elements.hashCode()
+        result = 31 * result + _elements.hashCode()
         result = 31 * result + _netKeys.hashCode()
         result = 31 * result + _appKeys.hashCode()
         result = 31 * result + name.hashCode()

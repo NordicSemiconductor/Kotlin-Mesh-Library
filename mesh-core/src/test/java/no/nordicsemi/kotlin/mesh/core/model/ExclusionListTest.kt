@@ -15,7 +15,7 @@ class ExclusionListTest {
         uuid = UUID.randomUUID(),
         deviceKey = byteArrayOf(),
         unicastAddress = UnicastAddress(address = 1u),
-        elements = elements,
+        _elements = elements,
         _netKeys = listOf(),
         _appKeys = listOf()
     ).apply {
