@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import kotlin.properties.Delegates
 
 /**
  * Application Keys are used to secure communications at the upper transport layer.
@@ -27,13 +28,14 @@ data class ApplicationKey internal constructor(
     @SerialName("key")
     private var _key: ByteArray = Crypto.generateRandomKey()
 ) {
-    var name: String = "Application Key $index"
-        set(value) {
-            require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            if (field != value)
-                network?.updateTimestamp()
-            field = value
-        }
+    var name: String by Delegates.observable(initialValue = "Application Key $index") { _, oldValue, newValue ->
+        require(newValue.isNotBlank()) { "Application key cannot be empty!" }
+        MeshNetwork.onChange(
+            oldValue = oldValue,
+            newValue = newValue,
+            action = { network?.updateTimestamp() }
+        )
+    }
 
     @SerialName("boundNetKey")
     var boundNetKeyIndex: Int = 0
@@ -41,8 +43,8 @@ data class ApplicationKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.isNotEmpty()) { "Key cannot be empty!" }
-            this._key = value
+            require(value = value.size == 16) { "Key must be 16-bytes long!" }
+            _key = value
         }
 
     @Serializable(with = KeySerializer::class)

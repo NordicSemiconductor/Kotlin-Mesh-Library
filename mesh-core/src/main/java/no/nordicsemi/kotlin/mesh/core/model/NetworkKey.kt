@@ -6,8 +6,10 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork.Companion.onChange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
-import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import kotlin.properties.Delegates
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -33,29 +35,22 @@ data class NetworkKey internal constructor(
     val index: Int,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
-    private var _key: ByteArray,
+    private var _key: ByteArray = Crypto.generateRandomKey(),
     @SerialName(value = "minSecurity")
     val security: Security
 ) {
-    var name: String = "Network Key"
-        set(value) {
-            require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            if (field != value)
-                network?.updateTimestamp()
-            field = value
-        }
-    var phase: KeyRefreshPhase = NormalOperation
-        internal set(value) {
-            if (field != value)
-                updateTimeStamp()
-            field = value
-        }
-
+    var name: String by Delegates.observable(initialValue = "Network Key $index") { _, oldValue, newValue ->
+        require(newValue.isNotBlank()) { "Network key cannot be empty!" }
+        onChange(oldValue = oldValue, newValue = newValue) { network?.updateTimestamp() }
+    }
+    var phase: KeyRefreshPhase by Delegates.observable(initialValue = NormalOperation) { _, oldValue, newValue ->
+        onChange(oldValue = oldValue, newValue = newValue) { updateTimeStamp() }
+    }
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.isNotEmpty()) { "Key cannot be empty!" }
-            this._key = value
+            require(value = value.size == 16) { "Key must be 16-bytes!" }
+            _key = value
         }
 
     @Serializable(with = KeySerializer::class)
@@ -63,7 +58,6 @@ data class NetworkKey internal constructor(
     var oldKey: ByteArray? = null
         internal set
 
-    @Serializable(with = TimestampSerializer::class)
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
