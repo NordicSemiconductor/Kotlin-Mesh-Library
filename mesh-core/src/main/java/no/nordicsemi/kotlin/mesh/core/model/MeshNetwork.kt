@@ -5,15 +5,15 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.model.serialization.TimestampSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
+import kotlin.properties.Delegates
 
 /**
- * MeshNetwork representing a bluetooth mesh network.
+ * MeshNetwork representing a Bluetooth mesh network.
  *
- * @property meshUUID               128-bit Universally Unique Identifier (UUID), which allows differentiation among multiple mesh networks.
- * @property meshName               Human-readable name for the mesh network.
+ * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows differentiation among multiple mesh networks.
+ * @property name                   Human-readable name for the mesh network.
  * @property timestamp              Represents the last time the Mesh Object has been modified. The timestamp is based on Coordinated Universal Time.
  * @property partial                Indicates if this Mesh Configuration Database is part of a larger database.
  * @property networkKeys            List of network keys that includes information about network keys used in the mesh network.
@@ -25,27 +25,33 @@ import java.util.*
  * @property networkExclusions      List of [ExclusionList].
  */
 @Serializable
-class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID = UUID.randomUUID()) {
+class MeshNetwork(
+    @Serializable(with = UUIDSerializer::class)
+    @SerialName(value = "meshUUID")
+    val uuid: UUID = UUID.randomUUID()
+) {
 
-    var meshName: String = "Mesh Network"
-        set(value) {
-            require(meshName.isNotBlank()) { "Network name cannot be empty!" }
-            if (field != value)
-                updateTimestamp()
-            field = value
-        }
+    @SerialName(value = "meshName")
+    var name: String by Delegates.observable(initialValue = "Mesh Network") { _, oldValue, newValue ->
+        require(newValue.isNotBlank()) { "Network name cannot be empty!" }
+        onChange(
+            oldValue = oldValue,
+            newValue = newValue,
+            action = { updateTimestamp() }
+        )
+    }
 
-    @Serializable(with = TimestampSerializer::class)
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
     @Suppress("RedundantSetter")
-    var partial: Boolean = false
-        internal set(value) {
-            if (field != value)
-                updateTimestamp()
-            field = value
-        }
+    var partial: Boolean by Delegates.observable(initialValue = false) { _, oldValue, newValue ->
+        onChange(
+            oldValue = oldValue,
+            newValue = newValue,
+            action = { updateTimestamp() }
+        )
+    }
 
     var provisioners: List<Provisioner> = listOf()
         private set
@@ -81,49 +87,170 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      * Adds the given [Provisioner] to the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be added.
+     * @return True if the provisioner was added or false because the provisioner already exists.
      */
-    fun addProvisioner(provisioner: Provisioner) {
-        provisioners = provisioners + provisioner
-        updateTimestamp()
+    fun add(provisioner: Provisioner) = when {
+        provisioners.contains(provisioner) -> false
+        else -> {
+            provisioners = provisioners + provisioner
+            updateTimestamp()
+            true
+        }
     }
 
     /**
-     * Removes the given [Provisioner] from the list of provisioners in the network.
+     * Removes the given provisioner from the list of provisioners in the network.
      *
-     * @param provisioner Provisioner to be added.
+     * @param provisioner Provisioner to be removed.
+     * @return True if the provisioner was removed or false because the provisioner did not
+     *         exist in the list of [provisioners].
      */
-    fun removeProvisioner(provisioner: Provisioner) {
-        provisioners = provisioners - provisioner
-        updateTimestamp()
+    fun remove(provisioner: Provisioner) = when {
+        provisioners.contains(provisioner) -> {
+            provisioners = provisioners - provisioner
+            updateTimestamp()
+            true
+        }
+        else -> false
     }
 
     /**
      * Creates a network key.
      *
-     * @return Network key
+     * @return Network key.
+     * @throws IllegalArgumentException If the key is not a 128-bits.
      */
-    fun createNetworkKey(): NetworkKey {
-        TODO(reason = "Not implemented yet")
+    fun createNetworkKey() = NetworkKey(
+        index = networkKeys.size + 1,
+        security = Insecure
+    ).apply {
+        network = this@MeshNetwork
+    }
+
+    /**
+     * Creates a network key with a given key.
+     *
+     * @param key Byte array containing 128-bit key.
+     * @return Network key.
+     * @throws IllegalArgumentException If the key is not a 128-bits.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun createNetworkKey(key: ByteArray) = NetworkKey(
+        index = networkKeys.size + 1,
+        _key = key,
+        security = Insecure
+    ).apply {
+        network = this@MeshNetwork
+    }
+
+    /**
+     * Creates a network key with a given name and a key.
+     *
+     * @param name Key name.
+     * @param key Byte array containing 128-bit key.
+     * @return Network key.
+     * @throws IllegalArgumentException If the name is empty or key is not 128-bits.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun createNetworkKey(name: String, key: ByteArray) = NetworkKey(
+        index = networkKeys.size + 1,
+        _key = key,
+        security = Insecure
+    ).apply {
+        this.name = name
+        network = this@MeshNetwork
     }
 
     /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
-     * @param networkKey Network key to be added.
+     * @param key Network key to be added.
      */
-    fun addNetworkKey(networkKey: NetworkKey) {
-        networkKeys = networkKeys + networkKey
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+    fun add(key: NetworkKey): Boolean = when {
+        networkKeys.contains(key) -> false
+        else -> {
+            networkKeys = networkKeys + key
+            updateTimestamp()
+            true
+        }
     }
 
     /**
      * Removes a given [NetworkKey] from the list of network keys in the mesh network.
      *
-     * @param networkKey Network key to be removed.
+     * @param key Network key to be removed.
      */
-    fun removeNetworkKey(networkKey: NetworkKey) {
-        networkKeys = networkKeys - networkKey
+    fun remove(key: NetworkKey) {
+        networkKeys = networkKeys - key
+        updateTimestamp()
+        TODO(reason = "Implementation incomplete")
+    }
+
+    /**
+     * Creates a network key.
+     *
+     * @return Network key.
+     * @throws IllegalArgumentException If the key is not a 128-bits.
+     */
+    fun createApplicationKey() = ApplicationKey(
+        index = networkKeys.size + 1
+    ).apply {
+        network = this@MeshNetwork
+    }
+
+    /**
+     * Creates a application key with a given key.
+     *
+     * @param key Byte array containing 128-bit key.
+     * @return Application key.
+     * @throws IllegalArgumentException If the key is not a 128-bits.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun createApplicationKey(key: ByteArray) = ApplicationKey(
+        index = applicationKeys.size + 1,
+        _key = key
+    ).apply {
+        network = this@MeshNetwork
+    }
+
+    /**
+     * Creates a network key with a given name and a key.
+     *
+     * @param name Key name.
+     * @param key Byte array containing 128-bit key.
+     * @return Application key.
+     * @throws IllegalArgumentException If the name is empty or key is not 128-bits.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun createApplicationKey(name: String, key: ByteArray) = ApplicationKey(
+        index = applicationKeys.size + 1,
+        _key = key
+    ).apply {
+        this.name = name
+        network = this@MeshNetwork
+    }
+
+    /**
+     * Adds the given [NetworkKey] to the list of network keys in the network.
+     *
+     * @param key Network key to be added.
+     */
+    fun add(key: ApplicationKey) = when {
+        applicationKeys.contains(key) -> false
+        else -> {
+            applicationKeys = applicationKeys + key
+            updateTimestamp()
+            true
+        }
+    }
+
+    /**
+     * Removes a given [NetworkKey] from the list of network keys in the mesh network.
+     *
+     * @param key Network key to be removed.
+     */
+    fun remove(key: ApplicationKey) {
+        applicationKeys = applicationKeys - key
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
     }
@@ -133,7 +260,7 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param node Node to be removed.
      */
-    internal fun addNode(node: Node) {
+    internal fun add(node: Node) {
         nodes = nodes + node
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
@@ -144,7 +271,7 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param node Node to be removed.
      */
-    fun removeNode(node: Node) {
+    fun remove(node: Node) {
         nodes = nodes - node
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
@@ -155,7 +282,7 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param group Group to be removed.
      */
-    internal fun addGroup(group: Group) {
+    internal fun add(group: Group) {
         groups = groups + group
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
@@ -166,7 +293,7 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param group Group to be removed.
      */
-    fun removeGroup(group: Group) {
+    fun remove(group: Group) {
         groups = groups - group
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
@@ -177,7 +304,7 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param scene Group to be removed.
      */
-    internal fun addScene(scene: Scene) {
+    internal fun add(scene: Scene) {
         scenes = scenes + scene
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
@@ -188,9 +315,23 @@ class MeshNetwork(@Serializable(with = UUIDSerializer::class) val meshUUID: UUID
      *
      * @param scene Group to be removed.
      */
-    fun removeScene(scene: Scene) {
+    fun remove(scene: Scene) {
         scenes = scenes - scene
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
+    }
+
+    companion object {
+        /**
+         *  Invoked when an observable property is changed.
+         *
+         *  @param oldValue Old value of the property.
+         *  @param newValue New value to be assigned.
+         *  @param action Lambda to be invoked if the [newValue] is not the same as [oldValue].
+         */
+        internal fun <T> onChange(oldValue: T, newValue: T, action: () -> Unit) {
+            if (newValue != oldValue)
+                action()
+        }
     }
 }
