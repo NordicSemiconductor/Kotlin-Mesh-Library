@@ -32,17 +32,24 @@ import kotlin.properties.Delegates
  */
 @Serializable
 data class NetworkKey internal constructor(
-    val index: Int,
+    val index: KeyIndex,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
     private var _key: ByteArray = Crypto.generateRandomKey(),
     @SerialName(value = "minSecurity")
-    val security: Security
+    var _security: Security = Secure
 ) {
     var name: String by Delegates.observable(initialValue = "Network Key $index") { _, oldValue, newValue ->
         require(newValue.isNotBlank()) { "Network key cannot be empty!" }
         onChange(oldValue = oldValue, newValue = newValue) { network?.updateTimestamp() }
     }
+    var security: Security
+        get() = _security
+        internal set(value) {
+            // Security can only be downgraded.
+            if (_security is Secure)
+                _security = value
+        }
     var phase: KeyRefreshPhase by Delegates.observable(initialValue = NormalOperation) { _, oldValue, newValue ->
         onChange(oldValue = oldValue, newValue = newValue) { updateTimeStamp() }
     }
@@ -64,9 +71,31 @@ data class NetworkKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
+    init {
+        require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+    }
+
     private fun updateTimeStamp() {
         timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
+
+    /**
+     * Returns whether the network key is added to any nodes in the network.
+     * A key that is in use cannot be removed until it has been removed from all the nodes and is no longer
+     * bound to any application keys.
+     */
+    fun isInUse(): Boolean = network?.run {
+        // A network key is in use if at least one application key is bound to it.
+        // OR
+        // The network key is known by any of the nodes in the network.
+        applicationKeys.none { applicationKey ->
+            applicationKey.boundNetKeyIndex == index
+        } || nodes.none { node ->
+            node.netKeys.any { nodeKey ->
+                nodeKey.index == index
+            }
+        }
+    } ?: false
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -76,26 +105,29 @@ data class NetworkKey internal constructor(
 
         if (index != other.index) return false
         if (!_key.contentEquals(other._key)) return false
-        if (security != other.security) return false
-        if (name != other.name) return false
-        if (phase != other.phase) return false
+        if (_security != other._security) return false
         if (oldKey != null) {
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
         if (timestamp != other.timestamp) return false
+        if (network != other.network) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = index
+        var result = index.hashCode()
         result = 31 * result + _key.contentHashCode()
-        result = 31 * result + security.hashCode()
-        result = 31 * result + name.hashCode()
-        result = 31 * result + phase.hashCode()
+        result = 31 * result + _security.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
+        result = 31 * result + (network?.hashCode() ?: 0)
         return result
+    }
+
+    companion object {
+        private const val MIN_KEY_INDEX = 0
+        private const val MAX_KEY_INDEX = 4095
     }
 }

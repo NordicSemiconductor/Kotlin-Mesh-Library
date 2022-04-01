@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class NodeKey internal constructor(
-    val index: Int,
+    val index: KeyIndex,
     val updated: Boolean
 ) {
     internal constructor(key: NetworkKey) : this(

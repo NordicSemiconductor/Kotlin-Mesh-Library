@@ -5,6 +5,10 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
+import no.nordicsemi.kotlin.mesh.core.exceptions.DuplicateKeyIndex
+import no.nordicsemi.kotlin.mesh.core.exceptions.KeyInUse
+import no.nordicsemi.kotlin.mesh.core.exceptions.KeyIndexOutOfRange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 import kotlin.properties.Delegates
@@ -25,31 +29,22 @@ import kotlin.properties.Delegates
  * @property networkExclusions      List of [ExclusionList].
  */
 @Serializable
-class MeshNetwork(
+class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)
     @SerialName(value = "meshUUID")
     val uuid: UUID = UUID.randomUUID()
 ) {
-
     @SerialName(value = "meshName")
     var name: String by Delegates.observable(initialValue = "Mesh Network") { _, oldValue, newValue ->
         require(newValue.isNotBlank()) { "Network name cannot be empty!" }
-        onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { updateTimestamp() }
-        )
+        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() })
     }
-
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
     @Suppress("RedundantSetter")
     var partial: Boolean by Delegates.observable(initialValue = false) { _, oldValue, newValue ->
-        onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { updateTimestamp() }
+        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() }
         )
     }
 
@@ -77,6 +72,39 @@ class MeshNetwork(
         private set
 
     /**
+     * THe next available network key index, or null if the index 4095 is already in use.
+     *
+     * Note: this method does not search for gaps in key indexes, just tooks next after the last one.
+     */
+    val nextAvailableNetworkKeyIndex: KeyIndex?
+        get() {
+            if (networkKeys.isEmpty()) {
+                return 0u
+            }
+            val nextKeyIndex = (networkKeys.last().index + 1u).toUShort()
+            if (nextKeyIndex.isValidKeyIndex()) {
+                return nextKeyIndex
+            }
+            return null
+        }
+
+    /**
+     * Returns the next available application key index that can be used
+     * when construction an application key.
+     */
+    val nextAvailableApplicationKeyIndex: KeyIndex?
+        get() {
+            if (applicationKeys.isEmpty()) {
+                return 0u
+            }
+            val nextKeyIndex = (applicationKeys.last().index + 1u).toUShort()
+            if (nextKeyIndex.isValidKeyIndex()) {
+                return nextKeyIndex
+            }
+            return null
+        }
+
+    /**
      * Updates timestamp to the current time in milliseconds.
      */
     internal fun updateTimestamp() {
@@ -95,6 +123,7 @@ class MeshNetwork(
             provisioners = provisioners + provisioner
             updateTimestamp()
             true
+            TODO("Implement like in iOS")
         }
     }
 
@@ -102,76 +131,44 @@ class MeshNetwork(
      * Removes the given provisioner from the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be removed.
-     * @return True if the provisioner was removed or false because the provisioner did not
-     *         exist in the list of [provisioners].
      */
-    fun remove(provisioner: Provisioner) = when {
-        provisioners.contains(provisioner) -> {
+    fun remove(provisioner: Provisioner) {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        if (provisioners.contains(provisioner)) {
             provisioners = provisioners - provisioner
             updateTimestamp()
-            true
         }
-        else -> false
-    }
-
-    /**
-     * Creates a network key.
-     *
-     * @return Network key.
-     * @throws IllegalArgumentException If the key is not a 128-bits.
-     */
-    fun createNetworkKey() = NetworkKey(
-        index = networkKeys.size + 1,
-        security = Insecure
-    ).apply {
-        network = this@MeshNetwork
-    }
-
-    /**
-     * Creates a network key with a given key.
-     *
-     * @param key Byte array containing 128-bit key.
-     * @return Network key.
-     * @throws IllegalArgumentException If the key is not a 128-bits.
-     */
-    @Throws(IllegalArgumentException::class)
-    fun createNetworkKey(key: ByteArray) = NetworkKey(
-        index = networkKeys.size + 1,
-        _key = key,
-        security = Insecure
-    ).apply {
-        network = this@MeshNetwork
-    }
-
-    /**
-     * Creates a network key with a given name and a key.
-     *
-     * @param name Key name.
-     * @param key Byte array containing 128-bit key.
-     * @return Network key.
-     * @throws IllegalArgumentException If the name is empty or key is not 128-bits.
-     */
-    @Throws(IllegalArgumentException::class)
-    fun createNetworkKey(name: String, key: ByteArray) = NetworkKey(
-        index = networkKeys.size + 1,
-        _key = key,
-        security = Insecure
-    ).apply {
-        this.name = name
-        network = this@MeshNetwork
     }
 
     /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
-     * @param key Network key to be added.
+     * @param name Network key name.
+     * @param key 128-bit key to be added.
+     * @param index Network key index.
+     * @throws [KeyIndexOutOfRange] if the key index is not within 0 - 4095.
+     * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
-    fun add(key: NetworkKey): Boolean = when {
-        networkKeys.contains(key) -> false
-        else -> {
-            networkKeys = networkKeys + key
+    @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
+    fun add(
+        name: String,
+        key: ByteArray,
+        index: KeyIndex? = null
+    ): NetworkKey {
+        if (index != null) {
+            // Check if the network key index is not already in use to avoid duplicates.
+            require(networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
+        }
+        return NetworkKey(
+            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _key = key
+        ).apply {
+            this.name = name
+            this.network = this@MeshNetwork
+        }.also { networkKey ->
+            // Add the new network key to the network keys and sort them by index.
+            networkKeys = (networkKeys + networkKey).sortedBy { it.index }
             updateTimestamp()
-            true
         }
     }
 
@@ -179,80 +176,68 @@ class MeshNetwork(
      * Removes a given [NetworkKey] from the list of network keys in the mesh network.
      *
      * @param key Network key to be removed.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the network or bound to any application key in this network.
      */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
+        require(key.network == this) { throw DoesNotBelongToNetwork() }
+        require(!key.isInUse()) { throw KeyInUse() }
         networkKeys = networkKeys - key
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
-     * Creates a network key.
+     * Adds the given [ApplicationKey] to the list of network keys in the network.
      *
-     * @return Network key.
-     * @throws IllegalArgumentException If the key is not a 128-bits.
+     * @param name Application key name.
+     * @param key 128-bit key to be added.
+     * @param index Application key index.
+     * @param boundNetworkKey Network key to which the application key must be bound to.
+     * @throws [KeyIndexOutOfRange] if the key index is not within 0 - 4095.
+     * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
-    fun createApplicationKey() = ApplicationKey(
-        index = networkKeys.size + 1
-    ).apply {
-        network = this@MeshNetwork
-    }
-
-    /**
-     * Creates a application key with a given key.
-     *
-     * @param key Byte array containing 128-bit key.
-     * @return Application key.
-     * @throws IllegalArgumentException If the key is not a 128-bits.
-     */
-    @Throws(IllegalArgumentException::class)
-    fun createApplicationKey(key: ByteArray) = ApplicationKey(
-        index = applicationKeys.size + 1,
-        _key = key
-    ).apply {
-        network = this@MeshNetwork
-    }
-
-    /**
-     * Creates a network key with a given name and a key.
-     *
-     * @param name Key name.
-     * @param key Byte array containing 128-bit key.
-     * @return Application key.
-     * @throws IllegalArgumentException If the name is empty or key is not 128-bits.
-     */
-    @Throws(IllegalArgumentException::class)
-    fun createApplicationKey(name: String, key: ByteArray) = ApplicationKey(
-        index = applicationKeys.size + 1,
-        _key = key
-    ).apply {
-        this.name = name
-        network = this@MeshNetwork
-    }
-
-    /**
-     * Adds the given [NetworkKey] to the list of network keys in the network.
-     *
-     * @param key Network key to be added.
-     */
-    fun add(key: ApplicationKey) = when {
-        applicationKeys.contains(key) -> false
-        else -> {
-            applicationKeys = applicationKeys + key
+    @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class, IllegalArgumentException::class)
+    fun add(
+        name: String,
+        key: ByteArray,
+        index: KeyIndex? = null,
+        boundNetworkKey: NetworkKey,
+    ): ApplicationKey {
+        // Check if the network key belongs to the same network.
+        require(boundNetworkKey.network == this) {
+            throw IllegalArgumentException("Network key ${boundNetworkKey.name} does not belong to network $name!")
+        }
+        if (index != null) {
+            // Check if the application key index is not already in use to avoid duplicates.
+            require(applicationKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
+        }
+        return ApplicationKey(
+            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _key = key
+        ).apply {
+            this.name = name
+            this.boundNetKeyIndex = boundNetworkKey.index
+            this.network = this@MeshNetwork
+        }.also { applicationKey ->
+            applicationKeys = (applicationKeys + applicationKey).sortedBy { it.index }
             updateTimestamp()
-            true
         }
     }
 
     /**
-     * Removes a given [NetworkKey] from the list of network keys in the mesh network.
+     * Removes a given [ApplicationKey] from the list of application keys in the mesh network.
      *
-     * @param key Network key to be removed.
+     * @param key Application key to be removed.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the network.
      */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: ApplicationKey) {
+        require(key.network == this) { throw DoesNotBelongToNetwork() }
+        require(!key.isInUse()) { throw KeyInUse() }
         applicationKeys = applicationKeys - key
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**

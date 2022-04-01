@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork.Companion.onChange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import kotlin.properties.Delegates
@@ -23,27 +24,23 @@ import kotlin.properties.Delegates
  */
 @Serializable
 data class ApplicationKey internal constructor(
-    val index: Int,
+    val index: KeyIndex,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
     private var _key: ByteArray = Crypto.generateRandomKey()
 ) {
     var name: String by Delegates.observable(initialValue = "Application Key $index") { _, oldValue, newValue ->
         require(newValue.isNotBlank()) { "Application key cannot be empty!" }
-        MeshNetwork.onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { network?.updateTimestamp() }
-        )
+        onChange(oldValue = oldValue, newValue = newValue, action = { network?.updateTimestamp() })
     }
 
     @SerialName("boundNetKey")
-    var boundNetKeyIndex: Int = 0
+    var boundNetKeyIndex: KeyIndex = 0u
         internal set
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.size == 16) { "Key must be 16-bytes long!" }
+            require(value.size == 16) { "Key must be 16-bytes long!" }
             _key = value
         }
 
@@ -60,6 +57,24 @@ data class ApplicationKey internal constructor(
     }
         private set
 
+
+    init {
+        require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+    }
+
+    /**
+     * Returns whether the application key is added to any nodes in the network.
+     * A key that is in use cannot be removed until it has been removed from all the nodes.
+     */
+    fun isInUse(): Boolean = network?.run {
+        // The application key in used when it is known by any of the nodes in the network.
+        nodes.none { node ->
+            node.netKeys.any { nodeKey ->
+                nodeKey.index == index
+            }
+        }
+    } ?: false
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -68,22 +83,25 @@ data class ApplicationKey internal constructor(
 
         if (index != other.index) return false
         if (!_key.contentEquals(other._key)) return false
-        if (name != other.name) return false
         if (boundNetKeyIndex != other.boundNetKeyIndex) return false
         if (oldKey != null) {
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
+        if (network != other.network) return false
+        if (netKey != other.netKey) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = index
+        var result = index.hashCode()
         result = 31 * result + _key.contentHashCode()
-        result = 31 * result + name.hashCode()
-        result = 31 * result + boundNetKeyIndex
+        result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
+        result = 31 * result + (network?.hashCode() ?: 0)
+        result = 31 * result + (netKey?.hashCode() ?: 0)
         return result
     }
+
 }
