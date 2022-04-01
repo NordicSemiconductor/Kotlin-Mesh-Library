@@ -6,8 +6,11 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 
 /**
- * A Provisioner is a mesh node that is capable of provisioning a device to the mesh network and,
- * is represented by a provisioner object in the Mesh Configuration Database.
+ * A Provisioner is capable of provisioning a device to a mesh network and is represented by a
+ * provisioner object in the Mesh Configuration Database. A provisioner is represented as a node in
+ * mesh network only if it is assigned a unicast address. Having a unicast address assigned allows
+ * configuring nodes in the mesh network. Otherwise, a provisioner can only provision nodes to a
+ * mesh network.
  *
  * @property name                      Provisioner name.
  * @property uuid                      UUID of the provisioner.
