@@ -27,7 +27,7 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
      * Parses the 4-character or a 32-character hexadecimal string to a Mesh address.
      * @param hexAddress Hex address.
      */
-    private fun parse(hexAddress: String) = hexAddress.takeIf {
+    private fun parse(hexAddress: String): MeshAddress = hexAddress.takeIf {
         it.length == 4
     }?.let { it ->
         val address = it.toUInt(16).toUShort()
