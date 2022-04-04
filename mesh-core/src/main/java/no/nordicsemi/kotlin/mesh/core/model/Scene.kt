@@ -38,7 +38,6 @@ data class Scene internal constructor(
         internal set
 
     init {
-        require(name.isNotBlank()) { "Scene name cannot be blank!" }
         require(number in LOWER_BOUND..HIGHER_BOUND) { "Scene number must be within $LOWER_BOUND and $HIGHER_BOUND!" }
     }
 
