@@ -20,11 +20,12 @@ internal object MeshNetworkSerializer {
     private const val id =
         "http://www.bluetooth.com/specifications/assigned-numbers/meshprofile/cdb-schema.json#"
     private const val version = "1.0.0"
+    private val VERSION_PATTERN = Regex("^[0-9]\\.[0-9]\\.[0-9]\$")
 
     /**
      * Deserializes the array in to a mesh network.
      *
-     * @param array in to a
+     * @param array in to a mesh network.
      */
     @OptIn(ExperimentalSerializationApi::class)
     internal fun deserialize(array: ByteArray) = jsonSerializer.run {
@@ -32,9 +33,14 @@ internal object MeshNetworkSerializer {
             .also { stream -> stream.close() })
         // Validates the json with the required properties.
         networkElement.jsonObject.let { networkObject ->
-            require(schema == networkObject[KEY_SCHEMA]?.jsonPrimitive?.content) { "Invalid Json schema!" }
-            require(id == networkObject[KEY_ID]?.jsonPrimitive?.content) { "Invalid Json id!" }
-            require(version == networkObject[KEY_VERSION]?.jsonPrimitive?.content) { "Invalid version!" }
+            require(schema == networkObject[KEY_SCHEMA]?.jsonPrimitive?.content) {
+                "Invalid Json schema!"
+            }
+            // ID does not need checking as it has changed in the past and may change again.
+            // require(id == networkObject[KEY_ID]?.jsonPrimitive?.content) { "Invalid Json id!" }
+            require(networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)?: false) {
+                "Invalid version!"
+            }
         }
         decodeFromJsonElement<MeshNetwork>(networkElement)
     }
