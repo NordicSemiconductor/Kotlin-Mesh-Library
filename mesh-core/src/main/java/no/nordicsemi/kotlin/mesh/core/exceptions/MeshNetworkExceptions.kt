@@ -18,6 +18,6 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 class KeyInUse : MeshNetworkExceptions()
 
 /**
- * Thrown when a Key, Provisioner, Node , Group or a Scene does not belong to the current network.
+ * Thrown when an object does not belong to the current network.
  */
 class DoesNotBelongToNetwork : MeshNetworkExceptions()
