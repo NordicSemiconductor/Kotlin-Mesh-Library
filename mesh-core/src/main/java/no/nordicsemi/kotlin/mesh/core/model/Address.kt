@@ -86,7 +86,12 @@ sealed class MeshAddress : HasAddress {
  * The unassigned address has the value 0x0000.
  */
 @Serializable(with = MeshAddressSerializer::class)
-object UnassignedAddress : MeshAddress(), ParentGroupAddress {
+object UnassignedAddress : MeshAddress(),
+        ParentGroupAddress,
+        PublicationAddress,
+        SubscriptionAddress,
+        HeartbeatPublicationDestination,
+        HeartbeatSubscriptionDestination {
     override val address = unassignedAddress
 
     fun isValid(address: Address): Boolean = address == unassignedAddress
@@ -100,10 +105,10 @@ object UnassignedAddress : MeshAddress(), ParentGroupAddress {
 data class UnicastAddress(
     override val address: Address
 ) : MeshAddress(),
-    PublicationAddress,
-    HeartbeatPublicationDestination,
-    HeartbeatSubscriptionSource,
-    HeartbeatSubscriptionDestination {
+        PublicationAddress,
+        HeartbeatPublicationDestination,
+        HeartbeatSubscriptionSource,
+        HeartbeatSubscriptionDestination {
     init {
         require(isValid(address)) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
     }
@@ -124,10 +129,10 @@ data class UnicastAddress(
 data class VirtualAddress(
     val uuid: UUID
 ) : MeshAddress(),
-    PrimaryGroupAddress,
-    ParentGroupAddress,
-    PublicationAddress,
-    SubscriptionAddress {
+        PrimaryGroupAddress,
+        ParentGroupAddress,
+        PublicationAddress,
+        SubscriptionAddress {
     override val address: Address = Crypto.createVirtualAddress(uuid)
 }
 
@@ -140,12 +145,12 @@ data class VirtualAddress(
 data class GroupAddress(
     override val address: Address
 ) : MeshAddress(),
-    PrimaryGroupAddress,
-    ParentGroupAddress,
-    PublicationAddress,
-    SubscriptionAddress,
-    HeartbeatPublicationDestination,
-    HeartbeatSubscriptionDestination {
+        PrimaryGroupAddress,
+        ParentGroupAddress,
+        PublicationAddress,
+        SubscriptionAddress,
+        HeartbeatPublicationDestination,
+        HeartbeatSubscriptionDestination {
     init {
         require(isValid(address)) { "A valid group address must range from 0xC000 to 0xFEFF!" }
     }
