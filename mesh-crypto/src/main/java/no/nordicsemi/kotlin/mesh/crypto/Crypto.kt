@@ -1,7 +1,9 @@
-@file:Suppress("LocalVariableName")
+@file:Suppress("LocalVariableName", "unused", "UNUSED_PARAMETER")
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
 import org.bouncycastle.crypto.engines.AESEngine
@@ -9,9 +11,12 @@ import org.bouncycastle.crypto.macs.CMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
+import java.security.SecureRandom
+import java.util.*
 
 object Crypto {
 
+    private val secureRandom = SecureRandom()
     private val blockCipher: BlockCipher = AESEngine()
     private val SALT_KEY = ByteArray(16) { 0x00 }
     private val smk2 = "smk2".encodeToByteArray()
@@ -22,22 +27,47 @@ object Crypto {
     private val NKIK = "nkik".encodeToByteArray()
     private val NKBK = "nkbk".encodeToByteArray()
     private val ID128 = "id128".encodeToByteArray()
+    private val VTAD = "vtad".encodeToByteArray()
+
+
+    /**
+     * Generates a 128-bit random key using a SecureRandom.
+     */
+    fun generateRandomKey() = secureRandom.let {
+        val random = byteArrayOf(16)
+        it.nextBytes(random)
+        random
+    }
+
+    /**
+     * Creates a 16-bit virtual address for a given UUID.
+     * @param uuid 128-bit Label UUID.
+     */
+    fun createVirtualAddress(uuid: UUID): UShort {
+        val uuidHex = uuid.toString().replace("-", "").decodeHex()
+        val salt = salt(VTAD)
+        val hash = cmac(input = uuidHex, key = salt)
+        return (0x8000 or (hash.copyOfRange(fromIndex = 14, toIndex = hash.count()).encodeHex()
+            .toInt(radix = 16) and 0x3FFF)).toUShort()
+    }
 
     /**
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
      *
-     * @param N 128-bit NetworkKey
-     * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey))
+     * @param N 128-bit NetworkKey.
+     * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey)).
      */
-    fun calculateKeyDerivatives(N: ByteArray): Pair<Triple<Int, ByteArray, ByteArray>, Triple<ByteArray, ByteArray, ByteArray>> =
-        Pair(
-            first = k2(N = N, P = byteArrayOf(0x00)),
-            second = Triple(
-                first = calculateNetworkId(N),
-                second = calculateIdentityKey(N = N),
-                third = calculateBeaconKey(N = N)
-            )
+    fun calculateKeyDerivatives(N: ByteArray): KeyDerivatives {
+        val k2 = k2(N = N, P = byteArrayOf(0x00))
+        return KeyDerivatives(
+            nid = k2.first.toUByte(),
+            encryptionKey = k2.second,
+            privacyKey = k2.third,
+            networkId = calculateNetworkId(N = N),
+            identityKey = calculateIdentityKey(N = N),
+            beaconKey = calculateBeaconKey(N = N)
         )
+    }
 
     /**
      * Encrypts the [data] with the EncryptionKey , Nonce and concatenates the MIC(Message Integrity Check).
@@ -102,7 +132,6 @@ object Crypto {
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
      *
      */
-    @Suppress("UNUSED_PARAMETER")
     fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: Int, privacyKey: ByteArray) {
         // TODO
     }
@@ -113,12 +142,13 @@ object Crypto {
 
     /**
      * Calculates the 64-bit Network ID.
-     * The Network ID is derived from the network key such that each network key generates one Network ID. This identifier becomes public information.
+     * The Network ID is derived from the network key such that each network key generates one Network ID.
+     * This identifier becomes public information.
      *
      * @param N     128-bit Network key.
      * @return 64-bit Network ID.
      */
-    private fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
+    fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
 
     /**
      * Calculates the 128-bit IdentityKey.
@@ -178,14 +208,14 @@ object Crypto {
      *
      * @param N     128-bit key.
      * @param P     1 or more octets.
-     * @return 128-bit key T.
+     * @return a Triple containing the NID, EncryptionKey and PrivacyKey.
      */
     internal fun k2(N: ByteArray, P: ByteArray): Triple<Int, ByteArray, ByteArray> {
         require(N.size == 16) {
-            "N must be 128-bits"
+            "N must be 128-bits."
         }
         require(P.isNotEmpty()) {
-            "P must be 1 or more octets"
+            "P must be 1 or more octets."
         }
         val s1 = salt(smk2)
         val T = cmac(N, s1)
@@ -245,9 +275,9 @@ object Crypto {
 
     /**
      * This method  generates the ciphertext and MIC (Message Integrity Check) and validates the ciphertext
-     * RFC3610 [10] defines the AES Counter with CBC-MAC (CCM)
+     * RFC3610 [10] defines the AES Counter with CBC-MAC (CCM).
      *
-     * @param data                  Data to be encrypted and authenticated
+     * @param data                  Data to be encrypted and authenticated.
      * @param key                   128-bit key.
      * @param nonce                 104-bit nonce.
      * @param additionalData        Additional data to be authenticated.
