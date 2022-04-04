@@ -13,7 +13,7 @@ import java.util.*
 typealias Address = UShort
 
 /**
- * Converts an Address to Hex
+ * Represents a hex representation of an Address in String,
  */
 fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).run {
     when {
@@ -58,17 +58,21 @@ sealed class MeshAddress : HasAddress {
     companion object {
 
         /**
-         * Creates a Mesh address of type Unassigned, Unicast or Group address using the given address value.
+         * Creates a Mesh address of type Unassigned, Unicast or Group address using the given
+         * address value.
          *
          * @param address Address value.
-         * @throws IllegalArgumentException if the given address value is not a valid Unassigned, Unicast or a Group address.
+         * @throws IllegalArgumentException If the given address value is not a valid Unassigned,
+         *                                  Unicast or a Group address.
          */
         fun create(address: Address): MeshAddress = when {
             UnassignedAddress.isValid(address = address) -> UnassignedAddress
             UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
             GroupAddress.isValid(address = address) -> GroupAddress(address = address)
             else -> {
-                throw IllegalArgumentException("Unable to create an Address for the given address value!")
+                throw IllegalArgumentException(
+                    "Unable to create an Address for the given address value!"
+                )
             }
         }
 
@@ -82,7 +86,6 @@ sealed class MeshAddress : HasAddress {
 }
 
 /**
- * An unassigned address is an address in which the element of a node has not been configured yet or no address has been allocated.
  * The unassigned address has the value 0x0000.
  */
 @Serializable(with = MeshAddressSerializer::class)
@@ -98,8 +101,9 @@ object UnassignedAddress : MeshAddress(),
 }
 
 /**
- * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address
- * shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.
+ * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set
+ * to 0. The unicast address shall not have the value 0x0000, and therefore can have any value from
+ * 0x0001 to 0x7FFF inclusive.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
@@ -120,10 +124,12 @@ data class UnicastAddress(
 }
 
 /**
- * A virtual address represents a set of destination addresses. Each virtual address logically represents a Label UUID,
- * which is a 128-bit value that does not have to be managed centrally. One or more elements may be programmed to publish
- * or subscribe to a Label UUID. The Label UUID is not transmitted and shall be used as the Additional Data field of the
- * message integrity check value in the upper transport layer.
+ * A virtual address represents a set of destination addresses. Each virtual address logically
+ * represents a Label UUID,
+ * which is a 128-bit value that does not have to be managed centrally. One or more elements may be
+ * programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall
+ * be used as the Additional Data field of the message integrity check value in the upper transport
+ * layer.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
@@ -137,9 +143,10 @@ data class VirtualAddress(
 }
 
 /**
- * A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and
- * bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are reserved for [FixedGroupAddress], and addresses
- * in the range 0xC000 through 0xFEFF are generally available for other usage.
+ * A group address is an address that is programmed into zero or more elements. A group address has
+ * bit 15 set to 1 and bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are
+ * reserved for [FixedGroupAddress], and addresses in the range 0xC000 through 0xFEFF are generally
+ * available for other usage.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
@@ -162,8 +169,8 @@ data class GroupAddress(
 }
 
 /**
- * There are two types of group address; those that can be assigned dynamically and those that are fixed.
- * Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
+ * There are two types of group address; those that can be assigned dynamically and those that are
+ * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
 sealed class FixedGroupAddress private constructor(
@@ -196,13 +203,13 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
 object AllNodes : FixedGroupAddress(address = allNodes)
 
 /**
- * Heartbeat publication destination address for heartbeat messages. This represents a [UnicastAddress]
- * or a [GroupAddress].
+ * Heartbeat publication destination address for heartbeat messages. This represents a
+ * [UnicastAddress] or a [GroupAddress].
  */
 sealed interface HeartbeatPublicationDestination : HasAddress
 
 /**
- * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress]..
+ * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
  */
 sealed interface HeartbeatSubscriptionSource : HasAddress
 
@@ -227,7 +234,8 @@ sealed interface PublicationAddress : HasAddress
 sealed interface SubscriptionAddress : HasAddress
 
 /**
- * An address type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a group.
+ * An address type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a
+ * group.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PrimaryGroupAddress : HasAddress
