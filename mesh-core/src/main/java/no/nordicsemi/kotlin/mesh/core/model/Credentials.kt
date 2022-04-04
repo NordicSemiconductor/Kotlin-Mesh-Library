@@ -9,7 +9,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.CredentialsSerializer
  * The credentials property contains an integer of 0 or 1 that represents whether managed flooding
  * security material (0) or friendship security material (1) is used.
  *
- * @property credential 0 if master security credential is used or friendship security material is used.
+ * @property credential 0 if master security credential is used or friendship security material
+ *                      is used.
  */
 @Serializable(with = CredentialsSerializer::class)
 sealed class Credentials(val credential: Int) {
