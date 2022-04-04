@@ -10,7 +10,10 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class DurationToIntSerializer : KSerializer<Duration> {
+/**
+ * Custom JSON serializer/deserializer for Duration that relates to time intervals.
+ */
+internal object DurationToIntSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Duration", PrimitiveKind.INT)
 
