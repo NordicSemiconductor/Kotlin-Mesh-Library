@@ -17,7 +17,7 @@ sealed interface Range {
     val high: UShort
 
     /**
-     * Checks if the low value is lower than the high value.
+     * Checks if the low value is lower or equal to the high value.
      */
     fun isValid() = low <= high
 }
@@ -36,7 +36,7 @@ sealed class AllocatedRange : Range {
 }
 
 /**
- * Allocated address range
+ * Allocated address range.
  *
  * @property lowAddress       Low value for a given range.
  * @property highAddress      High value for a given  range.
@@ -77,7 +77,7 @@ data class AllocatedUnicastRange(
 /**
  * The AllocatedGroupRange represents the range of group addresses that the Provisioner can allocate to
  * newly created groups, without needing to coordinate the group additions with other Provisioners.
- * The lowAddress and highAddress properties represent values from 0xC000 to 0xFFFF. The value of the
+ * The lowAddress and highAddress properties represent values from 0xC000 to 0xFEFF. The value of the
  * lowAddress property shall be less than or equal to the value of the highAddress property.
  *
  * @property lowAddress        Low address for a given range.
