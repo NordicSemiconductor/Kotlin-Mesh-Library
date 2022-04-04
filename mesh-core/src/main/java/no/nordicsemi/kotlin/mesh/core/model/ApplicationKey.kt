@@ -15,12 +15,15 @@ import kotlin.properties.Delegates
  * The application key (AppKey) shall be generated using a random number generator
  * compatible with the requirements in Volume 2, Part H, Section 2 of the Core Specification [1].
  *
- * @property index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
- * @property name          Human-readable name for the application functionality associated with this application key.
- * @property boundNetKeyIndex   The boundNetKey property contains a corresponding NetKey index from the netKeys property of the Mesh Object.
- * @property key           128-bit application key.
- * @property oldKey        OldKey property contains the previous application key.
- * @param    _key          128-bit application key.
+ * @property index              The index property contains an integer from 0 to 4095 that
+ *                              represents the NetKey index for this network key.
+ * @property name               Human-readable name for the application functionality associated
+ *                              with this application key.
+ * @property boundNetKeyIndex   The boundNetKey property contains a corresponding Network Key index
+ *                              of the network key in the mesh network.
+ * @property key                128-bit application key.
+ * @property oldKey             OldKey property contains the previous application key.
+ * @param    _key               128-bit application key.
  */
 @Serializable
 data class ApplicationKey internal constructor(
@@ -29,8 +32,12 @@ data class ApplicationKey internal constructor(
     @SerialName("key")
     private var _key: ByteArray = Crypto.generateRandomKey()
 ) {
-    var name: String by Delegates.observable(initialValue = "Application Key $index") { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) { "Application key cannot be empty!" }
+    var name: String by Delegates.observable(
+        initialValue = "Application Key $index"
+    ) { _, oldValue, newValue ->
+        require(newValue.isNotBlank()) {
+            "Application key cannot be empty!"
+        }
         onChange(oldValue = oldValue, newValue = newValue, action = { network?.updateTimestamp() })
     }
 
@@ -52,11 +59,8 @@ data class ApplicationKey internal constructor(
     internal var network: MeshNetwork? = null
 
     @Transient
-    var netKey: NetworkKey? = network?.networkKeys?.find {
-        it.index == boundNetKeyIndex
-    }
+    var netKey: NetworkKey? = network?.networkKeys?.find { it.index == boundNetKeyIndex }
         private set
-
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
