@@ -69,11 +69,9 @@ sealed class MeshAddress : HasAddress {
             UnassignedAddress.isValid(address = address) -> UnassignedAddress
             UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
             GroupAddress.isValid(address = address) -> GroupAddress(address = address)
-            else -> {
-                throw IllegalArgumentException(
-                    "Unable to create an Address for the given address value!"
-                )
-            }
+            else -> throw IllegalArgumentException(
+                "Unable to create an Address for the given address value!"
+            )
         }
 
         /**
