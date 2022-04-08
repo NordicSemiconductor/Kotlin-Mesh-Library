@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Represents Bluetooth mesh model contained in an element in a node.
@@ -25,6 +26,9 @@ data class Model internal constructor(
         internal set
     var bind: List<Int> = listOf()
         private set
+
+    @Transient
+    internal var parentElement: Element? = null
 
     /**
      * Subscribe this model to a given subscription address.
