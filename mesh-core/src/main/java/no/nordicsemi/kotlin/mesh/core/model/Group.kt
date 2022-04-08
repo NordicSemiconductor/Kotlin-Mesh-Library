@@ -2,7 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
 
 /**
@@ -35,9 +37,9 @@ data class Group(
             require(value.isNotBlank()) {
                 "Group name cannot be empty!"
             }
-            MeshNetwork.onChange(_name, value) {
+            MeshNetwork.onChange(oldValue = _name, newValue = value, action = {
                 network?.updateTimestamp()
-            }
+            })
             _name = value
         }
 
@@ -46,10 +48,9 @@ data class Group(
             require(value != address) {
                 "Primary group address cannot be the same as the parent group address!"
             }
-            MeshNetwork.onChange(
-                oldValue = field,
-                newValue = value,
-            ) { network?.updateTimestamp() }
+            MeshNetwork.onChange(oldValue = field, newValue = value, action = {
+                network?.updateTimestamp()
+            })
             field = value
         }
 
@@ -59,7 +60,7 @@ data class Group(
     var parent: Group?
         get() = when (parentAddress.address) {
             unassignedAddress -> null
-            else -> network?.run { groups.find { group -> group.parentAddress == parentAddress } }
+            else -> network?.run { groups.find { group -> group.address == parentAddress } }
         }
         set(value) {
             value?.let { group ->
@@ -91,7 +92,7 @@ data class Group(
      * @param parent: The Group to compare.
      * @return True if this Group is a child group of the given one, otherwise false.
      */
-    fun isDirectChildOf(parent: Group) = parent.address == parentAddress
+    fun isDirectChildOf(parent: Group) = this.parent == parent
 
     /**
      * Returns whether this Group is the parent group of the given one.
@@ -107,19 +108,9 @@ data class Group(
      * @param parent The Group to compare.
      * @return True if this Group is a child group of the given one, otherwise false.
      */
-    fun isChildOf(parent: Group): Boolean {
-        var group: Group? = this
-        group?.run {
-            this.parent?.run {
-                while (true) {
-                    if (this == parent)
-                        return true
-                    group = this.parent
-                }
-            }
-        }
-        return false
-    }
+    fun isChildOf(parent: Group): Boolean = this.parent?.let { group ->
+        group == parent || group.isChildOf(parent)
+    } ?: false
 
     /**
      * Returns whether this Group is a parent group of the given one.
@@ -127,7 +118,7 @@ data class Group(
      * @param child The Group to compare.
      * @return True if this Group is a parent group of the given one, otherwise false`.
      */
-    fun isParentOf(child: Group) = child.isChildOf(child)
+    fun isParentOf(child: Group) = child.isChildOf(this)
 
     /**
      * Sets the parent-child relationship between this and the given Group.
