@@ -32,13 +32,17 @@ import kotlin.properties.Delegates
 class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)
     @SerialName(value = "meshUUID")
-    val uuid: UUID = UUID.randomUUID()
-) {
+    val uuid: UUID = UUID.randomUUID(),
     @SerialName(value = "meshName")
-    var name: String by Delegates.observable(initialValue = "Mesh Network") { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) { "Network name cannot be empty!" }
-        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() })
-    }
+    private var _name: String
+) {
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) { "Name cannot be empty!" }
+            onChange(oldValue = _name, newValue = value, action = { updateTimestamp() })
+            _name = value
+        }
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
@@ -122,7 +126,6 @@ class MeshNetwork internal constructor(
         else -> {
             provisioners = provisioners + provisioner
             updateTimestamp()
-            true
             TODO("Implement like in iOS")
         }
     }
@@ -161,9 +164,9 @@ class MeshNetwork internal constructor(
         }
         return NetworkKey(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _name = name,
             _key = key
         ).apply {
-            this.name = name
             this.network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
@@ -214,9 +217,9 @@ class MeshNetwork internal constructor(
         }
         return ApplicationKey(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _name = name,
             _key = key
         ).apply {
-            this.name = name
             this.boundNetKeyIndex = boundNetworkKey.index
             this.network = this@MeshNetwork
         }.also { applicationKey ->

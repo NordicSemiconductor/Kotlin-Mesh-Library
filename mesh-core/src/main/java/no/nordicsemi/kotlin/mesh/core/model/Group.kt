@@ -1,10 +1,9 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import kotlin.properties.Delegates
+import kotlinx.serialization.*
+import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
 
 /**
  * Group defines a [GroupAddress] of type [PrimaryGroupAddress] to which a node may subscribe to.
@@ -26,31 +25,146 @@ import kotlin.properties.Delegates
  */
 @Serializable
 data class Group(
-    val address: PrimaryGroupAddress,
+    @SerialName(value = "name")
+    private var _name: String,
+    val address: PrimaryGroupAddress
 ) {
-    var name: String by Delegates.observable(
-        initialValue = "nRF Group"
-    ) { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) {
-            "Group name cannot be empty!"
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) {
+                "Group name cannot be empty!"
+            }
+            MeshNetwork.onChange(_name, value) {
+                network?.updateTimestamp()
+            }
+            _name = value
         }
-        MeshNetwork.onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { network?.updateTimestamp() })
-    }
-    var parentAddress: ParentGroupAddress by Delegates.observable(
-        initialValue = UnassignedAddress
-    ) { _, oldValue, newValue ->
-        require(address.address != parentAddress.address) {
-            "Primary group address cannot be the same as the parent group address!"
+
+    internal var parentAddress: ParentGroupAddress = UnassignedAddress
+        set(value) {
+            require(value != address) {
+                "Primary group address cannot be the same as the parent group address!"
+            }
+            MeshNetwork.onChange(
+                oldValue = field,
+                newValue = value,
+            ) { network?.updateTimestamp() }
+            field = value
         }
-        MeshNetwork.onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { network?.updateTimestamp() })
-    }
 
     @Transient
     internal var network: MeshNetwork? = null
+
+    var parent: Group?
+        get() = when (parentAddress.address) {
+            unassignedAddress -> null
+            else -> network?.run { groups.find { group -> group.parentAddress == parentAddress } }
+        }
+        set(value) {
+            value?.let { group ->
+                network?.run {
+                    require(groups.contains(group)) { throw DoesNotBelongToNetwork() }
+                    parentAddress = toParentGroupAddress(group.address)
+                }
+            }
+        }
+
+    var isUsed: Boolean = false
+        get() = network?.run {
+            if (groups.any { isDirectParentOf(it) }) return true
+            nodes.forEach { node ->
+                node.elements.forEach { element ->
+                    return@run element.models.any { model ->
+                        model.publish?.address == address ||
+                                model.subscribe.contains(address as SubscriptionAddress)
+                    }
+                }
+            }
+            false
+        } ?: false
+        internal set
+
+    /**
+     * Returns whether this Group is a direct child group of the given one.
+     *
+     * @param parent: The Group to compare.
+     * @return True if this Group is a child group of the given one, otherwise false.
+     */
+    fun isDirectChildOf(parent: Group) = parent.address == parentAddress
+
+    /**
+     * Returns whether this Group is the parent group of the given one.
+     *
+     * @param child: The Group to compare.
+     * @return True if the given Group is a child group of this one, otherwise false.
+     */
+    fun isDirectParentOf(child: Group) = child.isDirectChildOf(this)
+
+    /**
+     * Returns whether this Group is a child group of the given one.
+     *
+     * @param parent The Group to compare.
+     * @return True if this Group is a child group of the given one, otherwise false.
+     */
+    fun isChildOf(parent: Group): Boolean {
+        var group: Group? = this
+        group?.run {
+            this.parent?.run {
+                while (true) {
+                    if (this == parent)
+                        return true
+                    group = this.parent
+                }
+            }
+        }
+        return false
+    }
+
+    /**
+     * Returns whether this Group is a parent group of the given one.
+     *
+     * @param child The Group to compare.
+     * @return True if this Group is a parent group of the given one, otherwise false`.
+     */
+    fun isParentOf(child: Group) = child.isChildOf(child)
+
+    /**
+     * Sets the parent-child relationship between this and the given Group.
+     *
+     * @param parent The parent Group.
+     */
+    fun setAsChildOf(parent: Group) {
+        require(parent != this) {
+            throw IllegalArgumentException("A group cannot be a parent of itself")
+        }
+        parentAddress = toParentGroupAddress(parent.address)
+    }
+
+    /**
+     * Sets the parent-child relationship between this and the given Group.
+     *
+     * @param child The child Group.
+     */
+    fun setAsParentOf(child: Group) {
+        require(child != this) {
+            throw IllegalArgumentException("A group cannot be a child of itself")
+        }
+        child.parentAddress = toParentGroupAddress(address)
+    }
+
+    private companion object {
+        /**
+         * Converts a primary group address to a parent group address.
+         *
+         * @param address Primary group address of the group.
+         * @return a PrimaryGroupAddress as a ParentGroupAddress of type
+         *         GroupAddress or VirtualAddress.
+         */
+        fun toParentGroupAddress(address: PrimaryGroupAddress): ParentGroupAddress =
+            when (address) {
+                is GroupAddress -> address
+                is VirtualAddress -> address
+            }
+    }
 }

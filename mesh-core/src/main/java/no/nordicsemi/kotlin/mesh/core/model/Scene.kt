@@ -2,9 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
-import kotlin.properties.Delegates
 
 typealias SceneNumber = UShort
 
@@ -17,20 +17,22 @@ typealias SceneNumber = UShort
  */
 @Serializable
 data class Scene internal constructor(
+    @SerialName(value = "name")
+    private var _name: String,
     @Serializable(with = UShortAsStringSerializer::class)
     val number: SceneNumber,
 ) {
-    var name: String by Delegates.observable(
-        initialValue = "nRF Scene"
-    ) { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) {
-            "Scene name empty!"
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) {
+                "Scene name empty!"
+            }
+            MeshNetwork.onChange(
+                oldValue = _name,
+                newValue = value,
+                action = { network?.updateTimestamp() })
         }
-        MeshNetwork.onChange(
-            oldValue = oldValue,
-            newValue = newValue,
-            action = { network?.updateTimestamp() })
-    }
     var addresses = listOf<UnicastAddress>()
         private set
 

@@ -29,7 +29,9 @@ data class Provisioner(
     var name: String = "nRF Mesh Provisioner"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            network?.updateTimestamp()
+            MeshNetwork.onChange(oldValue = field, newValue = value, action = {
+                network?.updateTimestamp()
+            })
             field = value
         }
 
