@@ -118,8 +118,7 @@ data class UnicastAddress(
     }
 
     companion object {
-        fun isValid(address: Address) =
-            address in minUnicastAddress..maxUnicastAddress
+        fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
     }
 }
 
@@ -163,8 +162,7 @@ data class GroupAddress(
     }
 
     companion object {
-        fun isValid(address: Address) =
-            address in minGroupAddress..maxGroupAddress
+        fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress
     }
 }
 
