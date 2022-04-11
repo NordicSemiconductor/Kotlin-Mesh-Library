@@ -5,13 +5,9 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
-import no.nordicsemi.kotlin.mesh.core.exceptions.DuplicateKeyIndex
-import no.nordicsemi.kotlin.mesh.core.exceptions.KeyInUse
-import no.nordicsemi.kotlin.mesh.core.exceptions.KeyIndexOutOfRange
+import no.nordicsemi.kotlin.mesh.core.exceptions.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
-import kotlin.properties.Delegates
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -47,10 +43,11 @@ class MeshNetwork internal constructor(
         internal set
 
     @Suppress("RedundantSetter")
-    var partial: Boolean by Delegates.observable(initialValue = false) { _, oldValue, newValue ->
-        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() }
-        )
-    }
+    var partial: Boolean = false
+        internal set(value) {
+            onChange(oldValue = field, newValue = value, action = { updateTimestamp() })
+            field = value
+        }
 
     var provisioners: List<Provisioner> = listOf()
         private set
@@ -67,7 +64,7 @@ class MeshNetwork internal constructor(
         private set
 
     var groups: List<Group> = listOf()
-        private set
+        internal set
 
     var scenes: List<Scene> = listOf()
         private set
@@ -78,7 +75,7 @@ class MeshNetwork internal constructor(
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
-     * Note: this method does not search for gaps in key indexes, just tooks next after the last one.
+     * Note: this method does not search for gaps in key indexes, takes next after the last one.
      */
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
@@ -269,22 +266,28 @@ class MeshNetwork internal constructor(
      * Adds a given [Group] to the list of groups in the mesh network.
      *
      * @param group Group to be removed.
+     * @throws [GroupAlreadyExists] If the group already exists.
      */
-    internal fun add(group: Group) {
-        groups = groups + group
+    @Throws(GroupAlreadyExists::class)
+    fun add(group: Group) {
+        require(!groups.contains(group)) { throw GroupAlreadyExists() }
+        groups = groups + group.also { it.network = this }
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
      * Removes a given [Group] from the list of groups in the mesh network.
      *
      * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
      */
+    @Throws(DoesNotBelongToNetwork::class)
     fun remove(group: Group) {
-        groups = groups - group
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+        require(group.network == this) { throw DoesNotBelongToNetwork() }
+        group.takeUnless { !it.isUsed }?.let {
+            groups = groups - group
+            updateTimestamp()
+        }
     }
 
     /**

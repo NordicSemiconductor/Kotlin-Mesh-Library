@@ -18,6 +18,26 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 class KeyInUse : MeshNetworkExceptions()
 
 /**
+ * Thrown when a given group is already exists.
+ */
+class GroupAlreadyExists : MeshNetworkExceptions()
+
+/**
+ * Thrown when a given group is in use.
+ */
+class GroupInUse : MeshNetworkExceptions()
+
+/**
+ * Thrown when a given group is already exists.
+ */
+class SceneAlreadyExists : MeshNetworkExceptions()
+
+/**
+ * Thrown when a given group is in use.
+ */
+class SceneInUse : MeshNetworkExceptions()
+
+/**
  * Thrown when an object does not belong to the current network.
  */
 class DoesNotBelongToNetwork : MeshNetworkExceptions()
