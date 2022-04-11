@@ -84,7 +84,7 @@ data class Group(
             }
             false
         } ?: false
-        internal set
+        private set
 
     /**
      * Returns whether this Group is a direct child group of the given one.
