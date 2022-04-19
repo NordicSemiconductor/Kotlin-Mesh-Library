@@ -37,7 +37,7 @@ data class ApplicationKey internal constructor(
         get() = _name
         set(value) {
             require(value.isNotBlank()) { "Name cannot be empty!" }
-            onChange(oldValue = _name, newValue = value, action = { network?.updateTimestamp() })
+            onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
 

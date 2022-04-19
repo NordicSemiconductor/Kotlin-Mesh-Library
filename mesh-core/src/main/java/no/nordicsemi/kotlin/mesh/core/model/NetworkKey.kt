@@ -45,9 +45,7 @@ data class NetworkKey internal constructor(
         get() = _name
         set(value) {
             require(value.isNotBlank()) { "Name cannot be empty!" }
-            MeshNetwork.onChange(oldValue = _name, newValue = value, action = {
-                network?.updateTimestamp()
-            })
+            MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
     var security: Security

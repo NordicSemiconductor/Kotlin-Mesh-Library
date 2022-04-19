@@ -27,9 +27,7 @@ data class Scene internal constructor(
         get() = _name
         set(value) {
             require(value.isNotBlank()) { "Scene name empty!" }
-            MeshNetwork.onChange(oldValue = _name, newValue = value, action = {
-                network?.updateTimestamp()
-            })
+            MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
         }
     var addresses = listOf<UnicastAddress>()
         private set

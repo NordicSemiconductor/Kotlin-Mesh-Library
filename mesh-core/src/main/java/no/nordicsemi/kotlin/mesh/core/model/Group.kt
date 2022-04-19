@@ -34,12 +34,8 @@ data class Group(
     var name: String
         get() = _name
         set(value) {
-            require(value.isNotBlank()) {
-                "Group name cannot be empty!"
-            }
-            MeshNetwork.onChange(oldValue = _name, newValue = value, action = {
-                network?.updateTimestamp()
-            })
+            require(value.isNotBlank()) { "Group name cannot be empty!" }
+            MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
 
@@ -48,9 +44,7 @@ data class Group(
             require(value != address) {
                 "Primary group address cannot be the same as the parent group address!"
             }
-            MeshNetwork.onChange(oldValue = field, newValue = value, action = {
-                network?.updateTimestamp()
-            })
+            MeshNetwork.onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
             field = value
         }
 

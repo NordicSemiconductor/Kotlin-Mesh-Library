@@ -27,9 +27,9 @@ data class Element internal constructor(
             name?.let {
                 require(it.isNotBlank()) { "Element name cannot be blank!" }
             }
-            MeshNetwork.onChange(oldValue = field, newValue = value, action = {
+            MeshNetwork.onChange(oldValue = field, newValue = value) {
                 parentNode?.network?.updateTimestamp()
-            })
+            }
             field = value
         }
 
