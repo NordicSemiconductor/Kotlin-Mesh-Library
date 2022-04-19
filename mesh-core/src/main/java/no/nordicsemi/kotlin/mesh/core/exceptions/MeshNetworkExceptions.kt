@@ -28,12 +28,12 @@ class GroupAlreadyExists : MeshNetworkExceptions()
 class GroupInUse : MeshNetworkExceptions()
 
 /**
- * Thrown when a given group is already exists.
+ * Thrown when a given scene already exists.
  */
 class SceneAlreadyExists : MeshNetworkExceptions()
 
 /**
- * Thrown when a given group is in use.
+ * Thrown when a given scene is in use.
  */
 class SceneInUse : MeshNetworkExceptions()
 
