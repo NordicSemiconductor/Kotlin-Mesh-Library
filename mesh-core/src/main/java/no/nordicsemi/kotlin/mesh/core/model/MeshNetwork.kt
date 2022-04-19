@@ -280,8 +280,9 @@ class MeshNetwork internal constructor(
      *
      * @param group Group to be removed.
      * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
+     * @throws [GroupInUse] If the group is already in use.
      */
-    @Throws(DoesNotBelongToNetwork::class)
+    @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
     fun remove(group: Group) {
         require(group.network == this) { throw DoesNotBelongToNetwork() }
         group.takeUnless { !it.isUsed }?.let {
@@ -291,25 +292,79 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Adds a given [Group] to the list of groups in the mesh network.
+     * Adds a given [Scene] to the list of scenes in the mesh network.
      *
-     * @param scene Group to be removed.
+     * @param scene Scene to be removed.
+     * @throws SceneAlreadyExists If the scene already exists.
      */
-    internal fun add(scene: Scene) {
-        scenes = scenes + scene
+    @Throws(GroupAlreadyExists::class)
+    fun add(scene: Scene) {
+        require(!scenes.contains(scene)) { throw SceneAlreadyExists() }
+        scenes = scenes + scene.also { it.network = this }
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
-     * Removes a given [Group] from the list of groups in the mesh network.
+     * Removes a given [Scene] from the list of groups in the mesh network.
      *
-     * @param scene Group to be removed.
+     * @param scene Scene to be removed.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneInUse] If the scene is already in use.
      */
+    @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
-        scenes = scenes - scene
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+        require(scene.network == this) { throw DoesNotBelongToNetwork() }
+        scene.takeUnless { !it.isUsed }?.let {
+            scenes = scenes - scene
+            updateTimestamp()
+        }
+    }
+
+    /**
+     * Returns the next available Scene number from the Provisioner's range that can be assigned to
+     * a new Scene.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available Scene number that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     */
+    fun nextAvailableScene(provisioner: Provisioner): SceneNumber? {
+        val sortedScenes = scenes.sortedBy { it.number }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner.allocatedSceneRanges.forEach { range ->
+            var scene = range.firstScene
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedScenes.size) {
+                val sceneObject = sortedScenes[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (scene > sceneObject.number) {
+                    continue
+                }
+                // If we found a space before the current node, return the scene number.
+                if (scene < sceneObject.number) {
+                    return scene
+                }
+                // Else, move the address to the next available address.
+                scene = (sceneObject.number + 1u).toUShort()
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (scene > range.lastScene) {
+                    break
+                }
+            }
+
+            // If the range has available space, return the address.
+            if (scene <= range.lastScene) {
+                return scene
+            }
+        }
+        // No scene number was found :(
+        return null
     }
 
     companion object {
