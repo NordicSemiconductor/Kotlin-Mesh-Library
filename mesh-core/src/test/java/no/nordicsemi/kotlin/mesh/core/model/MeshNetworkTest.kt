@@ -10,7 +10,8 @@ class MeshNetworkTest {
 
     private val networkManager = MeshNetworkManager()
     private val meshNetwork by lazy { networkManager.meshNetwork }
-    private val group = Group("test", GroupAddress(0xD000u))
+    private val group = Group("Test Group", GroupAddress(0xD000u))
+    private val scene = Scene("Test Scene", 0x000Au)
 
     @Before
     fun setUp() = runBlocking {
@@ -32,5 +33,26 @@ class MeshNetworkTest {
         meshNetwork.add(group)
         meshNetwork.remove(group)
         Assert.assertFalse(meshNetwork.groups.none { it.address == group.address })
+    }
+
+    @Test
+    fun testAddScene() {
+        meshNetwork.add(scene)
+        Assert.assertTrue(meshNetwork.scenes.any { it.number == scene.number })
+    }
+
+    @Test
+    fun testRemoveScene() {
+        meshNetwork.add(scene)
+        meshNetwork.remove(scene)
+        Assert.assertFalse(meshNetwork.scenes.none { it.number == scene.number })
+    }
+
+    @Test
+    fun testNextAvailableScene() {
+        val expectedSceneNumber: SceneNumber = 1u
+        val provisioner = meshNetwork.provisioners.last()
+        val actualSceneNumber = meshNetwork.nextAvailableScene(provisioner)
+        Assert.assertTrue(expectedSceneNumber == actualSceneNumber)
     }
 }
