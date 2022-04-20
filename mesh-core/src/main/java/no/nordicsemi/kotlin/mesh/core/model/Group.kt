@@ -65,7 +65,7 @@ data class Group(
             }
         }
 
-    var isUsed: Boolean = false
+    val isUsed: Boolean
         get() = network?.run {
             if (groups.any { isDirectParentOf(it) }) return true
             nodes.forEach { node ->
@@ -78,7 +78,6 @@ data class Group(
             }
             false
         } ?: false
-        private set
 
     /**
      * Returns whether this Group is a direct child group of the given one.
