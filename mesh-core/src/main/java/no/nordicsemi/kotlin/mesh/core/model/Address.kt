@@ -231,15 +231,16 @@ sealed interface SubscriptionAddress : HasAddress
 
 /**
  * An address type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a
- * group. Primary group address cannot be a fixed group address as they are fixed and not
- * allocatable to a provisioner as a range.
+ * group. Primary group address cannot be a fixed group address and not allocatable to a provisioner
+ * as a range.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PrimaryGroupAddress : HasAddress
 
 /**
  * An address type used to identify a [GroupAddress], [VirtualAddress] or an [UnassignedAddress]
- * that's used as a parent address of a group.
+ * that's used as a parent address of a group. Parent group address cannot be a fixed group address
+ * and not allocatable to a provisioner as a range.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress
