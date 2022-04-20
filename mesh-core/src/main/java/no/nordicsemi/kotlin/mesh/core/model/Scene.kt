@@ -26,7 +26,7 @@ data class Scene internal constructor(
     var name: String
         get() = _name
         set(value) {
-            require(value.isNotBlank()) { "Scene name empty!" }
+            require(value.isNotBlank()) { "Name cannot be empty!" }
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
         }
     var addresses = listOf<UnicastAddress>()
@@ -52,7 +52,7 @@ data class Scene internal constructor(
      * @param address Unicast address to be added.
      * @return true if the address was added or false if it alraedy exists.
      */
-    fun add(address: UnicastAddress) {
+    internal fun add(address: UnicastAddress) {
         if (addresses.none { it == address }) {
             addresses = addresses + address
             network?.updateTimestamp()
@@ -64,7 +64,7 @@ data class Scene internal constructor(
      *
      * @param addresses List of unicast address.
      */
-    fun add(addresses: List<UnicastAddress>) {
+    internal fun add(addresses: List<UnicastAddress>) {
         this.addresses = this.addresses.union(addresses).toList()
         network?.updateTimestamp()
     }
@@ -74,7 +74,7 @@ data class Scene internal constructor(
      *
      * @param address Address to be removed.
      */
-    fun remove(address: UnicastAddress) {
+    internal fun remove(address: UnicastAddress) {
         addresses = addresses - address
         network?.updateTimestamp()
     }
