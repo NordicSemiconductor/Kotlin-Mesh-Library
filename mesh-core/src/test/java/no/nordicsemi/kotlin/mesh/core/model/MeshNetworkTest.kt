@@ -36,6 +36,14 @@ class MeshNetworkTest {
     }
 
     @Test
+    fun testNextAvailableGroup() {
+        val expectedGroupAddress = GroupAddress(0xC003u)
+        val provisioner = meshNetwork.provisioners.last()
+        val actualGroupAddress = meshNetwork.nextAvailableGroup(provisioner)
+        Assert.assertTrue(expectedGroupAddress == actualGroupAddress)
+    }
+
+    @Test
     fun testAddScene() {
         meshNetwork.add(scene)
         Assert.assertTrue(meshNetwork.scenes.any { it.number == scene.number })
