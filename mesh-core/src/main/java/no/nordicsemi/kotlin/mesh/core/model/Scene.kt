@@ -50,7 +50,6 @@ data class Scene internal constructor(
      * Adds the given unicast address to a scene.
      *
      * @param address Unicast address to be added.
-     * @return true if the address was added or false if it alraedy exists.
      */
     internal fun add(address: UnicastAddress) {
         if (addresses.none { it == address }) {
@@ -81,14 +80,19 @@ data class Scene internal constructor(
 
     /**
      * Returns a list of nodes registered to a given scene address.
-     *
-     * @param sceneNumber Registered scene number.
      */
-    fun nodes(sceneNumber: SceneNumber) = network?.scenes?.filter { scene ->
-        scene.number == sceneNumber
+    fun nodes(): List<Node> = network?.nodes?.filter { node ->
+        node.elements.any { element -> addresses.contains(element.unicastAddress) }
     } ?: listOf()
 
-    companion object {
+    /**
+     * Returns a list of elements registered to a given scene address.
+     */
+    fun elements(): List<Element> = network?.nodes?.flatMap { node ->
+        node.elements.filter { element -> addresses.contains(element.unicastAddress) }
+    } ?: listOf()
+
+    private companion object {
         const val LOWER_BOUND = 0x0001u
         const val HIGHER_BOUND = 0xFFFFu
     }
