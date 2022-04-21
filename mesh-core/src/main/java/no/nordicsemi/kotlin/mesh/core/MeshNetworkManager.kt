@@ -2,12 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
-import no.nordicsemi.android.mesh.storage.Storage
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 
-open class MeshNetworkManager internal constructor() {
+open class MeshNetworkManager {
     lateinit var meshNetwork: MeshNetwork
         protected set
 
@@ -17,8 +16,8 @@ open class MeshNetworkManager internal constructor() {
     // TODO Should we import a Json Object by default?
     suspend fun importMeshNetwork(array: ByteArray) {
         meshNetwork = deserialize(array)
+        // Assign network reference to access parent network within the object.
         meshNetwork.apply {
-            // Assign network reference to improve api.
             networkKeys.forEach {
                 it.network = this
             }
@@ -33,10 +32,8 @@ open class MeshNetworkManager internal constructor() {
             }
             nodes.forEach { node ->
                 node.network = this
-                // Assigns parent node reference to improve api.
                 node.elements.forEach { element ->
                     element.parentNode = node
-                    // Assigns parent element reference to improve api.
                     element.models.forEach { model ->
                         model.parentElement = element
                     }
