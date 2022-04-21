@@ -18,6 +18,11 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 class KeyInUse : MeshNetworkExceptions()
 
 /**
+ * Thrown when no unicast address range is allocated to a provisioner.
+ */
+class NoUnicastRangeAllocated : MeshNetworkExceptions()
+
+/**
  * Thrown when a given group already exists.
  */
 class GroupAlreadyExists : MeshNetworkExceptions()
