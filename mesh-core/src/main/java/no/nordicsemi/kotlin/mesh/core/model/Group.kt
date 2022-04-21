@@ -68,15 +68,14 @@ data class Group(
     val isUsed: Boolean
         get() = network?.run {
             if (groups.any { isDirectParentOf(it) }) return true
-            nodes.forEach { node ->
-                node.elements.forEach { element ->
-                    return@run element.models.any { model ->
+            nodes.any { node ->
+                node.elements.any { element ->
+                    element.models.any { model ->
                         model.publish?.address == address ||
                                 model.subscribe.contains(address as SubscriptionAddress)
                     }
                 }
             }
-            false
         } ?: false
 
     /**
