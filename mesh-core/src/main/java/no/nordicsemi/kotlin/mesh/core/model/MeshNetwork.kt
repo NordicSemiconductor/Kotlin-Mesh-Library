@@ -36,7 +36,7 @@ class MeshNetwork internal constructor(
         get() = _name
         set(value) {
             require(value.isNotBlank()) { "Name cannot be empty!" }
-            onChange(oldValue = _name, newValue = value, action = { updateTimestamp() })
+            onChange(oldValue = _name, newValue = value) { updateTimestamp() }
             _name = value
         }
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
@@ -45,7 +45,7 @@ class MeshNetwork internal constructor(
     @Suppress("RedundantSetter")
     var partial: Boolean = false
         internal set(value) {
-            onChange(oldValue = field, newValue = value, action = { updateTimestamp() })
+            onChange(oldValue = field, newValue = value) { updateTimestamp() }
             field = value
         }
 
@@ -150,11 +150,7 @@ class MeshNetwork internal constructor(
      * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
-    fun add(
-        name: String,
-        key: ByteArray,
-        index: KeyIndex? = null
-    ): NetworkKey {
+    fun add(name: String, key: ByteArray, index: KeyIndex? = null): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
             require(networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
@@ -202,7 +198,7 @@ class MeshNetwork internal constructor(
         name: String,
         key: ByteArray,
         index: KeyIndex? = null,
-        boundNetworkKey: NetworkKey,
+        boundNetworkKey: NetworkKey
     ): ApplicationKey {
         // Check if the network key belongs to the same network.
         require(boundNetworkKey.network == this) {
