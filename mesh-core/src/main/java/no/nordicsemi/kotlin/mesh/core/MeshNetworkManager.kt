@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import no.nordicsemi.android.mesh.storage.Storage
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
@@ -17,23 +18,19 @@ open class MeshNetworkManager internal constructor() {
     suspend fun importMeshNetwork(array: ByteArray) {
         meshNetwork = deserialize(array)
         meshNetwork.apply {
-            // Assigns network reference to improve api.
+            // Assign network reference to improve api.
             networkKeys.forEach {
                 it.network = this
             }
-            // Assigns network reference to improve api.
             applicationKeys.forEach {
                 it.network = this
             }
-            // Assigns network reference to improve api.
             groups.forEach {
                 it.network = this
             }
-            // Assigns network reference to improve api.
             scenes.forEach {
                 it.network = this
             }
-            // Assigns network reference to improve api.
             nodes.forEach { node ->
                 node.network = this
                 // Assigns parent node reference to improve api.
