@@ -28,6 +28,11 @@ class GroupAlreadyExists : MeshNetworkExceptions()
 class GroupInUse : MeshNetworkExceptions()
 
 /**
+ * Thrown when no group range is allocated to a provisioner.
+ */
+class NoGroupRangeAllocated : MeshNetworkExceptions()
+
+/**
  * Thrown when a given scene already exists.
  */
 class SceneAlreadyExists : MeshNetworkExceptions()
@@ -41,3 +46,8 @@ class SceneInUse : MeshNetworkExceptions()
  * Thrown when an object does not belong to the current network.
  */
 class DoesNotBelongToNetwork : MeshNetworkExceptions()
+
+/**
+ * Thrown when no scene range is allocated to a provisioner.
+ */
+class NoSceneRangeAllocated : MeshNetworkExceptions()
