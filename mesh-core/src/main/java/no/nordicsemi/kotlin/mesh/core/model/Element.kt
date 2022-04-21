@@ -27,6 +27,9 @@ data class Element internal constructor(
             name?.let {
                 require(it.isNotBlank()) { "Element name cannot be blank!" }
             }
+            MeshNetwork.onChange(oldValue = field, newValue = value) {
+                parentNode?.network?.updateTimestamp()
+            }
             field = value
         }
 
@@ -40,7 +43,8 @@ data class Element internal constructor(
     internal var parentNode: Node? = null
 
     @Transient
-    var unicastAddress = parentNode?.unicastAddress ?: UnicastAddress(address = models.size.toUShort())
+    var unicastAddress =
+        parentNode?.unicastAddress ?: UnicastAddress(address = models.size.toUShort())
         internal set
 
     init {

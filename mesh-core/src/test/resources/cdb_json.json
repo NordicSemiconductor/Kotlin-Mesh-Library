@@ -1420,6 +1420,11 @@
             "name": "Cat Flap",
             "address": "EA57D9F1975D4EBDA78A37D189AC58F4",
             "parentAddress": "0000"
+        },
+        {
+            "name": "Bedside (Brian) - Sub",
+            "address": "C026",
+            "parentAddress": "C024"
         }
     ],
     "scenes":

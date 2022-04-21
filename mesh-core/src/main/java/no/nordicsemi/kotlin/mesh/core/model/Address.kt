@@ -33,7 +33,7 @@ internal const val minGroupAddress: Address = 0xC000u
 private const val maxGroupAddress: Address = 0xFEFFu
 
 //TODO is this really needed?
-private const val unassignedAddress: Address = 0x0000u
+internal const val unassignedAddress: Address = 0x0000u
 private const val allProxies: Address = 0xFFFCu
 private const val allFriends: Address = 0xFFFDu
 private const val allRelays: Address = 0xFFFEu
@@ -69,11 +69,9 @@ sealed class MeshAddress : HasAddress {
             UnassignedAddress.isValid(address = address) -> UnassignedAddress
             UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
             GroupAddress.isValid(address = address) -> GroupAddress(address = address)
-            else -> {
-                throw IllegalArgumentException(
-                    "Unable to create an Address for the given address value!"
-                )
-            }
+            else -> throw IllegalArgumentException(
+                "Unable to create an Address for the given address value!"
+            )
         }
 
         /**
@@ -118,8 +116,7 @@ data class UnicastAddress(
     }
 
     companion object {
-        fun isValid(address: Address) =
-            address in minUnicastAddress..maxUnicastAddress
+        fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
     }
 }
 
@@ -163,8 +160,7 @@ data class GroupAddress(
     }
 
     companion object {
-        fun isValid(address: Address) =
-            address in minGroupAddress..maxGroupAddress
+        fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress
     }
 }
 
@@ -173,7 +169,7 @@ data class GroupAddress(
  * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
-sealed class FixedGroupAddress private constructor(
+sealed class FixedGroupAddress(
     override val address: Address
 ) : MeshAddress()
 
@@ -235,14 +231,16 @@ sealed interface SubscriptionAddress : HasAddress
 
 /**
  * An address type used to identify a [GroupAddress] or a [VirtualAddress] that's used to create a
- * group.
+ * group. Primary group address cannot be a fixed group address and not allocatable to a provisioner
+ * as a range.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface PrimaryGroupAddress : HasAddress
 
 /**
  * An address type used to identify a [GroupAddress], [VirtualAddress] or an [UnassignedAddress]
- * that's used as a parent address of a group.
+ * that's used as a parent address of a group. Parent group address cannot be a fixed group address
+ * and not allocatable to a provisioner as a range.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress

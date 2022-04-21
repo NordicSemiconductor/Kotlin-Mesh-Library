@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.model.serialization.StepResolutionSerializer
 import kotlin.time.Duration
 
 /**
@@ -21,6 +22,7 @@ import kotlin.time.Duration
 @Serializable
 data class PublishPeriod(
     @SerialName("numberOfSteps") val steps: UByte,
+    @Serializable(with = StepResolutionSerializer::class)
     val resolution: StepResolution
 ) {
     val interval by lazy { resolution.toMilliseconds(steps) }

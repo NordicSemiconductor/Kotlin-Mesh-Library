@@ -5,13 +5,9 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
-import no.nordicsemi.kotlin.mesh.core.exceptions.DuplicateKeyIndex
-import no.nordicsemi.kotlin.mesh.core.exceptions.KeyInUse
-import no.nordicsemi.kotlin.mesh.core.exceptions.KeyIndexOutOfRange
+import no.nordicsemi.kotlin.mesh.core.exceptions.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
-import kotlin.properties.Delegates
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -32,21 +28,26 @@ import kotlin.properties.Delegates
 class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)
     @SerialName(value = "meshUUID")
-    val uuid: UUID = UUID.randomUUID()
-) {
+    val uuid: UUID = UUID.randomUUID(),
     @SerialName(value = "meshName")
-    var name: String by Delegates.observable(initialValue = "Mesh Network") { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) { "Network name cannot be empty!" }
-        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() })
-    }
+    private var _name: String
+) {
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) { "Name cannot be empty!" }
+            onChange(oldValue = _name, newValue = value) { updateTimestamp() }
+            _name = value
+        }
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
     @Suppress("RedundantSetter")
-    var partial: Boolean by Delegates.observable(initialValue = false) { _, oldValue, newValue ->
-        onChange(oldValue = oldValue, newValue = newValue, action = { updateTimestamp() }
-        )
-    }
+    var partial: Boolean = false
+        internal set(value) {
+            onChange(oldValue = field, newValue = value) { updateTimestamp() }
+            field = value
+        }
 
     var provisioners: List<Provisioner> = listOf()
         private set
@@ -74,7 +75,7 @@ class MeshNetwork internal constructor(
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
-     * Note: this method does not search for gaps in key indexes, just tooks next after the last one.
+     * Note: this method does not search for gaps in key indexes, takes next after the last one.
      */
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
@@ -122,7 +123,6 @@ class MeshNetwork internal constructor(
         else -> {
             provisioners = provisioners + provisioner
             updateTimestamp()
-            true
             TODO("Implement like in iOS")
         }
     }
@@ -150,20 +150,16 @@ class MeshNetwork internal constructor(
      * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
-    fun add(
-        name: String,
-        key: ByteArray,
-        index: KeyIndex? = null
-    ): NetworkKey {
+    fun add(name: String, key: ByteArray, index: KeyIndex? = null): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
             require(networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
         }
         return NetworkKey(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _name = name,
             _key = key
         ).apply {
-            this.name = name
             this.network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
@@ -202,7 +198,7 @@ class MeshNetwork internal constructor(
         name: String,
         key: ByteArray,
         index: KeyIndex? = null,
-        boundNetworkKey: NetworkKey,
+        boundNetworkKey: NetworkKey
     ): ApplicationKey {
         // Check if the network key belongs to the same network.
         require(boundNetworkKey.network == this) {
@@ -214,9 +210,9 @@ class MeshNetwork internal constructor(
         }
         return ApplicationKey(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            _name = name,
             _key = key
         ).apply {
-            this.name = name
             this.boundNetKeyIndex = boundNetworkKey.index
             this.network = this@MeshNetwork
         }.also { applicationKey ->
@@ -266,44 +262,158 @@ class MeshNetwork internal constructor(
      * Adds a given [Group] to the list of groups in the mesh network.
      *
      * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
+     * @throws [GroupAlreadyExists] If the group already exists.
      */
-    internal fun add(group: Group) {
-        groups = groups + group
+    @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
+    fun add(group: Group) {
+        require(!groups.contains(group)) { throw GroupAlreadyExists() }
+        require(group.network == null) { throw DoesNotBelongToNetwork() }
+        groups = groups + group.also { it.network = this }
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
      * Removes a given [Group] from the list of groups in the mesh network.
      *
      * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
+     * @throws [GroupInUse] If the group is already in use.
      */
+    @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
     fun remove(group: Group) {
-        groups = groups - group
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+        require(group.network == this) { throw DoesNotBelongToNetwork() }
+        group.takeUnless { !it.isUsed }?.let {
+            groups = groups - group
+            updateTimestamp()
+        } ?: throw GroupInUse()
     }
 
     /**
-     * Adds a given [Group] to the list of groups in the mesh network.
+     * Adds a given [Scene] to the list of scenes in the mesh network.
      *
-     * @param scene Group to be removed.
+     * @param scene Scene to be removed.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneAlreadyExists] If the scene already exists.
      */
-    internal fun add(scene: Scene) {
-        scenes = scenes + scene
+    @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
+    fun add(scene: Scene) {
+        require(!scenes.contains(scene)) { throw SceneAlreadyExists() }
+        require(scene.network == null) { throw DoesNotBelongToNetwork() }
+        scenes = scenes + scene.also { it.network = this }
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
-     * Removes a given [Group] from the list of groups in the mesh network.
+     * Removes a given [Scene] from the list of groups in the mesh network.
      *
-     * @param scene Group to be removed.
+     * @param scene Scene to be removed.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneInUse] If the scene is already in use.
      */
+    @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
-        scenes = scenes - scene
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+        require(scene.network == this) { throw DoesNotBelongToNetwork() }
+        scene.takeUnless { !it.isUsed }?.let {
+            scenes = scenes - scene
+            updateTimestamp()
+        } ?: throw SceneInUse()
+    }
+
+    /**
+     * Returns the next available Group from the Provisioner's range that can be assigned to
+     * a new Group.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available group address that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     */
+    fun nextAvailableGroup(provisioner: Provisioner): GroupAddress? {
+        require(provisioner.allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated() }
+        val sortedGroups = groups.sortedBy { it.address.address }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner.allocatedGroupRanges.forEach { groupRange ->
+            var groupAddress = groupRange.lowAddress
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedGroups.size) {
+                val groupObject = sortedGroups[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (groupAddress.address > groupObject.address.address) {
+                    continue
+                }
+                // If we found a space before the current node, return the scene number.
+                if (groupAddress.address < groupObject.address.address) {
+                    return groupAddress
+                }
+                // Else, move the address to the next available address.
+                groupAddress = GroupAddress((groupObject.address.address + 1u).toUShort())
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (groupAddress.address > groupRange.high) {
+                    break
+                }
+            }
+
+            // If the range has available space, return the address.
+            if (groupAddress.address <= groupRange.high) {
+                return groupAddress
+            }
+        }
+        // No group address was found :(
+        return null
+    }
+
+    /**
+     * Returns the next available Scene number from the Provisioner's range that can be assigned to
+     * a new Scene.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available Scene number that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     */
+    fun nextAvailableScene(provisioner: Provisioner): SceneNumber? {
+        require(provisioner.allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated() }
+        val sortedScenes = scenes.sortedBy { it.number }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner.allocatedSceneRanges.forEach { range ->
+            var scene = range.firstScene
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedScenes.size) {
+                val sceneObject = sortedScenes[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (scene > sceneObject.number) {
+                    continue
+                }
+                // If we found a space before the current node, return the scene number.
+                if (scene < sceneObject.number) {
+                    return scene
+                }
+                // Else, move the address to the next available address.
+                scene = (sceneObject.number + 1u).toUShort()
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (scene > range.lastScene) {
+                    break
+                }
+            }
+
+            // If the range has available space, return the address.
+            if (scene <= range.lastScene) {
+                return scene
+            }
+        }
+        // No scene number was found :(
+        return null
     }
 
     companion object {

@@ -2,7 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 
 typealias SceneNumber = UShort
@@ -15,43 +17,82 @@ typealias SceneNumber = UShort
  * @property addresses     Addresses containing the scene.
  */
 @Serializable
-data class Scene(
-    val name: String,
+data class Scene internal constructor(
+    @SerialName(value = "name")
+    private var _name: String,
     @Serializable(with = UShortAsStringSerializer::class)
     val number: SceneNumber,
 ) {
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) { "Name cannot be empty!" }
+            MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
+        }
     var addresses = listOf<UnicastAddress>()
         private set
 
+    @Transient
+    var isUsed: Boolean = false
+        get() = addresses.isNotEmpty()
+        private set
+
+    @Transient
+    internal var network: MeshNetwork? = null
+
     init {
-        require(name.isNotBlank()) { "Scene name cannot be blank!" }
-        require(number in LOWER_BOUND..HIGHER_BOUND) { "Scene number must be within $LOWER_BOUND and $HIGHER_BOUND!" }
+        require(number in LOWER_BOUND..HIGHER_BOUND) {
+            "Scene number must be within $LOWER_BOUND and $HIGHER_BOUND!"
+        }
     }
 
     /**
      * Adds the given unicast address to a scene.
      *
      * @param address Unicast address to be added.
-     * @return true if the address was added or false if it alraedy exists.
      */
-    fun add(address: UnicastAddress) = when {
-        addresses.contains(address) -> false
-        else -> {
+    internal fun add(address: UnicastAddress) {
+        if (addresses.none { it == address }) {
             addresses = addresses + address
-            true
+            network?.updateTimestamp()
         }
     }
 
     /**
-     * Adds the given list of unicast addresses to a scene
+     * Adds the given list of unicast addresses to a scene.
      *
      * @param addresses List of unicast address.
      */
-    fun add(addresses: List<UnicastAddress>) {
+    internal fun add(addresses: List<UnicastAddress>) {
         this.addresses = this.addresses.union(addresses).toList()
+        network?.updateTimestamp()
     }
 
-    companion object {
+    /**
+     * Removes the given unicast address from the list of addresses.
+     *
+     * @param address Address to be removed.
+     */
+    internal fun remove(address: UnicastAddress) {
+        addresses = addresses - address
+        network?.updateTimestamp()
+    }
+
+    /**
+     * Returns a list of nodes registered to a given scene address.
+     */
+    fun nodes(): List<Node> = network?.nodes?.filter { node ->
+        node.elements.any { element -> addresses.contains(element.unicastAddress) }
+    } ?: listOf()
+
+    /**
+     * Returns a list of elements registered to a given scene address.
+     */
+    fun elements(): List<Element> = network?.nodes?.flatMap { node ->
+        node.elements.filter { element -> addresses.contains(element.unicastAddress) }
+    } ?: listOf()
+
+    private companion object {
         const val LOWER_BOUND = 0x0001u
         const val HIGHER_BOUND = 0xFFFFu
     }

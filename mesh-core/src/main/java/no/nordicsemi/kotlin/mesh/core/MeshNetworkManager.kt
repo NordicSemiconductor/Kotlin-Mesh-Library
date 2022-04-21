@@ -2,22 +2,44 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 
-open class MeshNetworkManager internal constructor() {
+open class MeshNetworkManager {
     lateinit var meshNetwork: MeshNetwork
         protected set
 
     /**
      * Imports a MeshNetwork from using a Json defined by the Mesh Configuration Database Profile.
      */
-    @OptIn(ExperimentalSerializationApi::class)
     // TODO Should we import a Json Object by default?
     suspend fun importMeshNetwork(array: ByteArray) {
         meshNetwork = deserialize(array)
+        // Assign network reference to access parent network within the object.
+        meshNetwork.apply {
+            networkKeys.forEach {
+                it.network = this
+            }
+            applicationKeys.forEach {
+                it.network = this
+            }
+            groups.forEach {
+                it.network = this
+            }
+            scenes.forEach {
+                it.network = this
+            }
+            nodes.forEach { node ->
+                node.network = this
+                node.elements.forEach { element ->
+                    element.parentNode = node
+                    element.models.forEach { model ->
+                        model.parentElement = element
+                    }
+                }
+            }
+        }
     }
 
     /**

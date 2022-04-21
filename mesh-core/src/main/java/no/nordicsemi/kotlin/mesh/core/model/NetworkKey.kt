@@ -6,10 +6,8 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork.Companion.onChange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import kotlin.properties.Delegates
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -33,16 +31,23 @@ import kotlin.properties.Delegates
 @Serializable
 data class NetworkKey internal constructor(
     val index: KeyIndex,
+    @SerialName(value = "name")
+    private var _name: String,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
     private var _key: ByteArray = Crypto.generateRandomKey(),
     @SerialName(value = "minSecurity")
-    var _security: Security = Secure
+    private var _security: Security = Secure,
+    @SerialName(value = "phase")
+    private var _phase: KeyRefreshPhase = NormalOperation,
 ) {
-    var name: String by Delegates.observable(initialValue = "Network Key $index") { _, oldValue, newValue ->
-        require(newValue.isNotBlank()) { "Network key cannot be empty!" }
-        onChange(oldValue = oldValue, newValue = newValue) { network?.updateTimestamp() }
-    }
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) { "Name cannot be empty!" }
+            MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
+            _name = value
+        }
     var security: Security
         get() = _security
         internal set(value) {
@@ -50,9 +55,12 @@ data class NetworkKey internal constructor(
             if (_security is Secure)
                 _security = value
         }
-    var phase: KeyRefreshPhase by Delegates.observable(initialValue = NormalOperation) { _, oldValue, newValue ->
-        onChange(oldValue = oldValue, newValue = newValue) { updateTimeStamp() }
-    }
+    var phase: KeyRefreshPhase
+        get() = _phase
+        set(value) {
+            MeshNetwork.onChange(oldValue = _phase, newValue = value) { updateTimeStamp() }
+            _phase = value
+        }
     var key: ByteArray
         get() = _key
         internal set(value) {
@@ -111,7 +119,6 @@ data class NetworkKey internal constructor(
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
         if (timestamp != other.timestamp) return false
-        if (network != other.network) return false
 
         return true
     }
@@ -122,7 +129,6 @@ data class NetworkKey internal constructor(
         result = 31 * result + _security.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
-        result = 31 * result + (network?.hashCode() ?: 0)
         return result
     }
 
