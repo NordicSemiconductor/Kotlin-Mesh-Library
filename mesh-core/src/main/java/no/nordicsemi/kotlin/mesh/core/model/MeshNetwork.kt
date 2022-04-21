@@ -267,10 +267,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
     fun add(group: Group) {
-        require(group.network == null || group.network == this) {
-            throw DoesNotBelongToNetwork()
-        }
         require(!groups.contains(group)) { throw GroupAlreadyExists() }
+        require(group.network == null) { throw DoesNotBelongToNetwork() }
         groups = groups + group.also { it.network = this }
         updateTimestamp()
     }
@@ -300,10 +298,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
     fun add(scene: Scene) {
-        require(scene.network == null || scene.network == this) {
-            throw DoesNotBelongToNetwork()
-        }
         require(!scenes.contains(scene)) { throw SceneAlreadyExists() }
+        require(scene.network == null) { throw DoesNotBelongToNetwork() }
         scenes = scenes + scene.also { it.network = this }
         updateTimestamp()
     }
