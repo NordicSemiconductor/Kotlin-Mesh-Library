@@ -325,6 +325,54 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the next available Group from the Provisioner's range that can be assigned to
+     * a new Group.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available group address that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     */
+    fun nextAvailableGroup(provisioner: Provisioner): GroupAddress? {
+        require(provisioner.allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated() }
+        val sortedGroups = groups.sortedBy { it.address.address }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner.allocatedGroupRanges.forEach { groupRange ->
+            var groupAddress = groupRange.lowAddress
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedGroups.size) {
+                val groupObject = sortedGroups[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (groupAddress.address > groupObject.address.address) {
+                    continue
+                }
+                // If we found a space before the current node, return the scene number.
+                if (groupAddress.address < groupObject.address.address) {
+                    return groupAddress
+                }
+                // Else, move the address to the next available address.
+                groupAddress = GroupAddress((groupObject.address.address + 1u).toUShort())
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (groupAddress.address > groupRange.high) {
+                    break
+                }
+            }
+
+            // If the range has available space, return the address.
+            if (groupAddress.address <= groupRange.high) {
+                return groupAddress
+            }
+        }
+        // No group address was found :(
+        return null
+    }
+
+    /**
      * Returns the next available Scene number from the Provisioner's range that can be assigned to
      * a new Scene.
      *
@@ -333,6 +381,7 @@ class MeshNetwork internal constructor(
      *         there are no more available numbers in the allocated range.
      */
     fun nextAvailableScene(provisioner: Provisioner): SceneNumber? {
+        require(provisioner.allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated() }
         val sortedScenes = scenes.sortedBy { it.number }
 
         // Iterate through all scenes just once, while iterating over ranges.
