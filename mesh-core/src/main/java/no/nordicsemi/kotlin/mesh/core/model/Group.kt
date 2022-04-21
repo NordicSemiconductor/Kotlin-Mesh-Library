@@ -62,6 +62,8 @@ data class Group(
                     require(groups.contains(group)) { throw DoesNotBelongToNetwork() }
                     parentAddress = toParentGroupAddress(group.address)
                 }
+            } ?: run {
+                parentAddress = UnassignedAddress
             }
         }
 
@@ -135,6 +137,30 @@ data class Group(
         }
         child.parentAddress = toParentGroupAddress(address)
     }
+
+    /**
+     * Returns a list of nodes with at least one model on any element subscribed to this group.
+     */
+    fun nodes(): List<Node> = network?.nodes?.filter { node ->
+        node.elements.any { element ->
+            element.models.any { model ->
+                model.publish?.address == address ||
+                        model.subscribe.contains(address as SubscriptionAddress)
+            }
+        }
+    } ?: listOf()
+
+    /**
+     * Returns a list of elements with at least one model subscribed to this group.
+     */
+    fun elements(): List<Element> = network?.nodes?.flatMap { node ->
+        node.elements.filter { element ->
+            element.models.any { model ->
+                model.publish?.address == address ||
+                        model.subscribe.contains(address as SubscriptionAddress)
+            }
+        }
+    } ?: listOf()
 
     private companion object {
         /**
