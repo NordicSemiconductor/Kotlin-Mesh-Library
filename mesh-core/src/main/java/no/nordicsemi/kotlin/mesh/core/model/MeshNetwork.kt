@@ -64,7 +64,7 @@ class MeshNetwork internal constructor(
         private set
 
     var groups: List<Group> = listOf()
-        internal set
+        private set
 
     var scenes: List<Scene> = listOf()
         private set
@@ -266,10 +266,14 @@ class MeshNetwork internal constructor(
      * Adds a given [Group] to the list of groups in the mesh network.
      *
      * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
      * @throws [GroupAlreadyExists] If the group already exists.
      */
-    @Throws(GroupAlreadyExists::class)
+    @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
     fun add(group: Group) {
+        require(group.network == null || group.network == this) {
+            throw DoesNotBelongToNetwork()
+        }
         require(!groups.contains(group)) { throw GroupAlreadyExists() }
         groups = groups + group.also { it.network = this }
         updateTimestamp()
@@ -288,17 +292,21 @@ class MeshNetwork internal constructor(
         group.takeUnless { !it.isUsed }?.let {
             groups = groups - group
             updateTimestamp()
-        }
+        } ?: throw GroupInUse()
     }
 
     /**
      * Adds a given [Scene] to the list of scenes in the mesh network.
      *
      * @param scene Scene to be removed.
-     * @throws SceneAlreadyExists If the scene already exists.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneAlreadyExists] If the scene already exists.
      */
-    @Throws(GroupAlreadyExists::class)
+    @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
     fun add(scene: Scene) {
+        require(scene.network == null || scene.network == this) {
+            throw DoesNotBelongToNetwork()
+        }
         require(!scenes.contains(scene)) { throw SceneAlreadyExists() }
         scenes = scenes + scene.also { it.network = this }
         updateTimestamp()
@@ -317,7 +325,7 @@ class MeshNetwork internal constructor(
         scene.takeUnless { !it.isUsed }?.let {
             scenes = scenes - scene
             updateTimestamp()
-        }
+        } ?: throw SceneInUse()
     }
 
     /**
