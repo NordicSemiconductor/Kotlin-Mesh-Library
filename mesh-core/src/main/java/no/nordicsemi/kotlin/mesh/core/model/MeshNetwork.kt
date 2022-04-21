@@ -327,7 +327,9 @@ class MeshNetwork internal constructor(
      * @param provisioner Provisioner, who's range is to be used for address generation.
      * @return The next available group address that can be assigned to a new Scene, or null, if
      *         there are no more available numbers in the allocated range.
+     * @throws [NoGroupRangeAllocated] if no scene range is allocated to the provisioner.
      */
+    @Throws(NoGroupRangeAllocated::class)
     fun nextAvailableGroup(provisioner: Provisioner): GroupAddress? {
         require(provisioner.allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated() }
         val sortedGroups = groups.sortedBy { it.address.address }
@@ -375,7 +377,9 @@ class MeshNetwork internal constructor(
      * @param provisioner Provisioner, who's range is to be used for address generation.
      * @return The next available Scene number that can be assigned to a new Scene, or null, if
      *         there are no more available numbers in the allocated range.
+     * @throws [NoSceneRangeAllocated] if no scene range is allocated to the provisioner.
      */
+    @Throws(NoSceneRangeAllocated::class)
     fun nextAvailableScene(provisioner: Provisioner): SceneNumber? {
         require(provisioner.allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated() }
         val sortedScenes = scenes.sortedBy { it.number }
@@ -416,7 +420,7 @@ class MeshNetwork internal constructor(
         return null
     }
 
-    companion object {
+    internal companion object {
         /**
          *  Invoked when an observable property is changed.
          *
