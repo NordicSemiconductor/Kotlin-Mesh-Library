@@ -18,7 +18,7 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 class KeyInUse : MeshNetworkExceptions()
 
 /**
- * Thrown when a given group is already exists.
+ * Thrown when a given group already exists.
  */
 class GroupAlreadyExists : MeshNetworkExceptions()
 
