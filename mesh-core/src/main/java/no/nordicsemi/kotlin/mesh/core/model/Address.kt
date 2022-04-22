@@ -112,8 +112,14 @@ data class UnicastAddress(
         HeartbeatSubscriptionSource,
         HeartbeatSubscriptionDestination {
     init {
-        require(isValid(address)) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
+        require(isValid(address)) {
+            "A valid unicast address must range from $minUnicastAddress to $maxUnicastAddress!"
+        }
     }
+
+    operator fun plus(other: Int) = UnicastAddress((address.toInt() + other).toUShort())
+
+    operator fun compareTo(o: UnicastAddress) = address.toInt().compareTo(o.address.toInt())
 
     companion object {
         fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
@@ -137,6 +143,8 @@ data class VirtualAddress(
         PublicationAddress,
         SubscriptionAddress {
     override val address: Address = Crypto.createVirtualAddress(uuid)
+
+    operator fun compareTo(o: VirtualAddress) = address.toInt().compareTo(o.address.toInt())
 }
 
 /**
@@ -156,8 +164,18 @@ data class GroupAddress(
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionDestination {
     init {
-        require(isValid(address)) { "A valid group address must range from 0xC000 to 0xFEFF!" }
+        require(isValid(address)) {
+            "A valid group address must range from $minGroupAddress to $maxGroupAddress!"
+        }
     }
+
+    operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o).toUShort())
+
+    operator fun compareTo(o: GroupAddress) = address.toInt().compareTo(o.address.toInt())
+
+    operator fun compareTo(o: PrimaryGroupAddress) = address.toInt().compareTo(o.address.toInt())
+
+    operator fun compareTo(o: ParentGroupAddress) = address.toInt().compareTo(o.address.toInt())
 
     companion object {
         fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress
@@ -169,9 +187,7 @@ data class GroupAddress(
  * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
-sealed class FixedGroupAddress(
-    override val address: Address
-) : MeshAddress()
+sealed class FixedGroupAddress(override val address: Address) : MeshAddress()
 
 /**
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes
