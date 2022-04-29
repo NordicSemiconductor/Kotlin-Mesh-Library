@@ -121,6 +121,8 @@ data class UnicastAddress(
 
     operator fun compareTo(o: UnicastAddress) = address.toInt().compareTo(o.address.toInt())
 
+    operator fun rangeTo(o: UnicastAddress) = UnicastRange(this, o)
+
     companion object {
         fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
     }
@@ -176,6 +178,8 @@ data class GroupAddress(
     operator fun compareTo(o: PrimaryGroupAddress) = address.toInt().compareTo(o.address.toInt())
 
     operator fun compareTo(o: ParentGroupAddress) = address.toInt().compareTo(o.address.toInt())
+
+    operator fun rangeTo(o: GroupAddress) = GroupRange(this, o)
 
     companion object {
         fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress

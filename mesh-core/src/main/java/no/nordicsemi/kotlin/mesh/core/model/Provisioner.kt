@@ -34,15 +34,15 @@ data class Provisioner(
         }
 
     @SerialName(value = "allocatedUnicastRange")
-    var allocatedUnicastRanges = listOf<AllocatedUnicastRange>()
+    var allocatedUnicastRanges = listOf<UnicastRange>()
         private set
 
     @SerialName(value = "allocatedGroupRange")
-    var allocatedGroupRanges = listOf<AllocatedGroupRange>()
+    var allocatedGroupRanges = listOf<GroupRange>()
         private set
 
     @SerialName(value = "allocatedSceneRange")
-    var allocatedSceneRanges = listOf<AllocatedSceneRange>()
+    var allocatedSceneRanges = listOf<SceneRange>()
         private set
 
     internal var network: MeshNetwork? = null
@@ -52,9 +52,9 @@ data class Provisioner(
      *
      * @param range Allocated unicast range.
      */
-    fun allocate(range: AllocatedUnicastRange) {
+    fun allocate(range: UnicastRange) {
         // TODO Merge
-        allocatedUnicastRanges = allocatedUnicastRanges + range
+        allocatedUnicastRanges = (allocatedUnicastRanges + range).map { it as UnicastRange }
     }
 
     /**
@@ -62,9 +62,9 @@ data class Provisioner(
      *
      * @param range Allocated group range.
      */
-    fun allocate(range: AllocatedGroupRange) {
+    fun allocate(range: GroupRange) {
         // TODO Merge
-        allocatedGroupRanges = allocatedGroupRanges + range
+        allocatedGroupRanges = (allocatedGroupRanges + range).map { it as GroupRange }
     }
 
     /**
@@ -72,8 +72,8 @@ data class Provisioner(
      *
      * @param range Allocated scene range.
      */
-    fun allocate(range: AllocatedSceneRange) {
+    fun allocate(range: SceneRange) {
         // TODO Merge
-        allocatedSceneRanges = allocatedSceneRanges + range
+        allocatedSceneRanges = (allocatedSceneRanges + range).map { it as SceneRange }
     }
 }
