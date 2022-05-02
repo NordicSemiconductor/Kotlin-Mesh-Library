@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
@@ -53,7 +55,6 @@ data class Provisioner(
      * @param range Allocated unicast range.
      */
     fun allocate(range: UnicastRange) {
-        // TODO Merge
         allocatedUnicastRanges = (allocatedUnicastRanges + range).map { it as UnicastRange }
     }
 
@@ -63,7 +64,6 @@ data class Provisioner(
      * @param range Allocated group range.
      */
     fun allocate(range: GroupRange) {
-        // TODO Merge
         allocatedGroupRanges = (allocatedGroupRanges + range).map { it as GroupRange }
     }
 
@@ -73,7 +73,49 @@ data class Provisioner(
      * @param range Allocated scene range.
      */
     fun allocate(range: SceneRange) {
-        // TODO Merge
         allocatedSceneRanges = (allocatedSceneRanges + range).map { it as SceneRange }
+    }
+
+    /**
+     * Checks if the current provisioner has overlapping unicast, group or scene ranges with the
+     * given provisioner.
+     *
+     * @param provisioner Other provisioner.
+     * @return true if there are any overlapping unicast, groups or scene ranges or false otherwise.
+     */
+    fun hasOverlappingRanges(provisioner: Provisioner) =
+        hasOverlappingUnicastRanges(other = provisioner) ||
+                hasOverlappingGroupRanges(other = provisioner) ||
+                    hasOverlappingSceneRanges(other = provisioner)
+
+    /**
+     * Checks if the current provisioner has overlapping unicast ranges with the given provisioner.
+     *
+     * @param other Other provisioner.
+     * @return true if there are any overlapping unicast ranges or false otherwise.
+     */
+    fun hasOverlappingUnicastRanges(other: Provisioner) = allocatedUnicastRanges.any { range ->
+        other.allocatedUnicastRanges.any { otherRange -> otherRange.overlaps(range) }
+    }
+
+    /**
+     * Checks if the current provisioner has overlapping group ranges with the given provisioner.
+     *
+     * @param other Other provisioner.
+     * @return true if there are any overlapping group ranges or false otherwise.
+     */
+
+    fun hasOverlappingGroupRanges(other: Provisioner) = allocatedGroupRanges.any { range ->
+        other.allocatedGroupRanges.any { otherRange -> otherRange.overlaps(range) }
+    }
+
+    /**
+     * Checks if the current provisioner has overlapping scene ranges with the given provisioner.
+     *
+     * @param other Other provisioner.
+     * @return true if there are any overlapping scene ranges or false otherwise.
+     */
+    fun hasOverlappingSceneRanges(other: Provisioner) = allocatedSceneRanges.any { range ->
+        other.allocatedSceneRanges.any { otherRange -> otherRange.overlaps(range) }
     }
 }
