@@ -231,7 +231,7 @@ data class SceneRange(
         get() = _lastScene
 
     @Transient
-    override var range = low..high
+    override var range = _firstScene.._lastScene
 }
 
 operator fun List<Range>.plus(other: Range): List<Range> {
