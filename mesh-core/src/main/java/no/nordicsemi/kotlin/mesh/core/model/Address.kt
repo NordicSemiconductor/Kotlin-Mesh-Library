@@ -119,6 +119,8 @@ data class UnicastAddress(
 
     operator fun plus(other: Int) = UnicastAddress((address.toInt() + other).toUShort())
 
+    operator fun minus(other: Int) = UnicastAddress((address.toInt() - other).toUShort())
+
     operator fun compareTo(o: UnicastAddress) = address.toInt().compareTo(o.address.toInt())
 
     operator fun rangeTo(o: UnicastAddress) = UnicastRange(this, o)
@@ -172,6 +174,8 @@ data class GroupAddress(
     }
 
     operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o).toUShort())
+
+    operator fun minus(other: Int) = GroupAddress((address.toInt() - other).toUShort())
 
     operator fun compareTo(o: GroupAddress) = address.toInt().compareTo(o.address.toInt())
 
