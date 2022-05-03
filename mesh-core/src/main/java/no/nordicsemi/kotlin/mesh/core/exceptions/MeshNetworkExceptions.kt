@@ -11,8 +11,23 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 /** Thrown when a given key is in use. */
 class KeyInUse : MeshNetworkExceptions()
 
+/** Thrown when a node already exists. */
+class NodeAlreadyExists : MeshNetworkExceptions()
+
 /** Thrown when no unicast address range is allocated to a provisioner. */
 class ProvisionerAlreadyExists : MeshNetworkExceptions()
+
+/** Thrown when any allocated range of a new provisioner overlaps with an existing one. */
+class OverlappingProvisionerRanges : MeshNetworkExceptions()
+
+/** Thrown when a given address does not belong to an allocated range. */
+class AddressNotInAllocatedRanges : MeshNetworkExceptions()
+
+/** Thrown when a given address is in use by a node or it's elements. */
+class AddressAlreadyInUse : MeshNetworkExceptions()
+
+/** Thrown when no unicast addresses available to be allocated. */
+class NoAddressesAvailable : MeshNetworkExceptions()
 
 /** Thrown when no unicast address range is allocated to a provisioner. */
 class NoUnicastRangeAllocated : MeshNetworkExceptions()
