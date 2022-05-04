@@ -67,7 +67,7 @@ data class Node internal constructor(
     val deviceKey: ByteArray,
     val unicastAddress: UnicastAddress,
     @SerialName(value = "elements")
-    private var _elements: List<Element>,
+    internal var _elements: List<Element>,
     @SerialName(value = "netKeys")
     private var _netKeys: List<NodeKey>,
     @SerialName(value = "appKeys")
@@ -75,19 +75,19 @@ data class Node internal constructor(
 ) {
 
     internal constructor(
-        uuid: UUID,
+        provisioner: Provisioner,
         deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
-        elementCount: Int,
+        elements: List<Element>,
         netKeys: List<NetworkKey>,
         appKeys: List<ApplicationKey>
     ) : this(
-        uuid = uuid,
+        uuid = provisioner.uuid,
         deviceKey = deviceKey,
         unicastAddress = unicastAddress,
-        _elements = List(size = elementCount) { Element(location = Unknown, models = listOf()) },
-        _netKeys = List(size = netKeys.size) { NodeKey(netKeys[it]) },
-        _appKeys = List(size = appKeys.size) { NodeKey(appKeys[it]) },
+        _elements = elements,
+        _netKeys = List(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
+        _appKeys = List(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
     )
 
     var name: String = "Mesh Network"
@@ -137,30 +137,60 @@ data class Node internal constructor(
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "crpl")
     var replayProtectionCount: UShort? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var secureNetworkBeacon: Boolean? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var networkTransmit: NetworkTransmit? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var relayRetransmit: RelayRetransmit? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var defaultTTL: Int = 127
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var excluded: Boolean = false
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     @SerialName(value = "heartbeatPub")
     var heartbeatPublication: HeartbeatPublication? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     @SerialName(value = "heartbeatSub")
     var heartbeatSubscription: HeartbeatSubscription? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     val elementsCount: Int
         get() = elements.size
+
+    val addresses: List<UnicastAddress>
+        get() = List(elementsCount) { index -> unicastAddress + index }
 
     val lastUnicastAddress: UnicastAddress
         get() = unicastAddress + when (elementsCount > 0) {
