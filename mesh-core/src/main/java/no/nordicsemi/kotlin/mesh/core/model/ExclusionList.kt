@@ -15,6 +15,8 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
     var addresses = listOf<UnicastAddress>()
         private set
 
+    internal var network: MeshNetwork? = null
+
     /**
      * Excludes a given unicast address.
      *
@@ -24,6 +26,7 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
         if (address !in addresses) {
             addresses = addresses + address
         }
+        network?.updateTimestamp()
         return true
     }
 
@@ -36,6 +39,7 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
         node._elements.forEach { element ->
             exclude(UnicastAddress(address = element.unicastAddress.address))
         }
+        network?.updateTimestamp()
     }
 
     /**
