@@ -79,6 +79,16 @@ data class Scene internal constructor(
     }
 
     /**
+     * Removes the given list of unicast addresses from the list of addresses.
+     *
+     * @param addresses Addresses to be removed.
+     */
+    internal fun remove(addresses: List<UnicastAddress>) {
+        this.addresses = this.addresses - addresses.toSet()
+        network?.updateTimestamp()
+    }
+
+    /**
      * Returns a list of nodes registered to a given scene address.
      */
     fun nodes(): List<Node> = network?.nodes?.filter { node ->
