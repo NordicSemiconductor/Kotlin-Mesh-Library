@@ -39,6 +39,9 @@ open class MeshNetworkManager {
                     }
                 }
             }
+            networkExclusions.forEach {
+                it.network = this
+            }
         }
     }
 
