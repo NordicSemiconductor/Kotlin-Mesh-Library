@@ -15,6 +15,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 @Serializable(with = ModelIdSerializer::class)
 sealed class ModelId {
     internal abstract val modelId: UInt
+    val isBluetoothSigAssigned: Boolean
+        get() = this is SigModelId
 
     /**
      * Converts ModelID to hex.

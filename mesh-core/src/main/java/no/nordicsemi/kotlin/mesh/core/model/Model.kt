@@ -78,7 +78,7 @@ data class Model internal constructor(
          * @return name of the model
          */
         private fun from(modelId: ModelId): String =
-            if (modelId.isBluetoothSIGAssigned) "Vendor Model"
+            if (modelId.isBluetoothSigAssigned) "Vendor Model"
             else when (modelId.modelId) {
                 // Foundation
                 0x0000.toUInt() -> "Configuration Server"
