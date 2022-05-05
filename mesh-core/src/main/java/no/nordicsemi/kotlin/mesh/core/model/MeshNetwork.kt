@@ -284,11 +284,10 @@ class MeshNetwork internal constructor(
      * Removes the given provisioner from the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be removed.
-     * @return Provisioner that was removed.
      * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
      * @throws CannotRemove if there is only one provisioner.
      */
-    @Throws(DoesNotBelongToNetwork::class,   CannotRemove::class)
+    @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
     fun remove(provisioner: Provisioner) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
         provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { index -> remove(index) }
