@@ -219,19 +219,14 @@ data class GroupRange(
  */
 @Serializable
 data class SceneRange(
-    private val _firstScene: SceneNumber,
-    private val _lastScene: SceneNumber
-) : Range() {
     @Serializable(with = UShortAsStringSerializer::class)
-    val firstScene: SceneNumber
-        get() = _firstScene
-
+    val firstScene: SceneNumber,
     @Serializable(with = UShortAsStringSerializer::class)
     val lastScene: SceneNumber
-        get() = _lastScene
+) : Range() {
 
     @Transient
-    override var range = _firstScene.._lastScene
+    override var range = firstScene..lastScene
 }
 
 operator fun List<Range>.plus(other: Range): List<Range> {
