@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 
@@ -47,6 +48,10 @@ data class Provisioner(
     var allocatedSceneRanges = listOf<SceneRange>()
         private set
 
+    val node: Node?
+        get() = network?.nodes?.find { it.uuid == uuid }
+
+    @Transient
     internal var network: MeshNetwork? = null
 
     /**

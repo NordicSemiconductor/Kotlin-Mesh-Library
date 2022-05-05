@@ -5,24 +5,38 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exceptions.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
  *
- * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows differentiation among multiple mesh networks.
+ * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows
+ *                                  differentiation among multiple mesh networks.
  * @property name                   Human-readable name for the mesh network.
- * @property timestamp              Represents the last time the Mesh Object has been modified. The timestamp is based on Coordinated Universal Time.
- * @property partial                Indicates if this Mesh Configuration Database is part of a larger database.
- * @property networkKeys            List of network keys that includes information about network keys used in the mesh network.
- * @property applicationKeys        List of app keys that includes information about app keys used in the mesh network.
- * @property provisioners           List of known Provisioners and ranges of addresses that have been allocated to these Provisioners.
- * @property nodes                  List of nodes that includes information about mesh nodes in the mesh network.
- * @property groups                 List of groups that includes information about groups configured in the mesh network.
- * @property scenes                 List of scenes that includes information about scenes configured in the mesh network.
+ * @property timestamp              Represents the last time the Mesh Object has been modified. The
+ *                                  timestamp is based on Coordinated Universal Time.
+ * @property partial                Indicates if this Mesh Configuration Database is part of a
+ *                                  larger database.
+ * @property networkKeys            List of network keys that includes information about network
+ *                                  keys used in the mesh network.
+ * @property applicationKeys        List of app keys that includes information about app keys used
+ *                                  in the mesh network.
+ * @property provisioners           List of known Provisioners and ranges of addresses that have
+ *                                  been allocated to these Provisioners.
+ * @property nodes                  List of nodes that includes information about mesh nodes in the
+ *                                  mesh network.
+ * @property groups                 List of groups that includes information about groups configured
+ *                                  in the mesh network.
+ * @property scenes                 List of scenes that includes information about scenes configured
+ *                                  in the mesh network.
  * @property networkExclusions      List of [ExclusionList].
+ * @property ivIndex                IV Index of the network received via the last Secure Network
+ *                                  Beacon and its current state.
+ * @constructor                     Creates a mesh network.
  */
 @Serializable
 class MeshNetwork internal constructor(
@@ -72,6 +86,12 @@ class MeshNetwork internal constructor(
     var networkExclusions: List<ExclusionList> = listOf()
         private set
 
+    @Transient
+    var ivIndex = IvIndex()
+
+    val localProvisioner: Provisioner
+        get() = provisioners.first()
+
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
@@ -113,31 +133,165 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Removes a node with the given UUID from the mesh network.
+     *
+     * @param uuid
+     */
+    fun remove(uuid: UUID) {
+        nodes.find {
+            it.uuid == uuid
+        }?.let { node ->
+            nodes = nodes - node
+            // Remove unicast addresses of all node's elements from the scene
+            scenes.forEach { it.remove(node.addresses) }
+            // When a Node is removed from the network, the unicast addresses that were in used
+            // cannot be assigned to another node until the IV index is incremented by 2 which
+            // effectively resets the Sequence number used by all the nodes in the network.
+            networkExclusions = networkExclusions + ExclusionList(ivIndex.ivIndex).apply {
+                exclude(node)
+            }
+        }
+    }
+
+    /**
+     * Checks if the given provisioner already exists in the network.
+     *
+     * @param provisioner Provisioner to check.
+     * @return true if the provisioner exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner belongs to another network.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun contains(provisioner: Provisioner): Boolean {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        return provisioners.any { it.uuid == provisioner.uuid }
+    }
+
+    /**
      * Adds the given [Provisioner] to the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be added.
-     * @return True if the provisioner was added or false because the provisioner already exists.
+     * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner does not belong to this network.
+     * @throws [NoAddressesAvailable] if no address is available to be assigned.
+     * @throws [OverlappingProvisionerRanges] if the given provisioner has any overlapping address
+     * ranges with an existing provisioner.
      */
-    fun add(provisioner: Provisioner) = when {
-        provisioners.contains(provisioner) -> false
-        else -> {
-            provisioners = provisioners + provisioner
-            updateTimestamp()
-            TODO("Implement like in iOS")
+    @Throws(
+        ProvisionerAlreadyExists::class,
+        DoesNotBelongToNetwork::class,
+        NoAddressesAvailable::class,
+        OverlappingProvisionerRanges::class
+    )
+    fun add(provisioner: Provisioner) {
+        nextAvailableUnicastAddress(elementCount = 1, provisioner = provisioner)?.apply {
+            add(provisioner = provisioner, address = this)
+        } ?: throw NoAddressesAvailable()
+    }
+
+    /**
+     * Adds the given [Provisioner] to the list of provisioners in the network with a given address.
+     *
+     * @param provisioner Provisioner to be added.
+     * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner does not belong to this network.
+     * @throws [OverlappingProvisionerRanges] if the given provisioner has any overlapping address
+     * ranges with an existing provisioner.
+     */
+    @Throws(OverlappingProvisionerRanges::class)
+    fun add(provisioner: Provisioner, address: UnicastAddress?) {
+        require(provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists() }
+        require(provisioner.network == null) { throw DoesNotBelongToNetwork() }
+
+        for (other in provisioners) {
+            require(!provisioner.hasOverlappingRanges(other)) {
+                throw OverlappingProvisionerRanges()
+            }
         }
+
+        address?.apply {
+            // Is the given address inside provisioner's address range?
+            require(!provisioner.allocatedUnicastRanges.any { it.contains(this.address) }) {
+                throw AddressNotInAllocatedRanges()
+            }
+            // No other node uses the same address?
+            require(!nodes.any { it.containsElement(this) }) { throw AddressAlreadyInUse() }
+        }
+
+        // Is it already added?
+        require(!contains(provisioner)) { return }
+
+        // is there a node with the provisioner's uuid
+        require(nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists() }
+
+        // Add the provisioner's node
+        address?.apply {
+            add(
+                Node(
+                    provisioner,
+                    Crypto.generateRandomKey(),
+                    this,
+                    listOf(
+                        Element(Unknown, listOf(Model(SigModelId(CONFIGURATION_SERVER_MODEL_ID))))
+                    ),
+                    networkKeys,
+                    applicationKeys
+                ).apply {
+                    companyIdentifier = 0x00E0u //Google
+                    replayProtectionCount = maxUnicastAddress
+                })
+        }
+
+        provisioner.network = this
+
+        provisioners = provisioners + provisioner
+        updateTimestamp()
+        // TODO Needs to save the network
+    }
+
+    /**
+     * Removes the provisioner at the given index.
+     * Note: It is not possible to remove the last provisioner.
+     *
+     * @param index The position of the provisioner to be removed.
+     * @return Provisioner that was removed.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(CannotRemove::class)
+    fun remove(index: Int): Provisioner {
+        require(provisioners.size > 1) { throw CannotRemove() }
+
+        val localProvisionerRemoved = index == 0
+        val provisioner = provisioners[index]
+        provisioners = provisioners - provisioner
+
+        // If the old local Provisioner has been removed, and a new one has been set in it's place,
+        // it needs the properties to be updated.
+        if (localProvisionerRemoved) {
+            provisioners.first().node?.apply {
+                netKeys = networkKeys.map { NodeKey(it) }
+                appKeys = applicationKeys.map { NodeKey(it) }
+                companyIdentifier = 0x00E0u
+                replayProtectionCount = maxUnicastAddress
+            }
+
+            // TODO Save the local provisioner
+        }
+        updateTimestamp()
+        return provisioner
     }
 
     /**
      * Removes the given provisioner from the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be removed.
+     * @return Provisioner that was removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
      */
+    @Throws(DoesNotBelongToNetwork::class,   CannotRemove::class)
     fun remove(provisioner: Provisioner) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        if (provisioners.contains(provisioner)) {
-            provisioners = provisioners - provisioner
-            updateTimestamp()
-        }
+        provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { index -> remove(index) }
     }
 
     /**
@@ -320,6 +474,34 @@ class MeshNetwork internal constructor(
         } ?: throw SceneInUse()
     }
 
+    @Throws(NoUnicastRangeAllocated::class)
+    fun nextAvailableUnicastAddress(elementCount: Int, provisioner: Provisioner): UnicastAddress? {
+        require(provisioner.allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated() }
+        val exclusions = networkExclusions.sortedBy { it.ivIndex }
+        val usedAddresses = exclusions.flatMap { it.addresses } + nodes.flatMap { it.elements }
+            .map { it.unicastAddress }.sortedBy { it.address }
+
+        provisioner.allocatedUnicastRanges.forEach { range ->
+            var address = range.lowAddress
+            for (index in usedAddresses.indices) {
+                val usedAddress = usedAddresses[index]
+
+                // Skip nodes with addresses below the range.
+                if (address > usedAddress) continue
+
+                // If we found a space before the current node, return the address.
+                if (usedAddress > address + (elementCount - 1)) return address
+
+                // Else, move the address to the next available address.
+                address = usedAddress + 1
+
+                if (range.highAddress < address + (elementCount - 1)) break
+            }
+            if (range.highAddress >= address + (elementCount - 1)) return address
+        }
+        return null
+    }
+
     /**
      * Returns the next available Group from the Provisioner's range that can be assigned to
      * a new Group.
@@ -342,29 +524,23 @@ class MeshNetwork internal constructor(
             // Iterate through scene objects that weren't checked yet.
             val currentIndex = index
             for (i in currentIndex until sortedGroups.size) {
-                val groupObject = sortedGroups[i]
+                val group = sortedGroups[i]
                 index += 1
                 // Skip scenes with number below the range.
-                if (groupAddress.address > groupObject.address.address) {
-                    continue
-                }
+                if (groupAddress > group.address) continue
+
                 // If we found a space before the current node, return the scene number.
-                if (groupAddress.address < groupObject.address.address) {
-                    return groupAddress
-                }
+                if (groupAddress < group.address) return groupAddress
+
                 // Else, move the address to the next available address.
-                groupAddress = GroupAddress((groupObject.address.address + 1u).toUShort())
+                groupAddress = (group.address as GroupAddress) + 1
 
                 // If the new scene number is outside of the range, go to the next one.
-                if (groupAddress.address > groupRange.high) {
-                    break
-                }
+                if (groupAddress > groupRange.highAddress) break
             }
 
             // If the range has available space, return the address.
-            if (groupAddress.address <= groupRange.high) {
-                return groupAddress
-            }
+            if (groupAddress <= groupRange.highAddress) return groupAddress
         }
         // No group address was found :(
         return null
@@ -395,26 +571,20 @@ class MeshNetwork internal constructor(
                 val sceneObject = sortedScenes[i]
                 index += 1
                 // Skip scenes with number below the range.
-                if (scene > sceneObject.number) {
-                    continue
-                }
+                if (scene > sceneObject.number) continue
+
                 // If we found a space before the current node, return the scene number.
-                if (scene < sceneObject.number) {
-                    return scene
-                }
+                if (scene < sceneObject.number) return scene
+
                 // Else, move the address to the next available address.
                 scene = (sceneObject.number + 1u).toUShort()
 
                 // If the new scene number is outside of the range, go to the next one.
-                if (scene > range.lastScene) {
-                    break
-                }
+                if (scene > range.lastScene) break
             }
 
             // If the range has available space, return the address.
-            if (scene <= range.lastScene) {
-                return scene
-            }
+            if (scene <= range.lastScene) return scene
         }
         // No scene number was found :(
         return null
