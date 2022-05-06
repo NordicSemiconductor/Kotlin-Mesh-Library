@@ -208,6 +208,20 @@ data class Node internal constructor(
     internal var network: MeshNetwork? = null
 
     /**
+     * Checks if this node overlaps for a given address with a given number of elements.
+     *
+     * @param address       Desired unicast address.
+     * @param count         Number of elements.
+     * @return true if the address range is in use.
+     */
+    fun overlaps(address: UnicastAddress, count: Int) = try {
+        !(unicastAddress + (elementsCount - 1) < address ||
+                unicastAddress > address + (count - 1))
+    } catch (e: IllegalArgumentException) {
+        true
+    }
+
+    /**
      * Adds a network key to a node.
      *
      * @param key     Network key to be added.
