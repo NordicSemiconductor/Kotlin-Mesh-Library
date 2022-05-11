@@ -49,3 +49,28 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
      */
     fun isExcluded(address: UnicastAddress): Boolean = address in addresses
 }
+
+
+/**
+ * Checks whether the given Unicast Address range can be reassigned to a new Node, as it has been
+ * used by a Node that was recently removed. Other nodes may still keep the sequence number
+ * associated with this address and may discard packets sent from it.
+ *
+ * @param range Unicast range to check.
+ * @param ivIndex Current IV Index .
+ * @returns true if the given address is excluded or false otherwise.
+ */
+fun List<ExclusionList>.contains(
+    range: UnicastRange,
+    ivIndex: IvIndex
+) = isNotEmpty() && excludedAddresses(ivIndex).any { range.contains(it.address) }
+
+
+/**
+ * Returns a list of Unicast addresses for hte given IV Index.
+ * @param ivIndex IV Index of the exclusion list.
+ *
+ */
+fun List<ExclusionList>.excludedAddresses(ivIndex: IvIndex) = filter {
+    it.ivIndex == ivIndex.index || (ivIndex.index > 0u && it.ivIndex == ivIndex.index - 1u)
+}.flatMap { it.addresses }
