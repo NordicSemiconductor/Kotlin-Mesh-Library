@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -25,7 +25,7 @@ import java.util.*
  *                                  keys used in the mesh network.
  * @property applicationKeys        List of app keys that includes information about app keys used
  *                                  in the mesh network.
- * @property provisioners           List of known Provisioners and ranges of addresses that have
+ * @property _provisioners           List of known Provisioners and ranges of addresses that have
  *                                  been allocated to these Provisioners.
  * @property nodes                  List of nodes that includes information about mesh nodes in the
  *                                  mesh network.
@@ -63,8 +63,10 @@ class MeshNetwork internal constructor(
             field = value
         }
 
-    var provisioners: List<Provisioner> = listOf()
-        private set
+    @SerialName("provisioners")
+    internal var _provisioners: MutableList<Provisioner> = mutableListOf()
+    val provisioners: List<Provisioner>
+        get() = _provisioners
 
     @SerialName("netKeys")
     var networkKeys: List<NetworkKey> = listOf()
@@ -90,7 +92,7 @@ class MeshNetwork internal constructor(
     var ivIndex = IvIndex()
 
     val localProvisioner: Provisioner
-        get() = provisioners.first()
+        get() = _provisioners.first()
 
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
@@ -147,7 +149,7 @@ class MeshNetwork internal constructor(
             // When a Node is removed from the network, the unicast addresses that were in used
             // cannot be assigned to another node until the IV index is incremented by 2 which
             // effectively resets the Sequence number used by all the nodes in the network.
-            networkExclusions = networkExclusions + ExclusionList(ivIndex.ivIndex).apply {
+            networkExclusions = networkExclusions + ExclusionList(ivIndex.index).apply {
                 exclude(node)
             }
         }
@@ -163,7 +165,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun contains(provisioner: Provisioner): Boolean {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        return provisioners.any { it.uuid == provisioner.uuid }
+        return _provisioners.any { it.uuid == provisioner.uuid }
     }
 
     /**
@@ -199,10 +201,12 @@ class MeshNetwork internal constructor(
      */
     @Throws(OverlappingProvisionerRanges::class)
     fun add(provisioner: Provisioner, address: UnicastAddress?) {
-        require(provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists() }
-        require(provisioner.network == null) { throw DoesNotBelongToNetwork() }
+        require(!_provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists() }
+        require(provisioner.network == null || provisioner.network == this) {
+            throw DoesNotBelongToNetwork()
+        }
 
-        for (other in provisioners) {
+        for (other in _provisioners) {
             require(!provisioner.hasOverlappingRanges(other)) {
                 throw OverlappingProvisionerRanges()
             }
@@ -210,7 +214,7 @@ class MeshNetwork internal constructor(
 
         address?.apply {
             // Is the given address inside provisioner's address range?
-            require(!provisioner.allocatedUnicastRanges.any { it.contains(this.address) }) {
+            require(provisioner.allocatedUnicastRanges.any { it.contains(this.address) }) {
                 throw AddressNotInAllocatedRanges()
             }
             // No other node uses the same address?
@@ -240,10 +244,8 @@ class MeshNetwork internal constructor(
                     replayProtectionCount = maxUnicastAddress
                 })
         }
-
         provisioner.network = this
-
-        provisioners = provisioners + provisioner
+        _provisioners.add(provisioner)
         updateTimestamp()
         // TODO Needs to save the network
     }
@@ -258,16 +260,16 @@ class MeshNetwork internal constructor(
      */
     @Throws(CannotRemove::class)
     fun remove(index: Int): Provisioner {
-        require(provisioners.size > 1) { throw CannotRemove() }
+        require(_provisioners.size > 1) { throw CannotRemove() }
 
         val localProvisionerRemoved = index == 0
-        val provisioner = provisioners[index]
-        provisioners = provisioners - provisioner
+        val provisioner = _provisioners[index]
+        _provisioners.remove(provisioner)
 
         // If the old local Provisioner has been removed, and a new one has been set in it's place,
         // it needs the properties to be updated.
         if (localProvisionerRemoved) {
-            provisioners.first().node?.apply {
+            _provisioners.first().node?.apply {
                 netKeys = networkKeys.map { NodeKey(it) }
                 appKeys = applicationKeys.map { NodeKey(it) }
                 companyIdentifier = 0x00E0u
@@ -290,15 +292,54 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
     fun remove(provisioner: Provisioner) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { index -> remove(index) }
+        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { index -> remove(index) }
+    }
+
+    /**
+     * Moves the given provisioner to the specified index.
+     *
+     * @param from      Current index of the provisioner.
+     * @param to        Destination index, the provisioner must be moved to.
+     * @return Provisioner that was removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun move(from: Int, to: Int) {
+        require(from >= 0 && from < _provisioners.size) {
+            throw IllegalArgumentException("Invalid 'from' index!")
+        }
+        require(to >= 0 && to <= _provisioners.size) {
+            throw IllegalArgumentException("Invalid 'to' index!")
+        }
+        require(from != to) {
+            throw IllegalArgumentException("'from' and 'to' indexes cannot be the same.")
+        }
+        _provisioners.add(to, remove(from))
+        updateTimestamp()
+    }
+
+    /**
+     * Moves the given provisioner to the specified index.
+     *
+     * @param provisioner   Provisioner to be removed.
+     * @param to            Destination index, the provisioner must be moved to.
+     * @return Provisioner that was removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun move(provisioner: Provisioner, to: Int) {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from -> move(from, to) }
     }
 
     /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
-     * @param name Network key name.
-     * @param key 128-bit key to be added.
-     * @param index Network key index.
+     * @param name      Network key name.
+     * @param key       128-bit key to be added.
+     * @param index     Network key index.
      * @throws [KeyIndexOutOfRange] if the key index is not within 0 - 4095.
      * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
@@ -326,7 +367,8 @@ class MeshNetwork internal constructor(
      *
      * @param key Network key to be removed.
      * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
-     * @throws [KeyInUse] if the key is known to any node in the network or bound to any application key in this network.
+     * @throws [KeyInUse] if the key is known to any node in the network or bound to any application
+     * key in this network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
@@ -355,7 +397,9 @@ class MeshNetwork internal constructor(
     ): ApplicationKey {
         // Check if the network key belongs to the same network.
         require(boundNetworkKey.network == this) {
-            throw IllegalArgumentException("Network key ${boundNetworkKey.name} does not belong to network $name!")
+            throw IllegalArgumentException(
+                "Network key ${boundNetworkKey.name} does not belong to network $name!"
+            )
         }
         if (index != null) {
             // Check if the application key index is not already in use to avoid duplicates.
@@ -392,12 +436,34 @@ class MeshNetwork internal constructor(
     /**
      * Adds a given [Node] to the list of nodes in the mesh network.
      *
-     * @param node Node to be removed.
+     * @param node Node to be added to the network.
+     * @throws NodeAlreadyExists if the node already exists.
+     * @throws NoAddressesAvailable if the node is not assigned with an address.
+     * @throws NoNetworkKey if the node does not contain a network key.
+     * @throws DoesNotBelongToNetwork if the network key in the node does not match the keys in the
+     *                                network.
      */
+    @Throws(
+        NodeAlreadyExists::class,
+        NoAddressesAvailable::class,
+        NoNetworkKey::class, DoesNotBelongToNetwork::class
+    )
     internal fun add(node: Node) {
+        // Ensure the node does not exists already.
+        require(nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists() }
+        // Verify if the address range is available for the new Node.
+        require(isAddressAvailable(node.primaryUnicastAddress, node)) {
+            throw NoAddressesAvailable()
+        }
+        // Ensure the Network Key exists.
+        require(node.netKeys.isNotEmpty()) { throw NoNetworkKey() }
+        // Make sure the network contains a Network Key with he same Key Index.
+        require(networkKeys.any { it.index == node.netKeys.first().index }) {
+            throw DoesNotBelongToNetwork()
+        }
         nodes = nodes + node
+        node.network = this
         updateTimestamp()
-        TODO(reason = "Implementation incomplete")
     }
 
     /**
@@ -473,6 +539,50 @@ class MeshNetwork internal constructor(
         } ?: throw SceneInUse()
     }
 
+    fun isAddressRangeAvailable(range: UnicastRange) = nodes.none {
+        it.containsAddressRange(range)
+    } && !networkExclusions.contains(range, ivIndex)
+
+    /**
+     * Returns true if the address is available to be assigned to a node with the given number of
+     * elements.
+     *
+     * @param address         Possible address of the primary element of the node.
+     * @param elementCount    Element count.
+     * @return true if the address is available to be assigned to a node with given number of
+     *         elements.
+     */
+    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) = isAddressRangeAvailable(
+        UnicastRange(address, elementCount)
+    )
+
+    /**
+     * Returns true if the address is available to be assigned to a node with the given number of
+     * elements.
+     *
+     * @param address         Possible address of the primary element of the node.
+     * @param node            Node
+     * @return true if the address is assignable to the given node.
+     */
+    fun isAddressAvailable(address: UnicastAddress, node: Node) = UnicastRange(
+        address, (address + node.elementsCount)
+    ).let { range ->
+        nodes.filter { it.uuid != node.uuid }.none { it.containsAddressRange(range) } &&
+                !networkExclusions.contains(range, ivIndex)
+    }
+
+    /**
+     * Returns the next available unicast address from the provisioner's range that can be assigned
+     * to a new node with the given number of elements. The zeroth element is identified by the
+     * node's Unicast Address. Each following element is  identified by a subsequent Unicast
+     * Address.
+     *
+     * @param elementCount Number of elements in the node.
+     * @param provisioner  Provisioner that's provisioning the node.
+     * @return the next available Unicast Address that can be assigned to the node or null if there
+     *         are no addresses available in the allocated range.
+     * @throws NoUnicastRangeAllocated if the provisioner has no address range allocated.
+     */
     @Throws(NoUnicastRangeAllocated::class)
     fun nextAvailableUnicastAddress(elementCount: Int, provisioner: Provisioner): UnicastAddress? {
         require(provisioner.allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated() }

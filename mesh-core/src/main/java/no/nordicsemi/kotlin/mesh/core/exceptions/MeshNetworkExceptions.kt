@@ -11,6 +11,9 @@ class DuplicateKeyIndex : MeshNetworkExceptions()
 /** Thrown when a given key is in use. */
 class KeyInUse : MeshNetworkExceptions()
 
+/** Thrown when a node does not contain a network key. */
+class NoNetworkKey : MeshNetworkExceptions()
+
 /** Thrown when an object cannot be removed. */
 class CannotRemove : MeshNetworkExceptions()
 

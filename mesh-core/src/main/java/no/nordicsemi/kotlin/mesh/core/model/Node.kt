@@ -65,7 +65,8 @@ data class Node internal constructor(
     val uuid: UUID,
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray,
-    val unicastAddress: UnicastAddress,
+    @SerialName(value = "unicastAddress")
+    val primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
     internal var _elements: List<Element>,
     @SerialName(value = "netKeys")
@@ -84,7 +85,7 @@ data class Node internal constructor(
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = deviceKey,
-        unicastAddress = unicastAddress,
+        primaryUnicastAddress = unicastAddress,
         _elements = elements,
         _netKeys = List(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
         _appKeys = List(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
@@ -190,10 +191,13 @@ data class Node internal constructor(
         get() = elements.size
 
     val addresses: List<UnicastAddress>
-        get() = List(elementsCount) { index -> unicastAddress + index }
+        get() = List(elementsCount) { index -> primaryUnicastAddress + index }
+
+    val unicastRange: UnicastRange
+        get() = primaryUnicastAddress..(primaryUnicastAddress + elementsCount)
 
     val lastUnicastAddress: UnicastAddress
-        get() = unicastAddress + when (elementsCount > 0) {
+        get() = primaryUnicastAddress + when (elementsCount > 0) {
             true -> elementsCount
             false -> 1 // TODO should we throw here?
         } - 1
@@ -206,20 +210,6 @@ data class Node internal constructor(
 
     @Transient
     internal var network: MeshNetwork? = null
-
-    /**
-     * Checks if this node overlaps for a given address with a given number of elements.
-     *
-     * @param address       Desired unicast address.
-     * @param count         Number of elements.
-     * @return true if the address range is in use.
-     */
-    fun overlaps(address: UnicastAddress, count: Int) = try {
-        !(unicastAddress + (elementsCount - 1) < address ||
-                unicastAddress > address + (count - 1))
-    } catch (e: IllegalArgumentException) {
-        true
-    }
 
     /**
      * Adds a network key to a node.
@@ -270,6 +260,20 @@ data class Node internal constructor(
     }
 
     /**
+     * Checks if this node overlaps for a given address with a given number of elements.
+     *
+     * @param address       Desired unicast address.
+     * @param count         Number of elements.
+     * @return true if the address range is in use.
+     */
+    fun overlaps(address: UnicastAddress, count: Int) = try {
+        !(primaryUnicastAddress + (elementsCount - 1) < address ||
+                primaryUnicastAddress > address + (count - 1))
+    } catch (e: IllegalArgumentException) {
+        true
+    }
+
+    /**
      * Checks if an element in the node uses this address.
      *
      * @param address Unicast address.
@@ -279,6 +283,14 @@ data class Node internal constructor(
         it.unicastAddress == address
     }
 
+    /**
+     * Checks if an element in the node's element has a Unicast Address from the given range.
+     *
+     * @param range Unicast Range.
+     * @return true if given range overlaps with the node's address range.
+     */
+    fun containsAddressRange(range: UnicastRange) = unicastRange.overlaps(range)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -287,7 +299,7 @@ data class Node internal constructor(
 
         if (uuid != other.uuid) return false
         if (!deviceKey.contentEquals(other.deviceKey)) return false
-        if (unicastAddress != other.unicastAddress) return false
+        if (primaryUnicastAddress != other.primaryUnicastAddress) return false
         if (_elements != other._elements) return false
         if (_netKeys != other._netKeys) return false
         if (_appKeys != other._appKeys) return false
@@ -314,7 +326,7 @@ data class Node internal constructor(
     override fun hashCode(): Int {
         var result = uuid.hashCode()
         result = 31 * result + deviceKey.contentHashCode()
-        result = 31 * result + unicastAddress.hashCode()
+        result = 31 * result + primaryUnicastAddress.hashCode()
         result = 31 * result + _elements.hashCode()
         result = 31 * result + _netKeys.hashCode()
         result = 31 * result + _appKeys.hashCode()

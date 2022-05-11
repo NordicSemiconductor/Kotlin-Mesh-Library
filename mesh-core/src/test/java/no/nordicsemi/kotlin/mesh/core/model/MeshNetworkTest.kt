@@ -5,6 +5,7 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 class MeshNetworkTest {
 
@@ -38,7 +39,7 @@ class MeshNetworkTest {
     @Test
     fun testNextAvailableGroup() {
         val expectedGroupAddress = GroupAddress(0xC003u)
-        val provisioner = meshNetwork.provisioners.last()
+        val provisioner = meshNetwork._provisioners.last()
         val actualGroupAddress = meshNetwork.nextAvailableGroup(provisioner)
         Assert.assertTrue(expectedGroupAddress == actualGroupAddress)
     }
@@ -59,8 +60,27 @@ class MeshNetworkTest {
     @Test
     fun testNextAvailableScene() {
         val expectedSceneNumber: SceneNumber = 1u
-        val provisioner = meshNetwork.provisioners.last()
+        val provisioner = meshNetwork._provisioners.last()
         val actualSceneNumber = meshNetwork.nextAvailableScene(provisioner)
         Assert.assertTrue(expectedSceneNumber == actualSceneNumber)
+    }
+
+    @Test
+    fun testMoveProvisionerFromTo() {
+
+    }
+
+    @Test
+    fun testMoveProvisionerTo() {
+        meshNetwork._provisioners.first()
+        meshNetwork.add(provisioner = Provisioner(UUID.randomUUID()).apply {
+            this.network = meshNetwork
+            this.name = "Test provisioner"
+            this.allocate(UnicastAddress(0x7000u)..UnicastAddress(0x7F00u))
+        })
+        val provisioner = meshNetwork._provisioners.first()
+        val to = meshNetwork._provisioners.size - 1
+        meshNetwork.move(provisioner, to)
+        Assert.assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
     }
 }

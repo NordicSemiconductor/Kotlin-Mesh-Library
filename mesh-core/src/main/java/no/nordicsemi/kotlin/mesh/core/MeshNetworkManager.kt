@@ -30,7 +30,7 @@ open class MeshNetworkManager {
             scenes.forEach {
                 it.network = this
             }
-            provisioners.forEach {
+            _provisioners.forEach {
                 it.network = this
             }
             nodes.forEach { node ->

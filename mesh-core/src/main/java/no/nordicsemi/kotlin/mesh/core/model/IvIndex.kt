@@ -20,7 +20,7 @@ import kotlinx.datetime.Instant
  * using the current IV Index - 1 and shall process messages from the current IV Index - 1 and also
  * the current IV Index.
  *
- * @property ivIndex           A 32-bit shared network resource. All nodes in a mesh network share
+ * @property index           A 32-bit shared network resource. All nodes in a mesh network share
  *                             the same value of the IV Index and use it for all subnets they belong
  *                             to.
  * @property isIvUpdateActive  Set to true if IV Update is in progress and false if the network is
@@ -39,7 +39,7 @@ import kotlinx.datetime.Instant
  * @property transmitIvIndex   IV index used when transmitting messages.
  */
 data class IvIndex internal constructor(
-    val ivIndex: UInt = 0u,
+    val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,
     val transitionDate: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
 ) {
@@ -47,8 +47,8 @@ data class IvIndex internal constructor(
         internal set
 
     val transmitIvIndex: UInt
-        get() = when (isIvUpdateActive && ivIndex > 0u) {
-            true -> ivIndex - 1u
-            false -> ivIndex
+        get() = when (isIvUpdateActive && index > 0u) {
+            true -> index - 1u
+            false -> index
         }
 }
