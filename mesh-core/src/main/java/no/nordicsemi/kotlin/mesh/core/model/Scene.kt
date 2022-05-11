@@ -14,7 +14,7 @@ typealias SceneNumber = UShort
  *
  * @property name          Scene name.
  * @property number        Scene number.
- * @property addresses     Addresses containing the scene.
+ * @property _addresses     Addresses containing the scene.
  */
 @Serializable
 data class Scene internal constructor(
@@ -29,12 +29,13 @@ data class Scene internal constructor(
             require(value.isNotBlank()) { "Name cannot be empty!" }
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
         }
-    var addresses = listOf<UnicastAddress>()
-        private set
+    private var _addresses: MutableList<UnicastAddress> = mutableListOf()
+    val address: List<UnicastAddress>
+        get() = _addresses
 
     @Transient
     var isUsed: Boolean = false
-        get() = addresses.isNotEmpty()
+        get() = _addresses.isNotEmpty()
         private set
 
     @Transient
@@ -52,8 +53,8 @@ data class Scene internal constructor(
      * @param address Unicast address to be added.
      */
     internal fun add(address: UnicastAddress) {
-        if (addresses.none { it == address }) {
-            addresses = addresses + address
+        if (_addresses.none { it == address }) {
+            _addresses.add(address)
             network?.updateTimestamp()
         }
     }
@@ -64,7 +65,9 @@ data class Scene internal constructor(
      * @param addresses List of unicast address.
      */
     internal fun add(addresses: List<UnicastAddress>) {
-        this.addresses = this.addresses.union(addresses).toList()
+        // First remove all the items that are contained
+        remove(addresses)
+        _addresses.addAll(addresses)
         network?.updateTimestamp()
     }
 
@@ -74,7 +77,7 @@ data class Scene internal constructor(
      * @param address Address to be removed.
      */
     internal fun remove(address: UnicastAddress) {
-        addresses = addresses - address
+        _addresses.remove(address)
         network?.updateTimestamp()
     }
 
@@ -84,22 +87,22 @@ data class Scene internal constructor(
      * @param addresses Addresses to be removed.
      */
     internal fun remove(addresses: List<UnicastAddress>) {
-        this.addresses = this.addresses - addresses.toSet()
+        _addresses.removeAll(addresses)
         network?.updateTimestamp()
     }
 
     /**
      * Returns a list of nodes registered to a given scene address.
      */
-    fun nodes(): List<Node> = network?.nodes?.filter { node ->
-        node.elements.any { element -> addresses.contains(element.unicastAddress) }
+    fun nodes(): List<Node> = network?._nodes?.filter { node ->
+        node.elements.any { element -> _addresses.contains(element.unicastAddress) }
     } ?: listOf()
 
     /**
      * Returns a list of elements registered to a given scene address.
      */
-    fun elements(): List<Element> = network?.nodes?.flatMap { node ->
-        node.elements.filter { element -> addresses.contains(element.unicastAddress) }
+    fun elements(): List<Element> = network?._nodes?.flatMap { node ->
+        node.elements.filter { element -> _addresses.contains(element.unicastAddress) }
     } ?: listOf()
 
     private companion object {

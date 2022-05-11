@@ -26,14 +26,14 @@ class MeshNetworkTest {
     @Test
     fun testAddGroup() {
         meshNetwork.add(group)
-        Assert.assertTrue(meshNetwork.groups.any { it.address == group.address })
+        Assert.assertTrue(meshNetwork._groups.any { it.address == group.address })
     }
 
     @Test
     fun testRemoveGroup() {
         meshNetwork.add(group)
         meshNetwork.remove(group)
-        Assert.assertFalse(meshNetwork.groups.none { it.address == group.address })
+        Assert.assertFalse(meshNetwork._groups.none { it.address == group.address })
     }
 
     @Test
@@ -47,14 +47,14 @@ class MeshNetworkTest {
     @Test
     fun testAddScene() {
         meshNetwork.add(scene)
-        Assert.assertTrue(meshNetwork.scenes.any { it.number == scene.number })
+        Assert.assertTrue(meshNetwork._scenes.any { it.number == scene.number })
     }
 
     @Test
     fun testRemoveScene() {
         meshNetwork.add(scene)
         meshNetwork.remove(scene)
-        Assert.assertFalse(meshNetwork.scenes.none { it.number == scene.number })
+        Assert.assertFalse(meshNetwork._scenes.none { it.number == scene.number })
     }
 
     @Test

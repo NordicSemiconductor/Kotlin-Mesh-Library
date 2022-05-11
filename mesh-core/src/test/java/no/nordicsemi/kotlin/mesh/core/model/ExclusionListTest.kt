@@ -16,8 +16,8 @@ class ExclusionListTest {
         deviceKey = byteArrayOf(),
         primaryUnicastAddress = UnicastAddress(address = 1u),
         _elements = elements,
-        _netKeys = listOf(),
-        _appKeys = listOf()
+        _netKeys = mutableListOf(),
+        _appKeys = mutableListOf()
     ).apply {
         name = "Node"
     }
@@ -26,16 +26,16 @@ class ExclusionListTest {
     fun testExcludeUnicast() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(address = UnicastAddress(address = 1u))
-        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList.addresses[0])
+        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
     }
 
     @Test
     fun testExcludeNode() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(node = node)
-        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList.addresses[0])
-        Assert.assertEquals(UnicastAddress(address = 2u), exclusionList.addresses[1])
-        Assert.assertEquals(UnicastAddress(address = 3u), exclusionList.addresses[2])
+        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
+        Assert.assertEquals(UnicastAddress(address = 2u), exclusionList._addresses[1])
+        Assert.assertEquals(UnicastAddress(address = 3u), exclusionList._addresses[2])
     }
 
     @Test

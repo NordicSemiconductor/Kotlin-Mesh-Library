@@ -59,7 +59,7 @@ data class ApplicationKey internal constructor(
     internal var network: MeshNetwork? = null
 
     @Transient
-    var netKey: NetworkKey? = network?.networkKeys?.find { it.index == boundNetKeyIndex }
+    var netKey: NetworkKey? = network?._networkKeys?.find { it.index == boundNetKeyIndex }
         private set
 
     init {
@@ -72,7 +72,7 @@ data class ApplicationKey internal constructor(
      */
     fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
-        nodes.none { node ->
+        _nodes.none { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }

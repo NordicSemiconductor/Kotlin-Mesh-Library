@@ -18,22 +18,22 @@ open class MeshNetworkManager {
         meshNetwork = deserialize(array)
         // Assign network reference to access parent network within the object.
         meshNetwork.apply {
-            networkKeys.forEach {
+            _networkKeys.forEach {
                 it.network = this
             }
-            applicationKeys.forEach {
+            _applicationKeys.forEach {
                 it.network = this
             }
-            groups.forEach {
+            _groups.forEach {
                 it.network = this
             }
-            scenes.forEach {
+            _scenes.forEach {
                 it.network = this
             }
             _provisioners.forEach {
                 it.network = this
             }
-            nodes.forEach { node ->
+            _nodes.forEach { node ->
                 node.network = this
                 node.elements.forEach { element ->
                     element.parentNode = node
@@ -42,7 +42,7 @@ open class MeshNetworkManager {
                     }
                 }
             }
-            networkExclusions.forEach {
+            _networkExclusions.forEach {
                 it.network = this
             }
         }

@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -20,13 +20,27 @@ import java.util.*
  * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
  * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
  * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
+ * @constructor Creates a Provisioner object.
  */
 @Serializable
-data class Provisioner(
+data class Provisioner internal constructor(
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID
+    val uuid: UUID,
+    @SerialName(value = "allocatedUnicastRange")
+    internal var _allocatedUnicastRanges: MutableList<UnicastRange> = mutableListOf(),
+    @SerialName(value = "allocatedGroupRange")
+    internal var _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
+    @SerialName(value = "allocatedSceneRange")
+    internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
 ) {
+
+    constructor(uuid: UUID) : this(
+        uuid,
+        mutableListOf<UnicastRange>(),
+        mutableListOf<GroupRange>(),
+        mutableListOf<SceneRange>()
+    )
 
     @SerialName(value = "provisionerName")
     var name: String = "nRF Mesh Provisioner"
@@ -36,20 +50,17 @@ data class Provisioner(
             field = value
         }
 
-    @SerialName(value = "allocatedUnicastRange")
-    var allocatedUnicastRanges = listOf<UnicastRange>()
-        private set
+    val allocatedUnicastRanges: List<UnicastRange>
+        get() = _allocatedUnicastRanges
 
-    @SerialName(value = "allocatedGroupRange")
-    var allocatedGroupRanges = listOf<GroupRange>()
-        private set
+    val allocatedGroupRanges: List<GroupRange>
+        get() = _allocatedGroupRanges
 
-    @SerialName(value = "allocatedSceneRange")
-    var allocatedSceneRanges = listOf<SceneRange>()
-        private set
+    val allocatedSceneRanges: List<SceneRange>
+        get() = _allocatedSceneRanges
 
     val node: Node?
-        get() = network?.nodes?.find { it.uuid == uuid }
+        get() = network?._nodes?.find { it.uuid == uuid }
 
     @Transient
     internal var network: MeshNetwork? = null
@@ -60,7 +71,8 @@ data class Provisioner(
      * @param range Allocated unicast range.
      */
     fun allocate(range: UnicastRange) {
-        allocatedUnicastRanges = (allocatedUnicastRanges + range).map { it as UnicastRange }
+        // TODO Check for overlapping ranges when allocating
+        _allocatedUnicastRanges.add(range)
     }
 
     /**
@@ -69,7 +81,8 @@ data class Provisioner(
      * @param range Allocated group range.
      */
     fun allocate(range: GroupRange) {
-        allocatedGroupRanges = (allocatedGroupRanges + range).map { it as GroupRange }
+        // TODO Check for overlapping ranges when allocating
+        _allocatedGroupRanges.add(range)
     }
 
     /**
@@ -78,7 +91,8 @@ data class Provisioner(
      * @param range Allocated scene range.
      */
     fun allocate(range: SceneRange) {
-        allocatedSceneRanges = (allocatedSceneRanges + range).map { it as SceneRange }
+        // TODO Check for overlapping ranges when allocating
+        _allocatedSceneRanges.add(range)
     }
 
     /**
@@ -91,7 +105,7 @@ data class Provisioner(
     fun hasOverlappingRanges(provisioner: Provisioner) =
         hasOverlappingUnicastRanges(other = provisioner) ||
                 hasOverlappingGroupRanges(other = provisioner) ||
-                    hasOverlappingSceneRanges(other = provisioner)
+                hasOverlappingSceneRanges(other = provisioner)
 
     /**
      * Checks if the current provisioner has overlapping unicast ranges with the given provisioner.
@@ -99,8 +113,8 @@ data class Provisioner(
      * @param other Other provisioner.
      * @return true if there are any overlapping unicast ranges or false otherwise.
      */
-    fun hasOverlappingUnicastRanges(other: Provisioner) = allocatedUnicastRanges.any { range ->
-        other.allocatedUnicastRanges.any { otherRange -> otherRange.overlaps(range) }
+    fun hasOverlappingUnicastRanges(other: Provisioner) = _allocatedUnicastRanges.any { range ->
+        other._allocatedUnicastRanges.any { otherRange -> otherRange.overlaps(range) }
     }
 
     /**
@@ -110,8 +124,8 @@ data class Provisioner(
      * @return true if there are any overlapping group ranges or false otherwise.
      */
 
-    fun hasOverlappingGroupRanges(other: Provisioner) = allocatedGroupRanges.any { range ->
-        other.allocatedGroupRanges.any { otherRange -> otherRange.overlaps(range) }
+    fun hasOverlappingGroupRanges(other: Provisioner) = _allocatedGroupRanges.any { range ->
+        other._allocatedGroupRanges.any { otherRange -> otherRange.overlaps(range) }
     }
 
     /**
@@ -120,7 +134,7 @@ data class Provisioner(
      * @param other Other provisioner.
      * @return true if there are any overlapping scene ranges or false otherwise.
      */
-    fun hasOverlappingSceneRanges(other: Provisioner) = allocatedSceneRanges.any { range ->
-        other.allocatedSceneRanges.any { otherRange -> otherRange.overlaps(range) }
+    fun hasOverlappingSceneRanges(other: Provisioner) = _allocatedSceneRanges.any { range ->
+        other._allocatedSceneRanges.any { otherRange -> otherRange.overlaps(range) }
     }
 }

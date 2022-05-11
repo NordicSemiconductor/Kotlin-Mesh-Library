@@ -68,11 +68,11 @@ data class Node internal constructor(
     @SerialName(value = "unicastAddress")
     val primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
-    internal var _elements: List<Element>,
+    internal var _elements: MutableList<Element>,
     @SerialName(value = "netKeys")
-    private var _netKeys: List<NodeKey>,
+    private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: List<NodeKey>,
+    private var _appKeys: MutableList<NodeKey>,
 ) {
 
     internal constructor(
@@ -86,9 +86,9 @@ data class Node internal constructor(
         uuid = provisioner.uuid,
         deviceKey = deviceKey,
         primaryUnicastAddress = unicastAddress,
-        _elements = elements,
-        _netKeys = List(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
-        _appKeys = List(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
+        _elements = elements.toMutableList(),
+        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
+        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
     )
 
     var name: String = "Mesh Network"
@@ -100,19 +100,19 @@ data class Node internal constructor(
     var netKeys: List<NodeKey>
         get() = _netKeys
         internal set(value) {
-            _netKeys = value
+            _netKeys = value.toMutableList()
             network?.updateTimestamp()
         }
     var appKeys: List<NodeKey>
         get() = _appKeys
         internal set(value) {
-            _appKeys = value
+            _appKeys = value.toMutableList()
             network?.updateTimestamp()
         }
     var elements: List<Element>
         get() = _elements
         internal set(value) {
-            _elements = value
+            _elements = value.toMutableList()
             network?.updateTimestamp()
         }
     var security: Security = Insecure
@@ -221,7 +221,7 @@ data class Node internal constructor(
         when {
             _netKeys.contains(this) -> false
             else -> {
-                _netKeys = _netKeys + this
+                _netKeys.add(this)
                 network?.updateTimestamp()
                 true
             }
@@ -238,7 +238,7 @@ data class Node internal constructor(
         when {
             _appKeys.contains(this) -> false
             else -> {
-                _appKeys = _appKeys + this
+                _appKeys.add(this)
                 network?.updateTimestamp()
                 true
             }
@@ -254,7 +254,7 @@ data class Node internal constructor(
     internal fun add(element: Element): Boolean = when {
         _elements.contains(element) -> false
         else -> {
-            _elements = elements + element
+            _elements.add(element)
             true
         }
     }

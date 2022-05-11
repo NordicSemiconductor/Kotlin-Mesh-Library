@@ -1,19 +1,26 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
  * Represents the unicast addresses that are excluded by a Mesh Manager for a particular IV index.
  *
- * @property ivIndex       32-bit value that is a shared network resource known by all nodes in a given network.
+ * @property ivIndex       32-bit value that is a shared network resource known by all nodes in a
+ *                         given network.
  * @property addresses     List of excluded addresses for a given ivIndex.
+ * @constructor            Creates an ExclusionList object.
  */
 @Serializable
-data class ExclusionList internal constructor(val ivIndex: UInt) {
-    var addresses = listOf<UnicastAddress>()
-        private set
+data class ExclusionList internal constructor(
+    val ivIndex: UInt,
+    @SerialName(value = "addresses")
+    internal val _addresses: MutableList<UnicastAddress> = mutableListOf()
+) {
+    val addresses: List<UnicastAddress>
+        get() = _addresses
 
     internal var network: MeshNetwork? = null
 
@@ -23,8 +30,8 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
      * @param address Unicast address to be excluded.
      */
     fun exclude(address: UnicastAddress): Boolean {
-        if (address !in addresses) {
-            addresses = addresses + address
+        if (address !in _addresses) {
+            _addresses.add(address)
         }
         network?.updateTimestamp()
         return true
@@ -47,9 +54,8 @@ data class ExclusionList internal constructor(val ivIndex: UInt) {
      *
      * @param address unicast address to be verified.
      */
-    fun isExcluded(address: UnicastAddress): Boolean = address in addresses
+    fun isExcluded(address: UnicastAddress): Boolean = address in _addresses
 }
-
 
 /**
  * Checks whether the given Unicast Address range can be reassigned to a new Node, as it has been
@@ -64,7 +70,6 @@ fun List<ExclusionList>.contains(
     range: UnicastRange,
     ivIndex: IvIndex
 ) = isNotEmpty() && excludedAddresses(ivIndex).any { range.contains(it.address) }
-
 
 /**
  * Returns a list of Unicast addresses for hte given IV Index.

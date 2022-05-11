@@ -96,9 +96,9 @@ data class NetworkKey internal constructor(
         // A network key is in use if at least one application key is bound to it.
         // OR
         // The network key is known by any of the nodes in the network.
-        applicationKeys.none { applicationKey ->
+        _applicationKeys.none { applicationKey ->
             applicationKey.boundNetKeyIndex == index
-        } || nodes.none { node ->
+        } || _nodes.none { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }
