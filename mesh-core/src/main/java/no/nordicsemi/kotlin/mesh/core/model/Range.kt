@@ -184,12 +184,22 @@ sealed class AddressRange : Range() {
  *
  * @property lowAddress        Low address for a given range.
  * @property highAddress       High address for a given  range.
+ * @constructor Creates a Unicast Range.
  */
 @Serializable
 data class UnicastRange(
     override val lowAddress: UnicastAddress,
     override val highAddress: UnicastAddress
-) : AddressRange()
+) : AddressRange() {
+
+    constructor(
+        address: UnicastAddress,
+        elementsCount: Int
+    ) : this(
+        lowAddress = address,
+        highAddress = address + (elementsCount - 1)
+    )
+}
 
 /**
  * The AllocatedGroupRange represents the range of group addresses that the Provisioner can allocate
@@ -200,6 +210,7 @@ data class UnicastRange(
  *
  * @property lowAddress        Low address for a given range.
  * @property highAddress       High address for a given  range.
+ * @constructor Creates a Group Range.
  */
 @Serializable
 data class GroupRange(
@@ -216,6 +227,7 @@ data class GroupRange(
  *
  * @property firstScene    First scene a given range.
  * @property lastScene     Last scene for a given  range.
+ * @constructor Creates a Scene Range.
  */
 @Serializable
 data class SceneRange(
