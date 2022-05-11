@@ -30,6 +30,9 @@ open class MeshNetworkManager {
             scenes.forEach {
                 it.network = this
             }
+            provisioners.forEach {
+                it.network = this
+            }
             nodes.forEach { node ->
                 node.network = this
                 node.elements.forEach { element ->
