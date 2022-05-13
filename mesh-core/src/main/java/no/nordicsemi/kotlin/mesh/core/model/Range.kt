@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
+import java.util.*
 
 /**
  * Allocated Range.
@@ -27,6 +28,14 @@ sealed class Range {
      * @return true if the value is in the range and false otherwise.
      */
     fun contains(value: UShort) = range.contains(value)
+
+    /**
+     * Checks if a given value is contained within the range.
+     *
+     * @param other Range to be checked.
+     * @return true if the value is in the range and false otherwise.
+     */
+    fun contains(other: Range) = range.contains(other.range)
 
     /**
      * Checks if a given range overlaps.
@@ -244,10 +253,28 @@ data class SceneRange(
 /**
  * Checks if an element in the list of ranges overlaps with the given range.
  *
- * @param range Allocated range
+ * @param range Range to be checked.
  * @return true if the given range overlaps with any of the ranges in the list.
  */
 fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
+
+/**
+ *  Checks if the given range is within the range.
+ *
+ *  @param other Range to be checked.
+ *  @return true if the given range is within the range.
+ */
+operator fun UIntRange.contains(other: UIntRange) =
+    contains(other.first) && contains(other.last)
+
+/**
+ * Checks if an element in the list of ranges contains the given range.
+ *
+ * @param range Range to be checked.
+ * @return true if the given range overlaps with any of the ranges in the list.
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+operator fun List<Range>.contains(range: Range) = any { it.contains(range) }
 
 operator fun List<Range>.plus(other: Range): List<Range> {
     val result = ArrayList<Range>(size + 1)
