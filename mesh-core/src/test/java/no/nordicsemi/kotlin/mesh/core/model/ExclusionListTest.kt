@@ -14,7 +14,7 @@ class ExclusionListTest {
     private val node = Node(
         uuid = UUID.randomUUID(),
         deviceKey = byteArrayOf(),
-        primaryUnicastAddress = UnicastAddress(address = 1u),
+        _primaryUnicastAddress = UnicastAddress(address = 1u),
         _elements = elements,
         _netKeys = mutableListOf(),
         _appKeys = mutableListOf()

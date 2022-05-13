@@ -241,6 +241,14 @@ data class SceneRange(
     override var range = firstScene..lastScene
 }
 
+/**
+ * Checks if an element in the list of ranges overlaps with the given range.
+ *
+ * @param range Allocated range
+ * @return true if the given range overlaps with any of the ranges in the list.
+ */
+fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
+
 operator fun List<Range>.plus(other: Range): List<Range> {
     val result = ArrayList<Range>(size + 1)
     result.addAll(this)

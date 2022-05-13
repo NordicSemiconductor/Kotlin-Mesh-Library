@@ -164,16 +164,14 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Checks if the given provisioner already exists in the network.
+     * Checks if a provisioner with the given UUID already exists in the network.
      *
-     * @param provisioner Provisioner to check.
+     * @param uuid UUID to check.
      * @return true if the provisioner exists.
      * @throws [DoesNotBelongToNetwork] if the provisioner belongs to another network.
      */
-    @Throws(DoesNotBelongToNetwork::class)
-    fun contains(provisioner: Provisioner): Boolean {
-        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        return _provisioners.any { it.uuid == provisioner.uuid }
+    internal fun hasProvisioner(uuid: UUID): Boolean {
+        return _provisioners.any { it.uuid == uuid }
     }
 
     /**
@@ -230,7 +228,7 @@ class MeshNetwork internal constructor(
         }
 
         // Is it already added?
-        require(!contains(provisioner)) { return }
+        require(!hasProvisioner(provisioner.uuid)) { return }
 
         // is there a node with the provisioner's uuid
         require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists() }
@@ -343,6 +341,64 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Assigns the unicast address used by the given Provisioner. If the provisioner did not have a
+     * unicast address assigned, the method will create a Node with the address. This will enable
+     * configuration capabilities for the provisioner. The provisioner must be in the mesh network.
+     *
+     * @param address     Unicast address to assign.
+     * @param provisioner Provisioner to be modified.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun assign(address: UnicastAddress, provisioner: Provisioner) {
+        require(hasProvisioner(provisioner.uuid))
+        var isNewNode = false
+        val node = node(provisioner) ?: Node(
+            provisioner,
+            Crypto.generateRandomKey(),
+            address,
+            listOf(
+                Element(
+                    Unknown, listOf(
+                        Model(SigModelId(CONFIGURATION_SERVER_MODEL_ID)),
+                        Model(SigModelId(CONFIGURATION_CLIENT_MODEL_ID))
+                    )
+                )
+            ),
+            _networkKeys,
+            _applicationKeys
+        ).apply {
+            companyIdentifier = 0x00E0u //Google
+            replayProtectionCount = maxUnicastAddress
+        }.also { isNewNode = true }
+
+        // Is it in Provisioner's range?
+        val newRange = UnicastRange(address, node.elementsCount)
+        require(provisioner.isRangeAllocated(newRange)) { throw AddressNotInAllocatedRanges() }
+
+        // Is there any other node using the address?
+        require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
+
+        when (isNewNode) {
+            true -> add(node)
+            else -> node._primaryUnicastAddress = address
+        }
+        updateTimestamp()
+    }
+
+    /**
+     * Disables the configuration capabilities by un-assigning provisioner's address. Un-assigning
+     * an address will delete the provisioner's node. This results in the provisioner not being
+     * able to send or receive mesh messages in the mesh network. However, the provisioner will still
+     * retain it's provisioning capabilities.
+     *
+     * @param provisioner Provisioner of whose configurations are to be disabled.
+     */
+    fun disableConfigurationCapabilities(provisioner: Provisioner) {
+        remove(provisioner.uuid)
+    }
+
+    /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
      * @param name      Network key name.
@@ -367,8 +423,7 @@ class MeshNetwork internal constructor(
             // Add the new network key to the network keys and sort them by index.
             _networkKeys.apply {
                 add(networkKey)
-                sortBy { it.index }
-            }
+            }.sortBy { it.index }
             updateTimestamp()
         }
     }
@@ -379,7 +434,7 @@ class MeshNetwork internal constructor(
      * @param key Network key to be removed.
      * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
      * @throws [KeyInUse] if the key is known to any node in the network or bound to any application
-     * key in this network.
+     *                    key in this network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
@@ -448,6 +503,39 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns provisioner's node.
+     *
+     * @param provisioner Provisioner who's node is to be returned.
+     * @return Null if the provisioner is not a part of the network or if the provisioner does not
+     *         have an address assigned.
+     */
+    fun node(provisioner: Provisioner) = try {
+        require(hasProvisioner(provisioner.uuid))
+        node(provisioner.uuid)
+    } catch (e: DoesNotBelongToNetwork) {
+        null
+    }
+
+    /**
+     * Returns the provisioned node for an unprovisioned device/
+     *
+     * @param device Unprovisioned node.
+     * @return provisioned Node matching the unprovisioned device.
+     */
+    @Suppress("KDocUnresolvedReference")
+    fun node(/*device:UnprovisionedDevice*/): Node? {
+        TODO("return node(device.uuid)")
+    }
+
+    /**
+     * Returns the node with the given uuid.
+     *
+     * @param uuid matching UUID.
+     * @return Node
+     */
+    fun node(uuid: UUID) = nodes.find { it.uuid == uuid }
+
+    /**
      * Adds a given [Node] to the list of nodes in the mesh network.
      *
      * @param node Node to be added to the network.
@@ -466,7 +554,7 @@ class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists() }
         // Verify if the address range is available for the new Node.
-        require(isAddressAvailable(node.primaryUnicastAddress, node)) {
+        require(isAddressAvailable(node._primaryUnicastAddress, node)) {
             throw NoAddressesAvailable()
         }
         // Ensure the Network Key exists.

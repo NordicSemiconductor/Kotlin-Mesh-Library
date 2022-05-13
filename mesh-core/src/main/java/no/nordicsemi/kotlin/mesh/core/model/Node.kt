@@ -24,15 +24,15 @@ import java.util.*
  *                                      the property’s value is set to false.
  * @property name                       Human-readable name that can identify this node within the
  *                                      mesh network.
- * @property companyIdentifier                        16-bit Company Identifier (CID) assigned by the Bluetooth
+ * @property companyIdentifier          16-bit Company Identifier (CID) assigned by the Bluetooth
  *                                      SIG. The value of this property is obtained from node
  *                                      composition data.
- * @property productIdentifier                        16-bit, vendor-assigned Product Identifier (PID). The value
+ * @property productIdentifier          16-bit, vendor-assigned Product Identifier (PID). The value
  *                                      of this property is obtained from node composition data.
- * @property versionIdentifier                        16-bit, vendor-assigned product Version Identifier (VID).
+ * @property versionIdentifier          16-bit, vendor-assigned product Version Identifier (VID).
  *                                      The value of this property is obtained from node composition
  *                                      data
- * @property replayProtectionCount                       16-bit value indicating the minimum number of Replay
+ * @property replayProtectionCount      16-bit value indicating the minimum number of Replay
  *                                      Protection List (RPL) entries for this node. The value of
  *                                      this property is obtained from node composition data. RPL
  *                                      implementation handles a multi-segment message transaction
@@ -66,7 +66,7 @@ data class Node internal constructor(
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray,
     @SerialName(value = "unicastAddress")
-    val primaryUnicastAddress: UnicastAddress,
+    internal var _primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
     internal var _elements: MutableList<Element>,
     @SerialName(value = "netKeys")
@@ -79,17 +79,27 @@ data class Node internal constructor(
         provisioner: Provisioner,
         deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
-        elements: List<Element>,
+        elements: List<Element> = listOf(
+            Element(
+                Unknown, listOf(
+                    Model(SigModelId(CONFIGURATION_SERVER_MODEL_ID)),
+                    Model(SigModelId(CONFIGURATION_CLIENT_MODEL_ID))
+                )
+            )
+        ),
         netKeys: List<NetworkKey>,
         appKeys: List<ApplicationKey>
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = deviceKey,
-        primaryUnicastAddress = unicastAddress,
+        _primaryUnicastAddress = unicastAddress,
         _elements = elements.toMutableList(),
         _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
         _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
     )
+
+    val primaryUnicastAddress: UnicastAddress
+        get() = _primaryUnicastAddress
 
     var name: String = "Mesh Network"
         set(value) {
@@ -191,13 +201,13 @@ data class Node internal constructor(
         get() = elements.size
 
     val addresses: List<UnicastAddress>
-        get() = List(elementsCount) { index -> primaryUnicastAddress + index }
+        get() = List(elementsCount) { index -> _primaryUnicastAddress + index }
 
     val unicastRange: UnicastRange
-        get() = primaryUnicastAddress..(primaryUnicastAddress + elementsCount)
+        get() = _primaryUnicastAddress..(_primaryUnicastAddress + elementsCount)
 
     val lastUnicastAddress: UnicastAddress
-        get() = primaryUnicastAddress + when (elementsCount > 0) {
+        get() = _primaryUnicastAddress + when (elementsCount > 0) {
             true -> elementsCount
             false -> 1 // TODO should we throw here?
         } - 1
@@ -267,8 +277,8 @@ data class Node internal constructor(
      * @return true if the address range is in use.
      */
     fun overlaps(address: UnicastAddress, count: Int) = try {
-        !(primaryUnicastAddress + (elementsCount - 1) < address ||
-                primaryUnicastAddress > address + (count - 1))
+        !(_primaryUnicastAddress + (elementsCount - 1) < address ||
+                _primaryUnicastAddress > address + (count - 1))
     } catch (e: IllegalArgumentException) {
         true
     }
@@ -299,7 +309,7 @@ data class Node internal constructor(
 
         if (uuid != other.uuid) return false
         if (!deviceKey.contentEquals(other.deviceKey)) return false
-        if (primaryUnicastAddress != other.primaryUnicastAddress) return false
+        if (_primaryUnicastAddress != other._primaryUnicastAddress) return false
         if (_elements != other._elements) return false
         if (_netKeys != other._netKeys) return false
         if (_appKeys != other._appKeys) return false
@@ -326,7 +336,7 @@ data class Node internal constructor(
     override fun hashCode(): Int {
         var result = uuid.hashCode()
         result = 31 * result + deviceKey.contentHashCode()
-        result = 31 * result + primaryUnicastAddress.hashCode()
+        result = 31 * result + _primaryUnicastAddress.hashCode()
         result = 31 * result + _elements.hashCode()
         result = 31 * result + _netKeys.hashCode()
         result = 31 * result + _appKeys.hashCode()
