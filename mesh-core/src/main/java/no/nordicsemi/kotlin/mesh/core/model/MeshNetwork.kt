@@ -374,7 +374,7 @@ class MeshNetwork internal constructor(
 
         // Is it in Provisioner's range?
         val newRange = UnicastRange(address, node.elementsCount)
-        require(provisioner.isRangeAllocated(newRange)) { throw AddressNotInAllocatedRanges() }
+        require(provisioner.hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
 
         // Is there any other node using the address?
         require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }

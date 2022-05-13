@@ -101,11 +101,11 @@ data class Provisioner internal constructor(
      * @param range Range to be checked.
      * @return true if the range is within the allocated range.
      */
-    fun isRangeAllocated(range: Range) = when (range) {
+    fun hasAllocatedRange(range: Range) = when (range) {
         is UnicastRange -> _allocatedUnicastRanges
         is GroupRange -> _allocatedGroupRanges
         is SceneRange -> _allocatedSceneRanges
-    }.overlaps(range)
+    }.contains(range)
 
     /**
      * Checks if the current provisioner has overlapping unicast, group or scene ranges with the
