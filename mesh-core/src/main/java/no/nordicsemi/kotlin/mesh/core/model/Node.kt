@@ -36,8 +36,8 @@ import java.util.*
  *                                      Protection List (RPL) entries for this node. The value of
  *                                      this property is obtained from node composition data. RPL
  *                                      implementation handles a multi-segment message transaction
- *                                      which is under a replay attack. The sequence number of the l
- *                                      ast segment that has been received for this message is
+ *                                      which is under a replay attack. The sequence number of the
+ *                                      last segment that has been received for this message is
  *                                      stored for that peer node in the replay protection list.
  * @property features                   [Features] supported by the node.
  * @property secureNetworkBeacon        Represents whether the node is configured to send Secure
