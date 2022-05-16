@@ -5,7 +5,6 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
-import java.util.*
 
 /**
  * Allocated Range.
@@ -44,6 +43,14 @@ sealed class Range {
      * @return true if there are overlapping elements.
      */
     fun overlaps(other: Range) = range.intersect(other.range).isNotEmpty()
+
+    /**
+     * Checks if a given list of ranges overlaps with the current range
+     *
+     * @param ranges List of ranges to check for overlapping elements.
+     * @return true if there are overlapping elements.
+     */
+    fun overlaps(ranges: List<Range>) = range.intersect(ranges.toSet()).isNotEmpty()
 
     /**
      * Returns the closest distance between this and the given range.
@@ -257,6 +264,14 @@ data class SceneRange(
  * @return true if the given range overlaps with any of the ranges in the list.
  */
 fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
+
+/**
+ * Checks if the elements in the list of ranges overlaps with the given range.
+ *
+ * @param ranges Range to be checked.
+ * @return true if the given list of ranges overlaps with any of the ranges in the list.
+ */
+fun List<Range>.overlaps(ranges: List<Range>) = any { it.overlaps(ranges) }
 
 /**
  *  Checks if the given range is within the range.
