@@ -399,6 +399,56 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     *  Check if the given range is allocatable to the given provisioner.
+     *
+     *  @param range    Ranges to be allocated.
+     *  @param uuid     UUID of the provisioner.
+     *  @return true if the range is not in use by another provisioner or false otherwise.
+     *  @throws DoesNotBelongToNetwork if the provisioner does not belong to the network.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun isRangeAllocated(range: Range, uuid: UUID) = when (range) {
+        is UnicastRange ->
+            provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedUnicastRanges.overlaps(range) }
+        is GroupRange ->
+            provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedGroupRanges.overlaps(range) }
+        is SceneRange ->
+            provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedSceneRanges.overlaps(range) }
+    }
+
+    /**
+     *  Check if the given list of ranges are allocatable to a given provisioner.
+     *
+     *  @param ranges   Ranges to be allocated.
+     *  @param uuid     UUID of the provisioner.
+     *  @return true if the given ranges are not in use by another provisioner or false otherwise.
+     */
+    fun areRangesAllocated(ranges: List<Range>, uuid: UUID) = try {
+        when (ranges.first()) {
+            is UnicastRange ->
+                provisioners
+                    .filter { it.uuid != uuid }
+                    .none { it._allocatedUnicastRanges.overlaps(ranges) }
+            is GroupRange ->
+                provisioners
+                    .filter { it.uuid != uuid }
+                    .none { it._allocatedGroupRanges.overlaps(ranges) }
+            is SceneRange ->
+                provisioners
+                    .filter { it.uuid != uuid }
+                    .none { it._allocatedSceneRanges.overlaps(ranges) }
+        }
+    } catch (e: NoSuchElementException) {
+        false
+    }
+
+    /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
      * @param name      Network key name.
@@ -814,3 +864,4 @@ class MeshNetwork internal constructor(
         }
     }
 }
+
