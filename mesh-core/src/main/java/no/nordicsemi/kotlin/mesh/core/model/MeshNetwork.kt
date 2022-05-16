@@ -604,7 +604,7 @@ class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists() }
         // Verify if the address range is available for the new Node.
-        require(isAddressAvailable(node._primaryUnicastAddress, node)) {
+        require(isAddressAvailable(node.primaryUnicastAddress, node)) {
             throw NoAddressesAvailable()
         }
         // Ensure the Network Key exists.
