@@ -21,19 +21,19 @@ import java.util.*
  *                                  timestamp is based on Coordinated Universal Time.
  * @property partial                Indicates if this Mesh Configuration Database is part of a
  *                                  larger database.
- * @property _networkKeys            List of network keys that includes information about network
+ * @property _networkKeys           List of network keys that includes information about network
  *                                  keys used in the mesh network.
- * @property _applicationKeys        List of app keys that includes information about app keys used
+ * @property _applicationKeys       List of app keys that includes information about app keys used
  *                                  in the mesh network.
- * @property _provisioners           List of known Provisioners and ranges of addresses that have
+ * @property _provisioners          List of known Provisioners and ranges of addresses that have
  *                                  been allocated to these Provisioners.
- * @property _nodes                  List of nodes that includes information about mesh nodes in the
+ * @property _nodes                 List of nodes that includes information about mesh nodes in the
  *                                  mesh network.
- * @property _groups                 List of groups that includes information about groups configured
+ * @property _groups                List of groups that includes information about groups configured
  *                                  in the mesh network.
- * @property _scenes                 List of scenes that includes information about scenes configured
+ * @property _scenes                List of scenes that includes information about scenes configured
  *                                  in the mesh network.
- * @property _networkExclusions      List of [ExclusionList].
+ * @property _networkExclusions     List of [ExclusionList].
  * @property ivIndex                IV Index of the network received via the last Secure Network
  *                                  Beacon and its current state.
  * @constructor                     Creates a mesh network.
@@ -389,8 +389,8 @@ class MeshNetwork internal constructor(
     /**
      * Disables the configuration capabilities by un-assigning provisioner's address. Un-assigning
      * an address will delete the provisioner's node. This results in the provisioner not being
-     * able to send or receive mesh messages in the mesh network. However, the provisioner will still
-     * retain it's provisioning capabilities.
+     * able to send or receive mesh messages in the mesh network. However, the provisioner will
+     * still retain it's provisioning capabilities.
      *
      * @param provisioner Provisioner of whose configurations are to be disabled.
      */

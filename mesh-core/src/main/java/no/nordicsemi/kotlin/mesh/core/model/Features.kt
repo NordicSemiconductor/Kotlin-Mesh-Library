@@ -6,16 +6,21 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
 
 /**
- * Features represents the functionality of a [Node] that is determined by the set features that the node supports.
+ * Features represents the functionality of a [Node] that is determined by the set features that the
+ * node supports.
  *
- * @property relay          Ability to receive and retransmit mesh messages over the advertising bearer to enable larger networks.
- *                          Null if the current [FeatureState] of the [Relay] feature is unknown.
- * @property proxy          Ability to receive and retransmit mesh messages between GATT and advertising bearers.
- *                          Null if the current [FeatureState] of the [Proxy] feature is unknown.
- * @property friend         Ability to operate within a mesh network at significantly reduced receiver duty cycles only in conjunction
- *                          with a node supporting the Friend feature. Null if the current [FeatureState] of the [Friend] feature is unknown.
- * @property lowPower       Ability to help a node supporting the Low Power feature to operate by storing messages destined for those nodes.
- *                          Null if the current [FeatureState] of the [LowPower] feature is unknown.
+ * @property relay      Ability to receive and retransmit mesh messages over the advertising
+ *                      bearer to enable larger networks. Null if the current [FeatureState] of
+ *                      the [Relay] feature is unknown.
+ * @property proxy      Ability to receive and retransmit mesh messages between GATT and advertising
+ *                      bearers. Null if the current [FeatureState] of the [Proxy] feature is
+ *                      unknown.
+ * @property friend     Ability to operate within a mesh network at significantly reduced receiver
+ *                      duty cycles only in conjunction with a node supporting the Friend feature.
+ *                      Null if the current [FeatureState] of the [Friend] feature is unknown.
+ * @property lowPower   Ability to help a node supporting the Low Power feature to operate by
+ *                      storing messages destined for those nodes. Null if the current
+ *                      [FeatureState] of the [LowPower] feature is unknown.
  */
 @Serializable(with = FeaturesSerializer::class)
 data class Features internal constructor(
@@ -83,7 +88,7 @@ data class LowPower internal constructor(
  * @property value 0 = disabled, 1 = enabled, 2 = unsupported
  */
 @Serializable
-sealed class FeatureState private constructor(val value: Int) {
+sealed class FeatureState(val value: Int) {
 
     companion object {
         /**
@@ -96,7 +101,9 @@ sealed class FeatureState private constructor(val value: Int) {
             DISABLED -> Disabled
             ENABLED -> Enabled
             UNSUPPORTED -> Unsupported
-            else -> throw IllegalArgumentException("Feature value should be from $DISABLED, $ENABLED or $UNSUPPORTED!")
+            else -> throw IllegalArgumentException(
+                "Feature value should be from $DISABLED, $ENABLED or $UNSUPPORTED!"
+            )
         }
     }
 }

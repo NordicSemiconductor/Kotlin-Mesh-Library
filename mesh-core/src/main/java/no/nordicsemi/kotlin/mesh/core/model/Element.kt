@@ -48,7 +48,9 @@ data class Element internal constructor(
         internal set
 
     init {
-        require(index in LOWER_BOUND..HIGHER_BOUND) { " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!" }
+        require(index in LOWER_BOUND..HIGHER_BOUND) {
+            " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
+        }
     }
 
     companion object {
