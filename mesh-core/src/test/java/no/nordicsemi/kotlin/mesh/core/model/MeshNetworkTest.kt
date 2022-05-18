@@ -33,15 +33,15 @@ class MeshNetworkTest {
     fun testRemoveGroup() {
         meshNetwork.add(group)
         meshNetwork.remove(group)
-        Assert.assertFalse(meshNetwork._groups.none { it.address == group.address })
+        Assert.assertEquals(true, meshNetwork._groups.none { it.address == group.address })
     }
 
     @Test
     fun testNextAvailableGroup() {
-        val expectedGroupAddress = GroupAddress(0xC003u)
+        val expectedGroupAddress = GroupAddress(0xC000u)
         val provisioner = meshNetwork._provisioners.last()
         val actualGroupAddress = meshNetwork.nextAvailableGroup(provisioner)
-        Assert.assertTrue(expectedGroupAddress == actualGroupAddress)
+        Assert.assertEquals(expectedGroupAddress, actualGroupAddress)
     }
 
     @Test
@@ -54,7 +54,7 @@ class MeshNetworkTest {
     fun testRemoveScene() {
         meshNetwork.add(scene)
         meshNetwork.remove(scene)
-        Assert.assertFalse(meshNetwork._scenes.none { it.number == scene.number })
+        Assert.assertEquals(true, meshNetwork._scenes.none { it.number == scene.number })
     }
 
     @Test
