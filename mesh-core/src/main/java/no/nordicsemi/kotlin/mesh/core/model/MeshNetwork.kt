@@ -653,7 +653,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
     fun remove(group: Group) {
         require(group.network == this) { throw DoesNotBelongToNetwork() }
-        group.takeUnless { !it.isUsed }?.let {
+        group.takeIf { !it.isUsed }?.let {
             _groups.remove(group)
             updateTimestamp()
         } ?: throw GroupInUse()
@@ -684,7 +684,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
         require(scene.network == this) { throw DoesNotBelongToNetwork() }
-        scene.takeUnless { !it.isUsed }?.let {
+        scene.takeIf { !it.isUsed }?.let {
             _scenes.remove(scene)
             updateTimestamp()
         } ?: throw SceneInUse()
