@@ -102,6 +102,8 @@ object UnassignedAddress : MeshAddress(),
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set
  * to 0. The unicast address shall not have the value 0x0000, and therefore can have any value from
  * 0x0001 to 0x7FFF inclusive.
+ *
+ * @property address  16-bit address of the unicast address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
@@ -111,6 +113,9 @@ data class UnicastAddress(
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionSource,
         HeartbeatSubscriptionDestination {
+
+    constructor(address: Int) : this(address = address.toUShort())
+
     init {
         require(isValid(address)) {
             "A valid unicast address must range from $minUnicastAddress to $maxUnicastAddress!"
@@ -137,6 +142,8 @@ data class UnicastAddress(
  * programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall
  * be used as the Additional Data field of the message integrity check value in the upper transport
  * layer.
+ *
+ * @property UUID     UUID label of the virtual address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
@@ -167,6 +174,9 @@ data class GroupAddress(
         SubscriptionAddress,
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionDestination {
+
+    constructor(address: Int) : this(address = address.toUShort())
+
     init {
         require(isValid(address)) {
             "A valid group address must range from $minGroupAddress to $maxGroupAddress!"
