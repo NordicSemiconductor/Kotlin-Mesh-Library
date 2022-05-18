@@ -50,7 +50,8 @@ sealed class Range {
      * @param ranges List of ranges to check for overlapping elements.
      * @return true if there are overlapping elements.
      */
-    fun overlaps(ranges: List<Range>) = range.intersect(ranges.toSet()).isNotEmpty()
+    fun overlaps(ranges: List<Range>) =
+        range.intersect(ranges.toSet()).isNotEmpty()
 
     /**
      * Returns the closest distance between this and the given range.
@@ -271,7 +272,9 @@ fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
  * @param ranges Range to be checked.
  * @return true if the given list of ranges overlaps with any of the ranges in the list.
  */
-fun List<Range>.overlaps(ranges: List<Range>) = any { it.overlaps(ranges) }
+fun List<Range>.overlaps(ranges: List<Range>) = distinctBy {
+    it.overlaps(ranges)
+}.isNotEmpty()
 
 /**
  *  Checks if the given range is within the range.
