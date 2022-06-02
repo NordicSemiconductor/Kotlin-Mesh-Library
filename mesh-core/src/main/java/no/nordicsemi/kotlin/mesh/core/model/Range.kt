@@ -93,28 +93,28 @@ sealed class Range {
      * @param other Range to be added.
      * @return a list of ranges.
      */
-    operator fun plus(other: Range) =
-        if (distance(other) == 0)
-            listOf(
-                when {
-                    this is UnicastRange && other is UnicastRange ->
-                        UnicastAddress(min(low, other.low))..
-                                UnicastAddress(max(high, other.high))
+    operator fun plus(other: Range) = when (distance(other) == 0) {
+        true -> listOf(
+            when {
+                this is UnicastRange && other is UnicastRange ->
+                    UnicastAddress(min(low, other.low))..
+                            UnicastAddress(max(high, other.high))
 
-                    this is GroupRange && other is GroupRange ->
-                        GroupAddress(min(low, other.low))..
-                                GroupAddress(max(high, other.high))
+                this is GroupRange && other is GroupRange ->
+                    GroupAddress(min(low, other.low))..
+                            GroupAddress(max(high, other.high))
 
-                    this is SceneRange && other is SceneRange -> SceneRange(
-                        min(low, other.low),
-                        max(high, other.high)
-                    )
-                    else -> throw IllegalArgumentException(
-                        "Left and Right ranges must be of same range type!"
-                    )
-                }
-            )
-        else listOf(this, other)
+                this is SceneRange && other is SceneRange -> SceneRange(
+                    min(low, other.low),
+                    max(high, other.high)
+                )
+                else -> throw IllegalArgumentException(
+                    "Left and Right ranges must be of same range type!"
+                )
+            }
+        )
+        false -> listOf(this, other)
+    }
 
     /**
      * Removes one range from the other.
@@ -346,6 +346,11 @@ operator fun MutableList<Range>.minusAssign(other: List<Range>) {
     other.map { this -= it }
 }
 
+/**
+ * Merges any overlapping ranges within a given list of ranges.
+ *
+ * @return List of merged ranges.
+ */
 fun List<Range>.merged(): List<Range> {
     if (size <= 1)
         return this
