@@ -14,7 +14,8 @@ typealias SceneNumber = UShort
  *
  * @property name          Scene name.
  * @property number        Scene number.
- * @property _addresses     Addresses containing the scene.
+ * @property addresses     Addresses containing the scene.
+ * @property isUsed        Defines wether the scene is in use by a node.
  */
 @Serializable
 data class Scene internal constructor(
@@ -30,7 +31,7 @@ data class Scene internal constructor(
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
         }
     private var _addresses: MutableList<UnicastAddress> = mutableListOf()
-    val address: List<UnicastAddress>
+    val addresses: List<UnicastAddress>
         get() = _addresses
 
     @Transient
