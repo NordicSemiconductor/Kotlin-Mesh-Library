@@ -1,60 +1,60 @@
-package no.nordicsemi.kotlin.mesh.core.exceptions
+package no.nordicsemi.kotlin.mesh.core.exception
 
-sealed class MeshNetworkExceptions : Exception()
+sealed class MeshNetworkException : Exception()
 
 /** Thrown when a given key index is out of range. A valid key index must range from 0 to 4095. */
-class KeyIndexOutOfRange : MeshNetworkExceptions()
+class KeyIndexOutOfRange : MeshNetworkException()
 
 /** Thrown when a given key index is already in use. */
-class DuplicateKeyIndex : MeshNetworkExceptions()
+class DuplicateKeyIndex : MeshNetworkException()
 
 /** Thrown when a given key is in use. */
-class KeyInUse : MeshNetworkExceptions()
+class KeyInUse : MeshNetworkException()
 
 /** Thrown when a node does not contain a network key. */
-class NoNetworkKey : MeshNetworkExceptions()
+class NoNetworkKey : MeshNetworkException()
 
 /** Thrown when an object cannot be removed. */
-class CannotRemove : MeshNetworkExceptions()
+class CannotRemove : MeshNetworkException()
 
 /** Thrown when a node already exists. */
-class NodeAlreadyExists : MeshNetworkExceptions()
+class NodeAlreadyExists : MeshNetworkException()
 
 /** Thrown when no unicast address range is allocated to a provisioner. */
-class ProvisionerAlreadyExists : MeshNetworkExceptions()
+class ProvisionerAlreadyExists : MeshNetworkException()
 
 /** Thrown when any allocated range of a new provisioner overlaps with an existing one. */
-class OverlappingProvisionerRanges : MeshNetworkExceptions()
+class OverlappingProvisionerRanges : MeshNetworkException()
 
 /** Thrown when a given address does not belong to an allocated range. */
-class AddressNotInAllocatedRanges : MeshNetworkExceptions()
+class AddressNotInAllocatedRanges : MeshNetworkException()
 
 /** Thrown when a given address is in use by a node or it's elements. */
-class AddressAlreadyInUse : MeshNetworkExceptions()
+class AddressAlreadyInUse : MeshNetworkException()
 
 /** Thrown when no unicast addresses available to be allocated. */
-class NoAddressesAvailable : MeshNetworkExceptions()
+class NoAddressesAvailable : MeshNetworkException()
 
 /** Thrown when no unicast address range is allocated to a provisioner. */
-class NoUnicastRangeAllocated : MeshNetworkExceptions()
+class NoUnicastRangeAllocated : MeshNetworkException()
 
 /** Thrown when a given group already exists. */
-class GroupAlreadyExists : MeshNetworkExceptions()
+class GroupAlreadyExists : MeshNetworkException()
 
 /** Thrown when a given group is in use. */
-class GroupInUse : MeshNetworkExceptions()
+class GroupInUse : MeshNetworkException()
 
 /** Thrown when no group range is allocated to a provisioner. */
-class NoGroupRangeAllocated : MeshNetworkExceptions()
+class NoGroupRangeAllocated : MeshNetworkException()
 
 /** Thrown when a given scene already exists. */
-class SceneAlreadyExists : MeshNetworkExceptions()
+class SceneAlreadyExists : MeshNetworkException()
 
 /** Thrown when a given scene is in use. */
-class SceneInUse : MeshNetworkExceptions()
+class SceneInUse : MeshNetworkException()
 
 /** Thrown when no scene range is allocated to a provisioner. */
-class NoSceneRangeAllocated : MeshNetworkExceptions()
+class NoSceneRangeAllocated : MeshNetworkException()
 
 /** Thrown when an object does not belong to the current network. */
-class DoesNotBelongToNetwork : MeshNetworkExceptions()
+class DoesNotBelongToNetwork : MeshNetworkException()

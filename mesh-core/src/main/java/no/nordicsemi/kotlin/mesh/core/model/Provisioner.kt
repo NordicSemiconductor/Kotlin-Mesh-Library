@@ -5,7 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exceptions.OverlappingProvisionerRanges
+import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
 

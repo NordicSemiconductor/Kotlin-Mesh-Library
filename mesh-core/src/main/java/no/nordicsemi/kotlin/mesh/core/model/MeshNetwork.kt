@@ -6,7 +6,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exceptions.*
+import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
@@ -99,7 +99,7 @@ class MeshNetwork internal constructor(
         get() = _networkExclusions
 
     @Transient
-    var ivIndex = IvIndex()
+    internal var ivIndex = IvIndex()
 
     val localProvisioner: Provisioner
         get() = _provisioners.first()
