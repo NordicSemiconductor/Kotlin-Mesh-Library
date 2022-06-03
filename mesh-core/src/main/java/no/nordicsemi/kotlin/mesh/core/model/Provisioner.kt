@@ -5,8 +5,12 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
+import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
 import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
 /**
@@ -173,5 +177,65 @@ data class Provisioner internal constructor(
      */
     fun hasOverlappingSceneRanges(other: Provisioner) = _allocatedSceneRanges.any { range ->
         other._allocatedSceneRanges.any { otherRange -> otherRange.overlaps(range) }
+    }
+
+    /**
+     * Assigns the unicast address used by the given Provisioner. If the provisioner did not have a
+     * unicast address assigned, the method will create a Node with the address. This will enable
+     * configuration capabilities for the provisioner. The provisioner must be in the mesh network.
+     *
+     * @param address Unicast address to assign.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun assign(address: UnicastAddress) {
+        val provisioner = this
+        network?.run {
+            require(hasProvisioner(uuid))
+            var isNewNode = false
+            val node = node(provisioner) ?: Node(
+                provisioner,
+                Crypto.generateRandomKey(),
+                address,
+                listOf(
+                    Element(
+                        Location.UNKNOWN,
+                        listOf(
+                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                            Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+                        )
+                    )
+                ),
+                _networkKeys,
+                _applicationKeys
+            ).apply {
+                companyIdentifier = 0x00E0u //Google
+                replayProtectionCount = maxUnicastAddress
+            }.also { isNewNode = true }
+
+            // Is it in Provisioner's range?
+            val newRange = UnicastRange(address, node.elementsCount)
+            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
+
+            // Is there any other node using the address?
+            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
+
+            when (isNewNode) {
+                true -> add(node)
+                else -> node._primaryUnicastAddress = address
+            }
+            updateTimestamp()
+        }
+    }
+
+    /**
+     * Disables the configuration capabilities by un-assigning provisioner's address. Un-assigning
+     * an address will delete the provisioner's node. This results in the provisioner not being
+     * able to send or receive mesh messages in the mesh network. However, the provisioner will
+     * still retain it's provisioning capabilities.
+     */
+    fun disableConfigurationCapabilities() {
+        val uuid = this.uuid
+        network?.remove(uuid)
     }
 }

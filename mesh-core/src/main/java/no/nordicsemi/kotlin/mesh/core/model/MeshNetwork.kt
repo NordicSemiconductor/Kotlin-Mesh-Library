@@ -219,24 +219,24 @@ class MeshNetwork internal constructor(
         require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists() }
 
         // Add the provisioner's node
-        address?.apply {
-            add(
-                Node(
-                    provisioner,
-                    Crypto.generateRandomKey(),
-                    this,
-                    listOf(
-                        Element(
-                            Location.UNKNOWN,
-                            listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
-                        )
-                    ),
-                    _networkKeys,
-                    _applicationKeys
-                ).apply {
-                    companyIdentifier = 0x00E0u //Google
-                    replayProtectionCount = maxUnicastAddress
-                })
+        address?.let { unicastAddress ->
+            val node = Node(
+                provisioner,
+                Crypto.generateRandomKey(),
+                unicastAddress,
+                listOf(
+                    Element(
+                        Location.UNKNOWN,
+                        listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
+                    )
+                ),
+                _networkKeys,
+                _applicationKeys
+            ).apply {
+                companyIdentifier = 0x00E0u //Google
+                replayProtectionCount = maxUnicastAddress
+            }
+            add(node)
         }
         provisioner.network = this
         _provisioners.add(provisioner)
@@ -328,53 +328,6 @@ class MeshNetwork internal constructor(
         _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
             moveProvisioner(from, to)
         }
-    }
-
-    /**
-     * Assigns the unicast address used by the given Provisioner. If the provisioner did not have a
-     * unicast address assigned, the method will create a Node with the address. This will enable
-     * configuration capabilities for the provisioner. The provisioner must be in the mesh network.
-     *
-     * @param address     Unicast address to assign.
-     * @param provisioner Provisioner to be modified.
-     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
-     */
-    @Throws(DoesNotBelongToNetwork::class)
-    fun assign(address: UnicastAddress, provisioner: Provisioner) {
-        require(hasProvisioner(provisioner.uuid))
-        var isNewNode = false
-        val node = node(provisioner) ?: Node(
-            provisioner,
-            Crypto.generateRandomKey(),
-            address,
-            listOf(
-                Element(
-                    Location.UNKNOWN,
-                    listOf(
-                        Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                        Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                    )
-                )
-            ),
-            _networkKeys,
-            _applicationKeys
-        ).apply {
-            companyIdentifier = 0x00E0u //Google
-            replayProtectionCount = maxUnicastAddress
-        }.also { isNewNode = true }
-
-        // Is it in Provisioner's range?
-        val newRange = UnicastRange(address, node.elementsCount)
-        require(provisioner.hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
-
-        // Is there any other node using the address?
-        require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
-
-        when (isNewNode) {
-            true -> add(node)
-            else -> node._primaryUnicastAddress = address
-        }
-        updateTimestamp()
     }
 
     /**
