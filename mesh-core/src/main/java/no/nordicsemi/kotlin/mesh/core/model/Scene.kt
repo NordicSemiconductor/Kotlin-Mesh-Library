@@ -15,7 +15,7 @@ typealias SceneNumber = UShort
  * @property name          Scene name.
  * @property number        Scene number.
  * @property addresses     Addresses containing the scene.
- * @property isUsed        Defines wether the scene is in use by a node.
+ * @property isUsed        Defines whether the scene is in use by a node.
  */
 @Serializable
 data class Scene internal constructor(
