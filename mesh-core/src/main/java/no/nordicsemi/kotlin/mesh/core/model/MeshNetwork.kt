@@ -644,15 +644,24 @@ class MeshNetwork internal constructor(
      */
     @Throws(NoUnicastRangeAllocated::class)
     fun nextAvailableUnicastAddress(elementCount: Int, provisioner: Provisioner): UnicastAddress? {
-        require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated() }
-        val exclusions = _networkExclusions.sortedBy { it.ivIndex }
-        val usedAddresses = exclusions.flatMap { it._addresses } + _nodes.flatMap { it.elements }
-            .map { it.unicastAddress }.sortedBy { it.address }
+        require(provisioner._allocatedUnicastRanges.isNotEmpty()) {
+            throw NoUnicastRangeAllocated()
+        }
+        val excludedAddresses = _networkExclusions
+            .sortedBy { it.ivIndex }
+            .flatMap { it._addresses }
+
+        val addressesInUse = nodes
+                .flatMap { it.elements }
+                .map { it.unicastAddress }
+                .sortedBy { it.address }
+
+        val totalAddressesInUse = excludedAddresses + addressesInUse
 
         provisioner._allocatedUnicastRanges.forEach { range ->
             var address = range.lowAddress
-            for (index in usedAddresses.indices) {
-                val usedAddress = usedAddresses[index]
+            for (index in totalAddressesInUse.indices) {
+                val usedAddress = totalAddressesInUse[index]
 
                 // Skip nodes with addresses below the range.
                 if (address > usedAddress) continue
