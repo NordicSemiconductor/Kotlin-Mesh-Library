@@ -21,19 +21,19 @@ import java.util.*
  *                                  timestamp is based on Coordinated Universal Time.
  * @property partial                Indicates if this Mesh Configuration Database is part of a
  *                                  larger database.
- * @property _networkKeys           List of network keys that includes information about network
+ * @property networkKeys            List of network keys that includes information about network
  *                                  keys used in the mesh network.
- * @property _applicationKeys       List of app keys that includes information about app keys used
+ * @property applicationKeys        List of app keys that includes information about app keys used
  *                                  in the mesh network.
- * @property _provisioners          List of known Provisioners and ranges of addresses that have
+ * @property provisioners           List of known Provisioners and ranges of addresses that have
  *                                  been allocated to these Provisioners.
- * @property _nodes                 List of nodes that includes information about mesh nodes in the
+ * @property nodes                  List of nodes that includes information about mesh nodes in the
  *                                  mesh network.
- * @property _groups                List of groups that includes information about groups configured
+ * @property groups                 List of groups that includes information about groups configured
  *                                  in the mesh network.
- * @property _scenes                List of scenes that includes information about scenes configured
+ * @property scenes                 List of scenes that includes information about scenes configured
  *                                  in the mesh network.
- * @property _networkExclusions     List of [ExclusionList].
+ * @property networkExclusions      List of excluded addresses per IvIndex.
  * @property ivIndex                IV Index of the network received via the last Secure Network
  *                                  Beacon and its current state.
  * @constructor                     Creates a mesh network.
