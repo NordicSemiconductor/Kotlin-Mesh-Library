@@ -90,7 +90,24 @@ data class LowPower internal constructor(
 @Serializable
 sealed class FeatureState(val value: Int) {
 
+    /** Disabled state. */
+    @Serializable
+    object Disabled : FeatureState(value = DISABLED)
+
+    /** Enabled state. */
+    @Serializable
+    object Enabled : FeatureState(value = ENABLED)
+
+    /** Unsupported state. */
+    @Serializable
+    object Unsupported : FeatureState(value = UNSUPPORTED)
+
     companion object {
+
+        private const val DISABLED = 0
+        private const val ENABLED = 1
+        private const val UNSUPPORTED = 2
+
         /**
          * Returns the feature state for a given a feature.
          *
@@ -107,19 +124,3 @@ sealed class FeatureState(val value: Int) {
         }
     }
 }
-
-/** Disabled state. */
-@Serializable
-object Disabled : FeatureState(value = DISABLED)
-
-/** Enabled state. */
-@Serializable
-object Enabled : FeatureState(value = ENABLED)
-
-/** Unsupported state. */
-@Serializable
-object Unsupported : FeatureState(value = UNSUPPORTED)
-
-private const val DISABLED = 0
-private const val ENABLED = 1
-private const val UNSUPPORTED = 2
