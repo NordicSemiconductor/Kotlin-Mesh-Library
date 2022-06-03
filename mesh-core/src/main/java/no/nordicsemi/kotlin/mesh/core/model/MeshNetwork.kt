@@ -172,9 +172,13 @@ class MeshNetwork internal constructor(
         OverlappingProvisionerRanges::class
     )
     fun add(provisioner: Provisioner) {
-        nextAvailableUnicastAddress(elementCount = 1, provisioner = provisioner)?.apply {
-            add(provisioner = provisioner, address = this)
-        } ?: throw NoAddressesAvailable()
+        add(
+            provisioner = provisioner,
+            address = nextAvailableUnicastAddress(
+                elementCount = 1,
+                provisioner = provisioner
+            ) ?: throw NoAddressesAvailable()
+        )
     }
 
     /**
@@ -295,15 +299,15 @@ class MeshNetwork internal constructor(
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(DoesNotBelongToNetwork::class)
-    fun move(from: Int, to: Int) {
+    fun moveProvisioner(from: Int, to: Int) {
         require(from >= 0 && from < _provisioners.size) {
             throw IllegalArgumentException("Invalid 'from' index!")
         }
-        require(to >= 0 && to <= _provisioners.size) {
+        require(to >= 0 && to < _provisioners.size) {
             throw IllegalArgumentException("Invalid 'to' index!")
         }
         require(from != to) {
-            throw IllegalArgumentException("'from' and 'to' indexes cannot be the same.")
+            return
         }
         _provisioners.add(to, remove(from))
         updateTimestamp()
@@ -321,7 +325,9 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun move(provisioner: Provisioner, to: Int) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from -> move(from, to) }
+        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
+            moveProvisioner(from, to)
+        }
     }
 
     /**

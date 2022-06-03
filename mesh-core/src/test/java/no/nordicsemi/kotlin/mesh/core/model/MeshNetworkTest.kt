@@ -74,7 +74,7 @@ class MeshNetworkTest {
         })
         val provisioner = meshNetwork._provisioners.first()
         val to = meshNetwork._provisioners.size - 1
-        meshNetwork.move(meshNetwork.provisioners.indexOf(provisioner), to)
+        meshNetwork.moveProvisioner(meshNetwork.provisioners.indexOf(provisioner), to)
         Assert.assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
     }
 

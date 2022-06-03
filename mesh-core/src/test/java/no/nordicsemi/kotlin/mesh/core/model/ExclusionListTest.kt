@@ -7,9 +7,9 @@ import java.util.*
 class ExclusionListTest {
 
     private val elements = arrayListOf(
-        Element(location = Unknown, models = listOf()),
-        Element(location = Unknown, models = listOf()),
-        Element(location = Unknown, models = listOf())
+        Element(location = Location.UNKNOWN, models = listOf()),
+        Element(location = Location.UNKNOWN, models = listOf()),
+        Element(location = Location.UNKNOWN, models = listOf())
     )
     private val node = Node(
         uuid = UUID.randomUUID(),
