@@ -36,6 +36,8 @@ import java.util.*
  * @property networkExclusions      List of excluded addresses per IvIndex.
  * @property ivIndex                IV Index of the network received via the last Secure Network
  *                                  Beacon and its current state.
+ * @property localProvisioner       Main provisioner of the network which is the first provisioner
+ *                                  in the list of provisioners.
  * @constructor                     Creates a mesh network.
  */
 @Serializable
@@ -142,25 +144,6 @@ class MeshNetwork internal constructor(
      */
     internal fun updateTimestamp() {
         this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-    }
-
-    /**
-     * Removes a node with the given UUID from the mesh network.
-     *
-     * @param uuid
-     */
-    fun remove(uuid: UUID) {
-        _nodes.find {
-            it.uuid == uuid
-        }?.let { node ->
-            _nodes.remove(node)
-            // Remove unicast addresses of all node's elements from the scene
-            _scenes.forEach { it.remove(node.addresses) }
-            // When a Node is removed from the network, the unicast addresses that were in used
-            // cannot be assigned to another node until the IV index is incremented by 2 which
-            // effectively resets the Sequence number used by all the nodes in the network.
-            _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
-        }
     }
 
     /**
@@ -622,14 +605,33 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Removes a given [Node] from the list of nodes in the mesh network.
+     * Removes a given node from the list of nodes in the mesh network.
      *
      * @param node Node to be removed.
      */
     fun remove(node: Node) {
-        _nodes.remove(node)
+        remove(node.uuid)
         updateTimestamp()
         TODO(reason = "Implementation incomplete")
+    }
+
+    /**
+     * Removes a node with the given UUID from the mesh network.
+     *
+     * @param uuid
+     */
+    internal fun remove(uuid: UUID) {
+        _nodes.find {
+            it.uuid == uuid
+        }?.let { node ->
+            _nodes.remove(node)
+            // Remove unicast addresses of all node's elements from the scene
+            _scenes.forEach { it.remove(node.addresses) }
+            // When a Node is removed from the network, the unicast addresses that were in used
+            // cannot be assigned to another node until the IV index is incremented by 2 which
+            // effectively resets the Sequence number used by all the nodes in the network.
+            _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
+        }
     }
 
     /**
