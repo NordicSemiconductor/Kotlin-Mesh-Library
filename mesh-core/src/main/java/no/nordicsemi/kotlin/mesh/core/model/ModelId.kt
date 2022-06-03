@@ -8,9 +8,11 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 /**
  * Represents Model ID of a Bluetooth mesh model.
  *
- * @property modelId    16-bit company identifier and the 16-bit model identifier where
- *                      the company identifier being the 2-most significant bytes. In the
- *                      case of a Bluetooth SIG defined model, the company identifier is 0.
+ * @property modelId                    16-bit company identifier and the 16-bit model identifier
+ *                                      where the company identifier being the 2-most significant
+ *                                      bytes. In the case of a Bluetooth SIG defined model, the
+ *                                      company identifier is 0.
+ * @property isBluetoothSigAssigned     True if the model is a Bluetooth SIG defined model.
  */
 @Serializable(with = ModelIdSerializer::class)
 sealed class ModelId {

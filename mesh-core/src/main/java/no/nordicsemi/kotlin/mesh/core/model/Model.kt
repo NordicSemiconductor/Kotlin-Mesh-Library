@@ -21,7 +21,7 @@ import kotlinx.serialization.Transient
  *                                      the index values of one of the application key entries in
  *                                      the node’s [ApplicationKey] list.
  * @property name                       Name of the model.
- * @property isBluetoothSigAssigned     True if the model is a Bluetooth SIG defined model
+ * @property isBluetoothSigAssigned     True if the model is a Bluetooth SIG defined model.
  */
 @Serializable
 data class Model internal constructor(
