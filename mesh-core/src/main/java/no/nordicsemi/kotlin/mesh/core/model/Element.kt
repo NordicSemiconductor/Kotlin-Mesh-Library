@@ -7,14 +7,16 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
  *
- * @property location    Describes the element location.
- * @property models      List of [Model] within an element.
- * @property name        A human-readable name that can identify an element within the node
- *                       and is optional according to Mesh CDB.
- * @property index       The index property contains an integer from 0 to 255 that represents
- *                       the numeric order of the element within this node and a node has at-least
- *                       one element which is called the primary element.
- * @property parentNode  Parent node that an element may belong to.
+ * @property location           Describes the element location.
+ * @property models             List of [Model] within an element.
+ * @property name               A human-readable name that can identify an element within the node
+ *                              and is optional according to Mesh CDB.
+ * @property index              The index property contains an integer from 0 to 255 that represents
+ *                              the numeric order of the element within this node and a node has
+ *                              at-least one element which is called the primary element.
+ * @property parentNode         Parent node that an element may belong to.
+ * @property unicastAddress     Address of the element.
+ * @constructor Creates an Element object.
  */
 @Serializable
 data class Element internal constructor(
@@ -43,8 +45,7 @@ data class Element internal constructor(
     internal var parentNode: Node? = null
 
     @Transient
-    var unicastAddress =
-        parentNode?.primaryUnicastAddress ?: UnicastAddress(address = models.size)
+    var unicastAddress = parentNode?.primaryUnicastAddress ?: UnicastAddress(address = models.size)
         internal set
 
     init {
