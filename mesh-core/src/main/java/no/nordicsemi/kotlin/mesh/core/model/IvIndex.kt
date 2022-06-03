@@ -38,7 +38,7 @@ import kotlinx.datetime.Instant
  *                             values in this Secure Network beacon.
  * @property transmitIvIndex   IV index used when transmitting messages.
  */
-internal data class IvIndex internal constructor(
+data class IvIndex internal constructor(
     val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,
     val transitionDate: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
