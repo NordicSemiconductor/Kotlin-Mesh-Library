@@ -593,6 +593,11 @@ class MeshNetwork internal constructor(
         _scenes.remove(scene).also { updateTimestamp() }
     }
 
+    /**
+     * Returns true if the given address range is available for use.
+     *
+     * @param range Unicast range to check.
+     */
     fun isAddressRangeAvailable(range: UnicastRange) = _nodes.none {
         it.containsAddressRange(range)
     } && !_networkExclusions.contains(range, ivIndex)
