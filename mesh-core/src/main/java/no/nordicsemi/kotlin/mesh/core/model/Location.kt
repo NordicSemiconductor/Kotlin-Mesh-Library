@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
 /**
@@ -6,7 +8,281 @@ package no.nordicsemi.kotlin.mesh.core.model
  *
  * @property value 16-bit unsigned location value.
  */
-sealed class Location(val value: UShort) {
+enum class Location(val value: UShort) {
+    AUXILIARY(0X0108u),
+    BACK(0X0101u),
+    BACKUP(0X0107u),
+    BOTTOM(0X0103u),
+    EIGHTEENTH(0X0012u),
+    EIGHTH(0X0008u),
+    EIGHTIETH(0X0050u),
+    EIGHTY_EIGHTH(0X0058u),
+    EIGHTY_FIFTH(0X0055u),
+    EIGHTY_FIRST(0X0051u),
+    EIGHTY_FOURTH(0X0054u),
+    EIGHTY_NINETH(0X0059u),
+    EIGHTY_SECOND(0X0052u),
+    EIGHTY_SEVENTH(0X0057u),
+    EIGHTY_SIXTH(0X0056u),
+    EIGHTY_THIRD(0X0053u),
+    ELEVENTH(0X000Bu),
+    EXTERNAL(0X0110u),
+    FIFTEENTH(0X000Fu),
+    FIFTH(0X0005u),
+    FIFTIETH(0X0032u),
+    FIFTY_EIGHTH(0X003Au),
+    FIFTY_FIFTH(0X0037u),
+    FIFTY_FIRST(0X0033u),
+    FIFTY_FOURTH(0X0036u),
+    FIFTY_NINETH(0X003Bu),
+    FIFTY_SECOND(0X0034u),
+    FIFTY_SEVENTH(0X0039u),
+    FIFTY_SIXTH(0X0038u),
+    FIFTY_THIRD(0X0035u),
+    FIRST(0X0001u),
+    FLASH(0X010Au),
+    FORTIETH(0X0028u),
+    FOURTEENTH(0X000Eu),
+    FOURTH(0X0004u),
+    FOURTY_EIGHTH(0X0030u),
+    FOURTY_FIFTH(0X002Du),
+    FOURTY_FIRST(0X0029u),
+    FOURTY_FOURTH(0X002Cu),
+    FOURTY_NINETH(0X0031u),
+    FOURTY_SECOND(0X002Au),
+    FOURTY_SEVENTH(0X002Fu),
+    FOURTY_SIXTH(0X002Eu),
+    FOURTY_THIRD(0X002Bu),
+    FRONT(0X0100u),
+    INSIDE(0X010Bu),
+    INTERNAL(0X010Fu),
+    LEFT(0X010Du),
+    LOWER(0X0105u),
+    MAIN(0X0106u),
+    NINETEENTH(0X0013u),
+    NINETH(0X0009u),
+    NINETIETH(0X005Au),
+    NINETY_EIGHTH(0X0062u),
+    NINETY_FIFTH(0X005Fu),
+    NINETY_FIRST(0X005Bu),
+    NINETY_FOURTH(0X005Eu),
+    NINETY_NINETH(0X0063u),
+    NINETY_SECOND(0X005Cu),
+    NINETY_SEVENTH(0X0061u),
+    NINETY_SIXTH(0X0060u),
+    NINETY_THIRD(0X005Du),
+    ONE_HUNDRED_AND_EIGHTEENTH(0X0076u),
+    ONE_HUNDRED_AND_EIGHTH(0X006Cu),
+    ONE_HUNDRED_AND_EIGHTY_EIGHTH(0X00BCu),
+    ONE_HUNDRED_AND_EIGHTY_FIFTH(0X00B9u),
+    ONE_HUNDRED_AND_EIGHTY_FIRST(0X00B5u),
+    ONE_HUNDRED_AND_EIGHTY_FOURTH(0X00B8u),
+    ONE_HUNDRED_AND_EIGHTY_NINETH(0X00BDu),
+    ONE_HUNDRED_AND_EIGHTY_SECOND(0X00B6u),
+    ONE_HUNDRED_AND_EIGHTY_SEVENTH(0X00BBu),
+    ONE_HUNDRED_AND_EIGHTY_SIXTH(0X00BAu),
+    ONE_HUNDRED_AND_EIGHTY_THIRD(0X00B7u),
+    ONE_HUNDRED_AND_ELEVENTH(0X006Fu),
+    ONE_HUNDRED_AND_FIFTEENTH(0X0073u),
+    ONE_HUNDRED_AND_FIFTH(0X0069u),
+    ONE_HUNDRED_AND_FIFTY_EIGHTH(0X009Eu),
+    ONE_HUNDRED_AND_FIFTY_FIFTH(0X009Bu),
+    ONE_HUNDRED_AND_FIFTY_FIRST(0X0097u),
+    ONE_HUNDRED_AND_FIFTY_FOURTH(0X009Au),
+    ONE_HUNDRED_AND_FIFTY_NINETH(0X009Fu),
+    ONE_HUNDRED_AND_FIFTY_SECOND(0X0098u),
+    ONE_HUNDRED_AND_FIFTY_SEVENTH(0X009Du),
+    ONE_HUNDRED_AND_FIFTY_SIXTH(0X009Cu),
+    ONE_HUNDRED_AND_FIFTY_THIRD(0X0099u),
+    ONE_HUNDRED_AND_FIRST(0X0065u),
+    ONE_HUNDRED_AND_FOURTEENTH(0X0072u),
+    ONE_HUNDRED_AND_FOURTH(0X0068u),
+    ONE_HUNDRED_AND_FOURTY_EIGHTH(0X0094u),
+    ONE_HUNDRED_AND_FOURTY_FIFTH(0X0091u),
+    ONE_HUNDRED_AND_FOURTY_FIRST(0X008Du),
+    ONE_HUNDRED_AND_FOURTY_FOURTH(0X0090u),
+    ONE_HUNDRED_AND_FOURTY_NINETH(0X0095u),
+    ONE_HUNDRED_AND_FOURTY_SECOND(0X008Eu),
+    ONE_HUNDRED_AND_FOURTY_SEVENTH(0X0093u),
+    ONE_HUNDRED_AND_FOURTY_SIXTH(0X0092u),
+    ONE_HUNDRED_AND_FOURTY_THIRD(0X008Fu),
+    ONE_HUNDRED_AND_NINETEENTH(0X0077u),
+    ONE_HUNDRED_AND_NINETH(0X006Du),
+    ONE_HUNDRED_AND_NINETY_EIGHTH(0X00C6u),
+    ONE_HUNDRED_AND_NINETY_FIFTH(0X00C3u),
+    ONE_HUNDRED_AND_NINETY_FIRST(0X00BFu),
+    ONE_HUNDRED_AND_NINETY_FOURTH(0X00C2u),
+    ONE_HUNDRED_AND_NINETY_NINETH(0X00C7u),
+    ONE_HUNDRED_AND_NINETY_SECOND(0X00C0u),
+    ONE_HUNDRED_AND_NINETY_SEVENTH(0X00C5u),
+    ONE_HUNDRED_AND_NINETY_SIXTH(0X00C4u),
+    ONE_HUNDRED_AND_NINETY_THIRD(0X00C1u),
+    ONE_HUNDRED_AND_SECOND(0X0066u),
+    ONE_HUNDRED_AND_SEVENTEENTH(0X0075u),
+    ONE_HUNDRED_AND_SEVENTH(0X006Bu),
+    ONE_HUNDRED_AND_SEVENTY_EIGHTH(0X00B2u),
+    ONE_HUNDRED_AND_SEVENTY_FIFTH(0X00AFu),
+    ONE_HUNDRED_AND_SEVENTY_FIRST(0X00ABu),
+    ONE_HUNDRED_AND_SEVENTY_FOURTH(0X00AEu),
+    ONE_HUNDRED_AND_SEVENTY_NINETH(0X00B3u),
+    ONE_HUNDRED_AND_SEVENTY_SECOND(0X00ACu),
+    ONE_HUNDRED_AND_SEVENTY_SEVENTH(0X00B1u),
+    ONE_HUNDRED_AND_SEVENTY_SIXTH(0X00B0u),
+    ONE_HUNDRED_AND_SEVENTY_THIRD(0X00ADu),
+    ONE_HUNDRED_AND_SIXTEENTH(0X0074u),
+    ONE_HUNDRED_AND_SIXTH(0X006Au),
+    ONE_HUNDRED_AND_SIXTY_EIGHTH(0X00A8u),
+    ONE_HUNDRED_AND_SIXTY_FIFTH(0X00A5u),
+    ONE_HUNDRED_AND_SIXTY_FIRST(0X00A1u),
+    ONE_HUNDRED_AND_SIXTY_FOURTH(0X00A4u),
+    ONE_HUNDRED_AND_SIXTY_NINETH(0X00A9u),
+    ONE_HUNDRED_AND_SIXTY_SECOND(0X00A2u),
+    ONE_HUNDRED_AND_SIXTY_SEVENTH(0X00A7u),
+    ONE_HUNDRED_AND_SIXTY_SIXTH(0X00A6u),
+    ONE_HUNDRED_AND_SIXTY_THIRD(0X00A3u),
+    ONE_HUNDRED_AND_TENTH(0X006Eu),
+    ONE_HUNDRED_AND_THIRD(0X0067u),
+    ONE_HUNDRED_AND_THIRTEENTH(0X0071u),
+    ONE_HUNDRED_AND_THIRTY_EIGHTH(0X008Au),
+    ONE_HUNDRED_AND_THIRTY_FIFTH(0X0087u),
+    ONE_HUNDRED_AND_THIRTY_FIRST(0X0083u),
+    ONE_HUNDRED_AND_THIRTY_FOURTH(0X0086u),
+    ONE_HUNDRED_AND_THIRTY_NINETH(0X008Bu),
+    ONE_HUNDRED_AND_THIRTY_SECOND(0X0084u),
+    ONE_HUNDRED_AND_THIRTY_SEVENTH(0X0089u),
+    ONE_HUNDRED_AND_THIRTY_SIXTH(0X0088u),
+    ONE_HUNDRED_AND_THIRTY_THIRD(0X0085u),
+    ONE_HUNDRED_AND_TWELVETH(0X0070u),
+    ONE_HUNDRED_AND_TWENTY_EIGHTH(0X0080u),
+    ONE_HUNDRED_AND_TWENTY_FIFTH(0X007Du),
+    ONE_HUNDRED_AND_TWENTY_FIRST(0X0079u),
+    ONE_HUNDRED_AND_TWENTY_FOURTH(0X007Cu),
+    ONE_HUNDRED_AND_TWENTY_NINETH(0X0081u),
+    ONE_HUNDRED_AND_TWENTY_SECOND(0X007Au),
+    ONE_HUNDRED_AND_TWENTY_SEVENTH(0X007Fu),
+    ONE_HUNDRED_AND_TWENTY_SIXTH(0X007Eu),
+    ONE_HUNDRED_AND_TWENTY_THIRD(0X007Bu),
+    ONE_HUNDRED_EIGHTIETH(0X00B4u),
+    ONE_HUNDRED_FIFTIETH(0X0096u),
+    ONE_HUNDRED_FORTIETH(0X008Cu),
+    ONE_HUNDRED_NINETIETH(0X00BEu),
+    ONE_HUNDRED_SEVENTIETH(0X00AAu),
+    ONE_HUNDRED_SIXTIETH(0X00A0u),
+    ONE_HUNDRED_THIRTIETH(0X0082u),
+    ONE_HUNDRED_TWENTIETH(0X0078u),
+    ONE_HUNDREDTH(0X0064u),
+    OUTSIDE(0X010Cu),
+    RIGHT(0X010Eu),
+    SECOND(0X0002u),
+    SEVENTEENTH(0X0011u),
+    SEVENTH(0X0007u),
+    SEVENTIETH(0X0046u),
+    SEVENTY_EIGHTH(0X004Eu),
+    SEVENTY_FIFTH(0X004Bu),
+    SEVENTY_FIRST(0X0047u),
+    SEVENTY_FOURTH(0X004Au),
+    SEVENTY_NINETH(0X004Fu),
+    SEVENTY_SECOND(0X0048u),
+    SEVENTY_SEVENTH(0X004Du),
+    SEVENTY_SIXTH(0X004Cu),
+    SEVENTY_THIRD(0X0049u),
+    SIXTEENTH(0X0010u),
+    SIXTH(0X0006u),
+    SIXTIETH(0X003Cu),
+    SIXTY_EIGHTH(0X0044u),
+    SIXTY_FIFTH(0X0041u),
+    SIXTY_FIRST(0X003Du),
+    SIXTY_FOURTH(0X0040u),
+    SIXTY_NINETH(0X0045u),
+    SIXTY_SECOND(0X003Eu),
+    SIXTY_SEVENTH(0X0043u),
+    SIXTY_SIXTH(0X0042u),
+    SIXTY_THIRD(0X003Fu),
+    SUPPLEMENTARY(0X0109u),
+    TENTH(0X000Au),
+    THIRD(0X0003u),
+    THIRTEENTH(0X000Du),
+    THIRTIETH(0X001Eu),
+    THIRTY_EIGHTH(0X0026u),
+    THIRTY_FIFTH(0X0023u),
+    THIRTY_FIRST(0X001Fu),
+    THIRTY_FOURTH(0X0022u),
+    THIRTY_NINETH(0X0027u),
+    THIRTY_SECOND(0X0020u),
+    THIRTY_SEVENTH(0X0025u),
+    THIRTY_SIXTH(0X0024u),
+    THIRTY_THIRD(0X0021u),
+    TOP(0X0102u),
+    TWELVETH(0X000Cu),
+    TWENTIETH(0X0014u),
+    TWENTY_EIGHTH(0X001Cu),
+    TWENTY_FIFTH(0X0019u),
+    TWENTY_FIRST(0X0015u),
+    TWENTY_FOURTH(0X0018u),
+    TWENTY_NINETH(0X001Du),
+    TWENTY_SECOND(0X0016u),
+    TWENTY_SEVENTH(0X001Bu),
+    TWENTY_SIXTH(0X001Au),
+    TWENTY_THIRD(0X0017u),
+    TWO_HUNDRED_AND_EIGHTEENTH(0X00DAu),
+    TWO_HUNDRED_AND_EIGHTH(0X00D0u),
+    TWO_HUNDRED_AND_ELEVENTH(0X00D3u),
+    TWO_HUNDRED_AND_FIFTEENTH(0X00D7u),
+    TWO_HUNDRED_AND_FIFTH(0X00CDu),
+    TWO_HUNDRED_AND_FIFTY_FIFTH(0X00FFu),
+    TWO_HUNDRED_AND_FIFTY_FIRST(0X00FBu),
+    TWO_HUNDRED_AND_FIFTY_FOURTH(0X00FEu),
+    TWO_HUNDRED_AND_FIFTY_SECOND(0X00FCu),
+    TWO_HUNDRED_AND_FIFTY_THIRD(0X00FDu),
+    TWO_HUNDRED_AND_FIRST(0X00C9u),
+    TWO_HUNDRED_AND_FOURTEENTH(0X00D6u),
+    TWO_HUNDRED_AND_FOURTH(0X00CCu),
+    TWO_HUNDRED_AND_FOURTY_EIGHTH(0X00F8u),
+    TWO_HUNDRED_AND_FOURTY_FIFTH(0X00F5u),
+    TWO_HUNDRED_AND_FOURTY_FIRST(0X00F1u),
+    TWO_HUNDRED_AND_FOURTY_FOURTH(0X00F4u),
+    TWO_HUNDRED_AND_FOURTY_NINETH(0X00F9u),
+    TWO_HUNDRED_AND_FOURTY_SECOND(0X00F2u),
+    TWO_HUNDRED_AND_FOURTY_SEVENTH(0X00F7u),
+    TWO_HUNDRED_AND_FOURTY_SIXTH(0X00F6u),
+    TWO_HUNDRED_AND_FOURTY_THIRD(0X00F3u),
+    TWO_HUNDRED_AND_NINETEENTH(0X00DBu),
+    TWO_HUNDRED_AND_NINETH(0X00D1u),
+    TWO_HUNDRED_AND_SECOND(0X00CAu),
+    TWO_HUNDRED_AND_SEVENTEENTH(0X00D9u),
+    TWO_HUNDRED_AND_SEVENTH(0X00CFu),
+    TWO_HUNDRED_AND_SIXTEENTH(0X00D8u),
+    TWO_HUNDRED_AND_SIXTH(0X00CEu),
+    TWO_HUNDRED_AND_TENTH(0X00D2u),
+    TWO_HUNDRED_AND_THIRD(0X00CBu),
+    TWO_HUNDRED_AND_THIRTEENTH(0X00D5u),
+    TWO_HUNDRED_AND_THIRTY_EIGHTH(0X00EEu),
+    TWO_HUNDRED_AND_THIRTY_FIFTH(0X00EBu),
+    TWO_HUNDRED_AND_THIRTY_FIRST(0X00E7u),
+    TWO_HUNDRED_AND_THIRTY_FOURTH(0X00EAu),
+    TWO_HUNDRED_AND_THIRTY_NINETH(0X00EFu),
+    TWO_HUNDRED_AND_THIRTY_SECOND(0X00E8u),
+    TWO_HUNDRED_AND_THIRTY_SEVENTH(0X00EDu),
+    TWO_HUNDRED_AND_THIRTY_SIXTH(0X00ECu),
+    TWO_HUNDRED_AND_THIRTY_THIRD(0X00E9u),
+    TWO_HUNDRED_AND_TWELVETH(0X00D4u),
+    TWO_HUNDRED_AND_TWENTY_EIGHTH(0X00E4u),
+    TWO_HUNDRED_AND_TWENTY_FIFTH(0X00E1u),
+    TWO_HUNDRED_AND_TWENTY_FIRST(0X00DDu),
+    TWO_HUNDRED_AND_TWENTY_FOURTH(0X00E0u),
+    TWO_HUNDRED_AND_TWENTY_NINETH(0X00E5u),
+    TWO_HUNDRED_AND_TWENTY_SECOND(0X00DEu),
+    TWO_HUNDRED_AND_TWENTY_SEVENTH(0X00E3u),
+    TWO_HUNDRED_AND_TWENTY_SIXTH(0X00E2u),
+    TWO_HUNDRED_AND_TWENTY_THIRD(0X00DFu),
+    TWO_HUNDRED_FIFTIETH(0X00FAu),
+    TWO_HUNDRED_FORTIETH(0X00F0u),
+    TWO_HUNDRED_THIRTIETH(0X00E6u),
+    TWO_HUNDRED_TWENTIETH(0X00DCu),
+    TWO_HUNDREDTH(0X00C8u),
+    UNKNOWN(0X0000u),
+    UPPER(0X0104u);
+
     internal companion object {
 
         /**
@@ -16,835 +292,561 @@ sealed class Location(val value: UShort) {
          * @return Returns the Location type.
          */
         fun from(value: UShort) = when (value.toInt()) {
-            0x0108u.toInt() -> Auxiliary
-            0x0101u.toInt() -> Back
-            0x0107u.toInt() -> Backup
-            0x0103u.toInt() -> Bottom
-            0x0012u.toInt() -> Eighteenth
-            0x0008u.toInt() -> Eighth
-            0x0050u.toInt() -> Eightieth
-            0x0058u.toInt() -> EightyEighth
-            0x0055u.toInt() -> EightyFifth
-            0x0051u.toInt() -> EightyFirst
-            0x0054u.toInt() -> EightyFourth
-            0x0059u.toInt() -> EightyNineth
-            0x0052u.toInt() -> EightySecond
-            0x0057u.toInt() -> EightySeventh
-            0x0056u.toInt() -> EightySixth
-            0x0053u.toInt() -> EightyThird
-            0x000bu.toInt() -> Eleventh
-            0x0110u.toInt() -> External
-            0x000fu.toInt() -> Fifteenth
-            0x0005u.toInt() -> Fifth
-            0x0032u.toInt() -> Fiftieth
-            0x003au.toInt() -> FiftyEighth
-            0x0037u.toInt() -> FiftyFifth
-            0x0033u.toInt() -> FiftyFirst
-            0x0036u.toInt() -> FiftyFourth
-            0x003bu.toInt() -> FiftyNineth
-            0x0034u.toInt() -> FiftySecond
-            0x0039u.toInt() -> FiftySeventh
-            0x0038u.toInt() -> FiftySixth
-            0x0035u.toInt() -> FiftyThird
-            0x0001u.toInt() -> First
-            0x010Au.toInt() -> Flash
-            0x0028u.toInt() -> Fortieth
-            0x000eu.toInt() -> Fourteenth
-            0x0004u.toInt() -> Fourth
-            0x0030u.toInt() -> FourtyEighth
-            0x002du.toInt() -> FourtyFifth
-            0x0029u.toInt() -> FourtyFirst
-            0x002cu.toInt() -> FourtyFourth
-            0x0031u.toInt() -> FourtyNineth
-            0x002au.toInt() -> FourtySecond
-            0x002fu.toInt() -> FourtySeventh
-            0x002eu.toInt() -> FourtySixth
-            0x002bu.toInt() -> FourtyThird
-            0x0100u.toInt() -> Front
-            0x010Bu.toInt() -> Inside
-            0x010Fu.toInt() -> Internal
-            0x010Du.toInt() -> Left
-            0x0105u.toInt() -> Lower
-            0x0106u.toInt() -> Main
-            0x0013u.toInt() -> Nineteenth
-            0x0009u.toInt() -> Nineth
-            0x005au.toInt() -> Ninetieth
-            0x0062u.toInt() -> NinetyEighth
-            0x005fu.toInt() -> NinetyFifth
-            0x005bu.toInt() -> NinetyFirst
-            0x005eu.toInt() -> NinetyFourth
-            0x0063u.toInt() -> NinetyNineth
-            0x005cu.toInt() -> NinetySecond
-            0x0061u.toInt() -> NinetySeventh
-            0x0060u.toInt() -> NinetySixth
-            0x005du.toInt() -> NinetyThird
-            0x0076u.toInt() -> OneHundredAndEighteenth
-            0x006cu.toInt() -> OneHundredAndEighth
-            0x00bcu.toInt() -> OneHundredAndEightyEighth
-            0x00b9u.toInt() -> OneHundredAndEightyFifth
-            0x00b5u.toInt() -> OneHundredAndEightyFirst
-            0x00b8u.toInt() -> OneHundredAndEightyFourth
-            0x00bdu.toInt() -> OneHundredAndEightyNineth
-            0x00b6u.toInt() -> OneHundredAndEightySecond
-            0x00bbu.toInt() -> OneHundredAndEightySeventh
-            0x00bau.toInt() -> OneHundredAndEightySixth
-            0x00b7u.toInt() -> OneHundredAndEightyThird
-            0x006fu.toInt() -> OneHundredAndEleventh
-            0x0073u.toInt() -> OneHundredAndFifteenth
-            0x0069u.toInt() -> OneHundredAndFifth
-            0x009eu.toInt() -> OneHundredAndFiftyEighth
-            0x009bu.toInt() -> OneHundredAndFiftyFifth
-            0x0097u.toInt() -> OneHundredAndFiftyFirst
-            0x009au.toInt() -> OneHundredAndFiftyFourth
-            0x009fu.toInt() -> OneHundredAndFiftyNineth
-            0x0098u.toInt() -> OneHundredAndFiftySecond
-            0x009du.toInt() -> OneHundredAndFiftySeventh
-            0x009cu.toInt() -> OneHundredAndFiftySixth
-            0x0099u.toInt() -> OneHundredAndFiftyThird
-            0x0065u.toInt() -> OneHundredAndFirst
-            0x0072u.toInt() -> OneHundredAndFourteenth
-            0x0068u.toInt() -> OneHundredAndFourth
-            0x0094u.toInt() -> OneHundredAndFourtyEighth
-            0x0091u.toInt() -> OneHundredAndFourtyFifth
-            0x008du.toInt() -> OneHundredAndFourtyFirst
-            0x0090u.toInt() -> OneHundredAndFourtyFourth
-            0x0095u.toInt() -> OneHundredAndFourtyNineth
-            0x008eu.toInt() -> OneHundredAndFourtySecond
-            0x0093u.toInt() -> OneHundredAndFourtySeventh
-            0x0092u.toInt() -> OneHundredAndFourtySixth
-            0x008fu.toInt() -> OneHundredAndFourtyThird
-            0x0077u.toInt() -> OneHundredAndNineteenth
-            0x006du.toInt() -> OneHundredAndNineth
-            0x00c6u.toInt() -> OneHundredAndNinetyEighth
-            0x00c3u.toInt() -> OneHundredAndNinetyFifth
-            0x00bfu.toInt() -> OneHundredAndNinetyFirst
-            0x00c2u.toInt() -> OneHundredAndNinetyFourth
-            0x00c7u.toInt() -> OneHundredAndNinetyNineth
-            0x00c0u.toInt() -> OneHundredAndNinetySecond
-            0x00c5u.toInt() -> OneHundredAndNinetySeventh
-            0x00c4u.toInt() -> OneHundredAndNinetySixth
-            0x00c1u.toInt() -> OneHundredAndNinetyThird
-            0x0066u.toInt() -> OneHundredAndSecond
-            0x0075u.toInt() -> OneHundredAndSeventeenth
-            0x006bu.toInt() -> OneHundredAndSeventh
-            0x00b2u.toInt() -> OneHundredAndSeventyEighth
-            0x00afu.toInt() -> OneHundredAndSeventyFifth
-            0x00abu.toInt() -> OneHundredAndSeventyFirst
-            0x00aeu.toInt() -> OneHundredAndSeventyFourth
-            0x00b3u.toInt() -> OneHundredAndSeventyNineth
-            0x00acu.toInt() -> OneHundredAndSeventySecond
-            0x00b1u.toInt() -> OneHundredAndSeventySeventh
-            0x00b0u.toInt() -> OneHundredAndSeventySixth
-            0x00adu.toInt() -> OneHundredAndSeventyThird
-            0x0074u.toInt() -> OneHundredAndSixteenth
-            0x006au.toInt() -> OneHundredAndSixth
-            0x00a8u.toInt() -> OneHundredAndSixtyEighth
-            0x00a5u.toInt() -> OneHundredAndSixtyFifth
-            0x00a1u.toInt() -> OneHundredAndSixtyFirst
-            0x00a4u.toInt() -> OneHundredAndSixtyFourth
-            0x00a9u.toInt() -> OneHundredAndSixtyNineth
-            0x00a2u.toInt() -> OneHundredAndSixtySecond
-            0x00a7u.toInt() -> OneHundredAndSixtySeventh
-            0x00a6u.toInt() -> OneHundredAndSixtySixth
-            0x00a3u.toInt() -> OneHundredAndSixtyThird
-            0x006eu.toInt() -> OneHundredAndTenth
-            0x0067u.toInt() -> OneHundredAndThird
-            0x0071u.toInt() -> OneHundredAndThirteenth
-            0x008au.toInt() -> OneHundredAndThirtyEighth
-            0x0087u.toInt() -> OneHundredAndThirtyFifth
-            0x0083u.toInt() -> OneHundredAndThirtyFirst
-            0x0086u.toInt() -> OneHundredAndThirtyFourth
-            0x008bu.toInt() -> OneHundredAndThirtyNineth
-            0x0084u.toInt() -> OneHundredAndThirtySecond
-            0x0089u.toInt() -> OneHundredAndThirtySeventh
-            0x0088u.toInt() -> OneHundredAndThirtySixth
-            0x0085u.toInt() -> OneHundredAndThirtyThird
-            0x0070u.toInt() -> OneHundredAndTwelveth
-            0x0080u.toInt() -> OneHundredAndTwentyEighth
-            0x007du.toInt() -> OneHundredAndTwentyFifth
-            0x0079u.toInt() -> OneHundredAndTwentyFirst
-            0x007cu.toInt() -> OneHundredAndTwentyFourth
-            0x0081u.toInt() -> OneHundredAndTwentyNineth
-            0x007au.toInt() -> OneHundredAndTwentySecond
-            0x007fu.toInt() -> OneHundredAndTwentySeventh
-            0x007eu.toInt() -> OneHundredAndTwentySixth
-            0x007bu.toInt() -> OneHundredAndTwentyThird
-            0x00b4u.toInt() -> OneHundredEightieth
-            0x0096u.toInt() -> OneHundredFiftieth
-            0x008cu.toInt() -> OneHundredFortieth
-            0x00beu.toInt() -> OneHundredNinetieth
-            0x00aau.toInt() -> OneHundredSeventieth
-            0x00a0u.toInt() -> OneHundredSixtieth
-            0x0082u.toInt() -> OneHundredThirtieth
-            0x0078u.toInt() -> OneHundredTwentieth
-            0x0064u.toInt() -> OneHundredth
-            0x010Cu.toInt() -> Outside
-            0x010Eu.toInt() -> Right
-            0x0002u.toInt() -> Second
-            0x0011u.toInt() -> Seventeenth
-            0x0007u.toInt() -> Seventh
-            0x0046u.toInt() -> Seventieth
-            0x004eu.toInt() -> SeventyEighth
-            0x004bu.toInt() -> SeventyFifth
-            0x0047u.toInt() -> SeventyFirst
-            0x004au.toInt() -> SeventyFourth
-            0x004fu.toInt() -> SeventyNineth
-            0x0048u.toInt() -> SeventySecond
-            0x004du.toInt() -> SeventySeventh
-            0x004cu.toInt() -> SeventySixth
-            0x0049u.toInt() -> SeventyThird
-            0x0010u.toInt() -> Sixteenth
-            0x0006u.toInt() -> Sixth
-            0x003cu.toInt() -> Sixtieth
-            0x0044u.toInt() -> SixtyEighth
-            0x0041u.toInt() -> SixtyFifth
-            0x003du.toInt() -> SixtyFirst
-            0x0040u.toInt() -> SixtyFourth
-            0x0045u.toInt() -> SixtyNineth
-            0x003eu.toInt() -> SixtySecond
-            0x0043u.toInt() -> SixtySeventh
-            0x0042u.toInt() -> SixtySixth
-            0x003fu.toInt() -> SixtyThird
-            0x0109u.toInt() -> Supplementary
-            0x000au.toInt() -> Tenth
-            0x0003u.toInt() -> Third
-            0x000du.toInt() -> Thirteenth
-            0x001eu.toInt() -> Thirtieth
-            0x0026u.toInt() -> ThirtyEighth
-            0x0023u.toInt() -> ThirtyFifth
-            0x001fu.toInt() -> ThirtyFirst
-            0x0022u.toInt() -> ThirtyFourth
-            0x0027u.toInt() -> ThirtyNineth
-            0x0020u.toInt() -> ThirtySecond
-            0x0025u.toInt() -> ThirtySeventh
-            0x0024u.toInt() -> ThirtySixth
-            0x0021u.toInt() -> ThirtyThird
-            0x0102u.toInt() -> Top
-            0x000cu.toInt() -> Twelveth
-            0x0014u.toInt() -> Twentieth
-            0x001cu.toInt() -> TwentyEighth
-            0x0019u.toInt() -> TwentyFifth
-            0x0015u.toInt() -> TwentyFirst
-            0x0018u.toInt() -> TwentyFourth
-            0x001du.toInt() -> TwentyNineth
-            0x0016u.toInt() -> TwentySecond
-            0x001bu.toInt() -> TwentySeventh
-            0x001au.toInt() -> TwentySixth
-            0x0017u.toInt() -> TwentyThird
-            0x00dau.toInt() -> TwoHundredAndEighteenth
-            0x00d0u.toInt() -> TwoHundredAndEighth
-            0x00d3u.toInt() -> TwoHundredAndEleventh
-            0x00d7u.toInt() -> TwoHundredAndFifteenth
-            0x00cdu.toInt() -> TwoHundredAndFifth
-            0x00ffu.toInt() -> TwoHundredAndFiftyFifth
-            0x00fbu.toInt() -> TwoHundredAndFiftyFirst
-            0x00feu.toInt() -> TwoHundredAndFiftyFourth
-            0x00fcu.toInt() -> TwoHundredAndFiftySecond
-            0x00fdu.toInt() -> TwoHundredAndFiftyThird
-            0x00c9u.toInt() -> TwoHundredAndFirst
-            0x00d6u.toInt() -> TwoHundredAndFourteenth
-            0x00ccu.toInt() -> TwoHundredAndFourth
-            0x00f8u.toInt() -> TwoHundredAndFourtyEighth
-            0x00f5u.toInt() -> TwoHundredAndFourtyFifth
-            0x00f1u.toInt() -> TwoHundredAndFourtyFirst
-            0x00f4u.toInt() -> TwoHundredAndFourtyFourth
-            0x00f9u.toInt() -> TwoHundredAndFourtyNineth
-            0x00f2u.toInt() -> TwoHundredAndFourtySecond
-            0x00f7u.toInt() -> TwoHundredAndFourtySeventh
-            0x00f6u.toInt() -> TwoHundredAndFourtySixth
-            0x00f3u.toInt() -> TwoHundredAndFourtyThird
-            0x00dbu.toInt() -> TwoHundredAndNineteenth
-            0x00d1u.toInt() -> TwoHundredAndNineth
-            0x00cau.toInt() -> TwoHundredAndSecond
-            0x00d9u.toInt() -> TwoHundredAndSeventeenth
-            0x00cfu.toInt() -> TwoHundredAndSeventh
-            0x00d8u.toInt() -> TwoHundredAndSixteenth
-            0x00ceu.toInt() -> TwoHundredAndSixth
-            0x00d2u.toInt() -> TwoHundredAndTenth
-            0x00cbu.toInt() -> TwoHundredAndThird
-            0x00d5u.toInt() -> TwoHundredAndThirteenth
-            0x00eeu.toInt() -> TwoHundredAndThirtyEighth
-            0x00ebu.toInt() -> TwoHundredAndThirtyFifth
-            0x00e7u.toInt() -> TwoHundredAndThirtyFirst
-            0x00eau.toInt() -> TwoHundredAndThirtyFourth
-            0x00efu.toInt() -> TwoHundredAndThirtyNineth
-            0x00e8u.toInt() -> TwoHundredAndThirtySecond
-            0x00edu.toInt() -> TwoHundredAndThirtySeventh
-            0x00ecu.toInt() -> TwoHundredAndThirtySixth
-            0x00e9u.toInt() -> TwoHundredAndThirtyThird
-            0x00d4u.toInt() -> TwoHundredAndTwelveth
-            0x00e4u.toInt() -> TwoHundredAndTwentyEighth
-            0x00e1u.toInt() -> TwoHundredAndTwentyFifth
-            0x00ddu.toInt() -> TwoHundredAndTwentyFirst
-            0x00e0u.toInt() -> TwoHundredAndTwentyFourth
-            0x00e5u.toInt() -> TwoHundredAndTwentyNineth
-            0x00deu.toInt() -> TwoHundredAndTwentySecond
-            0x00e3u.toInt() -> TwoHundredAndTwentySeventh
-            0x00e2u.toInt() -> TwoHundredAndTwentySixth
-            0x00dfu.toInt() -> TwoHundredAndTwentyThird
-            0x00fau.toInt() -> TwoHundredFiftieth
-            0x00f0u.toInt() -> TwoHundredFortieth
-            0x00e6u.toInt() -> TwoHundredThirtieth
-            0x00dcu.toInt() -> TwoHundredTwentieth
-            0x00c8u.toInt() -> TwoHundredth
-            0x0104u.toInt() -> Upper
-            else -> Unknown
+            0x0108u.toInt() -> AUXILIARY
+            0x0101u.toInt() -> BACK
+            0x0107u.toInt() -> BACKUP
+            0x0103u.toInt() -> BOTTOM
+            0x0012u.toInt() -> EIGHTEENTH
+            0x0008u.toInt() -> EIGHTH
+            0x0050u.toInt() -> EIGHTIETH
+            0x0058u.toInt() -> EIGHTY_EIGHTH
+            0x0055u.toInt() -> EIGHTY_FIFTH
+            0x0051u.toInt() -> EIGHTY_FIRST
+            0x0054u.toInt() -> EIGHTY_FOURTH
+            0x0059u.toInt() -> EIGHTY_NINETH
+            0x0052u.toInt() -> EIGHTY_SECOND
+            0x0057u.toInt() -> EIGHTY_SEVENTH
+            0x0056u.toInt() -> EIGHTY_SIXTH
+            0x0053u.toInt() -> EIGHTY_THIRD
+            0x000bu.toInt() -> ELEVENTH
+            0x0110u.toInt() -> EXTERNAL
+            0x000fu.toInt() -> FIFTEENTH
+            0x0005u.toInt() -> FIFTH
+            0x0032u.toInt() -> FIFTIETH
+            0x003au.toInt() -> FIFTY_EIGHTH
+            0x0037u.toInt() -> FIFTY_FIFTH
+            0x0033u.toInt() -> FIFTY_FIRST
+            0x0036u.toInt() -> FIFTY_FOURTH
+            0x003bu.toInt() -> FIFTY_NINETH
+            0x0034u.toInt() -> FIFTY_SECOND
+            0x0039u.toInt() -> FIFTY_SEVENTH
+            0x0038u.toInt() -> FIFTY_SIXTH
+            0x0035u.toInt() -> FIFTY_THIRD
+            0x0001u.toInt() -> FIRST
+            0x010Au.toInt() -> FLASH
+            0x0028u.toInt() -> FORTIETH
+            0x000eu.toInt() -> FOURTEENTH
+            0x0004u.toInt() -> FOURTH
+            0x0030u.toInt() -> FOURTY_EIGHTH
+            0x002du.toInt() -> FOURTY_FIFTH
+            0x0029u.toInt() -> FOURTY_FIRST
+            0x002cu.toInt() -> FOURTY_FOURTH
+            0x0031u.toInt() -> FOURTY_NINETH
+            0x002au.toInt() -> FOURTY_SECOND
+            0x002fu.toInt() -> FOURTY_SEVENTH
+            0x002eu.toInt() -> FOURTY_SIXTH
+            0x002bu.toInt() -> FOURTY_THIRD
+            0x0100u.toInt() -> FRONT
+            0x010Bu.toInt() -> INSIDE
+            0x010Fu.toInt() -> INTERNAL
+            0x010Du.toInt() -> LEFT
+            0x0105u.toInt() -> LOWER
+            0x0106u.toInt() -> MAIN
+            0x0013u.toInt() -> NINETEENTH
+            0x0009u.toInt() -> NINETH
+            0x005au.toInt() -> NINETIETH
+            0x0062u.toInt() -> NINETY_EIGHTH
+            0x005fu.toInt() -> NINETY_FIFTH
+            0x005bu.toInt() -> NINETY_FIRST
+            0x005eu.toInt() -> NINETY_FOURTH
+            0x0063u.toInt() -> NINETY_NINETH
+            0x005cu.toInt() -> NINETY_SECOND
+            0x0061u.toInt() -> NINETY_SEVENTH
+            0x0060u.toInt() -> NINETY_SIXTH
+            0x005du.toInt() -> NINETY_THIRD
+            0x0076u.toInt() -> ONE_HUNDRED_AND_EIGHTEENTH
+            0x006cu.toInt() -> ONE_HUNDRED_AND_EIGHTH
+            0x00bcu.toInt() -> ONE_HUNDRED_AND_EIGHTY_EIGHTH
+            0x00b9u.toInt() -> ONE_HUNDRED_AND_EIGHTY_FIFTH
+            0x00b5u.toInt() -> ONE_HUNDRED_AND_EIGHTY_FIRST
+            0x00b8u.toInt() -> ONE_HUNDRED_AND_EIGHTY_FOURTH
+            0x00bdu.toInt() -> ONE_HUNDRED_AND_EIGHTY_NINETH
+            0x00b6u.toInt() -> ONE_HUNDRED_AND_EIGHTY_SECOND
+            0x00bbu.toInt() -> ONE_HUNDRED_AND_EIGHTY_SEVENTH
+            0x00bau.toInt() -> ONE_HUNDRED_AND_EIGHTY_SIXTH
+            0x00b7u.toInt() -> ONE_HUNDRED_AND_EIGHTY_THIRD
+            0x006fu.toInt() -> ONE_HUNDRED_AND_ELEVENTH
+            0x0073u.toInt() -> ONE_HUNDRED_AND_FIFTEENTH
+            0x0069u.toInt() -> ONE_HUNDRED_AND_FIFTH
+            0x009eu.toInt() -> ONE_HUNDRED_AND_FIFTY_EIGHTH
+            0x009bu.toInt() -> ONE_HUNDRED_AND_FIFTY_FIFTH
+            0x0097u.toInt() -> ONE_HUNDRED_AND_FIFTY_FIRST
+            0x009au.toInt() -> ONE_HUNDRED_AND_FIFTY_FOURTH
+            0x009fu.toInt() -> ONE_HUNDRED_AND_FIFTY_NINETH
+            0x0098u.toInt() -> ONE_HUNDRED_AND_FIFTY_SECOND
+            0x009du.toInt() -> ONE_HUNDRED_AND_FIFTY_SEVENTH
+            0x009cu.toInt() -> ONE_HUNDRED_AND_FIFTY_SIXTH
+            0x0099u.toInt() -> ONE_HUNDRED_AND_FIFTY_THIRD
+            0x0065u.toInt() -> ONE_HUNDRED_AND_FIRST
+            0x0072u.toInt() -> ONE_HUNDRED_AND_FOURTEENTH
+            0x0068u.toInt() -> ONE_HUNDRED_AND_FOURTH
+            0x0094u.toInt() -> ONE_HUNDRED_AND_FOURTY_EIGHTH
+            0x0091u.toInt() -> ONE_HUNDRED_AND_FOURTY_FIFTH
+            0x008du.toInt() -> ONE_HUNDRED_AND_FOURTY_FIRST
+            0x0090u.toInt() -> ONE_HUNDRED_AND_FOURTY_FOURTH
+            0x0095u.toInt() -> ONE_HUNDRED_AND_FOURTY_NINETH
+            0x008eu.toInt() -> ONE_HUNDRED_AND_FOURTY_SECOND
+            0x0093u.toInt() -> ONE_HUNDRED_AND_FOURTY_SEVENTH
+            0x0092u.toInt() -> ONE_HUNDRED_AND_FOURTY_SIXTH
+            0x008fu.toInt() -> ONE_HUNDRED_AND_FOURTY_THIRD
+            0x0077u.toInt() -> ONE_HUNDRED_AND_NINETEENTH
+            0x006du.toInt() -> ONE_HUNDRED_AND_NINETH
+            0x00c6u.toInt() -> ONE_HUNDRED_AND_NINETY_EIGHTH
+            0x00c3u.toInt() -> ONE_HUNDRED_AND_NINETY_FIFTH
+            0x00bfu.toInt() -> ONE_HUNDRED_AND_NINETY_FIRST
+            0x00c2u.toInt() -> ONE_HUNDRED_AND_NINETY_FOURTH
+            0x00c7u.toInt() -> ONE_HUNDRED_AND_NINETY_NINETH
+            0x00c0u.toInt() -> ONE_HUNDRED_AND_NINETY_SECOND
+            0x00c5u.toInt() -> ONE_HUNDRED_AND_NINETY_SEVENTH
+            0x00c4u.toInt() -> ONE_HUNDRED_AND_NINETY_SIXTH
+            0x00c1u.toInt() -> ONE_HUNDRED_AND_NINETY_THIRD
+            0x0066u.toInt() -> ONE_HUNDRED_AND_SECOND
+            0x0075u.toInt() -> ONE_HUNDRED_AND_SEVENTEENTH
+            0x006bu.toInt() -> ONE_HUNDRED_AND_SEVENTH
+            0x00b2u.toInt() -> ONE_HUNDRED_AND_SEVENTY_EIGHTH
+            0x00afu.toInt() -> ONE_HUNDRED_AND_SEVENTY_FIFTH
+            0x00abu.toInt() -> ONE_HUNDRED_AND_SEVENTY_FIRST
+            0x00aeu.toInt() -> ONE_HUNDRED_AND_SEVENTY_FOURTH
+            0x00b3u.toInt() -> ONE_HUNDRED_AND_SEVENTY_NINETH
+            0x00acu.toInt() -> ONE_HUNDRED_AND_SEVENTY_SECOND
+            0x00b1u.toInt() -> ONE_HUNDRED_AND_SEVENTY_SEVENTH
+            0x00b0u.toInt() -> ONE_HUNDRED_AND_SEVENTY_SIXTH
+            0x00adu.toInt() -> ONE_HUNDRED_AND_SEVENTY_THIRD
+            0x0074u.toInt() -> ONE_HUNDRED_AND_SIXTEENTH
+            0x006au.toInt() -> ONE_HUNDRED_AND_SIXTH
+            0x00a8u.toInt() -> ONE_HUNDRED_AND_SIXTY_EIGHTH
+            0x00a5u.toInt() -> ONE_HUNDRED_AND_SIXTY_FIFTH
+            0x00a1u.toInt() -> ONE_HUNDRED_AND_SIXTY_FIRST
+            0x00a4u.toInt() -> ONE_HUNDRED_AND_SIXTY_FOURTH
+            0x00a9u.toInt() -> ONE_HUNDRED_AND_SIXTY_NINETH
+            0x00a2u.toInt() -> ONE_HUNDRED_AND_SIXTY_SECOND
+            0x00a7u.toInt() -> ONE_HUNDRED_AND_SIXTY_SEVENTH
+            0x00a6u.toInt() -> ONE_HUNDRED_AND_SIXTY_SIXTH
+            0x00a3u.toInt() -> ONE_HUNDRED_AND_SIXTY_THIRD
+            0x006eu.toInt() -> ONE_HUNDRED_AND_TENTH
+            0x0067u.toInt() -> ONE_HUNDRED_AND_THIRD
+            0x0071u.toInt() -> ONE_HUNDRED_AND_THIRTEENTH
+            0x008au.toInt() -> ONE_HUNDRED_AND_THIRTY_EIGHTH
+            0x0087u.toInt() -> ONE_HUNDRED_AND_THIRTY_FIFTH
+            0x0083u.toInt() -> ONE_HUNDRED_AND_THIRTY_FIRST
+            0x0086u.toInt() -> ONE_HUNDRED_AND_THIRTY_FOURTH
+            0x008bu.toInt() -> ONE_HUNDRED_AND_THIRTY_NINETH
+            0x0084u.toInt() -> ONE_HUNDRED_AND_THIRTY_SECOND
+            0x0089u.toInt() -> ONE_HUNDRED_AND_THIRTY_SEVENTH
+            0x0088u.toInt() -> ONE_HUNDRED_AND_THIRTY_SIXTH
+            0x0085u.toInt() -> ONE_HUNDRED_AND_THIRTY_THIRD
+            0x0070u.toInt() -> ONE_HUNDRED_AND_TWELVETH
+            0x0080u.toInt() -> ONE_HUNDRED_AND_TWENTY_EIGHTH
+            0x007du.toInt() -> ONE_HUNDRED_AND_TWENTY_FIFTH
+            0x0079u.toInt() -> ONE_HUNDRED_AND_TWENTY_FIRST
+            0x007cu.toInt() -> ONE_HUNDRED_AND_TWENTY_FOURTH
+            0x0081u.toInt() -> ONE_HUNDRED_AND_TWENTY_NINETH
+            0x007au.toInt() -> ONE_HUNDRED_AND_TWENTY_SECOND
+            0x007fu.toInt() -> ONE_HUNDRED_AND_TWENTY_SEVENTH
+            0x007eu.toInt() -> ONE_HUNDRED_AND_TWENTY_SIXTH
+            0x007bu.toInt() -> ONE_HUNDRED_AND_TWENTY_THIRD
+            0x00b4u.toInt() -> ONE_HUNDRED_EIGHTIETH
+            0x0096u.toInt() -> ONE_HUNDRED_FIFTIETH
+            0x008cu.toInt() -> ONE_HUNDRED_FORTIETH
+            0x00beu.toInt() -> ONE_HUNDRED_NINETIETH
+            0x00aau.toInt() -> ONE_HUNDRED_SEVENTIETH
+            0x00a0u.toInt() -> ONE_HUNDRED_SIXTIETH
+            0x0082u.toInt() -> ONE_HUNDRED_THIRTIETH
+            0x0078u.toInt() -> ONE_HUNDRED_TWENTIETH
+            0x0064u.toInt() -> ONE_HUNDREDTH
+            0x010Cu.toInt() -> OUTSIDE
+            0x010Eu.toInt() -> RIGHT
+            0x0002u.toInt() -> SECOND
+            0x0011u.toInt() -> SEVENTEENTH
+            0x0007u.toInt() -> SEVENTH
+            0x0046u.toInt() -> SEVENTIETH
+            0x004eu.toInt() -> SEVENTY_EIGHTH
+            0x004bu.toInt() -> SEVENTY_FIFTH
+            0x0047u.toInt() -> SEVENTY_FIRST
+            0x004au.toInt() -> SEVENTY_FOURTH
+            0x004fu.toInt() -> SEVENTY_NINETH
+            0x0048u.toInt() -> SEVENTY_SECOND
+            0x004du.toInt() -> SEVENTY_SEVENTH
+            0x004cu.toInt() -> SEVENTY_SIXTH
+            0x0049u.toInt() -> SEVENTY_THIRD
+            0x0010u.toInt() -> SIXTEENTH
+            0x0006u.toInt() -> SIXTH
+            0x003cu.toInt() -> SIXTIETH
+            0x0044u.toInt() -> SIXTY_EIGHTH
+            0x0041u.toInt() -> SIXTY_FIFTH
+            0x003du.toInt() -> SIXTY_FIRST
+            0x0040u.toInt() -> SIXTY_FOURTH
+            0x0045u.toInt() -> SIXTY_NINETH
+            0x003eu.toInt() -> SIXTY_SECOND
+            0x0043u.toInt() -> SIXTY_SEVENTH
+            0x0042u.toInt() -> SIXTY_SIXTH
+            0x003fu.toInt() -> SIXTY_THIRD
+            0x0109u.toInt() -> SUPPLEMENTARY
+            0x000au.toInt() -> TENTH
+            0x0003u.toInt() -> THIRD
+            0x000du.toInt() -> THIRTEENTH
+            0x001eu.toInt() -> THIRTIETH
+            0x0026u.toInt() -> THIRTY_EIGHTH
+            0x0023u.toInt() -> THIRTY_FIFTH
+            0x001fu.toInt() -> THIRTY_FIRST
+            0x0022u.toInt() -> THIRTY_FOURTH
+            0x0027u.toInt() -> THIRTY_NINETH
+            0x0020u.toInt() -> THIRTY_SECOND
+            0x0025u.toInt() -> THIRTY_SEVENTH
+            0x0024u.toInt() -> THIRTY_SIXTH
+            0x0021u.toInt() -> THIRTY_THIRD
+            0x0102u.toInt() -> TOP
+            0x000cu.toInt() -> TWELVETH
+            0x0014u.toInt() -> TWENTIETH
+            0x001cu.toInt() -> TWENTY_EIGHTH
+            0x0019u.toInt() -> TWENTY_FIFTH
+            0x0015u.toInt() -> TWENTY_FIRST
+            0x0018u.toInt() -> TWENTY_FOURTH
+            0x001du.toInt() -> TWENTY_NINETH
+            0x0016u.toInt() -> TWENTY_SECOND
+            0x001bu.toInt() -> TWENTY_SEVENTH
+            0x001au.toInt() -> TWENTY_SIXTH
+            0x0017u.toInt() -> TWENTY_THIRD
+            0x00dau.toInt() -> TWO_HUNDRED_AND_EIGHTEENTH
+            0x00d0u.toInt() -> TWO_HUNDRED_AND_EIGHTH
+            0x00d3u.toInt() -> TWO_HUNDRED_AND_ELEVENTH
+            0x00d7u.toInt() -> TWO_HUNDRED_AND_FIFTEENTH
+            0x00cdu.toInt() -> TWO_HUNDRED_AND_FIFTH
+            0x00ffu.toInt() -> TWO_HUNDRED_AND_FIFTY_FIFTH
+            0x00fbu.toInt() -> TWO_HUNDRED_AND_FIFTY_FIRST
+            0x00feu.toInt() -> TWO_HUNDRED_AND_FIFTY_FOURTH
+            0x00fcu.toInt() -> TWO_HUNDRED_AND_FIFTY_SECOND
+            0x00fdu.toInt() -> TWO_HUNDRED_AND_FIFTY_THIRD
+            0x00c9u.toInt() -> TWO_HUNDRED_AND_FIRST
+            0x00d6u.toInt() -> TWO_HUNDRED_AND_FOURTEENTH
+            0x00ccu.toInt() -> TWO_HUNDRED_AND_FOURTH
+            0x00f8u.toInt() -> TWO_HUNDRED_AND_FOURTY_EIGHTH
+            0x00f5u.toInt() -> TWO_HUNDRED_AND_FOURTY_FIFTH
+            0x00f1u.toInt() -> TWO_HUNDRED_AND_FOURTY_FIRST
+            0x00f4u.toInt() -> TWO_HUNDRED_AND_FOURTY_FOURTH
+            0x00f9u.toInt() -> TWO_HUNDRED_AND_FOURTY_NINETH
+            0x00f2u.toInt() -> TWO_HUNDRED_AND_FOURTY_SECOND
+            0x00f7u.toInt() -> TWO_HUNDRED_AND_FOURTY_SEVENTH
+            0x00f6u.toInt() -> TWO_HUNDRED_AND_FOURTY_SIXTH
+            0x00f3u.toInt() -> TWO_HUNDRED_AND_FOURTY_THIRD
+            0x00dbu.toInt() -> TWO_HUNDRED_AND_NINETEENTH
+            0x00d1u.toInt() -> TWO_HUNDRED_AND_NINETH
+            0x00cau.toInt() -> TWO_HUNDRED_AND_SECOND
+            0x00d9u.toInt() -> TWO_HUNDRED_AND_SEVENTEENTH
+            0x00cfu.toInt() -> TWO_HUNDRED_AND_SEVENTH
+            0x00d8u.toInt() -> TWO_HUNDRED_AND_SIXTEENTH
+            0x00ceu.toInt() -> TWO_HUNDRED_AND_SIXTH
+            0x00d2u.toInt() -> TWO_HUNDRED_AND_TENTH
+            0x00cbu.toInt() -> TWO_HUNDRED_AND_THIRD
+            0x00d5u.toInt() -> TWO_HUNDRED_AND_THIRTEENTH
+            0x00eeu.toInt() -> TWO_HUNDRED_AND_THIRTY_EIGHTH
+            0x00ebu.toInt() -> TWO_HUNDRED_AND_THIRTY_FIFTH
+            0x00e7u.toInt() -> TWO_HUNDRED_AND_THIRTY_FIRST
+            0x00eau.toInt() -> TWO_HUNDRED_AND_THIRTY_FOURTH
+            0x00efu.toInt() -> TWO_HUNDRED_AND_THIRTY_NINETH
+            0x00e8u.toInt() -> TWO_HUNDRED_AND_THIRTY_SECOND
+            0x00edu.toInt() -> TWO_HUNDRED_AND_THIRTY_SEVENTH
+            0x00ecu.toInt() -> TWO_HUNDRED_AND_THIRTY_SIXTH
+            0x00e9u.toInt() -> TWO_HUNDRED_AND_THIRTY_THIRD
+            0x00d4u.toInt() -> TWO_HUNDRED_AND_TWELVETH
+            0x00e4u.toInt() -> TWO_HUNDRED_AND_TWENTY_EIGHTH
+            0x00e1u.toInt() -> TWO_HUNDRED_AND_TWENTY_FIFTH
+            0x00ddu.toInt() -> TWO_HUNDRED_AND_TWENTY_FIRST
+            0x00e0u.toInt() -> TWO_HUNDRED_AND_TWENTY_FOURTH
+            0x00e5u.toInt() -> TWO_HUNDRED_AND_TWENTY_NINETH
+            0x00deu.toInt() -> TWO_HUNDRED_AND_TWENTY_SECOND
+            0x00e3u.toInt() -> TWO_HUNDRED_AND_TWENTY_SEVENTH
+            0x00e2u.toInt() -> TWO_HUNDRED_AND_TWENTY_SIXTH
+            0x00dfu.toInt() -> TWO_HUNDRED_AND_TWENTY_THIRD
+            0x00fau.toInt() -> TWO_HUNDRED_FIFTIETH
+            0x00f0u.toInt() -> TWO_HUNDRED_FORTIETH
+            0x00e6u.toInt() -> TWO_HUNDRED_THIRTIETH
+            0x00dcu.toInt() -> TWO_HUNDRED_TWENTIETH
+            0x00c8u.toInt() -> TWO_HUNDREDTH
+            0x0104u.toInt() -> UPPER
+            else -> UNKNOWN
         }
 
         /**
-         * Returns the description for a given location
+         * Returns the description for a given location.
          *
          * @param value Location.
          * @return Returns the human readable description of the location.
          */
-        fun from(value: Location) = when (value) {
-            is Auxiliary -> "Auxiliary"
-            is Back -> "Back"
-            is Backup -> "Backup"
-            is Bottom -> "Bottom"
-            is Eighteenth -> "Eighteenth"
-            is Eighth -> "Eighth"
-            is Eightieth -> "Eightieth"
-            is EightyEighth -> "Eighty-eighth"
-            is EightyFifth -> "Eighty-fifth"
-            is EightyFirst -> "Eighty-first"
-            is EightyFourth -> "Eighty-fourth"
-            is EightyNineth -> "Eighty-nineth"
-            is EightySecond -> "Eighty-second"
-            is EightySeventh -> "Eighty-seventh"
-            is EightySixth -> "Eighty-sixth"
-            is EightyThird -> "Eighty-third"
-            is Eleventh -> "Eleventh"
-            is External -> "External"
-            is Fifteenth -> "Fifteenth"
-            is Fifth -> "Fifth"
-            is Fiftieth -> "Fiftieth"
-            is FiftyEighth -> "Fifty-eighth"
-            is FiftyFifth -> "Fifty-fifth"
-            is FiftyFirst -> "Fifty-first"
-            is FiftyFourth -> "Fifty-fourth"
-            is FiftyNineth -> "Fifty-nineth"
-            is FiftySecond -> "Fifty-second"
-            is FiftySeventh -> "Fifty-seventh"
-            is FiftySixth -> "Fifty-sixth"
-            is FiftyThird -> "Fifty-third"
-            is First -> "First"
-            is Flash -> "Flash"
-            is Fortieth -> "Fortieth"
-            is Fourteenth -> "Fourteenth"
-            is Fourth -> "Fourth"
-            is FourtyEighth -> "Fourty-eighth"
-            is FourtyFifth -> "Fourty-fifth"
-            is FourtyFirst -> "Fourty-first"
-            is FourtyFourth -> "Fourty-fourth"
-            is FourtyNineth -> "Fourty-nineth"
-            is FourtySecond -> "Fourty-second"
-            is FourtySeventh -> "Fourty-seventh"
-            is FourtySixth -> "Fourty-sixth"
-            is FourtyThird -> "Fourty-third"
-            is Front -> "Front"
-            is Inside -> "Inside"
-            is Internal -> "Internal"
-            is Left -> "Left"
-            is Lower -> "Lower"
-            is Main -> "Main"
-            is Nineteenth -> "Nineteenth"
-            is Nineth -> "Nineth"
-            is Ninetieth -> "Ninetieth"
-            is NinetyEighth -> "Ninety-eighth"
-            is NinetyFifth -> "Ninety-fifth"
-            is NinetyFirst -> "Ninety-first"
-            is NinetyFourth -> "Ninety-fourth"
-            is NinetyNineth -> "Ninety-nineth"
-            is NinetySecond -> "Ninety-second"
-            is NinetySeventh -> "Ninety-seventh"
-            is NinetySixth -> "Ninety-sixth"
-            is NinetyThird -> "Ninety-third"
-            is OneHundredAndEighteenth -> "One-hundred-and-eighteenth"
-            is OneHundredAndEighth -> "One-hundred-and-eighth"
-            is OneHundredAndEightyEighth -> "One-hundred-and-eighty-eighth"
-            is OneHundredAndEightyFifth -> "One-hundred-and-eighty-fifth"
-            is OneHundredAndEightyFirst -> "One-hundred-and-eighty-first"
-            is OneHundredAndEightyFourth -> "One-hundred-and-eighty-fourth"
-            is OneHundredAndEightyNineth -> "One-hundred-and-eighty-nineth"
-            is OneHundredAndEightySecond -> "One-hundred-and-eighty-second"
-            is OneHundredAndEightySeventh -> "One-hundred-and-eighty-seventh"
-            is OneHundredAndEightySixth -> "One-hundred-and-eighty-sixth"
-            is OneHundredAndEightyThird -> "One-hundred-and-eighty-third"
-            is OneHundredAndEleventh -> "One-hundred-and-eleventh"
-            is OneHundredAndFifteenth -> "One-hundred-and-fifteenth"
-            is OneHundredAndFifth -> "One-hundred-and-fifth"
-            is OneHundredAndFiftyEighth -> "One-hundred-and-fifty-eighth"
-            is OneHundredAndFiftyFifth -> "One-hundred-and-fifty-fifth"
-            is OneHundredAndFiftyFirst -> "One-hundred-and-fifty-first"
-            is OneHundredAndFiftyFourth -> "One-hundred-and-fifty-fourth"
-            is OneHundredAndFiftyNineth -> "One-hundred-and-fifty-nineth"
-            is OneHundredAndFiftySecond -> "One-hundred-and-fifty-second"
-            is OneHundredAndFiftySeventh -> "One-hundred-and-fifty-seventh"
-            is OneHundredAndFiftySixth -> "One-hundred-and-fifty-sixth"
-            is OneHundredAndFiftyThird -> "One-hundred-and-fifty-third"
-            is OneHundredAndFirst -> "One-hundred-and-first"
-            is OneHundredAndFourteenth -> "One-hundred-and-fourteenth"
-            is OneHundredAndFourth -> "One-hundred-and-fourth"
-            is OneHundredAndFourtyEighth -> "One-hundred-and-fourty-eighth"
-            is OneHundredAndFourtyFifth -> "One-hundred-and-fourty-fifth"
-            is OneHundredAndFourtyFirst -> "One-hundred-and-fourty-first"
-            is OneHundredAndFourtyFourth -> "One-hundred-and-fourty-fourth"
-            is OneHundredAndFourtyNineth -> "One-hundred-and-fourty-nineth"
-            is OneHundredAndFourtySecond -> "One-hundred-and-fourty-second"
-            is OneHundredAndFourtySeventh -> "One-hundred-and-fourty-seventh"
-            is OneHundredAndFourtySixth -> "One-hundred-and-fourty-sixth"
-            is OneHundredAndFourtyThird -> "One-hundred-and-fourty-third"
-            is OneHundredAndNineteenth -> "One-hundred-and-nineteenth"
-            is OneHundredAndNineth -> "One-hundred-and-nineth"
-            is OneHundredAndNinetyEighth -> "One-hundred-and-ninety-eighth"
-            is OneHundredAndNinetyFifth -> "One-hundred-and-ninety-fifth"
-            is OneHundredAndNinetyFirst -> "One-hundred-and-ninety-first"
-            is OneHundredAndNinetyFourth -> "One-hundred-and-ninety-fourth"
-            is OneHundredAndNinetyNineth -> "One-hundred-and-ninety-nineth"
-            is OneHundredAndNinetySecond -> "One-hundred-and-ninety-second"
-            is OneHundredAndNinetySeventh -> "One-hundred-and-ninety-seventh"
-            is OneHundredAndNinetySixth -> "One-hundred-and-ninety-sixth"
-            is OneHundredAndNinetyThird -> "One-hundred-and-ninety-third"
-            is OneHundredAndSecond -> "One-hundred-and-second"
-            is OneHundredAndSeventeenth -> "One-hundred-and-seventeenth"
-            is OneHundredAndSeventh -> "One-hundred-and-seventh"
-            is OneHundredAndSeventyEighth -> "One-hundred-and-seventy-eighth"
-            is OneHundredAndSeventyFifth -> "One-hundred-and-seventy-fifth"
-            is OneHundredAndSeventyFirst -> "One-hundred-and-seventy-first"
-            is OneHundredAndSeventyFourth -> "One-hundred-and-seventy-fourth"
-            is OneHundredAndSeventyNineth -> "One-hundred-and-seventy-nineth"
-            is OneHundredAndSeventySecond -> "One-hundred-and-seventy-second"
-            is OneHundredAndSeventySeventh -> "One-hundred-and-seventy-seventh"
-            is OneHundredAndSeventySixth -> "One-hundred-and-seventy-sixth"
-            is OneHundredAndSeventyThird -> "One-hundred-and-seventy-third"
-            is OneHundredAndSixteenth -> "One-hundred-and-sixteenth"
-            is OneHundredAndSixth -> "One-hundred-and-sixth"
-            is OneHundredAndSixtyEighth -> "One-hundred-and-sixty-eighth"
-            is OneHundredAndSixtyFifth -> "One-hundred-and-sixty-fifth"
-            is OneHundredAndSixtyFirst -> "One-hundred-and-sixty-first"
-            is OneHundredAndSixtyFourth -> "One-hundred-and-sixty-fourth"
-            is OneHundredAndSixtyNineth -> "One-hundred-and-sixty-nineth"
-            is OneHundredAndSixtySecond -> "One-hundred-and-sixty-second"
-            is OneHundredAndSixtySeventh -> "One-hundred-and-sixty-seventh"
-            is OneHundredAndSixtySixth -> "One-hundred-and-sixty-sixth"
-            is OneHundredAndSixtyThird -> "One-hundred-and-sixty-third"
-            is OneHundredAndTenth -> "One-hundred-and-tenth"
-            is OneHundredAndThird -> "One-hundred-and-third"
-            is OneHundredAndThirteenth -> "One-hundred-and-thirteenth"
-            is OneHundredAndThirtyEighth -> "One-hundred-and-thirty-eighth"
-            is OneHundredAndThirtyFifth -> "One-hundred-and-thirty-fifth"
-            is OneHundredAndThirtyFirst -> "One-hundred-and-thirty-first"
-            is OneHundredAndThirtyFourth -> "One-hundred-and-thirty-fourth"
-            is OneHundredAndThirtyNineth -> "One-hundred-and-thirty-nineth"
-            is OneHundredAndThirtySecond -> "One-hundred-and-thirty-second"
-            is OneHundredAndThirtySeventh -> "One-hundred-and-thirty-seventh"
-            is OneHundredAndThirtySixth -> "One-hundred-and-thirty-sixth"
-            is OneHundredAndThirtyThird -> "One-hundred-and-thirty-third"
-            is OneHundredAndTwelveth -> "One-hundred-and-twelveth"
-            is OneHundredAndTwentyEighth -> "One-hundred-and-twenty-eighth"
-            is OneHundredAndTwentyFifth -> "One-hundred-and-twenty-fifth"
-            is OneHundredAndTwentyFirst -> "One-hundred-and-twenty-first"
-            is OneHundredAndTwentyFourth -> "One-hundred-and-twenty-fourth"
-            is OneHundredAndTwentyNineth -> "One-hundred-and-twenty-nineth"
-            is OneHundredAndTwentySecond -> "One-hundred-and-twenty-second"
-            is OneHundredAndTwentySeventh -> "One-hundred-and-twenty-seventh"
-            is OneHundredAndTwentySixth -> "One-hundred-and-twenty-sixth"
-            is OneHundredAndTwentyThird -> "One-hundred-and-twenty-third"
-            is OneHundredEightieth -> "One-hundred-eightieth"
-            is OneHundredFiftieth -> "One-hundred-fiftieth"
-            is OneHundredFortieth -> "One-hundred-fortieth"
-            is OneHundredNinetieth -> "One-hundred-ninetieth"
-            is OneHundredSeventieth -> "One-hundred-seventieth"
-            is OneHundredSixtieth -> "One-hundred-sixtieth"
-            is OneHundredThirtieth -> "One-hundred-thirtieth"
-            is OneHundredTwentieth -> "One-hundred-twentieth"
-            is OneHundredth -> "One-hundredth"
-            is Outside -> "Outside"
-            is Right -> "Right"
-            is Second -> "Second"
-            is Seventeenth -> "Seventeenth"
-            is Seventh -> "Seventh"
-            is Seventieth -> "Seventieth"
-            is SeventyEighth -> "Seventy-eighth"
-            is SeventyFifth -> "Seventy-fifth"
-            is SeventyFirst -> "Seventy-first"
-            is SeventyFourth -> "Seventy-fourth"
-            is SeventyNineth -> "Seventy-nineth"
-            is SeventySecond -> "Seventy-second"
-            is SeventySeventh -> "Seventy-seventh"
-            is SeventySixth -> "Seventy-sixth"
-            is SeventyThird -> "Seventy-third"
-            is Sixteenth -> "Sixteenth"
-            is Sixth -> "Sixth"
-            is Sixtieth -> "Sixtieth"
-            is SixtyEighth -> "Sixty-eighth"
-            is SixtyFifth -> "Sixty-fifth"
-            is SixtyFirst -> "Sixty-first"
-            is SixtyFourth -> "Sixty-fourth"
-            is SixtyNineth -> "Sixty-nineth"
-            is SixtySecond -> "Sixty-second"
-            is SixtySeventh -> "Sixty-seventh"
-            is SixtySixth -> "Sixty-sixth"
-            is SixtyThird -> "Sixty-third"
-            is Supplementary -> "Supplementary"
-            is Tenth -> "Tenth"
-            is Third -> "Third"
-            is Thirteenth -> "Thirteenth"
-            is Thirtieth -> "Thirtieth"
-            is ThirtyEighth -> "Thirty-eighth"
-            is ThirtyFifth -> "Thirty-fifth"
-            is ThirtyFirst -> "Thirty-first"
-            is ThirtyFourth -> "Thirty-fourth"
-            is ThirtyNineth -> "Thirty-nineth"
-            is ThirtySecond -> "Thirty-second"
-            is ThirtySeventh -> "Thirty-seventh"
-            is ThirtySixth -> "Thirty-sixth"
-            is ThirtyThird -> "Thirty-third"
-            is Top -> "Top"
-            is Twelveth -> "Twelveth"
-            is Twentieth -> "Twentieth"
-            is TwentyEighth -> "Twenty-eighth"
-            is TwentyFifth -> "Twenty-fifth"
-            is TwentyFirst -> "Twenty-first"
-            is TwentyFourth -> "Twenty-fourth"
-            is TwentyNineth -> "Twenty-nineth"
-            is TwentySecond -> "Twenty-second"
-            is TwentySeventh -> "Twenty-seventh"
-            is TwentySixth -> "Twenty-sixth"
-            is TwentyThird -> "Twenty-third"
-            is TwoHundredAndEighteenth -> "Two-hundred-and-eighteenth"
-            is TwoHundredAndEighth -> "Two-hundred-and-eighth"
-            is TwoHundredAndEleventh -> "Two-hundred-and-eleventh"
-            is TwoHundredAndFifteenth -> "Two-hundred-and-fifteenth"
-            is TwoHundredAndFifth -> "Two-hundred-and-fifth"
-            is TwoHundredAndFiftyFifth -> "Two-hundred-and-fifty-fifth"
-            is TwoHundredAndFiftyFirst -> "Two-hundred-and-fifty-first"
-            is TwoHundredAndFiftyFourth -> "Two-hundred-and-fifty-fourth"
-            is TwoHundredAndFiftySecond -> "Two-hundred-and-fifty-second"
-            is TwoHundredAndFiftyThird -> "Two-hundred-and-fifty-third"
-            is TwoHundredAndFirst -> "Two-hundred-and-first"
-            is TwoHundredAndFourteenth -> "Two-hundred-and-fourteenth"
-            is TwoHundredAndFourth -> "Two-hundred-and-fourth"
-            is TwoHundredAndFourtyEighth -> "Two-hundred-and-fourty-eighth"
-            is TwoHundredAndFourtyFifth -> "Two-hundred-and-fourty-fifth"
-            is TwoHundredAndFourtyFirst -> "Two-hundred-and-fourty-first"
-            is TwoHundredAndFourtyFourth -> "Two-hundred-and-fourty-fourth"
-            is TwoHundredAndFourtyNineth -> "Two-hundred-and-fourty-nineth"
-            is TwoHundredAndFourtySecond -> "Two-hundred-and-fourty-second"
-            is TwoHundredAndFourtySeventh -> "Two-hundred-and-fourty-seventh"
-            is TwoHundredAndFourtySixth -> "Two-hundred-and-fourty-sixth"
-            is TwoHundredAndFourtyThird -> "Two-hundred-and-fourty-third"
-            is TwoHundredAndNineteenth -> "Two-hundred-and-nineteenth"
-            is TwoHundredAndNineth -> "Two-hundred-and-nineth"
-            is TwoHundredAndSecond -> "Two-hundred-and-second"
-            is TwoHundredAndSeventeenth -> "Two-hundred-and-seventeenth"
-            is TwoHundredAndSeventh -> "Two-hundred-and-seventh"
-            is TwoHundredAndSixteenth -> "Two-hundred-and-sixteenth"
-            is TwoHundredAndSixth -> "Two-hundred-and-sixth"
-            is TwoHundredAndTenth -> "Two-hundred-and-tenth"
-            is TwoHundredAndThird -> "Two-hundred-and-third"
-            is TwoHundredAndThirteenth -> "Two-hundred-and-thirteenth"
-            is TwoHundredAndThirtyEighth -> "Two-hundred-and-thirty-eighth"
-            is TwoHundredAndThirtyFifth -> "Two-hundred-and-thirty-fifth"
-            is TwoHundredAndThirtyFirst -> "Two-hundred-and-thirty-first"
-            is TwoHundredAndThirtyFourth -> "Two-hundred-and-thirty-fourth"
-            is TwoHundredAndThirtyNineth -> "Two-hundred-and-thirty-nineth"
-            is TwoHundredAndThirtySecond -> "Two-hundred-and-thirty-second"
-            is TwoHundredAndThirtySeventh -> "Two-hundred-and-thirty-seventh"
-            is TwoHundredAndThirtySixth -> "Two-hundred-and-thirty-sixth"
-            is TwoHundredAndThirtyThird -> "Two-hundred-and-thirty-third"
-            is TwoHundredAndTwelveth -> "Two-hundred-and-twelveth"
-            is TwoHundredAndTwentyEighth -> "Two-hundred-and-twenty-eighth"
-            is TwoHundredAndTwentyFifth -> "Two-hundred-and-twenty-fifth"
-            is TwoHundredAndTwentyFirst -> "Two-hundred-and-twenty-first"
-            is TwoHundredAndTwentyFourth -> "Two-hundred-and-twenty-fourth"
-            is TwoHundredAndTwentyNineth -> "Two-hundred-and-twenty-nineth"
-            is TwoHundredAndTwentySecond -> "Two-hundred-and-twenty-second"
-            is TwoHundredAndTwentySeventh -> "Two-hundred-and-twenty-seventh"
-            is TwoHundredAndTwentySixth -> "Two-hundred-and-twenty-sixth"
-            is TwoHundredAndTwentyThird -> "Two-hundred-and-twenty-third"
-            is TwoHundredFiftieth -> "Two-hundred-fiftieth"
-            is TwoHundredFortieth -> "Two-hundred-fortieth"
-            is TwoHundredThirtieth -> "Two-hundred-thirtieth"
-            is TwoHundredTwentieth -> "Two-hundred-twentieth"
-            is TwoHundredth -> "Two-hundredth"
-            is Unknown -> "Unknown"
-            is Upper -> "Upper"
+        fun nameOf(value: Location) = when (value) {
+            AUXILIARY -> "Auxiliary"
+            BACK -> "Back"
+            BACKUP -> "Backup"
+            BOTTOM -> "Bottom"
+            EIGHTEENTH -> "Eighteenth"
+            EIGHTH -> "Eighth"
+            EIGHTIETH -> "Eightieth"
+            EIGHTY_EIGHTH -> "Eighty-eighth"
+            EIGHTY_FIFTH -> "Eighty-fifth"
+            EIGHTY_FIRST -> "Eighty-first"
+            EIGHTY_FOURTH -> "Eighty-fourth"
+            EIGHTY_NINETH -> "Eighty-nineth"
+            EIGHTY_SECOND -> "Eighty-second"
+            EIGHTY_SEVENTH -> "Eighty-seventh"
+            EIGHTY_SIXTH -> "Eighty-sixth"
+            EIGHTY_THIRD -> "Eighty-third"
+            ELEVENTH -> "Eleventh"
+            EXTERNAL -> "External"
+            FIFTEENTH -> "Fifteenth"
+            FIFTH -> "Fifth"
+            FIFTIETH -> "Fiftieth"
+            FIFTY_EIGHTH -> "Fifty-eighth"
+            FIFTY_FIFTH -> "Fifty-fifth"
+            FIFTY_FIRST -> "Fifty-first"
+            FIFTY_FOURTH -> "Fifty-fourth"
+            FIFTY_NINETH -> "Fifty-nineth"
+            FIFTY_SECOND -> "Fifty-second"
+            FIFTY_SEVENTH -> "Fifty-seventh"
+            FIFTY_SIXTH -> "Fifty-sixth"
+            FIFTY_THIRD -> "Fifty-third"
+            FIRST -> "First"
+            FLASH -> "Flash"
+            FORTIETH -> "Fortieth"
+            FOURTEENTH -> "Fourteenth"
+            FOURTH -> "Fourth"
+            FOURTY_EIGHTH -> "Fourty-eighth"
+            FOURTY_FIFTH -> "Fourty-fifth"
+            FOURTY_FIRST -> "Fourty-first"
+            FOURTY_FOURTH -> "Fourty-fourth"
+            FOURTY_NINETH -> "Fourty-nineth"
+            FOURTY_SECOND -> "Fourty-second"
+            FOURTY_SEVENTH -> "Fourty-seventh"
+            FOURTY_SIXTH -> "Fourty-sixth"
+            FOURTY_THIRD -> "Fourty-third"
+            FRONT -> "Front"
+            INSIDE -> "Inside"
+            INTERNAL -> "Internal"
+            LEFT -> "Left"
+            LOWER -> "Lower"
+            MAIN -> "Main"
+            NINETEENTH -> "Nineteenth"
+            NINETH -> "Nineth"
+            NINETIETH -> "Ninetieth"
+            NINETY_EIGHTH -> "Ninety-eighth"
+            NINETY_FIFTH -> "Ninety-fifth"
+            NINETY_FIRST -> "Ninety-first"
+            NINETY_FOURTH -> "Ninety-fourth"
+            NINETY_NINETH -> "Ninety-nineth"
+            NINETY_SECOND -> "Ninety-second"
+            NINETY_SEVENTH -> "Ninety-seventh"
+            NINETY_SIXTH -> "Ninety-sixth"
+            NINETY_THIRD -> "Ninety-third"
+            ONE_HUNDRED_AND_EIGHTEENTH -> "One-hundred-and-eighteenth"
+            ONE_HUNDRED_AND_EIGHTH -> "One-hundred-and-eighth"
+            ONE_HUNDRED_AND_EIGHTY_EIGHTH -> "One-hundred-and-eighty-eighth"
+            ONE_HUNDRED_AND_EIGHTY_FIFTH -> "One-hundred-and-eighty-fifth"
+            ONE_HUNDRED_AND_EIGHTY_FIRST -> "One-hundred-and-eighty-first"
+            ONE_HUNDRED_AND_EIGHTY_FOURTH -> "One-hundred-and-eighty-fourth"
+            ONE_HUNDRED_AND_EIGHTY_NINETH -> "One-hundred-and-eighty-nineth"
+            ONE_HUNDRED_AND_EIGHTY_SECOND -> "One-hundred-and-eighty-second"
+            ONE_HUNDRED_AND_EIGHTY_SEVENTH -> "One-hundred-and-eighty-seventh"
+            ONE_HUNDRED_AND_EIGHTY_SIXTH -> "One-hundred-and-eighty-sixth"
+            ONE_HUNDRED_AND_EIGHTY_THIRD -> "One-hundred-and-eighty-third"
+            ONE_HUNDRED_AND_ELEVENTH -> "One-hundred-and-eleventh"
+            ONE_HUNDRED_AND_FIFTEENTH -> "One-hundred-and-fifteenth"
+            ONE_HUNDRED_AND_FIFTH -> "One-hundred-and-fifth"
+            ONE_HUNDRED_AND_FIFTY_EIGHTH -> "One-hundred-and-fifty-eighth"
+            ONE_HUNDRED_AND_FIFTY_FIFTH -> "One-hundred-and-fifty-fifth"
+            ONE_HUNDRED_AND_FIFTY_FIRST -> "One-hundred-and-fifty-first"
+            ONE_HUNDRED_AND_FIFTY_FOURTH -> "One-hundred-and-fifty-fourth"
+            ONE_HUNDRED_AND_FIFTY_NINETH -> "One-hundred-and-fifty-nineth"
+            ONE_HUNDRED_AND_FIFTY_SECOND -> "One-hundred-and-fifty-second"
+            ONE_HUNDRED_AND_FIFTY_SEVENTH -> "One-hundred-and-fifty-seventh"
+            ONE_HUNDRED_AND_FIFTY_SIXTH -> "One-hundred-and-fifty-sixth"
+            ONE_HUNDRED_AND_FIFTY_THIRD -> "One-hundred-and-fifty-third"
+            ONE_HUNDRED_AND_FIRST -> "One-hundred-and-first"
+            ONE_HUNDRED_AND_FOURTEENTH -> "One-hundred-and-fourteenth"
+            ONE_HUNDRED_AND_FOURTH -> "One-hundred-and-fourth"
+            ONE_HUNDRED_AND_FOURTY_EIGHTH -> "One-hundred-and-fourty-eighth"
+            ONE_HUNDRED_AND_FOURTY_FIFTH -> "One-hundred-and-fourty-fifth"
+            ONE_HUNDRED_AND_FOURTY_FIRST -> "One-hundred-and-fourty-first"
+            ONE_HUNDRED_AND_FOURTY_FOURTH -> "One-hundred-and-fourty-fourth"
+            ONE_HUNDRED_AND_FOURTY_NINETH -> "One-hundred-and-fourty-nineth"
+            ONE_HUNDRED_AND_FOURTY_SECOND -> "One-hundred-and-fourty-second"
+            ONE_HUNDRED_AND_FOURTY_SEVENTH -> "One-hundred-and-fourty-seventh"
+            ONE_HUNDRED_AND_FOURTY_SIXTH -> "One-hundred-and-fourty-sixth"
+            ONE_HUNDRED_AND_FOURTY_THIRD -> "One-hundred-and-fourty-third"
+            ONE_HUNDRED_AND_NINETEENTH -> "One-hundred-and-nineteenth"
+            ONE_HUNDRED_AND_NINETH -> "One-hundred-and-nineth"
+            ONE_HUNDRED_AND_NINETY_EIGHTH -> "One-hundred-and-ninety-eighth"
+            ONE_HUNDRED_AND_NINETY_FIFTH -> "One-hundred-and-ninety-fifth"
+            ONE_HUNDRED_AND_NINETY_FIRST -> "One-hundred-and-ninety-first"
+            ONE_HUNDRED_AND_NINETY_FOURTH -> "One-hundred-and-ninety-fourth"
+            ONE_HUNDRED_AND_NINETY_NINETH -> "One-hundred-and-ninety-nineth"
+            ONE_HUNDRED_AND_NINETY_SECOND -> "One-hundred-and-ninety-second"
+            ONE_HUNDRED_AND_NINETY_SEVENTH -> "One-hundred-and-ninety-seventh"
+            ONE_HUNDRED_AND_NINETY_SIXTH -> "One-hundred-and-ninety-sixth"
+            ONE_HUNDRED_AND_NINETY_THIRD -> "One-hundred-and-ninety-third"
+            ONE_HUNDRED_AND_SECOND -> "One-hundred-and-second"
+            ONE_HUNDRED_AND_SEVENTEENTH -> "One-hundred-and-seventeenth"
+            ONE_HUNDRED_AND_SEVENTH -> "One-hundred-and-seventh"
+            ONE_HUNDRED_AND_SEVENTY_EIGHTH -> "One-hundred-and-seventy-eighth"
+            ONE_HUNDRED_AND_SEVENTY_FIFTH -> "One-hundred-and-seventy-fifth"
+            ONE_HUNDRED_AND_SEVENTY_FIRST -> "One-hundred-and-seventy-first"
+            ONE_HUNDRED_AND_SEVENTY_FOURTH -> "One-hundred-and-seventy-fourth"
+            ONE_HUNDRED_AND_SEVENTY_NINETH -> "One-hundred-and-seventy-nineth"
+            ONE_HUNDRED_AND_SEVENTY_SECOND -> "One-hundred-and-seventy-second"
+            ONE_HUNDRED_AND_SEVENTY_SEVENTH -> "One-hundred-and-seventy-seventh"
+            ONE_HUNDRED_AND_SEVENTY_SIXTH -> "One-hundred-and-seventy-sixth"
+            ONE_HUNDRED_AND_SEVENTY_THIRD -> "One-hundred-and-seventy-third"
+            ONE_HUNDRED_AND_SIXTEENTH -> "One-hundred-and-sixteenth"
+            ONE_HUNDRED_AND_SIXTH -> "One-hundred-and-sixth"
+            ONE_HUNDRED_AND_SIXTY_EIGHTH -> "One-hundred-and-sixty-eighth"
+            ONE_HUNDRED_AND_SIXTY_FIFTH -> "One-hundred-and-sixty-fifth"
+            ONE_HUNDRED_AND_SIXTY_FIRST -> "One-hundred-and-sixty-first"
+            ONE_HUNDRED_AND_SIXTY_FOURTH -> "One-hundred-and-sixty-fourth"
+            ONE_HUNDRED_AND_SIXTY_NINETH -> "One-hundred-and-sixty-nineth"
+            ONE_HUNDRED_AND_SIXTY_SECOND -> "One-hundred-and-sixty-second"
+            ONE_HUNDRED_AND_SIXTY_SEVENTH -> "One-hundred-and-sixty-seventh"
+            ONE_HUNDRED_AND_SIXTY_SIXTH -> "One-hundred-and-sixty-sixth"
+            ONE_HUNDRED_AND_SIXTY_THIRD -> "One-hundred-and-sixty-third"
+            ONE_HUNDRED_AND_TENTH -> "One-hundred-and-tenth"
+            ONE_HUNDRED_AND_THIRD -> "One-hundred-and-third"
+            ONE_HUNDRED_AND_THIRTEENTH -> "One-hundred-and-thirteenth"
+            ONE_HUNDRED_AND_THIRTY_EIGHTH -> "One-hundred-and-thirty-eighth"
+            ONE_HUNDRED_AND_THIRTY_FIFTH -> "One-hundred-and-thirty-fifth"
+            ONE_HUNDRED_AND_THIRTY_FIRST -> "One-hundred-and-thirty-first"
+            ONE_HUNDRED_AND_THIRTY_FOURTH -> "One-hundred-and-thirty-fourth"
+            ONE_HUNDRED_AND_THIRTY_NINETH -> "One-hundred-and-thirty-nineth"
+            ONE_HUNDRED_AND_THIRTY_SECOND -> "One-hundred-and-thirty-second"
+            ONE_HUNDRED_AND_THIRTY_SEVENTH -> "One-hundred-and-thirty-seventh"
+            ONE_HUNDRED_AND_THIRTY_SIXTH -> "One-hundred-and-thirty-sixth"
+            ONE_HUNDRED_AND_THIRTY_THIRD -> "One-hundred-and-thirty-third"
+            ONE_HUNDRED_AND_TWELVETH -> "One-hundred-and-twelveth"
+            ONE_HUNDRED_AND_TWENTY_EIGHTH -> "One-hundred-and-twenty-eighth"
+            ONE_HUNDRED_AND_TWENTY_FIFTH -> "One-hundred-and-twenty-fifth"
+            ONE_HUNDRED_AND_TWENTY_FIRST -> "One-hundred-and-twenty-first"
+            ONE_HUNDRED_AND_TWENTY_FOURTH -> "One-hundred-and-twenty-fourth"
+            ONE_HUNDRED_AND_TWENTY_NINETH -> "One-hundred-and-twenty-nineth"
+            ONE_HUNDRED_AND_TWENTY_SECOND -> "One-hundred-and-twenty-second"
+            ONE_HUNDRED_AND_TWENTY_SEVENTH -> "One-hundred-and-twenty-seventh"
+            ONE_HUNDRED_AND_TWENTY_SIXTH -> "One-hundred-and-twenty-sixth"
+            ONE_HUNDRED_AND_TWENTY_THIRD -> "One-hundred-and-twenty-third"
+            ONE_HUNDRED_EIGHTIETH -> "One-hundred-eightieth"
+            ONE_HUNDRED_FIFTIETH -> "One-hundred-fiftieth"
+            ONE_HUNDRED_FORTIETH -> "One-hundred-fortieth"
+            ONE_HUNDRED_NINETIETH -> "One-hundred-ninetieth"
+            ONE_HUNDRED_SEVENTIETH -> "One-hundred-seventieth"
+            ONE_HUNDRED_SIXTIETH -> "One-hundred-sixtieth"
+            ONE_HUNDRED_THIRTIETH -> "One-hundred-thirtieth"
+            ONE_HUNDRED_TWENTIETH -> "One-hundred-twentieth"
+            ONE_HUNDREDTH -> "One-hundredth"
+            OUTSIDE -> "Outside"
+            RIGHT -> "Right"
+            SECOND -> "Second"
+            SEVENTEENTH -> "Seventeenth"
+            SEVENTH -> "Seventh"
+            SEVENTIETH -> "Seventieth"
+            SEVENTY_EIGHTH -> "Seventy-eighth"
+            SEVENTY_FIFTH -> "Seventy-fifth"
+            SEVENTY_FIRST -> "Seventy-first"
+            SEVENTY_FOURTH -> "Seventy-fourth"
+            SEVENTY_NINETH -> "Seventy-nineth"
+            SEVENTY_SECOND -> "Seventy-second"
+            SEVENTY_SEVENTH -> "Seventy-seventh"
+            SEVENTY_SIXTH -> "Seventy-sixth"
+            SEVENTY_THIRD -> "Seventy-third"
+            SIXTEENTH -> "Sixteenth"
+            SIXTH -> "Sixth"
+            SIXTIETH -> "Sixtieth"
+            SIXTY_EIGHTH -> "Sixty-eighth"
+            SIXTY_FIFTH -> "Sixty-fifth"
+            SIXTY_FIRST -> "Sixty-first"
+            SIXTY_FOURTH -> "Sixty-fourth"
+            SIXTY_NINETH -> "Sixty-nineth"
+            SIXTY_SECOND -> "Sixty-second"
+            SIXTY_SEVENTH -> "Sixty-seventh"
+            SIXTY_SIXTH -> "Sixty-sixth"
+            SIXTY_THIRD -> "Sixty-third"
+            SUPPLEMENTARY -> "Supplementary"
+            TENTH -> "Tenth"
+            THIRD -> "Third"
+            THIRTEENTH -> "Thirteenth"
+            THIRTIETH -> "Thirtieth"
+            THIRTY_EIGHTH -> "Thirty-eighth"
+            THIRTY_FIFTH -> "Thirty-fifth"
+            THIRTY_FIRST -> "Thirty-first"
+            THIRTY_FOURTH -> "Thirty-fourth"
+            THIRTY_NINETH -> "Thirty-nineth"
+            THIRTY_SECOND -> "Thirty-second"
+            THIRTY_SEVENTH -> "Thirty-seventh"
+            THIRTY_SIXTH -> "Thirty-sixth"
+            THIRTY_THIRD -> "Thirty-third"
+            TOP -> "Top"
+            TWELVETH -> "Twelveth"
+            TWENTIETH -> "Twentieth"
+            TWENTY_EIGHTH -> "Twenty-eighth"
+            TWENTY_FIFTH -> "Twenty-fifth"
+            TWENTY_FIRST -> "Twenty-first"
+            TWENTY_FOURTH -> "Twenty-fourth"
+            TWENTY_NINETH -> "Twenty-nineth"
+            TWENTY_SECOND -> "Twenty-second"
+            TWENTY_SEVENTH -> "Twenty-seventh"
+            TWENTY_SIXTH -> "Twenty-sixth"
+            TWENTY_THIRD -> "Twenty-third"
+            TWO_HUNDRED_AND_EIGHTEENTH -> "Two-hundred-and-eighteenth"
+            TWO_HUNDRED_AND_EIGHTH -> "Two-hundred-and-eighth"
+            TWO_HUNDRED_AND_ELEVENTH -> "Two-hundred-and-eleventh"
+            TWO_HUNDRED_AND_FIFTEENTH -> "Two-hundred-and-fifteenth"
+            TWO_HUNDRED_AND_FIFTH -> "Two-hundred-and-fifth"
+            TWO_HUNDRED_AND_FIFTY_FIFTH -> "Two-hundred-and-fifty-fifth"
+            TWO_HUNDRED_AND_FIFTY_FIRST -> "Two-hundred-and-fifty-first"
+            TWO_HUNDRED_AND_FIFTY_FOURTH -> "Two-hundred-and-fifty-fourth"
+            TWO_HUNDRED_AND_FIFTY_SECOND -> "Two-hundred-and-fifty-second"
+            TWO_HUNDRED_AND_FIFTY_THIRD -> "Two-hundred-and-fifty-third"
+            TWO_HUNDRED_AND_FIRST -> "Two-hundred-and-first"
+            TWO_HUNDRED_AND_FOURTEENTH -> "Two-hundred-and-fourteenth"
+            TWO_HUNDRED_AND_FOURTH -> "Two-hundred-and-fourth"
+            TWO_HUNDRED_AND_FOURTY_EIGHTH -> "Two-hundred-and-fourty-eighth"
+            TWO_HUNDRED_AND_FOURTY_FIFTH -> "Two-hundred-and-fourty-fifth"
+            TWO_HUNDRED_AND_FOURTY_FIRST -> "Two-hundred-and-fourty-first"
+            TWO_HUNDRED_AND_FOURTY_FOURTH -> "Two-hundred-and-fourty-fourth"
+            TWO_HUNDRED_AND_FOURTY_NINETH -> "Two-hundred-and-fourty-nineth"
+            TWO_HUNDRED_AND_FOURTY_SECOND -> "Two-hundred-and-fourty-second"
+            TWO_HUNDRED_AND_FOURTY_SEVENTH -> "Two-hundred-and-fourty-seventh"
+            TWO_HUNDRED_AND_FOURTY_SIXTH -> "Two-hundred-and-fourty-sixth"
+            TWO_HUNDRED_AND_FOURTY_THIRD -> "Two-hundred-and-fourty-third"
+            TWO_HUNDRED_AND_NINETEENTH -> "Two-hundred-and-nineteenth"
+            TWO_HUNDRED_AND_NINETH -> "Two-hundred-and-nineth"
+            TWO_HUNDRED_AND_SECOND -> "Two-hundred-and-second"
+            TWO_HUNDRED_AND_SEVENTEENTH -> "Two-hundred-and-seventeenth"
+            TWO_HUNDRED_AND_SEVENTH -> "Two-hundred-and-seventh"
+            TWO_HUNDRED_AND_SIXTEENTH -> "Two-hundred-and-sixteenth"
+            TWO_HUNDRED_AND_SIXTH -> "Two-hundred-and-sixth"
+            TWO_HUNDRED_AND_TENTH -> "Two-hundred-and-tenth"
+            TWO_HUNDRED_AND_THIRD -> "Two-hundred-and-third"
+            TWO_HUNDRED_AND_THIRTEENTH -> "Two-hundred-and-thirteenth"
+            TWO_HUNDRED_AND_THIRTY_EIGHTH -> "Two-hundred-and-thirty-eighth"
+            TWO_HUNDRED_AND_THIRTY_FIFTH -> "Two-hundred-and-thirty-fifth"
+            TWO_HUNDRED_AND_THIRTY_FIRST -> "Two-hundred-and-thirty-first"
+            TWO_HUNDRED_AND_THIRTY_FOURTH -> "Two-hundred-and-thirty-fourth"
+            TWO_HUNDRED_AND_THIRTY_NINETH -> "Two-hundred-and-thirty-nineth"
+            TWO_HUNDRED_AND_THIRTY_SECOND -> "Two-hundred-and-thirty-second"
+            TWO_HUNDRED_AND_THIRTY_SEVENTH -> "Two-hundred-and-thirty-seventh"
+            TWO_HUNDRED_AND_THIRTY_SIXTH -> "Two-hundred-and-thirty-sixth"
+            TWO_HUNDRED_AND_THIRTY_THIRD -> "Two-hundred-and-thirty-third"
+            TWO_HUNDRED_AND_TWELVETH -> "Two-hundred-and-twelveth"
+            TWO_HUNDRED_AND_TWENTY_EIGHTH -> "Two-hundred-and-twenty-eighth"
+            TWO_HUNDRED_AND_TWENTY_FIFTH -> "Two-hundred-and-twenty-fifth"
+            TWO_HUNDRED_AND_TWENTY_FIRST -> "Two-hundred-and-twenty-first"
+            TWO_HUNDRED_AND_TWENTY_FOURTH -> "Two-hundred-and-twenty-fourth"
+            TWO_HUNDRED_AND_TWENTY_NINETH -> "Two-hundred-and-twenty-nineth"
+            TWO_HUNDRED_AND_TWENTY_SECOND -> "Two-hundred-and-twenty-second"
+            TWO_HUNDRED_AND_TWENTY_SEVENTH -> "Two-hundred-and-twenty-seventh"
+            TWO_HUNDRED_AND_TWENTY_SIXTH -> "Two-hundred-and-twenty-sixth"
+            TWO_HUNDRED_AND_TWENTY_THIRD -> "Two-hundred-and-twenty-third"
+            TWO_HUNDRED_FIFTIETH -> "Two-hundred-fiftieth"
+            TWO_HUNDRED_FORTIETH -> "Two-hundred-fortieth"
+            TWO_HUNDRED_THIRTIETH -> "Two-hundred-thirtieth"
+            TWO_HUNDRED_TWENTIETH -> "Two-hundred-twentieth"
+            TWO_HUNDREDTH -> "Two-hundredth"
+            UNKNOWN -> "Unknown"
+            UPPER -> "Upper"
         }
     }
 }
-
-object Auxiliary : Location(0x0108u)
-object Back : Location(0x0101u)
-object Backup : Location(0x0107u)
-object Bottom : Location(0x0103u)
-object Eighteenth : Location(0x0012u)
-object Eighth : Location(0x0008u)
-object Eightieth : Location(0x0050u)
-object EightyEighth : Location(0x0058u)
-object EightyFifth : Location(0x0055u)
-object EightyFirst : Location(0x0051u)
-object EightyFourth : Location(0x0054u)
-object EightyNineth : Location(0x0059u)
-object EightySecond : Location(0x0052u)
-object EightySeventh : Location(0x0057u)
-object EightySixth : Location(0x0056u)
-object EightyThird : Location(0x0053u)
-object Eleventh : Location(0x000bu)
-object External : Location(0x0110u)
-object Fifteenth : Location(0x000fu)
-object Fifth : Location(0x0005u)
-object Fiftieth : Location(0x0032u)
-object FiftyEighth : Location(0x003au)
-object FiftyFifth : Location(0x0037u)
-object FiftyFirst : Location(0x0033u)
-object FiftyFourth : Location(0x0036u)
-object FiftyNineth : Location(0x003bu)
-object FiftySecond : Location(0x0034u)
-object FiftySeventh : Location(0x0039u)
-object FiftySixth : Location(0x0038u)
-object FiftyThird : Location(0x0035u)
-object First : Location(0x0001u)
-object Flash : Location(0x010Au)
-object Fortieth : Location(0x0028u)
-object Fourteenth : Location(0x000eu)
-object Fourth : Location(0x0004u)
-object FourtyEighth : Location(0x0030u)
-object FourtyFifth : Location(0x002du)
-object FourtyFirst : Location(0x0029u)
-object FourtyFourth : Location(0x002cu)
-object FourtyNineth : Location(0x0031u)
-object FourtySecond : Location(0x002au)
-object FourtySeventh : Location(0x002fu)
-object FourtySixth : Location(0x002eu)
-object FourtyThird : Location(0x002bu)
-object Front : Location(0x0100u)
-object Inside : Location(0x010Bu)
-object Internal : Location(0x010Fu)
-object Left : Location(0x010Du)
-object Lower : Location(0x0105u)
-object Main : Location(0x0106u)
-object Nineteenth : Location(0x0013u)
-object Nineth : Location(0x0009u)
-object Ninetieth : Location(0x005au)
-object NinetyEighth : Location(0x0062u)
-object NinetyFifth : Location(0x005fu)
-object NinetyFirst : Location(0x005bu)
-object NinetyFourth : Location(0x005eu)
-object NinetyNineth : Location(0x0063u)
-object NinetySecond : Location(0x005cu)
-object NinetySeventh : Location(0x0061u)
-object NinetySixth : Location(0x0060u)
-object NinetyThird : Location(0x005du)
-object OneHundredAndEighteenth : Location(0x0076u)
-object OneHundredAndEighth : Location(0x006cu)
-object OneHundredAndEightyEighth : Location(0x00bcu)
-object OneHundredAndEightyFifth : Location(0x00b9u)
-object OneHundredAndEightyFirst : Location(0x00b5u)
-object OneHundredAndEightyFourth : Location(0x00b8u)
-object OneHundredAndEightyNineth : Location(0x00bdu)
-object OneHundredAndEightySecond : Location(0x00b6u)
-object OneHundredAndEightySeventh : Location(0x00bbu)
-object OneHundredAndEightySixth : Location(0x00bau)
-object OneHundredAndEightyThird : Location(0x00b7u)
-object OneHundredAndEleventh : Location(0x006fu)
-object OneHundredAndFifteenth : Location(0x0073u)
-object OneHundredAndFifth : Location(0x0069u)
-object OneHundredAndFiftyEighth : Location(0x009eu)
-object OneHundredAndFiftyFifth : Location(0x009bu)
-object OneHundredAndFiftyFirst : Location(0x0097u)
-object OneHundredAndFiftyFourth : Location(0x009au)
-object OneHundredAndFiftyNineth : Location(0x009fu)
-object OneHundredAndFiftySecond : Location(0x0098u)
-object OneHundredAndFiftySeventh : Location(0x009du)
-object OneHundredAndFiftySixth : Location(0x009cu)
-object OneHundredAndFiftyThird : Location(0x0099u)
-object OneHundredAndFirst : Location(0x0065u)
-object OneHundredAndFourteenth : Location(0x0072u)
-object OneHundredAndFourth : Location(0x0068u)
-object OneHundredAndFourtyEighth : Location(0x0094u)
-object OneHundredAndFourtyFifth : Location(0x0091u)
-object OneHundredAndFourtyFirst : Location(0x008du)
-object OneHundredAndFourtyFourth : Location(0x0090u)
-object OneHundredAndFourtyNineth : Location(0x0095u)
-object OneHundredAndFourtySecond : Location(0x008eu)
-object OneHundredAndFourtySeventh : Location(0x0093u)
-object OneHundredAndFourtySixth : Location(0x0092u)
-object OneHundredAndFourtyThird : Location(0x008fu)
-object OneHundredAndNineteenth : Location(0x0077u)
-object OneHundredAndNineth : Location(0x006du)
-object OneHundredAndNinetyEighth : Location(0x00c6u)
-object OneHundredAndNinetyFifth : Location(0x00c3u)
-object OneHundredAndNinetyFirst : Location(0x00bfu)
-object OneHundredAndNinetyFourth : Location(0x00c2u)
-object OneHundredAndNinetyNineth : Location(0x00c7u)
-object OneHundredAndNinetySecond : Location(0x00c0u)
-object OneHundredAndNinetySeventh : Location(0x00c5u)
-object OneHundredAndNinetySixth : Location(0x00c4u)
-object OneHundredAndNinetyThird : Location(0x00c1u)
-object OneHundredAndSecond : Location(0x0066u)
-object OneHundredAndSeventeenth : Location(0x0075u)
-object OneHundredAndSeventh : Location(0x006bu)
-object OneHundredAndSeventyEighth : Location(0x00b2u)
-object OneHundredAndSeventyFifth : Location(0x00afu)
-object OneHundredAndSeventyFirst : Location(0x00abu)
-object OneHundredAndSeventyFourth : Location(0x00aeu)
-object OneHundredAndSeventyNineth : Location(0x00b3u)
-object OneHundredAndSeventySecond : Location(0x00acu)
-object OneHundredAndSeventySeventh : Location(0x00b1u)
-object OneHundredAndSeventySixth : Location(0x00b0u)
-object OneHundredAndSeventyThird : Location(0x00adu)
-object OneHundredAndSixteenth : Location(0x0074u)
-object OneHundredAndSixth : Location(0x006au)
-object OneHundredAndSixtyEighth : Location(0x00a8u)
-object OneHundredAndSixtyFifth : Location(0x00a5u)
-object OneHundredAndSixtyFirst : Location(0x00a1u)
-object OneHundredAndSixtyFourth : Location(0x00a4u)
-object OneHundredAndSixtyNineth : Location(0x00a9u)
-object OneHundredAndSixtySecond : Location(0x00a2u)
-object OneHundredAndSixtySeventh : Location(0x00a7u)
-object OneHundredAndSixtySixth : Location(0x00a6u)
-object OneHundredAndSixtyThird : Location(0x00a3u)
-object OneHundredAndTenth : Location(0x006eu)
-object OneHundredAndThird : Location(0x0067u)
-object OneHundredAndThirteenth : Location(0x0071u)
-object OneHundredAndThirtyEighth : Location(0x008au)
-object OneHundredAndThirtyFifth : Location(0x0087u)
-object OneHundredAndThirtyFirst : Location(0x0083u)
-object OneHundredAndThirtyFourth : Location(0x0086u)
-object OneHundredAndThirtyNineth : Location(0x008bu)
-object OneHundredAndThirtySecond : Location(0x0084u)
-object OneHundredAndThirtySeventh : Location(0x0089u)
-object OneHundredAndThirtySixth : Location(0x0088u)
-object OneHundredAndThirtyThird : Location(0x0085u)
-object OneHundredAndTwelveth : Location(0x0070u)
-object OneHundredAndTwentyEighth : Location(0x0080u)
-object OneHundredAndTwentyFifth : Location(0x007du)
-object OneHundredAndTwentyFirst : Location(0x0079u)
-object OneHundredAndTwentyFourth : Location(0x007cu)
-object OneHundredAndTwentyNineth : Location(0x0081u)
-object OneHundredAndTwentySecond : Location(0x007au)
-object OneHundredAndTwentySeventh : Location(0x007fu)
-object OneHundredAndTwentySixth : Location(0x007eu)
-object OneHundredAndTwentyThird : Location(0x007bu)
-object OneHundredEightieth : Location(0x00b4u)
-object OneHundredFiftieth : Location(0x0096u)
-object OneHundredFortieth : Location(0x008cu)
-object OneHundredNinetieth : Location(0x00beu)
-object OneHundredSeventieth : Location(0x00aau)
-object OneHundredSixtieth : Location(0x00a0u)
-object OneHundredThirtieth : Location(0x0082u)
-object OneHundredTwentieth : Location(0x0078u)
-object OneHundredth : Location(0x0064u)
-object Outside : Location(0x010Cu)
-object Right : Location(0x010Eu)
-object Second : Location(0x0002u)
-object Seventeenth : Location(0x0011u)
-object Seventh : Location(0x0007u)
-object Seventieth : Location(0x0046u)
-object SeventyEighth : Location(0x004eu)
-object SeventyFifth : Location(0x004bu)
-object SeventyFirst : Location(0x0047u)
-object SeventyFourth : Location(0x004au)
-object SeventyNineth : Location(0x004fu)
-object SeventySecond : Location(0x0048u)
-object SeventySeventh : Location(0x004du)
-object SeventySixth : Location(0x004cu)
-object SeventyThird : Location(0x0049u)
-object Sixteenth : Location(0x0010u)
-object Sixth : Location(0x0006u)
-object Sixtieth : Location(0x003cu)
-object SixtyEighth : Location(0x0044u)
-object SixtyFifth : Location(0x0041u)
-object SixtyFirst : Location(0x003du)
-object SixtyFourth : Location(0x0040u)
-object SixtyNineth : Location(0x0045u)
-object SixtySecond : Location(0x003eu)
-object SixtySeventh : Location(0x0043u)
-object SixtySixth : Location(0x0042u)
-object SixtyThird : Location(0x003fu)
-object Supplementary : Location(0x0109u)
-object Tenth : Location(0x000au)
-object Third : Location(0x0003u)
-object Thirteenth : Location(0x000du)
-object Thirtieth : Location(0x001eu)
-object ThirtyEighth : Location(0x0026u)
-object ThirtyFifth : Location(0x0023u)
-object ThirtyFirst : Location(0x001fu)
-object ThirtyFourth : Location(0x0022u)
-object ThirtyNineth : Location(0x0027u)
-object ThirtySecond : Location(0x0020u)
-object ThirtySeventh : Location(0x0025u)
-object ThirtySixth : Location(0x0024u)
-object ThirtyThird : Location(0x0021u)
-object Top : Location(0x0102u)
-object Twelveth : Location(0x000cu)
-object Twentieth : Location(0x0014u)
-object TwentyEighth : Location(0x001cu)
-object TwentyFifth : Location(0x0019u)
-object TwentyFirst : Location(0x0015u)
-object TwentyFourth : Location(0x0018u)
-object TwentyNineth : Location(0x001du)
-object TwentySecond : Location(0x0016u)
-object TwentySeventh : Location(0x001bu)
-object TwentySixth : Location(0x001au)
-object TwentyThird : Location(0x0017u)
-object TwoHundredAndEighteenth : Location(0x00dau)
-object TwoHundredAndEighth : Location(0x00d0u)
-object TwoHundredAndEleventh : Location(0x00d3u)
-object TwoHundredAndFifteenth : Location(0x00d7u)
-object TwoHundredAndFifth : Location(0x00cdu)
-object TwoHundredAndFiftyFifth : Location(0x00ffu)
-object TwoHundredAndFiftyFirst : Location(0x00fbu)
-object TwoHundredAndFiftyFourth : Location(0x00feu)
-object TwoHundredAndFiftySecond : Location(0x00fcu)
-object TwoHundredAndFiftyThird : Location(0x00fdu)
-object TwoHundredAndFirst : Location(0x00c9u)
-object TwoHundredAndFourteenth : Location(0x00d6u)
-object TwoHundredAndFourth : Location(0x00ccu)
-object TwoHundredAndFourtyEighth : Location(0x00f8u)
-object TwoHundredAndFourtyFifth : Location(0x00f5u)
-object TwoHundredAndFourtyFirst : Location(0x00f1u)
-object TwoHundredAndFourtyFourth : Location(0x00f4u)
-object TwoHundredAndFourtyNineth : Location(0x00f9u)
-object TwoHundredAndFourtySecond : Location(0x00f2u)
-object TwoHundredAndFourtySeventh : Location(0x00f7u)
-object TwoHundredAndFourtySixth : Location(0x00f6u)
-object TwoHundredAndFourtyThird : Location(0x00f3u)
-object TwoHundredAndNineteenth : Location(0x00dbu)
-object TwoHundredAndNineth : Location(0x00d1u)
-object TwoHundredAndSecond : Location(0x00cau)
-object TwoHundredAndSeventeenth : Location(0x00d9u)
-object TwoHundredAndSeventh : Location(0x00cfu)
-object TwoHundredAndSixteenth : Location(0x00d8u)
-object TwoHundredAndSixth : Location(0x00ceu)
-object TwoHundredAndTenth : Location(0x00d2u)
-object TwoHundredAndThird : Location(0x00cbu)
-object TwoHundredAndThirteenth : Location(0x00d5u)
-object TwoHundredAndThirtyEighth : Location(0x00eeu)
-object TwoHundredAndThirtyFifth : Location(0x00ebu)
-object TwoHundredAndThirtyFirst : Location(0x00e7u)
-object TwoHundredAndThirtyFourth : Location(0x00eau)
-object TwoHundredAndThirtyNineth : Location(0x00efu)
-object TwoHundredAndThirtySecond : Location(0x00e8u)
-object TwoHundredAndThirtySeventh : Location(0x00edu)
-object TwoHundredAndThirtySixth : Location(0x00ecu)
-object TwoHundredAndThirtyThird : Location(0x00e9u)
-object TwoHundredAndTwelveth : Location(0x00d4u)
-object TwoHundredAndTwentyEighth : Location(0x00e4u)
-object TwoHundredAndTwentyFifth : Location(0x00e1u)
-object TwoHundredAndTwentyFirst : Location(0x00ddu)
-object TwoHundredAndTwentyFourth : Location(0x00e0u)
-object TwoHundredAndTwentyNineth : Location(0x00e5u)
-object TwoHundredAndTwentySecond : Location(0x00deu)
-object TwoHundredAndTwentySeventh : Location(0x00e3u)
-object TwoHundredAndTwentySixth : Location(0x00e2u)
-object TwoHundredAndTwentyThird : Location(0x00dfu)
-object TwoHundredFiftieth : Location(0x00fau)
-object TwoHundredFortieth : Location(0x00f0u)
-object TwoHundredThirtieth : Location(0x00e6u)
-object TwoHundredTwentieth : Location(0x00dcu)
-object TwoHundredth : Location(0x00c8u)
-object Unknown : Location(0x0000u)
-object Upper : Location(0x0104u)

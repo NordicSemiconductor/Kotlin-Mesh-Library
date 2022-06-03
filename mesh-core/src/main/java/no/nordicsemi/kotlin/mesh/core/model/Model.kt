@@ -70,7 +70,13 @@ data class Model internal constructor(
         }
     }
 
-    private companion object {
+    internal companion object {
+
+        internal const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
+        internal const val CONFIGURATION_CLIENT_MODEL_ID: UShort = 0x0001u
+        internal const val HEALTH_SERVER_MODEL_ID: UShort = 0x0002u
+        internal const val HEALTH_CLIENT_ID: UShort = 0x0002u
+
         /**
          * Returns the name of the model for a given model id.
          *
@@ -146,7 +152,3 @@ data class Model internal constructor(
     }
 }
 
-internal const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
-internal const val CONFIGURATION_CLIENT_MODEL_ID: UShort = 0x0001u
-internal const val HEALTH_SERVER_MODEL_ID: UShort = 0x0002u
-internal const val HEALTH_CLIENT_ID: UShort = 0x0002u

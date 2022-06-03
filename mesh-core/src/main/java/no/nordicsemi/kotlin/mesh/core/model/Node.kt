@@ -81,9 +81,10 @@ data class Node internal constructor(
         unicastAddress: UnicastAddress,
         elements: List<Element> = listOf(
             Element(
-                Unknown, listOf(
-                    Model(SigModelId(CONFIGURATION_SERVER_MODEL_ID)),
-                    Model(SigModelId(CONFIGURATION_CLIENT_MODEL_ID))
+                Location.UNKNOWN,
+                listOf(
+                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
                 )
             )
         ),
