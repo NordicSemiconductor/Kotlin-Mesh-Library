@@ -623,11 +623,11 @@ class MeshNetwork internal constructor(
      * @param node            Node
      * @return true if the address is assignable to the given node.
      */
-    fun isAddressAvailable(address: UnicastAddress, node: Node) = UnicastRange(
-        address, (address + node.elementsCount)
-    ).let { range ->
-        _nodes.filter { it.uuid != node.uuid }.none { it.containsAddressRange(range) } &&
-                !_networkExclusions.contains(range, ivIndex)
+    fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
+        val range = UnicastRange(address, (address + node.elementsCount))
+        return nodes
+            .filter { it.uuid != node.uuid }
+            .none { it.containsAddressRange(range) } && !_networkExclusions.contains(range, ivIndex)
     }
 
     /**
