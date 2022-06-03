@@ -9,10 +9,9 @@ import kotlinx.serialization.Transient
  * Represents Bluetooth mesh model contained in an element in a node.
  *
  * @property modelId                    The [ModelId] property contains a 16-bit [SigModelId] that
- *                                      represents a
- *                                      Bluetooth SIG defined model identifier field or a 32-bit
- *                                      [VendorModelId] that represents a vendor-defined model
- *                                      identifier.
+ *                                      represents a Bluetooth SIG defined model identifier field or
+ *                                      a 32-bit [VendorModelId] that represents a vendor-defined
+ *                                      model identifier.
  * @property subscribe                  The subscribe property contains a list of [MeshAddress].
  * @property publish                    The publish property contains a [Publish] that describes the
  *                                      configuration of this model’s publication.
@@ -35,7 +34,7 @@ data class Model internal constructor(
     var bind: List<KeyIndex> = listOf()
         private set
     val name: String
-        get() = from(modelId)
+        get() = nameOf(modelId)
     val isBluetoothSigAssigned: Boolean
         get() = modelId is SigModelId
 
@@ -83,7 +82,7 @@ data class Model internal constructor(
          * @param modelId Model ID
          * @return name of the model
          */
-        private fun from(modelId: ModelId): String =
+        private fun nameOf(modelId: ModelId): String =
             if (modelId.isBluetoothSigAssigned) "Vendor Model"
             else when (modelId.modelId) {
                 // Foundation
