@@ -238,4 +238,60 @@ data class Provisioner internal constructor(
         val uuid = this.uuid
         network?.remove(uuid)
     }
+
+    /**
+     *  Checks if the given range is allocatable to the given provisioner.
+     *
+     *  @param range Ranges to be allocated.
+     *  @return true if the range is not in use by another provisioner or false otherwise.
+     *  @throws DoesNotBelongToNetwork if the provisioner does not belong to the network.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun isRangeAvailableForAllocation(range: Range) = let { provisioner ->
+        network?.run {
+            when (range) {
+                is UnicastRange ->
+                    provisioners
+                        .filter { it.uuid != provisioner.uuid }
+                        .none { it._allocatedUnicastRanges.overlaps(range) }
+                is GroupRange ->
+                    provisioners
+                        .filter { it.uuid != provisioner.uuid }
+                        .none { it._allocatedGroupRanges.overlaps(range) }
+                is SceneRange ->
+                    provisioners
+                        .filter { it.uuid != provisioner.uuid }
+                        .none { it._allocatedSceneRanges.overlaps(range) }
+            }
+        } ?: false
+    }
+
+    /**
+     *  Check if the given list of ranges are allocatable to a given provisioner.
+     *
+     *  @param ranges Ranges to be allocated.
+     *  @return true if the given ranges are not in use by another provisioner or false otherwise.
+     */
+    fun areRangesAvailableForAllocation(ranges: List<Range>) = let { provisioner ->
+        try {
+            network?.run {
+                when (ranges.first()) {
+                    is UnicastRange ->
+                        provisioners
+                            .filter { it.uuid != provisioner.uuid }
+                            .none { it._allocatedUnicastRanges.overlaps(ranges) }
+                    is GroupRange ->
+                        provisioners
+                            .filter { it.uuid != provisioner.uuid }
+                            .none { it._allocatedGroupRanges.overlaps(ranges) }
+                    is SceneRange ->
+                        provisioners
+                            .filter { it.uuid != provisioner.uuid }
+                            .none { it._allocatedSceneRanges.overlaps(ranges) }
+                }
+            } ?: false
+        } catch (e: NoSuchElementException) {
+            false
+        }
+    }
 }

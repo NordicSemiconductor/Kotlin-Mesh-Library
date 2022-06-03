@@ -95,7 +95,7 @@ class MeshNetworkTest {
     fun testAssign() {
         val expectedAddress = UnicastAddress(255u)
         val provisioner = meshNetwork._provisioners.first()
-        meshNetwork.assign(expectedAddress, provisioner)
+        provisioner.assign(expectedAddress)
         Assert.assertEquals(
             expectedAddress,
             meshNetwork.node(provisioner.uuid)?.primaryUnicastAddress
@@ -116,8 +116,7 @@ class MeshNetworkTest {
             this.network = meshNetwork
             this.name = "Test provisioner"
         }
-        Assert.assertEquals(true, meshNetwork.isRangeAvailableForAllocation(range, provisioner))
-        meshNetwork.areRangesAvailableForAllocation(listOf(range), provisioner)
+        Assert.assertEquals(true, provisioner.isRangeAvailableForAllocation(range))
     }
 
     @Test
@@ -130,7 +129,7 @@ class MeshNetworkTest {
         }
         Assert.assertEquals(
             false,
-            meshNetwork.areRangesAvailableForAllocation(listOf(range), provisioner)
+            provisioner.areRangesAvailableForAllocation(listOf(range))
         )
     }
 }
