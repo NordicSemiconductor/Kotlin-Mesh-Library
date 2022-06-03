@@ -239,8 +239,7 @@ class MeshNetwork internal constructor(
             add(node)
         }
         provisioner.network = this
-        _provisioners.add(provisioner)
-        updateTimestamp()
+        _provisioners.add(provisioner).also { updateTimestamp() }
         // TODO Needs to save the network
     }
 
@@ -309,8 +308,7 @@ class MeshNetwork internal constructor(
         require(from != to) {
             return
         }
-        _provisioners.add(to, remove(from))
-        updateTimestamp()
+        _provisioners.add(to, remove(from)).also { updateTimestamp() }
     }
 
     /**
@@ -339,7 +337,7 @@ class MeshNetwork internal constructor(
      * @param provisioner Provisioner of whose configurations are to be disabled.
      */
     fun disableConfigurationCapabilities(provisioner: Provisioner) {
-        remove(provisioner.uuid)
+        removeNode(provisioner.uuid)
     }
 
     /**
@@ -384,8 +382,7 @@ class MeshNetwork internal constructor(
     fun remove(key: NetworkKey) {
         require(key.network == this) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
-        _networkKeys.remove(key)
-        updateTimestamp()
+        _networkKeys.remove(key).also { updateTimestamp() }
     }
 
     /**
@@ -441,8 +438,7 @@ class MeshNetwork internal constructor(
     fun remove(key: ApplicationKey) {
         require(key.network == this) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
-        _applicationKeys.remove(key)
-        updateTimestamp()
+        _applicationKeys.remove(key).also { updateTimestamp() }
     }
 
     /**
@@ -506,8 +502,7 @@ class MeshNetwork internal constructor(
         require(_networkKeys.any { it.index == node.netKeys.first().index }) {
             throw DoesNotBelongToNetwork()
         }
-        _nodes.add(node.also { it.network = this })
-        updateTimestamp()
+        _nodes.add(node.also { it.network = this }).also { updateTimestamp() }
     }
 
     /**
@@ -516,17 +511,15 @@ class MeshNetwork internal constructor(
      * @param node Node to be removed.
      */
     fun remove(node: Node) {
-        remove(node.uuid)
-        updateTimestamp()
-        TODO(reason = "Implementation incomplete")
+        removeNode(node.uuid)
     }
 
     /**
      * Removes a node with the given UUID from the mesh network.
      *
-     * @param uuid
+     * @param uuid UUID of the node to be removed.
      */
-    internal fun remove(uuid: UUID) {
+    internal fun removeNode(uuid: UUID) {
         _nodes.find {
             it.uuid == uuid
         }?.let { node ->
@@ -537,7 +530,7 @@ class MeshNetwork internal constructor(
             // cannot be assigned to another node until the IV index is incremented by 2 which
             // effectively resets the Sequence number used by all the nodes in the network.
             _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
-        }
+        }.also { updateTimestamp() }
     }
 
     /**
@@ -551,8 +544,9 @@ class MeshNetwork internal constructor(
     fun add(group: Group) {
         require(!_groups.contains(group)) { throw GroupAlreadyExists() }
         require(group.network == null) { throw DoesNotBelongToNetwork() }
-        _groups.add(group.also { it.network = this })
-        updateTimestamp()
+        _groups.add(
+            group.also { it.network = this }
+        ).also { updateTimestamp() }
     }
 
     /**
@@ -565,10 +559,8 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
     fun remove(group: Group) {
         require(group.network == this) { throw DoesNotBelongToNetwork() }
-        group.takeIf { !it.isUsed }?.let {
-            _groups.remove(group)
-            updateTimestamp()
-        } ?: throw GroupInUse()
+        require(!group.isUsed) { throw GroupInUse() }
+        _groups.remove(group).also { updateTimestamp() }
     }
 
     /**
@@ -582,8 +574,9 @@ class MeshNetwork internal constructor(
     fun add(scene: Scene) {
         require(!_scenes.contains(scene)) { throw SceneAlreadyExists() }
         require(scene.network == null) { throw DoesNotBelongToNetwork() }
-        _scenes.add(scene.also { it.network = this })
-        updateTimestamp()
+        _scenes.add(
+            scene.also { it.network = this }
+        ).also { updateTimestamp() }
     }
 
     /**
@@ -596,10 +589,8 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
         require(scene.network == this) { throw DoesNotBelongToNetwork() }
-        scene.takeIf { !it.isUsed }?.let {
-            _scenes.remove(scene)
-            updateTimestamp()
-        } ?: throw SceneInUse()
+        require(!scene.isUsed) { throw SceneInUse() }
+        _scenes.remove(scene).also { updateTimestamp() }
     }
 
     fun isAddressRangeAvailable(range: UnicastRange) = _nodes.none {

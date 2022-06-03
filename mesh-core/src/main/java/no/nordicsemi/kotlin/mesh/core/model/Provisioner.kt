@@ -189,42 +189,43 @@ data class Provisioner internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
-        val provisioner = this
-        network?.run {
-            require(hasProvisioner(uuid))
-            var isNewNode = false
-            val node = node(provisioner) ?: Node(
-                provisioner,
-                Crypto.generateRandomKey(),
-                address,
-                listOf(
-                    Element(
-                        Location.UNKNOWN,
-                        listOf(
-                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                            Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+        let { provisioner ->
+            network?.run {
+                require(hasProvisioner(uuid))
+                var isNewNode = false
+                val node = node(provisioner) ?: Node(
+                    provisioner,
+                    Crypto.generateRandomKey(),
+                    address,
+                    listOf(
+                        Element(
+                            Location.UNKNOWN,
+                            listOf(
+                                Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                                Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+                            )
                         )
-                    )
-                ),
-                _networkKeys,
-                _applicationKeys
-            ).apply {
-                companyIdentifier = 0x00E0u //Google
-                replayProtectionCount = maxUnicastAddress
-            }.also { isNewNode = true }
+                    ),
+                    _networkKeys,
+                    _applicationKeys
+                ).apply {
+                    companyIdentifier = 0x00E0u //Google
+                    replayProtectionCount = maxUnicastAddress
+                }.also { isNewNode = true }
 
-            // Is it in Provisioner's range?
-            val newRange = UnicastRange(address, node.elementsCount)
-            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
+                // Is it in Provisioner's range?
+                val newRange = UnicastRange(address, node.elementsCount)
+                require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
 
-            // Is there any other node using the address?
-            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
+                // Is there any other node using the address?
+                require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
 
-            when (isNewNode) {
-                true -> add(node)
-                else -> node._primaryUnicastAddress = address
+                when (isNewNode) {
+                    true -> add(node)
+                    else -> node._primaryUnicastAddress = address
+                }
+                updateTimestamp()
             }
-            updateTimestamp()
         }
     }
 
@@ -235,8 +236,7 @@ data class Provisioner internal constructor(
      * still retain it's provisioning capabilities.
      */
     fun disableConfigurationCapabilities() {
-        val uuid = this.uuid
-        network?.remove(uuid)
+        network?.removeNode(uuid)
     }
 
     /**
