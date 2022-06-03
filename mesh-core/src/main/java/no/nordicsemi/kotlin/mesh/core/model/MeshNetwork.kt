@@ -425,8 +425,7 @@ class MeshNetwork internal constructor(
         }.also { applicationKey ->
             _applicationKeys.apply {
                 add(applicationKey)
-                sortBy { key -> key.index }
-            }
+            }.sortBy { key -> key.index }
             updateTimestamp()
         }
     }
