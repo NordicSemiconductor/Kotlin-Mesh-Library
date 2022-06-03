@@ -22,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              of the network key in the mesh network.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
+ * @property netKey             Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
 @Serializable
