@@ -27,6 +27,7 @@ import java.util.*
  * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
  * @constructor Creates a Provisioner object.
  */
+@Suppress("unused")
 @Serializable
 data class Provisioner internal constructor(
     @SerialName(value = "UUID")
@@ -143,10 +144,8 @@ data class Provisioner internal constructor(
      * @param provisioner Other provisioner.
      * @return true if there are any overlapping unicast, groups or scene ranges or false otherwise.
      */
-    fun hasOverlappingRanges(provisioner: Provisioner) =
-        hasOverlappingUnicastRanges(other = provisioner) ||
-                hasOverlappingGroupRanges(other = provisioner) ||
-                hasOverlappingSceneRanges(other = provisioner)
+    fun hasOverlappingRanges(provisioner: Provisioner) = hasOverlappingUnicastRanges(provisioner) ||
+            hasOverlappingGroupRanges(provisioner) || hasOverlappingSceneRanges(provisioner)
 
     /**
      * Checks if the current provisioner has overlapping unicast ranges with the given provisioner.
