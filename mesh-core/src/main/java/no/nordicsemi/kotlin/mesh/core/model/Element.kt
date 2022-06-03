@@ -44,7 +44,7 @@ data class Element internal constructor(
 
     @Transient
     var unicastAddress =
-        parentNode?.primaryUnicastAddress ?: UnicastAddress(address = models.size.toUShort())
+        parentNode?.primaryUnicastAddress ?: UnicastAddress(address = models.size)
         internal set
 
     init {
