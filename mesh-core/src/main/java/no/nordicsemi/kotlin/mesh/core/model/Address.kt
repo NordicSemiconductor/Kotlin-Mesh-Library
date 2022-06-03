@@ -122,11 +122,11 @@ data class UnicastAddress(
         }
     }
 
-    operator fun plus(other: Int) = UnicastAddress((address.toInt() + other).toUShort())
+    operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
 
-    operator fun minus(other: Int) = UnicastAddress((address.toInt() - other).toUShort())
+    operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
 
-    operator fun compareTo(o: UnicastAddress) = address.toInt().compareTo(o.address.toInt())
+    operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
 
     operator fun rangeTo(o: UnicastAddress) = UnicastRange(this, o)
 
@@ -155,7 +155,7 @@ data class VirtualAddress(
         SubscriptionAddress {
     override val address: Address = Crypto.createVirtualAddress(uuid)
 
-    operator fun compareTo(o: VirtualAddress) = address.toInt().compareTo(o.address.toInt())
+    operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }
 
 /**
@@ -183,15 +183,15 @@ data class GroupAddress(
         }
     }
 
-    operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o).toUShort())
+    operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o))
 
-    operator fun minus(other: Int) = GroupAddress((address.toInt() - other).toUShort())
+    operator fun minus(other: Int) = GroupAddress((address.toInt() - other))
 
-    operator fun compareTo(o: GroupAddress) = address.toInt().compareTo(o.address.toInt())
+    operator fun compareTo(o: GroupAddress) = address.compareTo(o.address)
 
-    operator fun compareTo(o: PrimaryGroupAddress) = address.toInt().compareTo(o.address.toInt())
+    operator fun compareTo(o: PrimaryGroupAddress) = address.compareTo(o.address)
 
-    operator fun compareTo(o: ParentGroupAddress) = address.toInt().compareTo(o.address.toInt())
+    operator fun compareTo(o: ParentGroupAddress) = address.compareTo(o.address)
 
     operator fun rangeTo(o: GroupAddress) = GroupRange(this, o)
 
