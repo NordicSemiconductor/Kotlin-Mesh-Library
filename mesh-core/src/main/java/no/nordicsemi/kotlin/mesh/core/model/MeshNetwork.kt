@@ -209,7 +209,7 @@ class MeshNetwork internal constructor(
                 throw AddressNotInAllocatedRanges()
             }
             // No other node uses the same address?
-            require(!_nodes.any { it.containsElement(this) }) { throw AddressAlreadyInUse() }
+            require(!_nodes.any { it.containsElementWithAddress(this) }) { throw AddressAlreadyInUse() }
         }
 
         // Is it already added?
@@ -599,7 +599,7 @@ class MeshNetwork internal constructor(
      * @param range Unicast range to check.
      */
     fun isAddressRangeAvailable(range: UnicastRange) = _nodes.none {
-        it.containsAddressRange(range)
+        it.containsElementsWithAddress(range)
     } && !_networkExclusions.contains(range, ivIndex)
 
     /**
@@ -627,7 +627,7 @@ class MeshNetwork internal constructor(
         val range = UnicastRange(address, (address + node.elementsCount))
         return nodes
             .filter { it.uuid != node.uuid }
-            .none { it.containsAddressRange(range) } && !_networkExclusions.contains(range, ivIndex)
+            .none { it.containsElementsWithAddress(range) } && !_networkExclusions.contains(range, ivIndex)
     }
 
     /**

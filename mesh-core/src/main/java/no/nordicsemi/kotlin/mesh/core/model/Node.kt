@@ -296,7 +296,7 @@ data class Node internal constructor(
      * @param range Unicast Range.
      * @return true if given range overlaps with the node's address range.
      */
-    fun containsAddressRange(range: UnicastRange) = unicastRange.overlaps(range)
+    fun containsElementsWithAddress(range: UnicastRange) = unicastRange.overlaps(range)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
