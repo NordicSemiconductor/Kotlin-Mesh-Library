@@ -56,6 +56,10 @@ import java.util.*
  * @property excluded                   True if the node is in the process of being deleted and is
  *                                      excluded from the new network key distribution during the
  *                                      Key Refresh procedure; otherwise, it is set to “false”.
+ * @property elementsCount              Number of elements belonging to this node.
+ * @property addresses                  List of addresses used by this node.
+ * @property unicastRange               Address range used by this node.
+ * @property lastUnicastAddress         Address of the last element in the node.
  * @constructor                         Creates a mesh node.
  */
 @Serializable
