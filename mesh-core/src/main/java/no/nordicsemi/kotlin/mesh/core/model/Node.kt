@@ -129,18 +129,19 @@ data class Node internal constructor(
     var security: Security = Insecure
         internal set
     var configComplete: Boolean = false
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "cid")
     var companyIdentifier: UShort? = null
         internal set
-
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "pid")
     var productIdentifier: UShort? = null
         internal set
-
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "vid")
     var versionIdentifier: UShort? = null
@@ -149,19 +150,11 @@ data class Node internal constructor(
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "crpl")
     var replayProtectionCount: UShort? = null
-        internal set(value) {
-            field = value
-        }
+        internal set
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
+        internal set
     var secureNetworkBeacon: Boolean? = null
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
+        internal set
     var networkTransmit: NetworkTransmit? = null
         internal set(value) {
             field = value
@@ -294,7 +287,7 @@ data class Node internal constructor(
     }
 
     /**
-     * Checks if an element in the node's element has a Unicast Address from the given range.
+     * Checks if an element in the node has a Unicast Address from the given range.
      *
      * @param range Unicast Range.
      * @return true if given range overlaps with the node's address range.
