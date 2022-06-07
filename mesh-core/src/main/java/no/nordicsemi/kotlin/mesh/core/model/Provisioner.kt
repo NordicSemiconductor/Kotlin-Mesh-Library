@@ -99,13 +99,15 @@ data class Provisioner internal constructor(
     @Throws(OverlappingProvisionerRanges::class)
     fun allocate(range: GroupRange) {
         network?.apply {
-            require(provisioners.filter {
-                it.uuid != uuid
-            }.none { it._allocatedGroupRanges.overlaps(range) }) {
+            require(provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedGroupRanges.overlaps(range) }) {
                 throw OverlappingProvisionerRanges()
             }
+            _allocatedGroupRanges.add(range).also {
+                this.updateTimestamp()
+            }
         }
-        _allocatedGroupRanges.add(range)
     }
 
     /**
@@ -117,13 +119,15 @@ data class Provisioner internal constructor(
     @Throws(OverlappingProvisionerRanges::class)
     fun allocate(range: SceneRange) {
         network?.apply {
-            require(provisioners.filter {
-                it.uuid != uuid
-            }.none { it._allocatedSceneRanges.overlaps(range) }) {
+            require(provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedSceneRanges.overlaps(range) }) {
                 throw OverlappingProvisionerRanges()
             }
+            _allocatedSceneRanges.add(range).also {
+                this.updateTimestamp()
+            }
         }
-        _allocatedSceneRanges.add(range)
     }
 
     /**
