@@ -151,7 +151,6 @@ data class Node internal constructor(
     var replayProtectionCount: UShort? = null
         internal set(value) {
             field = value
-            network?.updateTimestamp()
         }
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
         internal set(value) {
@@ -215,7 +214,7 @@ data class Node internal constructor(
 
     init {
         require(elements.isNotEmpty()) {
-            throw IllegalArgumentException("Elements in a node cannot be empty!")
+            throw IllegalArgumentException("At least one element is mandatory!")
         }
     }
 
@@ -290,7 +289,7 @@ data class Node internal constructor(
      * @param address Unicast address.
      * @return true if the given address is in use by any of the elements
      */
-    fun containsElement(address: UnicastAddress) = elements.any {
+    fun containsElementWithAddress(address: UnicastAddress) = elements.any {
         it.unicastAddress == address
     }
 

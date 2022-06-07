@@ -80,13 +80,14 @@ data class Provisioner internal constructor(
     @Throws(OverlappingProvisionerRanges::class)
     fun allocate(range: UnicastRange) {
         network?.apply {
-            require(provisioners.filter {
-                it.uuid != uuid
-            }.none { it._allocatedUnicastRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges()
+            require(provisioners
+                .filter { it.uuid != uuid }
+                .none { it._allocatedUnicastRanges.overlaps(range) }
+            ) { throw OverlappingProvisionerRanges() }
+            _allocatedUnicastRanges.add(range).also {
+                this.updateTimestamp()
             }
         }
-        _allocatedUnicastRanges.add(range)
     }
 
     /**
