@@ -19,12 +19,12 @@ internal object DurationToIntSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Duration", PrimitiveKind.INT)
 
-    override fun deserialize(decoder: Decoder): Duration = try {
+    override fun deserialize(decoder: Decoder): Duration = runCatching {
         decoder.decodeInt().toDuration(DurationUnit.MILLISECONDS)
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing retransmit interval " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

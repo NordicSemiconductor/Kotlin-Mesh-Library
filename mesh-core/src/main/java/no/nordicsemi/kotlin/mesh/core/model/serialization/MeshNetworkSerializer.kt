@@ -42,9 +42,7 @@ internal object MeshNetworkSerializer {
             require(
                 networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)
                     ?: false
-            ) {
-                "Invalid version!"
-            }
+            ) { "Invalid version!" }
         }
         decodeFromJsonElement<MeshNetwork>(networkElement).apply {
             // Assign network reference to access parent network within the object.

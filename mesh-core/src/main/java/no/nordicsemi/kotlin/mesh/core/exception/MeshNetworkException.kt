@@ -62,5 +62,5 @@ class DoesNotBelongToNetwork : MeshNetworkException()
 /** Thrown when the Json deserializing encounters an error. */
 class ImportError internal constructor(
     val error: String,
-    val ex: Exception
+    val throwable: Throwable
 ) : MeshNetworkException()

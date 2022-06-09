@@ -17,12 +17,12 @@ internal object KeyRefreshPhaseSerializer : KSerializer<KeyRefreshPhase> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Phase", kind = PrimitiveKind.INT)
 
-    override fun deserialize(decoder: Decoder) = try {
+    override fun deserialize(decoder: Decoder) = runCatching {
         KeyRefreshPhase.from(decoder.decodeInt())
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing Key Refresh Phase " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

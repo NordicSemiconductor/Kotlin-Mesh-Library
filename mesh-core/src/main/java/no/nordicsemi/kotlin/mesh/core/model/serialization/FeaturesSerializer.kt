@@ -18,7 +18,7 @@ internal object FeaturesSerializer : KSerializer<Features> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Features", PrimitiveKind.INT)
 
-    override fun deserialize(decoder: Decoder): Features = try {
+    override fun deserialize(decoder: Decoder): Features = runCatching {
         (decoder as JsonDecoder).decodeJsonElement().jsonObject.let { features ->
             return Features(
                 relay = parse(features = features, key = "relay") as Relay?,
@@ -27,12 +27,11 @@ internal object FeaturesSerializer : KSerializer<Features> {
                 lowPower = parse(features = features, key = "lowPower") as LowPower?
             )
         }
-
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing features " +
                     "${(decoder as JsonDecoder).decodeJsonElement()}",
-            ex
+            it
         )
     }
 

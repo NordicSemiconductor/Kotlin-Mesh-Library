@@ -18,12 +18,12 @@ internal object KeySerializer : KSerializer<ByteArray> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Key", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder) = try {
+    override fun deserialize(decoder: Decoder) = runCatching {
         decoder.decodeString().decodeHex()
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing Key " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

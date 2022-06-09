@@ -22,12 +22,12 @@ internal object UUIDSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor(serialName = "UUID", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): UUID = try {
+    override fun deserialize(decoder: Decoder): UUID = runCatching {
         decode(uuid = decoder.decodeString())
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing UUID " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

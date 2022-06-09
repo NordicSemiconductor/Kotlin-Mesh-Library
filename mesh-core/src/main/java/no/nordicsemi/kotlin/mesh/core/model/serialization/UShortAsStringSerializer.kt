@@ -17,12 +17,12 @@ internal object UShortAsStringSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): UShort = try {
+    override fun deserialize(decoder: Decoder): UShort = runCatching {
         decoder.decodeString().toUInt(radix = 16).toUShort()
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing 16-bit value " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

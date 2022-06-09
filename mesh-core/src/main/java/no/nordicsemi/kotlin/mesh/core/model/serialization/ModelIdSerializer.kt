@@ -19,17 +19,17 @@ internal object ModelIdSerializer : KSerializer<ModelId> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "ModelId", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): ModelId = try {
+    override fun deserialize(decoder: Decoder): ModelId = runCatching {
         decoder.decodeString().toUInt(radix = 16).let { modelId ->
             when (modelId and 0xFFFF0000u) {
                 0u -> SigModelId(modelIdentifier = modelId.toUShort())
                 else -> VendorModelId(modelId = modelId)
             }
         }
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing model id " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

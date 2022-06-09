@@ -18,11 +18,13 @@ internal object LocationAsStringSerializer : KSerializer<Location> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Location = try {
+    override fun deserialize(decoder: Decoder): Location = runCatching {
         Location.from(decoder.decodeString().toUInt(radix = 16).toUShort())
-    } catch (ex: Exception) {
-        throw ImportError("Error while deserializing Location " +
-                "${(decoder as JsonDecoder).decodeJsonElement()}",  ex)
+    }.getOrElse {
+        throw ImportError(
+            "Error while deserializing Location " +
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
+        )
     }
 
     override fun serialize(encoder: Encoder, value: Location) {

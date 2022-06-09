@@ -17,12 +17,12 @@ internal object SecuritySerializer : KSerializer<Security> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Security", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Security = try {
+    override fun deserialize(decoder: Decoder): Security = runCatching {
         Security.from(decoder.decodeString())
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing Security " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

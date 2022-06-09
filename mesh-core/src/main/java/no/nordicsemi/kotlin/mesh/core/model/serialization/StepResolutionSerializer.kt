@@ -17,12 +17,12 @@ internal object StepResolutionSerializer : KSerializer<StepResolution> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "StepResolution", kind = PrimitiveKind.LONG)
 
-    override fun deserialize(decoder: Decoder): StepResolution = try {
+    override fun deserialize(decoder: Decoder): StepResolution = runCatching {
         StepResolution.from((decoder.decodeInt()))
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing publish period Step Resolution " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}", ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 

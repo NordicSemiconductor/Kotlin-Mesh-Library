@@ -16,13 +16,12 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
     override val descriptor =
         PrimitiveSerialDescriptor(serialName = "MeshAddress", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): MeshAddress = try {
+    override fun deserialize(decoder: Decoder): MeshAddress = runCatching {
         parse(decoder.decodeString())
-    } catch (ex: Exception) {
+    }.getOrElse {
         throw ImportError(
             "Error while deserializing Address " +
-                    "${(decoder as JsonDecoder).decodeJsonElement()}",
-            ex
+                    "${(decoder as JsonDecoder).decodeJsonElement()}", it
         )
     }
 
