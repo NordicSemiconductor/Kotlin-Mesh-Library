@@ -14,7 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.CredentialsSerializer
  */
 @Serializable(with = CredentialsSerializer::class)
 sealed class Credentials(val credential: Int) {
-    companion object {
+    internal companion object {
         internal fun from(credential: Int) = when (credential) {
             MASTER_SECURITY -> MasterSecurity
             FRIENDSHIP_SECURITY -> FriendshipSecurity

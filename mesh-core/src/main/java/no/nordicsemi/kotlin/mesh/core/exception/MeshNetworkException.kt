@@ -58,3 +58,9 @@ class NoSceneRangeAllocated : MeshNetworkException()
 
 /** Thrown when an object does not belong to the current network. */
 class DoesNotBelongToNetwork : MeshNetworkException()
+
+/** Thrown when the Json deserializing encounters an error. */
+class ImportError internal constructor(
+    val error: String,
+    val ex: Exception
+) : MeshNetworkException()

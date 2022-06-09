@@ -5,6 +5,8 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.*
 
 /**
@@ -14,13 +16,23 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
     override val descriptor =
         PrimitiveSerialDescriptor(serialName = "MeshAddress", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): MeshAddress = parse(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): MeshAddress = try {
+        parse(decoder.decodeString())
+    } catch (ex: Exception) {
+        throw ImportError(
+            "Error while deserializing Address " +
+                    "${(decoder as JsonDecoder).decodeJsonElement()}",
+            ex
+        )
+    }
 
     override fun serialize(encoder: Encoder, value: MeshAddress) {
-        encoder.encodeString(value = when(value) {
-            is VirtualAddress -> {UUIDSerializer.encode(uuid = value.uuid)}
-            else -> { value.address.toHex()}
-        })
+        encoder.encodeString(
+            value = when (value) {
+                is VirtualAddress -> UUIDSerializer.encode(uuid = value.uuid)
+                else -> value.address.toHex()
+            }
+        )
     }
 
     /**

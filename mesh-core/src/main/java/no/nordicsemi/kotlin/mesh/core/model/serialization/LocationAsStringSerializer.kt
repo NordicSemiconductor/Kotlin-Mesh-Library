@@ -6,6 +6,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
@@ -16,8 +18,12 @@ internal object LocationAsStringSerializer : KSerializer<Location> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Location =
+    override fun deserialize(decoder: Decoder): Location = try {
         Location.from(decoder.decodeString().toUInt(radix = 16).toUShort())
+    } catch (ex: Exception) {
+        throw ImportError("Error while deserializing Location " +
+                "${(decoder as JsonDecoder).decodeJsonElement()}",  ex)
+    }
 
     override fun serialize(encoder: Encoder, value: Location) {
         encoder.encodeString(value = value.value.toHex())

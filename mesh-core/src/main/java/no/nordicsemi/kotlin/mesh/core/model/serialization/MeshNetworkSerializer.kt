@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.ByteArrayInputStream
 
@@ -38,7 +39,10 @@ internal object MeshNetworkSerializer {
             }
             // ID does not need checking as it has changed in the past and may change again.
             // require(id == networkObject[KEY_ID]?.jsonPrimitive?.content) { "Invalid Json id!" }
-            require(networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)?: false) {
+            require(
+                networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)
+                    ?: false
+            ) {
                 "Invalid version!"
             }
         }
