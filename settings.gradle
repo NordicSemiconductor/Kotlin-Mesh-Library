@@ -3,6 +3,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            // Support for compose compiler dev version https://androidx.dev/storage/compose-compiler/repository
+            url "https://androidx.dev/storage/compose-compiler/repository/"
+        }
     }
 }
 rootProject.name = "Kotlin-nRF Mesh-Library"
