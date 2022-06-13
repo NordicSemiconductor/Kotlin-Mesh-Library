@@ -8,7 +8,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import no.nordicsemi.android.nrfmesh.ui.theme.NRFMeshTheme
+import no.nordicsemi.android.nrfmesh.ui.theme.NordicTheme
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Crypto.deObfuscate()
         setContent {
-            NRFMeshTheme {
+            NordicTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     Greeting("Android")
@@ -34,7 +34,7 @@ fun Greeting(name: String) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    NRFMeshTheme {
+    NordicTheme {
         Greeting("Android")
     }
 }
