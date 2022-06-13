@@ -3,6 +3,8 @@ buildscript {
     ext {
         kotlin_version = "1.7.0"
         compose_version = "1.2.0-beta03"
+        // https://github.com/google/accompanist/releases
+        accompanist_version = '0.24.10-beta'
     }
     repositories {
         google()
