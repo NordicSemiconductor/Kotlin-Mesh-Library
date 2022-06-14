@@ -13,7 +13,7 @@ open class MeshNetworkManager {
         protected set
 
     /**
-     * Creates a Mesh Network with a given name and an a UUID.
+     * Creates a Mesh Network with a given name and a UUID.
      *
      * @param name Name of the mesh network.
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
@@ -21,6 +21,7 @@ open class MeshNetworkManager {
      */
     fun createMeshNetwork(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
         return MeshNetwork(uuid = uuid, _name = name).also {
+            meshNetwork = it
             // TODO save the network may be?
         }
     }
