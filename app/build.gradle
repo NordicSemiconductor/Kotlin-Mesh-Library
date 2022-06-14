@@ -1,9 +1,13 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
+    namespace 'no.nordicsemi.android.nrfmesh'
+
     compileSdk 32
 
     defaultConfig {
@@ -44,7 +48,6 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
-    namespace 'no.nordicsemi.android.nrfmesh'
 }
 
 dependencies {
@@ -82,4 +85,9 @@ dependencies {
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
     implementation "com.google.accompanist:accompanist-swiperefresh:$accompanist_version"
+
+    implementation "com.google.dagger:hilt-android:$hilt_dagger_version"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
+    implementation "androidx.hilt:hilt-navigation:$hilt_android_version"
+    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
 }
