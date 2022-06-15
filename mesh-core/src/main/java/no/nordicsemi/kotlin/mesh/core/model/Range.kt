@@ -21,7 +21,7 @@ sealed class Range {
         get() = range.last.toUShort()
 
     /**
-     * Checks if a given value is in the range.
+     * Checks if the given value is within the range.
      *
      * @param value Value to be checked.
      * @return true if the value is in the range and false otherwise.
@@ -29,7 +29,7 @@ sealed class Range {
     fun contains(value: UShort) = range.contains(value)
 
     /**
-     * Checks if a given value is contained within the range.
+     * Checks if the given value is contained within the range.
      *
      * @param other Range to be checked.
      * @return true if the value is in the range and false otherwise.
@@ -37,7 +37,7 @@ sealed class Range {
     fun contains(other: Range) = range.contains(other.range)
 
     /**
-     * Checks if a given range overlaps.
+     * Checks if the given range overlaps.
      *
      * @param other Range to check for overlapping elements.
      * @return true if there are overlapping elements.
@@ -45,7 +45,7 @@ sealed class Range {
     fun overlaps(other: Range) = range.intersect(other.range).isNotEmpty()
 
     /**
-     * Checks if a given list of ranges overlaps with the current range
+     * Checks if the given list of ranges overlaps with the current range
      *
      * @param ranges List of ranges to check for overlapping elements.
      * @return true if there are overlapping elements.
