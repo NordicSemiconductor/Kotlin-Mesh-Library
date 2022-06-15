@@ -269,8 +269,8 @@ data class Node internal constructor(
     }
 
     /**
-     * Checks if the given address with a given number of overlaps with the addresses used by the
-     * node.
+     * Checks if the given addresses used by the specified number of elements overlaps with the
+     * address range used by the node.
      *
      * @param address       Desired unicast address.
      * @param count         Number of elements.

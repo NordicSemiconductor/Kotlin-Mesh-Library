@@ -96,8 +96,8 @@ class MeshNetwork internal constructor(
         get() = _scenes
 
     @SerialName("networkExclusions")
-    var _networkExclusions: MutableList<ExclusionList> = mutableListOf()
-    val networkExclusions: List<ExclusionList>
+    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf()
+    internal val networkExclusions: List<ExclusionList>
         get() = _networkExclusions
 
     @Transient
@@ -182,8 +182,7 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Adds the given Provisioner to the list of provisioners in the network and assigns it with the
-     * given address.
+     * Adds the given Provisioner with the given address to the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be added.
      * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
@@ -443,8 +442,8 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Returns provisioner's node or null if the provisioner is not a part of the network or it does
-     * not have an address assigned.
+     * Returns the provisioner's node or null, if the provisioner is not a part of the network or
+     * does not have an address assigned.
      *
      * @param provisioner Provisioner who's node is to be returned.
      * @return Null if the provisioner is not a part of the network or if the provisioner does not

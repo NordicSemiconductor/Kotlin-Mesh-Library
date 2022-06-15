@@ -6,7 +6,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Represents the unicast addresses that are excluded by a Mesh Manager for a particular IV index.
+ * Represents a list of unicast addresses that are excluded by a Mesh Manager for a particular IV
+ * index.
+ *
+ * After a node is removed from a network, other nodes keep SeqAuth values associated with addresses
+ * used by the removed node. Packets sent from a new node using the same set of addresses would be
+ * discarded until the new sequence numbers would get higher then the what is in Replay Protection
+ * List or the receivers. Therefore, until the IV index is incremented by 2, the addresses of a
+ * removed node are reserved and cannot be assigned to a new node. When the IV index increments by
+ * at least 2, the SeqAuth is guaranteed to be higher, no matter what the sequence number used by
+ * the new node would be, therefore the addresses can be reassigned.
  *
  * @property ivIndex       32-bit value that is a shared network resource known by all nodes in a
  *                         given network.
@@ -59,8 +68,7 @@ internal data class ExclusionList internal constructor(
 
 /**
  * Checks whether the given Unicast Address range can be reassigned to a new Node, as it has been
- * used by a Node that was recently removed. Other nodes may still keep the sequence number
- * associated with this address and may discard packets sent from it.
+ * used by a Node that was recently removed.
  *
  * @param range Unicast range to check.
  * @param ivIndex Current IV Index .

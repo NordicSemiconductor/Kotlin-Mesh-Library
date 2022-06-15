@@ -72,7 +72,7 @@ data class Provisioner internal constructor(
     internal var network: MeshNetwork? = null
 
     /**
-     * Allocates a given unicast range to a provisioner.
+     * Allocates the given unicast range to a provisioner.
      *
      * @param range Allocated unicast range.
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
@@ -186,7 +186,7 @@ data class Provisioner internal constructor(
     }
 
     /**
-     * Assigns the unicast address used by the given Provisioner. If the provisioner did not have a
+     * Assigns the unicast address to the given Provisioner. If the provisioner did not have a
      * unicast address assigned, the method will create a Node with the address. This will enable
      * configuration capabilities for the provisioner. The provisioner must be in the mesh network.
      *
@@ -246,7 +246,7 @@ data class Provisioner internal constructor(
     }
 
     /**
-     * Checks if the given range is allocatable to the given provisioner.
+     * Checks if the given range is allocatable a provisioner.
      *
      * @param range Ranges to be allocated.
      * @return true if the range is not in use by another provisioner or false otherwise.
@@ -273,7 +273,7 @@ data class Provisioner internal constructor(
     }
 
     /**
-     * Check if the given list of ranges are allocatable to a given provisioner.
+     * Check if the given list of ranges are allocatable to a provisioner.
      *
      * @param ranges Ranges to be allocated.
      * @return true if the given ranges are not in use by another provisioner or false otherwise.
