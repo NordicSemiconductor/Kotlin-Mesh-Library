@@ -149,8 +149,10 @@ data class Provisioner internal constructor(
      * @param provisioner Other provisioner.
      * @return true if there are any overlapping unicast, groups or scene ranges or false otherwise.
      */
-    fun hasOverlappingRanges(provisioner: Provisioner) = hasOverlappingUnicastRanges(provisioner) ||
-            hasOverlappingGroupRanges(provisioner) || hasOverlappingSceneRanges(provisioner)
+    fun hasOverlappingRanges(provisioner: Provisioner) =
+                hasOverlappingUnicastRanges(provisioner) ||
+                hasOverlappingGroupRanges(provisioner) ||
+                hasOverlappingSceneRanges(provisioner)
 
     /**
      * Checks if the current provisioner has overlapping unicast ranges with the given provisioner.
@@ -244,11 +246,11 @@ data class Provisioner internal constructor(
     }
 
     /**
-     *  Checks if the given range is allocatable to the given provisioner.
+     * Checks if the given range is allocatable to the given provisioner.
      *
-     *  @param range Ranges to be allocated.
-     *  @return true if the range is not in use by another provisioner or false otherwise.
-     *  @throws DoesNotBelongToNetwork if the provisioner does not belong to the network.
+     * @param range Ranges to be allocated.
+     * @return true if the range is not in use by another provisioner or false otherwise.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to the network.
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun isRangeAvailableForAllocation(range: Range) = let { provisioner ->
@@ -271,10 +273,10 @@ data class Provisioner internal constructor(
     }
 
     /**
-     *  Check if the given list of ranges are allocatable to a given provisioner.
+     * Check if the given list of ranges are allocatable to a given provisioner.
      *
-     *  @param ranges Ranges to be allocated.
-     *  @return true if the given ranges are not in use by another provisioner or false otherwise.
+     * @param ranges Ranges to be allocated.
+     * @return true if the given ranges are not in use by another provisioner or false otherwise.
      */
     fun areRangesAvailableForAllocation(ranges: List<Range>) = let { provisioner ->
         try {
