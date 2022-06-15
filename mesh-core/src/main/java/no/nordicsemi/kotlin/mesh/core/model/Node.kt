@@ -142,10 +142,12 @@ data class Node internal constructor(
     @SerialName(value = "cid")
     var companyIdentifier: UShort? = null
         internal set
+
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "pid")
     var productIdentifier: UShort? = null
         internal set
+
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "vid")
     var versionIdentifier: UShort? = null
@@ -267,7 +269,8 @@ data class Node internal constructor(
     }
 
     /**
-     * Checks if this node overlaps for a given address with a given number of elements.
+     * Checks if the given address with a given number of overlaps with the addresses used by the
+     * node.
      *
      * @param address       Desired unicast address.
      * @param count         Number of elements.
