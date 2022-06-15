@@ -182,7 +182,8 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Adds the given [Provisioner] to the list of provisioners in the network with a given address.
+     * Adds the given Provisioner to the list of provisioners in the network and assigns it with the
+     * given address.
      *
      * @param provisioner Provisioner to be added.
      * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
@@ -252,7 +253,7 @@ class MeshNetwork internal constructor(
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(CannotRemove::class)
-    fun remove(index: Int): Provisioner {
+    internal fun removeProvisioner(index: Int): Provisioner {
         require(_provisioners.size > 1) { throw CannotRemove() }
 
         val localProvisionerRemoved = index == 0
@@ -285,11 +286,11 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
     fun remove(provisioner: Provisioner) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { index -> remove(index) }
+        removeProvisioner(_provisioners.indexOf(provisioner))
     }
 
     /**
-     * Moves the given provisioner to the specified index.
+     * Moves the provisioner from the given 'from' index to the specified 'to' index.
      *
      * @param from      Current index of the provisioner.
      * @param to        Destination index, the provisioner must be moved to.
@@ -298,7 +299,7 @@ class MeshNetwork internal constructor(
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(DoesNotBelongToNetwork::class)
-    fun moveProvisioner(from: Int, to: Int) {
+    internal fun moveProvisioner(from: Int, to: Int) {
         require(from >= 0 && from < _provisioners.size) {
             throw IllegalArgumentException("Invalid 'from' index!")
         }
@@ -308,7 +309,7 @@ class MeshNetwork internal constructor(
         require(from != to) {
             return
         }
-        _provisioners.add(to, remove(from)).also { updateTimestamp() }
+        _provisioners.add(to, removeProvisioner(from)).also { updateTimestamp() }
     }
 
     /**
@@ -596,34 +597,35 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Returns true if the given address range is available for use.
+     * Checks if the address range is available for use.
      *
      * @param range Unicast range to check.
+     * @return true if the given address range is available for use or false otherwise.
      */
     fun isAddressRangeAvailable(range: UnicastRange) = _nodes.none {
         it.containsElementsWithAddress(range)
     } && !_networkExclusions.contains(range, ivIndex)
 
     /**
-     * Returns true if the address is available to be assigned to a node with the given number of
-     * elements.
+     * Checks if the address is available to be assigned to a node with the given number of
+     * elements or false otherwise.
      *
      * @param address         Possible address of the primary element of the node.
      * @param elementCount    Element count.
      * @return true if the address is available to be assigned to a node with given number of
-     *         elements.
+     *         elements or false otherwise.
      */
     fun isAddressAvailable(address: UnicastAddress, elementCount: Int) = isAddressRangeAvailable(
         UnicastRange(address, elementCount)
     )
 
     /**
-     * Returns true if the address is available to be assigned to a node with the given number of
+     * Checks if the address is available to be assigned to a node with the given number of
      * elements.
      *
      * @param address         Possible address of the primary element of the node.
      * @param node            Node
-     * @return true if the address is assignable to the given node.
+     * @return true if the address is assignable to the given node or false otherwise.
      */
     fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
         val range = UnicastRange(address, (address + node.elementsCount))
@@ -637,7 +639,7 @@ class MeshNetwork internal constructor(
 
     /**
      * Returns the next available unicast address from the provisioner's range that can be assigned
-     * to a new node with the given number of elements. The zeroth element is identified by the
+     * to a new node based on the given number of elements. The zeroth element is identified by the
      * node's Unicast Address. Each following element is  identified by a subsequent Unicast
      * Address.
      *
