@@ -13,7 +13,8 @@ open class MeshNetworkManager {
         protected set
 
     /**
-     * Creates a Mesh Network with a given name and a UUID.
+     * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
+     * be generated.
      *
      * @param name Name of the mesh network.
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
@@ -27,10 +28,11 @@ open class MeshNetworkManager {
     }
 
     /**
-     * Imports a MeshNetwork from using a Json defined by the Mesh Configuration Database Profile.
+     * Imports a MeshNetwork from a byte array containing a Json defined by the Mesh Configuration
+     * Database profile.
      *
-     * @return Returns a MeshNetwork.
-     * @throws ImportError in deserializing fails.
+     * @return a mesh network configuration decoded from the given byte array.
+     * @throws ImportError if deserializing fails.
      */
     @Throws(ImportError::class)
     suspend fun importMeshNetwork(array: ByteArray): MeshNetwork = run {
