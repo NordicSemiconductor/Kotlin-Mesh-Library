@@ -442,21 +442,23 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Returns provisioner's node.
+     * Returns provisioner's node or null if the provisioner is not a part of the network or it does
+     * not have an address assigned.
      *
      * @param provisioner Provisioner who's node is to be returned.
      * @return Null if the provisioner is not a part of the network or if the provisioner does not
      *         have an address assigned.
      */
     fun node(provisioner: Provisioner) = try {
-        require(hasProvisioner(provisioner.uuid))
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        require(hasProvisioner(provisioner.uuid)) { return null }
         node(provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
         null
     }
 
     /**
-     * Returns the provisioned node for an unprovisioned device/
+     * Returns the provisioned node for an unprovisioned device.
      *
      * @param device Unprovisioned node.
      * @return provisioned Node matching the unprovisioned device.
@@ -627,7 +629,10 @@ class MeshNetwork internal constructor(
         val range = UnicastRange(address, (address + node.elementsCount))
         return nodes
             .filter { it.uuid != node.uuid }
-            .none { it.containsElementsWithAddress(range) } && !_networkExclusions.contains(range, ivIndex)
+            .none { it.containsElementsWithAddress(range) } && !_networkExclusions.contains(
+            range,
+            ivIndex
+        )
     }
 
     /**
@@ -652,9 +657,9 @@ class MeshNetwork internal constructor(
             .flatMap { it._addresses }
 
         val addressesInUse = nodes
-                .flatMap { it.elements }
-                .map { it.unicastAddress }
-                .sortedBy { it.address }
+            .flatMap { it.elements }
+            .map { it.unicastAddress }
+            .sortedBy { it.address }
 
         val totalAddressesInUse = excludedAddresses + addressesInUse
 
