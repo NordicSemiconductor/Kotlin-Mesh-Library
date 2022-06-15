@@ -28,12 +28,12 @@ data class NetworkTransmit internal constructor(
             "Count must be a value from $MIN_COUNT to $MAX_COUNT number of transmissions!"
         }
         require(interval.toInt() in MIN_INTERVAL..MAX_INTERVAL) {
-            "Interval must be a value from " +
-                    "$MIN_INTERVAL to $MAX_INTERVAL milliseconds between transmissions!"
+            "Interval must be a value from $MIN_INTERVAL to $MAX_INTERVAL milliseconds between " +
+                    "transmissions!"
         }
     }
 
-    fun intervalAsSeconds() = interval.toInt()/1000.0
+    fun intervalAsSeconds() = interval.toInt() / 1000.0
 
     companion object {
         private const val MIN_COUNT = 1
