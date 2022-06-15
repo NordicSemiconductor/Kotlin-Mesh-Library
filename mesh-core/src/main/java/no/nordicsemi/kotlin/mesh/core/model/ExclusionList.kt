@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
  * @constructor            Creates an ExclusionList object.
  */
 @Serializable
-data class ExclusionList internal constructor(
+internal data class ExclusionList internal constructor(
     val ivIndex: UInt,
     @SerialName(value = "addresses")
     internal val _addresses: MutableList<UnicastAddress> = mutableListOf()
@@ -66,16 +66,17 @@ data class ExclusionList internal constructor(
  * @param ivIndex Current IV Index .
  * @returns true if the given address is excluded or false otherwise.
  */
-fun List<ExclusionList>.contains(
+internal fun List<ExclusionList>.contains(
     range: UnicastRange,
     ivIndex: IvIndex
 ) = isNotEmpty() && excludedAddresses(ivIndex).any { range.contains(it.address) }
 
 /**
- * Returns a list of Unicast addresses for hte given IV Index.
- * @param ivIndex IV Index of the exclusion list.
+ * Checks for excluded Unicast addresses for the given IV Index.
  *
+ * @param ivIndex IV Index of the exclusion list.
+ * @return List of exclusion list objects.
  */
-fun List<ExclusionList>.excludedAddresses(ivIndex: IvIndex) = filter {
+internal fun List<ExclusionList>.excludedAddresses(ivIndex: IvIndex) = filter {
     it.ivIndex == ivIndex.index || (ivIndex.index > 0u && it.ivIndex == ivIndex.index - 1u)
 }.flatMap { it.addresses }
