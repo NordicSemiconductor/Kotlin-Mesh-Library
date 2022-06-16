@@ -28,7 +28,7 @@ open class MeshNetworkManager {
     }
 
     /**
-     * Imports a MeshNetwork from a byte array containing a Json defined by the Mesh Configuration
+     * Imports a Mesh Network from a byte array containing a Json defined by the Mesh Configuration
      * Database profile.
      *
      * @return a mesh network configuration decoded from the given byte array.
