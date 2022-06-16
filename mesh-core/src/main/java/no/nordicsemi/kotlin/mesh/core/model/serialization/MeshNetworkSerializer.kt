@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.ByteArrayInputStream
 
@@ -38,11 +39,41 @@ internal object MeshNetworkSerializer {
             }
             // ID does not need checking as it has changed in the past and may change again.
             // require(id == networkObject[KEY_ID]?.jsonPrimitive?.content) { "Invalid Json id!" }
-            require(networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)?: false) {
-                "Invalid version!"
+            require(
+                networkObject[KEY_VERSION]?.jsonPrimitive?.content?.matches(VERSION_PATTERN)
+                    ?: false
+            ) { "Invalid version!" }
+        }
+        decodeFromJsonElement<MeshNetwork>(networkElement).apply {
+            // Assign network reference to access parent network within the object.
+            _networkKeys.forEach {
+                it.network = this
+            }
+            _applicationKeys.forEach {
+                it.network = this
+            }
+            _groups.forEach {
+                it.network = this
+            }
+            _scenes.forEach {
+                it.network = this
+            }
+            _provisioners.forEach {
+                it.network = this
+            }
+            _nodes.forEach { node ->
+                node.network = this
+                node.elements.forEach { element ->
+                    element.parentNode = node
+                    element.models.forEach { model ->
+                        model.parentElement = element
+                    }
+                }
+            }
+            _networkExclusions.forEach {
+                it.network = this
             }
         }
-        decodeFromJsonElement<MeshNetwork>(networkElement)
     }
 
     /**

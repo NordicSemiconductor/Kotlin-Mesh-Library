@@ -2,43 +2,42 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
+import java.util.*
 
 open class MeshNetworkManager {
     lateinit var meshNetwork: MeshNetwork
         protected set
 
     /**
-     * Imports a MeshNetwork from using a Json defined by the Mesh Configuration Database Profile.
+     * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
+     * be generated.
+     *
+     * @param name Name of the mesh network.
+     * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
+     *             multiple mesh networks.
      */
-    // TODO Should we import a Json Object by default?
-    suspend fun importMeshNetwork(array: ByteArray) {
-        meshNetwork = deserialize(array)
-        // Assign network reference to access parent network within the object.
-        meshNetwork.apply {
-            networkKeys.forEach {
-                it.network = this
-            }
-            applicationKeys.forEach {
-                it.network = this
-            }
-            groups.forEach {
-                it.network = this
-            }
-            scenes.forEach {
-                it.network = this
-            }
-            nodes.forEach { node ->
-                node.network = this
-                node.elements.forEach { element ->
-                    element.parentNode = node
-                    element.models.forEach { model ->
-                        model.parentElement = element
-                    }
-                }
-            }
+    fun createMeshNetwork(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
+        return MeshNetwork(uuid = uuid, _name = name).also {
+            meshNetwork = it
+            // TODO save the network may be?
+        }
+    }
+
+    /**
+     * Imports a Mesh Network from a byte array containing a Json defined by the Mesh Configuration
+     * Database profile.
+     *
+     * @return a mesh network configuration decoded from the given byte array.
+     * @throws ImportError if deserializing fails.
+     */
+    @Throws(ImportError::class)
+    suspend fun importMeshNetwork(array: ByteArray): MeshNetwork = run {
+        deserialize(array).also {
+            meshNetwork = it
         }
     }
 

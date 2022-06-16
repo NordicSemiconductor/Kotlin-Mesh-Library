@@ -15,28 +15,52 @@ import java.util.*
  *
  * @property uuid                       Unique 128-bit UUID of the node.
  * @property deviceKey                  128-bit device key.
- * @property security                   Represents the level of [Security] for the subnet on which the node has been originally provisioned.
- * @property netKeys                    Array of [NodeKey] that includes information about the network keys known to this node.
- * @property configComplete             True if the Mesh Manager determines that this node’s configuration process is completed; otherwise,
+ * @property security                   Represents the level of [Security] for the subnet on which
+ *                                      the node has been originally provisioned.
+ * @property netKeys                    Array of [NodeKey] that includes information about the
+ *                                      network keys known to this node.
+ * @property configComplete             True if the Mesh Manager determines that this node’s
+ *                                      configuration process is completed; otherwise,
  *                                      the property’s value is set to false.
- * @property name                       Human-readable name that can identify this node within the mesh network.
- * @property cid                        16-bit Company Identifier (CID) assigned by the Bluetooth SIG. The value of this property is obtained from node composition data.
- * @property pid                        16-bit, vendor-assigned Product Identifier (PID). The value of this property is obtained from node composition data.
- * @property vid                        16-bit, vendor-assigned product Version Identifier (VID). The value of this property is obtained from node composition data
- * @property crpl                       16-bit value indicating the minimum number of Replay Protection List (RPL) entries for this node.
- *                                      The value of this property is obtained from node composition data. RPL implementation handles a multi-segment message
- *                                      transaction which is under a replay attack. The sequence number of the last segment that has been received for this message
- *                                      is stored for that peer node in the replay protection list.
+ * @property name                       Human-readable name that can identify this node within the
+ *                                      mesh network.
+ * @property companyIdentifier          16-bit Company Identifier (CID) assigned by the Bluetooth
+ *                                      SIG. The value of this property is obtained from node
+ *                                      composition data.
+ * @property productIdentifier          16-bit, vendor-assigned Product Identifier (PID). The value
+ *                                      of this property is obtained from node composition data.
+ * @property versionIdentifier          16-bit, vendor-assigned product Version Identifier (VID).
+ *                                      The value of this property is obtained from node composition
+ *                                      data
+ * @property replayProtectionCount      16-bit value indicating the minimum number of Replay
+ *                                      Protection List (RPL) entries for this node. The value of
+ *                                      this property is obtained from node composition data. RPL
+ *                                      implementation handles a multi-segment message transaction
+ *                                      which is under a replay attack. The sequence number of the
+ *                                      last segment that has been received for this message is
+ *                                      stored for that peer node in the replay protection list.
  * @property features                   [Features] supported by the node.
- * @property secureNetworkBeacon        Represents whether the node is configured to send Secure Network beacons.
- * @property defaultTTL                 0 to 127 that represents the default Time to Live (TTL) value used when sending messages.
- * @property networkTransmit            [NetworkTransmit] represents the parameters of the transmissions of network layer messages originating from a mesh node.
- * @property relayRetransmit            [RelayRetransmit] represents the parameters of the retransmissions of network layer messages relayed by a mesh node.
- * @property appKeys                    Array of [NodeKey] that includes information about the [ApplicationKey]s known to this node.
+ * @property secureNetworkBeacon        Represents whether the node is configured to send Secure
+ *                                      Network beacons.
+ * @property defaultTTL                 0 to 127 that represents the default Time to Live (TTL)
+ *                                      value used when sending messages.
+ * @property networkTransmit            [NetworkTransmit] represents the parameters of the
+ *                                      transmissions of network layer messages originating from a
+ *                                      mesh node.
+ * @property relayRetransmit            [RelayRetransmit] represents the parameters of the
+ *                                      retransmissions of network layer messages relayed by a mesh
+ *                                      node.
+ * @property appKeys                    Array of [NodeKey] that includes information about the
+ *                                      [ApplicationKey]s known to this node.
  * @property elements                   Array of elements contained in the Node.
- * @property excluded                   True if the node is in the process of being deleted and is excluded from the new network key distribution during the
+ * @property excluded                   True if the node is in the process of being deleted and is
+ *                                      excluded from the new network key distribution during the
  *                                      Key Refresh procedure; otherwise, it is set to “false”.
- *
+ * @property elementsCount              Number of elements belonging to this node.
+ * @property addresses                  List of addresses used by this node.
+ * @property unicastRange               Address range used by this node.
+ * @property lastUnicastAddress         Address of the last element in the node.
+ * @constructor                         Creates a mesh node.
  */
 @Serializable
 data class Node internal constructor(
@@ -45,14 +69,43 @@ data class Node internal constructor(
     val uuid: UUID,
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray,
-    val unicastAddress: UnicastAddress,
+    @SerialName(value = "unicastAddress")
+    internal var _primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
-    var _elements: List<Element>,
+    internal var _elements: MutableList<Element>,
     @SerialName(value = "netKeys")
-    private var _netKeys: List<NodeKey>,
+    private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: List<NodeKey>,
+    private var _appKeys: MutableList<NodeKey>,
 ) {
+
+    internal constructor(
+        provisioner: Provisioner,
+        deviceKey: ByteArray,
+        unicastAddress: UnicastAddress,
+        elements: List<Element> = listOf(
+            Element(
+                Location.UNKNOWN,
+                listOf(
+                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+                )
+            )
+        ),
+        netKeys: List<NetworkKey>,
+        appKeys: List<ApplicationKey>
+    ) : this(
+        uuid = provisioner.uuid,
+        deviceKey = deviceKey,
+        _primaryUnicastAddress = unicastAddress,
+        _elements = elements.toMutableList(),
+        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
+        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
+    )
+
+    val primaryUnicastAddress: UnicastAddress
+        get() = _primaryUnicastAddress
+
     var name: String = "Mesh Network"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
@@ -62,59 +115,107 @@ data class Node internal constructor(
     var netKeys: List<NodeKey>
         get() = _netKeys
         internal set(value) {
-            _netKeys = value
+            _netKeys = value.toMutableList()
             network?.updateTimestamp()
         }
     var appKeys: List<NodeKey>
         get() = _appKeys
         internal set(value) {
-            _appKeys = value
+            _appKeys = value.toMutableList()
             network?.updateTimestamp()
         }
     var elements: List<Element>
         get() = _elements
         internal set(value) {
-            _elements = value
+            _elements = value.toMutableList()
             network?.updateTimestamp()
         }
     var security: Security = Insecure
         internal set
     var configComplete: Boolean = false
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    @Serializable(UShortAsStringSerializer::class)
+    @SerialName(value = "cid")
+    var companyIdentifier: UShort? = null
         internal set
 
     @Serializable(UShortAsStringSerializer::class)
-    var cid: UShort? = null
+    @SerialName(value = "pid")
+    var productIdentifier: UShort? = null
         internal set
 
     @Serializable(UShortAsStringSerializer::class)
-    var pid: UShort? = null
+    @SerialName(value = "vid")
+    var versionIdentifier: UShort? = null
         internal set
 
     @Serializable(UShortAsStringSerializer::class)
-    var vid: UShort? = null
-        internal set
-
-    @Serializable(UShortAsStringSerializer::class)
-    var crpl: UShort? = null
+    @SerialName(value = "crpl")
+    var replayProtectionCount: UShort? = null
         internal set
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
         internal set
     var secureNetworkBeacon: Boolean? = null
         internal set
     var networkTransmit: NetworkTransmit? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var relayRetransmit: RelayRetransmit? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var defaultTTL: Int = 127
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
     var excluded: Boolean = false
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
     @SerialName(value = "heartbeatPub")
     var heartbeatPublication: HeartbeatPublication? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
     @SerialName(value = "heartbeatSub")
     var heartbeatSubscription: HeartbeatSubscription? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    val elementsCount: Int
+        get() = elements.size
+
+    val addresses: List<UnicastAddress>
+        get() = List(elementsCount) { index -> _primaryUnicastAddress + index }
+
+    val unicastRange: UnicastRange
+        get() = _primaryUnicastAddress..(_primaryUnicastAddress + elementsCount)
+
+    val lastUnicastAddress: UnicastAddress
+        get() = _primaryUnicastAddress + when (elementsCount > 0) {
+            true -> elementsCount
+            false -> 1 // TODO should we throw here?
+        } - 1
+
+    init {
+        require(elements.isNotEmpty()) {
+            throw IllegalArgumentException("At least one element is mandatory!")
+        }
+    }
 
     @Transient
     internal var network: MeshNetwork? = null
@@ -129,7 +230,7 @@ data class Node internal constructor(
         when {
             _netKeys.contains(this) -> false
             else -> {
-                _netKeys = _netKeys + this
+                _netKeys.add(this)
                 network?.updateTimestamp()
                 true
             }
@@ -146,7 +247,7 @@ data class Node internal constructor(
         when {
             _appKeys.contains(this) -> false
             else -> {
-                _appKeys = _appKeys + this
+                _appKeys.add(this)
                 network?.updateTimestamp()
                 true
             }
@@ -162,10 +263,43 @@ data class Node internal constructor(
     internal fun add(element: Element): Boolean = when {
         _elements.contains(element) -> false
         else -> {
-            _elements = elements + element
+            _elements.add(element)
             true
         }
     }
+
+    /**
+     * Checks if the given addresses used by the specified number of elements overlaps with the
+     * address range used by the node.
+     *
+     * @param address       Desired unicast address.
+     * @param count         Number of elements.
+     * @return true if the address range is in use.
+     */
+    fun overlaps(address: UnicastAddress, count: Int) = try {
+        !(_primaryUnicastAddress + (elementsCount - 1) < address ||
+                _primaryUnicastAddress > address + (count - 1))
+    } catch (e: IllegalArgumentException) {
+        true
+    }
+
+    /**
+     * Checks if an element in the node uses this address.
+     *
+     * @param address Unicast address.
+     * @return true if the given address is in use by any of the elements
+     */
+    fun containsElementWithAddress(address: UnicastAddress) = elements.any {
+        it.unicastAddress == address
+    }
+
+    /**
+     * Checks if an element in the node has a Unicast Address from the given range.
+     *
+     * @param range Unicast Range.
+     * @return true if given range overlaps with the node's address range.
+     */
+    fun containsElementsWithAddress(range: UnicastRange) = unicastRange.overlaps(range)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -175,17 +309,17 @@ data class Node internal constructor(
 
         if (uuid != other.uuid) return false
         if (!deviceKey.contentEquals(other.deviceKey)) return false
-        if (unicastAddress != other.unicastAddress) return false
+        if (_primaryUnicastAddress != other._primaryUnicastAddress) return false
         if (_elements != other._elements) return false
         if (_netKeys != other._netKeys) return false
         if (_appKeys != other._appKeys) return false
         if (name != other.name) return false
         if (security != other.security) return false
         if (configComplete != other.configComplete) return false
-        if (cid != other.cid) return false
-        if (pid != other.pid) return false
-        if (vid != other.vid) return false
-        if (crpl != other.crpl) return false
+        if (companyIdentifier != other.companyIdentifier) return false
+        if (productIdentifier != other.productIdentifier) return false
+        if (versionIdentifier != other.versionIdentifier) return false
+        if (replayProtectionCount != other.replayProtectionCount) return false
         if (features != other.features) return false
         if (secureNetworkBeacon != other.secureNetworkBeacon) return false
         if (networkTransmit != other.networkTransmit) return false
@@ -202,17 +336,17 @@ data class Node internal constructor(
     override fun hashCode(): Int {
         var result = uuid.hashCode()
         result = 31 * result + deviceKey.contentHashCode()
-        result = 31 * result + unicastAddress.hashCode()
+        result = 31 * result + _primaryUnicastAddress.hashCode()
         result = 31 * result + _elements.hashCode()
         result = 31 * result + _netKeys.hashCode()
         result = 31 * result + _appKeys.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + security.hashCode()
         result = 31 * result + configComplete.hashCode()
-        result = 31 * result + (cid?.hashCode() ?: 0)
-        result = 31 * result + (pid?.hashCode() ?: 0)
-        result = 31 * result + (vid?.hashCode() ?: 0)
-        result = 31 * result + (crpl?.hashCode() ?: 0)
+        result = 31 * result + (companyIdentifier?.hashCode() ?: 0)
+        result = 31 * result + (productIdentifier?.hashCode() ?: 0)
+        result = 31 * result + (versionIdentifier?.hashCode() ?: 0)
+        result = 31 * result + (replayProtectionCount?.hashCode() ?: 0)
         result = 31 * result + features.hashCode()
         result = 31 * result + (secureNetworkBeacon?.hashCode() ?: 0)
         result = 31 * result + (networkTransmit?.hashCode() ?: 0)

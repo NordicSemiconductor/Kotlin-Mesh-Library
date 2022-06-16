@@ -22,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              of the network key in the mesh network.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
+ * @property netKey             Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
 @Serializable
@@ -59,7 +60,7 @@ data class ApplicationKey internal constructor(
     internal var network: MeshNetwork? = null
 
     @Transient
-    var netKey: NetworkKey? = network?.networkKeys?.find { it.index == boundNetKeyIndex }
+    var netKey: NetworkKey? = network?._networkKeys?.find { it.index == boundNetKeyIndex }
         private set
 
     init {
@@ -72,7 +73,7 @@ data class ApplicationKey internal constructor(
      */
     fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
-        nodes.none { node ->
+        _nodes.none { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }

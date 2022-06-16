@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 /**
- * The network transmit object represents the parameters of the transmissions of network layer messages
- * originating from a mesh node.
+ * The network transmit object represents the parameters of the transmissions of network layer
+ * messages originating from a mesh node.
  *
- * @param count         The count property contains an integer from 1 to 8 that represents the number of
- *                      transmissions for network messages.
+ * @param count         The count property contains an integer from 1 to 8 that represents the
+ *                      number of transmissions for network messages.
  * @param interval      The interval property contains an integer from 10 to 320 that represents the
  *                      interval in milliseconds between the transmissions.
  */
@@ -24,13 +24,16 @@ data class NetworkTransmit internal constructor(
         internal set
 
     init {
-        require(count.toInt() in MIN_COUNT..MAX_COUNT) { "Count must be a value from $MIN_COUNT to $MAX_COUNT number of transmissions!" }
+        require(count.toInt() in MIN_COUNT..MAX_COUNT) {
+            "Count must be a value from $MIN_COUNT to $MAX_COUNT number of transmissions!"
+        }
         require(interval.toInt() in MIN_INTERVAL..MAX_INTERVAL) {
-            "Interval must be a value from $MIN_INTERVAL to $MAX_INTERVAL milliseconds between transmissions!"
+            "Interval must be a value from $MIN_INTERVAL to $MAX_INTERVAL milliseconds between " +
+                    "transmissions!"
         }
     }
 
-    fun intervalAsSeconds() = interval.toInt()/1000.0
+    fun intervalAsSeconds() = interval.toInt() / 1000.0
 
     companion object {
         private const val MIN_COUNT = 1

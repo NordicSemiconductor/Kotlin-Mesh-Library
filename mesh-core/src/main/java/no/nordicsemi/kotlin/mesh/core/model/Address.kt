@@ -102,6 +102,8 @@ object UnassignedAddress : MeshAddress(),
  * A unicast address is a unique address allocated to each element. A unicast address has bit 15 set
  * to 0. The unicast address shall not have the value 0x0000, and therefore can have any value from
  * 0x0001 to 0x7FFF inclusive.
+ *
+ * @property address  16-bit address of the unicast address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
@@ -111,9 +113,22 @@ data class UnicastAddress(
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionSource,
         HeartbeatSubscriptionDestination {
+
+    constructor(address: Int) : this(address = address.toUShort())
+
     init {
-        require(isValid(address)) { "A valid unicast address must range from 0x0001 to 0x7FFF!" }
+        require(isValid(address)) {
+            "A valid unicast address must range from $minUnicastAddress to $maxUnicastAddress!"
+        }
     }
+
+    operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
+
+    operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
+
+    operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
+
+    operator fun rangeTo(o: UnicastAddress) = UnicastRange(this, o)
 
     companion object {
         fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
@@ -127,6 +142,8 @@ data class UnicastAddress(
  * programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall
  * be used as the Additional Data field of the message integrity check value in the upper transport
  * layer.
+ *
+ * @property UUID     UUID label of the virtual address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
@@ -137,6 +154,8 @@ data class VirtualAddress(
         PublicationAddress,
         SubscriptionAddress {
     override val address: Address = Crypto.createVirtualAddress(uuid)
+
+    operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }
 
 /**
@@ -155,9 +174,26 @@ data class GroupAddress(
         SubscriptionAddress,
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionDestination {
+
+    constructor(address: Int) : this(address = address.toUShort())
+
     init {
-        require(isValid(address)) { "A valid group address must range from 0xC000 to 0xFEFF!" }
+        require(isValid(address)) {
+            "A valid group address must range from $minGroupAddress to $maxGroupAddress!"
+        }
     }
+
+    operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o))
+
+    operator fun minus(other: Int) = GroupAddress((address.toInt() - other))
+
+    operator fun compareTo(o: GroupAddress) = address.compareTo(o.address)
+
+    operator fun compareTo(o: PrimaryGroupAddress) = address.compareTo(o.address)
+
+    operator fun compareTo(o: ParentGroupAddress) = address.compareTo(o.address)
+
+    operator fun rangeTo(o: GroupAddress) = GroupRange(this, o)
 
     companion object {
         fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress
@@ -169,9 +205,7 @@ data class GroupAddress(
  * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
-sealed class FixedGroupAddress(
-    override val address: Address
-) : MeshAddress()
+sealed class FixedGroupAddress(override val address: Address) : MeshAddress()
 
 /**
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes

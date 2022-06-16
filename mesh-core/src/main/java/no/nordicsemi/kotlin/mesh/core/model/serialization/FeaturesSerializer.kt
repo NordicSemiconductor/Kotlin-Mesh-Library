@@ -7,6 +7,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.*
 
 /**
@@ -17,7 +18,7 @@ internal object FeaturesSerializer : KSerializer<Features> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName = "Features", PrimitiveKind.INT)
 
-    override fun deserialize(decoder: Decoder): Features {
+    override fun deserialize(decoder: Decoder): Features = runCatching {
         (decoder as JsonDecoder).decodeJsonElement().jsonObject.let { features ->
             return Features(
                 relay = parse(features = features, key = "relay") as Relay?,
@@ -26,6 +27,12 @@ internal object FeaturesSerializer : KSerializer<Features> {
                 lowPower = parse(features = features, key = "lowPower") as LowPower?
             )
         }
+    }.getOrElse {
+        throw ImportError(
+            "Error while deserializing features " +
+                    "${(decoder as JsonDecoder).decodeJsonElement()}",
+            it
+        )
     }
 
     override fun serialize(encoder: Encoder, value: Features) {

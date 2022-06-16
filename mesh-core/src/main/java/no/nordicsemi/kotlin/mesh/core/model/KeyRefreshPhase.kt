@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeyRefreshPhaseSerializer
 
 /**
- * The Key Refresh Phase state indicates and controls the Key Refresh procedure for each NetKey in the NetKey List.
+ * The Key Refresh Phase state indicates and controls the Key Refresh procedure for each NetKey in
+ * the NetKey List.
  */
 @Serializable(with = KeyRefreshPhaseSerializer::class)
 sealed class KeyRefreshPhase(val phase: Int) {
@@ -25,7 +26,8 @@ sealed class KeyRefreshPhase(val phase: Int) {
             KEY_DISTRIBUTION -> KeyDistribution
             USING_NEW_KEYS -> UsingNewKeys
             else -> throw IllegalArgumentException(
-                "Invalid value, phase must be an integer of value $NORMAL_OPERATION, $KEY_DISTRIBUTION or $USING_NEW_KEYS!"
+                "Invalid value, phase must be an integer of value " +
+                        "$NORMAL_OPERATION, $KEY_DISTRIBUTION or $USING_NEW_KEYS!"
             )
         }
     }
@@ -37,14 +39,15 @@ sealed class KeyRefreshPhase(val phase: Int) {
 object NormalOperation : KeyRefreshPhase(phase = NORMAL_OPERATION)
 
 /**
- * First phase of Key Refresh procedure, distributes new keys to all nodes. Nodes will transmit using old keys,
- * but can receive using old and new keys.
+ * First phase of Key Refresh procedure, distributes new keys to all nodes. Nodes will transmit
+ * using old keys, but can receive using old and new keys.
  */
 object KeyDistribution : KeyRefreshPhase(phase = KEY_DISTRIBUTION)
 
 /**
- * Second phase of Key Refresh procedure, nodes will use the new keys when encrypting messages but will still receive
- * using the old or new keys. Nodes shall only receive Secure Network beacons secured using the new Network Key.
+ * Second phase of Key Refresh procedure, nodes will use the new keys when encrypting messages but
+ * will still receive using the old or new keys. Nodes shall only receive Secure Network beacons
+ * secured using the new Network Key.
  */
 object UsingNewKeys : KeyRefreshPhase(phase = USING_NEW_KEYS)
 

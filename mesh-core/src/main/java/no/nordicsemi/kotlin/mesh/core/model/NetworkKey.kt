@@ -13,20 +13,27 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * AThe network key object represents the state of the mesh network key that is used for securing
  * communication at the network layer.
  *
- * @property index         The index property contains an integer from 0 to 4095 that represents the NetKey index for this network key.
+ * @property index         The index property contains an integer from 0 to 4095 that represents the
+ *                         NetKey index for this network key.
  * @property key           128-bit key.
- * @property security      Security property contains a string with a value of either “insecure” or “secure”, which describes a
- *                         minimum security level for a subnet associated with this network key. If all the nodes on the subnet
- *                         associated with this network key have been provisioned using the Secure Provisioning procedure,
- *                         then the value of minSecurity property for the subnet is set to “secure”; otherwise, the value of the
- *                         minSecurity is set to “insecure”.
- * @property name          Human-readable name for the the mesh subnet associated with this network key.
- * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet associated with this network key.
- * @property oldKey        The oldKey property contains a 32-character hexadecimal string that represents the 128-bit network key,
- *                         and shall be present when the phase property has a non-zero value, such as when the Key Refresh
- *                         procedure is in progress. The value of the oldKey property contains the previous network key.
- * @property timestamp     The timestamp property contains a string that represents the last time the value of the phase property has
- *                         been updated.
+ * @property security      Security property contains a string with a value of either “insecure” or
+ *                         “secure”, which describes a minimum security level for a subnet
+ *                         associated with this network key. If all the nodes on the subnet
+ *                         associated with this network key have been provisioned using the Secure
+ *                         Provisioning procedure, then the value of minSecurity property for the
+ *                         subnet is set to “secure”; otherwise, the value of the minSecurity is set
+ *                         to “insecure”.
+ * @property name          Human-readable name for the the mesh subnet associated with this network
+ *                         key.
+ * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet
+ *                         associated with this network key.
+ * @property oldKey        The oldKey property contains a 32-character hexadecimal string that
+ *                         represents the 128-bit network key, and shall be present when the phase
+ *                         property has a non-zero value, such as when the Key Refresh procedure is
+ *                         in progress. The value of the oldKey property contains the previous
+ *                         network key.
+ * @property timestamp     The timestamp property contains a string that represents the last time
+ *                         the value of the phase property has been updated.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -89,16 +96,16 @@ data class NetworkKey internal constructor(
 
     /**
      * Returns whether the network key is added to any nodes in the network.
-     * A key that is in use cannot be removed until it has been removed from all the nodes and is no longer
-     * bound to any application keys.
+     * A key that is in use cannot be removed until it has been removed from all the nodes and is no
+     * longer bound to any application keys.
      */
     fun isInUse(): Boolean = network?.run {
         // A network key is in use if at least one application key is bound to it.
         // OR
         // The network key is known by any of the nodes in the network.
-        applicationKeys.none { applicationKey ->
+        _applicationKeys.none { applicationKey ->
             applicationKey.boundNetKeyIndex == index
-        } || nodes.none { node ->
+        } || _nodes.none { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }

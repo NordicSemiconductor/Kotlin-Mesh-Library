@@ -5,7 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exceptions.DoesNotBelongToNetwork
+import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
 
 /**
  * Group defines a [GroupAddress] of type [PrimaryGroupAddress] to which a node may subscribe to.
@@ -54,12 +54,12 @@ data class Group(
     var parent: Group?
         get() = when (parentAddress.address) {
             unassignedAddress -> null
-            else -> network?.run { groups.find { group -> group.address == parentAddress } }
+            else -> network?.run { _groups.find { group -> group.address == parentAddress } }
         }
         set(value) {
             value?.let { group ->
                 network?.run {
-                    require(groups.contains(group)) { throw DoesNotBelongToNetwork() }
+                    require(_groups.contains(group)) { throw DoesNotBelongToNetwork() }
                     parentAddress = toParentGroupAddress(group.address)
                 }
             } ?: run {
@@ -69,8 +69,8 @@ data class Group(
 
     val isUsed: Boolean
         get() = network?.run {
-            if (groups.any { isDirectParentOf(it) }) return true
-            nodes.any { node ->
+            if (_groups.any { isDirectParentOf(it) }) return true
+            _nodes.any { node ->
                 node.elements.any { element ->
                     element.models.any { model ->
                         model.publish?.address == address ||
@@ -141,7 +141,7 @@ data class Group(
     /**
      * Returns a list of nodes with at least one model on any element subscribed to this group.
      */
-    fun nodes(): List<Node> = network?.nodes?.filter { node ->
+    fun nodes(): List<Node> = network?._nodes?.filter { node ->
         node.elements.any { element ->
             element.models.any { model ->
                 model.publish?.address == address ||
@@ -153,7 +153,7 @@ data class Group(
     /**
      * Returns a list of elements with at least one model subscribed to this group.
      */
-    fun elements(): List<Element> = network?.nodes?.flatMap { node ->
+    fun elements(): List<Element> = network?._nodes?.flatMap { node ->
         node.elements.filter { element ->
             element.models.any { model ->
                 model.publish?.address == address ||

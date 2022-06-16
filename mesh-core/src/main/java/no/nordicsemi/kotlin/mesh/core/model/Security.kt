@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 
@@ -28,7 +27,9 @@ sealed class Security(internal val value: String) {
         internal fun from(security: String) = when (security) {
             INSECURE -> Insecure
             SECURE -> Secure
-            else -> throw IllegalArgumentException("Security level must be either $INSECURE or $SECURE!")
+            else -> throw IllegalArgumentException(
+                "Security level must be either $INSECURE or $SECURE!"
+            )
         }
     }
 }

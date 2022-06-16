@@ -2,24 +2,26 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
  *
- * @property location    Describes the element location.
- * @property models      List of [Model] within an element.
- * @property name        A human-readable name that can identify an element within the node
- *                       and is optional according to Mesh CDB.
- * @property index       The index property contains an integer from 0 to 255 that represents
- *                       the numeric order of the element within this node and a node has at-least
- *                       one element which is called the primary element.
- * @property parentNode  Parent node that an element may belong to.
+ * @property location           Describes the element location.
+ * @property models             List of [Model] within an element.
+ * @property name               A human-readable name that can identify an element within the node
+ *                              and is optional according to Mesh CDB.
+ * @property index              The index property contains an integer from 0 to 255 that represents
+ *                              the numeric order of the element within this node and a node has
+ *                              at-least one element which is called the primary element.
+ * @property parentNode         Parent node that an element may belong to.
+ * @property unicastAddress     Address of the element.
+ * @constructor Creates an Element object.
  */
 @Serializable
 data class Element internal constructor(
-    @Serializable(with = UShortAsStringSerializer::class)
-    val location: UShort,
+    @Serializable(with = LocationAsStringSerializer::class)
+    val location: Location,
     val models: List<Model>
 ) {
     var name: String? = null
@@ -43,12 +45,13 @@ data class Element internal constructor(
     internal var parentNode: Node? = null
 
     @Transient
-    var unicastAddress =
-        parentNode?.unicastAddress ?: UnicastAddress(address = models.size.toUShort())
+    var unicastAddress = parentNode?.primaryUnicastAddress ?: UnicastAddress(address = models.size)
         internal set
 
     init {
-        require(index in LOWER_BOUND..HIGHER_BOUND) { " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!" }
+        require(index in LOWER_BOUND..HIGHER_BOUND) {
+            " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
+        }
     }
 
     companion object {
