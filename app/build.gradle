@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace 'no.nordicsemi.android.nrfmesh'
-
     compileSdk 32
-
     defaultConfig {
         applicationId "no.nordicsemi.android.nrfmesh"
         minSdk 21
@@ -22,7 +20,6 @@ android {
             useSupportLibrary true
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
