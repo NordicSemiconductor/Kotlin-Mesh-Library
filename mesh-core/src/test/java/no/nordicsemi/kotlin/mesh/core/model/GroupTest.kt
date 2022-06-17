@@ -12,7 +12,7 @@ class GroupTest {
     lateinit var network: MeshNetwork
 
     @Before
-    fun setUp() = runBlocking {
+    fun setUp() {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {

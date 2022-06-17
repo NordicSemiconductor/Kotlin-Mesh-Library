@@ -7,10 +7,29 @@ import java.util.*
 class ExclusionListTest {
 
     private val elements = arrayListOf(
-        Element(location = Location.UNKNOWN, models = listOf()),
-        Element(location = Location.UNKNOWN, models = listOf()),
-        Element(location = Location.UNKNOWN, models = listOf())
+        Element(
+            location = Location.UNKNOWN,
+            models = listOf(
+                Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+            )
+        ),
+        Element(
+            location = Location.UNKNOWN,
+            models = listOf(
+                Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+            )
+        ),
+        Element(
+            location = Location.UNKNOWN,
+            models = listOf(
+                Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+            )
+        )
     )
+
     private val node = Node(
         uuid = UUID.randomUUID(),
         deviceKey = byteArrayOf(),

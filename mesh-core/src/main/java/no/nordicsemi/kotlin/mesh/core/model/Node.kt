@@ -215,6 +215,14 @@ data class Node internal constructor(
         require(elements.isNotEmpty()) {
             throw IllegalArgumentException("At least one element is mandatory!")
         }
+        elements.let {
+            it.forEachIndexed { index, element ->
+                // Assigns the index based on position in the list of elements.
+                element.index = index
+                // Assigns the current node as the parent node of the element.
+                element.parentNode = this
+            }
+        }
     }
 
     @Transient
