@@ -53,7 +53,7 @@ internal data class ExclusionList internal constructor(
      */
     fun exclude(node: Node) {
         node._elements.forEach { element ->
-            exclude(UnicastAddress(address = element.unicastAddress.address))
+            exclude(element.unicastAddress)
         }
         network?.updateTimestamp()
     }

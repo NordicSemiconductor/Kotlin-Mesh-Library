@@ -15,7 +15,7 @@ class MeshNetworkTest {
     private val scene = Scene("Test Scene", 0x000Au)
 
     @Before
-    fun setUp() = runBlocking {
+    fun setUp() {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {
