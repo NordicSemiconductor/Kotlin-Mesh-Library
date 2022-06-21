@@ -2,7 +2,9 @@
 buildscript {
     ext {
         // https://developer.android.com/jetpack/compose/setup#configure_kotlin
-        compose_version = "1.2.0-beta03"
+        compose_version = "1.2.0-rc01"
+        // https://developer.android.com/jetpack/compose/navigation
+        nav_version = '2.5.0-rc02'
         // https://developer.android.com/jetpack/androidx/releases/compose
         kotlin_version = "1.7.0"
         // https://github.com/google/dagger/releases
@@ -13,6 +15,50 @@ buildscript {
         accompanist_version = '0.24.11-rc'
         // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
         lifecycle_version = '2.5.0-rc01'
+        coreLibs = [
+                'androidx.core:core-ktx:1.8.0',
+                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.2'
+        ]
+        composeLibs = [
+                'androidx.compose.material3:material3:1.0.0-alpha13',
+                "androidx.compose.ui:ui:$compose_version",
+                "androidx.compose.ui:ui-tooling:$compose_version",
+                "androidx.compose.ui:ui-tooling-preview:$compose_version",
+                "androidx.compose.material:material-icons-extended:$compose_version",
+                "androidx.compose.runtime:runtime-livedata:$compose_version"
+        ]
+        composeActivityLibs = [
+                'androidx.activity:activity-compose:1.4.0'
+        ]
+        navigationComposeLibs = [
+                "androidx.navigation:navigation-compose:$nav_version"
+        ]
+        lifcycleLibs = [
+                // https://developer.android.com/jetpack/androidx/releases/lifecycle
+                "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+        ]
+        hiltDaggerLibs = [
+                "com.google.dagger:hilt-android:$hilt_dagger_version",
+                "androidx.hilt:hilt-navigation:$hilt_android_version"
+        ]
+        hiltKaptLibs = [
+                "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
+        ]
+        hiltNavigationComposeLibs = [
+                'androidx.hilt:hilt-navigation-compose:1.0.0'
+        ]
+        nordicCommonLibs = [
+                // Nordic common libraries
+                'no.nordicsemi.android.common:theme:1.0.13'
+        ]
+        testingLibs = [
+                'junit:junit:4.13.2',
+                'androidx.test.ext:junit:1.1.3',
+                'androidx.test.espresso:espresso-core:3.4.0',
+        ]
     }
     repositories {
         google()
