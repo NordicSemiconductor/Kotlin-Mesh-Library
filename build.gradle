@@ -40,15 +40,13 @@ buildscript {
                 "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
                 "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
         ]
-        hiltDaggerLibs = [
+        hiltAndroid = [
                 "com.google.dagger:hilt-android:$hilt_dagger_version",
-                "androidx.hilt:hilt-navigation:$hilt_android_version"
-        ]
-        hiltKaptLibs = [
-                "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
-        ]
-        hiltNavigationComposeLibs = [
+                "androidx.hilt:hilt-navigation:$hilt_android_version",
                 'androidx.hilt:hilt-navigation-compose:1.0.0'
+        ]
+        hiltCompiler = [
+                "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
         ]
         nordicCommonLibs = [
                 // Nordic common libraries

@@ -55,15 +55,20 @@ dependencies {
     implementation navigationComposeLibs
     implementation composeActivityLibs
 
-    implementation hiltDaggerLibs
-    implementation hiltNavigationComposeLibs
-    kapt hiltKaptLibs
+    implementation hiltAndroid
+    kapt hiltCompiler
 
     // Nordic common libraries
     implementation nordicCommonLibs
 
-    implementation project(path: ':mesh-core')
     implementation project(path: ':core-ui')
+    implementation project(path: ':core-navigation')
+    implementation project(path: ':feature-nodes')
+    implementation project(path: ':feature-groups')
+    implementation project(path: ':feature-proxy-filter')
+    implementation project(path: ':feature-settings')
+
+    implementation project(path: ':mesh-core')
 
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"

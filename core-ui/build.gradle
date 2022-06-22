@@ -27,10 +27,18 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        // Support for compose compiler dev version https://androidx.dev/storage/compose-compiler/repository
+        kotlinCompilerExtensionVersion "1.2.0-dev-k1.7.0-53370d83bb1"
+    }
 }
 
 dependencies {
     implementation testingLibs
     implementation coreLibs
     implementation composeLibs
+    implementation project(path: ':mesh-core')
 }

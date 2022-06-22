@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="description_mesh_icon">Mesh Icon</string>
+    <string name="description_settings">Settings Icon</string>
+    <string name="label_nodes">Nodes</string>
+    <string name="label_groups">Groups</string>
+    <string name="label_proxy_filter">Proxy Filter</string>
+    <string name="label_settings">Settings</string>
+</resources>

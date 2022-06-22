@@ -10,12 +10,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import no.nordicsemi.android.material.you.NordicTheme
 import no.nordicsemi.android.nrfmesh.core.ui.MeshButton
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworksViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworksScreen(viewModel: NetworksViewModel, modifier: Modifier = Modifier) {
+fun NetworkScreen(
+    viewModel: NetworksViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     Scaffold(
         topBar = {
             SmallTopAppBar(title = { Text(text = "Networks") })
@@ -39,5 +45,7 @@ fun ImportNetwork() {
 @Preview
 @Composable
 fun DefaultPreview() {
-    ImportNetwork()
+    NordicTheme {
+        ImportNetwork()
+    }
 }

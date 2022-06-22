@@ -21,11 +21,11 @@ class MainActivity : NordicActivity() {
 @Composable
 fun MainNavigation() {
     NordicTheme {
-        Navigation()
+        MainScreen()
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview
 @Composable
 fun DefaultPreview() {
     MainNavigation()

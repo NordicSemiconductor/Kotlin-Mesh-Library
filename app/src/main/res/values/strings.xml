@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">nRF Mesh</string>
+    <string name="label_network">Network</string>
 </resources>
