@@ -2,11 +2,6 @@ package no.nordicsemi.android.nrfmesh
 
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.navigation.ProxyFilterDestination
@@ -50,14 +46,10 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(text = stringResource(R.string.label_network)) },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
+            MeshLargeTopAppBar(
+                title = stringResource(R.string.label_network),
+                scrollBehavior = scrollBehavior,
+                showActions = currentDestination?.route == SettingsDestination.route
             )
         },
         bottomBar = {
