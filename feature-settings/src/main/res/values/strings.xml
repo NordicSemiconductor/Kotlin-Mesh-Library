@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_name">Name</string>
+    <string name="label_provisioners">Provisioners</string>
+    <string name="label_network_keys">Network Keys</string>
+    <string name="label_application_keys">Application Keys</string>
+    <string name="label_scenes">Scenes</string>
+    <string name="label_iv_test_mode">IV Test Mode</string>
+</resources>
