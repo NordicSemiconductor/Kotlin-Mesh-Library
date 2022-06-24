@@ -28,7 +28,7 @@ fun SettingsScreen() {
 fun SettingsSection() {
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-        text = "Configuration",
+        text = stringResource(R.string.label_configuration),
         style = MaterialTheme.typography.labelLarge
     )
     SettingsRowItem(
@@ -75,7 +75,7 @@ fun SettingsSection() {
     }
     SettingsRowItem(
         imageVector = Icons.Outlined.Update,
-        title = "Last Modified",
+        title = stringResource(R.string.label_last_modified),
         subtitle = ""
     ) {
 
@@ -86,17 +86,17 @@ fun SettingsSection() {
 fun AboutSection() {
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-        text = "About",
+        text = stringResource(R.string.label_about),
         style = MaterialTheme.typography.labelLarge
     )
     SettingsRowItem(
-        imageVector = Icons.Outlined.Update,
-        title = "Version",
+        imageVector = Icons.Outlined.Subtitles,
+        title = stringResource(R.string.label_version),
         subtitle = "3.2.4"
     ) {}
     SettingsRowItem(
-        imageVector = Icons.Outlined.Update,
-        title = "Version Code",
+        imageVector = Icons.Outlined.DataObject,
+        title = stringResource(R.string.label_version_code),
         subtitle = "102"
     ) {}
 }

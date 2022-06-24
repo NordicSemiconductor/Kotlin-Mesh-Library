@@ -2,10 +2,14 @@ package no.nordicsemi.android.nrfmesh
 
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.LockReset
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -16,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
@@ -43,13 +48,15 @@ fun MainScreen(
         decayAnimationSpec,
         rememberTopAppBarScrollState()
     )
+    var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
                 title = stringResource(R.string.label_network),
                 scrollBehavior = scrollBehavior,
-                showActions = currentDestination?.route == SettingsDestination.route
+                showOverflowMenu = currentDestination?.route == SettingsDestination.route,
+                onOverflowMenuClicked = { isOptionsMenuExpanded = !isOptionsMenuExpanded }
             )
         },
         bottomBar = {
@@ -83,6 +90,53 @@ fun MainScreen(
             }
         }
     }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.TopEnd)
+    ) {
+        MeshDropDown(
+            expanded = isOptionsMenuExpanded,
+            onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded }) {
+            DropdownMenuItem(
+                leadingIcon = {
+                    Icon(imageVector = Icons.Outlined.Upload, contentDescription = null)
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.label_import),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                onClick = { /*TODO*/ }
+            )
+            DropdownMenuItem(
+                leadingIcon = {
+                    Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.label_export),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                onClick = { /*TODO*/ }
+            )
+            MenuDefaults.Divider()
+            DropdownMenuItem(
+                leadingIcon = {
+                    Icon(imageVector = Icons.Outlined.LockReset, contentDescription = null)
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.label_reset),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                onClick = { /*TODO*/ }
+            )
+        }
+    }
 }
 
 @Composable
@@ -90,7 +144,6 @@ fun BottomNavigationBar(
     onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
     currentDestination: NavDestination?
 ) {
-
     Surface(color = MaterialTheme.colorScheme.surface) {
         NavigationBar(
             modifier = Modifier.windowInsetsPadding(

@@ -17,7 +17,7 @@ buildscript {
         lifecycle_version = '2.5.0-rc01'
         coreLibs = [
                 'androidx.core:core-ktx:1.8.0',
-                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.2'
+                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3'
         ]
         composeLibs = [
                 'androidx.compose.material3:material3:1.0.0-alpha13',
