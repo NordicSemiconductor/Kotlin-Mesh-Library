@@ -2,15 +2,45 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.flow.*
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 import java.util.*
 
-open class MeshNetworkManager {
-    lateinit var meshNetwork: MeshNetwork
-        protected set
+/**
+ * MeshNetworkManager is the entry point to the Mesh library.
+ *
+ * @param storage Custom storage option allowing users to save the mesh network to a custom
+ *                location.
+ */
+class MeshNetworkManager(private val storage: LocalStorage) {
+    internal lateinit var meshNetwork: MeshNetwork
+
+    private val _network: MutableSharedFlow<MeshNetwork> = MutableSharedFlow(replay = 1)
+    val network: Flow<MeshNetwork> = _network.asSharedFlow()
+
+    /**
+     * Loads the network from the storage provided by the user.
+     * @return true if the configuration was successfully loaded or false otherwise.
+     */
+    suspend fun load(): Boolean {
+        return storage.load().first().takeIf {
+            it.isNotEmpty()
+        }?.let {
+            meshNetwork = deserialize(it)
+            _network.emit(meshNetwork)
+            true
+        } ?: false
+    }
+
+    /**
+     * Saves the network in the local storage provided by the user.
+     */
+    suspend fun save() {
+        storage.save(uuid = meshNetwork.uuid, network = exportMeshNetwork().toString())
+    }
 
     /**
      * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
@@ -23,7 +53,6 @@ open class MeshNetworkManager {
     fun createMeshNetwork(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
         return MeshNetwork(uuid = uuid, _name = name).also {
             meshNetwork = it
-            // TODO save the network may be?
         }
     }
 
@@ -37,7 +66,9 @@ open class MeshNetworkManager {
     @Throws(ImportError::class)
     suspend fun importMeshNetwork(array: ByteArray): MeshNetwork = run {
         deserialize(array).also {
+            _network.emit(it)
             meshNetwork = it
+            save()
         }
     }
 

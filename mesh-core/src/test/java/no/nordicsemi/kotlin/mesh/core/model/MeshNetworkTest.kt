@@ -9,7 +9,7 @@ import java.util.*
 
 class MeshNetworkTest {
 
-    private val networkManager = MeshNetworkManager()
+    private val networkManager = MeshNetworkManager(storage = TestStorage())
     private val meshNetwork by lazy { networkManager.meshNetwork }
     private val group = Group("Test Group", GroupAddress(0xD000u))
     private val scene = Scene("Test Scene", 0x000Au)
