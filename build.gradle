@@ -2,7 +2,7 @@
 buildscript {
     ext {
         // https://developer.android.com/jetpack/compose/setup#configure_kotlin
-        compose_version = "1.2.0-rc01"
+        compose_version = '1.2.0-rc02'
         // https://developer.android.com/jetpack/compose/navigation
         nav_version = '2.5.0-rc02'
         // https://developer.android.com/jetpack/androidx/releases/compose
@@ -17,7 +17,9 @@ buildscript {
         lifecycle_version = '2.5.0-rc01'
         coreLibs = [
                 'androidx.core:core-ktx:1.8.0',
-                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3'
+                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3',
+                'androidx.activity:activity-ktx:1.5.0-rc01',
+                'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
         ]
         composeLibs = [
                 'androidx.compose.material3:material3:1.0.0-alpha13',
@@ -40,13 +42,18 @@ buildscript {
                 "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
                 "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
         ]
+        dataStore = [
+                'androidx.datastore:datastore-preferences:1.0.0'
+        ]
         hiltAndroid = [
-                "com.google.dagger:hilt-android:$hilt_dagger_version",
-                "androidx.hilt:hilt-navigation:$hilt_android_version",
-                'androidx.hilt:hilt-navigation-compose:1.0.0'
+                "com.google.dagger:hilt-android:$hilt_dagger_version"
         ]
         hiltCompiler = [
                 "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
+        ]
+        hiltNavigationCompose = [
+                "androidx.hilt:hilt-navigation:$hilt_android_version",
+                'androidx.hilt:hilt-navigation-compose:1.0.0'
         ]
         nordicCommonLibs = [
                 // Nordic common libraries

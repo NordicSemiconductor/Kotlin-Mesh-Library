@@ -1,9 +1,10 @@
-package no.nordicsemi.android.nrfmesh.di
+package no.nordicsemi.android.nrfmesh.core.data.di
 
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import no.nordicsemi.android.nrfmesh.core.storage.MeshNetworkStorage
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
 
@@ -13,5 +14,6 @@ object MeshNetworkManagerModule {
 
     @Provides
     @Singleton
-    fun provideMeshManager() = MeshNetworkManager()
+    fun provideMeshManager(meshNetworkStorage: MeshNetworkStorage) =
+        MeshNetworkManager(storage = meshNetworkStorage)
 }

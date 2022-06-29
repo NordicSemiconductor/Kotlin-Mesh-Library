@@ -1,7 +1,3 @@
 <resources>
     <string name="app_name">nRF Mesh</string>
-    <string name="label_network">Network</string>
-    <string name="label_import">Import</string>
-    <string name="label_export">Export</string>
-    <string name="label_reset">Reset</string>
 </resources>

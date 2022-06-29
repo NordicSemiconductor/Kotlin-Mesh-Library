@@ -10,13 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.SettingsRowItem
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
     LazyColumn {
         item {
-            SettingsSection()
+            SettingsSection(viewModel = viewModel)
         }
         item {
             AboutSection()
@@ -25,7 +28,7 @@ fun SettingsScreen() {
 }
 
 @Composable
-fun SettingsSection() {
+fun SettingsSection(viewModel: SettingsViewModel) {
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
         text = stringResource(R.string.label_configuration),
@@ -34,35 +37,35 @@ fun SettingsSection() {
     SettingsRowItem(
         imageVector = Icons.Outlined.Badge,
         title = stringResource(R.string.label_name),
-        subtitle = "nRF Mesh"
+        subtitle = viewModel.uiState.networkName
     ) {
 
     }
     SettingsRowItem(
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
-        subtitle = "3 Provisioners"
+        subtitle = "${viewModel.uiState.provisioners.size}"
     ) {
 
     }
     SettingsRowItem(
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
-        subtitle = ""
+        subtitle = "${viewModel.uiState.networkKeys.size}"
     ) {
 
     }
     SettingsRowItem(
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
-        subtitle = ""
+        subtitle = "${viewModel.uiState.applicationKeys.size}"
     ) {
 
     }
     SettingsRowItem(
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
-        subtitle = ""
+        subtitle = "${viewModel.uiState.networkKeys.size}"
     ) {
 
     }

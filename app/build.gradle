@@ -48,21 +48,26 @@ android {
 }
 
 dependencies {
+    implementation coreLibs
     implementation testingLibs
     implementation composeLibs
 
     //implementation composeLibs
     implementation navigationComposeLibs
     implementation composeActivityLibs
+    implementation dataStore
 
     implementation hiltAndroid
     kapt hiltCompiler
+    implementation hiltNavigationCompose
 
     // Nordic common libraries
     implementation nordicCommonLibs
 
     implementation project(path: ':core-ui')
     implementation project(path: ':core-navigation')
+    implementation project(path: ':core-data')
+    implementation project(path: ':core-data-storage')
     implementation project(path: ':feature-nodes')
     implementation project(path: ':feature-groups')
     implementation project(path: ':feature-proxy-filter')

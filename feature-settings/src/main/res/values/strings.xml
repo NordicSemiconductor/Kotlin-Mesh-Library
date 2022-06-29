@@ -11,4 +11,8 @@
     <string name="label_about">About</string>
     <string name="label_version">Version</string>
     <string name="label_version_code">Version Code</string>
+    <string name="label_network">Network</string>
+    <string name="label_import">Import</string>
+    <string name="label_export">Export</string>
+    <string name="label_reset">Reset</string>
 </resources>

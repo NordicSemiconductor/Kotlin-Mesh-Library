@@ -1,8 +1,8 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.kapt'
-    id 'org.jetbrains.kotlin.android'
     id 'dagger.hilt.android.plugin'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -29,27 +29,14 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    buildFeatures {
-        compose true
-    }
-    composeOptions {
-        // Support for compose compiler dev version https://androidx.dev/storage/compose-compiler/repository
-        kotlinCompilerExtensionVersion "1.2.0-dev-k1.7.0-53370d83bb1"
-    }
 }
 
 dependencies {
-    implementation coreLibs
-    implementation composeLibs
-    implementation navigationComposeLibs
     implementation testingLibs
+    implementation coreLibs
     implementation hiltAndroid
     kapt hiltCompiler
-    implementation hiltNavigationCompose
 
-    implementation project(path: ':core-data')
-    implementation project(path: ':core-ui')
-    implementation project(path: ':core-navigation')
-
+    implementation project(path: ':core-data-storage')
     implementation project(path: ':mesh-core')
 }
