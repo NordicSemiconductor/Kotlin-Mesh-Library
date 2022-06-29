@@ -22,6 +22,13 @@ enum class StepResolution(val value: UByte) {
         TENS_OF_MINUTES -> (steps.toInt() * 10).toDuration(DurationUnit.MINUTES)
     }
 
+    internal fun toResolution() = when (this) {
+        HUNDREDS_OF_MILLISECONDS -> 100
+        SECONDS -> 1000
+        TENS_OF_SECONDS -> 10000
+        TENS_OF_MINUTES -> 600000
+    }
+
     companion object {
         // TODO: change to Duration???
         fun from(resolution: Int): StepResolution = when (resolution) {
