@@ -101,7 +101,8 @@ class MeshNetwork internal constructor(
         get() = _networkExclusions
 
     @Transient
-    internal var ivIndex = IvIndex()
+    var ivIndex = IvIndex()
+        internal set
 
     val localProvisioner: Provisioner
         get() = _provisioners.first()
