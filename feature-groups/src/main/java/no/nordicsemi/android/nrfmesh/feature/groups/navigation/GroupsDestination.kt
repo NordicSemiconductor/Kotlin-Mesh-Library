@@ -9,7 +9,7 @@ object GroupsDestination : MeshNavigationDestination {
     override val destination: String = "groups_destination"
 }
 
-fun NavGraphBuilder.nodesGraph() {
+fun NavGraphBuilder.groupsGraph() {
     composable(route = GroupsDestination.route) {
 
     }

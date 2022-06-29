@@ -10,7 +10,7 @@ object ProxyFilterDestination : MeshNavigationDestination {
     const val authorIdArg = "authorId"
 }
 
-fun NavGraphBuilder.nodesGraph() {
+fun NavGraphBuilder.proxyFilterGraph() {
     composable(route = ProxyFilterDestination.route) {
 
     }
