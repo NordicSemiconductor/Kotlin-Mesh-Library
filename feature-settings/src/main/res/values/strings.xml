@@ -5,6 +5,7 @@
     <string name="label_network_keys">Network Keys</string>
     <string name="label_application_keys">Application Keys</string>
     <string name="label_scenes">Scenes</string>
+    <string name="label_iv_index">IV Index</string>
     <string name="label_iv_test_mode">IV Test Mode</string>
     <string name="label_configuration">Configuration</string>
     <string name="label_last_modified">Last Modified</string>

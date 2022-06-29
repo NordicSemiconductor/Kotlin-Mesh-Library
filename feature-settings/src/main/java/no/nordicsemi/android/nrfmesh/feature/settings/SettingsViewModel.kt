@@ -8,11 +8,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.Scene
+import no.nordicsemi.kotlin.mesh.core.model.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,13 +24,16 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.network.collect {
+                it.timestamp.toLocalDateTime(TimeZone.currentSystemDefault())
                 uiState = SettingsUiState(
                     networkName = it.name,
                     provisioners = it.provisioners,
                     networkKeys = it.networkKeys,
                     applicationKeys = it.applicationKeys,
                     scenes = it.scenes,
-                    lastModified = it.timestamp
+                    ivIndex = it.ivIndex,
+                    lastModified = it.timestamp.toLocalDateTime(TimeZone.currentSystemDefault())
+                        .toString()
                 )
             }
         }
@@ -44,5 +46,7 @@ data class SettingsUiState(
     val networkKeys: List<NetworkKey> = emptyList(),
     val applicationKeys: List<ApplicationKey> = emptyList(),
     val scenes: List<Scene> = emptyList(),
-    val lastModified: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    val ivIndex: IvIndex = IvIndex(),
+    val lastModified: String = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        .toLocalDateTime(TimeZone.currentSystemDefault()).toString()
 )

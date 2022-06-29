@@ -38,51 +38,37 @@ fun SettingsSection(viewModel: SettingsViewModel) {
         imageVector = Icons.Outlined.Badge,
         title = stringResource(R.string.label_name),
         subtitle = viewModel.uiState.networkName
-    ) {
-
-    }
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
         subtitle = "${viewModel.uiState.provisioners.size}"
-    ) {
-
-    }
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "${viewModel.uiState.networkKeys.size}"
-    ) {
-
-    }
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "${viewModel.uiState.applicationKeys.size}"
-    ) {
-
-    }
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
         subtitle = "${viewModel.uiState.networkKeys.size}"
-    ) {
-
-    }
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.Tune,
-        title = stringResource(R.string.label_iv_test_mode),
-        subtitle = ""
-    ) {
-
-    }
+        title = stringResource(R.string.label_iv_index),
+        subtitle = "${viewModel.uiState.ivIndex.index}"
+    ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.Update,
         title = stringResource(R.string.label_last_modified),
-        subtitle = ""
-    ) {
-
-    }
+        subtitle = viewModel.uiState.lastModified
+    ) {}
 }
 
 @Composable
