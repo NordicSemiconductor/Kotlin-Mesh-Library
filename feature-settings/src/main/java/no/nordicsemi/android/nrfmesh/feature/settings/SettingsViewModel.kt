@@ -7,11 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.*
+import java.text.DateFormat
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,8 +33,9 @@ class SettingsViewModel @Inject constructor(
                     applicationKeys = it.applicationKeys,
                     scenes = it.scenes,
                     ivIndex = it.ivIndex,
-                    lastModified = it.timestamp.toLocalDateTime(TimeZone.currentSystemDefault())
-                        .toString()
+                    lastModified = DateFormat.getDateTimeInstance().format(
+                        Date(it.timestamp.toEpochMilliseconds())
+                    )
                 )
             }
         }
@@ -47,6 +49,7 @@ data class SettingsUiState(
     val applicationKeys: List<ApplicationKey> = emptyList(),
     val scenes: List<Scene> = emptyList(),
     val ivIndex: IvIndex = IvIndex(),
-    val lastModified: String = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        .toLocalDateTime(TimeZone.currentSystemDefault()).toString()
+    val lastModified: String = DateFormat.getDateTimeInstance().format(
+        Date(System.currentTimeMillis())
+    )
 )

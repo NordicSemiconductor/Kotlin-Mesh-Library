@@ -14,8 +14,6 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val storageRepository: DataStoreRepository
 ) : ViewModel() {
-
-    val network = storageRepository.network
     var isNetworkLoaded by mutableStateOf(false)
 
     fun loadNetwork() {

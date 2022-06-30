@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.rememberSplineBasedDecay
@@ -20,22 +21,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
-import no.nordicsemi.android.nrfmesh.feature.proxyfilter.navigation.proxyFilterGraph
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
+import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelNavigation
 import no.nordicsemi.android.nrfmesh.navigation.TOP_LEVEL_DESTINATIONS
 import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NetworkScreen(
     viewModel: NetworkViewModel = hiltViewModel(),
@@ -51,6 +50,7 @@ fun NetworkScreen(
     }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    Log.d("AAAA", "Current destination ${currentDestination?.route}")
     val decayAnimationSpec = rememberSplineBasedDecay<Float>()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         decayAnimationSpec,
@@ -61,12 +61,13 @@ fun NetworkScreen(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
-                title = stringResource(R.string.label_network),
+                title = when(currentDestination?.route == ExportDestination.route){
+                    true -> "Export"
+                    false -> stringResource(R.string.label_network)
+                },
                 scrollBehavior = scrollBehavior,
-                showOverflowMenu = currentDestination?.route == SettingsDestination.route,
-                onOverflowMenuClicked = {
-                    isOptionsMenuExpanded = !isOptionsMenuExpanded
-                }
+                showOverflowMenu = currentDestination?.route == SettingsDestination.destination,
+                onOverflowMenuClicked = { isOptionsMenuExpanded = !isOptionsMenuExpanded }
             )
         },
         bottomBar = {
@@ -75,21 +76,21 @@ fun NetworkScreen(
                 currentDestination = currentDestination
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal
+                    )
+                )
         ) {
-            NavHost(
+            MeshNavHost(
+                modifier = Modifier.padding(padding).consumedWindowInsets(padding),
                 navController = navController,
-                startDestination = SettingsDestination.route
-            ) {
-                nodesGraph()
-                groupsGraph()
-                proxyFilterGraph()
-                settingsGraph()
-            }
+                startDestination = NodesDestination.route
+            )
         }
     }
     Box(
@@ -125,7 +126,10 @@ fun NetworkScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                onClick = { /*TODO*/ }
+                onClick = {
+                    isOptionsMenuExpanded = !isOptionsMenuExpanded
+                    navController.navigate(ExportDestination.route)
+                }
             )
             MenuDefaults.Divider()
             DropdownMenuItem(
@@ -138,7 +142,9 @@ fun NetworkScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                onClick = { /*TODO*/ }
+                onClick = {
+                    isOptionsMenuExpanded = !isOptionsMenuExpanded
+                }
             )
         }
     }
