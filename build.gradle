@@ -1,8 +1,69 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
+        // https://developer.android.com/jetpack/compose/setup#configure_kotlin
+        compose_version = '1.2.0-rc02'
+        // https://developer.android.com/jetpack/compose/navigation
+        nav_version = '2.5.0-rc02'
+        // https://developer.android.com/jetpack/androidx/releases/compose
         kotlin_version = "1.7.0"
-        compose_version = "1.2.0-beta03"
+        // https://github.com/google/dagger/releases
+        hilt_dagger_version = '2.42'
+        // https://developer.android.com/training/dependency-injection/hilt-android
+        hilt_android_version = '1.0.0'
+        // https://github.com/google/accompanist/releases
+        accompanist_version = '0.24.11-rc'
+        // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
+        lifecycle_version = '2.5.0-rc01'
+        coreLibs = [
+                'androidx.core:core-ktx:1.8.0',
+                'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3',
+                'androidx.activity:activity-ktx:1.5.0-rc01',
+                'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
+        ]
+        composeLibs = [
+                'androidx.compose.material3:material3:1.0.0-alpha13',
+                "androidx.compose.ui:ui:$compose_version",
+                "androidx.compose.ui:ui-tooling:$compose_version",
+                "androidx.compose.ui:ui-tooling-preview:$compose_version",
+                "androidx.compose.material:material-icons-extended:$compose_version",
+                "androidx.compose.runtime:runtime-livedata:$compose_version"
+        ]
+        composeActivityLibs = [
+                'androidx.activity:activity-compose:1.4.0'
+        ]
+        navigationComposeLibs = [
+                "androidx.navigation:navigation-compose:$nav_version"
+        ]
+        lifcycleLibs = [
+                // https://developer.android.com/jetpack/androidx/releases/lifecycle
+                "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+        ]
+        dataStore = [
+                'androidx.datastore:datastore-preferences:1.0.0'
+        ]
+        hiltAndroid = [
+                "com.google.dagger:hilt-android:$hilt_dagger_version"
+        ]
+        hiltCompiler = [
+                "com.google.dagger:hilt-android-compiler:$hilt_dagger_version"
+        ]
+        hiltNavigationCompose = [
+                "androidx.hilt:hilt-navigation:$hilt_android_version",
+                'androidx.hilt:hilt-navigation-compose:1.0.0'
+        ]
+        nordicCommonLibs = [
+                // Nordic common libraries
+                'no.nordicsemi.android.common:theme:1.0.13'
+        ]
+        testingLibs = [
+                'junit:junit:4.13.2',
+                'androidx.test.ext:junit:1.1.3',
+                'androidx.test.espresso:espresso-core:3.4.0',
+        ]
     }
     repositories {
         google()
@@ -12,6 +73,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+        classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_dagger_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

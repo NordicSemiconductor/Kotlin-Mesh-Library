@@ -18,7 +18,7 @@ internal object StepResolutionSerializer : KSerializer<StepResolution> {
         PrimitiveSerialDescriptor(serialName = "StepResolution", kind = PrimitiveKind.LONG)
 
     override fun deserialize(decoder: Decoder): StepResolution = runCatching {
-        StepResolution.from((decoder.decodeInt()))
+        StepResolution.from(decoder.decodeInt())
     }.getOrElse {
         throw ImportError(
             "Error while deserializing publish period Step Resolution " +
@@ -27,9 +27,6 @@ internal object StepResolutionSerializer : KSerializer<StepResolution> {
     }
 
     override fun serialize(encoder: Encoder, value: StepResolution) {
-        encoder.encodeLong(
-            value.toMilliseconds(StepResolution.HUNDREDS_OF_MILLISECONDS.value)
-                .inWholeMilliseconds
-        )
+        encoder.encodeInt(value.toResolution())
     }
 }

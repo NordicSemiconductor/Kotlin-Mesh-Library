@@ -8,7 +8,7 @@ import org.junit.Test
 
 class GroupTest {
 
-    private val networkManager = MeshNetworkManager()
+    private val networkManager = MeshNetworkManager(storage = TestStorage())
     lateinit var network: MeshNetwork
 
     @Before
