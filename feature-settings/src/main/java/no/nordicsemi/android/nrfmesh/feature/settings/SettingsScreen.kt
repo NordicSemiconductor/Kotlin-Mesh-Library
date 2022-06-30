@@ -8,8 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.SettingsRowItem
 
@@ -73,6 +75,8 @@ fun SettingsSection(viewModel: SettingsViewModel) {
 
 @Composable
 fun AboutSection() {
+    val context = LocalContext.current
+    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
         text = stringResource(R.string.label_about),
@@ -81,11 +85,11 @@ fun AboutSection() {
     SettingsRowItem(
         imageVector = Icons.Outlined.Subtitles,
         title = stringResource(R.string.label_version),
-        subtitle = "3.2.4"
+        subtitle = packageInfo.versionName
     ) {}
     SettingsRowItem(
         imageVector = Icons.Outlined.DataObject,
         title = stringResource(R.string.label_version_code),
-        subtitle = "102"
+        subtitle = "${PackageInfoCompat.getLongVersionCode(packageInfo)}"
     ) {}
 }
