@@ -5,7 +5,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.LifecycleCoroutineScope
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.material.you.NordicActivity
 import no.nordicsemi.android.material.you.NordicTheme
