@@ -8,12 +8,14 @@ import androidx.compose.runtime.Composable
 @Composable
 fun MeshLargeTopAppBar(
     title: String,
-    scrollBehavior: TopAppBarScrollBehavior,
+    navigationIcon: @Composable () -> Unit,
     showOverflowMenu: Boolean,
-    onOverflowMenuClicked: () -> Unit
+    onOverflowMenuClicked: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     LargeTopAppBar(
         title = { Text(text = title) },
+        navigationIcon = { navigationIcon() },
         actions = {
             if (showOverflowMenu)
                 IconButton(onClick = { onOverflowMenuClicked() }) {

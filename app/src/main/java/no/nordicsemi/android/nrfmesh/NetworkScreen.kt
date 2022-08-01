@@ -1,11 +1,11 @@
 package no.nordicsemi.android.nrfmesh
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.LockReset
 import androidx.compose.material.icons.outlined.Upload
@@ -26,7 +26,9 @@ import androidx.navigation.compose.rememberNavController
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
+import no.nordicsemi.android.nrfmesh.feature.proxyfilter.navigation.ProxyFilterDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelNavigation
@@ -50,7 +52,7 @@ fun NetworkScreen(
     }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    Log.d("AAAA", "Current destination ${currentDestination?.route}")
+
     val decayAnimationSpec = rememberSplineBasedDecay<Float>()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         decayAnimationSpec,
@@ -61,9 +63,25 @@ fun NetworkScreen(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
-                title = when(currentDestination?.route == ExportDestination.route){
-                    true -> "Export"
+                title = when (currentDestination?.route == ExportDestination.route) {
+                    true -> stringResource(R.string.label_export)
                     false -> stringResource(R.string.label_network)
+                },
+                navigationIcon = {
+                    currentDestination?.let {
+                        if (it.route != NodesDestination.route &&
+                            it.route != GroupsDestination.route &&
+                            it.route != ProxyFilterDestination.route &&
+                            it.route != SettingsDestination.destination
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBack,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
                 },
                 scrollBehavior = scrollBehavior,
                 showOverflowMenu = currentDestination?.route == SettingsDestination.destination,
@@ -87,7 +105,9 @@ fun NetworkScreen(
                 )
         ) {
             MeshNavHost(
-                modifier = Modifier.padding(padding).consumedWindowInsets(padding),
+                modifier = Modifier
+                    .padding(padding)
+                    .consumedWindowInsets(padding),
                 navController = navController,
                 startDestination = NodesDestination.route
             )
