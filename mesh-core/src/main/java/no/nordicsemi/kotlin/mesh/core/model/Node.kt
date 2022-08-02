@@ -14,7 +14,9 @@ import java.util.*
  * The node represents a configured state of a mesh node.
  *
  * @property uuid                       Unique 128-bit UUID of the node.
- * @property deviceKey                  128-bit device key.
+ * @property deviceKey                  128-bit device key. When importing a partially exported
+ *                                      network configuration, the device key might not be present
+ *                                      in the Mesh Network Configuration Database.
  * @property security                   Represents the level of [Security] for the subnet on which
  *                                      the node has been originally provisioned.
  * @property netKeys                    Array of [NodeKey] that includes information about the
@@ -68,7 +70,7 @@ data class Node internal constructor(
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
     @Serializable(with = KeySerializer::class)
-    val deviceKey: ByteArray,
+    val deviceKey: ByteArray?,
     @SerialName(value = "unicastAddress")
     internal var _primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
