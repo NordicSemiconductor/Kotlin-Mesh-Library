@@ -150,11 +150,11 @@ class MeshNetwork internal constructor(
     /**
      * Checks if a provisioner with the given UUID already exists in the network.
      *
-     * @param uuid UUID to check.
+     * @param provisioner provisioner to check.
      * @return true if the provisioner exists.
      * @throws [DoesNotBelongToNetwork] if the provisioner belongs to another network.
      */
-    internal fun hasProvisioner(uuid: UUID) = _provisioners.any { it.uuid == uuid }
+    internal fun has(provisioner: Provisioner) = _provisioners.any { it.uuid == provisioner.uuid }
 
     /**
      * Adds the given [Provisioner] to the list of provisioners in the network.
@@ -214,7 +214,7 @@ class MeshNetwork internal constructor(
         }
 
         // Is it already added?
-        require(!hasProvisioner(provisioner.uuid)) { return }
+        require(!has(provisioner)) { return }
 
         // is there a node with the provisioner's uuid
         require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists() }
@@ -452,7 +452,7 @@ class MeshNetwork internal constructor(
      */
     fun node(provisioner: Provisioner) = try {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
-        require(hasProvisioner(provisioner.uuid)) { return null }
+        require(has(provisioner)) { return null }
         node(provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
         null
