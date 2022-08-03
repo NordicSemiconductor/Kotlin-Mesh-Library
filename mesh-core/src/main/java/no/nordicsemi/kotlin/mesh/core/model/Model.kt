@@ -28,7 +28,7 @@ data class Model internal constructor(
     val modelId: ModelId,
 ) {
     var subscribe: List<SubscriptionAddress> = listOf()
-        private set
+        internal set
     var publish: Publish? = null
         internal set
     var bind: List<KeyIndex> = listOf()

@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -774,6 +775,186 @@ class MeshNetwork internal constructor(
         return null
     }
 
+    /**
+     * Includes network keys for a partial export with the givenconfiguration.
+     *
+     * @param config Network key configuration.
+     */
+    internal fun includeNetKeysForExport(config: NetworkKeysConfig) {
+        if (config is NetworkKeysConfig.Some) {
+            _networkKeys = config.keys.toMutableList()
+        }
+    }
+
+    /**
+     * Includes application keys for a partial export with the given key configuration.
+     *
+     * @param config Application key configuration.
+     */
+    internal fun includeAppKeysForExport(config: ApplicationKeysConfig) {
+        if (config is ApplicationKeysConfig.Some) {
+            // List of application keys set in the configuration, but we must only export the
+            // keys that are bound to that network key.
+            _applicationKeys = _applicationKeys.filter { applicationKey ->
+                applicationKey.netKey?.let {
+                    it in networkKeys
+                } ?: false
+            }.toMutableList()
+        }
+    }
+
+    /**
+     * Includes nodes for a partial export with the given configuration.
+     *
+     * @param config Node configuration.
+     */
+    internal fun includeNodesForExport(config: NodesConfig) {
+        when (config) {
+            is NodesConfig.All -> {
+                if (config.deviceKeyConfig == DeviceKeyConfig.WITHOUT_DEVICE_KEY) {
+                    _nodes = excludeDeviceKeys(nodes).toMutableList()
+                } else _nodes
+            }
+            is NodesConfig.Some -> {
+                _nodes.clear()
+                _nodes.addAll(config.withDeviceKey)
+                _nodes.addAll(excludeDeviceKeys(config.withoutDeviceKey))
+
+                // Add any missing provisioner nodes if they were not selected when selecting
+                // nodes.
+                // TODO should the device key be included for such a node?
+                provisioners.forEach { provisioner ->
+                    if (!has(provisioner)) {
+                        provisioner.node?.let { it -> add(it) }
+                    }
+                }
+                nodes
+            }
+        }
+    }
+
+    /**
+     * Excludes device keys from a list of nodes.
+     *
+     * @param nodes List of nodes.
+     * @return List of nodes without the device keys.
+     */
+    private fun excludeDeviceKeys(nodes: List<Node>): List<Node> = nodes.map {
+        it.copy(deviceKey = null)
+    }
+
+    /**
+     * Includes provisioners for a partial export with the given configuration.
+     *
+     * @param config Provisioners configuration.
+     */
+    internal fun includeProvisionersForExport(config: ProvisionersConfig) {
+        if (config is ProvisionersConfig.Some || config is ProvisionersConfig.One) {
+            // First Let's exclude provisioners that are not selected.
+            _provisioners = _provisioners.filter { provisioner ->
+                node(provisioner = provisioner) != null
+            }.toMutableList()
+        }
+        // The above process will exclude provisioners that does not have an address as they
+        // will not have corresponding nodes. The following step would re-add the selected
+        // provisioners that might have been excluded.
+
+        _provisioners.apply {
+            if (config is ProvisionersConfig.Some) {
+                addAll(filterDuplicateProvisioners(config.provisioners))
+            } else if (config is ProvisionersConfig.One) {
+                addAll(filterDuplicateProvisioners(listOf(config.provisioner)))
+            }
+        }
+    }
+
+    /**
+     * Filters duplicate provisioners.
+     *
+     * @param provisioners List of provisioners to filter
+     */
+    private fun filterDuplicateProvisioners(provisioners: List<Provisioner>) =
+        provisioners.filter { provisioner -> !has(provisioner) }
+
+    /**
+     * Includes groups for a partial export with the given configuration.
+     *
+     * @param config Groups configuration.
+     */
+    internal fun includeGroupsForGroups(config: GroupsConfig) {
+        if (config is GroupsConfig.Related) {
+            _groups = _groups.filter { group ->
+                group.isUsed
+            }.toMutableList()
+        } else if (config is GroupsConfig.Some) {
+            _groups.forEach { group ->
+                _nodes.filter { node ->
+                    node !in group.nodes()
+                }.forEach { node ->
+                    node.elements.forEach { element ->
+                        element.models.forEach { model ->
+                            if (model.publish?.address is GroupAddress) {
+                                model.publish = null
+                            }
+                            model.subscribe = model.subscribe.filterIsInstance<GroupAddress>()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Includes scenes for a partial export with the given configuration.
+     *
+     * @param config Scenes configuration.
+     */
+    internal fun includeScenesForExport(config: ScenesConfig) {
+        if (config is ScenesConfig.Some) {
+            _scenes = config.scenes.toMutableList()
+        }
+        // Let's exclude unselected nodes from the list of addresses in scenes.
+        _scenes.forEach { scene ->
+            scene.addresses.filter { address ->
+                address !in _nodes.map { node ->
+                    node.primaryUnicastAddress
+                }
+            }
+        }
+    }
+
+    /**
+     * Excludes nodes that does not contain selected network keys.
+     */
+    internal fun excludeNodesUnknownToNetworkKeys() {
+        _nodes = _nodes.filter { node ->
+            networkKeys.map { it.index }.filter { keyIndex ->
+                keyIndex !in node.netKeys.map { it.index }
+            }.isNotEmpty()
+        }.toMutableList()
+    }
+
+    /**
+     * Excludes unselected application keys from models for a partial export.
+     */
+    internal fun excludeUnselectedApplicationKeys() {
+        _nodes.forEach { node ->
+            node._elements.forEach { element ->
+                element.models.forEach { model ->
+                    model.bind.filter { keyIndex ->
+                        keyIndex !in _applicationKeys.map {
+                            it.index
+                        }
+                    }.forEach { keyIndex ->
+                        if (model.publish?.index == keyIndex.toInt()) {
+                            model.publish = null
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     internal companion object {
         /**
          *  Invoked when an observable property is changed.
@@ -788,4 +969,5 @@ class MeshNetwork internal constructor(
         }
     }
 }
+
 

@@ -59,6 +59,12 @@ class NoSceneRangeAllocated : MeshNetworkException()
 /** Thrown when an object does not belong to the current network. */
 class DoesNotBelongToNetwork : MeshNetworkException()
 
+/** Thrown when at least one network key is not selected when exporting a partial network. */
+class AtLeastOneNetworkKeyMustBeSelected : MeshNetworkException()
+
+/** Thrown when at least one provisioner is not selected when exporting a partial network. */
+class AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
+
 /** Thrown when the Json deserializing encounters an error. */
 class ImportError internal constructor(
     val error: String,

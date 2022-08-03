@@ -2,8 +2,8 @@ package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
-import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
 import java.io.ByteArrayInputStream
 
 internal object MeshNetworkSerializer {
@@ -88,4 +88,55 @@ internal object MeshNetworkSerializer {
             put(KEY_VERSION, JsonPrimitive(value = version))
         }).jsonObject + encodeToJsonElement(network).jsonObject
     })
+
+
+    /**
+     * Serializes the given mesh network to a JsonObject based on the configuration.
+     *
+     * @param network                      MeshNetwork to be serialized.
+     * @param networkKeysConfig            Configuration of the network keys to be exported.
+     * @param applicationKeysConfig        Configuration of the application keys to be exported.
+     * @param provisionersConfig           Configuration of the provisioner to be exported.
+     * @param nodesConfig                  Configuration of the nodes to be exported.
+     * @param groupsConfig                 Configuration of the groups to be exported.
+     * @param scenesConfig                 Configuration of the scenes to be exported.
+     */
+    internal fun serialize(
+        network: MeshNetwork,
+        networkKeysConfig: NetworkKeysConfig,
+        applicationKeysConfig: ApplicationKeysConfig,
+        provisionersConfig: ProvisionersConfig,
+        nodesConfig: NodesConfig,
+        groupsConfig: GroupsConfig,
+        scenesConfig: ScenesConfig
+    ) {
+        serialize(
+            network = network.apply {
+                partial = true
+                // List of Network Keys to export.
+                includeNetKeysForExport(networkKeysConfig)
+                // List of Application Keys to export.
+                includeAppKeysForExport(applicationKeysConfig)
+
+                // List of nodes to export.
+                includeNodesForExport(nodesConfig)
+
+                // List of provisioners to export.
+                includeProvisionersForExport(provisionersConfig)
+
+                // Excludes the nodes unknown to network keys.
+                // TODO what will happen to the provisioner if it's node is excluded due to an unknown
+                //      network key although a provisioner knows all the network keys.
+                excludeNodesUnknownToNetworkKeys()
+                // Exclude app keys that are bound but not in the selected application key list.
+                excludeUnselectedApplicationKeys()
+
+                includeGroupsForGroups(groupsConfig)
+
+                // List of Scenes to export.
+                includeScenesForExport(scenesConfig)
+
+            }
+        )
+    }
 }

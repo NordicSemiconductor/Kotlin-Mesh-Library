@@ -2,11 +2,15 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
 import java.util.*
 
 /**
@@ -39,7 +43,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        storage.save(uuid = meshNetwork.uuid, network = exportMeshNetwork().toString())
+        storage.save(uuid = meshNetwork.uuid, network = export().toString())
     }
 
     /**
@@ -50,7 +54,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
      *             multiple mesh networks.
      */
-    fun createMeshNetwork(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
+    fun create(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
         return MeshNetwork(uuid = uuid, _name = name).also {
             meshNetwork = it
         }
@@ -64,7 +68,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * @throws ImportError if deserializing fails.
      */
     @Throws(ImportError::class)
-    suspend fun importMeshNetwork(array: ByteArray): MeshNetwork = run {
+    suspend fun import(array: ByteArray): MeshNetwork = run {
         deserialize(array).also {
             _network.emit(it)
             meshNetwork = it
@@ -75,5 +79,33 @@ class MeshNetworkManager(private val storage: LocalStorage) {
     /**
      * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile.
      */
-    suspend fun exportMeshNetwork() = serialize(network = meshNetwork)
+    suspend fun export() = serialize(network = meshNetwork)
+
+    /**
+     * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
+     * on the given configuration.
+     *
+     * @param networkKeysConfig            Configuration of the network keys to be exported.
+     * @param applicationKeysConfig        Configuration of the application keys to be exported.
+     * @param provisionersConfig           Configuration of the provisioner to be exported.
+     * @param nodesConfig                  Configuration of the nodes to be exported.
+     * @param groupConfig                  Configuration of the groups to be exported.
+     * @param scenesConfig                 Configuration of the scenes to be exported.
+     */
+    suspend fun export(
+        networkKeysConfig: NetworkKeysConfig,
+        applicationKeysConfig: ApplicationKeysConfig,
+        provisionersConfig: ProvisionersConfig,
+        nodesConfig: NodesConfig,
+        groupConfig: GroupsConfig,
+        scenesConfig: ScenesConfig
+    ) = serialize(
+        network = meshNetwork,
+        networkKeysConfig = networkKeysConfig,
+        applicationKeysConfig = applicationKeysConfig,
+        provisionersConfig = provisionersConfig,
+        nodesConfig = nodesConfig,
+        scenesConfig = scenesConfig,
+        groupsConfig = groupConfig
+    )
 }

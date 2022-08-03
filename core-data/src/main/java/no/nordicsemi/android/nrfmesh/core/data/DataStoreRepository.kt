@@ -12,12 +12,12 @@ class DataStoreRepository @Inject constructor(
 
     suspend fun loadNetwork(): Boolean {
         if (!meshNetworkManager.load()) {
-            meshNetworkManager.createMeshNetwork("Home Network")
+            meshNetworkManager.create("Home Network")
         }
         return true
     }
 
     suspend fun importMeshNetwork(data: ByteArray) {
-        meshNetworkManager.importMeshNetwork(data)
+        meshNetworkManager.import(data)
     }
 }

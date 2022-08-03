@@ -19,7 +19,7 @@ class MeshNetworkTest {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {
-            networkManager.importMeshNetwork(jsonBytes!!)
+            networkManager.import(jsonBytes!!)
         }
     }
 
