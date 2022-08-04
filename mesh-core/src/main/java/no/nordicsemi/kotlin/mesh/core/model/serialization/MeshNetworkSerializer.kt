@@ -82,13 +82,12 @@ internal object MeshNetworkSerializer {
      * @param network          MeshNetwork to be serialized.
      * @param configuration    Configuration to be applied when serializing.
      */
-    internal fun serialize(network: MeshNetwork, configuration: NetworkConfiguration): JsonObject {
-        return JsonObject(content = jsonSerializer.run {
+    internal fun serialize(network: MeshNetwork, configuration: NetworkConfiguration) =
+        JsonObject(content = jsonSerializer.run {
             encodeToJsonElement(value = buildMap<String, JsonElement> {
                 put(KEY_SCHEMA, JsonPrimitive(value = schema))
                 put(KEY_ID, JsonPrimitive(value = id))
                 put(KEY_VERSION, JsonPrimitive(value = version))
             }).jsonObject + encodeToJsonElement(network.apply(configuration)).jsonObject
         })
-    }
 }
