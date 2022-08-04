@@ -791,12 +791,12 @@ class MeshNetwork internal constructor(
             // Excludes the nodes unknown to network keys.
             // TODO what will happen to the provisioner if it's node is excluded due to an
             //      unknown network key although a provisioner knows all the network keys.
-            excludeNodesUnknownToNetworkKeys()
+            filterNodesUnknownToNetworkKeys()
             // Exclude app keys that are bound but not in the selected application key list.
-            excludeUnselectedApplicationKeys()
-            includeGroupsForGroups(config.groupsConfig)
+            filterUnselectedApplicationKeys()
+            filter(config.groupsConfig)
             // List of Scenes to export.
-            includeScenesForExport(config.scenesConfig)
+            filter(config.scenesConfig)
             this
         }
     }
@@ -806,7 +806,7 @@ class MeshNetwork internal constructor(
      *
      * @param config Network key configuration.
      */
-    internal fun filter(config: NetworkKeysConfig) {
+    private fun filter(config: NetworkKeysConfig) {
         if (config is NetworkKeysConfig.Some) {
             // Filter the network keys matching the configuration.
             _networkKeys = _networkKeys.filter { key ->
@@ -827,7 +827,7 @@ class MeshNetwork internal constructor(
      *
      * @param config Application key configuration.
      */
-    internal fun filter(config: ApplicationKeysConfig) {
+    private fun filter(config: ApplicationKeysConfig) {
         if (config is ApplicationKeysConfig.Some) {
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
@@ -844,7 +844,7 @@ class MeshNetwork internal constructor(
      *
      * @param config Node configuration.
      */
-    internal fun filter(config: NodesConfig) {
+    private fun filter(config: NodesConfig) {
         when (config) {
             is NodesConfig.All -> if (config.deviceKeyConfig == DeviceKeyConfig.EXCLUDE_KEY) {
                 _nodes = _nodes.map { node ->
@@ -884,7 +884,7 @@ class MeshNetwork internal constructor(
      *
      * @param config Provisioners configuration.
      */
-    internal fun filter(config: ProvisionersConfig) {
+    private fun filter(config: ProvisionersConfig) {
         if (config is ProvisionersConfig.Some || config is ProvisionersConfig.One) {
             // First Let's exclude provisioners that are not selected.
             _provisioners = _provisioners.filter { provisioner ->
@@ -916,7 +916,7 @@ class MeshNetwork internal constructor(
      *
      * @param config Groups configuration.
      */
-    internal fun includeGroupsForGroups(config: GroupsConfig) {
+    private fun filter(config: GroupsConfig) {
         if (config is GroupsConfig.Related) {
             _groups = _groups.filter { group ->
                 group.isUsed
@@ -944,9 +944,11 @@ class MeshNetwork internal constructor(
      *
      * @param config Scenes configuration.
      */
-    internal fun includeScenesForExport(config: ScenesConfig) {
+    private fun filter(config: ScenesConfig) {
         if (config is ScenesConfig.Some) {
-            _scenes = config.scenes.toMutableList()
+            _scenes = _scenes.filter { scene ->
+                scene in config.scenes
+            }.toMutableList()
         }
         // Let's exclude unselected nodes from the list of addresses in scenes.
         _scenes.forEach { scene ->
@@ -961,24 +963,24 @@ class MeshNetwork internal constructor(
     /**
      * Excludes nodes that does not contain selected network keys.
      */
-    internal fun excludeNodesUnknownToNetworkKeys() {
+    private fun filterNodesUnknownToNetworkKeys() {
         _nodes = _nodes.filter { node ->
-            networkKeys.map { it.index }.filter { keyIndex ->
+            networkKeys.map { it.index }.any { keyIndex ->
                 keyIndex !in node.netKeys.map { it.index }
-            }.isNotEmpty()
+            }
         }.toMutableList()
     }
 
     /**
      * Excludes unselected application keys from models for a partial export.
      */
-    internal fun excludeUnselectedApplicationKeys() {
+    private fun filterUnselectedApplicationKeys() {
         _nodes.forEach { node ->
             node._elements.forEach { element ->
                 element.models.forEach { model ->
                     model.bind.filter { keyIndex ->
-                        keyIndex !in _applicationKeys.map {
-                            it.index
+                        keyIndex !in _applicationKeys.map { key ->
+                            key.index
                         }
                     }.forEach { keyIndex ->
                         if (model.publish?.index == keyIndex.toInt()) {
