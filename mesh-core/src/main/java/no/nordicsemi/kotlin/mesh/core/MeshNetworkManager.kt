@@ -77,35 +77,15 @@ class MeshNetworkManager(private val storage: LocalStorage) {
     }
 
     /**
-     * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile.
-     */
-    suspend fun export() = serialize(network = meshNetwork)
-
-    /**
      * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
      * on the given configuration.
      *
-     * @param networkKeysConfig            Configuration of the network keys to be exported.
-     * @param applicationKeysConfig        Configuration of the application keys to be exported.
-     * @param provisionersConfig           Configuration of the provisioner to be exported.
-     * @param nodesConfig                  Configuration of the nodes to be exported.
-     * @param groupConfig                  Configuration of the groups to be exported.
-     * @param scenesConfig                 Configuration of the scenes to be exported.
+     * @param type Specifies if the network should be fully exported or partially.
      */
     suspend fun export(
-        networkKeysConfig: NetworkKeysConfig,
-        applicationKeysConfig: ApplicationKeysConfig,
-        provisionersConfig: ProvisionersConfig,
-        nodesConfig: NodesConfig,
-        groupConfig: GroupsConfig,
-        scenesConfig: ScenesConfig
+        type: NetworkConfiguration = NetworkConfiguration.Full
     ) = serialize(
         network = meshNetwork,
-        networkKeysConfig = networkKeysConfig,
-        applicationKeysConfig = applicationKeysConfig,
-        provisionersConfig = provisionersConfig,
-        nodesConfig = nodesConfig,
-        scenesConfig = scenesConfig,
-        groupsConfig = groupConfig
+        configuration = type
     )
 }

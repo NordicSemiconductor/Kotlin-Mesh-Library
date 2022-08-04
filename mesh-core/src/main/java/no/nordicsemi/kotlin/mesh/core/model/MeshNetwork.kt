@@ -775,23 +775,59 @@ class MeshNetwork internal constructor(
         return null
     }
 
-    /**
-     * Includes network keys for a partial export with the givenconfiguration.
-     *
-     * @param config Network key configuration.
-     */
-    internal fun includeNetKeysForExport(config: NetworkKeysConfig) {
-        if (config is NetworkKeysConfig.Some) {
-            _networkKeys = config.keys.toMutableList()
+    internal fun apply(config: NetworkConfiguration) = when (config) {
+        is NetworkConfiguration.Full -> this
+        is NetworkConfiguration.Partial -> {
+            partial = true
+            // List of Network Keys to export.
+            filter(config.networkKeysConfig)
+            // List of Application Keys to export.
+            filter(config.applicationKeysConfig)
+            // List of nodes to export.
+            filter(config.nodesConfig)
+            // List of provisioners to export.
+            filter(config.provisionersConfig)
+
+            // Excludes the nodes unknown to network keys.
+            // TODO what will happen to the provisioner if it's node is excluded due to an
+            //      unknown network key although a provisioner knows all the network keys.
+            excludeNodesUnknownToNetworkKeys()
+            // Exclude app keys that are bound but not in the selected application key list.
+            excludeUnselectedApplicationKeys()
+            includeGroupsForGroups(config.groupsConfig)
+            // List of Scenes to export.
+            includeScenesForExport(config.scenesConfig)
+            this
         }
     }
 
     /**
-     * Includes application keys for a partial export with the given key configuration.
+     * Includes network keys for a partial export with the given configuration.
+     *
+     * @param config Network key configuration.
+     */
+    internal fun filter(config: NetworkKeysConfig) {
+        if (config is NetworkKeysConfig.Some) {
+            // Filter the network keys matching the configuration.
+            _networkKeys = _networkKeys.filter { key ->
+                key in config.keys
+            }.toMutableList()
+
+            // Excludes nodes that does not contain selected network keys.
+            _nodes = _nodes.filter { node ->
+                networkKeys.map { it.index }.any { keyIndex ->
+                    keyIndex !in node.netKeys.map { it.index }
+                }
+            }.toMutableList()
+        }
+    }
+
+    /**
+     * Includes application keys for a partial export with the given configuration.
      *
      * @param config Application key configuration.
      */
-    internal fun includeAppKeysForExport(config: ApplicationKeysConfig) {
+    internal fun filter(config: ApplicationKeysConfig) {
         if (config is ApplicationKeysConfig.Some) {
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
@@ -804,21 +840,31 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Includes nodes for a partial export with the given configuration.
+     * Filters nodes for a partial export with the given configuration.
      *
      * @param config Node configuration.
      */
-    internal fun includeNodesForExport(config: NodesConfig) {
+    internal fun filter(config: NodesConfig) {
         when (config) {
-            is NodesConfig.All -> {
-                if (config.deviceKeyConfig == DeviceKeyConfig.WITHOUT_DEVICE_KEY) {
-                    _nodes = excludeDeviceKeys(nodes).toMutableList()
-                } else _nodes
-            }
+            is NodesConfig.All -> if (config.deviceKeyConfig == DeviceKeyConfig.EXCLUDE_KEY) {
+                _nodes = _nodes.map { node ->
+                    node.copy(deviceKey = null)
+                }.toMutableList()
+            } else _nodes
+
             is NodesConfig.Some -> {
+                val withDeviceKey = _nodes.filter { node ->
+                    node in config.withDeviceKey
+                }.toMutableList()
+
+                val withoutDeviceKey = _nodes.filter { node ->
+                    node in config.withoutDeviceKey
+                }.map { node ->
+                    node.copy(deviceKey = null)
+                }.toMutableList()
+
                 _nodes.clear()
-                _nodes.addAll(config.withDeviceKey)
-                _nodes.addAll(excludeDeviceKeys(config.withoutDeviceKey))
+                _nodes = (withDeviceKey + withoutDeviceKey).toMutableList()
 
                 // Add any missing provisioner nodes if they were not selected when selecting
                 // nodes.
@@ -834,21 +880,11 @@ class MeshNetwork internal constructor(
     }
 
     /**
-     * Excludes device keys from a list of nodes.
-     *
-     * @param nodes List of nodes.
-     * @return List of nodes without the device keys.
-     */
-    private fun excludeDeviceKeys(nodes: List<Node>): List<Node> = nodes.map {
-        it.copy(deviceKey = null)
-    }
-
-    /**
-     * Includes provisioners for a partial export with the given configuration.
+     * Filters provisioners for a partial export with the given configuration.
      *
      * @param config Provisioners configuration.
      */
-    internal fun includeProvisionersForExport(config: ProvisionersConfig) {
+    internal fun filter(config: ProvisionersConfig) {
         if (config is ProvisionersConfig.Some || config is ProvisionersConfig.One) {
             // First Let's exclude provisioners that are not selected.
             _provisioners = _provisioners.filter { provisioner ->
@@ -858,14 +894,13 @@ class MeshNetwork internal constructor(
         // The above process will exclude provisioners that does not have an address as they
         // will not have corresponding nodes. The following step would re-add the selected
         // provisioners that might have been excluded.
-
-        _provisioners.apply {
-            if (config is ProvisionersConfig.Some) {
-                addAll(filterDuplicateProvisioners(config.provisioners))
-            } else if (config is ProvisionersConfig.One) {
-                addAll(filterDuplicateProvisioners(listOf(config.provisioner)))
+        _provisioners = _provisioners.filter { provisioner ->
+            when (config) {
+                is ProvisionersConfig.Some -> provisioner in config.provisioners
+                is ProvisionersConfig.One -> provisioner == config.provisioner
+                is ProvisionersConfig.All -> true
             }
-        }
+        }.toMutableList()
     }
 
     /**
