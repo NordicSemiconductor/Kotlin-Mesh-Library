@@ -53,10 +53,12 @@ fun NetworkScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    val topAppBarState = rememberTopAppBarState()
+
     val decayAnimationSpec = rememberSplineBasedDecay<Float>()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        decayAnimationSpec,
-        rememberTopAppBarScrollState()
+        decayAnimationSpec = decayAnimationSpec,
+        state = topAppBarState
     )
     var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
     Scaffold(

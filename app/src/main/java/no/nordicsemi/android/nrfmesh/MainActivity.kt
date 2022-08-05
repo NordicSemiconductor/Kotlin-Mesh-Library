@@ -6,8 +6,8 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import dagger.hilt.android.AndroidEntryPoint
-import no.nordicsemi.android.material.you.NordicActivity
-import no.nordicsemi.android.material.you.NordicTheme
+import no.nordicsemi.android.common.theme.NordicActivity
+import no.nordicsemi.android.common.theme.NordicTheme
 import no.nordicsemi.android.nrfmesh.viewmodel.MainViewModel
 
 @AndroidEntryPoint
@@ -18,8 +18,10 @@ class MainActivity : NordicActivity() {
         super.onCreate(savedInstanceState)
         viewModel.loadNetwork()
         setContent {
-            if (viewModel.isNetworkLoaded)
-                MainNavigation()
+            NordicTheme {
+                if (viewModel.isNetworkLoaded)
+                    NetworkScreen()
+            }
         }
     }
 }
@@ -34,5 +36,7 @@ fun MainNavigation() {
 @Preview
 @Composable
 fun DefaultPreview() {
-    MainNavigation()
+    NordicTheme {
+        NetworkScreen()
+    }
 }
