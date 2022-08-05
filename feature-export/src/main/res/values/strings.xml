@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="label_export_everything">Export Everything</string>
-    <string name="label_export_everything_rationale">Full configuration will contain all mesh
+    <string name="label_everything">Everything</string>
+    <string name="label_export_configuration">Export Configuration</string>
+    <string name="label_export_configuration_rationale">Full configuration will contain all mesh
         network data stored on this device.\n\nWhen sharing with a Guest, consider creating a new
         network key and set of guest application keys, send them to nodes that you want to share
         with the guest, and bind to required models. Then export only this network key with excluded
         device keys. \n\nThe underlying library allows also to specify which nodes, groups or scenes
         are to be shared. This app will only share those, that use the specified network key.
     </string>
-    <string name="label_configuration">Configuration</string>
     <string name="label_provisioners">Provisioners</string>
     <string name="label_network_keys">Network Keys</string>
     <string name="label_device_keys">Device Keys</string>

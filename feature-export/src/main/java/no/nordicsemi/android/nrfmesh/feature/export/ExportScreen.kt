@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.export
 
 import androidx.compose.foundation.clickable
@@ -9,12 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Switch
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -80,7 +76,8 @@ private fun ExportScreen(viewModel: ExportViewModel) {
 
 @Composable
 private fun ExportEverything(viewModel: ExportViewModel) {
-    SectionTitle(title = stringResource(R.string.label_configuration))
+    var showDialog by remember { mutableStateOf(false) }
+    SectionTitle(title = stringResource(R.string.label_export_configuration))
     Row(
         modifier = Modifier
             .height(IntrinsicSize.Min)
@@ -91,18 +88,16 @@ private fun ExportEverything(viewModel: ExportViewModel) {
         RowItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.FileDownload,
-            title = stringResource(R.string.label_export_everything),
-            subtitle = when (viewModel.exportUiState.exportEverything) {
-                true -> stringResource(R.string.label_export_everything_rationale)
-                else -> ""
-            },
+            title = stringResource(R.string.label_everything),
             subtitleMaxLines = Int.MAX_VALUE
         )
-        Divider(
+        Icon(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 16.dp, vertical = 32.dp)
-                .width(1.dp)
+                .padding(horizontal = 16.dp)
+                .clickable {
+                    showDialog = !showDialog
+                },
+            imageVector = Icons.Outlined.Info, contentDescription = null
         )
         Switch(
             checked = viewModel.exportUiState.exportEverything,
@@ -110,6 +105,19 @@ private fun ExportEverything(viewModel: ExportViewModel) {
                 viewModel.onExportEverythingToggled(it)
             })
     }
+
+    if (showDialog)
+        AlertDialog(
+            onDismissRequest = { showDialog = !showDialog },
+            title = { Text(text = stringResource(id = R.string.label_export_configuration)) },
+            text = { Text(text = stringResource(id = R.string.label_export_configuration_rationale)) },
+            confirmButton = {
+                Button(onClick = { showDialog = !showDialog }) {
+                    Text(text = "Ok")
+                }
+            },
+            dismissButton = {}
+        )
 }
 
 @Composable
