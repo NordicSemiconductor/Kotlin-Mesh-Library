@@ -21,11 +21,11 @@ sealed class NetworkConfiguration {
      * @param scenesConfig                 Configuration of the scenes to be exported.
      */
     data class Partial(
-        val networkKeysConfig: NetworkKeysConfig,
-        val applicationKeysConfig: ApplicationKeysConfig,
-        val provisionersConfig: ProvisionersConfig,
-        val nodesConfig: NodesConfig,
-        val groupsConfig: GroupsConfig,
-        val scenesConfig: ScenesConfig
+        val networkKeysConfig: NetworkKeysConfig = NetworkKeysConfig.All,
+        val applicationKeysConfig: ApplicationKeysConfig = ApplicationKeysConfig.All,
+        val provisionersConfig: ProvisionersConfig = ProvisionersConfig.All,
+        val nodesConfig: NodesConfig = NodesConfig.All(),
+        val groupsConfig: GroupsConfig = GroupsConfig.All,
+        val scenesConfig: ScenesConfig = ScenesConfig.All
     ) : NetworkConfiguration()
 }
