@@ -10,7 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
-import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import java.util.*
 
 /**
@@ -80,12 +80,12 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
      * on the given configuration.
      *
-     * @param type Specifies if the network should be fully exported or partially.
+     * @param configuration Specifies if the network should be fully exported or partially.
      */
     suspend fun export(
-        type: NetworkConfiguration = NetworkConfiguration.Full
+        configuration: NetworkConfiguration = NetworkConfiguration.Full
     ) = serialize(
         network = meshNetwork,
-        configuration = type
-    )
+        configuration = configuration
+    ).toString().toByteArray()
 }
