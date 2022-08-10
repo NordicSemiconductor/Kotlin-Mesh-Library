@@ -4,7 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreen
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsRoute
 
 object SettingsDestination : MeshNavigationDestination {
     override val route: String = "settings_route"
@@ -25,8 +25,8 @@ fun NavGraphBuilder.settingsGraph(
         startDestination = SettingsDestination.destination
     ) {
         composable(route = SettingsDestination.destination) {
-            SettingsScreen()
+            SettingsRoute()
         }
-
+        nestedGraphs()
     }
 }

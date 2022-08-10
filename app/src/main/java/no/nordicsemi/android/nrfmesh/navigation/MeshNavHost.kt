@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -17,7 +18,8 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
 fun MeshNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = NodesDestination.route
+    startDestination: String = NodesDestination.route,
+    snackbarHostState: SnackbarHostState
 ) {
     NavHost(
         modifier = modifier,
@@ -44,9 +46,9 @@ fun MeshNavHost(
                 navController.navigate("${ExportDestination.route}/$it")
             },
             nestedGraphs = {
-
+                exportGraph(snackbarHostState)
             }
         )
-        exportGraph()
+        //exportGraph()
     }
 }

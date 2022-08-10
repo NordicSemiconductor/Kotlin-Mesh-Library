@@ -18,7 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.RowItem
 
 @Composable
-fun SettingsScreen(
+fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     LazyColumn {

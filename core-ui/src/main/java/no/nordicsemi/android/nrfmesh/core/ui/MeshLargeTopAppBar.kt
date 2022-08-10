@@ -1,8 +1,9 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -10,19 +11,13 @@ import androidx.compose.runtime.Composable
 fun MeshLargeTopAppBar(
     title: String,
     navigationIcon: @Composable () -> Unit,
-    showOverflowMenu: Boolean,
-    onOverflowMenuClicked: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior
+    actions: @Composable () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior?
 ) {
     LargeTopAppBar(
         title = { Text(text = title) },
         navigationIcon = { navigationIcon() },
-        actions = {
-            if (showOverflowMenu)
-                IconButton(onClick = { onOverflowMenuClicked() }) {
-                    Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
-                }
-        },
+        actions = { actions() },
         scrollBehavior = scrollBehavior
     )
 }
