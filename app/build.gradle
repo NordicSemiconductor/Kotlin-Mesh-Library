@@ -7,11 +7,11 @@ plugins {
 
 android {
     namespace 'no.nordicsemi.android.nrfmesh'
-    compileSdk 32
+    compileSdk 33
     defaultConfig {
         applicationId "no.nordicsemi.android.nrfmesh"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 

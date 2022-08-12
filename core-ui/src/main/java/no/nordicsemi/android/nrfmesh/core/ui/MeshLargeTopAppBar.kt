@@ -10,9 +10,9 @@ import androidx.compose.runtime.Composable
 @Composable
 fun MeshLargeTopAppBar(
     title: String,
-    navigationIcon: @Composable () -> Unit,
-    actions: @Composable () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior?
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable () -> Unit = {},
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     LargeTopAppBar(
         title = { Text(text = title) },

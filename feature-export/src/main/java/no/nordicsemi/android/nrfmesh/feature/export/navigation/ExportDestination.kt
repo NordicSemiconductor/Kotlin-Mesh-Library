@@ -12,8 +12,11 @@ object ExportDestination : MeshNavigationDestination {
     override val destination: String = "export_destination"
 }
 
-fun NavGraphBuilder.exportGraph(snackbarHostState: SnackbarHostState) {
+fun NavGraphBuilder.exportGraph(
+    snackbarHostState: SnackbarHostState,
+    onBackPressed: () -> Unit
+) {
     composable(route = ExportDestination.destination) {
-        ExportRoute(snackbarHostState = snackbarHostState)
+        ExportRoute(snackbarHostState = snackbarHostState, onBackPressed = onBackPressed)
     }
 }

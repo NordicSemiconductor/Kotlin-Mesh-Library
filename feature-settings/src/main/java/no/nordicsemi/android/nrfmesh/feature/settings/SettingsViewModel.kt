@@ -1,5 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +13,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.*
+import java.io.BufferedReader
 import java.text.DateFormat
 import java.util.*
 import javax.inject.Inject
@@ -38,6 +41,23 @@ class SettingsViewModel @Inject constructor(
                     )
                 )
             }
+        }
+    }
+
+    /**
+     * Imports a network from a given Uri.
+     *
+     * @param uri                  URI of the file.
+     * @param contentResolver      Content resolver.
+     */
+    internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
+        viewModelScope.launch {
+            val networkJson = contentResolver.openInputStream(uri)?.use { inputStream ->
+                BufferedReader(inputStream.reader()).use { bufferedReader ->
+                    bufferedReader.readText()
+                }
+            } ?: ""
+            repository.importMeshNetwork(networkJson.encodeToByteArray())
         }
     }
 }

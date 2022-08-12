@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.RowItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -37,7 +40,8 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 @Composable
 fun ExportRoute(
     viewModel: ExportViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
     ExportScreen(
@@ -53,20 +57,23 @@ fun ExportRoute(
         },
         onExportDeviceKeysToggled = {
             viewModel.onExportDeviceKeysToggled(it)
-        }
-    ) { uri -> viewModel.export(context.contentResolver, uri) }
+        },
+        onExportClicked = { uri -> viewModel.export(context.contentResolver, uri) },
+        onBackPressed = onBackPressed
+    )
 }
 
 @Composable
 private fun ExportScreen(
-    context : Context,
+    context: Context,
     snackbarHostState: SnackbarHostState,
     uiState: ExportScreenUiState,
     onExportEverythingToggled: (Boolean) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
     onProvisionerSelected: (Provisioner, Boolean) -> Unit,
     onExportDeviceKeysToggled: (Boolean) -> Unit,
-    onExportClicked: (Uri) -> Unit
+    onExportClicked: (Uri) -> Unit,
+    onBackPressed: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val createDocument = rememberLauncherForActivityResult(
@@ -100,51 +107,86 @@ private fun ExportScreen(
         is ExportState.Unknown -> { /*Do nothing*/
         }
     }
-    LazyColumn {
-        item {
-            ExportSelection(
-                uiState = uiState,
-                onExportEverythingToggled = onExportEverythingToggled,
-                onExportClicked = { createDocument.launch(uiState.networkName) }
+    Scaffold(
+        topBar = {
+            MeshLargeTopAppBar(
+                title = stringResource(id = R.string.label_export),
+                actions = {
+                    IconButton(
+                        onClick = { createDocument.launch(uiState.networkName) },
+                        enabled = uiState.enableExportButton
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Save,
+                            contentDescription = null
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onBackPressed() }) {
+                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
+                    }
+                }
             )
-        }
-        uiState.apply {
+        }) { padding ->
+        LazyColumn(
+            contentPadding = padding
+        ) {
             item {
-                SectionTitle(title = stringResource(R.string.label_provisioners))
-            }
-            items(
-                items = provisionerItemStates,
-                key = { it.provisioner.uuid }
-            ) { state ->
-                ProvisionerRow(
-                    state = state,
-                    onProvisionerSelected = { provisioner, isSelected ->
-                        onProvisionerSelected(provisioner, isSelected)
-                    },
-                    exportEverything = uiState.exportEverything
+                ExportSelection(
+                    uiState = uiState,
+                    onExportEverythingToggled = onExportEverythingToggled
                 )
             }
-            item {
-                SectionTitle(title = stringResource(R.string.label_network_keys))
+            if (uiState.exportEverything) {
+                item {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp),
+                        text = stringResource(id = R.string.label_export_configuration_rationale)
+                    )
+                }
+            } else {
+                uiState.apply {
+                    item {
+                        SectionTitle(title = stringResource(R.string.label_provisioners))
+                    }
+                    items(
+                        items = provisionerItemStates,
+                        key = { it.provisioner.uuid }
+                    ) { state ->
+                        ProvisionerRow(
+                            state = state,
+                            onProvisionerSelected = onProvisionerSelected,
+                            exportEverything = uiState.exportEverything
+                        )
+                    }
+                    item {
+                        SectionTitle(title = stringResource(R.string.label_network_keys))
+                    }
+                    items(
+                        items = networkKeyItemStates,
+                        key = { it.networkKey.key }
+                    ) { state ->
+                        NetworkKeyRow(
+                            state = state,
+                            onNetworkKeySelected = onNetworkKeySelected,
+                            exportEverything = uiState.exportEverything
+                        )
+                    }
+                }
+                item {
+                    ExportDeviceKeys(
+                        uiState = uiState,
+                        onExportDeviceKeysToggled = onExportDeviceKeysToggled
+                    )
+                }
             }
-            items(
-                items = networkKeyItemStates,
-                key = { it.networkKey.key }
-            ) { state ->
-                NetworkKeyRow(
-                    state = state,
-                    onNetworkKeySelected = { key, isSelected ->
-                        onNetworkKeySelected(key, isSelected)
-                    },
-                    exportEverything = uiState.exportEverything
-                )
-            }
-        }
-        item {
-            ExportDeviceKeys(
-                uiState = uiState,
-                onExportDeviceKeysToggled = onExportDeviceKeysToggled
-            )
         }
     }
 }
@@ -152,8 +194,7 @@ private fun ExportScreen(
 @Composable
 private fun ExportSelection(
     uiState: ExportScreenUiState,
-    onExportEverythingToggled: (Boolean) -> Unit,
-    onExportClicked: () -> Unit
+    onExportEverythingToggled: (Boolean) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
     Row(
@@ -166,9 +207,7 @@ private fun ExportSelection(
         OutlinedIconToggleButton(
             modifier = Modifier.weight(1f),
             checked = uiState.exportEverything,
-            onCheckedChange = {
-                onExportEverythingToggled(!uiState.exportEverything)
-            }
+            onCheckedChange = { onExportEverythingToggled(true) }
         ) {
             Text(text = "All")
         }
@@ -176,24 +215,11 @@ private fun ExportSelection(
         OutlinedIconToggleButton(
             modifier = Modifier.weight(1f),
             checked = !uiState.exportEverything,
-            onCheckedChange = {
-                onExportEverythingToggled(!uiState.exportEverything)
-            }
+            onCheckedChange = { onExportEverythingToggled(false) }
         ) {
             Text(text = "Partial")
         }
-        IconButton(
-            modifier = Modifier.padding(start = 8.dp),
-            onClick = { onExportClicked() },
-            enabled = uiState.enableExportButton
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Download,
-                contentDescription = null
-            )
-        }
     }
-
     if (showDialog)
         AlertDialog(
             onDismissRequest = { showDialog = !showDialog },
@@ -222,8 +248,7 @@ private fun ProvisionerRow(
             .fillMaxWidth()
             .padding(end = 16.dp)
             .clickable {
-                if (!exportEverything)
-                    onProvisionerSelected(state.provisioner, !state.isSelected)
+                onProvisionerSelected(state.provisioner, !state.isSelected)
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -261,8 +286,7 @@ private fun NetworkKeyRow(
             .fillMaxWidth()
             .padding(end = 16.dp)
             .clickable {
-                if (!exportEverything)
-                    onNetworkKeySelected(state.networkKey, !state.isSelected)
+                onNetworkKeySelected(state.networkKey, !state.isSelected)
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -280,10 +304,10 @@ private fun NetworkKeyRow(
                 .width(1.dp)
         )
         Checkbox(
-            modifier = Modifier
-                .clickable { onNetworkKeySelected(state.networkKey, !state.isSelected) },
+            /*modifier = Modifier
+                .clickable { onNetworkKeySelected(state.networkKey, !state.isSelected) },*/
             checked = state.isSelected,
-            onCheckedChange = { onNetworkKeySelected(state.networkKey, !state.isSelected) },
+            onCheckedChange = { onNetworkKeySelected(state.networkKey, it) },
             enabled = !exportEverything
         )
     }

@@ -44,11 +44,7 @@ class ExportViewModel @Inject internal constructor(
      * @param isToggled True if toggled or false otherwise.
      */
     fun onExportEverythingToggled(isToggled: Boolean) {
-        uiState = uiState.copy(
-            exportEverything = isToggled,
-            enableExportButton = if (isToggled) true
-            else uiState.networkKeyItemStates.any { it.isSelected } &&
-                    uiState.provisionerItemStates.any { it.isSelected })
+        uiState = uiState.copy(exportEverything = isToggled)
     }
 
     /**
@@ -64,10 +60,7 @@ class ExportViewModel @Inject internal constructor(
                 if (it.provisioner.uuid == provisioner.uuid)
                     it.copy(isSelected = selected)
                 else it
-            },
-            enableExportButton = !uiState.exportEverything &&
-                    uiState.networkKeyItemStates.any { it.isSelected } &&
-                    selected
+            }
         )
     }
 
@@ -84,10 +77,7 @@ class ExportViewModel @Inject internal constructor(
                 if (it.networkKey.index == key.index)
                     it.copy(isSelected = selected)
                 else it
-            },
-            enableExportButton = !uiState.exportEverything &&
-                    selected &&
-                    uiState.provisionerItemStates.any { it.isSelected }
+            }
         )
     }
 
@@ -97,10 +87,7 @@ class ExportViewModel @Inject internal constructor(
      * @param isToggled True if toggled and false otherwise.
      */
     fun onExportDeviceKeysToggled(isToggled: Boolean) {
-        uiState = uiState.copy(
-            exportState = ExportState.Unknown,
-            exportDeviceKeys = isToggled
-        )
+        uiState = uiState.copy(exportState = ExportState.Unknown, exportDeviceKeys = isToggled)
     }
 
     /**
@@ -205,9 +192,15 @@ data class ExportScreenUiState internal constructor(
     val networkName: String = "Mesh Network",
     val provisionerItemStates: List<ProvisionerItemState> = listOf(),
     val networkKeyItemStates: List<NetworkKeyItemState> = listOf(),
-    val exportDeviceKeys: Boolean = true,
-    val enableExportButton: Boolean = true
-)
+    val exportDeviceKeys: Boolean = true
+) {
+    val enableExportButton: Boolean
+        get() = when (exportEverything) {
+            true -> true
+            false -> provisionerItemStates.any { it.isSelected } &&
+                    networkKeyItemStates.any { it.isSelected }
+        }
+}
 
 data class ProvisionerItemState internal constructor(
     val provisioner: Provisioner,

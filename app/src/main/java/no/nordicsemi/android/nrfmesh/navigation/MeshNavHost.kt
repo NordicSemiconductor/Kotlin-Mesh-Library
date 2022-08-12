@@ -30,6 +30,8 @@ fun MeshNavHost(
         groupsGraph()
         proxyFilterGraph()
         settingsGraph(
+            modifier = modifier,
+            navController = navController,
             navigateToProvisioners = {
                 navController.navigate("${ExportDestination.route}/$it")
             },
@@ -44,11 +46,14 @@ fun MeshNavHost(
             },
             navigateToIvIndex = {
                 navController.navigate("${ExportDestination.route}/$it")
-            },
-            nestedGraphs = {
-                exportGraph(snackbarHostState)
             }
-        )
+        ) {
+            exportGraph(
+                snackbarHostState = snackbarHostState
+            ) {
+                navController.popBackStack()
+            }
+        }
         //exportGraph()
     }
 }

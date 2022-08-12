@@ -57,7 +57,7 @@ internal fun SettingsDropDown(
                     navigate()
                 }
             )
-            MenuDefaults.Divider()
+            //MenuDefaults.Divider()
             DropdownMenuItem(
                 leadingIcon = {
                     Icon(imageVector = Icons.Rounded.LockReset, contentDescription = null)
