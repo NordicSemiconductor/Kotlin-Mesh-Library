@@ -2,11 +2,17 @@
 
 package no.nordicsemi.android.nrfmesh.feature.settings
 
+import android.content.ContentResolver
+import android.content.Context
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
@@ -24,25 +30,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
+import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 
 @Composable
 fun SettingsRoute(
     navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    SettingsScreen(navController = navController, viewModel = viewModel)
+    SettingsScreen(
+        navController = navController,
+        uiState = viewModel.uiState,
+        importNetwork = { uri, contentResolver ->
+            viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
+        })
 }
 
 @Composable
-fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    navController: NavController,
+    uiState: SettingsUiState,
+    importNetwork: (Uri, ContentResolver) -> Unit
+) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         decayAnimationSpec = rememberSplineBasedDecay(),
@@ -50,9 +66,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
     )
     val fileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let { viewModel.importNetwork(uri = uri, contentResolver = context.contentResolver) }
-    }
+    ) { uri -> uri?.let { importNetwork(uri, context.contentResolver) } }
 
     var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
     Scaffold(
@@ -72,12 +86,17 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
             LazyColumn(
                 contentPadding = padding
             ) {
-                item {
-                    SettingsSection(viewModel = viewModel)
-                }
-                item {
-                    AboutSection()
-                }
+                item { SectionTitle(title = stringResource(R.string.label_configuration)) }
+                item { NetworkNameRow(name = uiState.networkName) }
+                item { ProvisionersRow(count = uiState.provisioners.size) }
+                item { NetworkKeysRow(count = uiState.networkKeys.size) }
+                item { ApplicationKeysRow(count = uiState.applicationKeys.size) }
+                item { ScenesRow(count = uiState.scenes.size) }
+                item { IvIndexRow(ivIndex = uiState.ivIndex) }
+                item { LastModifiedTimeRow(timestamp = uiState.lastModified) }
+                item { SectionTitle(title = stringResource(R.string.label_about)) }
+                item { VersionNameRow(context = context) }
+                item { VersionCodeRow(context = context) }
             }
             SettingsDropDown(
                 navigate = {
@@ -96,84 +115,106 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
 }
 
 @Composable
-fun SettingsSection(viewModel: SettingsViewModel) {
-    Text(
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
-        text = stringResource(R.string.label_configuration),
-        style = MaterialTheme.typography.labelLarge
-    )
+fun NetworkNameRow(name: String) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(R.string.label_name),
-        subtitle = viewModel.uiState.networkName
+        subtitle = name
     )
+}
+
+@Composable
+fun ProvisionersRow(count: Int) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
-        subtitle = "${viewModel.uiState.provisioners.size}"
+        subtitle = "$count"
     )
+}
+
+@Composable
+fun NetworkKeysRow(count: Int) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = { }),
+            .clickable(onClick = {
+
+            }),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
-        subtitle = "${viewModel.uiState.networkKeys.size}"
+        subtitle = "$count"
     )
+}
+
+@Composable
+fun ApplicationKeysRow(count: Int) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
-        subtitle = "${viewModel.uiState.applicationKeys.size}"
+        subtitle = "$count"
     )
+}
+
+@Composable
+fun ScenesRow(count: Int) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
-        subtitle = "${viewModel.uiState.networkKeys.size}"
+        subtitle = "$count"
     )
+}
+
+@Composable
+fun IvIndexRow(ivIndex: IvIndex) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.Tune,
         title = stringResource(R.string.label_iv_index),
-        subtitle = "${viewModel.uiState.ivIndex.index}"
+        subtitle = "${ivIndex.index}"
     )
+}
+
+@Composable
+fun LastModifiedTimeRow(timestamp: String) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { }),
         imageVector = Icons.Outlined.Update,
         title = stringResource(R.string.label_last_modified),
-        subtitle = viewModel.uiState.lastModified
+        subtitle = timestamp
     )
 }
 
 @Composable
-fun AboutSection() {
-    val context = LocalContext.current
+fun VersionNameRow(context: Context) {
+    // TODO Clarify version naming
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-    Text(
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-        text = stringResource(R.string.label_about),
-        style = MaterialTheme.typography.labelLarge
-    )
     RowItem(
         imageVector = Icons.Outlined.Subtitles,
         title = stringResource(R.string.label_version),
         subtitle = packageInfo.versionName
     )
+}
+
+@Composable
+fun VersionCodeRow(context: Context) {
+    // TODO Clarify version code
+    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     RowItem(
         imageVector = Icons.Outlined.DataObject,
         title = stringResource(R.string.label_version_code),
