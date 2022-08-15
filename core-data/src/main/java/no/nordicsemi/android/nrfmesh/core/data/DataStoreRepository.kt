@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.core.data
 import kotlinx.coroutines.flow.Flow
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import javax.inject.Inject
 
 class DataStoreRepository @Inject constructor(
@@ -12,12 +13,16 @@ class DataStoreRepository @Inject constructor(
 
     suspend fun loadNetwork(): Boolean {
         if (!meshNetworkManager.load()) {
-            meshNetworkManager.createMeshNetwork("Home Network")
+            meshNetworkManager.create("Home Network")
         }
         return true
     }
 
     suspend fun importMeshNetwork(data: ByteArray) {
-        meshNetworkManager.importMeshNetwork(data)
+        meshNetworkManager.import(data)
     }
+
+    suspend fun exportNetwork(configuration: NetworkConfiguration) =
+        meshNetworkManager.export(configuration = configuration)
+
 }

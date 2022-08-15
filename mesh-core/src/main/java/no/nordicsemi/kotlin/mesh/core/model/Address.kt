@@ -15,11 +15,11 @@ typealias Address = UShort
 /**
  * Represents a hex representation of an Address in String,
  */
-fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).run {
+fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).uppercase().run {
     when {
         prefix0x -> "0x$this"
         else -> this
-    }.uppercase()
+    }
 }
 
 internal const val minUnicastAddress: Address = 0x0001u

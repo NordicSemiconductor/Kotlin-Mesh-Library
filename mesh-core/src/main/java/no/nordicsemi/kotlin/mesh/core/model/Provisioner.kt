@@ -200,7 +200,7 @@ data class Provisioner internal constructor(
     fun assign(address: UnicastAddress) {
         let { provisioner ->
             network?.run {
-                require(hasProvisioner(provisioner.uuid))
+                require(has(provisioner))
                 var isNewNode = false
                 val node = node(provisioner) ?: Node(
                     provisioner,

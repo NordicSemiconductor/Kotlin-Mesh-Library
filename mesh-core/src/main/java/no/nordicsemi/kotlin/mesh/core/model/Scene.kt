@@ -30,7 +30,7 @@ data class Scene internal constructor(
             require(value.isNotBlank()) { "Name cannot be empty!" }
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
         }
-    private var _addresses: MutableList<UnicastAddress> = mutableListOf()
+    internal var _addresses: MutableList<UnicastAddress> = mutableListOf()
     val addresses: List<UnicastAddress>
         get() = _addresses
 

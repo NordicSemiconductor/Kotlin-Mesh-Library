@@ -2,8 +2,8 @@ package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
-import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import java.io.ByteArrayInputStream
 
 internal object MeshNetworkSerializer {
@@ -79,13 +79,15 @@ internal object MeshNetworkSerializer {
     /**
      * Serializes the given mesh network to a JsonObject.
      *
-     * @param network MeshNetwork to be serialized.
+     * @param network          MeshNetwork to be serialized.
+     * @param configuration    Configuration to be applied when serializing.
      */
-    internal fun serialize(network: MeshNetwork) = JsonObject(content = jsonSerializer.run {
-        encodeToJsonElement(value = buildMap<String, JsonElement> {
-            put(KEY_SCHEMA, JsonPrimitive(value = schema))
-            put(KEY_ID, JsonPrimitive(value = id))
-            put(KEY_VERSION, JsonPrimitive(value = version))
-        }).jsonObject + encodeToJsonElement(network).jsonObject
-    })
+    internal fun serialize(network: MeshNetwork, configuration: NetworkConfiguration) =
+        JsonObject(content = jsonSerializer.run {
+            encodeToJsonElement(value = buildMap<String, JsonElement> {
+                put(KEY_SCHEMA, JsonPrimitive(value = schema))
+                put(KEY_ID, JsonPrimitive(value = id))
+                put(KEY_VERSION, JsonPrimitive(value = version))
+            }).jsonObject + encodeToJsonElement(network.apply(configuration)).jsonObject
+        })
 }
