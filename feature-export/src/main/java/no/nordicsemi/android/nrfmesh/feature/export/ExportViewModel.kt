@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -25,6 +25,10 @@ class ExportViewModel @Inject internal constructor(
 
     var uiState by mutableStateOf(ExportScreenUiState())
         private set
+
+    private val _v: MutableStateFlow<ExportScreenUiState> = MutableStateFlow(ExportScreenUiState())
+    val v: StateFlow<ExportScreenUiState>
+        get() = _v.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ExportScreenUiState())
 
     init {
         viewModelScope.launch {
@@ -43,7 +47,7 @@ class ExportViewModel @Inject internal constructor(
      *
      * @param isToggled True if toggled or false otherwise.
      */
-    fun onExportEverythingToggled(isToggled: Boolean) {
+    internal fun onExportEverythingToggled(isToggled: Boolean) {
         uiState = uiState.copy(exportEverything = isToggled)
     }
 
@@ -53,14 +57,12 @@ class ExportViewModel @Inject internal constructor(
      * @param provisioner     Provisioner.
      * @param selected        True if selected or false otherwise.
      */
-    fun onProvisionerSelected(provisioner: Provisioner, selected: Boolean) {
-        uiState = uiState.copy(
-            exportState = ExportState.Unknown,
-            provisionerItemStates = uiState.provisionerItemStates.map {
-                if (it.provisioner.uuid == provisioner.uuid)
-                    it.copy(isSelected = selected)
-                else it
-            }
+    internal fun onProvisionerSelected(provisioner: Provisioner, selected: Boolean) {
+        uiState = uiState.copy(provisionerItemStates = uiState.provisionerItemStates.map {
+            if (it.provisioner.uuid == provisioner.uuid)
+                it.copy(isSelected = selected)
+            else it
+        }
         )
     }
 
@@ -70,14 +72,12 @@ class ExportViewModel @Inject internal constructor(
      * @param key          Network key.
      * @param selected     True if selected or false otherwise.
      */
-    fun onNetworkKeySelected(key: NetworkKey, selected: Boolean) {
-        uiState = uiState.copy(
-            exportState = ExportState.Unknown,
-            networkKeyItemStates = uiState.networkKeyItemStates.map {
-                if (it.networkKey.index == key.index)
-                    it.copy(isSelected = selected)
-                else it
-            }
+    internal fun onNetworkKeySelected(key: NetworkKey, selected: Boolean) {
+        uiState = uiState.copy(networkKeyItemStates = uiState.networkKeyItemStates.map {
+            if (it.networkKey.index == key.index)
+                it.copy(isSelected = selected)
+            else it
+        }
         )
     }
 
@@ -86,8 +86,15 @@ class ExportViewModel @Inject internal constructor(
      *
      * @param isToggled True if toggled and false otherwise.
      */
-    fun onExportDeviceKeysToggled(isToggled: Boolean) {
-        uiState = uiState.copy(exportState = ExportState.Unknown, exportDeviceKeys = isToggled)
+    internal fun onExportDeviceKeysToggled(isToggled: Boolean) {
+        uiState = uiState.copy(/*exportState = ExportState.Unknown,*/ exportDeviceKeys = isToggled)
+    }
+
+    /**
+     * Invoked when the current export state is displayed to the user.
+     */
+    internal fun onExportStateDisplayed() {
+        uiState = uiState.copy(exportState = ExportState.Unknown)
     }
 
     /**
@@ -117,6 +124,7 @@ class ExportViewModel @Inject internal constructor(
                         close()
                     }
                 }
+                uiState = uiState.copy(exportState = ExportState.Success)
             }
         }
     }

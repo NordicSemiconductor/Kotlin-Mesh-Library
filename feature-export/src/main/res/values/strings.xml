@@ -20,4 +20,6 @@
     <string name="error_select_one_network_key">Please select at least one network key!</string>
     <string name="error_select_one_provisioner">Please select at least one provisioner!</string>
     <string name="error_unknown">Unknown error</string>
+    <string name="label_success">Success</string>
+    <string name="document_type">application/json</string>
 </resources>

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.settings
 
@@ -86,7 +86,10 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                 },
                 isOptionsMenuExpanded = isOptionsMenuExpanded,
                 onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
-                importNetwork = { fileLauncher.launch("application/json") }
+                importNetwork = {
+                    isOptionsMenuExpanded = !isOptionsMenuExpanded
+                    fileLauncher.launch("application/json")
+                }
             )
         }
     )

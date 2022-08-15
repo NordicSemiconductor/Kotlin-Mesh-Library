@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.JsonObject
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
@@ -43,7 +44,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        storage.save(uuid = meshNetwork.uuid, network = export().toString())
+        storage.save(uuid = meshNetwork.uuid, network = exportNetwork().toString())
     }
 
     /**
@@ -81,11 +82,30 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * on the given configuration.
      *
      * @param configuration Specifies if the network should be fully exported or partially.
+     * @return Bytearray containing the Mesh network configuration.
      */
     suspend fun export(
         configuration: NetworkConfiguration = NetworkConfiguration.Full
-    ) = serialize(
-        network = meshNetwork,
-        configuration = configuration
-    ).toString().toByteArray()
+    ): ByteArray {
+        return exportNetwork(
+            configuration = configuration
+        ).toString().toByteArray()
+    }
+
+    /**
+     * Internal api that Exports a mesh network to a Json defined by the Mesh Configuration Database
+     * Profile based on the given configuration.
+     *
+     * @param configuration Specifies if the network should be fully exported or partially.
+     * @return JsonObject containing the mesh network configuration.
+     */
+    private fun exportNetwork(
+        configuration: NetworkConfiguration = NetworkConfiguration.Full
+    ): JsonObject {
+        val network = meshNetwork
+        return serialize(
+            network = network,
+            configuration = configuration
+        )
+    }
 }

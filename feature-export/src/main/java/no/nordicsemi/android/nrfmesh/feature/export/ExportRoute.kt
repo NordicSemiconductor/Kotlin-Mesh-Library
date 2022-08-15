@@ -49,16 +49,13 @@ fun ExportRoute(
         snackbarHostState = snackbarHostState,
         uiState = viewModel.uiState,
         onExportEverythingToggled = { viewModel.onExportEverythingToggled(it) },
-        onNetworkKeySelected = { key, selected ->
-            viewModel.onNetworkKeySelected(key, selected)
-        },
+        onNetworkKeySelected = { key, selected -> viewModel.onNetworkKeySelected(key, selected) },
         onProvisionerSelected = { provisioner, selected ->
             viewModel.onProvisionerSelected(provisioner, selected)
         },
-        onExportDeviceKeysToggled = {
-            viewModel.onExportDeviceKeysToggled(it)
-        },
+        onExportDeviceKeysToggled = { viewModel.onExportDeviceKeysToggled(it) },
         onExportClicked = { uri -> viewModel.export(context.contentResolver, uri) },
+        onExportStateDisplayed = { viewModel.onExportStateDisplayed() },
         onBackPressed = onBackPressed
     )
 }
@@ -73,39 +70,37 @@ private fun ExportScreen(
     onProvisionerSelected: (Provisioner, Boolean) -> Unit,
     onExportDeviceKeysToggled: (Boolean) -> Unit,
     onExportClicked: (Uri) -> Unit,
+    onExportStateDisplayed: () -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val createDocument = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json"),
-        onResult = {
-            it?.let {
-                onExportClicked(it)
+        contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
+        onResult = { it?.let { onExportClicked(it) } }
+    )
+    when (uiState.exportState) {
+        is ExportState.Success ->
+            LaunchedEffect(key1 = snackbarHostState) {
+                showSnackbar(
+                    snackbarHostState = snackbarHostState,
+                    message = context.getString(R.string.label_success)
+                )
+                onExportStateDisplayed()
+            }
+        is ExportState.Error -> { LaunchedEffect(key1 = snackbarHostState) {
+                onExportStateDisplayed()
+                showSnackbar(
+                    snackbarHostState = snackbarHostState,
+                    message = when (uiState.exportState.throwable) {
+                        is AtLeastOneProvisionerMustBeSelected ->
+                            context.getString(R.string.error_select_one_provisioner)
+                        is AtLeastOneNetworkKeyMustBeSelected ->
+                            context.getString(R.string.error_select_one_network_key)
+                        else -> context.getString(R.string.error_unknown)
+                    }
+                )
             }
         }
-    )
-
-    when (uiState.exportState) {
-        is ExportState.Success -> showSnackbar(
-            scope = coroutineScope,
-            snackbarHostState = snackbarHostState,
-            message = "Success"
-        )
-        is ExportState.Error -> {
-            showSnackbar(
-                scope = coroutineScope,
-                snackbarHostState = snackbarHostState,
-                message = when (uiState.exportState.throwable) {
-                    is AtLeastOneProvisionerMustBeSelected ->
-                        context.getString(R.string.error_select_one_provisioner)
-                    is AtLeastOneNetworkKeyMustBeSelected ->
-                        context.getString(R.string.error_select_one_network_key)
-                    else -> context.getString(R.string.error_unknown)
-                }
-            )
-        }
-        is ExportState.Unknown -> { /*Do nothing*/
-        }
+        is ExportState.Unknown -> { /*Do nothing*/ }
     }
     Scaffold(
         topBar = {
@@ -116,10 +111,7 @@ private fun ExportScreen(
                         onClick = { createDocument.launch(uiState.networkName) },
                         enabled = uiState.enableExportButton
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Save,
-                            contentDescription = null
-                        )
+                        Icon(imageVector = Icons.Filled.Save, contentDescription = null)
                     }
                 },
                 navigationIcon = {
@@ -146,8 +138,7 @@ private fun ExportScreen(
                         contentDescription = null
                     )
                     Text(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         text = stringResource(id = R.string.label_export_configuration_rationale)
                     )
                 }
@@ -304,8 +295,6 @@ private fun NetworkKeyRow(
                 .width(1.dp)
         )
         Checkbox(
-            /*modifier = Modifier
-                .clickable { onNetworkKeySelected(state.networkKey, !state.isSelected) },*/
             checked = state.isSelected,
             onCheckedChange = { onNetworkKeySelected(state.networkKey, it) },
             enabled = !exportEverything
@@ -346,3 +335,16 @@ private fun ExportDeviceKeys(
         )
     }
 }
+
+@Composable
+private fun parseExceptionState(exportState: ExportState) = stringResource(
+    id = when (exportState) {
+        is ExportState.Success -> R.string.label_success
+        is ExportState.Error -> when (exportState.throwable) {
+            is AtLeastOneProvisionerMustBeSelected -> R.string.error_select_one_provisioner
+            is AtLeastOneNetworkKeyMustBeSelected -> R.string.error_select_one_network_key
+            else -> R.string.error_unknown
+        }
+        else -> R.string.error_unknown
+    }
+)
