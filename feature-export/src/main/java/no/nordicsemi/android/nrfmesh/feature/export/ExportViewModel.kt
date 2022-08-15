@@ -26,10 +26,6 @@ class ExportViewModel @Inject internal constructor(
     var uiState by mutableStateOf(ExportScreenUiState())
         private set
 
-    private val _v: MutableStateFlow<ExportScreenUiState> = MutableStateFlow(ExportScreenUiState())
-    val v: StateFlow<ExportScreenUiState>
-        get() = _v.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ExportScreenUiState())
-
     init {
         viewModelScope.launch {
             repository.network.collectLatest { network ->
