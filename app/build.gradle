@@ -73,6 +73,7 @@ dependencies {
     implementation project(path: ':feature-groups')
     implementation project(path: ':feature-proxy-filter')
     implementation project(path: ':feature-settings')
+    implementation project(path: ':feature-network-keys')
 
     implementation project(path: ':mesh-core')
 
