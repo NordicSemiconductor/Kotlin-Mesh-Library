@@ -1,12 +1,15 @@
+@file:OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+
 package no.nordicsemi.android.nrfmesh
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.theme.NordicActivity
 import no.nordicsemi.android.common.theme.NordicTheme
+import no.nordicsemi.android.nrfmesh.ui.MeshApp
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {
@@ -15,23 +18,8 @@ class MainActivity : NordicActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NordicTheme {
-                NetworkRoute()
+                MeshApp(calculateWindowSizeClass(activity = this))
             }
         }
-    }
-}
-
-@Composable
-fun MainNavigation() {
-    NordicTheme {
-        NetworkRoute()
-    }
-}
-
-@Preview
-@Composable
-fun DefaultPreview() {
-    NordicTheme {
-        NetworkRoute()
     }
 }

@@ -40,13 +40,11 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 @Composable
 fun ExportRoute(
     viewModel: ExportViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
     ExportScreen(
         context = context,
-        snackbarHostState = snackbarHostState,
         uiState = viewModel.uiState,
         onExportEverythingToggled = { viewModel.onExportEverythingToggled(it) },
         onNetworkKeySelected = { key, selected -> viewModel.onNetworkKeySelected(key, selected) },
@@ -63,7 +61,6 @@ fun ExportRoute(
 @Composable
 private fun ExportScreen(
     context: Context,
-    snackbarHostState: SnackbarHostState,
     uiState: ExportScreenUiState,
     onExportEverythingToggled: (Boolean) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
@@ -73,6 +70,7 @@ private fun ExportScreen(
     onExportStateDisplayed: () -> Unit,
     onBackPressed: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
         onResult = { it?.let { onExportClicked(it) } }
@@ -86,7 +84,8 @@ private fun ExportScreen(
                 )
                 onExportStateDisplayed()
             }
-        is ExportState.Error -> { LaunchedEffect(key1 = snackbarHostState) {
+        is ExportState.Error -> {
+            LaunchedEffect(key1 = snackbarHostState) {
                 onExportStateDisplayed()
                 showSnackbar(
                     snackbarHostState = snackbarHostState,
@@ -100,7 +99,8 @@ private fun ExportScreen(
                 )
             }
         }
-        is ExportState.Unknown -> { /*Do nothing*/ }
+        is ExportState.Unknown -> { /*Do nothing*/
+        }
     }
     Scaffold(
         topBar = {
@@ -120,7 +120,9 @@ private fun ExportScreen(
                     }
                 }
             )
-        }) { padding ->
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         LazyColumn(
             contentPadding = padding
         ) {

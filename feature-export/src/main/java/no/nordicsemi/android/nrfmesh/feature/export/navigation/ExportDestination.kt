@@ -1,7 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.export.navigation
 
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
@@ -13,10 +11,9 @@ object ExportDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.exportGraph(
-    snackbarHostState: SnackbarHostState,
     onBackPressed: () -> Unit
 ) {
-    composable(route = ExportDestination.destination) {
-        ExportRoute(snackbarHostState = snackbarHostState, onBackPressed = onBackPressed)
+    composable(route = ExportDestination.route) {
+        ExportRoute(onBackPressed = onBackPressed)
     }
 }

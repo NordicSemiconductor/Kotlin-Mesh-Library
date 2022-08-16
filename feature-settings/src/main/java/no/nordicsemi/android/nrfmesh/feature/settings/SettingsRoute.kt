@@ -32,32 +32,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.RowItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 
 @Composable
 fun SettingsRoute(
-    navController: NavController,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    navigateToNetworkKeys: () -> Unit,
+    navigateToExportNetwork: () -> Unit
 ) {
     SettingsScreen(
-        navController = navController,
         uiState = viewModel.uiState,
         importNetwork = { uri, contentResolver ->
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
-        })
+        },
+        onNetworkKeysClicked = navigateToNetworkKeys,
+        onExportClicked = navigateToExportNetwork
+    )
 }
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,
     uiState: SettingsUiState,
-    importNetwork: (Uri, ContentResolver) -> Unit
+    importNetwork: (Uri, ContentResolver) -> Unit,
+    onNetworkKeysClicked: () -> Unit,
+    onExportClicked: () -> Unit
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
@@ -89,7 +91,12 @@ fun SettingsScreen(
                 item { SectionTitle(title = stringResource(R.string.label_configuration)) }
                 item { NetworkNameRow(name = uiState.networkName) }
                 item { ProvisionersRow(count = uiState.provisioners.size) }
-                item { NetworkKeysRow(count = uiState.networkKeys.size) }
+                item {
+                    NetworkKeysRow(
+                        count = uiState.networkKeys.size,
+                        onNetworkKeysClicked = onNetworkKeysClicked
+                    )
+                }
                 item { ApplicationKeysRow(count = uiState.applicationKeys.size) }
                 item { ScenesRow(count = uiState.scenes.size) }
                 item { IvIndexRow(ivIndex = uiState.ivIndex) }
@@ -101,7 +108,7 @@ fun SettingsScreen(
             SettingsDropDown(
                 navigate = {
                     isOptionsMenuExpanded = !isOptionsMenuExpanded
-                    navController.navigate(ExportDestination.destination)
+                    onExportClicked()
                 },
                 isOptionsMenuExpanded = isOptionsMenuExpanded,
                 onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
@@ -139,13 +146,11 @@ fun ProvisionersRow(count: Int) {
 }
 
 @Composable
-fun NetworkKeysRow(count: Int) {
+fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     RowItem(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-
-            }),
+            .clickable(onClick = { onNetworkKeysClicked() }),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count"
