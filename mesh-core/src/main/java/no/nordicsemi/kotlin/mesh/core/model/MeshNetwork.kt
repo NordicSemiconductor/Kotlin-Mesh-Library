@@ -343,6 +343,16 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the network key with a given key index.
+     *
+     * @param keyIndex Index of the network key.
+     * @return Network key or null if there is no key with the given key index.
+     */
+    fun networkKey(keyIndex: KeyIndex) = networkKeys.find { key ->
+        key.index == keyIndex
+    }
+
+    /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
      * @param name      Network key name.
@@ -385,6 +395,16 @@ class MeshNetwork internal constructor(
         require(key.network == this) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
         _networkKeys.remove(key).also { updateTimestamp() }
+    }
+
+    /**
+     * Returns the application key with a given key index.
+     *
+     * @param keyIndex Index of the application key.
+     * @return Application key or null if there is no key with the given key index.
+     */
+    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.find { key ->
+        key.index == keyIndex
     }
 
     /**
