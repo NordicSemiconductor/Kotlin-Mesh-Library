@@ -10,12 +10,13 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
  * If all the nodes on the subnet associated with this network key have been provisioned using the
  * Secure Provisioning procedure [1], then the value of minSecurity property for the subnet is set
  * to “secure”; otherwise, the value of the minSecurity is set to “insecure”.
- *
- * @property value Security type.
  */
 @Serializable(with = SecuritySerializer::class)
-sealed class Security(internal val value: String) {
+sealed class Security {
     companion object {
+
+        private const val INSECURE = "insecure"
+        private const val SECURE = "secure"
 
         /**
          * Parses the security level from the security level description.
@@ -31,11 +32,13 @@ sealed class Security(internal val value: String) {
                 "Security level must be either $INSECURE or $SECURE!"
             )
         }
+
+        internal fun toString(security: Security) = when (security) {
+            Insecure -> INSECURE
+            Secure -> SECURE
+        }
     }
 }
 
-object Insecure : Security(value = "insecure")
-object Secure : Security(value = "secure")
-
-private const val INSECURE = "insecure"
-private const val SECURE = "secure"
+object Insecure : Security()
+object Secure : Security()
