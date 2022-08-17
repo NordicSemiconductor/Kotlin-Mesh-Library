@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.export
 
@@ -337,16 +337,3 @@ private fun ExportDeviceKeys(
         )
     }
 }
-
-@Composable
-private fun parseExceptionState(exportState: ExportState) = stringResource(
-    id = when (exportState) {
-        is ExportState.Success -> R.string.label_success
-        is ExportState.Error -> when (exportState.throwable) {
-            is AtLeastOneProvisionerMustBeSelected -> R.string.error_select_one_provisioner
-            is AtLeastOneNetworkKeyMustBeSelected -> R.string.error_select_one_network_key
-            else -> R.string.error_unknown
-        }
-        else -> R.string.error_unknown
-    }
-)
