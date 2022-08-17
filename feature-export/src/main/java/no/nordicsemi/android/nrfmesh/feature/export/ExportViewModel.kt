@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -54,11 +54,12 @@ class ExportViewModel @Inject internal constructor(
      * @param selected        True if selected or false otherwise.
      */
     internal fun onProvisionerSelected(provisioner: Provisioner, selected: Boolean) {
-        uiState = uiState.copy(provisionerItemStates = uiState.provisionerItemStates.map {
-            if (it.provisioner.uuid == provisioner.uuid)
-                it.copy(isSelected = selected)
-            else it
-        }
+        uiState = uiState.copy(
+            provisionerItemStates = uiState.provisionerItemStates.map {
+                if (it.provisioner.uuid == provisioner.uuid)
+                    it.copy(isSelected = selected)
+                else it
+            }
         )
     }
 
@@ -69,11 +70,12 @@ class ExportViewModel @Inject internal constructor(
      * @param selected     True if selected or false otherwise.
      */
     internal fun onNetworkKeySelected(key: NetworkKey, selected: Boolean) {
-        uiState = uiState.copy(networkKeyItemStates = uiState.networkKeyItemStates.map {
-            if (it.networkKey.index == key.index)
-                it.copy(isSelected = selected)
-            else it
-        }
+        uiState = uiState.copy(
+            networkKeyItemStates = uiState.networkKeyItemStates.map {
+                if (it.networkKey.index == key.index)
+                    it.copy(isSelected = selected)
+                else it
+            }
         )
     }
 
