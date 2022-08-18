@@ -28,6 +28,6 @@ internal object SecuritySerializer : KSerializer<Security> {
 
 
     override fun serialize(encoder: Encoder, value: Security) {
-        encoder.encodeString(value = value.toString())
+        encoder.encodeString(value = Security.toString(value))
     }
 }
