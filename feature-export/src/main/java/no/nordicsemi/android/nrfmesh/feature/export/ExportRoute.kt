@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
@@ -245,7 +245,7 @@ private fun ProvisionerRow(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.Groups,
             title = state.provisioner.name,
@@ -283,7 +283,7 @@ private fun NetworkKeyRow(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.VpnKey,
             title = state.networkKey.name,
@@ -317,7 +317,7 @@ private fun ExportDeviceKeys(
             .padding(end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_export_device_keys),

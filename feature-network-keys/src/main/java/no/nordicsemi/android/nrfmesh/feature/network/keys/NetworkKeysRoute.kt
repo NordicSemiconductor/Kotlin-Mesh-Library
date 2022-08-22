@@ -2,14 +2,13 @@
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
@@ -23,10 +22,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun NetworkKeysRoute(
     viewModel: NetworkKeysViewModel = hiltViewModel(),
@@ -79,11 +79,18 @@ private fun NetworkKeysScreen(
                 items = uiState.keys,
                 key = { it.key }
             ) { key ->
-                RowItem(
+                MeshTwoLineListItem(
                     modifier = Modifier.clickable {
                         navigateToNetworkKey(key.index)
                     },
-                    imageVector = Icons.Outlined.Key,
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            imageVector = Icons.Outlined.VpnKey,
+                            contentDescription = null,
+                            tint = LocalContentColor.current.copy(alpha = 0.6f)
+                        )
+                    },
                     title = key.name,
                     subtitle = key.key.encodeHex()
                 )

@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.*
@@ -75,7 +75,8 @@ private fun NetworkKeyScreen(
                 .padding(top = 16.dp)
         ) {
             when (networkKeyState) {
-                NetworkKeyState.Loading -> { /* Do nothing */ }
+                NetworkKeyState.Loading -> { /* Do nothing */
+                }
                 is NetworkKeyState.Success -> {
                     networkKeyInfo(
                         networkKey = networkKeyState.networkKey,
@@ -185,7 +186,7 @@ fun Name(
                     }
                 }
             )
-            false -> RowItem(
+            false -> MeshTwoLineListItem(
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -198,7 +199,7 @@ fun Name(
                 subtitle = value,
                 trailingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
                             onEditClick = !onEditClick
@@ -216,7 +217,6 @@ fun Name(
         }
     }
 }
-
 
 @Composable
 fun Key(
@@ -274,7 +274,7 @@ fun Key(
                         ) { Icon(imageVector = Icons.Outlined.Check, contentDescription = null) }
                     }
                 )
-            false -> RowItem(
+            false -> MeshTwoLineListItem(
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -287,7 +287,7 @@ fun Key(
                 subtitle = key,
                 trailingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
                             onEditClick = !onEditClick
@@ -308,9 +308,15 @@ fun Key(
 
 @Composable
 fun OldKey(oldKey: ByteArray?) {
-    RowItem(
-        modifier = Modifier.padding(vertical = 8.dp),
-        imageVector = Icons.Outlined.AssistWalker,
+    MeshTwoLineListItem(
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.AssistWalker,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(id = R.string.label_old_key),
         subtitle = oldKey?.encodeHex()
             ?: stringResource(id = R.string.label_na)
@@ -319,8 +325,15 @@ fun OldKey(oldKey: ByteArray?) {
 
 @Composable
 fun KeyIndex(index: KeyIndex) {
-    RowItem(
-        imageVector = Icons.Outlined.FormatListNumbered,
+    MeshTwoLineListItem(
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.FormatListNumbered,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(id = R.string.label_key_index),
         subtitle = index.toString()
     )
@@ -328,8 +341,15 @@ fun KeyIndex(index: KeyIndex) {
 
 @Composable
 fun KeyRefreshPhase(phase: KeyRefreshPhase) {
-    RowItem(
-        imageVector = Icons.Outlined.AutoMode,
+    MeshTwoLineListItem(
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.AutoMode,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(id = R.string.label_key_refresh_phase),
         subtitle = phase.description()
     )
@@ -337,18 +357,31 @@ fun KeyRefreshPhase(phase: KeyRefreshPhase) {
 
 @Composable
 fun Security(security: Security) {
-    RowItem(
-        imageVector = Icons.Outlined.LocalPolice,
+    MeshTwoLineListItem(
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.LocalPolice,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(id = R.string.label_security),
         subtitle = security.description()
     )
 }
 
-
 @Composable
 fun LastModified(timestamp: Instant) {
-    RowItem(
-        imageVector = Icons.Outlined.Update,
+    MeshTwoLineListItem(
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Update,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(id = R.string.label_last_modified),
         subtitle = DateFormat
             .getDateTimeInstance()

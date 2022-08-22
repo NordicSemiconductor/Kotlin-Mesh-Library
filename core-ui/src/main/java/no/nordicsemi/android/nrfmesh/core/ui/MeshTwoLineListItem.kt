@@ -13,7 +13,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RowItem(
+fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
@@ -50,7 +50,7 @@ fun RowItem(
 }
 
 @Composable
-fun RowItem(
+fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
     leadingIcon: @Composable () -> Unit = {},
     title: String,
@@ -60,7 +60,7 @@ fun RowItem(
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.padding(vertical = 16.dp).fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingIcon()

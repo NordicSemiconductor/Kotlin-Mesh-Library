@@ -1,4 +1,6 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class
+)
 
 package no.nordicsemi.android.nrfmesh.feature.settings
 
@@ -9,10 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
@@ -30,11 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 
@@ -123,11 +123,16 @@ fun SettingsScreen(
 
 @Composable
 fun NetworkNameRow(name: String) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.Badge,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Badge,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_name),
         subtitle = name
     )
@@ -135,11 +140,16 @@ fun NetworkNameRow(name: String) {
 
 @Composable
 fun ProvisionersRow(count: Int) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.Groups,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Groups,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_provisioners),
         subtitle = "$count"
     )
@@ -147,11 +157,16 @@ fun ProvisionersRow(count: Int) {
 
 @Composable
 fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { onNetworkKeysClicked() }),
-        imageVector = Icons.Outlined.VpnKey,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { onNetworkKeysClicked() }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.VpnKey,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count"
     )
@@ -159,11 +174,16 @@ fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 
 @Composable
 fun ApplicationKeysRow(count: Int) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.VpnKey,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.VpnKey,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count"
     )
@@ -171,11 +191,16 @@ fun ApplicationKeysRow(count: Int) {
 
 @Composable
 fun ScenesRow(count: Int) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.AutoAwesome,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_scenes),
         subtitle = "$count"
     )
@@ -183,11 +208,16 @@ fun ScenesRow(count: Int) {
 
 @Composable
 fun IvIndexRow(ivIndex: IvIndex) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.Tune,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Tune,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_iv_index),
         subtitle = "${ivIndex.index}"
     )
@@ -195,11 +225,16 @@ fun IvIndexRow(ivIndex: IvIndex) {
 
 @Composable
 fun LastModifiedTimeRow(timestamp: String) {
-    RowItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { }),
-        imageVector = Icons.Outlined.Update,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Update,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_last_modified),
         subtitle = timestamp
     )
@@ -209,8 +244,16 @@ fun LastModifiedTimeRow(timestamp: String) {
 fun VersionNameRow(context: Context) {
     // TODO Clarify version naming
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-    RowItem(
-        imageVector = Icons.Outlined.Subtitles,
+    MeshTwoLineListItem(
+        modifier = Modifier.clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Subtitles,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_version),
         subtitle = packageInfo.versionName
     )
@@ -220,8 +263,17 @@ fun VersionNameRow(context: Context) {
 fun VersionCodeRow(context: Context) {
     // TODO Clarify version code
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-    RowItem(
-        imageVector = Icons.Outlined.DataObject,
+    MeshTwoLineListItem(
+        modifier = Modifier
+            .clickable(onClick = { }),
+        leadingIcon = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.DataObject,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
         title = stringResource(R.string.label_version_code),
         subtitle = "${PackageInfoCompat.getLongVersionCode(packageInfo)}"
     )
