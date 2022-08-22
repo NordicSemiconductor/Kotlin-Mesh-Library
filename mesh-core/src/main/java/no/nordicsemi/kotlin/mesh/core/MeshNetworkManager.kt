@@ -4,11 +4,8 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.JsonObject
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -26,12 +23,11 @@ import java.util.*
 class MeshNetworkManager(private val storage: LocalStorage) {
     internal lateinit var meshNetwork: MeshNetwork
 
-    private val _network: MutableSharedFlow<MeshNetwork> = MutableSharedFlow(
-        replay = 1,
-        extraBufferCapacity = 10,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    val network: Flow<MeshNetwork> = _network.asSharedFlow()
+    val network = storage.dataStream.map {
+        meshNetwork = if (it.isNotEmpty()) deserialize(it)
+        else create(name = "Mesh Net")
+        meshNetwork
+    }
 
     /**
      * Loads the network from the storage provided by the user.
@@ -41,7 +37,6 @@ class MeshNetworkManager(private val storage: LocalStorage) {
         it.isNotEmpty()
     }?.let {
         meshNetwork = deserialize(it)
-        _network.emit(meshNetwork)
         true
     } ?: false
 
@@ -50,7 +45,6 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      */
     suspend fun save() {
         storage.save(uuid = meshNetwork.uuid, network = exportNetwork().toString())
-        _network.emit(meshNetwork)
     }
 
     /**
@@ -61,10 +55,10 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
      *             multiple mesh networks.
      */
-    fun create(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
+    suspend fun create(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
         return MeshNetwork(uuid = uuid, _name = name).also {
             meshNetwork = it
-        }
+        }.also { save() }
     }
 
     /**

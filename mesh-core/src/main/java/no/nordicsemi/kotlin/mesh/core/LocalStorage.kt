@@ -15,10 +15,5 @@ interface LocalStorage {
     /**
      * Saves the Mesh Network in a user specified local storage.
      */
-    suspend fun load(): Flow<ByteArray>
-
-    /**
-     * Saves the Mesh Network in a user specified local storage.
-     */
-    suspend fun save(uuid: UUID, network: String): ByteArray?
+    suspend fun save(uuid: UUID, network: String)
 }

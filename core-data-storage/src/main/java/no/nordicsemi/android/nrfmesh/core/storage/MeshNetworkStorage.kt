@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.storage
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -23,11 +24,8 @@ class MeshNetworkStorage @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : LocalStorage {
 
-    /*private val lastUsedNetworkUuid = dataStore.data.map {
-        it[stringPreferencesKey(LAST_NETWORK)]
-    }*/
-
     override val dataStream = dataStore.data.map { preferences ->
+        Log.d("AAAA", "Update triggered?")
         val uuid = preferences[stringPreferencesKey(LAST_NETWORK)]
         if (uuid != null)
             preferences[stringPreferencesKey(uuid.toString())]
@@ -37,22 +35,11 @@ class MeshNetworkStorage @Inject constructor(
             byteArrayOf()
     }
 
-    override suspend fun load(): Flow<ByteArray> {
-        /*val uuid = lastUsedNetworkUuid.firstOrNull()
-        if (uuid != null) {
-            return dataStore.data.map {
-                it[stringPreferencesKey(uuid.toString())].toString().encodeToByteArray()
-            }
-        }*/
-        return flow { emit(byteArrayOf()) }
-    }
-
     // TODO consider looking in to storing library related information
-    override suspend fun save(uuid: UUID, network: String): ByteArray? {
-        val prefs = dataStore.edit { preferences ->
+    override suspend fun save(uuid: UUID, network: String) {
+        dataStore.edit { preferences ->
             preferences[stringPreferencesKey(LAST_NETWORK)] = uuid.toString()
             preferences[stringPreferencesKey(uuid.toString())] = network
         }
-        return prefs[stringPreferencesKey(uuid.toString())]?.encodeToByteArray()
     }
 }

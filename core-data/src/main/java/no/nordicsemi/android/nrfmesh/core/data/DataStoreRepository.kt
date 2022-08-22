@@ -9,14 +9,8 @@ import javax.inject.Inject
 class DataStoreRepository @Inject constructor(
     private val meshNetworkManager: MeshNetworkManager
 ) {
-    val network: Flow<MeshNetwork> = meshNetworkManager.network
 
-    suspend fun loadNetwork(): Boolean {
-        if (!meshNetworkManager.load()) {
-            meshNetworkManager.create("Home Network")
-        }
-        return true
-    }
+    val network: Flow<MeshNetwork> = meshNetworkManager.network
 
     suspend fun importMeshNetwork(data: ByteArray) {
         meshNetworkManager.import(data)
