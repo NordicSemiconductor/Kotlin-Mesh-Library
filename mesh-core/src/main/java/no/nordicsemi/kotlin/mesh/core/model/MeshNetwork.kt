@@ -363,7 +363,11 @@ class MeshNetwork internal constructor(
      * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
-    fun add(name: String, key: ByteArray, index: KeyIndex? = null): NetworkKey {
+    fun add(
+        name: String,
+        key: ByteArray = Crypto.generateRandomKey(),
+        index: KeyIndex? = null
+    ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
             require(_networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
