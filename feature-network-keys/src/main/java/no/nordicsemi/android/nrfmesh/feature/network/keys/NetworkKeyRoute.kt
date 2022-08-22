@@ -174,8 +174,9 @@ fun Name(
                         enabled = value.isNotBlank(),
                         onClick = {
                             onEditClick = !onEditClick
-                            onNameChanged(value)
                             onEditableStateChanged()
+                            value = value.trim()
+                            onNameChanged(value)
                         }
                     ) {
                         Icon(

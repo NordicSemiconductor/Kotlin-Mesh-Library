@@ -31,7 +31,6 @@ class NetworkKeyViewModel @Inject internal constructor(
             }.getOrElse {
                 NetworkKeyState.Error(throwable = it)
             }
-            Log.d("AAAA", "NetworkKeyViewModel $state")
             NetworkKeyScreenUiState(networkKeyState = state)
         }.stateIn(
             viewModelScope,

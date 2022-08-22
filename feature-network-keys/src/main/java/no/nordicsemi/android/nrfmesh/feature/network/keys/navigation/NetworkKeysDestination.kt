@@ -17,8 +17,8 @@ fun NavGraphBuilder.networkKeysGraph(
 ) {
     composable(route = NetworkKeysDestination.route) {
         NetworkKeysRoute(
-            onBackPressed = onBackPressed,
-            navigateToNetworkKey = onNavigateToNetworkKey
+            navigateToNetworkKey = onNavigateToNetworkKey,
+            onBackClicked = onBackPressed
         )
     }
     networkKeyGraph(onBackPressed = onBackPressed)

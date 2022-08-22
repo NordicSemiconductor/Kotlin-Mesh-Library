@@ -3,27 +3,34 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
 class NetworkKeysViewModel @Inject internal constructor(
-    repository: DataStoreRepository
+    private val repository: DataStoreRepository
 ) : ViewModel() {
-
     val uiState: StateFlow<NetworkKeysScreenUiState> = repository.network.map { network ->
-        val keys = network.networkKeys
-        NetworkKeysScreenUiState(keys = keys)
+        NetworkKeysScreenUiState(network.networkKeys)
     }.stateIn(
         viewModelScope,
-        SharingStarted.Eagerly,
-        NetworkKeysScreenUiState(keys = listOf())
+        SharingStarted.WhileSubscribed(5_000),
+        NetworkKeysScreenUiState()
     )
+
+    /**
+     * Adds a network key to the network.
+     */
+    internal fun addNetworkKey() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.network.first().add(name = "nRF Network Key")
+            repository.save()
+        }
+    }
 }
 
 data class NetworkKeysScreenUiState internal constructor(val keys: List<NetworkKey> = listOf())

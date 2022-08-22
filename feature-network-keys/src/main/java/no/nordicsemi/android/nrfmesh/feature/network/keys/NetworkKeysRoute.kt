@@ -26,18 +26,18 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun NetworkKeysRoute(
     viewModel: NetworkKeysViewModel = hiltViewModel(),
     navigateToNetworkKey: (KeyIndex) -> Unit,
-    onBackPressed: () -> Unit
+    onBackClicked: () -> Unit
 ) {
     val uiState: NetworkKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeysScreen(
         uiState = uiState,
         navigateToNetworkKey = navigateToNetworkKey,
-        onBackPressed = onBackPressed
+        onAddKeyClicked = { viewModel.addNetworkKey() },
+        onBackPressed = onBackClicked
     )
 }
 
@@ -46,6 +46,7 @@ fun NetworkKeysRoute(
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToNetworkKey: (KeyIndex) -> Unit,
+    onAddKeyClicked: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -61,7 +62,7 @@ private fun NetworkKeysScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = { }) {
+            ExtendedFloatingActionButton(onClick = { onAddKeyClicked() }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
