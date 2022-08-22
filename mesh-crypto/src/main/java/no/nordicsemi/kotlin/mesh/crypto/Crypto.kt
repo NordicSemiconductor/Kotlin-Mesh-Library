@@ -29,13 +29,12 @@ object Crypto {
     private val ID128 = "id128".encodeToByteArray()
     private val VTAD = "vtad".encodeToByteArray()
 
-
     /**
      * Generates a 128-bit random key using a SecureRandom.
      */
-    fun generateRandomKey() = secureRandom.let {
-        val random = byteArrayOf(16)
-        it.nextBytes(random)
+    fun generateRandomKey() = secureRandom.run {
+        val random = ByteArray(16) { 0x00 }
+        nextBytes(random)
         random
     }
 
