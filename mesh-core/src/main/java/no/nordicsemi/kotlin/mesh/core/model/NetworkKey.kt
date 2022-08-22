@@ -6,6 +6,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -72,7 +73,7 @@ data class NetworkKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.size == 16) { "Key must be 16-bytes!" }
+            require(value = value.size == 16) { throw InvalidKeyLength() }
             _key = value
         }
 
@@ -122,7 +123,7 @@ data class NetworkKey internal constructor(
      */
     fun setKey(key: ByteArray) {
         require(!isInUse()) { throw KeyInUse() }
-        require(value = key.size == 16) { "Key must be 16-bytes!" }
+        require(value = key.size == 16) { throw InvalidKeyLength() }
         _key = key
     }
 
