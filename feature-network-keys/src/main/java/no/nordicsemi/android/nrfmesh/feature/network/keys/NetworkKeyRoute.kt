@@ -78,7 +78,6 @@ private fun NetworkKeyScreen(
             contentPadding = padding,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp)
         ) {
             when (networkKeyState) {
                 NetworkKeyState.Loading -> { /* Do nothing */
