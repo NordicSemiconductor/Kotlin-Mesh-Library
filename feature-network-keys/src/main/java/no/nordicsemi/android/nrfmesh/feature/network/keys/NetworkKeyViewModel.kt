@@ -38,20 +38,6 @@ class NetworkKeyViewModel @Inject internal constructor(
             SharingStarted.WhileSubscribed(5_000),
             NetworkKeyScreenUiState(NetworkKeyState.Loading)
         )
-    /*val uiState: StateFlow<NetworkKeyScreenUiState> = combine(repository.network) { network ->
-        val state = runCatching {
-            NetworkKeyState.Success(
-                networkKey = network.first().networkKey(netKeyIndexArg.toUShort())
-            )
-        }.getOrElse {
-            NetworkKeyState.Error(throwable = it)
-        }
-        NetworkKeyScreenUiState(networkKeyState = state)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily*//*WhileSubscribed(5_000)*//*,
-        NetworkKeyScreenUiState(networkKeyState = NetworkKeyState.Loading)
-    )*/
 
     /**
      * Invoked when the network key name is changed.
