@@ -134,23 +134,29 @@ data class NetworkKey internal constructor(
         other as NetworkKey
 
         if (index != other.index) return false
+        if (_name != other._name) return false
         if (!_key.contentEquals(other._key)) return false
         if (_security != other._security) return false
+        if (_phase != other._phase) return false
         if (oldKey != null) {
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
         if (timestamp != other.timestamp) return false
+        if (network != other.network) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = index.hashCode()
+        result = 31 * result + _name.hashCode()
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + _security.hashCode()
+        result = 31 * result + _phase.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
+        result = 31 * result + (network?.hashCode() ?: 0)
         return result
     }
 
