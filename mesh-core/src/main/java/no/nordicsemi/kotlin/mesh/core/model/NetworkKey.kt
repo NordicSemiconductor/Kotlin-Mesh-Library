@@ -105,9 +105,9 @@ data class NetworkKey internal constructor(
         // A network key is in use if at least one application key is bound to it.
         // OR
         // The network key is known by any of the nodes in the network.
-        _applicationKeys.none { applicationKey ->
+        _applicationKeys.any { applicationKey ->
             applicationKey.boundNetKeyIndex == index
-        } || _nodes.none { node ->
+        } || _nodes.any { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }
@@ -123,7 +123,7 @@ data class NetworkKey internal constructor(
      */
     fun setKey(key: ByteArray) {
         require(!isInUse()) { throw KeyInUse() }
-        require(value = key.size == 16) { throw InvalidKeyLength() }
+        require(key.size == 16) { throw InvalidKeyLength() }
         _key = key
     }
 

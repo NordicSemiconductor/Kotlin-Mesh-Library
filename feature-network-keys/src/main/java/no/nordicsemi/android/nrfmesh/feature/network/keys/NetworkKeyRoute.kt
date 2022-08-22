@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
@@ -12,17 +14,21 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.*
@@ -79,6 +85,7 @@ private fun NetworkKeyScreen(
                 }
                 is NetworkKeyState.Success -> {
                     networkKeyInfo(
+                        snackbarHostState = snackbarHostState,
                         networkKey = networkKeyState.networkKey,
                         isCurrentlyEditable = isCurrentlyEditable,
                         onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
@@ -98,6 +105,7 @@ private fun NetworkKeyScreen(
 }
 
 private fun LazyListScope.networkKeyInfo(
+    snackbarHostState: SnackbarHostState,
     networkKey: NetworkKey,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -114,6 +122,7 @@ private fun LazyListScope.networkKeyInfo(
     }
     item {
         Key(
+            snackbarHostState = snackbarHostState,
             networkKey = networkKey.key,
             isInUse = networkKey.isInUse(),
             onKeyChanged = onKeyChanged,
@@ -221,12 +230,15 @@ fun Name(
 
 @Composable
 fun Key(
+    snackbarHostState: SnackbarHostState,
     networkKey: ByteArray,
     isInUse: Boolean,
     onKeyChanged: (String) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
@@ -244,7 +256,6 @@ fun Key(
                     },
                     value = key,
                     onValueChanged = { key = it },
-                    readOnly = isInUse,
                     label = { Text(text = stringResource(id = R.string.label_key)) },
                     placeholder = {
                         Text(
@@ -291,8 +302,17 @@ fun Key(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
+                            if (!isInUse) {
+                                onEditClick = !onEditClick
+                                onEditableStateChanged()
+                            } else {
+                                coroutineScope.launch {
+                                    showSnackbar(
+                                        snackbarHostState = snackbarHostState,
+                                        message = context.getString(R.string.error_key_in_use)
+                                    )
+                                }
+                            }
                         }
                     ) {
                         Icon(
