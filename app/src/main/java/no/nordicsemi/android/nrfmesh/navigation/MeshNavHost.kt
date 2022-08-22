@@ -8,6 +8,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
@@ -32,7 +33,6 @@ fun MeshNavHost(
         groupsGraph()
         proxyFilterGraph()
         settingsGraph(
-            modifier = modifier,
             navigateToProvisioners = {
                 // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
@@ -50,7 +50,17 @@ fun MeshNavHost(
             },
             nestedGraphs = {
                 exportGraph(onBackPressed = onBackPressed)
-                networkKeysGraph(onBackPressed = onBackPressed)
+                networkKeysGraph(
+                    onBackPressed = onBackPressed,
+                    onNavigateToNetworkKey = { netKeyIndex ->
+                        onNavigateToDestination(
+                            NetworkKeyDestination,
+                            NetworkKeyDestination.createNavigationRoute(
+                                netKeyIndexArg = netKeyIndex
+                            )
+                        )
+                    }
+                )
             }
         )
     }

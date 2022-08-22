@@ -43,6 +43,7 @@ dependencies {
     implementation coreLibs
     implementation composeLibs
     implementation navigationComposeLibs
+    implementation lifecycleLibs
     implementation testingLibs
     implementation hiltAndroid
     kapt hiltCompiler

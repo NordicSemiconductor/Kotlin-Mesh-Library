@@ -14,7 +14,6 @@ object SettingsDestination : MeshNavigationDestination {
 
 @Suppress("UNUSED_PARAMETER")
 fun NavGraphBuilder.settingsGraph(
-    modifier: Modifier,
     navigateToProvisioners: (String) -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: (String) -> Unit,

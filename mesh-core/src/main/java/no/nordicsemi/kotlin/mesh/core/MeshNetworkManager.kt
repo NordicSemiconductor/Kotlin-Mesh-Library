@@ -1,7 +1,10 @@
 @file:Suppress("unused", "RedundantSuspendModifier")
+@file:OptIn(ExperimentalCoroutinesApi::class)
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -23,28 +26,31 @@ import java.util.*
 class MeshNetworkManager(private val storage: LocalStorage) {
     internal lateinit var meshNetwork: MeshNetwork
 
-    private val _network: MutableSharedFlow<MeshNetwork> = MutableSharedFlow(replay = 1)
+    private val _network: MutableSharedFlow<MeshNetwork> = MutableSharedFlow(
+        replay = 1,
+        extraBufferCapacity = 10,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     val network: Flow<MeshNetwork> = _network.asSharedFlow()
 
     /**
      * Loads the network from the storage provided by the user.
      * @return true if the configuration was successfully loaded or false otherwise.
      */
-    suspend fun load(): Boolean {
-        return storage.load().first().takeIf {
-            it.isNotEmpty()
-        }?.let {
-            meshNetwork = deserialize(it)
-            _network.emit(meshNetwork)
-            true
-        } ?: false
-    }
+    suspend fun load() = storage.dataStream.first().takeIf {
+        it.isNotEmpty()
+    }?.let {
+        meshNetwork = deserialize(it)
+        _network.emit(meshNetwork)
+        true
+    } ?: false
 
     /**
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
         storage.save(uuid = meshNetwork.uuid, network = exportNetwork().toString())
+        _network.emit(meshNetwork)
     }
 
     /**
@@ -71,7 +77,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
     @Throws(ImportError::class)
     suspend fun import(array: ByteArray): MeshNetwork = run {
         deserialize(array).also {
-            _network.emit(it)
+            //_network.emit(it)
             meshNetwork = it
             save()
         }

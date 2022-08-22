@@ -1,5 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
+import kotlinx.coroutines.Job
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork

@@ -1,9 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +22,7 @@ fun RowItem(
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -49,5 +46,34 @@ fun RowItem(
                     overflow = subtitleTextOverflow
                 )
         }
+    }
+}
+
+@Composable
+fun RowItem(
+    modifier: Modifier = Modifier,
+    leadingIcon: @Composable () -> Unit = {},
+    title: String,
+    subtitle: String = "",
+    trailingIcon: @Composable () -> Unit = {},
+    subtitleMaxLines: Int = 1,
+    subtitleTextOverflow: TextOverflow = TextOverflow.Clip
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingIcon()
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
+            if (subtitle.isNotEmpty())
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = subtitleMaxLines,
+                    overflow = subtitleTextOverflow
+                )
+        }
+        trailingIcon()
     }
 }

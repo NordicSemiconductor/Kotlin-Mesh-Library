@@ -10,6 +10,8 @@ import java.util.*
  */
 interface LocalStorage {
 
+    val dataStream:Flow<ByteArray>
+
     /**
      * Saves the Mesh Network in a user specified local storage.
      */
@@ -18,5 +20,5 @@ interface LocalStorage {
     /**
      * Saves the Mesh Network in a user specified local storage.
      */
-    suspend fun save(uuid: UUID, network: String)
+    suspend fun save(uuid: UUID, network: String): ByteArray?
 }

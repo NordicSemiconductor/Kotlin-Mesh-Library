@@ -14,7 +14,7 @@ buildscript {
         // https://github.com/google/accompanist/releases
         accompanist_version = '0.26.1-alpha'
         // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
-        lifecycle_version = '2.5.0-rc01'
+        lifecycle_version = '2.6.0-alpha01'
 
         material3_version = '1.0.0-alpha16'
         coreLibs = [
@@ -38,12 +38,12 @@ buildscript {
         navigationComposeLibs = [
                 "androidx.navigation:navigation-compose:$nav_version"
         ]
-        lifcycleLibs = [
+        lifecycleLibs = [
                 // https://developer.android.com/jetpack/androidx/releases/lifecycle
                 "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version",
-                "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version",
                 "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
-                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
         ]
         dataStore = [
                 'androidx.datastore:datastore-preferences:1.0.0'
