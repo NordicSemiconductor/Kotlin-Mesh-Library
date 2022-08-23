@@ -16,7 +16,6 @@ class NetworkKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     val uiState: StateFlow<NetworkKeysScreenUiState> = repository.network.map { network ->
-        Log.d("AAAA", "Updated")
         NetworkKeysScreenUiState(network.networkKeys)
     }.stateIn(
         viewModelScope,
@@ -36,6 +35,7 @@ class NetworkKeysViewModel @Inject internal constructor(
 
     /**
      * Removes the given key from the network.
+     *
      * @param key Network key.
      */
     fun removeKey(key: NetworkKey) {
