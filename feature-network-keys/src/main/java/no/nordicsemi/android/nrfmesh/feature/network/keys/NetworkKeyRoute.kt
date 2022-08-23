@@ -306,7 +306,7 @@ fun Key(
                                 coroutineScope.launch {
                                     showSnackbar(
                                         snackbarHostState = snackbarHostState,
-                                        message = context.getString(R.string.error_key_in_use)
+                                        message = context.getString(R.string.error_cannot_edit_key_in_use)
                                     )
                                 }
                             }

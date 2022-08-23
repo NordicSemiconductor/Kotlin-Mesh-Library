@@ -22,8 +22,6 @@ fun SwipeDismissItem(
     background: @Composable (offset: Dp) -> Unit,
     content: @Composable (isDismissed: Boolean) -> Unit
 ) {
-    /*// Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberDismissState()*/
     // Boolean value used for hiding the item if the current state is dismissed
     val isDismissed = dismissState.isDismissed(DismissDirection.EndToStart)
     // Returns the swiped value in dp

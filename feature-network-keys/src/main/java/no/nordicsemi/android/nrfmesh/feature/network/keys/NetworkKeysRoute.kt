@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,6 +69,7 @@ private fun NetworkKeysScreen(
     onBackPressed: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = {
@@ -99,12 +102,22 @@ private fun NetworkKeysScreen(
                 key = { it.key }
             ) { key ->
                 // Hold the current state from the Swipe to Dismiss composable
-                val dismissState = rememberDismissState()
+                val dismissState = rememberDismissState {
+                    val state = !(it == DismissValue.DismissedToStart && key.isInUse())
+                    if (!state) {
+                        showSnackbar(
+                            scope = coroutineScope,
+                            snackbarHostState = snackbarHostState,
+                            message = context.getString(R.string.error_cannot_delete_key_in_use)
+                        )
+                    }
+                    state
+                }
                 var dismissed by remember { mutableStateOf(false) }
                 if (dismissed) {
                     showSnackbar(
                         scope = coroutineScope,
-                        snackbarHostState,
+                        snackbarHostState = snackbarHostState,
                         message = stringResource(R.string.label_network_key_deleted),
                         actionLabel = stringResource(R.string.action_undo),
                         onActionPerformed = {
@@ -117,6 +130,7 @@ private fun NetworkKeysScreen(
                         }
                     )
                 }
+
                 SwipeDismissItem(
                     dismissState = dismissState,
                     background = { offsetX ->
