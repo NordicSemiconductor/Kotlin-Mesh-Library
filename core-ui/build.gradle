@@ -41,4 +41,5 @@ dependencies {
     implementation coreLibs
     implementation composeLibs
     implementation project(path: ':mesh-core')
+    implementation 'androidx.compose.material:material:1.2.1'
 }
