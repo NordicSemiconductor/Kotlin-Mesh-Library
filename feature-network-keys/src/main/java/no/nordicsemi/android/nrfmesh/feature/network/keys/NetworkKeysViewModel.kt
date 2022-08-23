@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ class NetworkKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     val uiState: StateFlow<NetworkKeysScreenUiState> = repository.network.map { network ->
+        Log.d("AAAA", "Updated")
         NetworkKeysScreenUiState(network.networkKeys)
     }.stateIn(
         viewModelScope,
@@ -28,6 +30,17 @@ class NetworkKeysViewModel @Inject internal constructor(
     internal fun addNetworkKey() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.network.first().add(name = "nRF Network Key")
+            repository.save()
+        }
+    }
+
+    /**
+     * Removes the given key from the network.
+     * @param key Network key.
+     */
+    fun removeKey(key: NetworkKey) {
+        viewModelScope.launch {
+            repository.network.first().remove(key)
             repository.save()
         }
     }

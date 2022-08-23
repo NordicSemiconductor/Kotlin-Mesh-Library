@@ -67,3 +67,30 @@ fun showSnackbar(
     }
 }
 
+/**
+ * Shows a snackbar with a given coroutine scope and executes the lambdas given for
+ * [SnackbarResult.Dismissed] and [SnackbarResult.ActionPerformed].
+ *
+ * @param scope                 Coroutine scope,
+ * @param snackbarHostState     SnackbarHostState of the scaffold.
+ * @param message               Message to be displayed.
+ * @param duration              Duration as to how long the snackbar should be displayed.
+ * @param onDismissed           Specifies an optional action to be invoked when the snackbar
+ *                              is dismissed by the system or the user.
+ */
+fun showSnackbar(
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    message: String,
+    withDismissAction: Boolean = false,
+    duration: SnackbarDuration = SnackbarDuration.Short,
+    onDismissed: () -> (Unit) = {}
+) {
+    scope.launch {
+        when (snackbarHostState.showSnackbar(message, null, withDismissAction, duration)) {
+            SnackbarResult.Dismissed -> onDismissed()
+            else -> {}
+        }
+    }
+}
+

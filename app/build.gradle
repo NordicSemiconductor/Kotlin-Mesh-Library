@@ -59,6 +59,7 @@ dependencies {
 
     implementation hiltAndroid
     implementation project(path: ':feature-export')
+    implementation 'androidx.compose.material:material:1.3.0-alpha03'
     kapt hiltCompiler
     implementation hiltNavigationCompose
 

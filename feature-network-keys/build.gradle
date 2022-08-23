@@ -46,6 +46,7 @@ dependencies {
     implementation lifecycleLibs
     implementation testingLibs
     implementation hiltAndroid
+    implementation 'androidx.compose.material:material:1.2.1'
     kapt hiltCompiler
     implementation hiltNavigationCompose
 

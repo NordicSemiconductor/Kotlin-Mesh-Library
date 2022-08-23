@@ -20,4 +20,6 @@
     <string name="unknown_error">Unknown error!</string>
     <string name="label_placeholder_key">DEADBEEFDEADBEEFDEADBEEFDEADBEEF</string>
     <string name="error_key_in_use">Unable to edit, key is already in use!</string>
+    <string name="action_undo">Undo</string>
+    <string name="label_network_key_deleted">Network Key deleted!</string>
 </resources>

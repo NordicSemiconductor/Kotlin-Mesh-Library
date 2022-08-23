@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalLifecycleComposeApi::class)
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
@@ -14,7 +14,6 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -36,7 +35,6 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.text.DateFormat
 import java.util.*
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun NetworkKeyRoute(
     viewModel: NetworkKeyViewModel = hiltViewModel(),

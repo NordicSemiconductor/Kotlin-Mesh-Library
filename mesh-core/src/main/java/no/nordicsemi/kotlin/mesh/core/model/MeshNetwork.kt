@@ -397,7 +397,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork() }
+        require(key.network != null) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
         _networkKeys.remove(key).also { updateTimestamp() }
     }
