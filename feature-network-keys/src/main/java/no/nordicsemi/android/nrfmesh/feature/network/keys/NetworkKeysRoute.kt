@@ -103,7 +103,8 @@ private fun NetworkKeysScreen(
             ) { key ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState {
-                    val state = !(it == DismissValue.DismissedToStart && key.isInUse())
+                    val state =
+                        !(it == DismissValue.DismissedToStart && key.isInUse() || uiState.keys.size == 1)
                     if (!state) {
                         showSnackbar(
                             scope = coroutineScope,
