@@ -11,12 +11,14 @@ import kotlinx.coroutines.launch
  * [SnackbarResult.ActionPerformed]. Invoke this with launched effect to handle configuration
  * changes.
  *
- * @param snackbarHostState SnackbarHostState of the scaffold
- * @param message Message to be displayed.
- * @param actionLabel Action label to be displaed.
- * @param duration Duration as to how long the snackbar should be displayed for.
- * @param onDismissed Optional Action to perform when the snackbar is dismissed.
- * @param onActionPerformed Optional Action to perform when the snackbar action isperformed.
+ * @param snackbarHostState     SnackbarHostState of the scaffold.
+ * @param message               Message to be displayed.
+ * @param actionLabel           Action label to be displayed.
+ * @param duration              Duration as to how long the snackbar should be displayed.
+ * @param onDismissed           Specifies an optional action to be invoked when the snackbar
+ *                              is dismissed by the system or the user.
+ * @param onActionPerformed     Specifies an optional action to be invoked when the snackbar action
+ *                              is performed.
  */
 suspend fun showSnackbar(
     snackbarHostState: SnackbarHostState,
@@ -37,13 +39,15 @@ suspend fun showSnackbar(
  * Shows a snackbar with a given coroutine scope and executes the lambdas given for
  * [SnackbarResult.Dismissed] and [SnackbarResult.ActionPerformed].
  *
- * @param scope Coroutine scope
- * @param snackbarHostState SnackbarHostState of the scaffold
- * @param message Message to be displayed.
- * @param actionLabel Action label to be displaed.
- * @param duration Duration as to how long the snackbar should be displayed for.
- * @param onDismissed Optional Action to perform when the snackbar is dismissed.
- * @param onActionPerformed Optional Action to perform when the snackbar action isperformed.
+ * @param scope                 Coroutine scope,
+ * @param snackbarHostState     SnackbarHostState of the scaffold.
+ * @param message               Message to be displayed.
+ * @param actionLabel           Action label to be displayed.
+ * @param duration              Duration as to how long the snackbar should be displayed.
+ * @param onDismissed           Specifies an optional action to be invoked when the snackbar
+ *                              is dismissed by the system or the user.
+ * @param onActionPerformed     Specifies an optional action to be invoked when the snackbar action
+ *                              is performed.
  */
 fun showSnackbar(
     scope: CoroutineScope,
