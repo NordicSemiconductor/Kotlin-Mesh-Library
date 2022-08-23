@@ -143,7 +143,6 @@ data class NetworkKey internal constructor(
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
         if (timestamp != other.timestamp) return false
-        if (network != other.network) return false
 
         return true
     }
@@ -156,7 +155,6 @@ data class NetworkKey internal constructor(
         result = 31 * result + _phase.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
-        result = 31 * result + (network?.hashCode() ?: 0)
         return result
     }
 
