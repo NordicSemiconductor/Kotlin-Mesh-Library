@@ -25,7 +25,6 @@ class MeshNetworkStorage @Inject constructor(
 ) : LocalStorage {
 
     override val dataStream = dataStore.data.map { preferences ->
-        Log.d("AAAA", "Update triggered?")
         val uuid = preferences[stringPreferencesKey(LAST_NETWORK)]
         if (uuid != null)
             preferences[stringPreferencesKey(uuid.toString())]
