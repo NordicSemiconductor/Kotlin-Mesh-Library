@@ -1,5 +1,6 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalLifecycleComposeApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLifecycleComposeApi::class,
     ExperimentalMaterialApi::class
 )
 
@@ -55,7 +56,10 @@ fun NetworkKeysRoute(
         navigateToNetworkKey = navigateToNetworkKey,
         onAddKeyClicked = { viewModel.addNetworkKey() },
         deleteKey = { viewModel.removeKey(it) },
-        onBackPressed = onBackClicked
+        onBackPressed = {
+            viewModel.save()
+            onBackClicked()
+        }
     )
 }
 
@@ -68,8 +72,8 @@ private fun NetworkKeysScreen(
     deleteKey: (NetworkKey) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = {
