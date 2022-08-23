@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +42,10 @@ class NetworkKeysViewModel @Inject internal constructor(
             repository.network.first().remove(key)
             repository.save()
         }
+    }
+
+    fun save() {
+        viewModelScope.launch { repository.save() }
     }
 }
 

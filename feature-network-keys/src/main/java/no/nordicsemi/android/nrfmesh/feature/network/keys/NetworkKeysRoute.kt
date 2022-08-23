@@ -1,12 +1,12 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalLifecycleComposeApi::class,
+    ExperimentalMaterial3Api::class, ExperimentalLifecycleComposeApi::class,
     ExperimentalMaterialApi::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -75,7 +76,12 @@ private fun NetworkKeysScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        decayAnimationSpec = rememberSplineBasedDecay(),
+        state = rememberTopAppBarState()
+    )
     Scaffold(
+        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
                 title = stringResource(id = R.string.label_network_keys),
@@ -83,7 +89,8 @@ private fun NetworkKeysScreen(
                     IconButton(onClick = { onBackPressed() }) {
                         Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {

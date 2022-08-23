@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -58,8 +60,13 @@ private fun NetworkKeyScreen(
     onKeyChanged: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        decayAnimationSpec = rememberSplineBasedDecay(),
+        state = rememberTopAppBarState()
+    )
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     Scaffold(
+        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
                 title = stringResource(id = R.string.label_edit_network_key),
@@ -67,7 +74,8 @@ private fun NetworkKeyScreen(
                     IconButton(onClick = { onBackPressed() }) {
                         Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
