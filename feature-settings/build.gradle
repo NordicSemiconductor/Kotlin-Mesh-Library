@@ -42,6 +42,7 @@ dependencies {
     implementation coreLibs
     implementation composeLibs
     implementation navigationComposeLibs
+    implementation lifecycleLibs
     implementation testingLibs
     implementation hiltAndroid
     implementation project(path: ':feature-export')

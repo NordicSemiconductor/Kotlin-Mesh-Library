@@ -1,5 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class
+@file:OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLifecycleComposeApi::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.settings
@@ -11,8 +13,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.FileDownload
@@ -32,11 +38,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import java.text.DateFormat
+import java.util.*
 
 @Composable
 fun SettingsRoute(
@@ -44,8 +56,9 @@ fun SettingsRoute(
     navigateToNetworkKeys: () -> Unit,
     navigateToExportNetwork: () -> Unit
 ) {
+    val uiState: SettingsScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
-        uiState = viewModel.uiState,
+        networkState = uiState.networkState,
         importNetwork = { uri, contentResolver ->
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
         },
@@ -56,7 +69,7 @@ fun SettingsRoute(
 
 @Composable
 fun SettingsScreen(
-    uiState: SettingsUiState,
+    networkState: MeshNetworkState,
     importNetwork: (Uri, ContentResolver) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onExportClicked: () -> Unit
@@ -88,22 +101,17 @@ fun SettingsScreen(
             LazyColumn(
                 contentPadding = padding
             ) {
-                item { SectionTitle(title = stringResource(R.string.label_configuration)) }
-                item { NetworkNameRow(name = uiState.networkName) }
-                item { ProvisionersRow(count = uiState.provisioners.size) }
-                item {
-                    NetworkKeysRow(
-                        count = uiState.networkKeys.size,
-                        onNetworkKeysClicked = onNetworkKeysClicked
-                    )
+                when (networkState) {
+                    is MeshNetworkState.Success -> {
+                        settingsInfo(
+                            context = context,
+                            network = networkState.network,
+                            onNetworkKeysClicked = onNetworkKeysClicked
+                        )
+                    }
+                    is MeshNetworkState.Loading -> {}
+                    is MeshNetworkState.Error -> {}
                 }
-                item { ApplicationKeysRow(count = uiState.applicationKeys.size) }
-                item { ScenesRow(count = uiState.scenes.size) }
-                item { IvIndexRow(ivIndex = uiState.ivIndex) }
-                item { LastModifiedTimeRow(timestamp = uiState.lastModified) }
-                item { SectionTitle(title = stringResource(R.string.label_about)) }
-                item { VersionNameRow(context = context) }
-                item { VersionCodeRow(context = context) }
             }
             SettingsDropDown(
                 navigate = {
@@ -119,6 +127,28 @@ fun SettingsScreen(
             )
         }
     )
+}
+
+private fun LazyListScope.settingsInfo(
+    context: Context, network: MeshNetwork,
+    onNetworkKeysClicked: () -> Unit
+) {
+    item { SectionTitle(title = stringResource(R.string.label_configuration)) }
+    item { NetworkNameRow(name = network.name) }
+    item { ProvisionersRow(count = network.provisioners.size) }
+    item {
+        NetworkKeysRow(
+            count = network.networkKeys.size,
+            onNetworkKeysClicked = onNetworkKeysClicked
+        )
+    }
+    item { ApplicationKeysRow(count = network.applicationKeys.size) }
+    item { ScenesRow(count = network.scenes.size) }
+    item { IvIndexRow(ivIndex = network.ivIndex) }
+    item { LastModifiedTimeRow(timestamp = network.timestamp) }
+    item { SectionTitle(title = stringResource(R.string.label_about)) }
+    item { VersionNameRow(context = context) }
+    item { VersionCodeRow(context = context) }
 }
 
 @Composable
@@ -224,7 +254,7 @@ fun IvIndexRow(ivIndex: IvIndex) {
 }
 
 @Composable
-fun LastModifiedTimeRow(timestamp: String) {
+fun LastModifiedTimeRow(timestamp: Instant) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { }),
         leadingIcon = {
@@ -236,7 +266,9 @@ fun LastModifiedTimeRow(timestamp: String) {
             )
         },
         title = stringResource(R.string.label_last_modified),
-        subtitle = timestamp
+        subtitle = DateFormat.getDateTimeInstance().format(
+            Date(timestamp.toEpochMilliseconds())
+        )
     )
 }
 
