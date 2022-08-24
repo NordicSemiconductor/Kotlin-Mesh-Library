@@ -115,13 +115,9 @@ class MeshNetwork internal constructor(
      */
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
-            if (_networkKeys.isEmpty()) {
-                return 0u
-            }
+            if (_networkKeys.isEmpty()) return 0u
             val nextKeyIndex = (_networkKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) {
-                return nextKeyIndex
-            }
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
             return null
         }
 
@@ -131,13 +127,9 @@ class MeshNetwork internal constructor(
      */
     val nextAvailableApplicationKeyIndex: KeyIndex?
         get() {
-            if (_applicationKeys.isEmpty()) {
-                return 0u
-            }
+            if (_applicationKeys.isEmpty()) return 0u
             val nextKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) {
-                return nextKeyIndex
-            }
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
             return null
         }
 
@@ -377,7 +369,7 @@ class MeshNetwork internal constructor(
             _name = name,
             _key = key
         ).apply {
-            this.network = this@MeshNetwork
+            network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
             _networkKeys.apply {
@@ -397,7 +389,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
-        require(key.network != null) { throw DoesNotBelongToNetwork() }
+        require(key.network == this) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
         _networkKeys.remove(key).also { updateTimestamp() }
     }
@@ -445,8 +437,8 @@ class MeshNetwork internal constructor(
             _name = name,
             _key = key
         ).apply {
-            this.boundNetKeyIndex = boundNetworkKey.index
-            this.network = this@MeshNetwork
+            boundNetKeyIndex = boundNetworkKey.index
+            network = this@MeshNetwork
         }.also { applicationKey ->
             _applicationKeys.apply {
                 add(applicationKey)
@@ -1019,6 +1011,44 @@ class MeshNetwork internal constructor(
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as MeshNetwork
+
+        if (uuid != other.uuid) return false
+        if (_name != other._name) return false
+        if (timestamp != other.timestamp) return false
+        if (partial != other.partial) return false
+        if (_provisioners != other._provisioners) return false
+        if (_networkKeys != other._networkKeys) return false
+        if (_applicationKeys != other._applicationKeys) return false
+        if (_nodes != other._nodes) return false
+        if (_groups != other._groups) return false
+        if (_scenes != other._scenes) return false
+        if (_networkExclusions != other._networkExclusions) return false
+        // TODO clarify
+        // if (ivIndex != other.ivIndex) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = uuid.hashCode()
+        result = 31 * result + _name.hashCode()
+        //result = 31 * result + timestamp.hashCode()
+        result = 31 * result + partial.hashCode()
+        result = 31 * result + _provisioners.hashCode()
+        result = 31 * result + _networkKeys.hashCode()
+        result = 31 * result + _applicationKeys.hashCode()
+        result = 31 * result + _nodes.hashCode()
+        result = 31 * result + _groups.hashCode()
+        result = 31 * result + _scenes.hashCode()
+        result = 31 * result + _networkExclusions.hashCode()
+        return result
+    }
+
     internal companion object {
         /**
          *  Invoked when an observable property is changed.
@@ -1032,6 +1062,8 @@ class MeshNetwork internal constructor(
                 action()
         }
     }
+
+
 }
 
 

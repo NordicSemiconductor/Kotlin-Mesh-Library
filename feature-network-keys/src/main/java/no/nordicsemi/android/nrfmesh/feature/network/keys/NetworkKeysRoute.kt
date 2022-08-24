@@ -56,9 +56,11 @@ fun NetworkKeysRoute(
         uiState = uiState,
         navigateToNetworkKey = navigateToNetworkKey,
         onAddKeyClicked = { viewModel.addNetworkKey() },
-        deleteKey = { viewModel.removeKey(it) },
+        onDismissed = viewModel::onSwiped,
+        onUndoClicked = viewModel::onUndoSwipe,
+        removeKeys = viewModel::removeKeys,
         onBackPressed = {
-            viewModel.save()
+            viewModel.removeKeys()
             onBackClicked()
         }
     )
@@ -70,7 +72,9 @@ private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToNetworkKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> Unit,
-    deleteKey: (NetworkKey) -> Unit,
+    onDismissed: (NetworkKey) -> Unit,
+    onUndoClicked: (NetworkKey) -> Unit,
+    removeKeys: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
@@ -86,7 +90,10 @@ private fun NetworkKeysScreen(
             MeshLargeTopAppBar(
                 title = stringResource(id = R.string.label_network_keys),
                 navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
+                    IconButton(onClick = {
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        onBackPressed()
+                    }) {
                         Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
                     }
                 },
@@ -125,21 +132,20 @@ private fun NetworkKeysScreen(
                     }
                     state
                 }
-                var dismissed by remember { mutableStateOf(false) }
-                if (dismissed) {
+                var keyDismissed by remember { mutableStateOf(false) }
+                if (keyDismissed) {
                     showSnackbar(
                         scope = coroutineScope,
                         snackbarHostState = snackbarHostState,
                         message = stringResource(R.string.label_network_key_deleted),
                         actionLabel = stringResource(R.string.action_undo),
                         onActionPerformed = {
+                            onUndoClicked(key)
                             coroutineScope.launch {
                                 dismissState.reset()
                             }
                         },
-                        onDismissed = {
-                            deleteKey(key)
-                        }
+                        withDismissAction = true
                     )
                 }
 
@@ -163,7 +169,10 @@ private fun NetworkKeysScreen(
                         }
                     },
                     content = { isDismissed ->
-                        dismissed = isDismissed
+                        keyDismissed = isDismissed
+                        if (isDismissed) {
+                            onDismissed(key)
+                        }
                         Surface(color = MaterialTheme.colorScheme.background) {
                             MeshTwoLineListItem(
                                 modifier = Modifier.clickable {

@@ -1,9 +1,7 @@
 @file:Suppress("unused", "RedundantSuspendModifier")
-@file:OptIn(ExperimentalCoroutinesApi::class)
 
 package no.nordicsemi.kotlin.mesh.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.JsonObject
