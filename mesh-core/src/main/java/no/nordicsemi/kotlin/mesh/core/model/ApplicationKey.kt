@@ -93,7 +93,6 @@ data class ApplicationKey internal constructor(
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
-        if (network != other.network) return false
         if (netKey != other.netKey) return false
 
         return true
@@ -104,7 +103,6 @@ data class ApplicationKey internal constructor(
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
-        result = 31 * result + (network?.hashCode() ?: 0)
         result = 31 * result + (netKey?.hashCode() ?: 0)
         return result
     }
