@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import javax.inject.Inject
@@ -26,10 +25,6 @@ class NetworkViewModel @Inject constructor(
      * Loads the network
      */
     private fun loadNetwork() {
-        viewModelScope.launch {
-            repository.network.collectLatest {
-                isNetworkLoaded = true
-            }
-        }
+        viewModelScope.launch { isNetworkLoaded = repository.load() }
     }
 }

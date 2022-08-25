@@ -20,24 +20,22 @@ class NetworkKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
 ) : ViewModel() {
+    private lateinit var networkKey: NetworkKey
     private val netKeyIndexArg: String =
         checkNotNull(savedStateHandle[NetworkKeyDestination.netKeyIndexArg])
 
-    val uiState: StateFlow<NetworkKeyScreenUiState> =
-        repository.network.map { network ->
-            val state = runCatching {
-                NetworkKeyState.Success(
-                    networkKey = network.networkKey(netKeyIndexArg.toUShort())
-                )
-            }.getOrElse {
-                NetworkKeyState.Error(throwable = it)
-            }
-            NetworkKeyScreenUiState(networkKeyState = state)
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            NetworkKeyScreenUiState(NetworkKeyState.Loading)
+    val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
+        this@NetworkKeyViewModel.networkKey = network.networkKey(netKeyIndexArg.toUShort())
+        NetworkKeyScreenUiState(
+            networkKeyState = NetworkKeyState.Success(
+                networkKey = networkKey
+            )
         )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        NetworkKeyScreenUiState(NetworkKeyState.Loading)
+    )
 
     /**
      * Invoked when the network key name is changed.
@@ -45,12 +43,8 @@ class NetworkKeyViewModel @Inject internal constructor(
      * @param name New network key name.
      */
     internal fun onNameChanged(name: String) {
-        uiState.value.networkKeyState.run {
-            if (this is NetworkKeyState.Success) {
-                networkKey.name = name
-                save()
-            }
-        }
+        networkKey.name = name
+        save()
     }
 
     /**
@@ -59,12 +53,8 @@ class NetworkKeyViewModel @Inject internal constructor(
      * @param key New network key.
      */
     internal fun onKeyChanged(key: String) {
-        uiState.value.networkKeyState.run {
-            if (this is NetworkKeyState.Success) {
-                networkKey.setKey(key = key.decodeHex())
-                save()
-            }
-        }
+        networkKey.setKey(key = key.decodeHex())
+        save()
     }
 
     private fun save() {

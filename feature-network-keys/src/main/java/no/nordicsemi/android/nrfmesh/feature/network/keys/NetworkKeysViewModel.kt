@@ -1,9 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -23,7 +23,11 @@ class NetworkKeysViewModel @Inject internal constructor(
 
     val uiState: StateFlow<NetworkKeysScreenUiState> = repository.network.map { network ->
         this@NetworkKeysViewModel.network = network
-        NetworkKeysScreenUiState(network.networkKeys)
+        NetworkKeysScreenUiState(
+            keys = mutableListOf<NetworkKey>().apply {
+                addAll(network.networkKeys)
+            }.toList()
+        )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
@@ -33,11 +37,16 @@ class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Adds a network key to the network.
      */
-    internal fun addNetworkKey() {
-        viewModelScope.launch(Dispatchers.IO) {
-            // Let's delete any keys that are queued for deletion before adding a new.
-            removeSelectedKeys()
-            network.add(name = "nRF Network Key")
+    internal fun addNetworkKey(): NetworkKey {
+        // Let's delete any keys that are queued for deletion before adding a new.
+        removeSelectedKeys()
+        return network.add(name = "nRF Network Key").also {
+            save()
+        }
+    }
+
+    private fun save() {
+        viewModelScope.launch {
             repository.save()
         }
     }
@@ -56,6 +65,8 @@ class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
      * from the list of keys to be deleted.
+     *
+     * @param key Network key to be reverted.
      */
     fun onUndoSwipe(key: NetworkKey) {
         keysToBeRemoved.remove(key)
@@ -66,9 +77,8 @@ class NetworkKeysViewModel @Inject internal constructor(
      */
     fun removeKeys() {
         if (keysToBeRemoved.isNotEmpty()) {
-            viewModelScope.launch {
-                removeSelectedKeys()
-                repository.save()
+            removeSelectedKeys().also {
+                save()
             }
         }
     }
@@ -86,4 +96,6 @@ class NetworkKeysViewModel @Inject internal constructor(
     }
 }
 
-data class NetworkKeysScreenUiState internal constructor(val keys: List<NetworkKey> = listOf())
+data class NetworkKeysScreenUiState internal constructor(
+    val keys: List<NetworkKey> = listOf()
+)

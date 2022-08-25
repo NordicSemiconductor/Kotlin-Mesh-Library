@@ -19,14 +19,13 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
-    val uiState: StateFlow<SettingsScreenUiState> =
-        repository.network.map { network ->
-            SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = SettingsScreenUiState()
-        )
+    val uiState: StateFlow<SettingsScreenUiState> = repository.network.map { network ->
+        SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = SettingsScreenUiState()
+    )
 
     /**
      * Imports a network from a given Uri.

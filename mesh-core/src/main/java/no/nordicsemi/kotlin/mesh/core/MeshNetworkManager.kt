@@ -2,8 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.JsonObject
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -19,24 +22,37 @@ import java.util.*
  *                location.
  */
 class MeshNetworkManager(private val storage: LocalStorage) {
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     internal lateinit var meshNetwork: MeshNetwork
 
-    val network = storage.dataStream.map {
-        meshNetwork = if (it.isNotEmpty()) deserialize(it)
-        else create(name = "Mesh Net")
-        meshNetwork
+    private val _network = MutableSharedFlow<MeshNetwork>(
+        replay = 1,
+        extraBufferCapacity = 10,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val network: SharedFlow<MeshNetwork> = _network.asSharedFlow()
+
+    init {
+        storage.dataStream.onEach {
+            meshNetwork = if (it.isNotEmpty()) deserialize(it)
+            else create()
+            _network.emit(meshNetwork)
+        }.launchIn(scope)
     }
+
 
     /**
      * Loads the network from the storage provided by the user.
+     *
      * @return true if the configuration was successfully loaded or false otherwise.
      */
-    suspend fun load() = storage.dataStream.first().takeIf {
-        it.isNotEmpty()
-    }?.let {
-        meshNetwork = deserialize(it)
+    suspend fun load() = storage.dataStream.first().let {
+        meshNetwork = when (it.isNotEmpty()) {
+            true -> deserialize(it)
+            false -> create()
+        }
         true
-    } ?: false
+    }
 
     /**
      * Saves the network in the local storage provided by the user.
@@ -53,7 +69,7 @@ class MeshNetworkManager(private val storage: LocalStorage) {
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
      *             multiple mesh networks.
      */
-    suspend fun create(name: String, uuid: UUID = UUID.randomUUID()): MeshNetwork {
+    suspend fun create(name: String = "Mesh Network", uuid: UUID = UUID.randomUUID()): MeshNetwork {
         return MeshNetwork(uuid = uuid, _name = name).also {
             meshNetwork = it
         }.also { save() }
@@ -107,3 +123,4 @@ class MeshNetworkManager(private val storage: LocalStorage) {
         )
     }
 }
+

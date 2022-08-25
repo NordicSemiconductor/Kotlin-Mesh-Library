@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
@@ -55,15 +56,13 @@ fun NetworkKeysRoute(
     NetworkKeysScreen(
         uiState = uiState,
         navigateToNetworkKey = navigateToNetworkKey,
-        onAddKeyClicked = { viewModel.addNetworkKey() },
+        onAddKeyClicked = viewModel::addNetworkKey,
         onDismissed = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        removeKeys = viewModel::removeKeys,
-        onBackPressed = {
-            viewModel.removeKeys()
-            onBackClicked()
-        }
-    )
+        onUndoClicked = viewModel::onUndoSwipe
+    ) {
+        viewModel.removeKeys()
+        onBackClicked()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,19 +70,20 @@ fun NetworkKeysRoute(
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToNetworkKey: (KeyIndex) -> Unit,
-    onAddKeyClicked: () -> Unit,
+    onAddKeyClicked: () -> NetworkKey,
     onDismissed: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
-    removeKeys: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
+    val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         decayAnimationSpec = rememberSplineBasedDecay(),
         state = rememberTopAppBarState()
     )
+
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -101,7 +101,10 @@ private fun NetworkKeysScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = { onAddKeyClicked() }) {
+            ExtendedFloatingActionButton(onClick = {
+                val key = onAddKeyClicked()
+                navigateToNetworkKey(key.index)
+            }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
@@ -114,6 +117,7 @@ private fun NetworkKeysScreen(
         LazyColumn(
             contentPadding = padding,
             modifier = Modifier.fillMaxSize(),
+            state = listState
         ) {
             items(
                 items = uiState.keys,
@@ -127,7 +131,8 @@ private fun NetworkKeysScreen(
                         showSnackbar(
                             scope = coroutineScope,
                             snackbarHostState = snackbarHostState,
-                            message = context.getString(R.string.error_cannot_delete_key_in_use)
+                            message = context.getString(R.string.error_cannot_delete_key_in_use),
+                            withDismissAction = true
                         )
                     }
                     state
