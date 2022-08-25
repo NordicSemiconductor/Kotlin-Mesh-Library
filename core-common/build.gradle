@@ -32,12 +32,9 @@ android {
 }
 
 dependencies {
-    implementation testingLibs
-    implementation coreLibs
-    implementation dataStore
-    implementation hiltAndroid
-    implementation project(path: ':core-common')
-    kapt hiltCompiler
 
-    implementation project(path: ':mesh-core')
+    implementation coreLibs
+    implementation hiltAndroid
+    kapt hiltCompiler
+    implementation testingLibs
 }
