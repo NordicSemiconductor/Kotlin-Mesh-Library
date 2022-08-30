@@ -2,13 +2,11 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -19,13 +17,14 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
-    val uiState: StateFlow<SettingsScreenUiState> = repository.network.map { network ->
-        SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SettingsScreenUiState()
-    )
+    val uiState: StateFlow<SettingsScreenUiState> =
+        repository.network.map { network ->
+            SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SettingsScreenUiState()
+        )
 
     /**
      * Imports a network from a given Uri.

@@ -34,7 +34,7 @@ android {
     }
     composeOptions {
         // Support for compose compiler dev version https://androidx.dev/storage/compose-compiler/repository
-        kotlinCompilerExtensionVersion "1.3.0-rc02"
+        kotlinCompilerExtensionVersion "1.3.0"
     }
 }
 

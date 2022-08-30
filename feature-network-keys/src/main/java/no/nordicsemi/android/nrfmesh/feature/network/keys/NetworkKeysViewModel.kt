@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,18 +20,17 @@ class NetworkKeysViewModel @Inject internal constructor(
     private lateinit var network: MeshNetwork
     private var keysToBeRemoved = mutableListOf<NetworkKey>()
 
-    val uiState: StateFlow<NetworkKeysScreenUiState> = repository.network.map { network ->
-        this@NetworkKeysViewModel.network = network
-        NetworkKeysScreenUiState(
-            keys = mutableListOf<NetworkKey>().apply {
-                addAll(network.networkKeys)
-            }.toList()
+    val uiState: StateFlow<NetworkKeysScreenUiState> =
+        repository.network.map { network ->
+            this@NetworkKeysViewModel.network = network
+            val keys = mutableListOf<NetworkKey>()
+            keys.addAll(network.networkKeys)
+            NetworkKeysScreenUiState(keys = keys)
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            NetworkKeysScreenUiState()
         )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        NetworkKeysScreenUiState()
-    )
 
     /**
      * Adds a network key to the network.
@@ -40,9 +38,7 @@ class NetworkKeysViewModel @Inject internal constructor(
     internal fun addNetworkKey(): NetworkKey {
         // Let's delete any keys that are queued for deletion before adding a new.
         removeSelectedKeys()
-        return network.add(name = "nRF Network Key").also {
-            save()
-        }
+        return network.add(name = "nRF Network Key")
     }
 
     private fun save() {
@@ -77,9 +73,8 @@ class NetworkKeysViewModel @Inject internal constructor(
      */
     fun removeKeys() {
         if (keysToBeRemoved.isNotEmpty()) {
-            removeSelectedKeys().also {
-                save()
-            }
+            removeSelectedKeys()
+            save()
         }
     }
 
@@ -87,12 +82,13 @@ class NetworkKeysViewModel @Inject internal constructor(
      * Removes the selected keys from a given network.
      */
     private fun removeSelectedKeys() {
-        if (keysToBeRemoved.isNotEmpty()) {
-            keysToBeRemoved.forEach { key ->
-                network.remove(key)
-            }
-            keysToBeRemoved.clear()
+        network.networkKeys.filter {
+            it in keysToBeRemoved
+        }.forEach {
+            network.remove(it)
         }
+        keysToBeRemoved.clear()
+        save()
     }
 }
 

@@ -2,7 +2,6 @@ package no.nordicsemi.android.nrfmesh.core.data
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
@@ -31,5 +30,4 @@ class DataStoreRepository @Inject constructor(
     suspend fun save() = withContext(ioDispatcher) {
         meshNetworkManager.save()
     }
-
 }

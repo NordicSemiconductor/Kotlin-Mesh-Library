@@ -19,8 +19,9 @@
     <string name="label_placeholder_name">nRF Mesh Network</string>
     <string name="unknown_error">Unknown error!</string>
     <string name="label_placeholder_key">DEADBEEFDEADBEEFDEADBEEFDEADBEEF</string>
-    <string name="error_cannot_edit_key_in_use">Unable to edit, key is already in use!</string>
+    <string name="error_cannot_edit_key_in_use">Unable to edit, key is already in use.</string>
     <string name="action_undo">Undo</string>
     <string name="label_network_key_deleted">Network Key deleted!</string>
-    <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use!</string>
+    <string name="error_cannot_delete_last_net_key">Unable to delete, the last network key cannot be deleted.</string>
+    <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use.</string>
 </resources>

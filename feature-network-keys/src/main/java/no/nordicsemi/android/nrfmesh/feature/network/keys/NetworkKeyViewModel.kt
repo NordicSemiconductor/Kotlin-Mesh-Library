@@ -27,9 +27,7 @@ class NetworkKeyViewModel @Inject internal constructor(
     val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
         this@NetworkKeyViewModel.networkKey = network.networkKey(netKeyIndexArg.toUShort())
         NetworkKeyScreenUiState(
-            networkKeyState = NetworkKeyState.Success(
-                networkKey = networkKey
-            )
+            networkKeyState = NetworkKeyState.Success(networkKey = networkKey)
         )
     }.stateIn(
         viewModelScope,

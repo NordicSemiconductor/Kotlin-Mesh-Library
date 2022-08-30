@@ -1,12 +1,12 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalLifecycleComposeApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLifecycleComposeApi::class,
     ExperimentalMaterialApi::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -79,10 +79,7 @@ private fun NetworkKeysScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        decayAnimationSpec = rememberSplineBasedDecay(),
-        state = rememberTopAppBarState()
-    )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
@@ -102,8 +99,7 @@ private fun NetworkKeysScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
-                val key = onAddKeyClicked()
-                navigateToNetworkKey(key.index)
+                navigateToNetworkKey(onAddKeyClicked().index)
             }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
@@ -120,21 +116,23 @@ private fun NetworkKeysScreen(
             state = listState
         ) {
             items(
-                items = uiState.keys,
-                key = { it.key }
+                items = uiState.keys/*,
+                key = { it.index }*/
             ) { key ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState {
-                    val state =
-                        !(it == DismissValue.DismissedToStart && key.isInUse() || uiState.keys.size == 1)
-                    if (!state) {
-                        showSnackbar(
-                            scope = coroutineScope,
-                            snackbarHostState = snackbarHostState,
-                            message = context.getString(R.string.error_cannot_delete_key_in_use),
-                            withDismissAction = true
-                        )
-                    }
+                    val state = if (uiState.keys.size > 1) {
+                        val flag = (it == DismissValue.DismissedToStart && !key.isInUse())
+                        if (!flag) {
+                            showSnackbar(
+                                scope = coroutineScope,
+                                snackbarHostState = snackbarHostState,
+                                message = context.getString(R.string.error_cannot_delete_key_in_use),
+                                withDismissAction = true
+                            )
+                        }
+                        flag
+                    } else false
                     state
                 }
                 var keyDismissed by remember { mutableStateOf(false) }
@@ -153,7 +151,6 @@ private fun NetworkKeysScreen(
                         withDismissAction = true
                     )
                 }
-
                 SwipeDismissItem(
                     dismissState = dismissState,
                     background = { offsetX ->

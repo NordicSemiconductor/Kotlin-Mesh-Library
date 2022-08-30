@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,10 +59,7 @@ private fun NetworkKeyScreen(
     onKeyChanged: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        decayAnimationSpec = rememberSplineBasedDecay(),
-        state = rememberTopAppBarState()
-    )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
@@ -85,6 +81,7 @@ private fun NetworkKeyScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+
             when (networkKeyState) {
                 NetworkKeyState.Loading -> { /* Do nothing */
                 }

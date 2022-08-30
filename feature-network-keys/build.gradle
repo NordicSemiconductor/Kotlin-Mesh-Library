@@ -35,14 +35,14 @@ android {
     }
     composeOptions {
         // Support for compose compiler dev version https://androidx.dev/storage/compose-compiler/repository
-        kotlinCompilerExtensionVersion "1.3.0-rc02"
+        kotlinCompilerExtensionVersion "1.3.0"
     }
 }
 
 dependencies {
     implementation coreLibs
     implementation composeLibs
-    implementation 'androidx.compose.material:material:1.2.1'
+    implementation 'androidx.compose.material:material:1.3.0-beta01'
     implementation navigationComposeLibs
     implementation lifecycleLibs
     implementation testingLibs
