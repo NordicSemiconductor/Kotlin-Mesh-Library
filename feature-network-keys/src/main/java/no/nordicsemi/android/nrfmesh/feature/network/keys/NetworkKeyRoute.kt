@@ -429,12 +429,3 @@ fun Security.description(): String = when (this) {
     Secure -> stringResource(id = R.string.label_secure)
     Insecure -> stringResource(id = R.string.label_insecure)
 }
-
-@Composable
-fun RequestFocus(shouldFocus: Boolean, requester: FocusRequester) {
-    SideEffect {
-        if (shouldFocus) {
-            requester.requestFocus()
-        }
-    }
-}

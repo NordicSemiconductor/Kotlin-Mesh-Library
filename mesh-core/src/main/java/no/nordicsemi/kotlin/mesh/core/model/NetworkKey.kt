@@ -114,9 +114,8 @@ data class NetworkKey internal constructor(
         }
     } ?: false
 
-
     /**
-     * Updates the existing key if it is not in use with the given key.
+     * Updates the existing key with the given key, if it is not in use.
      *
      * @param key New key.
      * @throws KeyInUse If the key is already in use.

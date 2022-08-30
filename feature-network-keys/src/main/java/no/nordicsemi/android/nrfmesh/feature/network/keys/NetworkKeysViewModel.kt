@@ -41,6 +41,9 @@ class NetworkKeysViewModel @Inject internal constructor(
         return network.add(name = "nRF Network Key")
     }
 
+    /**
+     * Saves the network.
+     */
     private fun save() {
         viewModelScope.launch {
             repository.save()
@@ -69,7 +72,7 @@ class NetworkKeysViewModel @Inject internal constructor(
     }
 
     /**
-     * Starts a coroutines that removes the keys from a network
+     * Starts a coroutines that removes the keys from a network,
      */
     fun removeKeys() {
         if (keysToBeRemoved.isNotEmpty()) {
