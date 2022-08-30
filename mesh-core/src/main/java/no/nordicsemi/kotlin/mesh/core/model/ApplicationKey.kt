@@ -77,7 +77,7 @@ data class ApplicationKey internal constructor(
     fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
         _nodes.any { node ->
-            node.netKeys.any { nodeKey ->
+            node.appKeys.any { nodeKey ->
                 nodeKey.index == index
             }
         }
