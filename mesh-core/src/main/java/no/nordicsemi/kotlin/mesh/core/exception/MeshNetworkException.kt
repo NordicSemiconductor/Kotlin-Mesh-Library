@@ -8,11 +8,14 @@ class KeyIndexOutOfRange : MeshNetworkException()
 /** Thrown when a given key index is already in use. */
 class DuplicateKeyIndex : MeshNetworkException()
 
+/** Thrown when the length of a key is not 16-bytes */
+class InvalidKeyLength : MeshNetworkException()
+
 /** Thrown when a given key is in use. */
 class KeyInUse : MeshNetworkException()
 
-/** Thrown when a node does not contain a network key. */
-class NoNetworkKey : MeshNetworkException()
+/** Thrown when a node does not contain any network key. */
+class NoNetworkKeysAdded : MeshNetworkException()
 
 /** Thrown when an object cannot be removed. */
 class CannotRemove : MeshNetworkException()

@@ -2,7 +2,7 @@
 buildscript {
     ext {
         // https://developer.android.com/jetpack/compose/setup#configure_kotlin
-        compose_version = '1.3.0-alpha03'
+        compose_version = '1.3.0-beta01'
         // https://developer.android.com/jetpack/compose/navigation
         nav_version = '2.5.1'
         // https://developer.android.com/jetpack/androidx/releases/compose
@@ -14,7 +14,9 @@ buildscript {
         // https://github.com/google/accompanist/releases
         accompanist_version = '0.26.1-alpha'
         // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
-        lifecycle_version = '2.5.0-rc01'
+        lifecycle_version = '2.6.0-alpha01'
+
+        material3_version = '1.0.0-beta01'
         coreLibs = [
                 'androidx.core:core-ktx:1.8.0',
                 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4',
@@ -22,24 +24,26 @@ buildscript {
                 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
         ]
         composeLibs = [
-                'androidx.compose.material3:material3:1.0.0-alpha16',
+                "androidx.compose.material3:material3:$material3_version",
+                "androidx.compose.material3:material3-window-size-class:$material3_version",
                 "androidx.compose.ui:ui:$compose_version",
+                "androidx.compose.ui:ui-util:$compose_version",
                 "androidx.compose.ui:ui-tooling:$compose_version",
                 "androidx.compose.ui:ui-tooling-preview:$compose_version",
                 "androidx.compose.material:material-icons-extended:$compose_version"
         ]
         composeActivityLibs = [
-                'androidx.activity:activity-compose:1.5.1'
+                'androidx.activity:activity-compose:1.6.0-beta01'
         ]
         navigationComposeLibs = [
                 "androidx.navigation:navigation-compose:$nav_version"
         ]
-        lifcycleLibs = [
+        lifecycleLibs = [
                 // https://developer.android.com/jetpack/androidx/releases/lifecycle
                 "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version",
-                "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version",
                 "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version",
-                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+                "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version",
+                "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
         ]
         dataStore = [
                 'androidx.datastore:datastore-preferences:1.0.0'
@@ -56,7 +60,7 @@ buildscript {
         ]
         nordicCommonLibs = [
                 // Nordic common libraries
-                'no.nordicsemi.android.common:theme:1.0.15'
+                'no.nordicsemi.android.common:theme:1.0.16'
         ]
         testingLibs = [
                 'junit:junit:4.13.2',

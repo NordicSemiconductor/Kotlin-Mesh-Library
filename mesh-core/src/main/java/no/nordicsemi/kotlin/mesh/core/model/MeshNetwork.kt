@@ -115,13 +115,9 @@ class MeshNetwork internal constructor(
      */
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
-            if (_networkKeys.isEmpty()) {
-                return 0u
-            }
+            if (_networkKeys.isEmpty()) return 0u
             val nextKeyIndex = (_networkKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) {
-                return nextKeyIndex
-            }
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
             return null
         }
 
@@ -131,13 +127,9 @@ class MeshNetwork internal constructor(
      */
     val nextAvailableApplicationKeyIndex: KeyIndex?
         get() {
-            if (_applicationKeys.isEmpty()) {
-                return 0u
-            }
+            if (_applicationKeys.isEmpty()) return 0u
             val nextKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) {
-                return nextKeyIndex
-            }
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
             return null
         }
 
@@ -343,6 +335,17 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the network key with a given key index.
+     *
+     * @param keyIndex Index of the network key.
+     * @return Network key.
+     * @throws NoSuchElementException if a key for a given key index ws not found.
+     */
+    fun networkKey(keyIndex: KeyIndex) = networkKeys.first { key ->
+        key.index == keyIndex
+    }
+
+    /**
      * Adds the given [NetworkKey] to the list of network keys in the network.
      *
      * @param name      Network key name.
@@ -352,7 +355,11 @@ class MeshNetwork internal constructor(
      * @throws [DuplicateKeyIndex] if the key index is already in use.
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
-    fun add(name: String, key: ByteArray, index: KeyIndex? = null): NetworkKey {
+    fun add(
+        name: String,
+        key: ByteArray = Crypto.generateRandomKey(),
+        index: KeyIndex? = null
+    ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
             require(_networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
@@ -362,7 +369,7 @@ class MeshNetwork internal constructor(
             _name = name,
             _key = key
         ).apply {
-            this.network = this@MeshNetwork
+            network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
             _networkKeys.apply {
@@ -385,6 +392,17 @@ class MeshNetwork internal constructor(
         require(key.network == this) { throw DoesNotBelongToNetwork() }
         require(!key.isInUse()) { throw KeyInUse() }
         _networkKeys.remove(key).also { updateTimestamp() }
+    }
+
+    /**
+     * Returns the application key with a given key index.
+     *
+     * @param keyIndex Index of the application key.
+     * @return Application key.
+     * @throws NoSuchElementException if a key for a given key index ws not found.
+     */
+    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.first { key ->
+        key.index == keyIndex
     }
 
     /**
@@ -419,8 +437,8 @@ class MeshNetwork internal constructor(
             _name = name,
             _key = key
         ).apply {
-            this.boundNetKeyIndex = boundNetworkKey.index
-            this.network = this@MeshNetwork
+            boundNetKeyIndex = boundNetworkKey.index
+            network = this@MeshNetwork
         }.also { applicationKey ->
             _applicationKeys.apply {
                 add(applicationKey)
@@ -484,14 +502,15 @@ class MeshNetwork internal constructor(
      * @param node Node to be added to the network.
      * @throws NodeAlreadyExists if the node already exists.
      * @throws NoAddressesAvailable if the node is not assigned with an address.
-     * @throws NoNetworkKey if the node does not contain a network key.
+     * @throws NoNetworkKeysAdded if the node does not contain a network key.
      * @throws DoesNotBelongToNetwork if the network key in the node does not match the keys in the
      *                                network.
      */
     @Throws(
         NodeAlreadyExists::class,
         NoAddressesAvailable::class,
-        NoNetworkKey::class, DoesNotBelongToNetwork::class
+        NoNetworkKeysAdded::class,
+        DoesNotBelongToNetwork::class
     )
     internal fun add(node: Node) {
         // Ensure the node does not exists already.
@@ -501,7 +520,7 @@ class MeshNetwork internal constructor(
             throw NoAddressesAvailable()
         }
         // Ensure the Network Key exists.
-        require(node.netKeys.isNotEmpty()) { throw NoNetworkKey() }
+        require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded() }
         // Make sure the network contains a Network Key with he same Key Index.
         require(_networkKeys.any { it.index == node.netKeys.first().index }) {
             throw DoesNotBelongToNetwork()

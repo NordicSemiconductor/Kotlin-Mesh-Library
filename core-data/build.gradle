@@ -35,6 +35,7 @@ dependencies {
     implementation testingLibs
     implementation coreLibs
     implementation hiltAndroid
+    implementation project(path: ':core-common')
     kapt hiltCompiler
 
     implementation project(path: ':core-data-storage')

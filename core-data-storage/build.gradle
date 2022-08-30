@@ -36,6 +36,7 @@ dependencies {
     implementation coreLibs
     implementation dataStore
     implementation hiltAndroid
+    implementation project(path: ':core-common')
     kapt hiltCompiler
 
     implementation project(path: ':mesh-core')

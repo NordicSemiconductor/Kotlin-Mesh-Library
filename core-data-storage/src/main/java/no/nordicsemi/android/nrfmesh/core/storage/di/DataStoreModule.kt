@@ -12,9 +12,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
 import no.nordicsemi.android.nrfmesh.core.storage.MeshNetworkStorage
 import javax.inject.Singleton
 
@@ -25,12 +27,15 @@ object DataStoreModule {
 
     @Singleton
     @Provides
-    fun providePreferenceDataStore(@ApplicationContext context: Context) =
+    fun providePreferenceDataStore(
+        @ApplicationContext context: Context,
+        @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
+    ) =
         PreferenceDataStoreFactory.create(
             corruptionHandler = ReplaceFileCorruptionHandler(
                 produceNewData = { emptyPreferences() }
             ),
-            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            scope = CoroutineScope(ioDispatcher + SupervisorJob()),
             produceFile = { context.preferencesDataStoreFile(USER_PREFERENCES) }
         )
 

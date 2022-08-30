@@ -6,6 +6,8 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
+import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
@@ -71,7 +73,7 @@ data class NetworkKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.size == 16) { "Key must be 16-bytes!" }
+            require(value = value.size == 16) { throw InvalidKeyLength() }
             _key = value
         }
 
@@ -103,14 +105,27 @@ data class NetworkKey internal constructor(
         // A network key is in use if at least one application key is bound to it.
         // OR
         // The network key is known by any of the nodes in the network.
-        _applicationKeys.none { applicationKey ->
+        _applicationKeys.any { applicationKey ->
             applicationKey.boundNetKeyIndex == index
-        } || _nodes.none { node ->
+        } || _nodes.any { node ->
             node.netKeys.any { nodeKey ->
                 nodeKey.index == index
             }
         }
     } ?: false
+
+
+    /**
+     * Updates the existing key if it is not in use with the given key.
+     *
+     * @param key New key.
+     * @throws KeyInUse If the key is already in use.
+     */
+    fun setKey(key: ByteArray) {
+        require(!isInUse()) { throw KeyInUse() }
+        require(key.size == 16) { throw InvalidKeyLength() }
+        _key = key
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -119,8 +134,10 @@ data class NetworkKey internal constructor(
         other as NetworkKey
 
         if (index != other.index) return false
+        if (_name != other._name) return false
         if (!_key.contentEquals(other._key)) return false
         if (_security != other._security) return false
+        if (_phase != other._phase) return false
         if (oldKey != null) {
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
@@ -132,8 +149,10 @@ data class NetworkKey internal constructor(
 
     override fun hashCode(): Int {
         var result = index.hashCode()
+        result = 31 * result + _name.hashCode()
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + _security.hashCode()
+        result = 31 * result + _phase.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + timestamp.hashCode()
         return result

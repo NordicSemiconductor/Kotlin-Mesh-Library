@@ -338,7 +338,6 @@ data class Node internal constructor(
         if (excluded != other.excluded) return false
         if (heartbeatPublication != other.heartbeatPublication) return false
         if (heartbeatSubscription != other.heartbeatSubscription) return false
-        if (network != other.network) return false
 
         return true
     }
@@ -365,7 +364,6 @@ data class Node internal constructor(
         result = 31 * result + excluded.hashCode()
         result = 31 * result + (heartbeatPublication?.hashCode() ?: 0)
         result = 31 * result + (heartbeatSubscription?.hashCode() ?: 0)
-        result = 31 * result + (network?.hashCode() ?: 0)
         return result
     }
 }

@@ -6,4 +6,9 @@ package no.nordicsemi.kotlin.mesh.core.model
  */
 typealias KeyIndex = UShort
 
+/**
+ * Checks if the Key index is of the given valid range.
+ *
+ * @return true if valid or false otherwise.
+ */
 fun KeyIndex.isValidKeyIndex() = this.toInt() in 0..4095

@@ -2,47 +2,29 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver
 import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
-import java.text.DateFormat
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
-
-    var uiState by mutableStateOf(SettingsUiState())
-
-    init {
-        viewModelScope.launch {
-            repository.network.collect {
-                it.timestamp.toLocalDateTime(TimeZone.currentSystemDefault())
-                uiState = SettingsUiState(
-                    networkName = it.name,
-                    provisioners = it.provisioners,
-                    networkKeys = it.networkKeys,
-                    applicationKeys = it.applicationKeys,
-                    scenes = it.scenes,
-                    ivIndex = it.ivIndex,
-                    lastModified = DateFormat.getDateTimeInstance().format(
-                        Date(it.timestamp.toEpochMilliseconds())
-                    )
-                )
-            }
-        }
-    }
+    val uiState: StateFlow<SettingsScreenUiState> =
+        repository.network.map { network ->
+            SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SettingsScreenUiState()
+        )
 
     /**
      * Imports a network from a given Uri.
@@ -62,14 +44,10 @@ class SettingsViewModel @Inject constructor(
     }
 }
 
-data class SettingsUiState(
-    val networkName: String = "nRF Mesh",
-    val provisioners: List<Provisioner> = emptyList(),
-    val networkKeys: List<NetworkKey> = emptyList(),
-    val applicationKeys: List<ApplicationKey> = emptyList(),
-    val scenes: List<Scene> = emptyList(),
-    val ivIndex: IvIndex = IvIndex(),
-    val lastModified: String = DateFormat.getDateTimeInstance().format(
-        Date(System.currentTimeMillis())
-    )
-)
+sealed interface MeshNetworkState {
+    data class Success(val network: MeshNetwork) : MeshNetworkState
+    data class Error(val throwable: Throwable) : MeshNetworkState
+    object Loading : MeshNetworkState
+}
+
+data class SettingsScreenUiState(val networkState: MeshNetworkState = MeshNetworkState.Loading)

@@ -1,14 +1,16 @@
 package no.nordicsemi.android.nrfmesh.navigation
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.navigation.proxyFilterGraph
@@ -16,10 +18,11 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
 
 @Composable
 fun MeshNavHost(
+    navController: NavHostController,
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
-    startDestination: String = NodesDestination.route,
-    snackbarHostState: SnackbarHostState
+    startDestination: String = NodesDestination.route
 ) {
     NavHost(
         modifier = modifier,
@@ -30,30 +33,35 @@ fun MeshNavHost(
         groupsGraph()
         proxyFilterGraph()
         settingsGraph(
-            modifier = modifier,
-            navController = navController,
             navigateToProvisioners = {
-                navController.navigate("${ExportDestination.route}/$it")
+                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
             navigateToNetworkKeys = {
-                navController.navigate("${ExportDestination.route}/$it")
+                onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
             navigateToApplicationKeys = {
-                navController.navigate("${ExportDestination.route}/$it")
+                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
             navigateToScenes = {
-                navController.navigate("${ExportDestination.route}/$it")
+                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
-            navigateToIvIndex = {
-                navController.navigate("${ExportDestination.route}/$it")
+            navigateToExportNetwork = {
+                onNavigateToDestination(ExportDestination, ExportDestination.route)
+            },
+            nestedGraphs = {
+                exportGraph(onBackPressed = onBackPressed)
+                networkKeysGraph(
+                    onBackPressed = onBackPressed,
+                    onNavigateToNetworkKey = { netKeyIndex ->
+                        onNavigateToDestination(
+                            NetworkKeyDestination,
+                            NetworkKeyDestination.createNavigationRoute(
+                                netKeyIndexArg = netKeyIndex
+                            )
+                        )
+                    }
+                )
             }
-        ) {
-            exportGraph(
-                snackbarHostState = snackbarHostState
-            ) {
-                navController.popBackStack()
-            }
-        }
-        //exportGraph()
+        )
     }
 }

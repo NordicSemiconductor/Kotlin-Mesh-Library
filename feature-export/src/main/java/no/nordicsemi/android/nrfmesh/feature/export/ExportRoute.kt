@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.export
 
@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.RowItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
@@ -40,13 +40,11 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 @Composable
 fun ExportRoute(
     viewModel: ExportViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
     ExportScreen(
         context = context,
-        snackbarHostState = snackbarHostState,
         uiState = viewModel.uiState,
         onExportEverythingToggled = { viewModel.onExportEverythingToggled(it) },
         onNetworkKeySelected = { key, selected -> viewModel.onNetworkKeySelected(key, selected) },
@@ -63,7 +61,6 @@ fun ExportRoute(
 @Composable
 private fun ExportScreen(
     context: Context,
-    snackbarHostState: SnackbarHostState,
     uiState: ExportScreenUiState,
     onExportEverythingToggled: (Boolean) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
@@ -73,6 +70,7 @@ private fun ExportScreen(
     onExportStateDisplayed: () -> Unit,
     onBackPressed: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
         onResult = { it?.let { onExportClicked(it) } }
@@ -86,7 +84,8 @@ private fun ExportScreen(
                 )
                 onExportStateDisplayed()
             }
-        is ExportState.Error -> { LaunchedEffect(key1 = snackbarHostState) {
+        is ExportState.Error -> {
+            LaunchedEffect(key1 = snackbarHostState) {
                 onExportStateDisplayed()
                 showSnackbar(
                     snackbarHostState = snackbarHostState,
@@ -100,7 +99,8 @@ private fun ExportScreen(
                 )
             }
         }
-        is ExportState.Unknown -> { /*Do nothing*/ }
+        is ExportState.Unknown -> { /*Do nothing*/
+        }
     }
     Scaffold(
         topBar = {
@@ -120,7 +120,9 @@ private fun ExportScreen(
                     }
                 }
             )
-        }) { padding ->
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         LazyColumn(
             contentPadding = padding
         ) {
@@ -243,7 +245,7 @@ private fun ProvisionerRow(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.Groups,
             title = state.provisioner.name,
@@ -281,7 +283,7 @@ private fun NetworkKeyRow(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.VpnKey,
             title = state.networkKey.name,
@@ -315,7 +317,7 @@ private fun ExportDeviceKeys(
             .padding(end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RowItem(
+        MeshTwoLineListItem(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_export_device_keys),
@@ -335,16 +337,3 @@ private fun ExportDeviceKeys(
         )
     }
 }
-
-@Composable
-private fun parseExceptionState(exportState: ExportState) = stringResource(
-    id = when (exportState) {
-        is ExportState.Success -> R.string.label_success
-        is ExportState.Error -> when (exportState.throwable) {
-            is AtLeastOneProvisionerMustBeSelected -> R.string.error_select_one_provisioner
-            is AtLeastOneNetworkKeyMustBeSelected -> R.string.error_select_one_network_key
-            else -> R.string.error_unknown
-        }
-        else -> R.string.error_unknown
-    }
-)
