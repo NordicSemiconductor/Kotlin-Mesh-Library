@@ -1,6 +1,5 @@
 @file:OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class,
     ExperimentalLifecycleComposeApi::class
 )
 
@@ -11,7 +10,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

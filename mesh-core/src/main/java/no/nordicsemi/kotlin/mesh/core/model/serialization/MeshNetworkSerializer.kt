@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
-import kotlinx.coroutines.Job
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -8,7 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfigur
 import java.io.ByteArrayInputStream
 
 internal object MeshNetworkSerializer {
-    @OptIn(ExperimentalSerializationApi::class)
+
     private val jsonSerializer = Json {
         encodeDefaults = true       // Encodes default values of properties.
         explicitNulls = false       // Avoids encoding null values.
@@ -29,7 +30,6 @@ internal object MeshNetworkSerializer {
      *
      * @param array in to a mesh network.
      */
-    @OptIn(ExperimentalSerializationApi::class)
     internal fun deserialize(array: ByteArray) = jsonSerializer.run {
         val networkElement: JsonElement = decodeFromStream(ByteArrayInputStream(array)
             .also { stream -> stream.close() })

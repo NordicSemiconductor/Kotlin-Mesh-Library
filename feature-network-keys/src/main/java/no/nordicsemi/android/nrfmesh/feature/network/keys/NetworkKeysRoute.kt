@@ -65,7 +65,6 @@ fun NetworkKeysRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+
 package no.nordicsemi.android.nrfmesh.ui
 
 import androidx.compose.foundation.layout.*
@@ -26,7 +28,6 @@ fun MeshApp(
         NetworkScreen(windowSizeClass = windowSizeClass, appState = appState)
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NetworkScreen(windowSizeClass: WindowSizeClass, appState: MeshAppState) {
     val snackbarHostState = remember { SnackbarHostState() }

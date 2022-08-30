@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalLifecycleComposeApi::class)
+@file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
@@ -50,7 +50,6 @@ fun NetworkKeyRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NetworkKeyScreen(
     networkKeyState: NetworkKeyState,
