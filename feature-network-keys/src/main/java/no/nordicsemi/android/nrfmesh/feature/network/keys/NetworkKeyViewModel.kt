@@ -61,7 +61,7 @@ class NetworkKeyViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    private fun save() {
+    internal fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

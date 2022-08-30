@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -46,9 +45,12 @@ fun NetworkKeyRoute(
     val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeyScreen(
         networkKeyState = uiState.networkKeyState,
-        onBackPressed = onBackPressed,
         onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
+        onKeyChanged = viewModel::onKeyChanged,
+        onBackPressed = {
+            viewModel.save()
+            onBackPressed()
+        }
     )
 }
 
