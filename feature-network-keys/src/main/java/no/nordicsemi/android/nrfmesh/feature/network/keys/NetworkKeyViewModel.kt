@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,8 +40,10 @@ class NetworkKeyViewModel @Inject internal constructor(
      * @param name New network key name.
      */
     internal fun onNameChanged(name: String) {
-        networkKey.name = name
-        save()
+        if(networkKey.name != name) {
+            networkKey.name = name
+            save()
+        }
     }
 
     /**
@@ -50,9 +51,11 @@ class NetworkKeyViewModel @Inject internal constructor(
      *
      * @param key New network key.
      */
-    internal fun onKeyChanged(key: String) {
-        networkKey.setKey(key = key.decodeHex())
-        save()
+    internal fun onKeyChanged(key: ByteArray) {
+        if(!networkKey.key.contentEquals(key)){
+            networkKey.setKey(key = key)
+            save()
+        }
     }
 
     private fun save() {

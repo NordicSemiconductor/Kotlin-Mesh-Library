@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.text.DateFormat
 import java.util.*
@@ -55,7 +57,7 @@ private fun NetworkKeyScreen(
     networkKeyState: NetworkKeyState,
     onBackPressed: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onKeyChanged: (String) -> Unit
+    onKeyChanged: (ByteArray) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -111,7 +113,7 @@ private fun LazyListScope.networkKeyInfo(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onKeyChanged: (String) -> Unit
+    onKeyChanged: (ByteArray) -> Unit
 ) {
     item {
         Name(
@@ -161,6 +163,7 @@ fun Name(
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
+                onFocus =  onEditClick,
                 externalLeadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -234,7 +237,7 @@ fun Key(
     snackbarHostState: SnackbarHostState,
     networkKey: ByteArray,
     isInUse: Boolean,
-    onKeyChanged: (String) -> Unit,
+    onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
@@ -247,6 +250,7 @@ fun Key(
             true ->
                 MeshOutlinedTextField(
                     modifier = Modifier.padding(vertical = 8.dp),
+                    onFocus =  onEditClick,
                     externalLeadingIcon = {
                         Icon(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -281,7 +285,7 @@ fun Key(
                             enabled = key.length == 32,
                             onClick = {
                                 onEditClick = !onEditClick
-                                onKeyChanged(key)
+                                onKeyChanged(key.decodeHex())
                                 onEditableStateChanged()
                             }
                         ) { Icon(imageVector = Icons.Outlined.Check, contentDescription = null) }
@@ -424,4 +428,13 @@ fun KeyRefreshPhase.description(): String = when (this) {
 fun Security.description(): String = when (this) {
     Secure -> stringResource(id = R.string.label_secure)
     Insecure -> stringResource(id = R.string.label_insecure)
+}
+
+@Composable
+fun RequestFocus(shouldFocus: Boolean, requester: FocusRequester) {
+    SideEffect {
+        if (shouldFocus) {
+            requester.requestFocus()
+        }
+    }
 }
