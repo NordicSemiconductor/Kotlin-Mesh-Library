@@ -39,7 +39,7 @@ fun MeshOutlinedTextField(
         externalLeadingIcon()
         OutlinedTextField(
             modifier = Modifier
-                .weight(1f, false)
+                .weight(1f)
                 .focusRequester(requester),
             value = value,
             onValueChange = {
