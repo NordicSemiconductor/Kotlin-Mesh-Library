@@ -418,7 +418,7 @@ class MeshNetwork internal constructor(
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class, IllegalArgumentException::class)
     fun add(
         name: String,
-        key: ByteArray,
+        key: ByteArray = Crypto.generateRandomKey(),
         index: KeyIndex? = null,
         boundNetworkKey: NetworkKey
     ): ApplicationKey {
