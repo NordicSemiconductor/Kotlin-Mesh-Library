@@ -54,18 +54,30 @@ fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
     leadingIcon: @Composable () -> Unit = {},
     title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
     subtitle: String = "",
     trailingIcon: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
     Row(
-        modifier = modifier.padding(vertical = 16.dp).fillMaxWidth(),
+        modifier = modifier
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingIcon()
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = titleTextOverflow
+            )
             if (subtitle.isNotEmpty())
                 Text(
                     text = subtitle,
