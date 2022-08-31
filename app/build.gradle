@@ -76,6 +76,7 @@ dependencies {
     implementation project(path: ':feature-settings')
     implementation project(path: ':feature-network-keys')
     implementation project(path: ':feature-application-keys')
+    implementation project(path: ':feature-scenes')
 
     implementation project(path: ':mesh-core')
 
