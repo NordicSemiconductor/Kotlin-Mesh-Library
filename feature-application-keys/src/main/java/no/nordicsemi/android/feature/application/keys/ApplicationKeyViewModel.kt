@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeyDestination
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +28,12 @@ class ApplicationKeyViewModel @Inject internal constructor(
         this@ApplicationKeyViewModel.applicationKey =
             network.applicationKey(appKeyIndexArg.toUShort())
         ApplicationKeyScreenUiState(
-            applicationKeyState = ApplicationKeyState.Success(applicationKey = applicationKey)
+            applicationKeyState = ApplicationKeyState.Success(
+                applicationKey = applicationKey,
+                networkKeys = mutableListOf<NetworkKey>().apply {
+                    addAll(network.networkKeys)
+                }.toList()
+            )
         )
     }.stateIn(
         viewModelScope,
@@ -60,15 +66,29 @@ class ApplicationKeyViewModel @Inject internal constructor(
     }
 
     /**
+     * Invoked when the bound network key is changed.
+     *
+     * @param key New network key to bind to
+     */
+    internal fun onBoundNetworkKeyChanged(key: NetworkKey) {
+        applicationKey.boundNetKeyIndex = key.index
+        save()
+    }
+
+    /**
      * Saves the network.
      */
-    private fun save() {
+    internal fun save() {
         viewModelScope.launch { repository.save() }
     }
 }
 
 sealed interface ApplicationKeyState {
-    data class Success(val applicationKey: ApplicationKey) : ApplicationKeyState
+    data class Success(
+        val applicationKey: ApplicationKey,
+        val networkKeys: List<NetworkKey>
+    ) : ApplicationKeyState
+
     data class Error(val throwable: Throwable) : ApplicationKeyState
     object Loading : ApplicationKeyState
 }

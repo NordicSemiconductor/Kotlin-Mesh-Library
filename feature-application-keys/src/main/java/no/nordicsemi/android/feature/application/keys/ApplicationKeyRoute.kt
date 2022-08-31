@@ -3,10 +3,12 @@
 package no.nordicsemi.android.feature.application.keys
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
@@ -15,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -24,19 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import java.text.DateFormat
-import java.util.*
 
 @Composable
 fun ApplicationKeyRoute(
@@ -46,22 +44,31 @@ fun ApplicationKeyRoute(
     val uiState: ApplicationKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeyScreen(
         applicationKeyState = uiState.applicationKeyState,
-        onBackPressed = onBackPressed,
         onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
+        onKeyChanged = viewModel::onKeyChanged,
+        onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged,
+        onBackPressed = {
+            viewModel.save()
+            onBackPressed()
+        }
     )
 }
 
 @Composable
 private fun ApplicationKeyScreen(
     applicationKeyState: ApplicationKeyState,
-    onBackPressed: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onKeyChanged: (ByteArray) -> Unit
+    onKeyChanged: (ByteArray) -> Unit,
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+
+    var boundNetKeyIndex by rememberSaveable { mutableStateOf(0) }
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -82,11 +89,11 @@ private fun ApplicationKeyScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
             when (applicationKeyState) {
                 ApplicationKeyState.Loading -> { /* Do nothing */
                 }
                 is ApplicationKeyState.Success -> {
+                    boundNetKeyIndex = applicationKeyState.applicationKey.boundNetKeyIndex.toInt()
                     applicationKeyInfo(
                         snackbarHostState = snackbarHostState,
                         applicationKey = applicationKeyState.applicationKey,
@@ -94,6 +101,18 @@ private fun ApplicationKeyScreen(
                         onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
                         onNameChanged = onNameChanged,
                         onKeyChanged = onKeyChanged
+                    )
+                    boundNetworkKeys(
+                        title = context.getString(R.string.label_bound_network_key),
+                        coroutineScope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        isInUse = applicationKeyState.applicationKey.isInUse(),
+                        boundNetKeyIndex = boundNetKeyIndex,
+                        networkKeys = applicationKeyState.networkKeys,
+                        onBoundNetworkKeyChanged = {
+                            boundNetKeyIndex = it.index.toInt()
+                            onBoundNetworkKeyChanged(it)
+                        }
                     )
                 }
                 is ApplicationKeyState.Error -> {
@@ -139,12 +158,6 @@ private fun LazyListScope.applicationKeyInfo(
     item {
         KeyIndex(index = applicationKey.index)
     }
-    item {
-        //KeyRefreshPhase(phase = applicationKey.phase)
-    }
-    item {
-        //Security(security = applicationKey.security)
-    }
 }
 
 @Composable
@@ -160,7 +173,7 @@ fun Name(
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
-                onFocus =  onEditClick,
+                onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -247,7 +260,7 @@ fun Key(
             true ->
                 MeshOutlinedTextField(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    onFocus =  onEditClick,
+                    onFocus = onEditClick,
                     externalLeadingIcon = {
                         Icon(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -362,47 +375,53 @@ fun KeyIndex(index: KeyIndex) {
     )
 }
 
-@Composable
-fun KeyRefreshPhase(phase: KeyRefreshPhase) {
-    MeshTwoLineListItem(
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.AutoMode,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(id = R.string.label_key_refresh_phase),
-        subtitle = phase.description()
-    )
-}
-
-@Composable
-fun Security(security: Security) {
-    MeshTwoLineListItem(
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.LocalPolice,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(id = R.string.label_security),
-        subtitle = security.description()
-    )
-}
-
-@Composable
-fun KeyRefreshPhase.description(): String = when (this) {
-    NormalOperation -> stringResource(id = R.string.label_normal_operation)
-    KeyDistribution -> stringResource(id = R.string.label_key_distribution)
-    UsingNewKeys -> stringResource(id = R.string.label_using_new_keys)
-}
-
-@Composable
-fun Security.description(): String = when (this) {
-    Secure -> stringResource(id = R.string.label_secure)
-    Insecure -> stringResource(id = R.string.label_insecure)
+private fun LazyListScope.boundNetworkKeys(
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    title: String,
+    isInUse: Boolean,
+    boundNetKeyIndex: Int,
+    networkKeys: List<NetworkKey>,
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
+) {
+    item {
+        SectionTitle(title = title)
+    }
+    items(
+        items = networkKeys
+    ) { key ->
+        MeshTwoLineListItem(
+            modifier = Modifier.clickable {
+                if (!isInUse) onBoundNetworkKeyChanged(key)
+                else showSnackbar(
+                    scope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    message = "Cannot change, application key is in use.",
+                    withDismissAction = true
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Outlined.VpnKey,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+            title = key.name,
+            subtitle = key.key.encodeHex(),
+            trailingIcon = {
+                if (key.index.toInt() == boundNetKeyIndex) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(end = 16.dp),
+                        imageVector = Icons.Outlined.TaskAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceTint
+                    )
+                }
+            }
+        )
+    }
 }

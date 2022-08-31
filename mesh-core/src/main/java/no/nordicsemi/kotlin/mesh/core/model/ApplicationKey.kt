@@ -47,7 +47,7 @@ data class ApplicationKey internal constructor(
 
     @SerialName("boundNetKey")
     var boundNetKeyIndex: KeyIndex = 0u
-        internal set
+
     var key: ByteArray
         get() = _key
         internal set(value) {
@@ -62,8 +62,10 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
-    @Transient
-    var netKey: NetworkKey? = network?._networkKeys?.find { it.index == boundNetKeyIndex }
+    var netKey: NetworkKey? = null
+        get() = network?._networkKeys?.find { networkKey ->
+            networkKey.index == boundNetKeyIndex
+        }
         private set
 
     init {

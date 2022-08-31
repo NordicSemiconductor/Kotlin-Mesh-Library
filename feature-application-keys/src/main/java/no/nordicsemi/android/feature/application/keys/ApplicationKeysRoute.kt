@@ -115,24 +115,20 @@ private fun ApplicationsKeysScreen(
             state = listState
         ) {
             items(
-                items = uiState.keys/*,
-                key = { it.index }*/
+                items = uiState.keys
             ) { key ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState {
-                    val state = if (uiState.keys.size > 1) {
-                        val flag = (it == DismissValue.DismissedToStart && !key.isInUse())
-                        if (!flag) {
-                            showSnackbar(
-                                scope = coroutineScope,
-                                snackbarHostState = snackbarHostState,
-                                message = context.getString(R.string.error_cannot_delete_key_in_use),
-                                withDismissAction = true
-                            )
-                        }
-                        flag
-                    } else false
-                    state
+                    val state = it == DismissValue.DismissedToStart && key.isInUse()
+                    if (state) {
+                        showSnackbar(
+                            scope = coroutineScope,
+                            snackbarHostState = snackbarHostState,
+                            message = context.getString(R.string.error_cannot_delete_key_in_use),
+                            withDismissAction = true
+                        )
+                    }
+                    !state
                 }
                 var keyDismissed by remember { mutableStateOf(false) }
                 if (keyDismissed) {
