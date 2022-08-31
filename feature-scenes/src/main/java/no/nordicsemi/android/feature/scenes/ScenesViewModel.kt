@@ -41,10 +41,7 @@ class ScenesViewModel @Inject internal constructor(
         // Let's delete any keys that are queued for deletion before adding a new.
         removeSelectedScenes()
         return network.nextAvailableScene(network.provisioners[1])?.let {
-            network.add(
-                name = "nRF Scene",
-                number = it
-            )
+            network.add(name = "nRF Scene", number = it)
         }
     }
 
