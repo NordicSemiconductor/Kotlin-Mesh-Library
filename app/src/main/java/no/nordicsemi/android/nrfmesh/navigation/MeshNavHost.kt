@@ -7,6 +7,9 @@ import androidx.navigation.compose.NavHost
 import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeyDestination
 import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeysDestination
 import no.nordicsemi.android.feature.application.keys.navigation.applicationKeysGraph
+import no.nordicsemi.android.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.feature.scenes.navigation.ScenesDestination
+import no.nordicsemi.android.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
@@ -36,6 +39,9 @@ fun MeshNavHost(
         groupsGraph()
         proxyFilterGraph()
         settingsGraph(
+            navigateToExportNetwork = {
+                onNavigateToDestination(ExportDestination, ExportDestination.route)
+            },
             navigateToProvisioners = {
                 // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
@@ -49,10 +55,7 @@ fun MeshNavHost(
                 )
             },
             navigateToScenes = {
-                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
-            },
-            navigateToExportNetwork = {
-                onNavigateToDestination(ExportDestination, ExportDestination.route)
+                onNavigateToDestination(ScenesDestination, ScenesDestination.route)
             },
             nestedGraphs = {
                 exportGraph(onBackPressed = onBackPressed)
@@ -74,6 +77,17 @@ fun MeshNavHost(
                             ApplicationKeyDestination,
                             ApplicationKeyDestination.createNavigationRoute(
                                 appKeyIndexArg = appKeyIndex
+                            )
+                        )
+                    }
+                )
+                scenesGraph(
+                    onBackPressed = onBackPressed,
+                    onNavigateToScene = { sceneNumber ->
+                        onNavigateToDestination(
+                            SceneDestination,
+                            SceneDestination.createNavigationRoute(
+                                sceneNumberArg = sceneNumber
                             )
                         )
                     }
