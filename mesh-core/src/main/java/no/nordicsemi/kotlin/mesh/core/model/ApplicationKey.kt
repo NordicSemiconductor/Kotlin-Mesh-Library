@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -62,11 +61,10 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
-    var netKey: NetworkKey? = null
+    val netKey: NetworkKey?
         get() = network?._networkKeys?.find { networkKey ->
             networkKey.index == boundNetKeyIndex
         }
-        private set
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
