@@ -2,6 +2,7 @@
 
 package no.nordicsemi.android.feature.application.keys
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -103,7 +104,7 @@ private fun ApplicationKeyScreen(
                         onKeyChanged = onKeyChanged
                     )
                     boundNetworkKeys(
-                        title = context.getString(R.string.label_bound_network_key),
+                        context = context,
                         coroutineScope = coroutineScope,
                         snackbarHostState = snackbarHostState,
                         isInUse = applicationKeyState.applicationKey.isInUse(),
@@ -378,14 +379,14 @@ fun KeyIndex(index: KeyIndex) {
 private fun LazyListScope.boundNetworkKeys(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    title: String,
+    context: Context,
     isInUse: Boolean,
     boundNetKeyIndex: Int,
     networkKeys: List<NetworkKey>,
     onBoundNetworkKeyChanged: (NetworkKey) -> Unit
 ) {
     item {
-        SectionTitle(title = title)
+        SectionTitle(title = context.getString(R.string.label_bound_network_key))
     }
     items(
         items = networkKeys
@@ -396,7 +397,7 @@ private fun LazyListScope.boundNetworkKeys(
                 else showSnackbar(
                     scope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    message = "Cannot change, application key is in use.",
+                    message = context.getString(R.string.error_cannot_change_bound_net_key),
                     withDismissAction = true
                 )
             },
