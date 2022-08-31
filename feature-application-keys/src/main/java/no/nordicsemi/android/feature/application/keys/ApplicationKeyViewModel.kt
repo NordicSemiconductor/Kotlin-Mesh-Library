@@ -71,8 +71,10 @@ class ApplicationKeyViewModel @Inject internal constructor(
      * @param key New network key to bind to
      */
     internal fun onBoundNetworkKeyChanged(key: NetworkKey) {
-        applicationKey.boundNetKeyIndex = key.index
-        save()
+        if(applicationKey.boundNetKeyIndex != key.index){
+            applicationKey.boundNetKeyIndex = key.index
+            save()
+        }
     }
 
     /**
