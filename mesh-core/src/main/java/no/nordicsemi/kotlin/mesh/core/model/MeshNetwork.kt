@@ -379,7 +379,7 @@ class MeshNetwork internal constructor(
         }
     }
 
-     /**
+    /**
      * Removes a given [NetworkKey] from the list of network keys in the mesh network.
      *
      * @param key Network key to be removed.
@@ -587,14 +587,46 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the Scene key with a given scene number.
+     *
+     * @param number Scene number of the scene.
+     * @return Scene.
+     * @throws NoSuchElementException if a scene for a given scene number ws not found.
+     */
+    fun scene(number: SceneNumber) = scenes.first { scene ->
+        scene.number == number
+    }
+
+    /**
+     * Adds a given Scene with the given name and the scene number to the mesh network.
+     *
+     * @param name Name of the scene.
+     * @param number Scene number.
+     * @throws [SceneAlreadyExists] If the scene already exists.
+     */
+    @Throws(SceneAlreadyExists::class)
+    fun add(name: String, number: SceneNumber): Scene {
+        require(_scenes.map { it.number }.none { it == number }) { throw SceneAlreadyExists() }
+        return Scene(_name = name, number = number)
+            .apply {
+                network = this@MeshNetwork
+            }.also { scene ->
+                _scenes.apply {
+                    add(scene)
+                }.sortBy { it.number }
+                updateTimestamp()
+            }
+    }
+
+    /**
      * Adds a given [Scene] to the list of scenes in the mesh network.
      *
-     * @param scene Scene to be removed.
+     * @param scene Scene to be added.
      * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
      * @throws [SceneAlreadyExists] If the scene already exists.
      */
     @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
-    fun add(scene: Scene) {
+    internal fun add(scene: Scene) {
         require(!_scenes.contains(scene)) { throw SceneAlreadyExists() }
         require(scene.network == null) { throw DoesNotBelongToNetwork() }
         _scenes.add(
@@ -612,7 +644,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
         require(scene.network == this) { throw DoesNotBelongToNetwork() }
-        require(!scene.isUsed) { throw SceneInUse() }
+        require(!scene.isInUse) { throw SceneInUse() }
         _scenes.remove(scene).also { updateTimestamp() }
     }
 
@@ -760,7 +792,7 @@ class MeshNetwork internal constructor(
      * @throws [NoSceneRangeAllocated] if no scene range is allocated to the provisioner.
      */
     @Throws(NoSceneRangeAllocated::class)
-    fun nextAvailableScene(provisioner: Provisioner): SceneNumber? {
+    fun nextAvailableScene(provisioner: Provisioner = provisioners.first()): SceneNumber? {
         require(provisioner._allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated() }
         val sortedScenes = _scenes.sortedBy { it.number }
 
