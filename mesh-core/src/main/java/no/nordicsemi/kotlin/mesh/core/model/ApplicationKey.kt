@@ -5,6 +5,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
+import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork.Companion.onChange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -44,7 +46,7 @@ data class ApplicationKey internal constructor(
 
     @SerialName("boundNetKey")
     var boundNetKeyIndex: KeyIndex = 0u
-        internal set
+
     var key: ByteArray
         get() = _key
         internal set(value) {
@@ -59,9 +61,10 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
-    @Transient
-    var netKey: NetworkKey? = network?._networkKeys?.find { it.index == boundNetKeyIndex }
-        private set
+    val netKey: NetworkKey?
+        get() = network?._networkKeys?.find { networkKey ->
+            networkKey.index == boundNetKeyIndex
+        }
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
@@ -73,12 +76,24 @@ data class ApplicationKey internal constructor(
      */
     fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
-        _nodes.none { node ->
-            node.netKeys.any { nodeKey ->
+        _nodes.any { node ->
+            node.appKeys.any { nodeKey ->
                 nodeKey.index == index
             }
         }
     } ?: false
+
+    /**
+     * Updates the existing key with the given key, if it is not in use.
+     *
+     * @param key New key.
+     * @throws KeyInUse If the key is already in use.
+     */
+    fun setKey(key: ByteArray) {
+        require(!isInUse()) { throw KeyInUse() }
+        require(key.size == 16) { throw InvalidKeyLength() }
+        _key = key
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

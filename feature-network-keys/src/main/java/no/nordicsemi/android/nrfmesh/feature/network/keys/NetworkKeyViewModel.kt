@@ -35,12 +35,12 @@ class NetworkKeyViewModel @Inject internal constructor(
     )
 
     /**
-     * Invoked when the network key name is changed.
+     * Invoked when the name of the network key is changed.
      *
      * @param name New network key name.
      */
     internal fun onNameChanged(name: String) {
-        if(networkKey.name != name) {
+        if (networkKey.name != name) {
             networkKey.name = name
             save()
         }
@@ -52,13 +52,16 @@ class NetworkKeyViewModel @Inject internal constructor(
      * @param key New network key.
      */
     internal fun onKeyChanged(key: ByteArray) {
-        if(!networkKey.key.contentEquals(key)){
+        if (!networkKey.key.contentEquals(key)) {
             networkKey.setKey(key = key)
             save()
         }
     }
 
-    private fun save() {
+    /**
+     * Saves the network.
+     */
+    internal fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

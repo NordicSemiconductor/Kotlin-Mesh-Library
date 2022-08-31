@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.network.keys
+package no.nordicsemi.android.feature.application.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,41 +9,41 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
-class NetworkKeysViewModel @Inject internal constructor(
+class ApplicationKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private lateinit var network: MeshNetwork
-    private var keysToBeRemoved = mutableListOf<NetworkKey>()
+    private var keysToBeRemoved = mutableListOf<ApplicationKey>()
 
-    val uiState: StateFlow<NetworkKeysScreenUiState> =
+    val uiState: StateFlow<ApplicationKeysScreenUiState> =
         repository.network.map { network ->
-            this@NetworkKeysViewModel.network = network
-            val keys = mutableListOf<NetworkKey>()
-            keys.addAll(network.networkKeys)
-            NetworkKeysScreenUiState(keys = keys)
+            this@ApplicationKeysViewModel.network = network
+            val keys = mutableListOf<ApplicationKey>()
+            keys.addAll(network.applicationKeys)
+            ApplicationKeysScreenUiState(keys = keys)
         }.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
-            NetworkKeysScreenUiState()
+            ApplicationKeysScreenUiState()
         )
 
     /**
-     * Adds a network key to the network.
+     * Adds an application key to the network.
      */
-    internal fun addNetworkKey(): NetworkKey {
+    internal fun addApplicationKey(): ApplicationKey {
         // Let's delete any keys that are queued for deletion before adding a new.
         removeSelectedKeys()
-        return network.add(name = "nRF Network Key")
+        return network.add(
+            name = "nRF Application Key",
+            boundNetworkKey = network.networkKeys.first()
+        )
     }
 
-    /**
-     * Saves the network.
-     */
     private fun save() {
         viewModelScope.launch {
             repository.save()
@@ -54,9 +54,9 @@ class NetworkKeysViewModel @Inject internal constructor(
      * Invoked when a key is swiped to be deleted. The given key is added to a list of keys that
      * is to be deleted.
      *
-     * @param key Network key to be deleted.
+     * @param key Application key to be deleted.
      */
-    fun onSwiped(key: NetworkKey) {
+    fun onSwiped(key: ApplicationKey) {
         if (!keysToBeRemoved.contains(key))
             keysToBeRemoved.add(key)
     }
@@ -65,14 +65,14 @@ class NetworkKeysViewModel @Inject internal constructor(
      * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
      * from the list of keys to be deleted.
      *
-     * @param key Network key to be reverted.
+     * @param key Application key to be reverted.
      */
-    fun onUndoSwipe(key: NetworkKey) {
+    fun onUndoSwipe(key: ApplicationKey) {
         keysToBeRemoved.remove(key)
     }
 
     /**
-     * Starts a coroutines that removes the keys from a network,
+     * Starts a coroutines that removes the keys from a network.
      */
     fun removeKeys() {
         if (keysToBeRemoved.isNotEmpty()) {
@@ -85,7 +85,7 @@ class NetworkKeysViewModel @Inject internal constructor(
      * Removes the selected keys from a given network.
      */
     private fun removeSelectedKeys() {
-        network.networkKeys.filter {
+        network.applicationKeys.filter {
             it in keysToBeRemoved
         }.forEach {
             network.remove(it)
@@ -95,6 +95,6 @@ class NetworkKeysViewModel @Inject internal constructor(
     }
 }
 
-data class NetworkKeysScreenUiState internal constructor(
-    val keys: List<NetworkKey> = listOf()
+data class ApplicationKeysScreenUiState internal constructor(
+    val keys: List<ApplicationKey> = listOf()
 )

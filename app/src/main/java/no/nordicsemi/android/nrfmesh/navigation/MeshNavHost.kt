@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeysDestination
+import no.nordicsemi.android.feature.application.keys.navigation.applicationKeysGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
@@ -40,7 +43,10 @@ fun MeshNavHost(
                 onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
             },
             navigateToApplicationKeys = {
-                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
+                onNavigateToDestination(
+                    ApplicationKeysDestination,
+                    ApplicationKeysDestination.route
+                )
             },
             navigateToScenes = {
                 // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
@@ -57,6 +63,17 @@ fun MeshNavHost(
                             NetworkKeyDestination,
                             NetworkKeyDestination.createNavigationRoute(
                                 netKeyIndexArg = netKeyIndex
+                            )
+                        )
+                    }
+                )
+                applicationKeysGraph(
+                    onBackPressed = onBackPressed,
+                    onNavigateToApplicationKey = { appKeyIndex ->
+                        onNavigateToDestination(
+                            ApplicationKeyDestination,
+                            ApplicationKeyDestination.createNavigationRoute(
+                                appKeyIndexArg = appKeyIndex
                             )
                         )
                     }

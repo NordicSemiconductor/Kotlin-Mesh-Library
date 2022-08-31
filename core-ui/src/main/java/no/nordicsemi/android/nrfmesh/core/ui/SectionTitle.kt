@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SectionTitle(title: String, style: TextStyle = MaterialTheme.typography.labelLarge) {
     Text(
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
         text = title,
         style = style
     )

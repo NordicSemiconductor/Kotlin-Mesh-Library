@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.settings.navigation
 
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -16,7 +15,7 @@ object SettingsDestination : MeshNavigationDestination {
 fun NavGraphBuilder.settingsGraph(
     navigateToProvisioners: (String) -> Unit,
     navigateToNetworkKeys: () -> Unit,
-    navigateToApplicationKeys: (String) -> Unit,
+    navigateToApplicationKeys: () -> Unit,
     navigateToScenes: (String) -> Unit,
     navigateToExportNetwork: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
@@ -28,7 +27,8 @@ fun NavGraphBuilder.settingsGraph(
         composable(route = SettingsDestination.destination) {
             SettingsRoute(
                 navigateToNetworkKeys = navigateToNetworkKeys,
-                navigateToExportNetwork = navigateToExportNetwork
+                navigateToExportNetwork = navigateToExportNetwork,
+                navigateToApplicationKeys = navigateToApplicationKeys
             )
         }
         nestedGraphs()

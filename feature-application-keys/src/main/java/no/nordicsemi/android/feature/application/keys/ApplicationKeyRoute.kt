@@ -1,12 +1,15 @@
 @file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.nrfmesh.feature.network.keys
+package no.nordicsemi.android.feature.application.keys
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
@@ -23,30 +26,28 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import java.text.DateFormat
-import java.util.*
 
 @Composable
-fun NetworkKeyRoute(
-    viewModel: NetworkKeyViewModel = hiltViewModel(),
+fun ApplicationKeyRoute(
+    viewModel: ApplicationKeyViewModel = hiltViewModel(),
     onBackPressed: () -> Unit
 ) {
-    val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    NetworkKeyScreen(
-        networkKeyState = uiState.networkKeyState,
+    val uiState: ApplicationKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ApplicationKeyScreen(
+        applicationKeyState = uiState.applicationKeyState,
         onNameChanged = viewModel::onNameChanged,
         onKeyChanged = viewModel::onKeyChanged,
+        onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged,
         onBackPressed = {
             viewModel.save()
             onBackPressed()
@@ -55,20 +56,25 @@ fun NetworkKeyRoute(
 }
 
 @Composable
-private fun NetworkKeyScreen(
-    networkKeyState: NetworkKeyState,
-    onBackPressed: () -> Unit,
+private fun ApplicationKeyScreen(
+    applicationKeyState: ApplicationKeyState,
     onNameChanged: (String) -> Unit,
-    onKeyChanged: (ByteArray) -> Unit
+    onKeyChanged: (ByteArray) -> Unit,
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+
+    var boundNetKeyIndex by rememberSaveable { mutableStateOf(0) }
     Scaffold(
         modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         topBar = {
             MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_edit_network_key),
+                title = stringResource(id = R.string.label_edit_application_key),
                 navigationIcon = {
                     IconButton(onClick = { onBackPressed() }) {
                         Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
@@ -84,22 +90,34 @@ private fun NetworkKeyScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
-            when (networkKeyState) {
-                NetworkKeyState.Loading -> { /* Do nothing */
+            when (applicationKeyState) {
+                ApplicationKeyState.Loading -> { /* Do nothing */
                 }
-                is NetworkKeyState.Success -> {
-                    networkKeyInfo(
+                is ApplicationKeyState.Success -> {
+                    boundNetKeyIndex = applicationKeyState.applicationKey.boundNetKeyIndex.toInt()
+                    applicationKeyInfo(
                         snackbarHostState = snackbarHostState,
-                        networkKey = networkKeyState.networkKey,
+                        applicationKey = applicationKeyState.applicationKey,
                         isCurrentlyEditable = isCurrentlyEditable,
                         onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
                         onNameChanged = onNameChanged,
                         onKeyChanged = onKeyChanged
                     )
+                    boundNetworkKeys(
+                        context = context,
+                        coroutineScope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        isInUse = applicationKeyState.applicationKey.isInUse(),
+                        boundNetKeyIndex = boundNetKeyIndex,
+                        networkKeys = applicationKeyState.networkKeys,
+                        onBoundNetworkKeyChanged = {
+                            boundNetKeyIndex = it.index.toInt()
+                            onBoundNetworkKeyChanged(it)
+                        }
+                    )
                 }
-                is NetworkKeyState.Error -> {
-                    when (networkKeyState.throwable) {
+                is ApplicationKeyState.Error -> {
+                    when (applicationKeyState.throwable) {
                         is KeyInUse -> {}
                         is InvalidKeyLength -> {}
                     }
@@ -109,9 +127,9 @@ private fun NetworkKeyScreen(
     }
 }
 
-private fun LazyListScope.networkKeyInfo(
+private fun LazyListScope.applicationKeyInfo(
     snackbarHostState: SnackbarHostState,
-    networkKey: NetworkKey,
+    applicationKey: ApplicationKey,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
     onNameChanged: (String) -> Unit,
@@ -119,7 +137,7 @@ private fun LazyListScope.networkKeyInfo(
 ) {
     item {
         Name(
-            name = networkKey.name,
+            name = applicationKey.name,
             onNameChanged = onNameChanged,
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = onEditableStateChanged
@@ -128,27 +146,18 @@ private fun LazyListScope.networkKeyInfo(
     item {
         Key(
             snackbarHostState = snackbarHostState,
-            networkKey = networkKey.key,
-            isInUse = networkKey.isInUse(),
+            networkKey = applicationKey.key,
+            isInUse = applicationKey.isInUse(),
             onKeyChanged = onKeyChanged,
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = onEditableStateChanged
         )
     }
     item {
-        OldKey(oldKey = networkKey.oldKey)
+        OldKey(oldKey = applicationKey.oldKey)
     }
     item {
-        KeyIndex(index = networkKey.index)
-    }
-    item {
-        KeyRefreshPhase(phase = networkKey.phase)
-    }
-    item {
-        Security(security = networkKey.security)
-    }
-    item {
-        LastModified(networkKey.timestamp)
+        KeyIndex(index = applicationKey.index)
     }
 }
 
@@ -165,7 +174,7 @@ fun Name(
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
-                onFocus =  onEditClick,
+                onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -252,7 +261,7 @@ fun Key(
             true ->
                 MeshOutlinedTextField(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    onFocus =  onEditClick,
+                    onFocus = onEditClick,
                     externalLeadingIcon = {
                         Icon(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -367,67 +376,53 @@ fun KeyIndex(index: KeyIndex) {
     )
 }
 
-@Composable
-fun KeyRefreshPhase(phase: KeyRefreshPhase) {
-    MeshTwoLineListItem(
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.AutoMode,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(id = R.string.label_key_refresh_phase),
-        subtitle = phase.description()
-    )
-}
-
-@Composable
-fun Security(security: Security) {
-    MeshTwoLineListItem(
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.LocalPolice,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(id = R.string.label_security),
-        subtitle = security.description()
-    )
-}
-
-@Composable
-fun LastModified(timestamp: Instant) {
-    MeshTwoLineListItem(
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Update,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(id = R.string.label_last_modified),
-        subtitle = DateFormat
-            .getDateTimeInstance()
-            .format(
-                Date(timestamp.toEpochMilliseconds())
-            )
-    )
-}
-
-@Composable
-fun KeyRefreshPhase.description(): String = when (this) {
-    NormalOperation -> stringResource(id = R.string.label_normal_operation)
-    KeyDistribution -> stringResource(id = R.string.label_key_distribution)
-    UsingNewKeys -> stringResource(id = R.string.label_using_new_keys)
-}
-
-@Composable
-fun Security.description(): String = when (this) {
-    Secure -> stringResource(id = R.string.label_secure)
-    Insecure -> stringResource(id = R.string.label_insecure)
+private fun LazyListScope.boundNetworkKeys(
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+    isInUse: Boolean,
+    boundNetKeyIndex: Int,
+    networkKeys: List<NetworkKey>,
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
+) {
+    item {
+        SectionTitle(title = context.getString(R.string.label_bound_network_key))
+    }
+    items(
+        items = networkKeys
+    ) { key ->
+        MeshTwoLineListItem(
+            modifier = Modifier.clickable {
+                if (!isInUse) onBoundNetworkKeyChanged(key)
+                else showSnackbar(
+                    scope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    message = context.getString(R.string.error_cannot_change_bound_net_key),
+                    withDismissAction = true
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Outlined.VpnKey,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+            title = key.name,
+            subtitle = key.key.encodeHex(),
+            trailingIcon = {
+                if (key.index.toInt() == boundNetKeyIndex) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(end = 16.dp),
+                        imageVector = Icons.Outlined.TaskAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceTint
+                    )
+                }
+            }
+        )
+    }
 }

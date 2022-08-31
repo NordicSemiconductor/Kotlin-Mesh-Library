@@ -379,7 +379,7 @@ class MeshNetwork internal constructor(
         }
     }
 
-    /**
+     /**
      * Removes a given [NetworkKey] from the list of network keys in the mesh network.
      *
      * @param key Network key to be removed.
@@ -418,7 +418,7 @@ class MeshNetwork internal constructor(
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class, IllegalArgumentException::class)
     fun add(
         name: String,
-        key: ByteArray,
+        key: ByteArray = Crypto.generateRandomKey(),
         index: KeyIndex? = null,
         boundNetworkKey: NetworkKey
     ): ApplicationKey {
@@ -433,7 +433,7 @@ class MeshNetwork internal constructor(
             require(_applicationKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
         }
         return ApplicationKey(
-            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            index = (index ?: nextAvailableApplicationKeyIndex) ?: throw KeyIndexOutOfRange(),
             _name = name,
             _key = key
         ).apply {
