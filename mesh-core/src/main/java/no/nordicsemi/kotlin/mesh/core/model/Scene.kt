@@ -15,7 +15,7 @@ typealias SceneNumber = UShort
  * @property name          Scene name.
  * @property number        Scene number.
  * @property addresses     Addresses containing the scene.
- * @property isUsed        Defines whether the scene is in use by a node.
+ * @property isInUse       Defines whether the scene is in use by a node.
  */
 @Serializable
 data class Scene internal constructor(
@@ -34,10 +34,8 @@ data class Scene internal constructor(
     val addresses: List<UnicastAddress>
         get() = _addresses
 
-    @Transient
-    var isUsed: Boolean = false
+    val isInUse: Boolean
         get() = _addresses.isNotEmpty()
-        private set
 
     @Transient
     internal var network: MeshNetwork? = null
