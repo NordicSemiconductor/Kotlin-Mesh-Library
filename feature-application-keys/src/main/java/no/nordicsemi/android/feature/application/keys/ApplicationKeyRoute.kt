@@ -27,7 +27,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
@@ -322,12 +321,11 @@ fun Key(
                                 onEditClick = !onEditClick
                                 onEditableStateChanged()
                             } else {
-                                coroutineScope.launch {
-                                    showSnackbar(
-                                        snackbarHostState = snackbarHostState,
-                                        message = context.getString(R.string.error_cannot_edit_key_in_use)
-                                    )
-                                }
+                                showSnackbar(
+                                    scope = coroutineScope,
+                                    snackbarHostState = snackbarHostState,
+                                    message = context.getString(R.string.error_cannot_edit_key_in_use)
+                                )
                             }
                         }
                     ) {
