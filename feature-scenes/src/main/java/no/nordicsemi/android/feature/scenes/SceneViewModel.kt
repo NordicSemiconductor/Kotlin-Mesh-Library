@@ -25,8 +25,7 @@ class SceneViewModel @Inject internal constructor(
         checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
 
     val uiState: StateFlow<SceneScreenUiState> = repository.network.map { network ->
-        this@SceneViewModel.scene =
-            network.scene(sceneNumberArg.toUShort())
+        this@SceneViewModel.scene = network.scene(sceneNumberArg.toUShort())
         SceneScreenUiState(
             sceneState = SceneState.Success(scene = scene)
         )

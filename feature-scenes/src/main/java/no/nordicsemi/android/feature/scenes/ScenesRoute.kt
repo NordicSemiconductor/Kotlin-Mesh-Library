@@ -10,9 +10,7 @@ import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -56,11 +54,11 @@ fun ScenesRoute(
     onBackClicked: () -> Unit
 ) {
     val uiState: ScenesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ScenesKeysScreen(
+    ScenesScreen(
         uiState = uiState,
         navigateToScene = navigateToScene,
         onAddSceneClicked = viewModel::addScene,
-        onDismissed = viewModel::onSwiped,
+        onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe
     ) {
         viewModel.removeScenes()
@@ -69,16 +67,15 @@ fun ScenesRoute(
 }
 
 @Composable
-private fun ScenesKeysScreen(
+private fun ScenesScreen(
     uiState: ScenesScreenUiState,
     navigateToScene: (SceneNumber) -> Unit,
     onAddSceneClicked: () -> Scene?,
-    onDismissed: (Scene) -> Unit,
+    onSwiped: (Scene) -> Unit,
     onUndoClicked: (Scene) -> Unit,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
-    val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -118,88 +115,134 @@ private fun ScenesKeysScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier.fillMaxSize(),
-            state = listState
-        ) {
-            items(
-                items = uiState.scenes
-            ) { scene ->
-                // Hold the current state from the Swipe to Dismiss composable
-                val dismissState = rememberDismissState {
-                    val state = it == DismissValue.DismissedToStart && scene.isInUse
-                    if (state) {
-                        showSnackbar(
-                            scope = coroutineScope,
-                            snackbarHostState = snackbarHostState,
-                            message = context.getString(R.string.error_cannot_delete_scene_in_use),
-                            withDismissAction = true
-                        )
-                    }
-                    !state
-                }
-                var keyDismissed by remember { mutableStateOf(false) }
-                if (keyDismissed) {
+        when (uiState.scenes.isEmpty()) {
+            true -> NoScenes()
+            false -> Scenes(
+                padding = padding,
+                context = context,
+                coroutineScope = coroutineScope,
+                snackbarHostState = snackbarHostState,
+                uiState = uiState,
+                navigateToScene = navigateToScene,
+                onSwiped = onSwiped,
+                onUndoClicked = onUndoClicked
+            )
+        }
+
+    }
+}
+
+@Composable
+private fun Scenes(
+    padding: PaddingValues,
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    uiState: ScenesScreenUiState,
+    navigateToScene: (SceneNumber) -> Unit,
+    onSwiped: (Scene) -> Unit,
+    onUndoClicked: (Scene) -> Unit
+) {
+    val listState = rememberLazyListState()
+    LazyColumn(
+        contentPadding = padding,
+        modifier = Modifier.fillMaxSize(),
+        state = listState
+    ) {
+        items(
+            items = uiState.scenes
+        ) { scene ->
+            // Hold the current state from the Swipe to Dismiss composable
+            val dismissState = rememberDismissState {
+                val state = it == DismissValue.DismissedToStart && scene.isInUse
+                if (state) {
                     showSnackbar(
                         scope = coroutineScope,
                         snackbarHostState = snackbarHostState,
-                        message = stringResource(R.string.label_scene_deleted),
-                        actionLabel = stringResource(R.string.action_undo),
-                        onActionPerformed = {
-                            onUndoClicked(scene)
-                            coroutineScope.launch {
-                                dismissState.reset()
-                            }
-                        },
+                        message = context.getString(R.string.error_cannot_delete_scene_in_use),
                         withDismissAction = true
                     )
                 }
-                SwipeDismissItem(
-                    dismissState = dismissState,
-                    background = { offsetX ->
-                        val color = if (offsetX < (-30).dp) Color.Red else Color.DarkGray
-                        val scale by animateFloatAsState(if (offsetX < (-50).dp) 1f else 0.75f)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(color)
-                                .padding(horizontal = 20.dp),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Icon(
-                                modifier = Modifier.scale(scale),
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = "null"
-                            )
+                !state
+            }
+            var keyDismissed by remember { mutableStateOf(false) }
+            if (keyDismissed) {
+                onSwiped(scene)
+                showSnackbar(
+                    scope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    message = stringResource(R.string.label_scene_deleted),
+                    actionLabel = stringResource(R.string.action_undo),
+                    onActionPerformed = {
+                        onUndoClicked(scene)
+                        coroutineScope.launch {
+                            dismissState.reset()
                         }
                     },
-                    content = { isDismissed ->
-                        keyDismissed = isDismissed
-                        if (isDismissed) {
-                            onDismissed(scene)
-                        }
-                        Surface(color = MaterialTheme.colorScheme.background) {
-                            MeshTwoLineListItem(
-                                modifier = Modifier.clickable {
-                                    navigateToScene(scene.number)
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        imageVector = Icons.Outlined.AutoAwesome,
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                    )
-                                },
-                                title = scene.name,
-                                subtitle = scene.number.toHex(prefix0x = true)
-                            )
-                        }
-                    }
+                    withDismissAction = true
                 )
             }
+            SwipeDismissItem(
+                dismissState = dismissState,
+                background = { offsetX ->
+                    val color = if (offsetX < (-30).dp) Color.Red else Color.DarkGray
+                    val scale by animateFloatAsState(if (offsetX < (-50).dp) 1f else 0.75f)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color)
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Icon(
+                            modifier = Modifier.scale(scale),
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "null"
+                        )
+                    }
+                },
+                content = { isDismissed ->
+                    keyDismissed = isDismissed
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        MeshTwoLineListItem(
+                            modifier = Modifier.clickable {
+                                navigateToScene(scene.number)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    imageVector = Icons.Outlined.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                )
+                            },
+                            title = scene.name,
+                            subtitle = scene.number.toHex(prefix0x = true)
+                        )
+                    }
+                }
+            )
         }
+    }
+}
+
+@Composable
+private fun NoScenes() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(128.dp),
+            imageVector = Icons.Outlined.AutoAwesome,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.surfaceTint
+        )
+        Text(
+            modifier = Modifier.padding(vertical = 16.dp),
+            text = stringResource(R.string.no_scenes_currently_added)
+        )
     }
 }
 

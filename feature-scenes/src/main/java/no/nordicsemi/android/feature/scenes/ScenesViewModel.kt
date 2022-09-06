@@ -1,5 +1,6 @@
 package no.nordicsemi.android.feature.scenes
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,26 +21,27 @@ class ScenesViewModel @Inject internal constructor(
     private lateinit var network: MeshNetwork
     private var scenesToBeRemoved = mutableListOf<Scene>()
 
-    val uiState: StateFlow<ScenesScreenUiState> =
-        repository.network.map { network ->
-            this@ScenesViewModel.network = network
-            ScenesScreenUiState(
-                scenes = mutableListOf<Scene>().apply {
-                    addAll(network.scenes)
-                }.toList()
-            )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            ScenesScreenUiState()
+    val uiState: StateFlow<ScenesScreenUiState> = repository.network.map { network ->
+        Log.d("AAAA", "Updated?")
+        this@ScenesViewModel.network = network
+        ScenesScreenUiState(
+            scenes = network.scenes.filter {
+                it !in scenesToBeRemoved
+            }
         )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        ScenesScreenUiState()
+    )
+
 
     /**
      * Adds a scene to the network.
      */
     internal fun addScene(): Scene? {
-        // Let's delete any keys that are queued for deletion before adding a new.
-        removeSelectedScenes()
+        // Let's delete any scenes that are queued for deletion before adding a new.
+        removeScenes()
         return network.nextAvailableScene(network.provisioners[1])?.let {
             network.add(name = "nRF Scene", number = it)
         }
@@ -58,8 +60,8 @@ class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be deleted.
      */
     fun onSwiped(scene: Scene) {
-        if (!scenesToBeRemoved.contains(scene))
-            scenesToBeRemoved.add(scene)
+        scenesToBeRemoved.add(scene)
+        if (scenesToBeRemoved.size == network.scenes.size) removeScenes()
     }
 
     /**
@@ -92,7 +94,6 @@ class ScenesViewModel @Inject internal constructor(
             network.remove(it)
         }
         scenesToBeRemoved.clear()
-        save()
     }
 }
 
