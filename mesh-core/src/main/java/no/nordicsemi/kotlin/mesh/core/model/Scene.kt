@@ -105,6 +105,27 @@ data class Scene internal constructor(
         node.elements.filter { element -> _addresses.contains(element.unicastAddress) }
     } ?: listOf()
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Scene
+
+        if (_name != other._name) return false
+        if (number != other.number) return false
+        if (_addresses != other._addresses) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _name.hashCode()
+        result = 31 * result + number.hashCode()
+        result = 31 * result + _addresses.hashCode()
+        return result
+    }
+
+
     private companion object {
         const val LOWER_BOUND = 0x0001u
         const val HIGHER_BOUND = 0xFFFFu

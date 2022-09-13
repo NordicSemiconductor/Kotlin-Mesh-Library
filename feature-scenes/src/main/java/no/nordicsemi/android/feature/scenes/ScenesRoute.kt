@@ -7,6 +7,7 @@
 package no.nordicsemi.android.feature.scenes
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,6 +55,7 @@ fun ScenesRoute(
     onBackClicked: () -> Unit
 ) {
     val uiState: ScenesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Log.d("AAAA", "UI state: ${uiState.scenes.size}")
     ScenesScreen(
         uiState = uiState,
         navigateToScene = navigateToScene,
@@ -149,9 +151,7 @@ private fun Scenes(
         modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
-        items(
-            items = uiState.scenes
-        ) { scene ->
+        items(items = uiState.scenes, key = { it.number.toInt() }) { scene ->
             // Hold the current state from the Swipe to Dismiss composable
             val dismissState = rememberDismissState {
                 val state = it == DismissValue.DismissedToStart && scene.isInUse
@@ -203,6 +203,7 @@ private fun Scenes(
                 },
                 content = { isDismissed ->
                     keyDismissed = isDismissed
+                    Log.d("AAAA", "is Dismissed? $keyDismissed" )
                     Surface(color = MaterialTheme.colorScheme.background) {
                         MeshTwoLineListItem(
                             modifier = Modifier.clickable {
