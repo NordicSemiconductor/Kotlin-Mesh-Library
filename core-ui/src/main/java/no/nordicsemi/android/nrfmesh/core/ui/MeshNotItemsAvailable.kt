@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MeshNoItemsAvailable(imageVector: ImageVector, rationale: String) {
+fun MeshNoItemsAvailable(imageVector: ImageVector, title: String, rationale: String = "") {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -24,7 +24,11 @@ fun MeshNoItemsAvailable(imageVector: ImageVector, rationale: String) {
             tint = MaterialTheme.colorScheme.surfaceTint
         )
         Text(
-            modifier = Modifier.padding(vertical = 16.dp),
+            modifier = Modifier.padding(all = 16.dp),
+            text = title
+        )
+        Text(
+            modifier = Modifier.padding(all = 16.dp),
             text = rationale
         )
     }

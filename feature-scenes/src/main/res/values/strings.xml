@@ -16,4 +16,7 @@
         the provisioner.</string>
     <string name="unknown_error">Unknown error when adding a scene.</string>
     <string name="no_scenes_currently_added">No scenes currently added.</string>
+    <string name="provisioner_rationale_for_scenes">This network currently does not have any
+        provisioners added. "\n\n" 1. Add a provisioner. "\n" 2. Allocate a scene range to the
+        provisioner. "\n" 3. Add a scene.</string>
 </resources>

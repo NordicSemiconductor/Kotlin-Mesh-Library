@@ -1,6 +1,5 @@
 package no.nordicsemi.android.feature.scenes
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +31,10 @@ class ScenesViewModel @Inject internal constructor(
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@ScenesViewModel.network = network
-                _uiState.value = ScenesScreenUiState(scenes = filterScenes())
+                _uiState.value = ScenesScreenUiState(
+                    scenes = filterScenesTobeRemoved(),
+                    hasProvisioners = network.provisioners.isNotEmpty()
+                )
             }
         }
     }
@@ -43,7 +45,7 @@ class ScenesViewModel @Inject internal constructor(
      */
     internal fun addScene(): Scene? {
         removeScenes()
-        return network.nextAvailableScene(network.provisioners[1])?.let {
+        return network.nextAvailableScene()?.let {
             network.add(name = "nRF Scene", number = it)
         }
     }
@@ -58,7 +60,7 @@ class ScenesViewModel @Inject internal constructor(
         if (!scenesToBeRemoved.contains(scene))
             scenesToBeRemoved.add(scene)
         if (scenesToBeRemoved.size == network.scenes.size)
-            _uiState.value = ScenesScreenUiState(filterScenes())
+            _uiState.value = ScenesScreenUiState(scenes = filterScenesTobeRemoved())
     }
 
     /**
@@ -69,11 +71,16 @@ class ScenesViewModel @Inject internal constructor(
      */
     internal fun onUndoSwipe(scene: Scene) {
         scenesToBeRemoved.remove(scene)
-        if (scenesToBeRemoved.size == 0) {
-            _uiState.value = ScenesScreenUiState(filterScenes())
+        if (scenesToBeRemoved.isEmpty()) {
+            _uiState.value = ScenesScreenUiState(scenes = filterScenesTobeRemoved())
         }
     }
 
+    /**
+     * Remove a given scene from the network.
+     *
+     * @param scene Scene to be removed.
+     */
     internal fun remove(scene: Scene) {
         network.apply {
             scenes.find { it == scene }?.let {
@@ -83,6 +90,17 @@ class ScenesViewModel @Inject internal constructor(
         scenesToBeRemoved.remove(scene)
     }
 
+    /**
+     * Removes the scene from a network.
+     */
+    internal fun removeScenes() {
+        remove()
+        save()
+    }
+
+    /**
+     * Removes the scenes from the network.
+     */
     private fun remove() {
         network.scenes.filter {
             it in scenesToBeRemoved
@@ -93,20 +111,18 @@ class ScenesViewModel @Inject internal constructor(
     }
 
     /**
-     * Starts a coroutines that removes the scene from a network.
+     * Saves the network.
      */
-    internal fun removeScenes() {
-        remove()
-        save()
-    }
-
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
 
-    private fun filterScenes() = network.scenes.filter {
+    private fun filterScenesTobeRemoved() = network.scenes.filter {
         it !in scenesToBeRemoved
     }
 }
 
-data class ScenesScreenUiState internal constructor(val scenes: List<Scene> = listOf())
+data class ScenesScreenUiState internal constructor(
+    val scenes: List<Scene> = listOf(),
+    val hasProvisioners: Boolean = false
+)

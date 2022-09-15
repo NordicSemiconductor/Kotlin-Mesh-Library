@@ -10,7 +10,10 @@ import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -38,10 +41,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
@@ -101,6 +101,7 @@ private fun ScenesScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
+                snackbarHostState.currentSnackbarData?.dismiss()
                 addScene(
                     context = context,
                     scope = coroutineScope,
@@ -119,7 +120,11 @@ private fun ScenesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         when (uiState.scenes.isEmpty()) {
-            true -> NoScenes()
+            true -> MeshNoItemsAvailable(
+                imageVector = Icons.Outlined.AutoAwesome,
+                title = stringResource(R.string.no_scenes_currently_added),
+                rationale = stringResource(R.string.provisioner_rationale_for_scenes)
+            )
             false -> Scenes(
                 padding = padding,
                 context = context,
@@ -229,26 +234,6 @@ private fun Scenes(
                 }
             )
         }
-    }
-}
-
-@Composable
-private fun NoScenes() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(128.dp),
-            imageVector = Icons.Outlined.AutoAwesome,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.surfaceTint
-        )
-        Text(
-            modifier = Modifier.padding(vertical = 16.dp),
-            text = stringResource(R.string.no_scenes_currently_added)
-        )
     }
 }
 

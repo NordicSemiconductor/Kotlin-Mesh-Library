@@ -3,9 +3,9 @@ package no.nordicsemi.android.feature.application.keys
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
@@ -17,37 +17,35 @@ import javax.inject.Inject
 class ApplicationKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
+    val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        ApplicationKeysScreenUiState()
+    )
+
     private lateinit var network: MeshNetwork
     private var keysToBeRemoved = mutableListOf<ApplicationKey>()
 
-    val uiState: StateFlow<ApplicationKeysScreenUiState> =
-        repository.network.map { network ->
-            this@ApplicationKeysViewModel.network = network
-            val keys = mutableListOf<ApplicationKey>()
-            keys.addAll(network.applicationKeys)
-            ApplicationKeysScreenUiState(keys = keys)
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            ApplicationKeysScreenUiState()
-        )
+    init {
+        viewModelScope.launch {
+            repository.network.collect { network ->
+                this@ApplicationKeysViewModel.network = network
+                _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
+            }
+        }
+    }
 
     /**
      * Adds an application key to the network.
      */
     internal fun addApplicationKey(): ApplicationKey {
         // Let's delete any keys that are queued for deletion before adding a new.
-        removeSelectedKeys()
+        removeKeys()
         return network.add(
             name = "nRF Application Key",
             boundNetworkKey = network.networkKeys.first()
         )
-    }
-
-    private fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
     }
 
     /**
@@ -59,6 +57,8 @@ class ApplicationKeysViewModel @Inject internal constructor(
     fun onSwiped(key: ApplicationKey) {
         if (!keysToBeRemoved.contains(key))
             keysToBeRemoved.add(key)
+        if (keysToBeRemoved.size == network.applicationKeys.size)
+            _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
     }
 
     /**
@@ -69,29 +69,55 @@ class ApplicationKeysViewModel @Inject internal constructor(
      */
     fun onUndoSwipe(key: ApplicationKey) {
         keysToBeRemoved.remove(key)
+        if (keysToBeRemoved.isEmpty())
+            _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
     }
 
     /**
-     * Starts a coroutines that removes the keys from a network.
+     * Remove a given application key from the network.
+     *
+     * @param key Key to be removed.
      */
-    fun removeKeys() {
-        if (keysToBeRemoved.isNotEmpty()) {
-            removeSelectedKeys()
-            save()
+    internal fun remove(key: ApplicationKey) {
+        network.apply {
+            applicationKeys.find { it == key }?.let {
+                remove(it)
+            }
         }
+        keysToBeRemoved.remove(key)
     }
 
     /**
-     * Removes the selected keys from a given network.
+     * Removes the keys from a network.
      */
-    private fun removeSelectedKeys() {
+    internal fun removeKeys() {
+        remove()
+        save()
+    }
+
+    /**
+     * Removes the keys from the network.
+     */
+    private fun remove() {
         network.applicationKeys.filter {
             it in keysToBeRemoved
         }.forEach {
             network.remove(it)
         }
         keysToBeRemoved.clear()
-        save()
+    }
+
+    /**
+     * Saves the network.
+     */
+    private fun save() {
+        viewModelScope.launch {
+            repository.save()
+        }
+    }
+
+    private fun filterKeysToBeRemoved() = network.applicationKeys.filter {
+        it !in keysToBeRemoved
     }
 }
 
