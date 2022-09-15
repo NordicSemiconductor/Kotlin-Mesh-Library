@@ -31,7 +31,6 @@ class ScenesViewModel @Inject internal constructor(
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
-                Log.d("AAAA", "Update received")
                 this@ScenesViewModel.network = network
                 _uiState.value = ScenesScreenUiState(scenes = filterScenes())
             }

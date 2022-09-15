@@ -7,7 +7,6 @@
 package no.nordicsemi.android.feature.scenes
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
