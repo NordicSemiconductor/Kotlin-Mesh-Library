@@ -55,17 +55,18 @@ fun ScenesRoute(
     onBackClicked: () -> Unit
 ) {
     val uiState: ScenesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Log.d("AAAA", "UI state: ${uiState.scenes.size}")
     ScenesScreen(
         uiState = uiState,
         navigateToScene = navigateToScene,
         onAddSceneClicked = viewModel::addScene,
         onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe
-    ) {
-        viewModel.removeScenes()
-        onBackClicked()
-    }
+        onUndoClicked = viewModel::onUndoSwipe,
+        remove = viewModel::remove,
+        onBackPressed = {
+            viewModel.removeScenes()
+            onBackClicked()
+        }
+    )
 }
 
 @Composable
@@ -75,6 +76,7 @@ private fun ScenesScreen(
     onAddSceneClicked: () -> Scene?,
     onSwiped: (Scene) -> Unit,
     onUndoClicked: (Scene) -> Unit,
+    remove: (Scene) -> Unit,
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
@@ -124,10 +126,11 @@ private fun ScenesScreen(
                 context = context,
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                uiState = uiState,
+                scenes = uiState.scenes,
                 navigateToScene = navigateToScene,
                 onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked
+                onUndoClicked = onUndoClicked,
+                remove = remove
             )
         }
 
@@ -140,10 +143,11 @@ private fun Scenes(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    uiState: ScenesScreenUiState,
+    scenes: List<Scene>,
     navigateToScene: (SceneNumber) -> Unit,
     onSwiped: (Scene) -> Unit,
-    onUndoClicked: (Scene) -> Unit
+    onUndoClicked: (Scene) -> Unit,
+    remove: (Scene) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
@@ -151,7 +155,7 @@ private fun Scenes(
         modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
-        items(items = uiState.scenes, key = { it.number.toInt() }) { scene ->
+        items(items = scenes, key = { it.number.toInt() }) { scene ->
             // Hold the current state from the Swipe to Dismiss composable
             val dismissState = rememberDismissState {
                 val state = it == DismissValue.DismissedToStart && scene.isInUse
@@ -167,12 +171,12 @@ private fun Scenes(
             }
             var keyDismissed by remember { mutableStateOf(false) }
             if (keyDismissed) {
-                onSwiped(scene)
                 showSnackbar(
                     scope = coroutineScope,
                     snackbarHostState = snackbarHostState,
                     message = stringResource(R.string.label_scene_deleted),
                     actionLabel = stringResource(R.string.action_undo),
+                    onDismissed = { remove(scene) },
                     onActionPerformed = {
                         onUndoClicked(scene)
                         coroutineScope.launch {
@@ -202,8 +206,11 @@ private fun Scenes(
                     }
                 },
                 content = { isDismissed ->
+                    if (isDismissed) {
+                        onSwiped(scene)
+                    }
+                    Log.d("AAAA", "Dismissed $isDismissed ")
                     keyDismissed = isDismissed
-                    Log.d("AAAA", "is Dismissed? $keyDismissed" )
                     Surface(color = MaterialTheme.colorScheme.background) {
                         MeshTwoLineListItem(
                             modifier = Modifier.clickable {

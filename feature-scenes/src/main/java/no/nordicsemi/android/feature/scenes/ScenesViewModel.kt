@@ -4,7 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -53,11 +56,9 @@ class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be deleted.
      */
     internal fun onSwiped(scene: Scene) {
-        Log.d("AAAA", "Swiped $scene")
-        scenesToBeRemoved.add(scene)
-        val scenes = filterScenes()
-        Log.d("AAAA", "filtered scenes ${scenes.size}")
-        _uiState.value = ScenesScreenUiState(scenes = scenes)
+        if (!scenesToBeRemoved.contains(scene))
+            scenesToBeRemoved.add(scene)
+        // _uiState.value = ScenesScreenUiState(filterScenes())
     }
 
     /**
@@ -67,14 +68,20 @@ class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be reverted.
      */
     internal fun onUndoSwipe(scene: Scene) {
-        Log.d("AAAA", "onUnswiped ${scenesToBeRemoved.remove(scene)}")
-        val scenes = filterScenes()
-        Log.d("AAAA", "filtered scenes ${scenes.size}")
-        //_uiState.value = _uiState.value.copy(scenes = scenes)
-        _uiState.value = ScenesScreenUiState(scenes = scenes)
+        scenesToBeRemoved.remove(scene)
+        // _uiState.value = ScenesScreenUiState(filterScenes())
     }
 
-    private fun remove(){
+    internal fun remove(scene: Scene) {
+        network.apply {
+            scenes.find { it == scene }?.let {
+                remove(it)
+            }
+        }
+        scenesToBeRemoved.remove(scene)
+    }
+
+    private fun remove() {
         network.scenes.filter {
             it in scenesToBeRemoved
         }.forEach {
