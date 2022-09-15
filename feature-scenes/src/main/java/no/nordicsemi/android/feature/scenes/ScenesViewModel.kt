@@ -58,7 +58,8 @@ class ScenesViewModel @Inject internal constructor(
     internal fun onSwiped(scene: Scene) {
         if (!scenesToBeRemoved.contains(scene))
             scenesToBeRemoved.add(scene)
-        // _uiState.value = ScenesScreenUiState(filterScenes())
+        if (scenesToBeRemoved.size == network.scenes.size)
+            _uiState.value = ScenesScreenUiState(filterScenes())
     }
 
     /**
@@ -69,7 +70,9 @@ class ScenesViewModel @Inject internal constructor(
      */
     internal fun onUndoSwipe(scene: Scene) {
         scenesToBeRemoved.remove(scene)
-        // _uiState.value = ScenesScreenUiState(filterScenes())
+        if (scenesToBeRemoved.size == 0) {
+            _uiState.value = ScenesScreenUiState(filterScenes())
+        }
     }
 
     internal fun remove(scene: Scene) {

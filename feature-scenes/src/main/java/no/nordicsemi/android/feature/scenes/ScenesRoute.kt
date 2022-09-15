@@ -209,7 +209,6 @@ private fun Scenes(
                     if (isDismissed) {
                         onSwiped(scene)
                     }
-                    Log.d("AAAA", "Dismissed $isDismissed ")
                     keyDismissed = isDismissed
                     Surface(color = MaterialTheme.colorScheme.background) {
                         MeshTwoLineListItem(
