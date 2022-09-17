@@ -26,4 +26,5 @@
     <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use.</string>
     <string name="label_bound_network_key">Bound Network Key</string>
     <string name="error_cannot_change_bound_net_key">Cannot change, application key is in use.</string>
+    <string name="label_no_keys_added">No Keys currently added.</string>
 </resources>

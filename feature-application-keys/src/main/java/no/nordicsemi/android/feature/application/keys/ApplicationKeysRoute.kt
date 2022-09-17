@@ -77,8 +77,6 @@ private fun ApplicationsKeysScreen(
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -114,12 +112,12 @@ private fun ApplicationsKeysScreen(
         when (uiState.keys.isEmpty()) {
             true -> MeshNoItemsAvailable(
                 imageVector = Icons.Outlined.VpnKey,
-                title = "No Keys currently added"
+                title = stringResource(R.string.label_no_keys_added)
             )
             false -> ApplicationKeys(
                 padding = padding,
                 context = context,
-                coroutineScope = coroutineScope,
+                coroutineScope = rememberCoroutineScope(),
                 snackbarHostState = snackbarHostState,
                 keys = uiState.keys,
                 navigateToApplicationKey = navigateToApplicationKey,
