@@ -115,11 +115,9 @@ private fun ApplicationKeyScreen(
                         }
                     )
                 }
-                is ApplicationKeyState.Error -> {
-                    when (applicationKeyState.throwable) {
-                        is KeyInUse -> {}
-                        is InvalidKeyLength -> {}
-                    }
+                is ApplicationKeyState.Error -> when (applicationKeyState.throwable) {
+                    is KeyInUse -> {}
+                    is InvalidKeyLength -> {}
                 }
             }
         }

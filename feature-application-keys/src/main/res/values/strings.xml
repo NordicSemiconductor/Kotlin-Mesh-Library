@@ -22,9 +22,11 @@
     <string name="error_cannot_edit_key_in_use">Unable to edit, key is already in use.</string>
     <string name="action_undo">Undo</string>
     <string name="label_application_key_deleted">Application Key deleted.</string>
-    <string name="error_cannot_delete_last_net_key">Unable to delete, the last network key cannot be deleted.</string>
+    <string name="error_cannot_delete_last_net_key">Unable to delete, the last network key cannot be
+        deleted.</string>
     <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use.</string>
     <string name="label_bound_network_key">Bound Network Key</string>
-    <string name="error_cannot_change_bound_net_key">Cannot change, application key is in use.</string>
+    <string name="error_cannot_change_bound_net_key">Cannot change, application key is in
+        use.</string>
     <string name="label_no_keys_added">No Keys currently added.</string>
 </resources>

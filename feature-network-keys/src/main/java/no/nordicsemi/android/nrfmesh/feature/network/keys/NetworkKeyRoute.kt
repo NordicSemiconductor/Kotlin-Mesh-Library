@@ -87,21 +87,17 @@ private fun NetworkKeyScreen(
             when (networkKeyState) {
                 NetworkKeyState.Loading -> { /* Do nothing */
                 }
-                is NetworkKeyState.Success -> {
-                    networkKeyInfo(
-                        snackbarHostState = snackbarHostState,
-                        networkKey = networkKeyState.networkKey,
-                        isCurrentlyEditable = isCurrentlyEditable,
-                        onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-                        onNameChanged = onNameChanged,
-                        onKeyChanged = onKeyChanged
-                    )
-                }
-                is NetworkKeyState.Error -> {
-                    when (networkKeyState.throwable) {
-                        is KeyInUse -> {}
-                        is InvalidKeyLength -> {}
-                    }
+                is NetworkKeyState.Success -> networkKeyInfo(
+                    snackbarHostState = snackbarHostState,
+                    networkKey = networkKeyState.networkKey,
+                    isCurrentlyEditable = isCurrentlyEditable,
+                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                    onNameChanged = onNameChanged,
+                    onKeyChanged = onKeyChanged
+                )
+                is NetworkKeyState.Error -> when (networkKeyState.throwable) {
+                    is KeyInUse -> {}
+                    is InvalidKeyLength -> {}
                 }
             }
         }
