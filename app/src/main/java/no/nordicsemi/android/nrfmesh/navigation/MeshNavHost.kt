@@ -7,9 +7,9 @@ import androidx.navigation.compose.NavHost
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysGraph
-import no.nordicsemi.android.feature.scenes.navigation.SceneDestination
-import no.nordicsemi.android.feature.scenes.navigation.ScenesDestination
-import no.nordicsemi.android.feature.scenes.navigation.scenesGraph
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph

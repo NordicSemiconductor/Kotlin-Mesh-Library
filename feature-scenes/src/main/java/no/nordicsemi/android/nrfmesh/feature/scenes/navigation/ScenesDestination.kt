@@ -1,8 +1,8 @@
-package no.nordicsemi.android.feature.scenes.navigation
+package no.nordicsemi.android.nrfmesh.feature.scenes.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.feature.scenes.ScenesRoute
+import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 

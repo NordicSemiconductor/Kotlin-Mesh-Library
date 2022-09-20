@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.feature.scenes
+package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import no.nordicsemi.android.feature.scenes.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -28,7 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 @Composable
-fun SceneRoute(
+internal fun SceneRoute(
     viewModel: SceneViewModel = hiltViewModel(),
     onBackPressed: () -> Unit
 ) {

@@ -1,12 +1,13 @@
-package no.nordicsemi.android.feature.scenes.navigation
+@file:Suppress("unused")
+
+package no.nordicsemi.android.nrfmesh.feature.scenes.navigation
 
 import android.net.Uri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.feature.scenes.SceneRoute
+import no.nordicsemi.android.nrfmesh.feature.scenes.SceneRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 object SceneDestination : MeshNavigationDestination {
@@ -30,7 +31,7 @@ object SceneDestination : MeshNavigationDestination {
     }
 }
 
-fun NavGraphBuilder.sceneGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.sceneGraph(onBackPressed: () -> Unit) {
     composable(route = SceneDestination.route) {
         SceneRoute(onBackPressed = onBackPressed)
     }

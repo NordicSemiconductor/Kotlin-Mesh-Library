@@ -1,4 +1,4 @@
-package no.nordicsemi.android.feature.scenes
+package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,14 +9,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import javax.inject.Inject
 
 @HiltViewModel
-class SceneViewModel @Inject internal constructor(
+internal class SceneViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
 ) : ViewModel() {

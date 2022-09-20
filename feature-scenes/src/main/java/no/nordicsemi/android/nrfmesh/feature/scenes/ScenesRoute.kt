@@ -4,7 +4,7 @@
     ExperimentalLifecycleComposeApi::class
 )
 
-package no.nordicsemi.android.feature.scenes
+package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.feature.scenes.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.Scene
@@ -48,7 +49,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 @Composable
-fun ScenesRoute(
+internal fun ScenesRoute(
     viewModel: ScenesViewModel = hiltViewModel(),
     navigateToScene: (SceneNumber) -> Unit,
     onBackClicked: () -> Unit

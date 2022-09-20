@@ -1,4 +1,4 @@
-package no.nordicsemi.android.feature.scenes
+package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Scene
 import javax.inject.Inject
 
 @HiltViewModel
-class ScenesViewModel @Inject internal constructor(
+internal class ScenesViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ScenesScreenUiState(listOf()))
