@@ -100,22 +100,23 @@ private fun ScenesScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                addScene(
-                    context = context,
-                    scope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    onAddSceneClicked = onAddSceneClicked,
-                    navigateToScene = navigateToScene
-                )
-            }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_scene)
-                )
-            }
+            if (uiState.hasProvisioners)
+                ExtendedFloatingActionButton(onClick = {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    addScene(
+                        context = context,
+                        scope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        onAddSceneClicked = onAddSceneClicked,
+                        navigateToScene = navigateToScene
+                    )
+                }) {
+                    Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = stringResource(R.string.action_add_scene)
+                    )
+                }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->

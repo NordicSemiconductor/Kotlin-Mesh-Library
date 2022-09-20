@@ -39,7 +39,6 @@ class ScenesViewModel @Inject internal constructor(
         }
     }
 
-
     /**
      * Adds a scene to the network.
      */
