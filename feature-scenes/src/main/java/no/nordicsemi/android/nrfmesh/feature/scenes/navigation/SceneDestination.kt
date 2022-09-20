@@ -6,8 +6,8 @@ import android.net.Uri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.nrfmesh.feature.scenes.SceneRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.SceneRoute
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 object SceneDestination : MeshNavigationDestination {
@@ -22,8 +22,8 @@ object SceneDestination : MeshNavigationDestination {
         "scene_route/${Uri.encode(sceneNumberArg.toInt().toString())}"
 
     /**
-     * Returns the application key index from a [NavBackStackEntry] after a topic destination
-     * navigation call.
+     * Returns the scene number from a [NavBackStackEntry] after a topic destination navigation
+     * call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
         val encodedId = entry.arguments?.getString(sceneNumberArg)!!
