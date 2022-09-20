@@ -100,7 +100,7 @@ private fun ScenesScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.hasProvisioners)
+            // if (uiState.hasProvisioners) Enable this when we have support for adding provisioners
                 ExtendedFloatingActionButton(onClick = {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     addScene(
