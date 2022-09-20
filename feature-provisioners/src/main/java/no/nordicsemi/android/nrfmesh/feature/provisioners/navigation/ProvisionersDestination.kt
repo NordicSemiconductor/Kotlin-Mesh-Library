@@ -17,7 +17,7 @@ fun NavGraphBuilder.provisionersGraph(
     onBackPressed: () -> Unit,
     onNavigateToProvisioner: (UUID) -> Unit
 ) {
-    composable(route = ProvisionerDestination.route) {
+    composable(route = ProvisionersDestination.route) {
         ProvisionersRoute(
             navigateToProvisioner = onNavigateToProvisioner,
             onBackClicked = onBackPressed

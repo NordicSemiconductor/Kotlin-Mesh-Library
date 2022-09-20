@@ -41,7 +41,7 @@ data class Provisioner internal constructor(
     internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
 ) {
 
-    constructor(uuid: UUID) : this(
+    constructor(uuid: UUID = UUID.randomUUID()) : this(
         uuid,
         mutableListOf<UnicastRange>(),
         mutableListOf<GroupRange>(),

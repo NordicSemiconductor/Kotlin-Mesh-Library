@@ -140,6 +140,8 @@ class MeshNetwork internal constructor(
         this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
 
+    fun provisioner(uuid: UUID) = _provisioners.first { it.uuid == uuid }
+
     /**
      * Checks if a provisioner with the given UUID already exists in the network.
      *

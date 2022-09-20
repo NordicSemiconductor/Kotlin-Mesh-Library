@@ -46,6 +46,7 @@ import java.util.*
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
+    navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
@@ -58,6 +59,7 @@ fun SettingsRoute(
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
         },
         onNameChanged = viewModel::onNameChanged,
+        onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
@@ -70,6 +72,7 @@ fun SettingsScreen(
     networkState: MeshNetworkState,
     importNetwork: (Uri, ContentResolver) -> Unit,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit,
@@ -105,6 +108,7 @@ fun SettingsScreen(
                             context = context,
                             network = networkState.network,
                             onNameChanged = onNameChanged,
+                            onProvisionersClicked = onProvisionersClicked,
                             onNetworkKeysClicked = onNetworkKeysClicked,
                             onApplicationKeysClicked = onApplicationKeysClicked,
                             onScenesClicked = onScenesClicked
@@ -133,13 +137,19 @@ fun SettingsScreen(
 private fun LazyListScope.settingsInfo(
     context: Context, network: MeshNetwork,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
     item { SectionTitle(title = stringResource(R.string.label_configuration)) }
     item { NetworkNameRow(name = network.name, onNameChanged = onNameChanged) }
-    item { ProvisionersRow(count = network.provisioners.size) }
+    item {
+        ProvisionersRow(
+            count = network.provisioners.size,
+            onProvisionersClicked = onProvisionersClicked
+        )
+    }
     item {
         NetworkKeysRow(
             count = network.networkKeys.size,
@@ -235,9 +245,9 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun ProvisionersRow(count: Int) {
+private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
+        modifier = Modifier.clickable(onClick = { onProvisionersClicked() }),
         leadingIcon = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),

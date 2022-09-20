@@ -13,7 +13,7 @@ object SettingsDestination : MeshNavigationDestination {
 
 @Suppress("UNUSED_PARAMETER")
 fun NavGraphBuilder.settingsGraph(
-    navigateToProvisioners: (String) -> Unit,
+    navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
@@ -26,6 +26,7 @@ fun NavGraphBuilder.settingsGraph(
     ) {
         composable(route = SettingsDestination.destination) {
             SettingsRoute(
+                navigateToProvisioners = navigateToProvisioners,
                 navigateToNetworkKeys = navigateToNetworkKeys,
                 navigateToApplicationKeys = navigateToApplicationKeys,
                 navigateToScenes = navigateToScenes,
