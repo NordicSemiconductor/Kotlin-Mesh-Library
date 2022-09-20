@@ -18,7 +18,7 @@ buildscript {
 
         material3_version = '1.0.0-beta02'
         coreLibs = [
-                'androidx.core:core-ktx:1.8.0',
+                'androidx.core:core-ktx:1.9.0',
                 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4',
                 'androidx.activity:activity-ktx:1.6.0-rc02',
                 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
