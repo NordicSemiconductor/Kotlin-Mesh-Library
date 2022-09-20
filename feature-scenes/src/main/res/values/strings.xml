@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_scenes">Scenes</string>
+    <string name="label_edit_scene">Edit Scene</string>
+    <string name="action_add_scene">Add Scene</string>
+    <string name="label_name">Name</string>
+    <string name="label_placeholder_scene_name">nRF Scene</string>
+    <string name="label_scene_number">Scene Number</string>
+    <string name="error_cannot_edit_scene_in_use">Cannot edit a scene that\'s in use.</string>
+    <string name="action_undo">Undo</string>
+    <string name="error_cannot_delete_scene_in_use">Error cannot delete a scene in use.</string>
+    <string name="label_scene_deleted">Scene deleted.</string>
+    <string name="error_no_allocated_scene_numbers_available">No scene numbers are available from
+        the allocated scene range</string>
+    <string name="error_allocate_scene_range_to_provisioner">Error, please allocate a scene range to
+        the provisioner.</string>
+    <string name="unknown_error">Unknown error when adding a scene.</string>
+    <string name="no_scenes_currently_added">No scenes currently added.</string>
+    <string name="provisioner_rationale_for_scenes">To add a scene to this network, "\n\n"
+        1. Add a provisioner. "\n"
+        2. Allocate a scene range to the provisioner. "\n"
+        3. Add a scene.</string>
+</resources>

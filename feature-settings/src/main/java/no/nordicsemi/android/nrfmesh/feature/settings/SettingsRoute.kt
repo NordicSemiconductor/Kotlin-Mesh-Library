@@ -53,6 +53,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
+    navigateToScenes: () -> Unit,
     navigateToExportNetwork: () -> Unit
 ) {
     val uiState: SettingsScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -63,6 +64,7 @@ fun SettingsRoute(
         },
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
+        onScenesClicked = navigateToScenes,
         onExportClicked = navigateToExportNetwork
     )
 }
@@ -73,6 +75,7 @@ fun SettingsScreen(
     importNetwork: (Uri, ContentResolver) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
+    onScenesClicked: () -> Unit,
     onExportClicked: () -> Unit
 ) {
     val context = LocalContext.current
@@ -105,7 +108,8 @@ fun SettingsScreen(
                             context = context,
                             network = networkState.network,
                             onNetworkKeysClicked = onNetworkKeysClicked,
-                            onApplicationKeysClicked = onApplicationKeysClicked
+                            onApplicationKeysClicked = onApplicationKeysClicked,
+                            onScenesClicked = onScenesClicked
                         )
                     }
                     is MeshNetworkState.Loading -> {}
@@ -132,6 +136,7 @@ private fun LazyListScope.settingsInfo(
     context: Context, network: MeshNetwork,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
+    onScenesClicked: () -> Unit
 ) {
     item { SectionTitle(title = stringResource(R.string.label_configuration)) }
     item { NetworkNameRow(name = network.name) }
@@ -148,7 +153,12 @@ private fun LazyListScope.settingsInfo(
             onApplicationKeysClicked = onApplicationKeysClicked
         )
     }
-    item { ScenesRow(count = network.scenes.size) }
+    item {
+        ScenesRow(
+            count = network.scenes.size,
+            onScenesClicked = onScenesClicked
+        )
+    }
     item { IvIndexRow(ivIndex = network.ivIndex) }
     item { LastModifiedTimeRow(timestamp = network.timestamp) }
     item { SectionTitle(title = stringResource(R.string.label_about)) }
@@ -225,9 +235,9 @@ fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
 }
 
 @Composable
-fun ScenesRow(count: Int) {
+fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
+        modifier = Modifier.clickable(onClick = { onScenesClicked() }),
         leadingIcon = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),

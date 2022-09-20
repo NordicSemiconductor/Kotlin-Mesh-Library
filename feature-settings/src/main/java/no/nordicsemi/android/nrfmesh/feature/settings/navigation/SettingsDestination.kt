@@ -16,7 +16,7 @@ fun NavGraphBuilder.settingsGraph(
     navigateToProvisioners: (String) -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
-    navigateToScenes: (String) -> Unit,
+    navigateToScenes: () -> Unit,
     navigateToExportNetwork: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
@@ -27,8 +27,9 @@ fun NavGraphBuilder.settingsGraph(
         composable(route = SettingsDestination.destination) {
             SettingsRoute(
                 navigateToNetworkKeys = navigateToNetworkKeys,
-                navigateToExportNetwork = navigateToExportNetwork,
-                navigateToApplicationKeys = navigateToApplicationKeys
+                navigateToApplicationKeys = navigateToApplicationKeys,
+                navigateToScenes = navigateToScenes,
+                navigateToExportNetwork = navigateToExportNetwork
             )
         }
         nestedGraphs()

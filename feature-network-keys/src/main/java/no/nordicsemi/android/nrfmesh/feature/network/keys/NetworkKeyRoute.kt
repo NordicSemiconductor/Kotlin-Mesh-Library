@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
@@ -88,21 +87,17 @@ private fun NetworkKeyScreen(
             when (networkKeyState) {
                 NetworkKeyState.Loading -> { /* Do nothing */
                 }
-                is NetworkKeyState.Success -> {
-                    networkKeyInfo(
-                        snackbarHostState = snackbarHostState,
-                        networkKey = networkKeyState.networkKey,
-                        isCurrentlyEditable = isCurrentlyEditable,
-                        onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-                        onNameChanged = onNameChanged,
-                        onKeyChanged = onKeyChanged
-                    )
-                }
-                is NetworkKeyState.Error -> {
-                    when (networkKeyState.throwable) {
-                        is KeyInUse -> {}
-                        is InvalidKeyLength -> {}
-                    }
+                is NetworkKeyState.Success -> networkKeyInfo(
+                    snackbarHostState = snackbarHostState,
+                    networkKey = networkKeyState.networkKey,
+                    isCurrentlyEditable = isCurrentlyEditable,
+                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                    onNameChanged = onNameChanged,
+                    onKeyChanged = onKeyChanged
+                )
+                is NetworkKeyState.Error -> when (networkKeyState.throwable) {
+                    is KeyInUse -> {}
+                    is InvalidKeyLength -> {}
                 }
             }
         }
@@ -313,12 +308,11 @@ fun Key(
                                 onEditClick = !onEditClick
                                 onEditableStateChanged()
                             } else {
-                                coroutineScope.launch {
-                                    showSnackbar(
-                                        snackbarHostState = snackbarHostState,
-                                        message = context.getString(R.string.error_cannot_edit_key_in_use)
-                                    )
-                                }
+                                showSnackbar(
+                                    scope = coroutineScope,
+                                    snackbarHostState = snackbarHostState,
+                                    message = context.getString(R.string.error_cannot_edit_key_in_use)
+                                )
                             }
                         }
                     ) {

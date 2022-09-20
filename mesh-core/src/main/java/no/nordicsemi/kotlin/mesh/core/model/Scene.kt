@@ -15,7 +15,7 @@ typealias SceneNumber = UShort
  * @property name          Scene name.
  * @property number        Scene number.
  * @property addresses     Addresses containing the scene.
- * @property isUsed        Defines whether the scene is in use by a node.
+ * @property isInUse       Defines whether the scene is in use by a node.
  */
 @Serializable
 data class Scene internal constructor(
@@ -29,15 +29,14 @@ data class Scene internal constructor(
         set(value) {
             require(value.isNotBlank()) { "Name cannot be empty!" }
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
+            _name = value
         }
     internal var _addresses: MutableList<UnicastAddress> = mutableListOf()
     val addresses: List<UnicastAddress>
         get() = _addresses
 
-    @Transient
-    var isUsed: Boolean = false
+    val isInUse: Boolean
         get() = _addresses.isNotEmpty()
-        private set
 
     @Transient
     internal var network: MeshNetwork? = null
@@ -105,6 +104,27 @@ data class Scene internal constructor(
     fun elements(): List<Element> = network?._nodes?.flatMap { node ->
         node.elements.filter { element -> _addresses.contains(element.unicastAddress) }
     } ?: listOf()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Scene
+
+        if (_name != other._name) return false
+        if (number != other.number) return false
+        if (_addresses != other._addresses) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _name.hashCode()
+        result = 31 * result + number.hashCode()
+        result = 31 * result + _addresses.hashCode()
+        return result
+    }
+
 
     private companion object {
         const val LOWER_BOUND = 0x0001u
