@@ -37,7 +37,7 @@ import java.text.DateFormat
 import java.util.*
 
 @Composable
-fun NetworkKeyRoute(
+internal fun NetworkKeyRoute(
     viewModel: NetworkKeyViewModel = hiltViewModel(),
     onBackPressed: () -> Unit
 ) {

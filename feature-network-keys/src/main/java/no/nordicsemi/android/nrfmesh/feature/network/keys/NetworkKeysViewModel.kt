@@ -14,7 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
-class NetworkKeysViewModel @Inject internal constructor(
+internal class NetworkKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
 
