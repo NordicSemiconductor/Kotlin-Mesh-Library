@@ -19,7 +19,7 @@ object ProvisionerDestination : MeshNavigationDestination {
      * Creates destination route for a provisioner UUID.
      */
     fun createNavigationRoute(provisionerUuid: UUID): String =
-        "scene_route/${Uri.encode(provisionerUuid.toString())}"
+        "provisioner_route/${Uri.encode(provisionerUuid.toString())}"
 
     /**
      * Returns the provisioner uuid index from a [NavBackStackEntry] after a topic destination
