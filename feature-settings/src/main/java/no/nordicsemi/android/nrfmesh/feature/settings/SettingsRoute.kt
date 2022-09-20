@@ -10,11 +10,9 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
@@ -39,10 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.text.DateFormat
@@ -62,6 +57,7 @@ fun SettingsRoute(
         importNetwork = { uri, contentResolver ->
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
         },
+        onNameChanged = viewModel::onNameChanged,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
@@ -73,6 +69,7 @@ fun SettingsRoute(
 fun SettingsScreen(
     networkState: MeshNetworkState,
     importNetwork: (Uri, ContentResolver) -> Unit,
+    onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit,
@@ -107,6 +104,7 @@ fun SettingsScreen(
                         settingsInfo(
                             context = context,
                             network = networkState.network,
+                            onNameChanged = onNameChanged,
                             onNetworkKeysClicked = onNetworkKeysClicked,
                             onApplicationKeysClicked = onApplicationKeysClicked,
                             onScenesClicked = onScenesClicked
@@ -134,12 +132,13 @@ fun SettingsScreen(
 
 private fun LazyListScope.settingsInfo(
     context: Context, network: MeshNetwork,
+    onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
     item { SectionTitle(title = stringResource(R.string.label_configuration)) }
-    item { NetworkNameRow(name = network.name) }
+    item { NetworkNameRow(name = network.name, onNameChanged = onNameChanged) }
     item { ProvisionersRow(count = network.provisioners.size) }
     item {
         NetworkKeysRow(
@@ -167,24 +166,76 @@ private fun LazyListScope.settingsInfo(
 }
 
 @Composable
-fun NetworkNameRow(name: String) {
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
-        leadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Badge,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = stringResource(R.string.label_name),
-        subtitle = name
-    )
+private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
+    var value by rememberSaveable { mutableStateOf(name) }
+    var onEditClick by rememberSaveable { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            modifier = Modifier.padding(all = 12.dp),
+            imageVector = Icons.Outlined.Badge,
+            contentDescription = null,
+            tint = LocalContentColor.current.copy(alpha = 0.6f)
+        )
+        Crossfade(targetState = onEditClick) { state ->
+            when (state) {
+                true -> MeshOutlinedTextField(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
+                    onFocus = onEditClick,
+                    value = value,
+                    onValueChanged = { value = it },
+                    label = { Text(text = stringResource(id = R.string.label_name)) },
+                    placeholder = {
+                        Text(text = stringResource(id = R.string.label_placeholder_network_name))
+                    },
+                    internalTrailingIcon = {
+                        IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
+                            Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
+                        }
+                    },
+                    content = {
+                        IconButton(
+                            modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                            enabled = value.isNotBlank(),
+                            onClick = {
+                                onEditClick = !onEditClick
+                                value = value.trim()
+                                onNameChanged(value)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Check,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                )
+                false -> MeshTwoLineListItem(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    title = stringResource(id = R.string.label_name),
+                    subtitle = value,
+                    trailingIcon = {
+                        IconButton(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            onClick = {
+                                onEditClick = !onEditClick
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun ProvisionersRow(count: Int) {
+private fun ProvisionersRow(count: Int) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { }),
         leadingIcon = {
@@ -201,7 +252,7 @@ fun ProvisionersRow(count: Int) {
 }
 
 @Composable
-fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
+private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onNetworkKeysClicked() }),
         leadingIcon = {
@@ -218,7 +269,7 @@ fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 }
 
 @Composable
-fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
+private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onApplicationKeysClicked() }),
         leadingIcon = {
@@ -235,7 +286,7 @@ fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
 }
 
 @Composable
-fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
+private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onScenesClicked() }),
         leadingIcon = {
@@ -252,9 +303,8 @@ fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
 }
 
 @Composable
-fun IvIndexRow(ivIndex: IvIndex) {
+private fun IvIndexRow(ivIndex: IvIndex) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
         leadingIcon = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -269,9 +319,8 @@ fun IvIndexRow(ivIndex: IvIndex) {
 }
 
 @Composable
-fun LastModifiedTimeRow(timestamp: Instant) {
+private fun LastModifiedTimeRow(timestamp: Instant) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
         leadingIcon = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -288,7 +337,7 @@ fun LastModifiedTimeRow(timestamp: Instant) {
 }
 
 @Composable
-fun VersionNameRow(context: Context) {
+private fun VersionNameRow(context: Context) {
     // TODO Clarify version naming
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(
@@ -307,7 +356,7 @@ fun VersionNameRow(context: Context) {
 }
 
 @Composable
-fun VersionCodeRow(context: Context) {
+private fun VersionCodeRow(context: Context) {
     // TODO Clarify version code
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(

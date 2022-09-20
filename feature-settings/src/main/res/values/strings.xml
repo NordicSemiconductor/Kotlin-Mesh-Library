@@ -16,4 +16,5 @@
     <string name="label_import">Import</string>
     <string name="label_export">Export</string>
     <string name="label_reset">Reset</string>
+    <string name="label_placeholder_network_name">nRF Mesh Network</string>
 </resources>
