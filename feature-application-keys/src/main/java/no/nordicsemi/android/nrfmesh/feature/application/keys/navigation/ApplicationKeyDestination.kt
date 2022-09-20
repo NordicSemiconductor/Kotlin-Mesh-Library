@@ -31,7 +31,7 @@ object ApplicationKeyDestination : MeshNavigationDestination {
     }
 }
 
-fun NavGraphBuilder.applicationKeyGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.applicationKeyGraph(onBackPressed: () -> Unit) {
     composable(route = ApplicationKeyDestination.route) {
         ApplicationKeyRoute(onBackPressed = onBackPressed)
     }
