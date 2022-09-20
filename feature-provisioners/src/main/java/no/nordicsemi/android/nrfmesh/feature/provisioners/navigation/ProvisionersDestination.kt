@@ -8,7 +8,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersRoute
 import java.util.*
 
-object ScenesDestination : MeshNavigationDestination {
+object ProvisionersDestination : MeshNavigationDestination {
     override val route: String = "provisioners_route"
     override val destination: String = "provisioners_destination"
 }
