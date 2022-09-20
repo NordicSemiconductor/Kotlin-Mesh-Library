@@ -1,4 +1,4 @@
-package no.nordicsemi.android.feature.application.keys
+package no.nordicsemi.android.nrfmesh.keys
 
 import org.junit.Test
 

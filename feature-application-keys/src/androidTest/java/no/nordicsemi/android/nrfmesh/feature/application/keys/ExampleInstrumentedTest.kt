@@ -1,4 +1,4 @@
-package no.nordicsemi.android.feature.application.keys
+package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

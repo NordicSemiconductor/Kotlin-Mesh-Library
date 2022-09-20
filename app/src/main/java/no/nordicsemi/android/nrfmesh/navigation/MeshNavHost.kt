@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeyDestination
-import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeysDestination
-import no.nordicsemi.android.feature.application.keys.navigation.applicationKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysGraph
 import no.nordicsemi.android.feature.scenes.navigation.SceneDestination
 import no.nordicsemi.android.feature.scenes.navigation.ScenesDestination
 import no.nordicsemi.android.feature.scenes.navigation.scenesGraph

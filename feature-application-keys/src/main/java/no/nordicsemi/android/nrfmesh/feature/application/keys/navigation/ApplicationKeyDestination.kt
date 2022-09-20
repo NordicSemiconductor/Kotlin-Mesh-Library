@@ -1,11 +1,13 @@
-package no.nordicsemi.android.feature.application.keys.navigation
+@file:Suppress("unused")
+
+package no.nordicsemi.android.nrfmesh.feature.application.keys.navigation
 
 import android.net.Uri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.feature.application.keys.ApplicationKeyRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyRoute
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object ApplicationKeyDestination : MeshNavigationDestination {

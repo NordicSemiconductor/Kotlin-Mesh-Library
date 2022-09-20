@@ -1,4 +1,4 @@
-package no.nordicsemi.android.feature.application.keys
+package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
 @HiltViewModel
-class ApplicationKeysViewModel @Inject internal constructor(
+internal class ApplicationKeysViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))

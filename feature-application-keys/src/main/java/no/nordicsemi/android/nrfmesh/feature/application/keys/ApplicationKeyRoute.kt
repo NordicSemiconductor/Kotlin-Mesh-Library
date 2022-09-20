@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
+@file:Suppress("unused")
 
-package no.nordicsemi.android.feature.application.keys
+package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
@@ -27,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
+import no.nordicsemi.android.feature.application.keys.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
@@ -37,7 +39,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-fun ApplicationKeyRoute(
+internal fun ApplicationKeyRoute(
     viewModel: ApplicationKeyViewModel = hiltViewModel(),
     onBackPressed: () -> Unit
 ) {
