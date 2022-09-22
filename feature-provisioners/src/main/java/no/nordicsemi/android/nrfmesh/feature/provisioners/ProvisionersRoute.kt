@@ -21,6 +21,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.rememberDismissState
@@ -196,7 +197,7 @@ private fun Provisioners(
                             leadingIcon = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
-                                    imageVector = Icons.Outlined.AutoAwesome,
+                                    imageVector = Icons.Outlined.Groups,
                                     contentDescription = null,
                                     tint = LocalContentColor.current.copy(alpha = 0.6f)
                                 )

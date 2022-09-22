@@ -13,4 +13,9 @@
     <string name="label_provisioner_deleted">Provisioner deleted.</string>
     <string name="unknown_error">Unknown error when adding a provisioner.</string>
     <string name="no_provisioners_currently_added">No provisioners currently added.</string>
+    <string name="label_unicast_address">Unicast Address</string>
+    <string name="label_not_assigned">Not assigned</string>
+    <string name="label_not_applicable">N/A</string>
+    <string name="label_device_key">Device Key</string>
+    <string name="label_ttl">TTL</string>
 </resources>

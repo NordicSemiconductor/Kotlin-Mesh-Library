@@ -25,10 +25,15 @@ internal class ProvisionerViewModel @Inject internal constructor(
         checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
 
     val uiState: StateFlow<ProvisionerScreenUiState> = repository.network.map { network ->
-        this@ProvisionerViewModel.provisioner =
-            network.provisioner(UUID.fromString(provisionerUuid))
-        ProvisionerScreenUiState(
-            provisionerState = ProvisionerState.Success(provisioner = provisioner)
+        network.provisioner(UUID.fromString(provisionerUuid))?.let {
+            this@ProvisionerViewModel.provisioner = it
+            ProvisionerScreenUiState(
+                provisionerState = ProvisionerState.Success(provisioner = provisioner)
+            )
+        } ?: ProvisionerScreenUiState(
+            provisionerState = ProvisionerState.Error(
+                throwable = Throwable("Provisioner not found")
+            )
         )
     }.stateIn(
         viewModelScope,
@@ -37,15 +42,27 @@ internal class ProvisionerViewModel @Inject internal constructor(
     )
 
     /**
-     * Invoked when the name of the application key is changed.
+     * Invoked when the name of the provisioner is changed.
      *
-     * @param name New application key name.
+     * @param name New provisioner name.
      */
     internal fun onNameChanged(name: String) {
         if (provisioner.name != name) {
             provisioner.name = name
             save()
         }
+    }
+
+    /**
+     * Invoked when the name of the provisioner is changed.
+     *
+     * @param address New address of the provisioner.
+     */
+    internal fun onAddressChanged(address: String) {
+        /*if (provisioner.name != address) {
+            provisioner.name = address
+            save()
+        }*/
     }
 
     /**
