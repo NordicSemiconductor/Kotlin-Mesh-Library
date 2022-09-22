@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.Scene
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,9 +43,9 @@ internal class ProvisionersViewModel @Inject internal constructor(
      */
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
-        val provisioner = Provisioner()
-        network.add(provisioner)
-        return provisioner
+        return Provisioner().also {
+            network.add(provisioner = it, address = null)
+        }
     }
 
     /**
