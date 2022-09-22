@@ -21,12 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.feature.provisioners.R
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
@@ -121,8 +117,12 @@ private fun ProvisionerInfo(
                     onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
                 )
             }
-            item { ttl(ttl = node?.defaultTTL) }
-            item { deviceKey(key = provisioner.node?.deviceKey) }
+            item { Ttl(ttl = node?.defaultTTL) }
+            item { DeviceKey(key = provisioner.node?.deviceKey) }
+            item { SectionTitle(title = stringResource(R.string.label_allocated_ranges)) }
+            item { UnicastRange(ranges = provisioner.allocatedUnicastRanges) }
+            item { GroupRange(ranges = provisioner.allocatedGroupRanges) }
+            item { SceneRange(ranges = provisioner.allocatedSceneRanges) }
         }
     }
 }
@@ -179,7 +179,7 @@ fun Name(
                 }
             )
             false -> MeshTwoLineListItem(
-                leadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.Badge,
@@ -189,7 +189,7 @@ fun Name(
                 },
                 title = stringResource(id = R.string.label_name),
                 subtitle = value,
-                trailingIcon = {
+                trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
@@ -211,7 +211,7 @@ fun Name(
 }
 
 @Composable
-fun UnicastAddress(
+private fun UnicastAddress(
     address: Address?,
     onAddressChanged: (String) -> Unit,
     isCurrentlyEditable: Boolean,
@@ -260,7 +260,7 @@ fun UnicastAddress(
                 }
             )
             false -> MeshTwoLineListItem(
-                leadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.Lan,
@@ -269,8 +269,8 @@ fun UnicastAddress(
                     )
                 },
                 title = stringResource(id = R.string.label_unicast_address),
-                subtitle = value,
-                trailingIcon = {
+                subtitle = address?.toString() ?: stringResource(id = R.string.label_not_assigned),
+                trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
@@ -292,9 +292,9 @@ fun UnicastAddress(
 }
 
 @Composable
-fun ttl(ttl: Int?) {
+private fun Ttl(ttl: Int?) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.HourglassTop,
@@ -308,9 +308,9 @@ fun ttl(ttl: Int?) {
 }
 
 @Composable
-fun deviceKey(key: ByteArray?) {
+private fun DeviceKey(key: ByteArray?) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
@@ -320,5 +320,52 @@ fun deviceKey(key: ByteArray?) {
         },
         title = stringResource(id = R.string.label_device_key),
         subtitle = key?.encodeHex() ?: stringResource(R.string.label_not_applicable)
+    )
+}
+
+
+@Composable
+private fun UnicastRange(ranges: List<UnicastRange>) {
+    MeshTwoLineListItem(
+        leadingComposable = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Lan,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
+        title = stringResource(id = R.string.label_unicast_range)
+    )
+}
+
+@Composable
+private fun GroupRange(ranges: List<GroupRange>) {
+    MeshTwoLineListItem(
+        leadingComposable = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.GroupWork,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
+        title = stringResource(id = R.string.label_group_range)
+    )
+}
+
+
+@Composable
+private fun SceneRange(ranges: List<SceneRange>) {
+    MeshTwoLineListItem(
+        leadingComposable = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        },
+        title = stringResource(id = R.string.label_scene_range)
     )
 }

@@ -18,4 +18,10 @@
     <string name="label_not_applicable">N/A</string>
     <string name="label_device_key">Device Key</string>
     <string name="label_ttl">TTL</string>
+    <string name="label_set_as_current_provisioner">Set as current provisioner</string>
+    <string name="label_allocated_ranges">Allocated Ranges</string>
+    <string name="label_unicast_range">Unicast Range</string>
+    <string name="label_group_range">Group Range</string>
+    <string name="label_scene_range">Scene Range</string>
+    <string name="label_unknown">Unknown</string>
 </resources>

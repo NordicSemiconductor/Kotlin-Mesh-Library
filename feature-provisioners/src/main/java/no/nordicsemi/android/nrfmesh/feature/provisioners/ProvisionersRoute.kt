@@ -194,7 +194,7 @@ private fun Provisioners(
                             modifier = Modifier.clickable {
                                 navigateToProvisioner(provisioner.uuid)
                             },
-                            leadingIcon = {
+                            leadingComposable = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     imageVector = Icons.Outlined.Groups,

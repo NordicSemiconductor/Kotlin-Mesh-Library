@@ -211,7 +211,7 @@ fun Name(
                 }
             )
             false -> MeshTwoLineListItem(
-                leadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.Badge,
@@ -221,7 +221,7 @@ fun Name(
                 },
                 title = stringResource(id = R.string.label_name),
                 subtitle = value,
-                trailingIcon = {
+                trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
@@ -302,7 +302,7 @@ fun Key(
                     }
                 )
             false -> MeshTwoLineListItem(
-                leadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.VpnKey,
@@ -312,7 +312,7 @@ fun Key(
                 },
                 title = stringResource(id = R.string.label_key),
                 subtitle = key,
-                trailingIcon = {
+                trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
@@ -344,7 +344,7 @@ fun Key(
 @Composable
 fun OldKey(oldKey: ByteArray?) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.AssistWalker,
@@ -361,7 +361,7 @@ fun OldKey(oldKey: ByteArray?) {
 @Composable
 fun KeyIndex(index: KeyIndex) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.FormatListNumbered,
@@ -399,7 +399,7 @@ private fun LazyListScope.boundNetworkKeys(
                     withDismissAction = true
                 )
             },
-            leadingIcon = {
+            leadingComposable = {
                 Icon(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     imageVector = Icons.Outlined.VpnKey,
@@ -409,7 +409,7 @@ private fun LazyListScope.boundNetworkKeys(
             },
             title = key.name,
             subtitle = key.key.encodeHex(),
-            trailingIcon = {
+            trailingComposable = {
                 if (key.index.toInt() == boundNetKeyIndex) {
                     Icon(
                         modifier = Modifier

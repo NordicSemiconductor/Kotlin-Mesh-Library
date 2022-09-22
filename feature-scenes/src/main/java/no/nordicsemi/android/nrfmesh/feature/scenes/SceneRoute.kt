@@ -143,7 +143,7 @@ fun Name(
                 }
             )
             false -> MeshTwoLineListItem(
-                leadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.Badge,
@@ -153,7 +153,7 @@ fun Name(
                 },
                 title = stringResource(id = R.string.label_name),
                 subtitle = value,
-                trailingIcon = {
+                trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
@@ -175,7 +175,7 @@ fun Name(
 @Composable
 fun Number(number: SceneNumber) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,

@@ -52,11 +52,11 @@ fun MeshTwoLineListItem(
 @Composable
 fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
-    leadingIcon: @Composable () -> Unit = {},
+    leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
     subtitle: String = "",
-    trailingIcon: @Composable () -> Unit = {},
+    trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
@@ -66,7 +66,7 @@ fun MeshTwoLineListItem(
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        leadingIcon()
+        leadingComposable()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -86,6 +86,6 @@ fun MeshTwoLineListItem(
                     overflow = subtitleTextOverflow
                 )
         }
-        trailingIcon()
+        trailingComposable()
     }
 }

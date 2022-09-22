@@ -207,7 +207,7 @@ private fun NetworkKeys(
                             modifier = Modifier.clickable {
                                 navigateToApplicationKey(key.index)
                             },
-                            leadingIcon = {
+                            leadingComposable = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     imageVector = Icons.Outlined.VpnKey,

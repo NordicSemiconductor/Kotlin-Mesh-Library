@@ -221,7 +221,7 @@ private fun Scenes(
                             modifier = Modifier.clickable {
                                 navigateToScene(scene.number)
                             },
-                            leadingIcon = {
+                            leadingComposable = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     imageVector = Icons.Outlined.AutoAwesome,
