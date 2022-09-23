@@ -25,10 +25,13 @@ internal class ProvisionerViewModel @Inject internal constructor(
         checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
 
     val uiState: StateFlow<ProvisionerScreenUiState> = repository.network.map { network ->
-        network.provisioner(UUID.fromString(provisionerUuid))?.let {
-            this@ProvisionerViewModel.provisioner = it
+        network.provisioner(UUID.fromString(provisionerUuid))?.let { provisioner ->
+            this@ProvisionerViewModel.provisioner = provisioner
             ProvisionerScreenUiState(
-                provisionerState = ProvisionerState.Success(provisioner = provisioner)
+                provisionerState = ProvisionerState.Success(
+                    provisioner = provisioner,
+                    otherProvisioners = network.provisioners.filterNot { it == provisioner }
+                )
             )
         } ?: ProvisionerScreenUiState(
             provisionerState = ProvisionerState.Error(
@@ -59,10 +62,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
      * @param address New address of the provisioner.
      */
     internal fun onAddressChanged(address: String) {
-        /*if (provisioner.name != address) {
-            provisioner.name = address
-            save()
-        }*/
+        // TODO incomplete implementation
     }
 
     /**
@@ -74,7 +74,11 @@ internal class ProvisionerViewModel @Inject internal constructor(
 }
 
 sealed interface ProvisionerState {
-    data class Success(val provisioner: Provisioner) : ProvisionerState
+    data class Success(
+        val provisioner: Provisioner,
+        val otherProvisioners: List<Provisioner> = listOf()
+    ) : ProvisionerState
+
     data class Error(val throwable: Throwable) : ProvisionerState
     object Loading : ProvisionerState
 }
