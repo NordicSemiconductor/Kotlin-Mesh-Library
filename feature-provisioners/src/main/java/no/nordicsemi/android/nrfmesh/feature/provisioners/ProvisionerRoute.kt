@@ -129,19 +129,19 @@ private fun ProvisionerInfo(
             item {
                 UnicastRange(
                     ranges = provisioner.allocatedUnicastRanges,
-                    otherRanges = otherProvisioners.map { it.allocatedUnicastRanges }.flatten()
+                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges }
                 )
             }
             item {
                 GroupRange(
                     ranges = provisioner.allocatedGroupRanges,
-                    otherRanges = otherProvisioners.map { it.allocatedGroupRanges }.flatten()
+                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges }
                 )
             }
             item {
                 SceneRange(
                     ranges = provisioner.allocatedSceneRanges,
-                    otherRanges = otherProvisioners.map { it.allocatedSceneRanges }.flatten()
+                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges }
                 )
             }
         }
