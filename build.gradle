@@ -12,7 +12,7 @@ buildscript {
         // https://developer.android.com/training/dependency-injection/hilt-android
         hilt_android_version = '1.0.0'
         // https://github.com/google/accompanist/releases
-        accompanist_version = '0.26.3-beta'
+        accompanist_version = '0.26.4-beta'
         // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
         lifecycle_version = '2.6.0-alpha02'
 
@@ -60,7 +60,7 @@ buildscript {
         ]
         nordicCommonLibs = [
                 // Nordic common libraries
-                'no.nordicsemi.android.common:theme:1.0.23'
+                'no.nordicsemi.android.common:theme:1.0.27'
         ]
         testingLibs = [
                 'junit:junit:4.13.2',
@@ -73,7 +73,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_dagger_version"
