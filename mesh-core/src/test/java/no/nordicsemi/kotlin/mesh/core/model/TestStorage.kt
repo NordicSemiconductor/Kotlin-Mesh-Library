@@ -1,13 +1,13 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.flow.Flow
-import no.nordicsemi.kotlin.mesh.core.LocalStorage
+import no.nordicsemi.kotlin.mesh.core.Storage
 import java.util.*
 
 /**
  * Mocked for tests.
  */
-internal class TestStorage : LocalStorage {
+internal class TestStorage : Storage {
 
     override suspend fun load(): Flow<ByteArray> {
         TODO("Do nothing")
