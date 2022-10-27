@@ -6,7 +6,7 @@ buildscript {
         // https://developer.android.com/jetpack/compose/navigation
         nav_version = '2.5.2'
         // https://developer.android.com/jetpack/androidx/releases/compose
-        kotlin_version = "1.7.10"
+        kotlin_version = "1.7.20"
         // https://github.com/google/dagger/releases
         hilt_dagger_version = '2.43.2'
         // https://developer.android.com/training/dependency-injection/hilt-android
@@ -60,7 +60,7 @@ buildscript {
         ]
         nordicCommonLibs = [
                 // Nordic common libraries
-                'no.nordicsemi.android.common:theme:1.0.27'
+                'no.nordicsemi.android.common:theme:1.2.0'
         ]
         testingLibs = [
                 'junit:junit:4.13.2',
