@@ -15,8 +15,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.SecuritySerializer
 sealed class Security {
     companion object {
 
-        private const val INSECURE = "insecure"
-        private const val SECURE = "secure"
+        private const val INSECURE = "Insecure"
+        private const val SECURE = "Secure"
 
         /**
          * Parses the security level from the security level description.
