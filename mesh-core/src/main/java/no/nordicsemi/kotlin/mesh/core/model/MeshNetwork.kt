@@ -380,6 +380,19 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the next [NetworkKey] which can be saved to the network.
+     *
+     */
+    @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
+    fun getNextNetKey(): NetworkKey {
+        return NetworkKey(
+            index = nextAvailableNetworkKeyIndex ?: throw KeyIndexOutOfRange(),
+            _name = "New Network Key",
+            _key = Crypto.generateRandomKey()
+        )
+    }
+
+    /**
      * Removes a given [NetworkKey] from the list of network keys in the mesh network.
      *
      * @param key Network key to be removed.
