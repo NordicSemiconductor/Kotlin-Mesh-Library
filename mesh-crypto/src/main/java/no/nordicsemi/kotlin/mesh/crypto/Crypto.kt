@@ -68,6 +68,11 @@ object Crypto {
         )
     }
 
+    fun calculateAid(N: ByteArray): UByte {
+        val k4 = k4(N = N)
+        return k4.toUByte()
+    }
+
     /**
      * Encrypts the [data] with the EncryptionKey , Nonce and concatenates the MIC(Message Integrity Check).
      *
