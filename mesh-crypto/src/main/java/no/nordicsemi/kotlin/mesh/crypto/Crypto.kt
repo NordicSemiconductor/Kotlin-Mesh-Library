@@ -68,6 +68,12 @@ object Crypto {
         )
     }
 
+    /**
+     * Calculates the AID for a given ApplicationKey.
+     *
+     * @param N 128-bit ApplicationKey.
+     * @return 8-bit Application Key Identifier.
+     */
     fun calculateAid(N: ByteArray): UByte {
         val k4 = k4(N = N)
         return k4.toUByte()
