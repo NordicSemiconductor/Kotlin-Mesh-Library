@@ -51,10 +51,9 @@ object Utils {
      *
      * @return Byte Array - Big endian representation of the integer.
      */
-    fun Int.toBigEndian(): ByteArray {
-        val result = byteArrayOf(4)
+    fun UInt.toBigEndian(): ByteArray {
+        val result = byteArrayOf(0, 0, 0, 0)
         for(i in 0..3) result[i] = (this shr (24 - i*8)).toByte()
-
         return result
     }
 }

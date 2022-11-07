@@ -145,13 +145,14 @@ object Crypto {
      *  @param privacyKey   The 128-bit Privacy Key.
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
      */
-    fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: Int, privacyKey: ByteArray): ByteArray {
+    fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: UInt, privacyKey: ByteArray): ByteArray {
         // Privacy Random = (EncDST || EncTransportPDU || NetMIC)[0–6]
         // Privacy Plaintext = 0x0000000000 || IV Index || Privacy Random
         // PECB = e (PrivacyKey, Privacy Plaintext)
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
-        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00) + ivIndex.toBigEndian() + privacyRandom
+        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00) +
+                ivIndex.toBigEndian() + privacyRandom
         val pecb = calculateECB(privacyPlaintext, privacyKey)
         val obfuscatedData = data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
         return obfuscatedData
@@ -184,7 +185,7 @@ object Crypto {
      * @param key the 128-bit key.
      * @returns the encrypted data.
      */
-    private fun calculateECB(data: ByteArray, key: ByteArray): ByteArray {
+    fun calculateECB(data: ByteArray, key: ByteArray): ByteArray {
         try {
             val cipher = Cipher.getInstance("AES/ECB/NoPadding")
             cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"))
