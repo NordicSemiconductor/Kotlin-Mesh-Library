@@ -146,7 +146,6 @@ object Crypto {
      *  @param ivIndex      The current IV Index value.
      *  @param privacyKey   The 128-bit Privacy Key.
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
-     *
      */
     fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: Int, privacyKey: ByteArray): ByteArray {
         // Privacy Random = (EncDST || EncTransportPDU || NetMIC)[0–6]
@@ -170,7 +169,6 @@ object Crypto {
      * @param data the input data.
      * @param key the 128-bit key.
      * @returns the encrypted data.
-     *
      */
     private fun calculateECB(data: ByteArray, key: ByteArray): ByteArray {
         try {

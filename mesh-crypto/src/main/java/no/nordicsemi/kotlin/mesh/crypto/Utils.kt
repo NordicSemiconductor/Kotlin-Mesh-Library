@@ -38,7 +38,6 @@ object Utils {
      * @param a First byte array.
      * @param b Second byte array.
      * @return XOR of the two byte arrays.
-     *
      */
     fun xor(a: ByteArray, b: ByteArray): ByteArray {
         val result = ByteArray(a.count())
@@ -53,7 +52,6 @@ object Utils {
      *
      * @param i Integer value.
      * @return Byte Array - Big endian representation of the integer.
-     *
      */
     fun intToBigEndian(i: Int): ByteArray {
         val result = byteArrayOf(i.toByte())
