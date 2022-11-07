@@ -35,29 +35,26 @@ object Utils {
      * Applies the XOR operator on two byte arrays. Compared to already existent
      * xor functions, this one does not require the arrays to be of the same length.
      *
-     * @param a First byte array.
-     * @param b Second byte array.
+     * @param other The other byte array which is xor ed with this one.
      * @return XOR of the two byte arrays.
      */
-    fun xor(a: ByteArray, b: ByteArray): ByteArray {
-        val result = ByteArray(a.count())
-        for (i in a.indices) {
-            result[i] = (a[i] xor b[i % b.count()])
+    infix fun ByteArray.xor(other: ByteArray): ByteArray {
+        val result = ByteArray(this.count())
+        for (i in this.indices) {
+            result[i] = (this[i] xor other[i % other.count()])
         }
         return result
     }
 
     /**
-     * Given an integer, function computes the big endian representation of it.
+     * Function converts an integer to Big Endian representation.
      *
-     * @param i Integer value.
      * @return Byte Array - Big endian representation of the integer.
      */
-    fun intToBigEndian(i: Int): ByteArray {
-        val result = byteArrayOf(i.toByte())
-        if (nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            result.reverse()
-        }
+    fun Int.toBigEndian(): ByteArray {
+        val result = byteArrayOf(4)
+        for(i in 0..3) result[i] = (this shr (24 - i*8)).toByte()
+
         return result
     }
 }

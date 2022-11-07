@@ -4,7 +4,7 @@ package no.nordicsemi.kotlin.mesh.crypto
 
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.intToBigEndian
+import no.nordicsemi.kotlin.mesh.crypto.Utils.toBigEndian
 import no.nordicsemi.kotlin.mesh.crypto.Utils.xor
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
@@ -13,12 +13,10 @@ import org.bouncycastle.crypto.macs.CMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
-import org.bouncycastle.jcajce.provider.symmetric.AES
 import java.security.SecureRandom
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
-import kotlin.experimental.xor
 
 object Crypto {
 
@@ -153,9 +151,9 @@ object Crypto {
         // PECB = e (PrivacyKey, Privacy Plaintext)
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
-        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00) + intToBigEndian(ivIndex) + privacyRandom
+        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00) + ivIndex.toBigEndian() + privacyRandom
         val pecb = calculateECB(privacyPlaintext, privacyKey)
-        val obfuscatedData = xor(data, pecb.copyOfRange(fromIndex = 0, toIndex = 6))
+        val obfuscatedData = data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
         return obfuscatedData
     }
 
