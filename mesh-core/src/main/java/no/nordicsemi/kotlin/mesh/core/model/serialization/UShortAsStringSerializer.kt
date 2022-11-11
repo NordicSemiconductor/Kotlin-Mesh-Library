@@ -15,7 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
  */
 internal object UShortAsStringSerializer : KSerializer<UShort> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(serialName = "UShortSerializer", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UShort = runCatching {
         decoder.decodeString().toUInt(radix = 16).toUShort()
