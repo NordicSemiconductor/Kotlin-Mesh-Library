@@ -58,10 +58,11 @@ object Crypto {
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
+     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
      * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey)).
      */
-    fun calculateKeyDerivatives(N: ByteArray): KeyDerivatives {
-        val k2 = k2(N = N, P = byteArrayOf(0x00))
+    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
+        val k2 = k2(N = N, P = P ?: byteArrayOf(0x00))
         return KeyDerivatives(
             nid = k2.first.toUByte(),
             encryptionKey = k2.second,
