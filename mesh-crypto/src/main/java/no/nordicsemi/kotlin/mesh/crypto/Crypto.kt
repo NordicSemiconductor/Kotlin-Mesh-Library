@@ -4,6 +4,8 @@ package no.nordicsemi.kotlin.mesh.crypto
 
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.toBigEndian
+import no.nordicsemi.kotlin.mesh.crypto.Utils.xor
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
 import org.bouncycastle.crypto.engines.AESEngine
@@ -13,6 +15,8 @@ import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
 import java.security.SecureRandom
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 object Crypto {
 
@@ -54,10 +58,11 @@ object Crypto {
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
+     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
      * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey)).
      */
-    fun calculateKeyDerivatives(N: ByteArray): KeyDerivatives {
-        val k2 = k2(N = N, P = byteArrayOf(0x00))
+    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
+        val k2 = k2(N = N, P = P ?: byteArrayOf(0x00))
         return KeyDerivatives(
             nid = k2.first.toUByte(),
             encryptionKey = k2.second,
@@ -140,14 +145,55 @@ object Crypto {
      *  @param ivIndex      The current IV Index value.
      *  @param privacyKey   The 128-bit Privacy Key.
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
-     *
      */
-    fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: Int, privacyKey: ByteArray) {
-        // TODO
+    fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: UInt, privacyKey: ByteArray): ByteArray {
+        // Privacy Random = (EncDST || EncTransportPDU || NetMIC)[0–6]
+        // Privacy Plaintext = 0x0000000000 || IV Index || Privacy Random
+        // PECB = e (PrivacyKey, Privacy Plaintext)
+        // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
+        val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
+        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00) +
+                ivIndex.toBigEndian() + privacyRandom
+        val pecb = calculateECB(privacyPlaintext, privacyKey)
+        val obfuscatedData = data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
+        return obfuscatedData
     }
 
     fun deObfuscate() {
-        // TODO
+        // TODO - identical to obfuscate (can remove)
+    }
+
+    /**
+     * Authenticates the received Secure Network beacon using the given Beacon Key/
+     *
+     * @param pdu           The received Secure Network beacon.
+     * @param beaconKey     The beacon key generated from a network key.
+     *
+     * @returns true if the beacon is valid, false otherwise.
+     */
+    fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean {
+        // byte 0 is the beacon type 0x01
+        val flagsNetIdAndIvIndex = pdu.sliceArray(1 until 14)
+        val authenticationValue = pdu.sliceArray(14 until 22)
+        val hash = cmac(input = flagsNetIdAndIvIndex, key = beaconKey).sliceArray(0 until 8)
+        return hash.contentEquals(authenticationValue)
+    }
+
+    /**
+     * Calculates Electronic Code Book (ECB) for the given [data] and [key].
+     *
+     * @param data the input data.
+     * @param key the 128-bit key.
+     * @returns the encrypted data.
+     */
+    fun calculateECB(data: ByteArray, key: ByteArray): ByteArray {
+        try {
+            val cipher = Cipher.getInstance("AES/ECB/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"))
+            return cipher.doFinal(data)
+        } catch (e: Exception) {
+            throw InvalidCipherTextException("Error while encrypting data: ${e.message}")
+        }
     }
 
     /**
