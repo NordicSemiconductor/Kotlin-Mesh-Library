@@ -43,9 +43,20 @@ internal class ProvisionersViewModel @Inject internal constructor(
      */
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
-        return Provisioner().also {
-            network.add(provisioner = it, address = null)
+        val provisioner = Provisioner()
+        network.run {
+            nextAvailableUnicastAddressRange(rangeSize = 0x199A)?.let { range ->
+                provisioner.allocate(range)
+            }
+            nextAvailableGroupAddressRange(rangeSize = 0x0C9A)?.let { range ->
+                provisioner.allocate(range)
+            }
+            nextAvailableSceneRange(rangeSize = 0x3334)?.let { range ->
+                provisioner.allocate(range)
+            }
+            add(provisioner = provisioner, address = null)
         }
+        return provisioner
     }
 
     /**
