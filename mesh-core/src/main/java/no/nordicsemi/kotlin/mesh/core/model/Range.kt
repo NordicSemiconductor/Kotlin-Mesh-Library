@@ -392,11 +392,3 @@ fun List<Range>.merged(): List<Range> {
     }
     return result.toList()
 }
-
-fun main(){
-    val a = UnicastRange(
-        UnicastAddress(minUnicastAddress),
-        UnicastAddress(maxUnicastAddress)
-    )
-    print(a)
-}
