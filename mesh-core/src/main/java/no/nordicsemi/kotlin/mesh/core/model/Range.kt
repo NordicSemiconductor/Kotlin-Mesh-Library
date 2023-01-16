@@ -15,6 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializ
 @Serializable
 sealed class Range {
     internal abstract val range: UIntRange
+    internal abstract val diff: UInt
     internal val low: UShort
         get() = range.first.toUShort()
     internal val high: UShort
@@ -190,6 +191,8 @@ sealed class AddressRange : Range() {
 
     override val range
         get() = lowAddress.address..highAddress.address
+    override val diff
+        get() = high - low
 }
 
 /**
@@ -212,10 +215,7 @@ data class UnicastRange(
     constructor(
         address: UnicastAddress,
         elementsCount: Int
-    ) : this(
-        lowAddress = address,
-        highAddress = address + (elementsCount - 1)
-    )
+    ) : this(lowAddress = address, highAddress = address + (elementsCount - 1))
 }
 
 /**
@@ -233,7 +233,13 @@ data class UnicastRange(
 data class GroupRange(
     override val lowAddress: GroupAddress,
     override val highAddress: GroupAddress
-) : AddressRange()
+) : AddressRange() {
+
+    constructor(
+        address: GroupAddress,
+        size: Int
+    ) : this(lowAddress = address, highAddress = address + size)
+}
 
 /**
  * The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to
@@ -254,8 +260,14 @@ data class SceneRange(
     val lastScene: SceneNumber
 ) : Range() {
 
+    internal constructor(firstScene: Int, lastScene: Int) :
+            this(firstScene = firstScene.toUShort(), lastScene = lastScene.toUShort())
+
     @Transient
     override var range = firstScene..lastScene
+
+    override val diff
+        get() = high - low
 }
 
 /**
@@ -379,4 +391,12 @@ fun List<Range>.merged(): List<Range> {
         result.add(accumulator)
     }
     return result.toList()
+}
+
+fun main(){
+    val a = UnicastRange(
+        UnicastAddress(minUnicastAddress),
+        UnicastAddress(maxUnicastAddress)
+    )
+    print(a)
 }

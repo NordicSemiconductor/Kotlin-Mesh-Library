@@ -177,10 +177,8 @@ class MeshNetwork internal constructor(
     )
     fun add(provisioner: Provisioner) {
         add(
-            provisioner = provisioner,
-            address = nextAvailableUnicastAddress(
-                elementCount = 1,
-                provisioner = provisioner
+            provisioner = provisioner, address = nextAvailableUnicastAddress(
+                elementCount = 1, provisioner = provisioner
             ) ?: throw NoAddressesAvailable()
         )
     }
@@ -225,17 +223,12 @@ class MeshNetwork internal constructor(
         // Add the provisioner's node
         address?.let { unicastAddress ->
             val node = Node(
-                provisioner,
-                Crypto.generateRandomKey(),
-                unicastAddress,
-                listOf(
+                provisioner, Crypto.generateRandomKey(), unicastAddress, listOf(
                     Element(
                         Location.UNKNOWN,
                         listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
                     )
-                ),
-                _networkKeys,
-                _applicationKeys
+                ), _networkKeys, _applicationKeys
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
@@ -366,9 +359,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
     fun add(
-        name: String,
-        key: ByteArray = Crypto.generateRandomKey(),
-        index: KeyIndex? = null
+        name: String, key: ByteArray = Crypto.generateRandomKey(), index: KeyIndex? = null
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
@@ -577,9 +568,7 @@ class MeshNetwork internal constructor(
     fun add(group: Group) {
         require(!_groups.contains(group)) { throw GroupAlreadyExists() }
         require(group.network == null) { throw DoesNotBelongToNetwork() }
-        _groups.add(
-            group.also { it.network = this }
-        ).also { updateTimestamp() }
+        _groups.add(group.also { it.network = this }).also { updateTimestamp() }
     }
 
     /**
@@ -617,15 +606,14 @@ class MeshNetwork internal constructor(
     @Throws(SceneAlreadyExists::class)
     fun add(name: String, number: SceneNumber): Scene {
         require(_scenes.map { it.number }.none { it == number }) { throw SceneAlreadyExists() }
-        return Scene(_name = name, number = number)
-            .apply {
-                network = this@MeshNetwork
-            }.also { scene ->
-                _scenes.apply {
-                    add(scene)
-                }.sortBy { it.number }
-                updateTimestamp()
-            }
+        return Scene(_name = name, number = number).apply {
+            network = this@MeshNetwork
+        }.also { scene ->
+            _scenes.apply {
+                add(scene)
+            }.sortBy { it.number }
+            updateTimestamp()
+        }
     }
 
     /**
@@ -639,9 +627,7 @@ class MeshNetwork internal constructor(
     internal fun add(scene: Scene) {
         require(!_scenes.contains(scene)) { throw SceneAlreadyExists() }
         require(scene.network == null) { throw DoesNotBelongToNetwork() }
-        _scenes.add(
-            scene.also { it.network = this }
-        ).also { updateTimestamp() }
+        _scenes.add(scene.also { it.network = this }).also { updateTimestamp() }
     }
 
     /**
@@ -691,11 +677,9 @@ class MeshNetwork internal constructor(
      */
     fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
         val range = UnicastRange(address, (address + node.elementsCount))
-        return nodes
-            .filter { it.uuid != node.uuid }
+        return nodes.filter { it.uuid != node.uuid }
             .none { it.containsElementsWithAddress(range) } && !_networkExclusions.contains(
-            range,
-            ivIndex
+            range, ivIndex
         )
     }
 
@@ -716,14 +700,10 @@ class MeshNetwork internal constructor(
         require(provisioner._allocatedUnicastRanges.isNotEmpty()) {
             throw NoUnicastRangeAllocated()
         }
-        val excludedAddresses = _networkExclusions
-            .sortedBy { it.ivIndex }
-            .flatMap { it._addresses }
+        val excludedAddresses = _networkExclusions.sortedBy { it.ivIndex }.flatMap { it._addresses }
 
-        val addressesInUse = nodes
-            .flatMap { it.elements }
-            .map { it.unicastAddress }
-            .sortedBy { it.address }
+        val addressesInUse =
+            nodes.flatMap { it.elements }.map { it.unicastAddress }.sortedBy { it.address }
 
         val totalAddressesInUse = excludedAddresses + addressesInUse
 
@@ -834,6 +814,161 @@ class MeshNetwork internal constructor(
         }
         // No scene number was found :(
         return null
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available unicast address range or null if there are no available ranges.
+     */
+    fun nextAvailableUnicastAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+        size = rangeSize,
+        bound = UnicastRange(
+            UnicastAddress(minUnicastAddress),
+            UnicastAddress(maxUnicastAddress)
+        ),
+        ranges = provisioners.flatMap { it.allocatedUnicastRanges }.sortedBy { it.low }
+    )?.let {
+        it as UnicastRange
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available group address range or null if there are no available ranges.
+     */
+    fun nextAvailableGroupAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+        size = rangeSize,
+        bound = GroupRange(
+            GroupAddress(minGroupAddress),
+            GroupAddress(maxGroupAddress)
+        ),
+        ranges = provisioners.flatMap { it.allocatedGroupRanges }.sortedBy { it.low }
+    )?.let {
+        it as GroupRange
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available group address range or null if there are no available ranges.
+     */
+    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableAddressRange(
+        size = rangeSize,
+        bound = GroupRange(
+            GroupAddress(minGroupAddress),
+            GroupAddress(maxGroupAddress)
+        ),
+        ranges = provisioners.flatMap { it.allocatedGroupRanges }.sortedBy { it.low }
+    )?.let {
+        it as GroupRange
+    }
+
+    /**
+     * Returns the next available address range.
+     *
+     * @param size Size of the range to be allocated.
+     * @param bound Allocated range that will be bound to this provisioner.
+     * @param ranges Allocated ranges.
+     */
+    private fun getNextAvailableAddressRange(
+        size: Int, bound: AddressRange, ranges: List<AddressRange>
+    ): AddressRange? {
+        var bestRange: AddressRange? = null
+        var lastUpperBound = (bound.lowAddress.address - 1u).toInt()
+
+        // Go through all ranges looking for a gaps.
+        for (range in ranges) {
+            // If there is a space available before this range, return it.
+            if (lastUpperBound + size < range.lowAddress.address.toInt())
+                return createRange(
+                    bound,
+                    (lastUpperBound + 1).toUShort(),
+                    (lastUpperBound + size).toUShort()
+                )
+
+            // If the space exists, but it's not as big as requested, compare
+            // it with the best range so far and replace if it's bigger.
+            if (range.lowAddress.address.toInt() - lastUpperBound > 1) {
+                val newRange = createRange(
+                    bound,
+                    (lastUpperBound + 1).toUShort(),
+                    (range.lowAddress.address.toInt() - 1).toUShort()
+                )
+
+                if (bestRange == null || newRange.diff > bestRange.diff) {
+                    bestRange = newRange
+                }
+            }
+            lastUpperBound = range.highAddress.address.toInt()
+        }
+        // If if we didn't return earlier, check after the last range and if the requested size
+        // hasn't been found, return the best found.
+        return if (lastUpperBound + size < bound.highAddress.address.toInt()) {
+            createRange(
+                bound,
+                (lastUpperBound + 1).toUShort(),
+                (lastUpperBound + size - 1).toUShort()
+            )
+        } else bestRange // The gap of requested size hasn't been found. Return the best found.
+    }
+
+    /**
+     * Returns the next available scene range.
+     *
+     * @param size Size of the range to be allocated.
+     * @param bound Allocated range that will be bound to this provisioner.
+     * @param ranges Allocated ranges.
+     */
+    private fun getNextAvailableSceneRange(
+        size: Int, bound: SceneRange, ranges: List<SceneRange>
+    ): SceneRange? {
+        var bestRange: SceneRange? = null
+        var lastUpperBound = (bound.firstScene - 1u).toInt()
+
+        // Go through all ranges looking for a gaps.
+        for (range in ranges) {
+            // If there is a space available before this range, return it.
+            if (lastUpperBound + size < range.firstScene.toInt())
+                return SceneRange(
+                    (lastUpperBound + 1),
+                    (lastUpperBound + size)
+                )
+
+            // If the space exists, but it's not as big as requested, compare
+            // it with the best range so far and replace if it's bigger.
+            if (range.firstScene.toInt() - lastUpperBound > 1) {
+                val newRange = SceneRange(
+                    (lastUpperBound + 1).toUShort(),
+                    (range.firstScene - 1u).toUShort()
+                )
+
+                if (bestRange == null || newRange.diff > bestRange.diff) {
+                    bestRange = newRange
+                }
+            }
+            lastUpperBound = range.firstScene.toInt()
+        }
+        // If if we didn't return earlier, check after the last range and if the requested size
+        // hasn't been found, return the best found.
+        return if (lastUpperBound + size < bound.firstScene.toInt()) {
+            SceneRange((lastUpperBound + 1).toUShort(), (lastUpperBound + size - 1).toUShort())
+        } else bestRange // The gap of requested size hasn't been found. Return the best found.
+    }
+
+    /**
+     * Creates an address rang.
+     *
+     * @param bound Address range bound.
+     * @param low Low address.
+     * @param high High address.
+     */
+    private fun createRange(bound: AddressRange, low: Address, high: UShort) = when (bound) {
+        is UnicastRange -> UnicastRange(UnicastAddress(low), UnicastAddress(high))
+        is GroupRange -> GroupRange(GroupAddress(low), GroupAddress(high))
     }
 
     internal fun apply(config: NetworkConfiguration) = when (config) {
@@ -1062,8 +1197,7 @@ class MeshNetwork internal constructor(
          *  @param action Lambda to be invoked if the [newValue] is not the same as [oldValue].
          */
         internal fun <T> onChange(oldValue: T, newValue: T, action: () -> Unit) {
-            if (newValue != oldValue)
-                action()
+            if (newValue != oldValue) action()
         }
     }
 }
