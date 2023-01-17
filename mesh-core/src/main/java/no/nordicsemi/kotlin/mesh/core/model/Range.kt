@@ -125,16 +125,16 @@ sealed class Range {
      */
     operator fun minus(other: Range): List<Range> {
         var result = listOf<Range>()
-        // Left:   |------------|                    |-----------|                 |---------|
-        //                  -                              -                            -
-        // Right:      |-----------------|   or                     |---|   or        |----|
-        //                  =                              =                            =
-        // Result: |---|                             |-----------|                 |--|
-        // Left:   |------------|                    |-----------|                 |---------|
-        //                  -                              -                            -
-        // Right:      |-----------------|   or                     |---|   or        |----|
-        //                  =                              =                            =
-        // Result: |---|                             |-----------|                 |--|
+        // Left:   |------------|                  |-----------|                 |---------|
+        //                  -                            -                            -
+        // Right:      |-----------------|   or                   |---|   or        |----|
+        //                  =                            =                            =
+        // Result: |---|                           |-----------|                 |--|
+        // Left:   |------------|                  |-----------|                 |---------|
+        //                  -                            -                            -
+        // Right:      |-----------------|   or                   |---|   or        |----|
+        //                  =                            =                            =
+        // Result: |---|                           |-----------|                 |--|
         if (other.low > low) {
             result = result + when {
                 this is UnicastRange && other is UnicastRange ->
@@ -152,11 +152,11 @@ sealed class Range {
                 )
             }
         }
-        // Left:                |----------|             |-----------|                     |--------|
-        //                         -                          -                             -
-        // Right:      |----------------|           or       |----|          or     |---|
-        //                         =                          =                             =
-        // Result:                      |--|                      |--|                     |--------|
+        // Left:                |----------|             |-----------|                   |--------|
+        //                         -                          -                           -
+        // Right:      |----------------|           or       |----|        or     |---|
+        //                         =                          =                           =
+        // Result:                      |--|                      |--|                   |--------|
         if (other.high < high) {
             result = result + when {
                 this is UnicastRange && other is UnicastRange ->
