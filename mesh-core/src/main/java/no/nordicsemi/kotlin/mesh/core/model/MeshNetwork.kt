@@ -10,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import java.lang.Integer.min
 import java.util.*
 
 /**
@@ -892,11 +893,12 @@ class MeshNetwork internal constructor(
 
             // If the space exists, but it's not as big as requested, compare
             // it with the best range so far and replace if it's bigger.
-            if (range.lowAddress.address.toInt() - lastUpperBound > 1) {
+            val availableSize = range.lowAddress.address.toInt() - lastUpperBound - 1
+            if (availableSize > 0) {
                 val newRange = createRange(
                     bound,
                     (lastUpperBound + 1).toUShort(),
-                    (range.lowAddress.address.toInt() - 1).toUShort()
+                    (lastUpperBound + availableSize).toUShort()
                 )
 
                 if (bestRange == null || newRange.diff > bestRange.diff) {
@@ -907,11 +909,13 @@ class MeshNetwork internal constructor(
         }
         // If if we didn't return earlier, check after the last range and if the requested size
         // hasn't been found, return the best found.
-        return if (lastUpperBound + size < bound.highAddress.address.toInt()) {
+        val availableSize = bound.highAddress.address.toInt() - lastUpperBound
+        val bestSize = bestRange?.diff?.toInt() ?: 0
+        return if (availableSize > bestSize) {
             createRange(
                 bound,
                 (lastUpperBound + 1).toUShort(),
-                (lastUpperBound + size - 1).toUShort()
+                (lastUpperBound + min(size, availableSize)).toUShort()
             )
         } else bestRange // The gap of requested size hasn't been found. Return the best found.
     }
@@ -966,7 +970,7 @@ class MeshNetwork internal constructor(
      * @param low Low address.
      * @param high High address.
      */
-    private fun createRange(bound: AddressRange, low: Address, high: UShort) = when (bound) {
+    private fun createRange(bound: AddressRange, low: Address, high: Address) = when (bound) {
         is UnicastRange -> UnicastRange(UnicastAddress(low), UnicastAddress(high))
         is GroupRange -> GroupRange(GroupAddress(low), GroupAddress(high))
     }
