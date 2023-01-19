@@ -22,8 +22,8 @@ fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).upp
     }
 }
 
-internal const val minUnicastAddress: Address = 0x0001u
-internal const val maxUnicastAddress: Address = 0x7FFFu
+const val minUnicastAddress: Address = 0x0001u
+const val maxUnicastAddress: Address = 0x7FFFu
 
 //TODO is this really needed?
 private const val minVirtualAddress: Address = 0x8000u

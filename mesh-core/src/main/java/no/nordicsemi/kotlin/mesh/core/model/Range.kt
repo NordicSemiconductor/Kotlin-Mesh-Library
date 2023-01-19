@@ -192,7 +192,7 @@ sealed class AddressRange : Range() {
     override val range
         get() = lowAddress.address..highAddress.address
     override val diff
-        get() = high - low
+        get() = highAddress.address - lowAddress.address
 }
 
 /**
