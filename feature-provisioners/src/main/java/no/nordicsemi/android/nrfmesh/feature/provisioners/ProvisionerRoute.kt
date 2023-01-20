@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -15,11 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -30,7 +33,6 @@ import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import kotlin.math.roundToInt
 
 @Composable
 internal fun ProvisionerRoute(
@@ -388,7 +390,6 @@ private fun Ranges(
     ranges: List<Range>,
     otherRanges: List<Range>,
 ) {
-    var parentSize by remember { mutableStateOf(0f) }
     Row(
         modifier = Modifier
             .padding(top = 16.dp)
@@ -410,50 +411,44 @@ private fun Ranges(
             maxLines = 1,
             overflow = titleTextOverflow
         )
-        Box(
+        val ownRangeColor = MaterialTheme.colorScheme.primary
+        val otherRangeColor = Color.DarkGray
+        val conflictingColor = Color.Red
+        Canvas(
             modifier = Modifier
                 .weight(weight = 2f, fill = true)
                 .padding(start = 16.dp)
                 .height(height = 20.dp)
                 .border(width = 0.5.dp, color = MaterialTheme.colorScheme.tertiary)
                 .background(color = Color.LightGray)
-                //.onSizeChanged { parentSize = it }
-                .onGloballyPositioned { parentSize = it.size.width.toFloat() }
-
         ) {
             // Mark own ranges
-            MarkRanges(
-                parentSize = parentSize,
-                color = MaterialTheme.colorScheme.primary,
+            markRanges(
+                color = ownRangeColor,
                 ranges = ranges
             )
             // Mark other provisioners' ranges
-            MarkRanges(
-                parentSize = parentSize,
-                color = Color.DarkGray,
+            markRanges(
+                color = otherRangeColor,
                 ranges = otherRanges
             )
             // Mark conflicting ranges
-            MarkRanges(
-                parentSize = parentSize,
-                color = Color.Red,
+            markRanges(
+                color = conflictingColor,
                 ranges = ranges.intersect(otherRanges.toSet()).toList()
             )
         }
     }
 }
 
-@Composable
-private fun MarkRanges(
-    parentSize: Float,
+private fun DrawScope.markRanges(
     color: Color,
     ranges: List<Range>
 ) {
     ranges.forEach { range ->
         when (range) {
             is UnicastRange -> {
-                MarkRange(
-                    width = parentSize,
+                markRange(
                     color = color,
                     lowAddress = range.lowAddress.address.toInt(),
                     highAddress = range.highAddress.address.toInt(),
@@ -462,8 +457,7 @@ private fun MarkRanges(
                 )
             }
             is GroupRange -> {
-                MarkRange(
-                    width = parentSize,
+                markRange(
                     color = color,
                     lowAddress = range.lowAddress.address.toInt(),
                     highAddress = range.highAddress.address.toInt(),
@@ -472,8 +466,7 @@ private fun MarkRanges(
                 )
             }
             is SceneRange -> {
-                MarkRange(
-                    width = parentSize,
+                markRange(
                     color = color,
                     lowAddress = range.firstScene.toInt(),
                     highAddress = range.lastScene.toInt(),
@@ -485,30 +478,21 @@ private fun MarkRanges(
     }
 }
 
-
-@Composable
-private fun MarkRange(
-    width: Float,
+private fun DrawScope.markRange(
     color: Color,
     lowAddress: Int,
     highAddress: Int,
     lowerBound: Int,
     upperBound: Int
 ) {
-    // Address range as pixels unit
-    val unit = width / (upperBound - lowerBound).toFloat()
-    // Calculates the offset from the left side of the parent composable.
-    val offset = with(LocalDensity.current) {
-        ((lowAddress - lowerBound).toFloat() * unit) / density
+    size.let { size ->
+        val rangeWidth = size.width * (highAddress - lowAddress) / (upperBound - lowerBound)
+        val rangeStart = size.width * (lowAddress - lowerBound) / (upperBound - lowerBound)
+        drawRect(
+            color = color,
+            topLeft = Offset(x = rangeStart, y = 0f),
+            size = Size(width = rangeWidth.inc(), height = size.height),
+            style = Fill
+        )
     }
-    // Calculates the fraction of the width to be filled in the parent composable.
-    val fraction = (highAddress - lowAddress).toFloat() / (upperBound - lowerBound).toFloat()
-    // Marks the range in the parent composable.
-    Box(
-        modifier = Modifier
-            .offset(x = offset.roundToInt().dp)
-            .fillMaxWidth(fraction = fraction)
-            .fillMaxHeight()
-            .background(color = color)
-    )
 }
