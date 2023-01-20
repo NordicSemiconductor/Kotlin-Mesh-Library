@@ -13,14 +13,16 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,6 +30,7 @@ import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import kotlin.math.roundToInt
 
 @Composable
 internal fun ProvisionerRoute(
@@ -105,6 +108,7 @@ private fun ProvisionerInfo(
     LazyColumn(
         contentPadding = padding,
         modifier = Modifier
+            .padding(end = 16.dp)
             .fillMaxSize()
     ) {
         provisioner.run {
@@ -347,117 +351,132 @@ private fun DeviceKey(key: ByteArray?) {
 
 @Composable
 private fun UnicastRange(ranges: List<UnicastRange>, otherRanges: List<UnicastRange>) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Lan,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    Ranges(
+        imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_unicast_range),
-        trailingComposable = { Range(ranges = ranges, otherRanges = otherRanges) }
+        ranges = ranges,
+        otherRanges = otherRanges
     )
 }
 
 @Composable
 private fun GroupRange(ranges: List<GroupRange>, otherRanges: List<GroupRange>) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.GroupWork,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    Ranges(
+        imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_group_range),
-        trailingComposable = { Range(ranges = ranges, otherRanges = otherRanges) }
+        ranges = ranges,
+        otherRanges = otherRanges
     )
 }
 
 
 @Composable
 private fun SceneRange(ranges: List<SceneRange>, otherRanges: List<SceneRange>) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.AutoAwesome,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    Ranges(
+        imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_range),
-        trailingComposable = { Range(ranges = ranges, otherRanges = otherRanges) }
+        ranges = ranges,
+        otherRanges = otherRanges
     )
 }
 
 @Composable
-private fun Range(ranges: List<Range>, otherRanges: List<Range> = listOf()) {
-    var parentSize by remember { mutableStateOf(Size.Zero) }
-    Box(
+private fun Ranges(
+    imageVector: ImageVector,
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    ranges: List<Range>,
+    otherRanges: List<Range>,
+) {
+    var parentSize by remember { mutableStateOf(0f) }
+    Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .height(height = 20.dp)
-            .fillMaxWidth(0.5f)
-            .border(width = 0.5.dp, color = MaterialTheme.colorScheme.tertiary)
-            .background(color = Color.LightGray)
-            .onGloballyPositioned { parentSize = it.size.toSize() }
-
+            .padding(top = 16.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Mark own range
-        MarkRange(
-            parentSize = parentSize,
-            color = MaterialTheme.colorScheme.primary,
-            ranges = ranges
+        Icon(
+            modifier = Modifier.padding(end = 16.dp),
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = LocalContentColor.current.copy(alpha = 0.6f)
         )
-        // Mark other ranges
-        MarkRange(
-            parentSize = parentSize,
-            color = Color.DarkGray,
-            ranges = otherRanges
+        Text(
+            modifier = Modifier
+                .weight(weight = 2f, fill = true)
+                .padding(end = 16.dp),
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = titleTextOverflow
         )
-        // Mark conflicting ranges
-        MarkConflictingRange(parentSize = parentSize, ranges = ranges, otherRanges = otherRanges)
+        Box(
+            modifier = Modifier
+                .weight(weight = 2f, fill = true)
+                .padding(start = 16.dp)
+                .height(height = 20.dp)
+                .border(width = 0.5.dp, color = MaterialTheme.colorScheme.tertiary)
+                .background(color = Color.LightGray)
+                //.onSizeChanged { parentSize = it }
+                .onGloballyPositioned { parentSize = it.size.width.toFloat() }
+
+        ) {
+            // Mark own ranges
+            MarkRanges(
+                parentSize = parentSize,
+                color = MaterialTheme.colorScheme.primary,
+                ranges = ranges
+            )
+            // Mark other provisioners' ranges
+            MarkRanges(
+                parentSize = parentSize,
+                color = Color.DarkGray,
+                ranges = otherRanges
+            )
+            // Mark conflicting ranges
+            MarkRanges(
+                parentSize = parentSize,
+                color = Color.Red,
+                ranges = ranges.intersect(otherRanges.toSet()).toList()
+            )
+        }
     }
 }
 
 @Composable
-private fun MarkRange(
-    parentSize: Size,
+private fun MarkRanges(
+    parentSize: Float,
     color: Color,
     ranges: List<Range>
 ) {
-    ranges.forEach {
-        when (it) {
+    ranges.forEach { range ->
+        when (range) {
             is UnicastRange -> {
                 MarkRange(
-                    parentSize = parentSize,
+                    width = parentSize,
                     color = color,
-                    low = it.lowAddress.address.toInt(),
-                    high = it.highAddress.address.toInt(),
-                    lowerBound = 0x0001u.toInt(),
-                    upperBound = 0x7FFFu.toInt()
+                    lowAddress = range.lowAddress.address.toInt(),
+                    highAddress = range.highAddress.address.toInt(),
+                    lowerBound = minUnicastAddress.toInt(),
+                    upperBound = maxUnicastAddress.toInt()
                 )
             }
             is GroupRange -> {
                 MarkRange(
-                    parentSize = parentSize,
+                    width = parentSize,
                     color = color,
-                    low = it.lowAddress.address.toInt(),
-                    high = it.highAddress.address.toInt(),
+                    lowAddress = range.lowAddress.address.toInt(),
+                    highAddress = range.highAddress.address.toInt(),
                     lowerBound = 0xC000u.toInt(),
                     upperBound = 0xFEFFu.toInt()
                 )
             }
             is SceneRange -> {
                 MarkRange(
-                    parentSize = parentSize,
+                    width = parentSize,
                     color = color,
-                    low = it.firstScene.toInt(),
-                    high = it.lastScene.toInt(),
+                    lowAddress = range.firstScene.toInt(),
+                    highAddress = range.lastScene.toInt(),
                     lowerBound = 0x0001u.toInt(),
                     upperBound = 0xFFFFu.toInt()
                 )
@@ -466,69 +485,29 @@ private fun MarkRange(
     }
 }
 
-@Composable
-private fun MarkConflictingRange(
-    parentSize: Size,
-    ranges: List<Range>,
-    otherRanges: List<Range>
-) {
-    ranges.forEach { range ->
-        otherRanges.forEach { otherRange ->
-            when {
-                range is UnicastRange && otherRange is UnicastRange -> {
-                    if (range.overlaps(otherRange))
-                        MarkRange(
-                            parentSize = parentSize,
-                            color = Color.Red,
-                            low = otherRange.lowAddress.address.toInt(),
-                            high = otherRange.highAddress.address.toInt(),
-                            lowerBound = 0x0001u.toInt(),
-                            upperBound = 0x7FFFu.toInt()
-                        )
-                }
-                range is GroupRange && otherRange is GroupRange -> {
-                    if (range.overlaps(otherRange))
-                        MarkRange(
-                            parentSize = parentSize,
-                            color = Color.Red,
-                            low = otherRange.lowAddress.address.toInt(),
-                            high = otherRange.highAddress.address.toInt(),
-                            lowerBound = 0xC000u.toInt(),
-                            upperBound = 0xFEFFu.toInt()
-                        )
-                }
-                range is SceneRange && otherRange is SceneRange -> {
-                    if (range.overlaps(otherRange))
-                        MarkRange(
-                            parentSize = parentSize,
-                            color = Color.Red,
-                            low = otherRange.firstScene.toInt(),
-                            high = otherRange.lastScene.toInt(),
-                            lowerBound = 0x0001u.toInt(),
-                            upperBound = 0xFFFFu.toInt()
-                        )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun MarkRange(
-    parentSize: Size,
+    width: Float,
     color: Color,
-    low: Int,
-    high: Int,
+    lowAddress: Int,
+    highAddress: Int,
     lowerBound: Int,
     upperBound: Int
 ) {
-    val unit = parentSize.width / (upperBound - lowerBound).toFloat()
-    val start = (low - lowerBound) * unit
-    val end = (high - lowerBound) * unit
+    // Address range as pixels unit
+    val unit = width / (upperBound - lowerBound).toFloat()
+    // Calculates the offset from the left side of the parent composable.
+    val offset = with(LocalDensity.current) {
+        ((lowAddress - lowerBound).toFloat() * unit) / density
+    }
+    // Calculates the fraction of the width to be filled in the parent composable.
+    val fraction = (highAddress - lowAddress).toFloat() / (upperBound - lowerBound).toFloat()
+    // Marks the range in the parent composable.
     Box(
         modifier = Modifier
-            .offset(x = start.dp)
-            .width(width = (end - start).dp)
+            .offset(x = offset.roundToInt().dp)
+            .fillMaxWidth(fraction = fraction)
             .fillMaxHeight()
             .background(color = color)
     )

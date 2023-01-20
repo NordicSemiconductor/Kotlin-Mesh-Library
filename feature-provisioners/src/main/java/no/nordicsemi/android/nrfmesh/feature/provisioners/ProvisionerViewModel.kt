@@ -30,7 +30,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
             ProvisionerScreenUiState(
                 provisionerState = ProvisionerState.Success(
                     provisioner = provisioner,
-                    otherProvisioners = network.provisioners.filterNot { it == provisioner }
+                    otherProvisioners = network.provisioners.filter { it != provisioner }
                 )
             )
         } ?: ProvisionerScreenUiState(
