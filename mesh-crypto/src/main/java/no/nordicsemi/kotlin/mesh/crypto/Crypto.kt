@@ -30,6 +30,7 @@ object Crypto {
     private val id6 = "id6".encodeToByteArray()
     private val NKIK = "nkik".encodeToByteArray()
     private val NKBK = "nkbk".encodeToByteArray()
+    private val NKPK = "nkpk".encodeToByteArray()
     private val ID128 = "id128".encodeToByteArray()
     private val VTAD = "vtad".encodeToByteArray()
 
@@ -55,11 +56,12 @@ object Crypto {
     }
 
     /**
-     * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey and BeaconKey for a given NetworkKey
+     * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
+     * PrivateBeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
      * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
-     * @return a Pair(first = Triple(NID, EncryptionKey, PrivacyKey), second = Triple(NetworkID, IdentityKey, BeaconKey)).
+     * @return Key Derivatives.
      */
     fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
         val k2 = k2(N = N, P = P ?: byteArrayOf(0x00))
@@ -69,7 +71,8 @@ object Crypto {
             privacyKey = k2.third,
             networkId = calculateNetworkId(N = N),
             identityKey = calculateIdentityKey(N = N),
-            beaconKey = calculateBeaconKey(N = N)
+            beaconKey = calculateBeaconKey(N = N),
+            privateBeaconKey = calculatePrivateBeaconKey(N = N)
         )
     }
 
@@ -228,6 +231,20 @@ object Crypto {
      */
     private fun calculateBeaconKey(N: ByteArray): ByteArray {
         val s1 = salt(NKBK)
+        val P = ID128 + 0x01
+        return k1(N = N, SALT = s1, P = P)
+    }
+
+    /**
+     * Calculates the 128-bit PrivateBeaconKey
+     * The PrivateBeaconKey is derived from the network key such that each network key generates
+     * one PrivateBeaconKey.
+     *
+     * @param N     128-bit Network key.
+     * @return 128-bit key T.
+     */
+    private fun calculatePrivateBeaconKey(N: ByteArray): ByteArray {
+        val s1 = salt(NKPK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
