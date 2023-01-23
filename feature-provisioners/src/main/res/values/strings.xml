@@ -24,8 +24,4 @@
     <string name="label_group_range">Group Range</string>
     <string name="label_scene_range">Scene Range</string>
     <string name="label_unknown">Unknown</string>
-    <string name="not_allocated">Not allocated</string>
-    <string name="allocated_to_this_provisioner">Allocated to this provisioner</string>
-    <string name="allocated_to_another_provisioner">Allocated to another provisioner</string>
-    <string name="conflicting_with_another_provisioner">Conflicting with another provisioner</string>
 </resources>

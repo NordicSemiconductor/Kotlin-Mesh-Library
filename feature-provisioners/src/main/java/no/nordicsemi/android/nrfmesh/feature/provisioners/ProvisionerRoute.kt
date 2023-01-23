@@ -5,7 +5,6 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -14,18 +13,15 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -153,7 +149,8 @@ private fun ProvisionerInfo(
             }
             item {
                 Divider(modifier = Modifier.padding(vertical = 20.dp))
-                RangeLegends()
+                AddressRangeLegends()
+                Spacer(modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -391,59 +388,48 @@ private fun SceneRange(ranges: List<SceneRange>, otherRanges: List<SceneRange>) 
 private fun Ranges(
     imageVector: ImageVector,
     title: String,
-    titleTextOverflow: TextOverflow = TextOverflow.Clip,
     ranges: List<Range>,
     otherRanges: List<Range>,
 ) {
-    Row(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier.padding(end = 16.dp),
-            imageVector = imageVector,
-            contentDescription = null,
-            tint = LocalContentColor.current.copy(alpha = 0.6f)
-        )
-        Text(
-            modifier = Modifier
-                .weight(weight = 2f, fill = true)
-                .padding(end = 16.dp),
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            maxLines = 1,
-            overflow = titleTextOverflow
-        )
-        val ownRangeColor = MaterialTheme.colorScheme.primary
-        val otherRangeColor = Color.DarkGray
-        val conflictingColor = Color.Red
-        Canvas(
-            modifier = Modifier
-                .weight(weight = 2f, fill = true)
-                .padding(start = 16.dp)
-                .height(height = 20.dp)
-                .border(width = 0.5.dp, color = MaterialTheme.colorScheme.tertiary)
-                .background(color = Color.LightGray)
-        ) {
-            // Mark own ranges
-            markRanges(
-                color = ownRangeColor,
-                ranges = ranges
+    TwoLineRangeListItem(
+        leadingComposable = {
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
             )
-            // Mark other provisioners' ranges
-            markRanges(
-                color = otherRangeColor,
-                ranges = otherRanges
-            )
-            // Mark conflicting ranges
-            markRanges(
-                color = conflictingColor,
-                ranges = ranges.intersect(otherRanges.toSet()).toList()
-            )
+        },
+        title = title,
+        lineTwo = {
+            val ownRangeColor = MaterialTheme.colorScheme.primary
+            val otherRangeColor = Color.DarkGray
+            val conflictingColor = Color.Red
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .height(height = 16.dp)
+                    .background(color = Color.LightGray)
+            ) {
+                // Mark own ranges
+                markRanges(
+                    color = ownRangeColor,
+                    ranges = ranges
+                )
+                // Mark other provisioners' ranges
+                markRanges(
+                    color = otherRangeColor,
+                    ranges = otherRanges
+                )
+                // Mark conflicting ranges
+                markRanges(
+                    color = conflictingColor,
+                    ranges = ranges.intersect(otherRanges.toSet()).toList()
+                )
+            }
         }
-    }
+    )
 }
 
 private fun DrawScope.markRanges(
@@ -498,51 +484,6 @@ private fun DrawScope.markRange(
             topLeft = Offset(x = rangeStart, y = 0f),
             size = Size(width = rangeWidth.inc(), height = size.height),
             style = Fill
-        )
-    }
-}
-
-
-@Composable
-private fun RangeLegends() {
-    Legend(
-        color = Color.White,
-        description = stringResource(R.string.not_allocated)
-    )
-    Legend(
-        color = MaterialTheme.colorScheme.primary,
-        description = stringResource(R.string.allocated_to_this_provisioner)
-    )
-    Legend(
-        color = Color.DarkGray,
-        description = stringResource(R.string.allocated_to_another_provisioner)
-    )
-    Legend(
-        color = Color.Red,
-        description = stringResource(R.string.conflicting_with_another_provisioner)
-    )
-}
-
-@Composable
-private fun Legend(color: Color, description: String) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 24.dp)
-            .padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(size = 16.dp)
-                .background(color = color, shape = RectangleShape)
-        )
-        Text(
-            modifier = Modifier
-                .weight(weight = 2f, fill = true)
-                .padding(start = 16.dp),
-            text = description,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1
         )
     }
 }

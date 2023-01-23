@@ -89,3 +89,63 @@ fun MeshTwoLineListItem(
         trailingComposable()
     }
 }
+
+@Composable
+fun TwoLineRangeListItem(
+    modifier: Modifier = Modifier,
+    leadingComposable: @Composable () -> Unit = {},
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    lineTwo: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingComposable()
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = titleTextOverflow
+            )
+            lineTwo()
+        }
+    }
+}
+
+
+@Composable
+fun SingleLineRangeListItem(
+    modifier: Modifier = Modifier,
+    leadingComposable: @Composable () -> Unit = {},
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    trailingComposable: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingComposable()
+        Text(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp),
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = titleTextOverflow
+        )
+        trailingComposable()
+    }
+}
