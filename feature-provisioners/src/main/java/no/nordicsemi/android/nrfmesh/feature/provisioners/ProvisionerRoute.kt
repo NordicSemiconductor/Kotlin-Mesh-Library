@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -149,6 +150,10 @@ private fun ProvisionerInfo(
                     ranges = provisioner.allocatedSceneRanges,
                     otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges }
                 )
+            }
+            item {
+                Divider(modifier = Modifier.padding(vertical = 20.dp))
+                RangeLegends()
             }
         }
     }
@@ -364,7 +369,7 @@ private fun UnicastRange(ranges: List<UnicastRange>, otherRanges: List<UnicastRa
 @Composable
 private fun GroupRange(ranges: List<GroupRange>, otherRanges: List<GroupRange>) {
     Ranges(
-        imageVector = Icons.Outlined.AutoAwesome,
+        imageVector = Icons.Outlined.GroupWork,
         title = stringResource(id = R.string.label_group_range),
         ranges = ranges,
         otherRanges = otherRanges
@@ -493,6 +498,51 @@ private fun DrawScope.markRange(
             topLeft = Offset(x = rangeStart, y = 0f),
             size = Size(width = rangeWidth.inc(), height = size.height),
             style = Fill
+        )
+    }
+}
+
+
+@Composable
+private fun RangeLegends() {
+    Legend(
+        color = Color.White,
+        description = stringResource(R.string.not_allocated)
+    )
+    Legend(
+        color = MaterialTheme.colorScheme.primary,
+        description = stringResource(R.string.allocated_to_this_provisioner)
+    )
+    Legend(
+        color = Color.DarkGray,
+        description = stringResource(R.string.allocated_to_another_provisioner)
+    )
+    Legend(
+        color = Color.Red,
+        description = stringResource(R.string.conflicting_with_another_provisioner)
+    )
+}
+
+@Composable
+private fun Legend(color: Color, description: String) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size = 16.dp)
+                .background(color = color, shape = RectangleShape)
+        )
+        Text(
+            modifier = Modifier
+                .weight(weight = 2f, fill = true)
+                .padding(start = 16.dp),
+            text = description,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1
         )
     }
 }
