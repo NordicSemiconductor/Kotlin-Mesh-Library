@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import java.util.*
 import javax.inject.Inject
 
@@ -61,8 +62,13 @@ internal class ProvisionerViewModel @Inject internal constructor(
      *
      * @param address New address of the provisioner.
      */
-    internal fun onAddressChanged(address: String) {
-        // TODO incomplete implementation
+    internal fun onAddressChanged(address: String) = runCatching {
+        val newAddress = UnicastAddress(address = address.toInt(16))
+        provisioner.assign(address = newAddress)
+    }.also {
+        it.onSuccess {
+            save()
+        }
     }
 
     /**

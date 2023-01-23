@@ -24,4 +24,6 @@
     <string name="label_group_range">Group Range</string>
     <string name="label_scene_range">Scene Range</string>
     <string name="label_unknown">Unknown</string>
+    <string name="address_not_in_allocated_range">Address not in allocated range!</string>
+    <string name="address_already_in_use">Address already in use!</string>
 </resources>

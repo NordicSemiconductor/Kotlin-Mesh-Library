@@ -26,9 +26,10 @@ fun MeshOutlinedTextField(
     onValueChanged: (String) -> Unit,
     internalTrailingIcon: @Composable (() -> Unit)? = null,
     readOnly: Boolean = false,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
+    isError:Boolean = regex != null && !regex.matches(value),
     content: @Composable () -> Unit = {},
 ) {
     val requester = remember { FocusRequester() }
@@ -53,10 +54,10 @@ fun MeshOutlinedTextField(
             placeholder = placeholder,
             trailingIcon = internalTrailingIcon,
             readOnly = readOnly,
-            isError = regex != null && !regex.matches(value),
+            isError = isError,
             singleLine = true,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions
         )
         content()
     }

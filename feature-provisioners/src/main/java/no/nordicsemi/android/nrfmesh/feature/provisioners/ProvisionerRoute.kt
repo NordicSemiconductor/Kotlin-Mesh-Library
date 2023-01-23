@@ -1,4 +1,7 @@
-@file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(
+    ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
@@ -7,12 +10,14 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -21,13 +26,18 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
@@ -52,7 +62,7 @@ internal fun ProvisionerRoute(
 private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (String) -> Unit,
+    onAddressChanged: (String) -> Result<Unit>,
     onBackPressed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -78,6 +88,7 @@ private fun ProvisionerScreen(
             }
             is ProvisionerState.Success -> {
                 ProvisionerInfo(
+                    snackbarHostState = snackbarHostState,
                     padding = padding,
                     provisioner = provisionerState.provisioner,
                     otherProvisioners = provisionerState.otherProvisioners,
@@ -97,11 +108,12 @@ private fun ProvisionerScreen(
 
 @Composable
 private fun ProvisionerInfo(
+    snackbarHostState: SnackbarHostState,
     padding: PaddingValues,
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (String) -> Unit
+    onAddressChanged: (String) -> Result<Unit>
 ) {
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     LazyColumn(
@@ -120,11 +132,11 @@ private fun ProvisionerInfo(
             }
             item {
                 UnicastAddress(
+                    snackbarHostState = snackbarHostState,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-                )
+                    isCurrentlyEditable = isCurrentlyEditable
+                ) { isCurrentlyEditable = !isCurrentlyEditable }
             }
             item { Ttl(ttl = node?.defaultTTL) }
             item { DeviceKey(key = provisioner.node?.deviceKey) }
@@ -241,12 +253,17 @@ fun Name(
 
 @Composable
 private fun UnicastAddress(
+    snackbarHostState: SnackbarHostState,
     address: Address?,
-    onAddressChanged: (String) -> Unit,
+    onAddressChanged: (String) -> Result<Unit>,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    var value by rememberSaveable { mutableStateOf(address?.toString() ?: "") }
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
+    var error by rememberSaveable { mutableStateOf(false) }
+    var value by rememberSaveable { mutableStateOf(address?.toHex() ?: "") }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
@@ -262,22 +279,55 @@ private fun UnicastAddress(
                     )
                 },
                 value = value,
-                onValueChanged = { value = it },
+                onValueChanged = {
+                    error = false
+                    value = it
+                },
                 label = { Text(text = stringResource(id = R.string.label_unicast_address)) },
                 internalTrailingIcon = {
-                    IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
+                    IconButton(enabled = value.isNotBlank(), onClick = {
+                        value = ""
+                        error = false
+                    }) {
                         Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
                     }
                 },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters
+                ),
+                regex = Regex("[0-9A-Fa-f]{0,4}"),
+                isError = error,
                 content = {
                     IconButton(
                         modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                        enabled = value.isNotBlank(),
                         onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
+                            keyboardController?.hide()
                             value = value.trim()
-                            onAddressChanged(value)
+                            if (value.isNotEmpty()) {
+                                onAddressChanged(value)
+                                    .onSuccess {
+                                        onEditClick = !onEditClick
+                                        onEditableStateChanged()
+                                    }.onFailure {
+                                        error = true
+                                        showSnackbar(
+                                            scope = scope,
+                                            snackbarHostState = snackbarHostState,
+                                            message = when (it) {
+                                                is AddressNotInAllocatedRanges -> context.getString(
+                                                    R.string.address_not_in_allocated_range
+                                                )
+                                                is AddressAlreadyInUse -> context.getString(
+                                                    R.string.address_already_in_use
+                                                )
+                                                else -> context.getString(R.string.unknown_error)
+                                            }
+                                        )
+                                    }
+                            } else {
+                                onEditClick = !onEditClick
+                                onEditableStateChanged()
+                            }
                         }
                     ) {
                         Icon(
@@ -298,12 +348,14 @@ private fun UnicastAddress(
                     )
                 },
                 title = stringResource(id = R.string.label_unicast_address),
-                subtitle = address?.toString() ?: stringResource(id = R.string.label_not_assigned),
+                subtitle = address?.toHex(prefix0x = true)
+                    ?: stringResource(id = R.string.label_not_assigned),
                 trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
+                            error = false
                             onEditClick = !onEditClick
                             onEditableStateChanged()
                         }
