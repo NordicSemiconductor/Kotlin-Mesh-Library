@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -6,6 +8,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,8 +35,6 @@ import androidx.compose.ui.window.DialogProperties
  *                                      information inside the [text].
  * @param text                          Text which presents the details regarding the dialog's
  *                                      purpose.
- * @param properties                    Typically platform specific properties to further configure
- *                                      the dialog.
  */
 @Composable
 fun MeshAlertDialog(
@@ -44,12 +45,11 @@ fun MeshAlertDialog(
     onDismissClick: () -> Unit,
     icon: ImageVector? = null,
     title: String? = null,
-    text: String? = null,
-    properties: DialogProperties = DialogProperties()
+    text: String? = null
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = properties,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             Button(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }

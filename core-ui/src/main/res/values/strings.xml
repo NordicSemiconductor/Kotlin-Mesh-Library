@@ -10,6 +10,9 @@
     <string name="allocated_to_this_provisioner">Allocated to this provisioner</string>
     <string name="allocated_to_another_provisioner">Allocated to another provisioner</string>
     <string name="conflicting_with_another_provisioner">Conflicting with another provisioner</string>
-    <string name="confirm">Confirm</string>
+    <string name="address_not_in_allocated_range">Address not in allocated range!</string>
+    <string name="address_already_in_use">Address already in use!</string>
     <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="unknown_error">Unknown Error</string>
 </resources>
