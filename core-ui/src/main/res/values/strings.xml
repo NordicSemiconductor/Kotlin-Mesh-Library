@@ -10,4 +10,6 @@
     <string name="allocated_to_this_provisioner">Allocated to this provisioner</string>
     <string name="allocated_to_another_provisioner">Allocated to another provisioner</string>
     <string name="conflicting_with_another_provisioner">Conflicting with another provisioner</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 </resources>
