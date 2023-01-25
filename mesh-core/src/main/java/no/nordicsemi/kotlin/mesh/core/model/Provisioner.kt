@@ -193,48 +193,49 @@ data class Provisioner internal constructor(
      * unicast address assigned, the method will create a Node with the address. This will enable
      * configuration capabilities for the provisioner. The provisioner must be in the mesh network.
      *
-     * @param address Unicast address to assign.
-     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
+     * @param                              address Unicast address to assign.
+     * @throws DoesNotBelongToNetwork      If the provisioner does not belong to this network.
+     * @throws AddressNotInAllocatedRanges If the address is not in the provisioner's allocated
+     *                                     address range.
+     * @throws AddressAlreadyInUse         If the address is already in use
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
-        let { provisioner ->
-            network?.run {
-                require(has(provisioner))
-                var isNewNode = false
-                val node = node(provisioner) ?: Node(
-                    provisioner,
-                    Crypto.generateRandomKey(),
-                    address,
-                    listOf(
-                        Element(
-                            Location.UNKNOWN,
-                            listOf(
-                                Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                                Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                            )
+        network?.run {
+            require(has(this@Provisioner))
+            var isNewNode = false
+            val node = node(this@Provisioner) ?: Node(
+                this@Provisioner,
+                Crypto.generateRandomKey(),
+                address,
+                listOf(
+                    Element(
+                        Location.UNKNOWN,
+                        listOf(
+                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                            Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
                         )
-                    ),
-                    _networkKeys,
-                    _applicationKeys
-                ).apply {
-                    companyIdentifier = 0x00E0u //Google
-                    replayProtectionCount = maxUnicastAddress
-                }.also { isNewNode = true }
+                    )
+                ),
+                _networkKeys,
+                _applicationKeys
+            ).apply {
+                companyIdentifier = 0x00E0u //Google
+                replayProtectionCount = maxUnicastAddress
+            }.also { isNewNode = true }
 
-                // Is it in Provisioner's range?
-                val newRange = UnicastRange(address, node.elementsCount)
-                require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
+            // Is it in Provisioner's range?
+            val newRange = UnicastRange(address, node.elementsCount)
+            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
 
-                // Is there any other node using the address?
-                require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
+            // Is there any other node using the address?
+            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
 
-                when (isNewNode) {
-                    true -> add(node)
-                    else -> node._primaryUnicastAddress = address
-                }
-                updateTimestamp()
+            when (isNewNode) {
+                true -> add(node)
+                else -> node._primaryUnicastAddress = address
             }
+            updateTimestamp()
         }
     }
 
