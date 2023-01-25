@@ -14,11 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.TextFieldValue
 
 @Composable
 fun MeshOutlinedTextField(
     modifier: Modifier = Modifier,
-    onFocus:Boolean = false,
+    onFocus: Boolean = false,
     externalLeadingIcon: @Composable () -> Unit = {},
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
@@ -29,7 +30,7 @@ fun MeshOutlinedTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
-    isError:Boolean = regex != null && !regex.matches(value),
+    isError: Boolean = regex != null && !regex.matches(value),
     content: @Composable () -> Unit = {},
 ) {
     val requester = remember { FocusRequester() }
@@ -47,6 +48,59 @@ fun MeshOutlinedTextField(
                 if (regex == null) {
                     onValueChanged(it)
                 } else if (regex.matches(it)) {
+                    onValueChanged(value)
+                }
+            },
+            label = label,
+            placeholder = placeholder,
+            trailingIcon = internalTrailingIcon,
+            readOnly = readOnly,
+            isError = isError,
+            singleLine = true,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions
+        )
+        content()
+    }
+    SideEffect {
+        if (onFocus) {
+            requester.requestFocus()
+        }
+    }
+}
+
+@Composable
+fun MeshOutlinedTextField(
+    modifier: Modifier = Modifier,
+    onFocus: Boolean = false,
+    externalLeadingIcon: @Composable () -> Unit = {},
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    value: TextFieldValue,
+    onValueChanged: (TextFieldValue) -> Unit,
+    internalTrailingIcon: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    regex: Regex? = null,
+    isError: Boolean = regex != null && !regex.matches(value.text),
+    content: @Composable () -> Unit = {},
+) {
+    val requester = remember { FocusRequester() }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        externalLeadingIcon()
+        OutlinedTextField(
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(requester),
+            value = value,
+            onValueChange = {
+                if (regex == null) {
+                    onValueChanged(it)
+                } else if (regex.matches(it.text)) {
                     onValueChanged(it)
                 }
             },
