@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.android.nrfmesh.feature.network.keys.navigation
 
 import android.net.Uri
@@ -28,7 +30,7 @@ object NetworkKeyDestination : MeshNavigationDestination {
     }
 }
 
-fun NavGraphBuilder.networkKeyGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.networkKeyGraph(onBackPressed: () -> Unit) {
     composable(route = NetworkKeyDestination.route) {
         NetworkKeyRoute(onBackPressed = onBackPressed)
     }

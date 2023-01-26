@@ -15,6 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializ
 @Serializable
 sealed class Range {
     internal abstract val range: UIntRange
+    internal abstract val diff: UInt
     internal val low: UShort
         get() = range.first.toUShort()
     internal val high: UShort
@@ -124,16 +125,16 @@ sealed class Range {
      */
     operator fun minus(other: Range): List<Range> {
         var result = listOf<Range>()
-        // Left:   |------------|                    |-----------|                 |---------|
-        //                  -                              -                            -
-        // Right:      |-----------------|   or                     |---|   or        |----|
-        //                  =                              =                            =
-        // Result: |---|                             |-----------|                 |--|
-        // Left:   |------------|                    |-----------|                 |---------|
-        //                  -                              -                            -
-        // Right:      |-----------------|   or                     |---|   or        |----|
-        //                  =                              =                            =
-        // Result: |---|                             |-----------|                 |--|
+        // Left:   |------------|                  |-----------|                 |---------|
+        //                  -                            -                            -
+        // Right:      |-----------------|   or                   |---|   or        |----|
+        //                  =                            =                            =
+        // Result: |---|                           |-----------|                 |--|
+        // Left:   |------------|                  |-----------|                 |---------|
+        //                  -                            -                            -
+        // Right:      |-----------------|   or                   |---|   or        |----|
+        //                  =                            =                            =
+        // Result: |---|                           |-----------|                 |--|
         if (other.low > low) {
             result = result + when {
                 this is UnicastRange && other is UnicastRange ->
@@ -151,11 +152,11 @@ sealed class Range {
                 )
             }
         }
-        // Left:                |----------|             |-----------|                     |--------|
-        //                         -                          -                             -
-        // Right:      |----------------|           or       |----|          or     |---|
-        //                         =                          =                             =
-        // Result:                      |--|                      |--|                     |--------|
+        // Left:                |----------|             |-----------|                   |--------|
+        //                         -                          -                           -
+        // Right:      |----------------|           or       |----|        or     |---|
+        //                         =                          =                           =
+        // Result:                      |--|                      |--|                   |--------|
         if (other.high < high) {
             result = result + when {
                 this is UnicastRange && other is UnicastRange ->
@@ -190,6 +191,8 @@ sealed class AddressRange : Range() {
 
     override val range
         get() = lowAddress.address..highAddress.address
+    override val diff
+        get() = highAddress.address - lowAddress.address
 }
 
 /**
@@ -212,10 +215,7 @@ data class UnicastRange(
     constructor(
         address: UnicastAddress,
         elementsCount: Int
-    ) : this(
-        lowAddress = address,
-        highAddress = address + (elementsCount - 1)
-    )
+    ) : this(lowAddress = address, highAddress = address + (elementsCount - 1))
 }
 
 /**
@@ -233,7 +233,13 @@ data class UnicastRange(
 data class GroupRange(
     override val lowAddress: GroupAddress,
     override val highAddress: GroupAddress
-) : AddressRange()
+) : AddressRange() {
+
+    constructor(
+        address: GroupAddress,
+        size: Int
+    ) : this(lowAddress = address, highAddress = address + size)
+}
 
 /**
  * The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to
@@ -254,8 +260,14 @@ data class SceneRange(
     val lastScene: SceneNumber
 ) : Range() {
 
+    internal constructor(firstScene: Int, lastScene: Int) :
+            this(firstScene = firstScene.toUShort(), lastScene = lastScene.toUShort())
+
     @Transient
     override var range = firstScene..lastScene
+
+    override val diff
+        get() = high - low
 }
 
 /**

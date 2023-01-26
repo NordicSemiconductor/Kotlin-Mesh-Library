@@ -90,8 +90,8 @@ data class ApplicationKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse()) { throw KeyInUse() }
-        require(key.size == 16) { throw InvalidKeyLength() }
+        require(!isInUse()) { throw KeyInUse }
+        require(key.size == 16) { throw InvalidKeyLength }
         _key = key
     }
 

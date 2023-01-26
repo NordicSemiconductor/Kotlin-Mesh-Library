@@ -46,6 +46,7 @@ import java.util.*
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
+    navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
@@ -58,6 +59,7 @@ fun SettingsRoute(
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
         },
         onNameChanged = viewModel::onNameChanged,
+        onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
@@ -70,6 +72,7 @@ fun SettingsScreen(
     networkState: MeshNetworkState,
     importNetwork: (Uri, ContentResolver) -> Unit,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit,
@@ -105,6 +108,7 @@ fun SettingsScreen(
                             context = context,
                             network = networkState.network,
                             onNameChanged = onNameChanged,
+                            onProvisionersClicked = onProvisionersClicked,
                             onNetworkKeysClicked = onNetworkKeysClicked,
                             onApplicationKeysClicked = onApplicationKeysClicked,
                             onScenesClicked = onScenesClicked
@@ -133,13 +137,19 @@ fun SettingsScreen(
 private fun LazyListScope.settingsInfo(
     context: Context, network: MeshNetwork,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
     item { SectionTitle(title = stringResource(R.string.label_configuration)) }
     item { NetworkNameRow(name = network.name, onNameChanged = onNameChanged) }
-    item { ProvisionersRow(count = network.provisioners.size) }
+    item {
+        ProvisionersRow(
+            count = network.provisioners.size,
+            onProvisionersClicked = onProvisionersClicked
+        )
+    }
     item {
         NetworkKeysRow(
             count = network.networkKeys.size,
@@ -214,7 +224,7 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
                     modifier = Modifier.padding(horizontal = 8.dp),
                     title = stringResource(id = R.string.label_name),
                     subtitle = value,
-                    trailingIcon = {
+                    trailingComposable = {
                         IconButton(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             onClick = {
@@ -235,10 +245,10 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun ProvisionersRow(count: Int) {
+private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
-        leadingIcon = {
+        modifier = Modifier.clickable(onClick = { onProvisionersClicked() }),
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Groups,
@@ -255,7 +265,7 @@ private fun ProvisionersRow(count: Int) {
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onNetworkKeysClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
@@ -272,7 +282,7 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onApplicationKeysClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
@@ -289,7 +299,7 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onScenesClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.AutoAwesome,
@@ -305,7 +315,7 @@ private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
 @Composable
 private fun IvIndexRow(ivIndex: IvIndex) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Tune,
@@ -321,7 +331,7 @@ private fun IvIndexRow(ivIndex: IvIndex) {
 @Composable
 private fun LastModifiedTimeRow(timestamp: Instant) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Update,
@@ -342,7 +352,7 @@ private fun VersionNameRow(context: Context) {
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Subtitles,
@@ -362,7 +372,7 @@ private fun VersionCodeRow(context: Context) {
     MeshTwoLineListItem(
         modifier = Modifier
             .clickable(onClick = { }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.DataObject,

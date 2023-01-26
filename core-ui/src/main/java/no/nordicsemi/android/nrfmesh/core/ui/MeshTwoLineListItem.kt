@@ -52,11 +52,11 @@ fun MeshTwoLineListItem(
 @Composable
 fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
-    leadingIcon: @Composable () -> Unit = {},
+    leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
     subtitle: String = "",
-    trailingIcon: @Composable () -> Unit = {},
+    trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
@@ -66,7 +66,7 @@ fun MeshTwoLineListItem(
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        leadingIcon()
+        leadingComposable()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -86,6 +86,66 @@ fun MeshTwoLineListItem(
                     overflow = subtitleTextOverflow
                 )
         }
-        trailingIcon()
+        trailingComposable()
+    }
+}
+
+@Composable
+fun TwoLineRangeListItem(
+    modifier: Modifier = Modifier,
+    leadingComposable: @Composable () -> Unit = {},
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    lineTwo: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingComposable()
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = titleTextOverflow
+            )
+            lineTwo()
+        }
+    }
+}
+
+
+@Composable
+fun SingleLineRangeListItem(
+    modifier: Modifier = Modifier,
+    leadingComposable: @Composable () -> Unit = {},
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    trailingComposable: @Composable () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingComposable()
+        Text(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp),
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = titleTextOverflow
+        )
+        trailingComposable()
     }
 }

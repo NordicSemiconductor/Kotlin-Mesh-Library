@@ -4,13 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeyDestination
-import no.nordicsemi.android.feature.application.keys.navigation.ApplicationKeysDestination
-import no.nordicsemi.android.feature.application.keys.navigation.applicationKeysGraph
-import no.nordicsemi.android.feature.scenes.navigation.SceneDestination
-import no.nordicsemi.android.feature.scenes.navigation.ScenesDestination
-import no.nordicsemi.android.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
@@ -19,7 +16,13 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeys
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.provisionersGraph
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.navigation.proxyFilterGraph
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
 
 @Composable
@@ -43,7 +46,7 @@ fun MeshNavHost(
                 onNavigateToDestination(ExportDestination, ExportDestination.route)
             },
             navigateToProvisioners = {
-                // onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
+                onNavigateToDestination(ProvisionersDestination, ProvisionersDestination.route)
             },
             navigateToNetworkKeys = {
                 onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
@@ -59,6 +62,17 @@ fun MeshNavHost(
             },
             nestedGraphs = {
                 exportGraph(onBackPressed = onBackPressed)
+                provisionersGraph(
+                    onBackPressed = onBackPressed,
+                    onNavigateToProvisioner = { provisionerUuid ->
+                        onNavigateToDestination(
+                            ProvisionerDestination,
+                            ProvisionerDestination.createNavigationRoute(
+                                provisionerUuid = provisionerUuid
+                            )
+                        )
+                    }
+                )
                 networkKeysGraph(
                     onBackPressed = onBackPressed,
                     onNavigateToNetworkKey = { netKeyIndex ->

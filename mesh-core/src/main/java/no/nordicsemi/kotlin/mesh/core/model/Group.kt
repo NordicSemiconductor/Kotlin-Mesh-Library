@@ -59,7 +59,7 @@ data class Group(
         set(value) {
             value?.let { group ->
                 network?.run {
-                    require(_groups.contains(group)) { throw DoesNotBelongToNetwork() }
+                    require(_groups.contains(group)) { throw DoesNotBelongToNetwork }
                     parentAddress = toParentGroupAddress(group.address)
                 }
             } ?: run {

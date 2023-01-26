@@ -42,13 +42,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-fun NetworkKeysRoute(
+internal fun NetworkKeysRoute(
     viewModel: NetworkKeysViewModel = hiltViewModel(),
     navigateToNetworkKey: (KeyIndex) -> Unit,
     onBackClicked: () -> Unit
@@ -208,7 +207,7 @@ private fun NetworkKeys(
                             modifier = Modifier.clickable {
                                 navigateToApplicationKey(key.index)
                             },
-                            leadingIcon = {
+                            leadingComposable = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     imageVector = Icons.Outlined.VpnKey,
