@@ -85,7 +85,7 @@ data class Provisioner internal constructor(
             require(network.provisioners
                 .filter { it.uuid != uuid }
                 .none { it._allocatedUnicastRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges()
+                throw OverlappingProvisionerRanges
             }
             _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
         } ?: run {
@@ -107,7 +107,7 @@ data class Provisioner internal constructor(
             require(network.provisioners
                 .filter { it.uuid != uuid }
                 .none { it._allocatedGroupRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges()
+                throw OverlappingProvisionerRanges
             }
             _allocatedGroupRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedGroupRanges.add(range) }
@@ -127,7 +127,7 @@ data class Provisioner internal constructor(
             require(network.provisioners
                 .filter { it.uuid != uuid }
                 .none { it._allocatedSceneRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges()
+                throw OverlappingProvisionerRanges
             }
             _allocatedSceneRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedSceneRanges.add(range) }
@@ -226,10 +226,10 @@ data class Provisioner internal constructor(
 
             // Is it in Provisioner's range?
             val newRange = UnicastRange(address, node.elementsCount)
-            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges() }
+            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges }
 
             // Is there any other node using the address?
-            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse() }
+            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse }
 
             when (isNewNode) {
                 true -> add(node)

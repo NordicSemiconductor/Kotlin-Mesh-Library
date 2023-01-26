@@ -180,7 +180,7 @@ class MeshNetwork internal constructor(
         add(
             provisioner = provisioner, address = nextAvailableUnicastAddress(
                 elementCount = 1, provisioner = provisioner
-            ) ?: throw NoAddressesAvailable()
+            ) ?: throw NoAddressesAvailable
         )
     }
 
@@ -195,31 +195,33 @@ class MeshNetwork internal constructor(
      */
     @Throws(OverlappingProvisionerRanges::class)
     fun add(provisioner: Provisioner, address: UnicastAddress?) {
-        require(!_provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists() }
+        require(!_provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists }
         require(provisioner.network == null || provisioner.network == this) {
-            throw DoesNotBelongToNetwork()
+            throw DoesNotBelongToNetwork
         }
 
         for (other in _provisioners) {
             require(!provisioner.hasOverlappingRanges(other)) {
-                throw OverlappingProvisionerRanges()
+                throw OverlappingProvisionerRanges
             }
         }
 
         address?.apply {
             // Is the given address inside provisioner's address range?
             require(provisioner._allocatedUnicastRanges.any { it.contains(this.address) }) {
-                throw AddressNotInAllocatedRanges()
+                throw AddressNotInAllocatedRanges
             }
             // No other node uses the same address?
-            require(!_nodes.any { it.containsElementWithAddress(this) }) { throw AddressAlreadyInUse() }
+            require(!_nodes.any { it.containsElementWithAddress(this) }) {
+                throw AddressAlreadyInUse
+            }
         }
 
         // Is it already added?
         require(!has(provisioner)) { return }
 
         // is there a node with the provisioner's uuid
-        require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists() }
+        require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists }
 
         // Add the provisioner's node
         address?.let { unicastAddress ->
@@ -251,7 +253,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(CannotRemove::class)
     internal fun removeProvisioner(index: Int): Provisioner {
-        require(_provisioners.size > 1) { throw CannotRemove() }
+        require(_provisioners.size > 1) { throw CannotRemove }
 
         val localProvisionerRemoved = index == 0
         val provisioner = _provisioners[index]
@@ -282,7 +284,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
     fun remove(provisioner: Provisioner) {
-        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
         removeProvisioner(_provisioners.indexOf(provisioner))
     }
 
@@ -320,7 +322,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun move(provisioner: Provisioner, to: Int) {
-        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
         _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
             moveProvisioner(from, to)
         }
@@ -364,10 +366,10 @@ class MeshNetwork internal constructor(
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
-            require(_networkKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
+            require(_networkKeys.none { it.index == index }) { throw DuplicateKeyIndex }
         }
         return NetworkKey(
-            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange(),
+            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange,
             _name = name,
             _key = key
         ).apply {
@@ -391,8 +393,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork() }
-        require(!key.isInUse()) { throw KeyInUse() }
+        require(key.network == this) { throw DoesNotBelongToNetwork }
+        require(!key.isInUse()) { throw KeyInUse }
         _networkKeys.remove(key).also { updateTimestamp() }
     }
 
@@ -403,9 +405,7 @@ class MeshNetwork internal constructor(
      * @return Application key.
      * @throws NoSuchElementException if a key for a given key index ws not found.
      */
-    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.first { key ->
-        key.index == keyIndex
-    }
+    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.first { key -> key.index == keyIndex }
 
     /**
      * Adds the given [ApplicationKey] to the list of network keys in the network.
@@ -432,10 +432,10 @@ class MeshNetwork internal constructor(
         }
         if (index != null) {
             // Check if the application key index is not already in use to avoid duplicates.
-            require(_applicationKeys.none { it.index == index }) { throw DuplicateKeyIndex() }
+            require(_applicationKeys.none { it.index == index }) { throw DuplicateKeyIndex }
         }
         return ApplicationKey(
-            index = (index ?: nextAvailableApplicationKeyIndex) ?: throw KeyIndexOutOfRange(),
+            index = (index ?: nextAvailableApplicationKeyIndex) ?: throw KeyIndexOutOfRange,
             _name = name,
             _key = key
         ).apply {
@@ -458,8 +458,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: ApplicationKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork() }
-        require(!key.isInUse()) { throw KeyInUse() }
+        require(key.network == this) { throw DoesNotBelongToNetwork }
+        require(!key.isInUse()) { throw KeyInUse }
         _applicationKeys.remove(key).also { updateTimestamp() }
     }
 
@@ -472,7 +472,7 @@ class MeshNetwork internal constructor(
      *         have an address assigned.
      */
     fun node(provisioner: Provisioner) = try {
-        require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
         require(has(provisioner)) { return null }
         node(provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
@@ -501,12 +501,12 @@ class MeshNetwork internal constructor(
     /**
      * Adds a given [Node] to the list of nodes in the mesh network.
      *
-     * @param node Node to be added to the network.
-     * @throws NodeAlreadyExists if the node already exists.
-     * @throws NoAddressesAvailable if the node is not assigned with an address.
-     * @throws NoNetworkKeysAdded if the node does not contain a network key.
-     * @throws DoesNotBelongToNetwork if the network key in the node does not match the keys in the
-     *                                network.
+     * @param node                         Node to be added to the network.
+     * @throws NodeAlreadyExists           If the node already exists.
+     * @throws NoAddressesAvailable        If the node is not assigned with an address.
+     * @throws NoNetworkKeysAdded          If the node does not contain a network key.
+     * @throws DoesNotBelongToNetwork      If the network key in the node does not match the keys in
+     *                                     the network.
      */
     @Throws(
         NodeAlreadyExists::class,
@@ -516,16 +516,14 @@ class MeshNetwork internal constructor(
     )
     internal fun add(node: Node) {
         // Ensure the node does not exists already.
-        require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists() }
+        require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.
-        require(isAddressAvailable(node.primaryUnicastAddress, node)) {
-            throw NoAddressesAvailable()
-        }
+        require(isAddressAvailable(node.primaryUnicastAddress, node)) { throw NoAddressesAvailable }
         // Ensure the Network Key exists.
-        require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded() }
+        require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
         // Make sure the network contains a Network Key with he same Key Index.
         require(_networkKeys.any { it.index == node.netKeys.first().index }) {
-            throw DoesNotBelongToNetwork()
+            throw DoesNotBelongToNetwork
         }
         _nodes.add(node.also { it.network = this }).also { updateTimestamp() }
     }
@@ -567,8 +565,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
     fun add(group: Group) {
-        require(!_groups.contains(group)) { throw GroupAlreadyExists() }
-        require(group.network == null) { throw DoesNotBelongToNetwork() }
+        require(!_groups.contains(group)) { throw GroupAlreadyExists }
+        require(group.network == null) { throw DoesNotBelongToNetwork }
         _groups.add(group.also { it.network = this }).also { updateTimestamp() }
     }
 
@@ -581,8 +579,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
     fun remove(group: Group) {
-        require(group.network == this) { throw DoesNotBelongToNetwork() }
-        require(!group.isUsed) { throw GroupInUse() }
+        require(group.network == this) { throw DoesNotBelongToNetwork }
+        require(!group.isUsed) { throw GroupInUse }
         _groups.remove(group).also { updateTimestamp() }
     }
 
@@ -606,7 +604,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(SceneAlreadyExists::class)
     fun add(name: String, number: SceneNumber): Scene {
-        require(_scenes.map { it.number }.none { it == number }) { throw SceneAlreadyExists() }
+        require(_scenes.map { it.number }.none { it == number }) { throw SceneAlreadyExists }
         return Scene(_name = name, number = number).apply {
             network = this@MeshNetwork
         }.also { scene ->
@@ -626,8 +624,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
     internal fun add(scene: Scene) {
-        require(!_scenes.contains(scene)) { throw SceneAlreadyExists() }
-        require(scene.network == null) { throw DoesNotBelongToNetwork() }
+        require(!_scenes.contains(scene)) { throw SceneAlreadyExists }
+        require(scene.network == null) { throw DoesNotBelongToNetwork }
         _scenes.add(scene.also { it.network = this }).also { updateTimestamp() }
     }
 
@@ -640,8 +638,8 @@ class MeshNetwork internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun remove(scene: Scene) {
-        require(scene.network == this) { throw DoesNotBelongToNetwork() }
-        require(!scene.isInUse) { throw SceneInUse() }
+        require(scene.network == this) { throw DoesNotBelongToNetwork }
+        require(!scene.isInUse) { throw SceneInUse }
         _scenes.remove(scene).also { updateTimestamp() }
     }
 
@@ -679,9 +677,8 @@ class MeshNetwork internal constructor(
     fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
         val range = UnicastRange(address, (address + node.elementsCount))
         return nodes.filter { it.uuid != node.uuid }
-            .none { it.containsElementsWithAddress(range) } && !_networkExclusions.contains(
-            range, ivIndex
-        )
+            .none { it.containsElementsWithAddress(range) } &&
+                !_networkExclusions.contains(range, ivIndex)
     }
 
     /**
@@ -698,13 +695,14 @@ class MeshNetwork internal constructor(
      */
     @Throws(NoUnicastRangeAllocated::class)
     fun nextAvailableUnicastAddress(elementCount: Int, provisioner: Provisioner): UnicastAddress? {
-        require(provisioner._allocatedUnicastRanges.isNotEmpty()) {
-            throw NoUnicastRangeAllocated()
-        }
+        require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
+
         val excludedAddresses = _networkExclusions.sortedBy { it.ivIndex }.flatMap { it._addresses }
 
-        val addressesInUse =
-            nodes.flatMap { it.elements }.map { it.unicastAddress }.sortedBy { it.address }
+        val addressesInUse = nodes
+            .flatMap { it.elements }
+            .map { it.unicastAddress }
+            .sortedBy { it.address }
 
         val totalAddressesInUse = excludedAddresses + addressesInUse
 
@@ -740,7 +738,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(NoGroupRangeAllocated::class)
     fun nextAvailableGroup(provisioner: Provisioner): GroupAddress? {
-        require(provisioner._allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated() }
+        require(provisioner._allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated }
         val sortedGroups = _groups.sortedBy { it.address.address }
 
         // Iterate through all scenes just once, while iterating over ranges.
@@ -784,7 +782,7 @@ class MeshNetwork internal constructor(
      */
     @Throws(NoSceneRangeAllocated::class)
     fun nextAvailableScene(provisioner: Provisioner = provisioners.first()): SceneNumber? {
-        require(provisioner._allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated() }
+        require(provisioner._allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated }
         val sortedScenes = _scenes.sortedBy { it.number }
 
         // Iterate through all scenes just once, while iterating over ranges.
