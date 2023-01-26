@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import java.util.*
@@ -21,11 +22,13 @@ internal class ProvisionerViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
 ) : ViewModel() {
+    private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioner: Provisioner
     private val provisionerUuid: String =
         checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
 
     val uiState: StateFlow<ProvisionerScreenUiState> = repository.network.map { network ->
+        meshNetwork = network
         network.provisioner(UUID.fromString(provisionerUuid))?.let { provisioner ->
             this@ProvisionerViewModel.provisioner = provisioner
             ProvisionerScreenUiState(
@@ -62,13 +65,24 @@ internal class ProvisionerViewModel @Inject internal constructor(
      *
      * @param address New address of the provisioner.
      */
-    internal fun onAddressChanged(address: String) = runCatching {
-        val newAddress = UnicastAddress(address = address.toInt(16))
+    internal fun onAddressChanged(address: Int) = runCatching {
+        val newAddress = UnicastAddress(address = address)
         provisioner.assign(address = newAddress)
-    }.also {
-        it.onSuccess {
-            save()
-        }
+    }.onSuccess {
+        save()
+    }
+
+    /**
+     * Disables the configuration capabilities of a provisioner.
+     */
+    internal fun disableConfigurationCapabilities(): Result<Unit> = runCatching {
+        meshNetwork.disableConfigurationCapabilities(provisioner)
+    }.onSuccess {
+        save()
+    }
+
+    internal fun onTtlChanged(ttl: Int) {
+        TODO("Incomplete implementation, this should be configured by sending a message.")
     }
 
     /**

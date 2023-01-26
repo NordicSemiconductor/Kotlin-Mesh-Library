@@ -16,7 +16,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AddressRangeLegends() {
+fun AddressRangeLegendsForProvisioner() {
+    Legend(
+        color = Color.White,
+        description = stringResource(R.string.not_allocated)
+    )
+    Legend(
+        color = MaterialTheme.colorScheme.primary,
+        description = stringResource(R.string.allocated_to_this_provisioner)
+    )
+    Legend(
+        color = Color.DarkGray,
+        description = stringResource(R.string.allocated_to_another_provisioner)
+    )
+}
+
+@Composable
+fun AddressRangeLegendsForRanges() {
     Legend(
         color = Color.White,
         description = stringResource(R.string.not_allocated)

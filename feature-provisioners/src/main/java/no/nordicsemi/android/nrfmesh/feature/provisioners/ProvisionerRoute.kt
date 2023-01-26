@@ -1,10 +1,12 @@
 @file:OptIn(
-    ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalLifecycleComposeApi::class,
+    ExperimentalMaterial3Api::class,
     ExperimentalComposeUiApi::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -28,16 +30,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
-import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
@@ -51,6 +56,8 @@ internal fun ProvisionerRoute(
         provisionerState = uiState.provisionerState,
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
+        disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
+        onTtlChanged = viewModel::onTtlChanged,
         onBackPressed = {
             viewModel.save()
             onBackPressed()
@@ -62,8 +69,10 @@ internal fun ProvisionerRoute(
 private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (String) -> Result<Unit>,
-    onBackPressed: () -> Unit
+    onAddressChanged: (Int) -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Result<Unit>,
+    onTtlChanged: (Int) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -93,7 +102,9 @@ private fun ProvisionerScreen(
                     provisioner = provisionerState.provisioner,
                     otherProvisioners = provisionerState.otherProvisioners,
                     onNameChanged = onNameChanged,
-                    onAddressChanged = onAddressChanged
+                    onAddressChanged = onAddressChanged,
+                    disableConfigurationCapabilities = disableConfigurationCapabilities,
+                    onTtlChanged = onTtlChanged
                 )
             }
             is ProvisionerState.Error -> {
@@ -113,8 +124,13 @@ private fun ProvisionerInfo(
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (String) -> Result<Unit>
+    onAddressChanged: (Int) -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Result<Unit>,
+    onTtlChanged: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     LazyColumn(
         contentPadding = padding,
@@ -132,13 +148,29 @@ private fun ProvisionerInfo(
             }
             item {
                 UnicastAddress(
+                    context = context,
+                    scope = scope,
                     snackbarHostState = snackbarHostState,
+                    keyboardController = keyboardController,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
-                    isCurrentlyEditable = isCurrentlyEditable
-                ) { isCurrentlyEditable = !isCurrentlyEditable }
+                    disableConfigurationCapabilities = disableConfigurationCapabilities,
+                    isCurrentlyEditable = isCurrentlyEditable,
+                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+                )
             }
-            item { Ttl(ttl = node?.defaultTTL) }
+            item {
+                Ttl(
+                    context = context,
+                    scope = scope,
+                    snackbarHostState = snackbarHostState,
+                    keyboardController = keyboardController,
+                    ttl = node?.defaultTTL,
+                    onTtlChanged = onTtlChanged,
+                    isCurrentlyEditable = isCurrentlyEditable,
+                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+                )
+            }
             item { DeviceKey(key = provisioner.node?.deviceKey) }
             item { SectionTitle(title = stringResource(R.string.label_allocated_ranges)) }
             item {
@@ -161,7 +193,7 @@ private fun ProvisionerInfo(
             }
             item {
                 Divider(modifier = Modifier.padding(vertical = 20.dp))
-                AddressRangeLegends()
+                AddressRangeLegendsForProvisioner()
                 Spacer(modifier = Modifier.size(16.dp))
             }
         }
@@ -176,7 +208,11 @@ fun Name(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    var value by rememberSaveable { mutableStateOf(name) }
+    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue(text = name, selection = TextRange(name.length))
+        )
+    }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
@@ -196,19 +232,21 @@ fun Name(
                 label = { Text(text = stringResource(id = R.string.label_name)) },
                 placeholder = { Text(text = stringResource(id = R.string.label_placeholder_provisioner_name)) },
                 internalTrailingIcon = {
-                    IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
-                        Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                    }
+                    IconButton(
+                        enabled = value.text.isNotBlank(),
+                        onClick = {
+                            value = TextFieldValue(text = name, selection = TextRange(0))
+                        }
+                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
                 content = {
                     IconButton(
                         modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                        enabled = value.isNotBlank(),
+                        enabled = value.text.isNotBlank(),
                         onClick = {
                             onEditClick = !onEditClick
                             onEditableStateChanged()
-                            value = value.trim()
-                            onNameChanged(value)
+                            onNameChanged(value.text.trim())
                         }
                     ) {
                         Icon(
@@ -229,7 +267,7 @@ fun Name(
                     )
                 },
                 title = stringResource(id = R.string.label_name),
-                subtitle = value,
+                subtitle = value.text,
                 trailingComposable = {
                     IconButton(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -253,18 +291,25 @@ fun Name(
 
 @Composable
 private fun UnicastAddress(
+    context: Context,
+    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    keyboardController: SoftwareKeyboardController?,
     address: Address?,
-    onAddressChanged: (String) -> Result<Unit>,
+    onAddressChanged: (Int) -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Result<Unit>,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val scope = rememberCoroutineScope()
+    val tempAddress by remember { mutableStateOf(address?.toHex() ?: "") }
+    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue(text = tempAddress, selection = TextRange(tempAddress.length))
+        )
+    }
     var error by rememberSaveable { mutableStateOf(false) }
-    var value by rememberSaveable { mutableStateOf(address?.toHex() ?: "") }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
+    var onUnassignClick by remember { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
             true -> MeshOutlinedTextField(
@@ -285,12 +330,13 @@ private fun UnicastAddress(
                 },
                 label = { Text(text = stringResource(id = R.string.label_unicast_address)) },
                 internalTrailingIcon = {
-                    IconButton(enabled = value.isNotBlank(), onClick = {
-                        value = ""
-                        error = false
-                    }) {
-                        Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                    }
+                    IconButton(
+                        enabled = value.text.isNotBlank(),
+                        onClick = {
+                            value = TextFieldValue("", TextRange(0))
+                            error = false
+                        }
+                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters
@@ -299,29 +345,33 @@ private fun UnicastAddress(
                 isError = error,
                 content = {
                     IconButton(
-                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp),
+                        enabled = address != null,
+                        onClick = { onUnassignClick = !onUnassignClick }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.GppMaybe,
+                            contentDescription = null,
+                            tint = Color.Red.copy(alpha = 0.6f)
+                        )
+                    }
+                    IconButton(
+                        modifier = Modifier.padding(end = 16.dp),
+                        enabled = value.text.isNotEmpty(),
                         onClick = {
                             keyboardController?.hide()
-                            value = value.trim()
-                            if (value.isNotEmpty()) {
-                                onAddressChanged(value)
+                            if (value.text.isNotEmpty()) {
+                                onAddressChanged(value.text.toInt(radix = 16))
                                     .onSuccess {
                                         onEditClick = !onEditClick
                                         onEditableStateChanged()
-                                    }.onFailure {
+                                    }
+                                    .onFailure {
                                         error = true
                                         showSnackbar(
                                             scope = scope,
                                             snackbarHostState = snackbarHostState,
-                                            message = when (it) {
-                                                is AddressNotInAllocatedRanges -> context.getString(
-                                                    R.string.address_not_in_allocated_range
-                                                )
-                                                is AddressAlreadyInUse -> context.getString(
-                                                    R.string.address_already_in_use
-                                                )
-                                                else -> context.getString(R.string.unknown_error)
-                                            }
+                                            message = it.convertToString(context = context)
                                         )
                                     }
                             } else {
@@ -370,22 +420,128 @@ private fun UnicastAddress(
             )
         }
     }
+
+    if (onUnassignClick) {
+        MeshAlertDialog(
+            onDismissRequest = { onUnassignClick = !onUnassignClick },
+            onConfirmClick = {
+                error = !error
+                keyboardController?.hide()
+                onUnassignClick = !onUnassignClick
+                onEditClick = !onEditClick
+                onEditableStateChanged()
+                disableConfigurationCapabilities()
+            },
+            onDismissClick = { onUnassignClick = !onUnassignClick },
+            icon = Icons.Outlined.GppMaybe,
+            title = stringResource(R.string.label_unassign_address),
+            text = stringResource(R.string.unassign_address_rationale)
+        )
+    }
 }
 
 @Composable
-private fun Ttl(ttl: Int?) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.HourglassTop,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+private fun Ttl(
+    context: Context,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    keyboardController: SoftwareKeyboardController?,
+    ttl: Int?,
+    onTtlChanged: (Int) -> Unit,
+    isCurrentlyEditable: Boolean,
+    onEditableStateChanged: () -> Unit,
+) {
+    var error by rememberSaveable { mutableStateOf(false) }
+    var value by rememberSaveable { mutableStateOf(ttl?.toString() ?: "") }
+    var onEditClick by rememberSaveable { mutableStateOf(false) }
+    Crossfade(targetState = onEditClick) { state ->
+        when (state) {
+            true -> MeshOutlinedTextField(
+                modifier = Modifier.padding(vertical = 8.dp),
+                onFocus = onEditClick,
+                externalLeadingIcon = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Outlined.Badge,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
+                value = value,
+                onValueChanged = {
+                    error = false
+                    value = it
+                },
+                label = { Text(text = stringResource(id = R.string.label_ttl)) },
+                internalTrailingIcon = {
+                    IconButton(
+                        enabled = value.isNotBlank(),
+                        onClick = {
+                            value = ""
+                            error = false
+                        }
+                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters,
+                    keyboardType = KeyboardType.Number
+                ),
+                regex = Regex("[1-9]{0,3}"),
+                isError = error,
+                content = {
+                    IconButton(
+                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                        onClick = {
+                            keyboardController?.hide()
+                            value = value.trim()
+                            if (value.isNotEmpty()) {
+                                onTtlChanged(value.toInt())
+                            } else {
+                                onEditClick = !onEditClick
+                                onEditableStateChanged()
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Check,
+                            contentDescription = null,
+                            tint = LocalContentColor.current.copy(alpha = 0.6f)
+                        )
+                    }
+                }
             )
-        },
-        title = stringResource(id = R.string.label_ttl),
-        subtitle = ttl?.toString() ?: stringResource(R.string.label_not_applicable)
-    )
+            false -> MeshTwoLineListItem(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Outlined.Lan,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
+                title = stringResource(id = R.string.label_ttl),
+                subtitle = ttl?.toString()
+                    ?: stringResource(id = R.string.label_not_assigned),
+                trailingComposable = {
+                    IconButton(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        enabled = isCurrentlyEditable,
+                        onClick = {
+                            error = !error
+                            onEditClick = !onEditClick
+                            onEditableStateChanged()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                            tint = LocalContentColor.current.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
