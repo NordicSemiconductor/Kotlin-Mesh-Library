@@ -2,17 +2,17 @@
 buildscript {
     ext {
         // https://developer.android.com/jetpack/compose/setup#configure_kotlin
-        compose_version = '1.3.0-beta02'
+        compose_version = '1.4.0'
         // https://developer.android.com/jetpack/compose/navigation
         nav_version = '2.5.2'
         // https://developer.android.com/jetpack/androidx/releases/compose
-        kotlin_version = "1.7.20"
+        kotlin_version = "1.8.0"
         // https://github.com/google/dagger/releases
         hilt_dagger_version = '2.43.2'
         // https://developer.android.com/training/dependency-injection/hilt-android
         hilt_android_version = '1.0.0'
         // https://github.com/google/accompanist/releases
-        accompanist_version = '0.26.4-beta'
+        accompanist_version = '0.27.0'
         // https://developer.android.com/jetpack/androidx/releases/lifecycle#kotlin
         lifecycle_version = '2.6.0-alpha02'
 
@@ -24,13 +24,13 @@ buildscript {
                 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
         ]
         composeLibs = [
-                "androidx.compose.material3:material3:$material3_version",
-                "androidx.compose.material3:material3-window-size-class:$material3_version",
-                "androidx.compose.ui:ui:$compose_version",
-                "androidx.compose.ui:ui-util:$compose_version",
-                "androidx.compose.ui:ui-tooling:$compose_version",
-                "androidx.compose.ui:ui-tooling-preview:$compose_version",
-                "androidx.compose.material:material-icons-extended:$compose_version"
+                "androidx.compose.material3:material3",
+                "androidx.compose.material3:material3-window-size-class",
+                "androidx.compose.ui:ui",
+                "androidx.compose.ui:ui-util",
+                "androidx.compose.ui:ui-tooling",
+                "androidx.compose.ui:ui-tooling-preview",
+                "androidx.compose.material:material-icons-extended"
         ]
         composeActivityLibs = [
                 'androidx.activity:activity-compose:1.6.0-beta01'
@@ -73,10 +73,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:7.4.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_dagger_version"
+
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
