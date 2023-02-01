@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeyDestination
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
@@ -20,8 +20,8 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private lateinit var networkKey: NetworkKey
-    private val netKeyIndexArg: String =
-        checkNotNull(savedStateHandle[NetworkKeyDestination.netKeyIndexArg])
+    private val netKeyIndexArg: String = "0"
+        //checkNotNull(savedStateHandle[networkKeyDestination.netKeyIndexArg])
 
     val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
         this@NetworkKeyViewModel.networkKey = network.networkKey(netKeyIndexArg.toUShort())

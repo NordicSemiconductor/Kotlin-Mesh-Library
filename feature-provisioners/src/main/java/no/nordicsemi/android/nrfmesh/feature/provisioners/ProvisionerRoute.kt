@@ -1,5 +1,4 @@
 @file:OptIn(
-    ExperimentalLifecycleComposeApi::class,
     ExperimentalMaterial3Api::class,
     ExperimentalComposeUiApi::class
 )
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.provisioners.R

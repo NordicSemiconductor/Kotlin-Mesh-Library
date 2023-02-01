@@ -1,0 +1,8 @@
+plugins {
+    id("kotlin")
+}
+
+dependencies {
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.71")
+    testImplementation("junit:junit:4.13.2")
+}

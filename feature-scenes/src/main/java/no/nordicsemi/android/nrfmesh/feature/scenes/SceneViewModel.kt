@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import javax.inject.Inject
@@ -20,8 +19,8 @@ internal class SceneViewModel @Inject internal constructor(
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private lateinit var scene: Scene
-    private val sceneNumberArg: String =
-        checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
+    private val sceneNumberArg: String = "0"
+        // checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
 
     val uiState: StateFlow<SceneScreenUiState> = repository.network.map { network ->
         this@SceneViewModel.scene = network.scene(sceneNumberArg.toUShort())

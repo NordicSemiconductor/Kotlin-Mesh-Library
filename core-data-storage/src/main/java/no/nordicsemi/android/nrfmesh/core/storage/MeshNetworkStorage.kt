@@ -1,12 +1,9 @@
 package no.nordicsemi.android.nrfmesh.core.storage
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import no.nordicsemi.kotlin.mesh.core.LocalStorage
 import java.util.*

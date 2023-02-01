@@ -4,70 +4,63 @@ package no.nordicsemi.android.nrfmesh.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
-import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
-import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
+import no.nordicsemi.android.common.navigation.*
+import no.nordicsemi.android.nrfmesh.destinations.*
+import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
+import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
+import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
+import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDestinations
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
+
 @Composable
-fun MeshApp(
-    windowSizeClass: WindowSizeClass,
-    appState: MeshAppState = rememberMeshAppState(windowSizeClass = windowSizeClass)
-) {
-    val viewModel: NetworkViewModel = hiltViewModel()
+fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
     if (viewModel.isNetworkLoaded)
-        NetworkScreen(windowSizeClass = windowSizeClass, appState = appState)
+        NetworkScreen(viewModel)
 }
 
 @Composable
-fun NetworkScreen(windowSizeClass: WindowSizeClass, appState: MeshAppState) {
+fun NetworkScreen(viewModel: NetworkViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             BottomNavigationBar(
-                destinations = appState.topLevelDestinations,
-                onNavigateToTopLevelDestination = appState::navigate,
-                currentDestination = appState.currentDestination
+                destinations = navigationItems,
+                navigator = viewModel.navigator
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
-                )
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
         ) {
-            MeshNavHost(
-                navController = appState.navController,
-                onNavigateToDestination = appState::navigate,
-                onBackPressed = appState::onBackPressed,
-                startDestination = NodesDestination.route,
-                modifier = Modifier
-                    .consumedWindowInsets(padding)
+            NavigationView(
+                destinations = listOf(
+                    topLevelTabs with ((nodesTab with nodesDestinations) +
+                            (groupsTab with groupsDestinations) +
+                            (proxyFilterTab with proxyFilterDestinations) +
+                            (settingsTab with settingsDestinations))
+                ),
+                modifier = Modifier.consumedWindowInsets(padding)
             )
         }
     }
 }
 
-
 @Composable
 fun BottomNavigationBar(
-    destinations: List<TopLevelDestination>,
-    onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?
+    destinations: List<NavigationItem>,
+    navigator: Navigator
 ) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         NavigationBar(
@@ -79,12 +72,8 @@ fun BottomNavigationBar(
             tonalElevation = 0.dp
         ) {
             destinations.forEach { destination ->
-                val selected = currentDestination?.hierarchy?.any {
-                    it.route == destination.route
-                } == true
+                val selected by navigator.isInHierarchy(destination.destinationId).collectAsState()
                 NavigationBarItem(
-                    selected = selected,
-                    onClick = { onNavigateToTopLevelDestination(destination) },
                     icon = {
                         Icon(
                             if (selected) {
@@ -95,7 +84,23 @@ fun BottomNavigationBar(
                             contentDescription = null
                         )
                     },
-                    label = { Text(stringResource(destination.iconTextId)) }
+                    selected = selected,
+                    label = { Text(stringResource(destination.iconTextId)) },
+                    onClick = {
+                        // Checking if the tab is not selected here
+                        // is a workaround for an issue with how the navigation
+                        // restores the previous stack when back button was used.
+                        // See: https://issuetracker.google.com/issues/258237571
+                        if (!selected) {
+                            navigator.navigateTo(destination.destinationId) {
+                                popUpToStartDestination {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
                 )
             }
         }
