@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.DestinationId
+import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
@@ -17,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    private val navigator: Navigator,
     private val repository: DataStoreRepository
 ) : ViewModel() {
     val uiState: StateFlow<SettingsScreenUiState> =
@@ -60,6 +63,10 @@ class SettingsViewModel @Inject constructor(
                 repository.save()
             }
         }
+    }
+
+    internal fun navigate(destinationId: DestinationId<Unit, *>){
+        navigator.navigateTo(destinationId)
     }
 }
 

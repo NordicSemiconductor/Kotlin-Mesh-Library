@@ -11,6 +11,10 @@ dependencies {
     implementation(project(":core-data"))
     implementation(project(":core-ui"))
     implementation(project(":feature-export"))
+    implementation(project(":feature-provisioners"))
+    implementation(project(":feature-network-keys"))
+    implementation(project(":feature-application-keys"))
+    implementation(project(":feature-scenes"))
 
     implementation(project(":mesh-core"))
 
