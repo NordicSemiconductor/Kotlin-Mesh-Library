@@ -8,13 +8,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.DestinationId
+import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ApplicationKeysViewModel @Inject internal constructor(
+    private val navigator: Navigator,
     private val repository: DataStoreRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
@@ -34,6 +38,10 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
                 _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
             }
         }
+    }
+
+    internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
+        navigator.navigateTo(destinationId, keyIndex)
     }
 
     /**

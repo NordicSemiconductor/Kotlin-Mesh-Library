@@ -2,13 +2,17 @@
 
 package no.nordicsemi.android.nrfmesh.feature.application.keys.destinations
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.common.navigation.createDestination
 import no.nordicsemi.android.common.navigation.defineDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
-val applicationKey = createDestination<KeyIndex, Unit>("application_key")
+val applicationKey = createDestination<Int, Unit>("application_key")
 
 val applicationKeyDestination = defineDestination(applicationKey) {
-    ApplicationKeyRoute() {}
+
+    val viewModel: ApplicationKeyViewModel = hiltViewModel()
+    ApplicationKeyRoute(viewModel = viewModel, onBackPressed = {})
 }
