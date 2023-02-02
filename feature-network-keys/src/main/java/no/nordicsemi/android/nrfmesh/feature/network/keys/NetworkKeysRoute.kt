@@ -47,13 +47,13 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 @Composable
 internal fun NetworkKeysRoute(
     viewModel: NetworkKeysViewModel = hiltViewModel(),
-    navigateToNetworkKey: (KeyIndex) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onBackClicked: () -> Unit
 ) {
     val uiState: NetworkKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeysScreen(
         uiState = uiState,
-        navigateToNetworkKey = navigateToNetworkKey,
+        navigateToKey = navigateToKey,
         onAddKeyClicked = viewModel::addNetworkKey,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
@@ -67,7 +67,7 @@ internal fun NetworkKeysRoute(
 @Composable
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
-    navigateToNetworkKey: (KeyIndex) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
@@ -96,7 +96,7 @@ private fun NetworkKeysScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
-                navigateToNetworkKey(onAddKeyClicked().index)
+                navigateToKey(onAddKeyClicked().index)
             }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
@@ -118,7 +118,7 @@ private fun NetworkKeysScreen(
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
                     keys = uiState.keys,
-                    navigateToApplicationKey = navigateToNetworkKey,
+                    navigateToKey = navigateToKey,
                     onSwiped = onSwiped,
                     onUndoClicked = onUndoClicked,
                     remove = remove
@@ -134,7 +134,7 @@ private fun NetworkKeys(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
-    navigateToApplicationKey: (KeyIndex /* = kotlin.UShort */) -> Unit,
+    navigateToKey: (KeyIndex /* = kotlin.UShort */) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
@@ -203,7 +203,7 @@ private fun NetworkKeys(
                     Surface(color = MaterialTheme.colorScheme.background) {
                         MeshTwoLineListItem(
                             modifier = Modifier.clickable {
-                                navigateToApplicationKey(key.index)
+                                navigateToKey(key.index)
                             },
                             leadingComposable = {
                                 Icon(
