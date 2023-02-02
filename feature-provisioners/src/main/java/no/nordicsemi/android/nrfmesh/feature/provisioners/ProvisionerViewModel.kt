@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,7 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -18,18 +20,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ProvisionerViewModel @Inject internal constructor(
+    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var meshNetwork: MeshNetwork
-    private lateinit var provisioner: Provisioner
-    private val provisionerUuid: String = ""
-        //checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
+    private lateinit var selectedProvisioner: Provisioner
+    private val provisionerUuid: UUID = parameterOf(provisioner)
 
     val uiState: StateFlow<ProvisionerScreenUiState> = repository.network.map { network ->
         meshNetwork = network
-        network.provisioner(UUID.fromString(provisionerUuid))?.let { provisioner ->
-            this@ProvisionerViewModel.provisioner = provisioner
+        network.provisioner((provisionerUuid))?.let { provisioner ->
+            this@ProvisionerViewModel.selectedProvisioner = provisioner
             ProvisionerScreenUiState(
                 provisionerState = ProvisionerState.Success(
                     provisioner = provisioner,
@@ -53,8 +55,8 @@ internal class ProvisionerViewModel @Inject internal constructor(
      * @param name New provisioner name.
      */
     internal fun onNameChanged(name: String) {
-        if (provisioner.name != name) {
-            provisioner.name = name
+        if (selectedProvisioner.name != name) {
+            selectedProvisioner.name = name
             save()
         }
     }
@@ -66,7 +68,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
      */
     internal fun onAddressChanged(address: Int) = runCatching {
         val newAddress = UnicastAddress(address = address)
-        provisioner.assign(address = newAddress)
+        selectedProvisioner.assign(address = newAddress)
     }.onSuccess {
         save()
     }
@@ -75,7 +77,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
      * Disables the configuration capabilities of a provisioner.
      */
     internal fun disableConfigurationCapabilities(): Result<Unit> = runCatching {
-        meshNetwork.disableConfigurationCapabilities(provisioner)
+        meshNetwork.disableConfigurationCapabilities(selectedProvisioner)
     }.onSuccess {
         save()
     }

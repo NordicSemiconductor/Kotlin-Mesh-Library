@@ -8,7 +8,7 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.appli
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeysDestinations
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisionersDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisionersDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenesDestinations
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsRoute
@@ -28,7 +28,7 @@ val settingsDestination = defineDestination(settings) {
 }
 
 val settingsDestinations = settingsDestination +
-        provisionersDestination +
+        provisionersDestinations +
         networkKeysDestinations +
         applicationKeysDestinations +
         scenesDestinations
