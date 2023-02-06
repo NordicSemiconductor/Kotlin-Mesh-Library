@@ -10,7 +10,7 @@ android {
 dependencies {
     implementation(project(":mesh-core"))
 
-    implementation(libs.nordic.theme)
+    api(libs.nordic.theme)
     implementation(libs.nordic.uilogger)
     implementation(libs.nordic.uiscanner)
     implementation(libs.nordic.navigation)

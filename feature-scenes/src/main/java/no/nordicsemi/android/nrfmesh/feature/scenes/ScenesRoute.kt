@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -49,8 +47,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 @Composable
 internal fun ScenesRoute(
     viewModel: ScenesViewModel = hiltViewModel(),
-    navigateToScene: (SceneNumber) -> Unit,
-    onBackClicked: () -> Unit
+    navigateToScene: (SceneNumber) -> Unit
 ) {
     val uiState: ScenesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ScenesScreen(
@@ -59,11 +56,7 @@ internal fun ScenesRoute(
         onAddSceneClicked = viewModel::addScene,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove,
-        onBackPressed = {
-            viewModel.removeScenes()
-            onBackClicked()
-        }
+        remove = viewModel::remove
     )
 }
 
@@ -74,48 +67,31 @@ private fun ScenesScreen(
     onAddSceneClicked: () -> Scene?,
     onSwiped: (Scene) -> Unit,
     onUndoClicked: (Scene) -> Unit,
-    remove: (Scene) -> Unit,
-    onBackPressed: () -> Unit
+    remove: (Scene) -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_scenes),
-                navigationIcon = {
-                    IconButton(onClick = {
-                        snackbarHostState.currentSnackbarData?.dismiss()
-                        onBackPressed()
-                    }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
         floatingActionButton = {
             // if (uiState.hasProvisioners) Enable this when we have support for adding provisioners
-                ExtendedFloatingActionButton(onClick = {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    addScene(
-                        context = context,
-                        scope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        onAddSceneClicked = onAddSceneClicked,
-                        navigateToScene = navigateToScene
-                    )
-                }) {
-                    Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                    Text(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = stringResource(R.string.action_add_scene)
-                    )
-                }
+            ExtendedFloatingActionButton(onClick = {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                addScene(
+                    context = context,
+                    scope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    onAddSceneClicked = onAddSceneClicked,
+                    navigateToScene = navigateToScene
+                )
+            }) {
+                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = stringResource(R.string.action_add_scene)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->

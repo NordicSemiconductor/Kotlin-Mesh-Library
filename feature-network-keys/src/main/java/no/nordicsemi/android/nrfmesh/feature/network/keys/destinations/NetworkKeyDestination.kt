@@ -13,5 +13,5 @@ val networkKey = createDestination<Int, Unit>("network_key")
 val networkKeyDestination = defineDestination(networkKey) {
     val viewModel: NetworkKeyViewModel = hiltViewModel()
 
-    NetworkKeyRoute(viewModel = viewModel, onBackPressed = {})
+    NetworkKeyRoute(viewModel = viewModel)
 }

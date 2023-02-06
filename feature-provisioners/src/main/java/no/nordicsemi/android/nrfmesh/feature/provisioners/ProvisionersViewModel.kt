@@ -44,6 +44,11 @@ internal class ProvisionersViewModel @Inject internal constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        removeProvisioners()
+    }
+
     internal fun navigate(destinationId: DestinationId<UUID, Unit>, uuid: UUID) {
         navigator.navigateTo(destinationId, uuid)
     }
@@ -114,7 +119,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     /**
      * Removes the scene from a network.
      */
-    internal fun removeProvisioners() {
+    private fun removeProvisioners() {
         remove()
         save()
     }

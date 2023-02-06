@@ -49,6 +49,10 @@ internal class ProvisionerViewModel @Inject internal constructor(
         ProvisionerScreenUiState(ProvisionerState.Loading)
     )
 
+    override fun onCleared() {
+        super.onCleared()
+        save()
+    }
     /**
      * Invoked when the name of the provisioner is changed.
      *
@@ -89,7 +93,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    internal fun save() {
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

@@ -17,7 +17,7 @@ class NetworkViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     val navigator: Navigator,
     private val repository: DataStoreRepository
-) : SimpleNavigationViewModel(savedStateHandle = savedStateHandle, navigator = navigator) {
+) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
 
     var isNetworkLoaded by mutableStateOf(false)
 

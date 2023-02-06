@@ -12,8 +12,7 @@ val networkKeysDestination = defineDestination(networkKeys) {
     val viewModel: NetworkKeysViewModel = hiltViewModel()
     NetworkKeysRoute(
         viewModel = viewModel,
-        navigateToKey = { viewModel.navigate(networkKey, it.toInt()) },
-        onBackClicked = {}
+        navigateToKey = { viewModel.navigate(networkKey, it.toInt()) }
     )
 }
 

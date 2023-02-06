@@ -14,12 +14,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -38,20 +36,13 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-internal fun ApplicationKeyRoute(
-    viewModel: ApplicationKeyViewModel = hiltViewModel(),
-    onBackPressed: () -> Unit
-) {
+internal fun ApplicationKeyRoute(viewModel: ApplicationKeyViewModel = hiltViewModel()) {
     val uiState: ApplicationKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeyScreen(
         applicationKeyState = uiState.applicationKeyState,
         onNameChanged = viewModel::onNameChanged,
         onKeyChanged = viewModel::onKeyChanged,
-        onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged,
-        onBackPressed = {
-            viewModel.save()
-            onBackPressed()
-        }
+        onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged
     )
 }
 
@@ -60,66 +51,47 @@ private fun ApplicationKeyScreen(
     applicationKeyState: ApplicationKeyState,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit,
-    onBoundNetworkKeyChanged: (NetworkKey) -> Unit,
-    onBackPressed: () -> Unit
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-
     var boundNetKeyIndex by rememberSaveable { mutableStateOf(0) }
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_edit_application_key),
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        when (applicationKeyState) {
+            ApplicationKeyState.Loading -> { /* Do nothing */
+            }
+            is ApplicationKeyState.Success -> {
+                boundNetKeyIndex = applicationKeyState.applicationKey.boundNetKeyIndex.toInt()
+                applicationKeyInfo(
+                    snackbarHostState = snackbarHostState,
+                    applicationKey = applicationKeyState.applicationKey,
+                    isCurrentlyEditable = isCurrentlyEditable,
+                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                    onNameChanged = onNameChanged,
+                    onKeyChanged = onKeyChanged
+                )
+                boundNetworkKeys(
+                    context = context,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    isInUse = applicationKeyState.applicationKey.isInUse(),
+                    boundNetKeyIndex = boundNetKeyIndex,
+                    networkKeys = applicationKeyState.networkKeys,
+                    onBoundNetworkKeyChanged = {
+                        boundNetKeyIndex = it.index.toInt()
+                        onBoundNetworkKeyChanged(it)
                     }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            when (applicationKeyState) {
-                ApplicationKeyState.Loading -> { /* Do nothing */
-                }
-                is ApplicationKeyState.Success -> {
-                    boundNetKeyIndex = applicationKeyState.applicationKey.boundNetKeyIndex.toInt()
-                    applicationKeyInfo(
-                        snackbarHostState = snackbarHostState,
-                        applicationKey = applicationKeyState.applicationKey,
-                        isCurrentlyEditable = isCurrentlyEditable,
-                        onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-                        onNameChanged = onNameChanged,
-                        onKeyChanged = onKeyChanged
-                    )
-                    boundNetworkKeys(
-                        context = context,
-                        coroutineScope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        isInUse = applicationKeyState.applicationKey.isInUse(),
-                        boundNetKeyIndex = boundNetKeyIndex,
-                        networkKeys = applicationKeyState.networkKeys,
-                        onBoundNetworkKeyChanged = {
-                            boundNetKeyIndex = it.index.toInt()
-                            onBoundNetworkKeyChanged(it)
-                        }
-                    )
-                }
-                is ApplicationKeyState.Error -> when (applicationKeyState.throwable) {
-                    is KeyInUse -> {}
-                    is InvalidKeyLength -> {}
-                }
+                )
+            }
+            is ApplicationKeyState.Error -> when (applicationKeyState.throwable) {
+                is KeyInUse -> {}
+                is InvalidKeyLength -> {}
             }
         }
     }

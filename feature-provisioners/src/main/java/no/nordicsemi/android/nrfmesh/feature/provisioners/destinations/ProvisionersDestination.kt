@@ -13,10 +13,9 @@ val provisioners = createDestination<Unit, Unit>("provisioners")
 
 val provisionersDestination = defineDestination(provisioners) {
     val viewModel: ProvisionersViewModel = hiltViewModel()
-    ProvisionersRoute(
-        viewModel = viewModel,
-        navigateToProvisioner = { viewModel.navigate(provisioner, it) },
-        onBackClicked = {})
+    ProvisionersRoute(viewModel = viewModel, navigateToProvisioner = { uuid ->
+        viewModel.navigate(provisioner, uuid)
+    })
 }
 
 val provisionersDestinations = provisionersDestination + provisionerDestination

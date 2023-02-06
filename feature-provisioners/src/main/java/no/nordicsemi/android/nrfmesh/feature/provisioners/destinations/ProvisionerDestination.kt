@@ -14,5 +14,5 @@ internal val provisioner = createDestination<UUID, Unit>("provisioner")
 val provisionerDestination = defineDestination(provisioner) {
     val viewModel: ProvisionerViewModel = hiltViewModel()
 
-    ProvisionerRoute(viewModel = viewModel, onBackPressed = {})
+    ProvisionerRoute(viewModel = viewModel)
 }

@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Scene
@@ -15,8 +17,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ScenesViewModel @Inject internal constructor(
+    savedStateHandle: SavedStateHandle,
+    navigator: Navigator,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val _uiState = MutableStateFlow(ScenesScreenUiState(listOf()))
     val uiState: StateFlow<ScenesScreenUiState> = _uiState.stateIn(
         viewModelScope,
@@ -37,6 +41,11 @@ internal class ScenesViewModel @Inject internal constructor(
                 )
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        removeScenes()
     }
 
     /**
@@ -92,7 +101,7 @@ internal class ScenesViewModel @Inject internal constructor(
     /**
      * Removes the scene from a network.
      */
-    internal fun removeScenes() {
+    private fun removeScenes() {
         remove()
         save()
     }

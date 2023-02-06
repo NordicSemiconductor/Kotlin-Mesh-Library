@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,17 +10,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ApplicationKeysViewModel @Inject internal constructor(
+    savedStateHandle: SavedStateHandle,
     private val navigator: Navigator,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator, savedStateHandle = savedStateHandle) {
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
     val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.stateIn(
         viewModelScope,
@@ -38,6 +39,11 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
                 _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        removeKeys()
     }
 
     internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
@@ -98,7 +104,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     /**
      * Removes the keys from a network.
      */
-    internal fun removeKeys() {
+    private fun removeKeys() {
         remove()
         save()
     }

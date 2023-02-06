@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeyDestination
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -43,6 +42,11 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
         SharingStarted.WhileSubscribed(5_000),
         ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
     )
+
+    override fun onCleared() {
+        super.onCleared()
+        save()
+    }
 
     /**
      * Invoked when the name of the application key is changed.
@@ -83,7 +87,7 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    internal fun save() {
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

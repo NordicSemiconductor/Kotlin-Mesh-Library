@@ -1,7 +1,4 @@
-@file:OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class
-)
+@file:OptIn(ExperimentalComposeUiApi::class)
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
@@ -14,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -26,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -45,21 +40,14 @@ import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-internal fun ProvisionerRoute(
-    viewModel: ProvisionerViewModel = hiltViewModel(),
-    onBackPressed: () -> Unit
-) {
+internal fun ProvisionerRoute(viewModel: ProvisionerViewModel = hiltViewModel()) {
     val uiState: ProvisionerScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
         disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
-        onTtlChanged = viewModel::onTtlChanged,
-        onBackPressed = {
-            viewModel.save()
-            onBackPressed()
-        }
+        onTtlChanged = viewModel::onTtlChanged
     )
 }
 
@@ -70,47 +58,27 @@ private fun ProvisionerScreen(
     onAddressChanged: (Int) -> Result<Unit>,
     disableConfigurationCapabilities: () -> Result<Unit>,
     onTtlChanged: (Int) -> Unit,
-    onBackPressed: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_edit_provisioner),
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
+    when (provisionerState) {
+        ProvisionerState.Loading -> { /* Do nothing */
+        }
+        is ProvisionerState.Success -> {
+            ProvisionerInfo(
+                snackbarHostState = snackbarHostState,
+                provisioner = provisionerState.provisioner,
+                otherProvisioners = provisionerState.otherProvisioners,
+                onNameChanged = onNameChanged,
+                onAddressChanged = onAddressChanged,
+                disableConfigurationCapabilities = disableConfigurationCapabilities,
+                onTtlChanged = onTtlChanged
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        when (provisionerState) {
-            ProvisionerState.Loading -> { /* Do nothing */
-            }
-            is ProvisionerState.Success -> {
-                ProvisionerInfo(
-                    snackbarHostState = snackbarHostState,
-                    padding = padding,
-                    provisioner = provisionerState.provisioner,
-                    otherProvisioners = provisionerState.otherProvisioners,
-                    onNameChanged = onNameChanged,
-                    onAddressChanged = onAddressChanged,
-                    disableConfigurationCapabilities = disableConfigurationCapabilities,
-                    onTtlChanged = onTtlChanged
-                )
-            }
-            is ProvisionerState.Error -> {
-                MeshNoItemsAvailable(
-                    imageVector = Icons.Outlined.Group,
-                    title = provisionerState.throwable.message ?: "Unknown error"
-                )
-            }
+        }
+        is ProvisionerState.Error -> {
+            MeshNoItemsAvailable(
+                imageVector = Icons.Outlined.Group,
+                title = provisionerState.throwable.message ?: "Unknown error"
+            )
         }
     }
 }
@@ -118,7 +86,6 @@ private fun ProvisionerScreen(
 @Composable
 private fun ProvisionerInfo(
     snackbarHostState: SnackbarHostState,
-    padding: PaddingValues,
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
@@ -130,8 +97,8 @@ private fun ProvisionerInfo(
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+
     LazyColumn(
-        contentPadding = padding,
         modifier = Modifier
             .padding(end = 16.dp)
             .fillMaxSize()
@@ -159,15 +126,11 @@ private fun ProvisionerInfo(
             }
             item {
                 Ttl(
-                    context = context,
-                    scope = scope,
-                    snackbarHostState = snackbarHostState,
                     keyboardController = keyboardController,
                     ttl = node?.defaultTTL,
                     onTtlChanged = onTtlChanged,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-                )
+                    isCurrentlyEditable = isCurrentlyEditable
+                ) { isCurrentlyEditable = !isCurrentlyEditable }
             }
             item { DeviceKey(key = provisioner.node?.deviceKey) }
             item { SectionTitle(title = stringResource(R.string.label_allocated_ranges)) }
@@ -440,9 +403,6 @@ private fun UnicastAddress(
 
 @Composable
 private fun Ttl(
-    context: Context,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     ttl: Int?,
     onTtlChanged: (Int) -> Unit,
