@@ -5,7 +5,6 @@ package no.nordicsemi.android.nrfmesh.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -13,20 +12,26 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.common.navigation.*
 import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
-import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.destinations.*
+import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeys
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
+import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
+import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilter
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
+import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
+import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDestinations
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
-
 
 @Composable
 fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
@@ -38,14 +43,14 @@ fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
 fun NetworkScreen(viewModel: NetworkViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val currentDestination by viewModel.navigator.currentDestination().collectAsState()
+    val currentDestination by viewModel.navigator.currentDestination().collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
-                text = "Network",
+                text = currentDestination?.title() ?: "",
                 scrollBehavior = scrollBehavior,
                 onNavigationButtonClick = {
                     viewModel.navigateUp()
@@ -89,7 +94,8 @@ fun BottomNavigationBar(
         tonalElevation = 0.dp
     ) {
         destinations.forEach { destination ->
-            val selected by navigator.isInHierarchy(destination.destinationId).collectAsState()
+            val selected by navigator.isInHierarchy(destination.destinationId)
+                .collectAsStateWithLifecycle()
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -125,8 +131,15 @@ fun BottomNavigationBar(
 
 @Composable
 fun DestinationId<*, *>.title(): String {
-    return when(this){
-        nodes,groups,proxyFilter,settings -> "Network"
+    return when (this) {
+        nodes, groups, proxyFilter, settings -> "Network"
+        provisioners -> "Provisioners"
+        provisioner -> "Edit Provisioner"
+        networkKeys -> "Network Keys"
+        applicationKeys -> "Application Keys"
+        networkKey -> "Edit Key"
+        scenes -> "Scenes"
+        scene -> "Edit Scene"
         else -> ""
     }
 }

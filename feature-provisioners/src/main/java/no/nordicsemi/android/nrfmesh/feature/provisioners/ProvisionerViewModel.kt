@@ -53,6 +53,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
         super.onCleared()
         save()
     }
+
     /**
      * Invoked when the name of the provisioner is changed.
      *
@@ -73,18 +74,14 @@ internal class ProvisionerViewModel @Inject internal constructor(
     internal fun onAddressChanged(address: Int) = runCatching {
         val newAddress = UnicastAddress(address = address)
         selectedProvisioner.assign(address = newAddress)
-    }.onSuccess {
-        save()
-    }
+    }.onSuccess { save() }
 
     /**
      * Disables the configuration capabilities of a provisioner.
      */
     internal fun disableConfigurationCapabilities(): Result<Unit> = runCatching {
         meshNetwork.disableConfigurationCapabilities(selectedProvisioner)
-    }.onSuccess {
-        save()
-    }
+    }.onSuccess { save() }
 
     internal fun onTtlChanged(ttl: Int) {
         TODO("Incomplete implementation, this should be configured by sending a message.")
