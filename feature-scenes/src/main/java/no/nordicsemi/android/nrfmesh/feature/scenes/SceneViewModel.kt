@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,24 +8,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
 import no.nordicsemi.kotlin.mesh.core.model.Scene
+import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
 
 @HiltViewModel
 internal class SceneViewModel @Inject internal constructor(
+    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
-) : ViewModel() {
-    private lateinit var scene: Scene
-    private val sceneNumberArg: String =
-        checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+    private lateinit var selectedScene: Scene
+    private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
 
     val uiState: StateFlow<SceneScreenUiState> = repository.network.map { network ->
-        this@SceneViewModel.scene = network.scene(sceneNumberArg.toUShort())
+        this@SceneViewModel.selectedScene = network.scene(sceneNumberArg)
         SceneScreenUiState(
-            sceneState = SceneState.Success(scene = scene)
+            sceneState = SceneState.Success(scene = selectedScene)
         )
     }.stateIn(
         viewModelScope,
@@ -34,14 +36,19 @@ internal class SceneViewModel @Inject internal constructor(
         SceneScreenUiState(SceneState.Loading)
     )
 
+    override fun onCleared() {
+        super.onCleared()
+        save()
+    }
+
     /**
      * Invoked when the name of the application key is changed.
      *
      * @param name New application key name.
      */
     internal fun onNameChanged(name: String) {
-        if (scene.name != name) {
-            scene.name = name
+        if (selectedScene.name != name) {
+            selectedScene.name = name
             save()
         }
     }
@@ -49,7 +56,7 @@ internal class SceneViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    internal fun save() {
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

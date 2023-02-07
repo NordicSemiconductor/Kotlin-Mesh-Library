@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,24 +8,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
 internal class NetworkKeyViewModel @Inject internal constructor(
+    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
-) : ViewModel() {
-    private lateinit var networkKey: NetworkKey
-    private val netKeyIndexArg: String =
-        checkNotNull(savedStateHandle[NetworkKeyDestination.netKeyIndexArg])
+) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
+    private lateinit var key: NetworkKey
+    private val netKeyIndexArg: KeyIndex = parameterOf(networkKey).toUShort()
 
     val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
-        this@NetworkKeyViewModel.networkKey = network.networkKey(netKeyIndexArg.toUShort())
+        this@NetworkKeyViewModel.key = network.networkKey(netKeyIndexArg)
         NetworkKeyScreenUiState(
-            networkKeyState = NetworkKeyState.Success(networkKey = networkKey)
+            networkKeyState = NetworkKeyState.Success(networkKey = key)
         )
     }.stateIn(
         viewModelScope,
@@ -40,8 +42,8 @@ internal class NetworkKeyViewModel @Inject internal constructor(
      * @param name New network key name.
      */
     internal fun onNameChanged(name: String) {
-        if (networkKey.name != name) {
-            networkKey.name = name
+        if (key.name != name) {
+            key.name = name
             save()
         }
     }
@@ -52,8 +54,8 @@ internal class NetworkKeyViewModel @Inject internal constructor(
      * @param key New network key.
      */
     internal fun onKeyChanged(key: ByteArray) {
-        if (!networkKey.key.contentEquals(key)) {
-            networkKey.setKey(key = key)
+        if (!this.key.key.contentEquals(key)) {
+            this.key.setKey(key = key)
             save()
         }
     }

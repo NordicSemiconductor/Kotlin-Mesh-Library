@@ -1,6 +1,5 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalLifecycleComposeApi::class
+    ExperimentalMaterial3Api::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.settings
@@ -28,13 +27,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.*
@@ -64,6 +61,7 @@ fun SettingsRoute(
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
         onExportClicked = navigateToExportNetwork
+
     )
 }
 
@@ -79,57 +77,38 @@ fun SettingsScreen(
     onExportClicked: () -> Unit
 ) {
     val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val fileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri -> uri?.let { importNetwork(uri, context.contentResolver) } }
 
     var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = "Network",
-                actions = {
-                    IconButton(onClick = { isOptionsMenuExpanded = !isOptionsMenuExpanded }) {
-                        Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        content = { padding ->
-            LazyColumn(
-                contentPadding = padding
-            ) {
-                when (networkState) {
-                    is MeshNetworkState.Success -> {
-                        settingsInfo(
-                            context = context,
-                            network = networkState.network,
-                            onNameChanged = onNameChanged,
-                            onProvisionersClicked = onProvisionersClicked,
-                            onNetworkKeysClicked = onNetworkKeysClicked,
-                            onApplicationKeysClicked = onApplicationKeysClicked,
-                            onScenesClicked = onScenesClicked
-                        )
-                    }
-                    is MeshNetworkState.Loading -> {}
-                    is MeshNetworkState.Error -> {}
-                }
+    LazyColumn {
+        when (networkState) {
+            is MeshNetworkState.Success -> {
+                settingsInfo(
+                    context = context,
+                    network = networkState.network,
+                    onNameChanged = onNameChanged,
+                    onProvisionersClicked = onProvisionersClicked,
+                    onNetworkKeysClicked = onNetworkKeysClicked,
+                    onApplicationKeysClicked = onApplicationKeysClicked,
+                    onScenesClicked = onScenesClicked
+                )
             }
-            SettingsDropDown(
-                navigate = {
-                    isOptionsMenuExpanded = !isOptionsMenuExpanded
-                    onExportClicked()
-                },
-                isOptionsMenuExpanded = isOptionsMenuExpanded,
-                onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
-                importNetwork = {
-                    isOptionsMenuExpanded = !isOptionsMenuExpanded
-                    fileLauncher.launch("application/json")
-                }
-            )
+            is MeshNetworkState.Loading -> {}
+            is MeshNetworkState.Error -> {}
+        }
+    }
+    SettingsDropDown(
+        navigate = {
+            isOptionsMenuExpanded = !isOptionsMenuExpanded
+            onExportClicked()
+        },
+        isOptionsMenuExpanded = isOptionsMenuExpanded,
+        onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
+        importNetwork = {
+            isOptionsMenuExpanded = !isOptionsMenuExpanded
+            fileLauncher.launch("application/json")
         }
     )
 }

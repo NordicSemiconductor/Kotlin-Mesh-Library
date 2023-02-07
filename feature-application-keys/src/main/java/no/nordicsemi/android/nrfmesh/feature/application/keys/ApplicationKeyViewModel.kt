@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,27 +8,30 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ApplicationKeyViewModel @Inject internal constructor(
+    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: DataStoreRepository
-) : ViewModel() {
-    private lateinit var applicationKey: ApplicationKey
-    private val appKeyIndexArg: String =
-        checkNotNull(savedStateHandle[ApplicationKeyDestination.appKeyIndexArg])
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+    private lateinit var key: ApplicationKey
+    private val appKeyIndexArg: KeyIndex = parameterOf(applicationKey).toUShort()
 
     val uiState: StateFlow<ApplicationKeyScreenUiState> = repository.network.map { network ->
-        this@ApplicationKeyViewModel.applicationKey =
-            network.applicationKey(appKeyIndexArg.toUShort())
+        this@ApplicationKeyViewModel.key =
+            network.applicationKey(appKeyIndexArg)
         ApplicationKeyScreenUiState(
             applicationKeyState = ApplicationKeyState.Success(
-                applicationKey = applicationKey,
+                applicationKey = key,
                 networkKeys = mutableListOf<NetworkKey>().apply {
                     addAll(network.networkKeys)
                 }.toList()
@@ -41,14 +43,19 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
         ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
     )
 
+    override fun onCleared() {
+        super.onCleared()
+        save()
+    }
+
     /**
      * Invoked when the name of the application key is changed.
      *
      * @param name New application key name.
      */
     internal fun onNameChanged(name: String) {
-        if (applicationKey.name != name) {
-            applicationKey.name = name
+        if (key.name != name) {
+            key.name = name
             save()
         }
     }
@@ -59,8 +66,8 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
      * @param key New application key.
      */
     internal fun onKeyChanged(key: ByteArray) {
-        if (!applicationKey.key.contentEquals(key)) {
-            applicationKey.setKey(key = key)
+        if (!this.key.key.contentEquals(key)) {
+            this.key.setKey(key = key)
             save()
         }
     }
@@ -71,8 +78,8 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
      * @param key New network key to bind to
      */
     internal fun onBoundNetworkKeyChanged(key: NetworkKey) {
-        if(applicationKey.boundNetKeyIndex != key.index){
-            applicationKey.boundNetKeyIndex = key.index
+        if (this.key.boundNetKeyIndex != key.index) {
+            this.key.boundNetKeyIndex = key.index
             save()
         }
     }
@@ -80,7 +87,7 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    internal fun save() {
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

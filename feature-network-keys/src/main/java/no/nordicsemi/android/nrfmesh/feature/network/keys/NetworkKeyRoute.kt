@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
@@ -10,21 +10,17 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -38,67 +34,40 @@ import java.util.*
 
 @Composable
 internal fun NetworkKeyRoute(
-    viewModel: NetworkKeyViewModel = hiltViewModel(),
-    onBackPressed: () -> Unit
+    viewModel: NetworkKeyViewModel = hiltViewModel()
 ) {
     val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeyScreen(
         networkKeyState = uiState.networkKeyState,
         onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged,
-        onBackPressed = {
-            viewModel.save()
-            onBackPressed()
-        }
+        onKeyChanged = viewModel::onKeyChanged
     )
 }
 
 @Composable
 private fun NetworkKeyScreen(
     networkKeyState: NetworkKeyState,
-    onBackPressed: () -> Unit,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_edit_network_key),
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
 
-            when (networkKeyState) {
-                NetworkKeyState.Loading -> { /* Do nothing */
-                }
-                is NetworkKeyState.Success -> networkKeyInfo(
-                    snackbarHostState = snackbarHostState,
-                    networkKey = networkKeyState.networkKey,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-                    onNameChanged = onNameChanged,
-                    onKeyChanged = onKeyChanged
-                )
-                is NetworkKeyState.Error -> when (networkKeyState.throwable) {
-                    is KeyInUse -> {}
-                    is InvalidKeyLength -> {}
-                }
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        when (networkKeyState) {
+            NetworkKeyState.Loading -> { /* Do nothing */
+            }
+            is NetworkKeyState.Success -> networkKeyInfo(
+                snackbarHostState = snackbarHostState,
+                networkKey = networkKeyState.networkKey,
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                onNameChanged = onNameChanged,
+                onKeyChanged = onKeyChanged
+            )
+            is NetworkKeyState.Error -> when (networkKeyState.throwable) {
+                is KeyInUse -> {}
+                is InvalidKeyLength -> {}
             }
         }
     }
@@ -160,7 +129,7 @@ fun Name(
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
-                onFocus =  onEditClick,
+                onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -247,7 +216,7 @@ fun Key(
             true ->
                 MeshOutlinedTextField(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    onFocus =  onEditClick,
+                    onFocus = onEditClick,
                     externalLeadingIcon = {
                         Icon(
                             modifier = Modifier.padding(horizontal = 16.dp),
