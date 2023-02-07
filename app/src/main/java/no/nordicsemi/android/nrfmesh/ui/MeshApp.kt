@@ -116,9 +116,7 @@ fun BottomNavigationBar(
                     // See: https://issuetracker.google.com/issues/258237571
                     if (!selected) {
                         navigator.navigateTo(destination.destinationId) {
-                            popUpToStartDestination {
-                                saveState = true
-                            }
+                            popUpToStartDestination { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }

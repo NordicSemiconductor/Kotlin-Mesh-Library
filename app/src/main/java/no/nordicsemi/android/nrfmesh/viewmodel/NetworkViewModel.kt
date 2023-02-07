@@ -29,8 +29,6 @@ class NetworkViewModel @Inject constructor(
      * Loads the network
      */
     private fun loadNetwork() {
-        viewModelScope.launch {
-            isNetworkLoaded = repository.load()
-        }
+        viewModelScope.launch { isNetworkLoaded = repository.load() }
     }
 }
