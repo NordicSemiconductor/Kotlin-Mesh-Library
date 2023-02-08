@@ -14,5 +14,10 @@ val provisioner = createDestination<UUID, Unit>("provisioner")
 val provisionerDestination = defineDestination(provisioner) {
     val viewModel: ProvisionerViewModel = hiltViewModel()
 
-    ProvisionerRoute(viewModel = viewModel)
+    ProvisionerRoute(
+        viewModel = viewModel,
+        navigateToUnicastRanges = { viewModel.navigateTo(unicastRanges, it) },
+        navigateToGroupRanges = { viewModel.navigateTo(groupRanges, it) },
+        navigateToSceneRanges = { viewModel.navigateTo(sceneRanges, it) }
+    )
 }

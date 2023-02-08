@@ -23,8 +23,7 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKe
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.*
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilter
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
@@ -138,6 +137,7 @@ fun DestinationId<*, *>.title(): String {
         networkKey -> "Edit Key"
         scenes -> "Scenes"
         scene -> "Edit Scene"
+        unicastRanges, groupRanges, sceneRanges -> "Edit Ranges"
         else -> ""
     }
 }

@@ -18,4 +18,8 @@ val provisionersDestination = defineDestination(provisioners) {
     })
 }
 
-val provisionersDestinations = provisionersDestination + provisionerDestination
+val provisionersDestinations = provisionersDestination +
+        provisionerDestination +
+        unicastRangesDestination +
+        groupRangesDestination +
+        sceneRangesDestination

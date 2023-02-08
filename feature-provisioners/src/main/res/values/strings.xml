@@ -28,4 +28,7 @@
     <string name="unassign_address_rationale">Unassigning the address of the provisioner will
         disable it\'s configuration capabilities and delete the corresponding node. However you will
         still be able to provision a nodes in the network. Do you want to continue?</string>
+    <string name="action_add_range">Add Range</string>
+    <string name="no_ranges_currently_added">No range currently added.</string>
+    <string name="label_range_deleted">Range deleted.</string>
 </resources>

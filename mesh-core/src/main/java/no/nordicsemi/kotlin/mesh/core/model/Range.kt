@@ -16,9 +16,9 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializ
 sealed class Range {
     internal abstract val range: UIntRange
     internal abstract val diff: UInt
-    internal val low: UShort
+    val low: UShort
         get() = range.first.toUShort()
-    internal val high: UShort
+    val high: UShort
         get() = range.last.toUShort()
 
     /**

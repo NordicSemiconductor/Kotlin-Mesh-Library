@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,16 +39,25 @@ import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import java.util.*
 
 @Composable
-internal fun ProvisionerRoute(viewModel: ProvisionerViewModel = hiltViewModel()) {
+internal fun ProvisionerRoute(
+    viewModel: ProvisionerViewModel = hiltViewModel(),
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
+) {
     val uiState: ProvisionerScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
         disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
-        onTtlChanged = viewModel::onTtlChanged
+        onTtlChanged = viewModel::onTtlChanged,
+        navigateToUnicastRanges = navigateToUnicastRanges,
+        navigateToGroupRanges = navigateToGroupRanges,
+        navigateToSceneRanges = navigateToSceneRanges
     )
 }
 
@@ -58,6 +68,9 @@ private fun ProvisionerScreen(
     onAddressChanged: (Int) -> Result<Unit>,
     disableConfigurationCapabilities: () -> Result<Unit>,
     onTtlChanged: (Int) -> Unit,
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     when (provisionerState) {
@@ -71,7 +84,10 @@ private fun ProvisionerScreen(
                 onNameChanged = onNameChanged,
                 onAddressChanged = onAddressChanged,
                 disableConfigurationCapabilities = disableConfigurationCapabilities,
-                onTtlChanged = onTtlChanged
+                onTtlChanged = onTtlChanged,
+                navigateToUnicastRanges = navigateToUnicastRanges,
+                navigateToGroupRanges = navigateToGroupRanges,
+                navigateToSceneRanges = navigateToSceneRanges
             )
         }
         is ProvisionerState.Error -> {
@@ -91,7 +107,10 @@ private fun ProvisionerInfo(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Result<Unit>,
     disableConfigurationCapabilities: () -> Result<Unit>,
-    onTtlChanged: (Int) -> Unit
+    onTtlChanged: (Int) -> Unit,
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -137,19 +156,22 @@ private fun ProvisionerInfo(
             item {
                 UnicastRange(
                     ranges = provisioner.allocatedUnicastRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
+                    navigateToRanges = { navigateToUnicastRanges(provisioner.uuid) }
                 )
             }
             item {
                 GroupRange(
                     ranges = provisioner.allocatedGroupRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
+                    navigateToRanges = { navigateToGroupRanges(provisioner.uuid) }
                 )
             }
             item {
                 SceneRange(
                     ranges = provisioner.allocatedSceneRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
+                    navigateToRanges = { navigateToSceneRanges(provisioner.uuid) }
                 )
             }
             item {
@@ -520,33 +542,48 @@ private fun DeviceKey(key: ByteArray?) {
 
 
 @Composable
-private fun UnicastRange(ranges: List<UnicastRange>, otherRanges: List<UnicastRange>) {
+private fun UnicastRange(
+    ranges: List<UnicastRange>,
+    otherRanges: List<UnicastRange>,
+    navigateToRanges: () -> Unit
+) {
     Ranges(
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_unicast_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        navigateToRanges = navigateToRanges
     )
 }
 
 @Composable
-private fun GroupRange(ranges: List<GroupRange>, otherRanges: List<GroupRange>) {
+private fun GroupRange(
+    ranges: List<GroupRange>,
+    otherRanges: List<GroupRange>,
+    navigateToRanges: () -> Unit
+) {
     Ranges(
         imageVector = Icons.Outlined.GroupWork,
         title = stringResource(id = R.string.label_group_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        navigateToRanges = navigateToRanges
     )
 }
 
 
 @Composable
-private fun SceneRange(ranges: List<SceneRange>, otherRanges: List<SceneRange>) {
+private fun SceneRange(
+    ranges: List<SceneRange>,
+    otherRanges: List<SceneRange>,
+    navigateToRanges: () -> Unit
+) {
     Ranges(
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        navigateToRanges = navigateToRanges
     )
 }
 
@@ -556,8 +593,10 @@ private fun Ranges(
     title: String,
     ranges: List<Range>,
     otherRanges: List<Range>,
+    navigateToRanges: () -> Unit
 ) {
     TwoLineRangeListItem(
+        modifier = Modifier.clickable { navigateToRanges() },
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
