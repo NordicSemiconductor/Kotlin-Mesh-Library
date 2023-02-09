@@ -42,8 +42,8 @@ data class Scene internal constructor(
     internal var network: MeshNetwork? = null
 
     init {
-        require(number in LOWER_BOUND..HIGHER_BOUND) {
-            "Scene number must be within $LOWER_BOUND and $HIGHER_BOUND!"
+        require(number in minSceneNumber..maxSceneNumber) {
+            "Scene number must be within $minSceneNumber and $maxSceneNumber!"
         }
     }
 
@@ -125,9 +125,7 @@ data class Scene internal constructor(
         return result
     }
 
-
-    private companion object {
-        const val LOWER_BOUND = 0x0001u
-        const val HIGHER_BOUND = 0xFFFFu
-    }
 }
+
+const val minSceneNumber: SceneNumber = 0x0001u
+const val maxSceneNumber: SceneNumber = 0xFFFFu

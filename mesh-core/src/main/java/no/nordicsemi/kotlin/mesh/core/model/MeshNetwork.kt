@@ -855,16 +855,11 @@ class MeshNetwork internal constructor(
      * @param rangeSize Size of the address range.
      * @return Next available group address range or null if there are no available ranges.
      */
-    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableAddressRange(
+    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableSceneRange(
         size = rangeSize,
-        bound = GroupRange(
-            GroupAddress(minGroupAddress),
-            GroupAddress(maxGroupAddress)
-        ),
-        ranges = provisioners.flatMap { it.allocatedGroupRanges }.sortedBy { it.low }
-    )?.let {
-        it as GroupRange
-    }
+        bound = SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber),
+        ranges = provisioners.flatMap { it.allocatedSceneRanges }.sortedBy { it.low }
+    )
 
     /**
      * Returns the next available address range.
