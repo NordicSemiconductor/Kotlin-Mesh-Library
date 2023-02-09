@@ -18,11 +18,13 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,6 +42,8 @@ internal fun RangesRoute(
     val uiState: RangesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     RangesScreen(
         uiState = uiState,
+        onAddRangeClicked = viewModel::onAddRangeClicked,
+        addRange = viewModel::addRange,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove
@@ -50,18 +54,18 @@ internal fun RangesRoute(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun RangesScreen(
     uiState: RangesScreenUiState,
+    onAddRangeClicked: () -> Range,
+    addRange: (Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-
+    var showAddRangeDialog by remember { mutableStateOf(false) }
     Scaffold(
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-
-            }) {
+            ExtendedFloatingActionButton(onClick = { showAddRangeDialog = !showAddRangeDialog }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
@@ -85,7 +89,16 @@ private fun RangesScreen(
                 remove = remove
             )
         }
-
+        if (showAddRangeDialog) {
+            AddRangeDialog(
+                onDismissRequest = { showAddRangeDialog = false },
+                range = onAddRangeClicked(),
+                onRangeAdded = { range ->
+                    showAddRangeDialog = false
+                    addRange(range)
+                }
+            )
+        }
     }
 }
 
@@ -109,8 +122,8 @@ private fun Ranges(
             items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState()
-                var keyDismissed by remember { mutableStateOf(false) }
-                if (keyDismissed) {
+                var rangeDismissed by remember { mutableStateOf(false) }
+                if (rangeDismissed) {
                     showSnackbar(
                         scope = coroutineScope,
                         snackbarHostState = snackbarHostState,
@@ -149,10 +162,12 @@ private fun Ranges(
                         if (isDismissed) {
                             onSwiped(range)
                         }
-                        keyDismissed = isDismissed
+                        rangeDismissed = isDismissed
                         Surface(color = MaterialTheme.colorScheme.background) {
                             MeshTwoLineListItem(
-                                modifier = Modifier.clickable {},
+                                modifier = Modifier.clickable {
+
+                                },
                                 leadingComposable = {
                                     Icon(
                                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -179,11 +194,102 @@ private fun Ranges(
                     }
                 )
             }
-
-            item {
-            }
         }
+        Divider()
         AddressRangeLegendsForRanges()
         Spacer(modifier = Modifier.size(16.dp))
     }
+}
+
+@Composable
+private fun AddRangeDialog(
+    onDismissRequest: () -> Unit,
+    range: Range,
+    onRangeAdded: (Range) -> Unit
+) {
+    var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(range.low.toHex()))
+    }
+    var end by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(range.high.toHex()))
+    }
+    var startInFocus by rememberSaveable { mutableStateOf(false) }
+    var endInFocus by rememberSaveable { mutableStateOf(false) }
+    MeshAlertDialog(
+        onDismissRequest = { onDismissRequest() },
+        onConfirmClick = {
+            if (start.text.isNotBlank() && end.text.isNotBlank()) {
+                onRangeAdded(
+                    when (range) {
+                        is UnicastRange -> UnicastRange(
+                            UnicastAddress(start.text.trim().toInt(radix = 16)),
+                            UnicastAddress(end.text.trim().toInt(radix = 16))
+                        )
+                        is GroupRange -> GroupRange(
+                            GroupAddress(start.text.trim().toInt(radix = 16)),
+                            GroupAddress(end.text.trim().toInt(radix = 16))
+                        )
+                        is SceneRange -> SceneRange(
+                            start.text.trim().toUShort(radix = 16),
+                            end.text.trim().toUShort(radix = 16)
+                        )
+                    }
+                )
+            }
+        },
+        onDismissClick = { onDismissRequest() },
+        icon = Icons.Outlined.Compress,
+        title = stringResource(R.string.title_new_range),
+        content = {
+            Column {
+                Text(
+                    text = stringResource(R.string.label_new_range_rationale)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                MeshOutlinedHexTextField(
+                    modifier = Modifier.clickable {
+                        startInFocus = true
+                        endInFocus = false
+                    },
+                    showPrefix = true,
+                    onFocus = startInFocus,
+                    value = start,
+                    onValueChanged = { start = it },
+                    internalTrailingIcon = {
+                        IconButton(
+                            enabled = start.text.isNotBlank(),
+                            onClick = {
+                                startInFocus = true
+                                endInFocus = false
+                                start = TextFieldValue("")
+                            }
+                        ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    },
+                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                MeshOutlinedHexTextField(
+                    modifier = Modifier.clickable {
+                        startInFocus = false
+                        endInFocus = true
+                    },
+                    showPrefix = true,
+                    onFocus = endInFocus,
+                    value = end,
+                    onValueChanged = { end = it },
+                    internalTrailingIcon = {
+                        IconButton(
+                            enabled = end.text.isNotBlank(),
+                            onClick = {
+                                startInFocus = false
+                                endInFocus = true
+                                end = TextFieldValue("")
+                            }
+                        ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    },
+                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                )
+            }
+        }
+    )
 }

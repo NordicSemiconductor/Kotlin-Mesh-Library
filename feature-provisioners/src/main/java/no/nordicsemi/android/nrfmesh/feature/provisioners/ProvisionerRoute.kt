@@ -192,9 +192,7 @@ fun Name(
     onEditableStateChanged: () -> Unit,
 ) {
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(
-            TextFieldValue(text = name, selection = TextRange(name.length))
-        )
+        mutableStateOf(TextFieldValue(text = name, selection = TextRange(name.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->

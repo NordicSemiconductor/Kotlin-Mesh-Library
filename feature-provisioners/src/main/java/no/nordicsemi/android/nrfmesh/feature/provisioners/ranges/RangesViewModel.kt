@@ -19,7 +19,7 @@ internal abstract class RangesViewModel(
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
 
     private var rangesToBeRemoved = mutableListOf<Range>()
-    private lateinit var network: MeshNetwork
+    protected lateinit var network: MeshNetwork
     protected lateinit var provisioner: Provisioner
     protected open lateinit var uuid: UUID
 
@@ -50,38 +50,28 @@ internal abstract class RangesViewModel(
         removeRanges()
     }
 
+    internal abstract fun onAddRangeClicked(): Range
+
     protected abstract fun getRanges(): List<Range>
 
     /**
-     * Adds a scene to the network.
+     * Adds a range to the network.
      */
-    internal fun addRange(): Provisioner {
-        removeRanges()
-        val provisioner = Provisioner()
-        network.run {
-            nextAvailableUnicastAddressRange(rangeSize = 0x199A)?.let { range ->
-                provisioner.allocate(range)
-            }
-            nextAvailableGroupAddressRange(rangeSize = 0x0C9A)?.let { range ->
-                provisioner.allocate(range)
-            }
-            nextAvailableSceneRange(rangeSize = 0x3334)?.let { range ->
-                provisioner.allocate(range)
-            }
-            add(provisioner = provisioner, address = null)
-        }
+    internal fun addRange(range: Range): Provisioner {
+        provisioner.allocate(range = range)
         return provisioner
     }
 
     /**
-     * Invoked when a provisioner is swiped to be deleted. The given provisioner is added to a list
-     * of provisioners to be deleted.
+     * Invoked when a range is swiped to be deleted. The given range is added to a list
+     * of ranges to be deleted.
      *
-     * @param provisioner Provisioner to be deleted.
+     * @param range Provisioner to be deleted.
      */
-    internal fun onSwiped(provisioner: Range) {
-        if (!rangesToBeRemoved.contains(provisioner))
-            rangesToBeRemoved.add(provisioner)
+    internal fun onSwiped(range: Range) {
+        if (!rangesToBeRemoved.contains(range))
+            rangesToBeRemoved.add(range)
+        // TODO Fix this
         if (rangesToBeRemoved.size == network.scenes.size) {
             /*_uiState.value =
                 UnicastRangesScreenUiState(ranges = filterProvisionersTobeRemoved())*/
@@ -96,6 +86,7 @@ internal abstract class RangesViewModel(
      */
     internal fun onUndoSwipe(provisioner: Range) {
         rangesToBeRemoved.remove(provisioner)
+        // TODO Fix this
         if (rangesToBeRemoved.isEmpty()) {
             /*_uiState.value =
                 UnicastRangesScreenUiState(ranges = filterProvisionersTobeRemoved())*/
@@ -103,12 +94,12 @@ internal abstract class RangesViewModel(
     }
 
     /**
-     * Remove a given scene from the network.
+     * Remove a given range from the provisioner.
      *
-     * @param provisioner Scene to be removed.
+     * @param range range to be removed.
      */
-    internal fun remove(provisioner: Range) {
-
+    internal fun remove(range: Range) {
+        // TODO Fix this
     }
 
     /**
@@ -123,7 +114,7 @@ internal abstract class RangesViewModel(
      * Removes the selected provisioners from the network.
      */
     private fun remove() {
-
+        // TODO Fix this
     }
 
     /**

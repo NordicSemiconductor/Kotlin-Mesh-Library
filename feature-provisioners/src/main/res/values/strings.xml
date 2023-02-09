@@ -31,4 +31,7 @@
     <string name="action_add_range">Add Range</string>
     <string name="no_ranges_currently_added">No range currently added.</string>
     <string name="label_range_deleted">Range deleted.</string>
+    <string name="title_new_range">New Range</string>
+    <string name="label_new_range_rationale">Enter lower and upper bounds as a 4–character
+        hexadecimal value. \n\nValid range: 0x0001 – 0x7FFF</string>
 </resources>
