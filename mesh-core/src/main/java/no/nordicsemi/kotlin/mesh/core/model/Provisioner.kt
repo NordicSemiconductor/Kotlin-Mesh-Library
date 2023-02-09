@@ -72,6 +72,21 @@ data class Provisioner internal constructor(
     internal var network: MeshNetwork? = null
 
     /**
+     * Allocates the given range to a provisioner.
+     *
+     * @param range Allocated range could [UnicastRange], [GroupRange] or a [SceneRange].
+     * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
+     */
+    fun allocate(range: Range) {
+        // TODO clarify the api with iOS version
+        when (range) {
+            is UnicastRange -> allocate(range)
+            is GroupRange -> allocate(range)
+            is SceneRange -> allocate(range)
+        }
+    }
+
+    /**
      * Allocates the given unicast range to a provisioner.
      *
      * @param range Allocated unicast range.
