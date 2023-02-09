@@ -3,10 +3,12 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun MeshOutlinedTextField(
@@ -84,7 +87,7 @@ fun MeshOutlinedTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value.text),
-    content: @Composable () -> Unit = {},
+    content: @Composable () -> Unit = {}
 ) {
     val requester = remember { FocusRequester() }
     Row(
@@ -119,5 +122,45 @@ fun MeshOutlinedTextField(
         if (onFocus) {
             requester.requestFocus()
         }
+    }
+}
+
+@Composable
+fun MeshOutlinedHexTextField(
+    modifier: Modifier = Modifier,
+    showPrefix: Boolean = true,
+    onFocus: Boolean = false,
+    externalLeadingIcon: @Composable () -> Unit = {},
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    value: TextFieldValue,
+    onValueChanged: (TextFieldValue) -> Unit,
+    internalTrailingIcon: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    regex: Regex? = null,
+    isError: Boolean = regex != null && !regex.matches(value.text),
+    content: @Composable () -> Unit = {}
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (showPrefix)
+            Text(modifier = Modifier.padding(end = 8.dp), text = "0x")
+        MeshOutlinedTextField(
+            modifier = modifier,
+            onFocus = onFocus,
+            externalLeadingIcon = externalLeadingIcon,
+            label = label,
+            placeholder = placeholder,
+            value = value,
+            onValueChanged = onValueChanged,
+            internalTrailingIcon = internalTrailingIcon,
+            readOnly = readOnly,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            regex = regex,
+            isError = isError,
+            content = content
+        )
     }
 }
