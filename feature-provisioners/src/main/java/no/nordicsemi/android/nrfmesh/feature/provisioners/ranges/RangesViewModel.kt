@@ -50,16 +50,23 @@ internal abstract class RangesViewModel(
         removeRanges()
     }
 
+    protected fun getOtherProvisioners(): List<Provisioner> =
+        network.provisioners.filter { it.uuid != uuid }
     internal abstract fun onAddRangeClicked(): Range
-
     protected abstract fun getRanges(): List<Range>
+
+    protected abstract fun getOtherRanges(): List<Range>
 
     /**
      * Adds a range to the network.
      */
-    internal fun addRange(range: Range): Provisioner {
+    internal fun addRange(range: Range) {
         provisioner.allocate(range = range)
-        return provisioner
+    }
+
+    internal fun onRangeUpdated(range: Range, newRange: Range) {
+        provisioner.allocate(range = newRange)
+        _uiState.value = RangesScreenUiState(ranges = getRanges())
     }
 
     /**
@@ -125,4 +132,7 @@ internal abstract class RangesViewModel(
     }
 }
 
-data class RangesScreenUiState internal constructor(val ranges: List<Range> = listOf())
+data class RangesScreenUiState internal constructor(
+    val ranges: List<Range> = listOf(),
+    val otherRanges: List<Range> = listOf()
+)

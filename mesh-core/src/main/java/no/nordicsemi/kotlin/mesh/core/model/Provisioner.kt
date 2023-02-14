@@ -97,12 +97,13 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // unicast ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(network.provisioners
-                .filter { it.uuid != uuid }
-                .none { it._allocatedUnicastRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges
-            }
+            require(
+                network.provisioners
+                    .filter { it.uuid != uuid }
+                    .none { it._allocatedUnicastRanges.overlaps(range) }
+            ) { throw OverlappingProvisionerRanges }
             _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
+            println("Ranges ${_allocatedUnicastRanges.size}")
         } ?: run {
             _allocatedUnicastRanges.add(range)
         }

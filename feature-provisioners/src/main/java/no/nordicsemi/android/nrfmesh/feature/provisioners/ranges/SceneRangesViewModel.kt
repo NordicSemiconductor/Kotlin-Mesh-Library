@@ -18,7 +18,8 @@ internal class SceneRangesViewModel @Inject internal constructor(
 
     override var uuid: UUID = parameterOf(sceneRanges)
     override fun getRanges(): List<Range> = provisioner.allocatedSceneRanges
-
+    override fun getOtherRanges(): List<Range> = getOtherProvisioners()
+        .flatMap { it.allocatedSceneRanges }
     override fun onAddRangeClicked(): Range = network.nextAvailableSceneRange(rangeSize = 0x199A)
         ?: SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber)
 }

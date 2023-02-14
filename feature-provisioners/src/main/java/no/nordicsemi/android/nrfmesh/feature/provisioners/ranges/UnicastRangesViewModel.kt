@@ -21,6 +21,9 @@ internal class UnicastRangesViewModel @Inject internal constructor(
     override var uuid: UUID = parameterOf(unicastRanges)
     override fun getRanges(): List<Range> = provisioner.allocatedUnicastRanges
 
+    override fun getOtherRanges(): List<Range> = getOtherProvisioners()
+            .flatMap { it.allocatedUnicastRanges }
+
     override fun onAddRangeClicked(): Range = network.nextAvailableUnicastAddressRange(
         rangeSize = 0x199A
     ) ?: UnicastRange(

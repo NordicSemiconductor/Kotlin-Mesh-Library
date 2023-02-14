@@ -19,6 +19,8 @@ internal class GroupRangesViewModel @Inject internal constructor(
     override var uuid: UUID = parameterOf(groupRanges)
     override fun getRanges(): List<Range> = provisioner.allocatedGroupRanges
 
+    override fun getOtherRanges(): List<Range> = getOtherProvisioners()
+        .flatMap { it.allocatedGroupRanges }
     override fun onAddRangeClicked(): Range = network.nextAvailableGroupAddressRange(
         rangeSize = 0x199A
     ) ?: GroupRange(

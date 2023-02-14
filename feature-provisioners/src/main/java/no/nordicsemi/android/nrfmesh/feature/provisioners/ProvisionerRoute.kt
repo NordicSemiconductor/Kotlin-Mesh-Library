@@ -4,9 +4,6 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,12 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -521,7 +513,6 @@ private fun Ttl(
         }
     }
 }
-
 @Composable
 private fun DeviceKey(key: ByteArray?) {
     MeshTwoLineListItem(
@@ -537,156 +528,45 @@ private fun DeviceKey(key: ByteArray?) {
         subtitle = key?.encodeHex() ?: stringResource(R.string.label_not_applicable)
     )
 }
-
-
 @Composable
 private fun UnicastRange(
     ranges: List<UnicastRange>,
     otherRanges: List<UnicastRange>,
     navigateToRanges: () -> Unit
 ) {
-    Ranges(
+    AllocatedRanges(
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_unicast_range),
         ranges = ranges,
         otherRanges = otherRanges,
-        navigateToRanges = navigateToRanges
+        onClick = navigateToRanges
     )
 }
-
 @Composable
 private fun GroupRange(
     ranges: List<GroupRange>,
     otherRanges: List<GroupRange>,
     navigateToRanges: () -> Unit
 ) {
-    Ranges(
+    AllocatedRanges(
         imageVector = Icons.Outlined.GroupWork,
         title = stringResource(id = R.string.label_group_range),
         ranges = ranges,
         otherRanges = otherRanges,
-        navigateToRanges = navigateToRanges
+        onClick = navigateToRanges
     )
 }
-
-
 @Composable
 private fun SceneRange(
     ranges: List<SceneRange>,
     otherRanges: List<SceneRange>,
     navigateToRanges: () -> Unit
 ) {
-    Ranges(
+    AllocatedRanges(
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_range),
         ranges = ranges,
         otherRanges = otherRanges,
-        navigateToRanges = navigateToRanges
+        onClick = navigateToRanges
     )
-}
-
-@Composable
-private fun Ranges(
-    imageVector: ImageVector,
-    title: String,
-    ranges: List<Range>,
-    otherRanges: List<Range>,
-    navigateToRanges: () -> Unit
-) {
-    TwoLineRangeListItem(
-        modifier = Modifier.clickable { navigateToRanges() },
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = imageVector,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = title,
-        lineTwo = {
-            val ownRangeColor = MaterialTheme.colorScheme.primary
-            val otherRangeColor = Color.DarkGray
-            val conflictingColor = Color.Red
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-                    .height(height = 16.dp)
-                    .background(color = Color.LightGray)
-            ) {
-                // Mark own ranges
-                markRanges(
-                    color = ownRangeColor,
-                    ranges = ranges
-                )
-                // Mark other provisioners' ranges
-                markRanges(
-                    color = otherRangeColor,
-                    ranges = otherRanges
-                )
-                // Mark conflicting ranges
-                markRanges(
-                    color = conflictingColor,
-                    ranges = ranges.intersect(otherRanges.toSet()).toList()
-                )
-            }
-        }
-    )
-}
-
-private fun DrawScope.markRanges(
-    color: Color,
-    ranges: List<Range>
-) {
-    ranges.forEach { range ->
-        when (range) {
-            is UnicastRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.lowAddress.address.toInt(),
-                    highAddress = range.highAddress.address.toInt(),
-                    lowerBound = minUnicastAddress.toInt(),
-                    upperBound = maxUnicastAddress.toInt()
-                )
-            }
-            is GroupRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.lowAddress.address.toInt(),
-                    highAddress = range.highAddress.address.toInt(),
-                    lowerBound = 0xC000u.toInt(),
-                    upperBound = 0xFEFFu.toInt()
-                )
-            }
-            is SceneRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.firstScene.toInt(),
-                    highAddress = range.lastScene.toInt(),
-                    lowerBound = 0x0001u.toInt(),
-                    upperBound = 0xFFFFu.toInt()
-                )
-            }
-        }
-    }
-}
-
-private fun DrawScope.markRange(
-    color: Color,
-    lowAddress: Int,
-    highAddress: Int,
-    lowerBound: Int,
-    upperBound: Int
-) {
-    size.let { size ->
-        val rangeWidth = size.width * (highAddress - lowAddress) / (upperBound - lowerBound)
-        val rangeStart = size.width * (lowAddress - lowerBound) / (upperBound - lowerBound)
-        drawRect(
-            color = color,
-            topLeft = Offset(x = rangeStart, y = 0f),
-            size = Size(width = rangeWidth.inc(), height = size.height),
-            style = Fill
-        )
-    }
 }

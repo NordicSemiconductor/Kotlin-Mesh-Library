@@ -32,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.android.nrfmesh.feature.provisioners.AllocatedRange
 import no.nordicsemi.kotlin.mesh.core.model.*
 import java.util.*
 
@@ -44,6 +45,7 @@ internal fun RangesRoute(
         uiState = uiState,
         onAddRangeClicked = viewModel::onAddRangeClicked,
         addRange = viewModel::addRange,
+        onRangeUpdated = viewModel::onRangeUpdated,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove
@@ -56,6 +58,7 @@ private fun RangesScreen(
     uiState: RangesScreenUiState,
     onAddRangeClicked: () -> Range,
     addRange: (Range) -> Unit,
+    onRangeUpdated: (Range, Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit
@@ -84,6 +87,7 @@ private fun RangesScreen(
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 ranges = uiState.ranges,
+                onRangeUpdated = onRangeUpdated,
                 onSwiped = onSwiped,
                 onUndoClicked = onUndoClicked,
                 remove = remove
@@ -93,7 +97,7 @@ private fun RangesScreen(
             AddRangeDialog(
                 onDismissRequest = { showAddRangeDialog = false },
                 range = onAddRangeClicked(),
-                onRangeAdded = { range ->
+                onConfirmClicked = { range ->
                     showAddRangeDialog = false
                     addRange(range)
                 }
@@ -107,11 +111,13 @@ private fun Ranges(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
+    onRangeUpdated: (Range, Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit
 ) {
     val listState = rememberLazyListState()
+    var showAddRangeDialog by remember { mutableStateOf(false) }
     Column {
         LazyColumn(
             modifier = Modifier
@@ -164,38 +170,46 @@ private fun Ranges(
                         }
                         rangeDismissed = isDismissed
                         Surface(color = MaterialTheme.colorScheme.background) {
-                            MeshTwoLineListItem(
-                                modifier = Modifier.clickable {
-
-                                },
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        imageVector = when (range) {
-                                            is UnicastRange -> Icons.Outlined.Lan
-                                            is GroupRange -> Icons.Outlined.GroupWork
-                                            is SceneRange -> Icons.Outlined.AutoAwesome
-                                        },
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                    )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            }
+                            AllocatedRange(
+                                imageVector = when (range) {
+                                    is UnicastRange -> Icons.Outlined.Lan
+                                    is GroupRange -> Icons.Outlined.GroupWork
+                                    is SceneRange -> Icons.Outlined.AutoAwesome
                                 },
                                 title = "${range.low.toHex(true)} - ${range.high.toHex(true)}",
-                                trailingComposable = {
-                                    Icon(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        imageVector = Icons.Outlined.Edit,
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                    )
-                                }
+                                range = range,
+                                otherRanges = listOf(),
+                                onClick = { showAddRangeDialog = true }
                             )
                         }
                     }
                 )
+
+                if (showAddRangeDialog) {
+                    AddRangeDialog(
+                        onDismissRequest = { showAddRangeDialog = false },
+                        range = range,
+                        onConfirmClicked = { newRange ->
+                            showAddRangeDialog = false
+                            onRangeUpdated(range, newRange)
+                        }
+                    )
+                }
+            }
+            item {
+
             }
         }
         Divider()
+        Text(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 8.dp),
+            text = stringResource(R.string.label_overlapping_ranges_rationale),
+            style = MaterialTheme.typography.labelMedium
+        )
         AddressRangeLegendsForRanges()
         Spacer(modifier = Modifier.size(16.dp))
     }
@@ -205,7 +219,7 @@ private fun Ranges(
 private fun AddRangeDialog(
     onDismissRequest: () -> Unit,
     range: Range,
-    onRangeAdded: (Range) -> Unit
+    onConfirmClicked: (Range) -> Unit
 ) {
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(range.low.toHex()))
@@ -219,7 +233,7 @@ private fun AddRangeDialog(
         onDismissRequest = { onDismissRequest() },
         onConfirmClick = {
             if (start.text.isNotBlank() && end.text.isNotBlank()) {
-                onRangeAdded(
+                onConfirmClicked(
                     when (range) {
                         is UnicastRange -> UnicastRange(
                             UnicastAddress(start.text.trim().toInt(radix = 16)),

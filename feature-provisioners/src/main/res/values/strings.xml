@@ -34,4 +34,5 @@
     <string name="title_new_range">New Range</string>
     <string name="label_new_range_rationale">Enter lower and upper bounds as a 4–character
         hexadecimal value. \n\nValid range: 0x0001 – 0x7FFF</string>
+    <string name="label_overlapping_ranges_rationale">Overlapping ranges merge automatically.</string>
 </resources>
