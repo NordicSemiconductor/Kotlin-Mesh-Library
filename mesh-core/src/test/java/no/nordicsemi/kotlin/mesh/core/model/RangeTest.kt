@@ -22,6 +22,15 @@ class RangeTest {
             )
     }
 
+
+    @Test
+    fun testOverlapsRanges() {
+        // Overlapping ranges
+        val range = UnicastAddress(1u)..UnicastAddress(10u)
+        val overlappingRanges = listOf(UnicastAddress(5u)..UnicastAddress(20u))
+        Assert.assertTrue(range.overlaps(overlappingRanges))
+    }
+
     @Test
     fun testDistance() {
         Assert.assertEquals(
