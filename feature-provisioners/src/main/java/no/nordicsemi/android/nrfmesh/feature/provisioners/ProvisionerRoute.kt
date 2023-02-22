@@ -68,6 +68,7 @@ private fun ProvisionerScreen(
     when (provisionerState) {
         ProvisionerState.Loading -> { /* Do nothing */
         }
+
         is ProvisionerState.Success -> {
             ProvisionerInfo(
                 snackbarHostState = snackbarHostState,
@@ -82,6 +83,7 @@ private fun ProvisionerScreen(
                 navigateToSceneRanges = navigateToSceneRanges
             )
         }
+
         is ProvisionerState.Error -> {
             MeshNoItemsAvailable(
                 imageVector = Icons.Outlined.Group,
@@ -109,11 +111,7 @@ private fun ProvisionerInfo(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
-    LazyColumn(
-        modifier = Modifier
-            .padding(end = 16.dp)
-            .fillMaxSize()
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         provisioner.run {
             item {
                 Name(
@@ -230,6 +228,7 @@ fun Name(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -361,6 +360,7 @@ private fun UnicastAddress(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -480,6 +480,7 @@ private fun Ttl(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -513,6 +514,7 @@ private fun Ttl(
         }
     }
 }
+
 @Composable
 private fun DeviceKey(key: ByteArray?) {
     MeshTwoLineListItem(
@@ -528,6 +530,7 @@ private fun DeviceKey(key: ByteArray?) {
         subtitle = key?.encodeHex() ?: stringResource(R.string.label_not_applicable)
     )
 }
+
 @Composable
 private fun UnicastRange(
     ranges: List<UnicastRange>,
@@ -542,6 +545,7 @@ private fun UnicastRange(
         onClick = navigateToRanges
     )
 }
+
 @Composable
 private fun GroupRange(
     ranges: List<GroupRange>,
@@ -556,6 +560,7 @@ private fun GroupRange(
         onClick = navigateToRanges
     )
 }
+
 @Composable
 private fun SceneRange(
     ranges: List<SceneRange>,
