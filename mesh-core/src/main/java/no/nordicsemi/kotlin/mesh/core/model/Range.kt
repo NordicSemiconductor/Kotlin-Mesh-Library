@@ -43,7 +43,7 @@ sealed class Range {
      * @param other Range to be checked.
      * @return the overlapping range or null if there is no overlap.
      */
-    fun overlap1(other: Range) = if (overlaps(other)) {
+    fun overlap(other: Range) = if (overlaps(other)) {
         val overlap = range.intersect(other.range).toList()
         if (overlap.isNotEmpty()) {
             when (other) {
