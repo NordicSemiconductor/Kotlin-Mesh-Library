@@ -328,14 +328,14 @@ data class SceneRange(
 fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
 
 /**
- * Checks if the elements in the list of ranges overlaps with the given range.
+ * Checks if the elements in the list of ranges overlaps with the given ranges.
  *
- * @param ranges Range to be checked.
+ * @param ranges Ranges to be checked.
  * @return true if the given list of ranges overlaps with any of the ranges in the list.
  */
-fun List<Range>.overlaps(ranges: List<Range>) = distinctBy {
+fun List<Range>.overlaps(ranges: List<Range>) = any {
     it.overlaps(ranges)
-}.isNotEmpty()
+}
 
 /**
  *  Checks if the given range is within the range.

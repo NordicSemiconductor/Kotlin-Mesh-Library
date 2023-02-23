@@ -170,4 +170,18 @@ class RangeTest {
         Assert.assertEquals(result[2].low.toInt(), 2004)
         Assert.assertEquals(result[2].high.toInt(), 2499)
     }
+
+    @Test
+    fun testListOverlaps() {
+        val ranges = listOf<Range>(
+            UnicastAddress(1u)..UnicastAddress(1000u),
+            UnicastAddress(2000u)..UnicastAddress(3000u)
+        )
+        val otherRanges = listOf<Range>(
+            UnicastAddress(500u)..UnicastAddress(800u),
+            UnicastAddress(1999u)..UnicastAddress(2003u),
+            UnicastAddress(2500u)..UnicastAddress(3000u),
+        )
+        Assert.assertTrue(ranges.overlaps(otherRanges))
+    }
 }
