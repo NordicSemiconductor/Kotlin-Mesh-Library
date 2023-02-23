@@ -7,27 +7,23 @@ class RangeTest {
 
     @Test
     fun testOverlaps() {
+        val range = UnicastAddress(1u)..UnicastAddress(10u)
+        val overlappingRange = UnicastAddress(5u)..UnicastAddress(20u)
+        val nonOverlappingRange = UnicastAddress(11u)..UnicastAddress(20u)
         // Overlapping ranges
-        Assert
-            .assertTrue(
-                (UnicastAddress(1u)..UnicastAddress(10u))
-                    .overlaps(UnicastAddress(5u)..UnicastAddress(20u))
-            )
+        Assert.assertTrue(range.overlaps(overlappingRange))
 
         // Non overlapping ranges
-        Assert
-            .assertFalse(
-                (UnicastAddress(1u)..UnicastAddress(10u))
-                    .overlaps(UnicastAddress(11u)..UnicastAddress(20u))
-            )
+        Assert.assertFalse(range.overlaps(nonOverlappingRange))
     }
-
 
     @Test
     fun testOverlapsRanges() {
-        // Overlapping ranges
         val range = UnicastAddress(1u)..UnicastAddress(10u)
-        val overlappingRanges = listOf(UnicastAddress(5u)..UnicastAddress(20u))
+        val overlappingRange = UnicastAddress(5u)..UnicastAddress(20u)
+
+        // Overlapping ranges
+        val overlappingRanges = listOf(overlappingRange)
         Assert.assertTrue(range.overlaps(overlappingRanges))
     }
 
