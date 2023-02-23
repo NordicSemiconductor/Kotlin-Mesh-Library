@@ -38,21 +38,50 @@ sealed class Range {
     fun contains(other: Range) = range.contains(other.range)
 
     /**
+     * Returns the overlapping region of a given range
+     *
+     * @param other Range to be checked.
+     * @return the overlapping range or null if there is no overlap.
+     */
+    fun overlap1(other: Range) = if (overlaps(other)) {
+        val overlap = range.intersect(other.range).toList()
+        if (overlap.isNotEmpty()) {
+            when (other) {
+                is UnicastRange -> UnicastRange(
+                    UnicastAddress(overlap.first().toUShort()), UnicastAddress(
+                        overlap.last().toUShort()
+                    )
+                )
+
+                is GroupRange -> GroupRange(
+                    GroupAddress(overlap.first().toUShort()), GroupAddress(
+                        overlap.last().toUShort()
+                    )
+                )
+
+                is SceneRange -> SceneRange(overlap.first().toUShort(), overlap.last().toUShort())
+            }
+        } else null
+    } else null
+
+    /**
      * Checks if the given range overlaps.
+     *
      *
      * @param other Range to check for overlapping elements.
      * @return true if there are overlapping elements.
      */
-    fun overlaps(other: Range) = range.intersect(other.range).isNotEmpty()
+    fun overlaps(other: Range): Boolean = contains(other.low) || contains(other.high)
 
     /**
      * Checks if the given list of ranges overlaps with the current range
      *
-     * @param ranges List of ranges to check for overlapping elements.
+     * @param otherRanges List of ranges to check for overlapping elements.
      * @return true if there are overlapping elements.
      */
-    fun overlaps(ranges: List<Range>) =
-        range.intersect(ranges.toSet()).isNotEmpty()
+    fun overlaps(otherRanges: List<Range>) = otherRanges.any { otherRange ->
+        overlaps(otherRange)
+    }
 
     /**
      * Returns the closest distance between this and the given range.
@@ -97,23 +126,30 @@ sealed class Range {
     operator fun plus(other: Range) = when (distance(other) == 0) {
         true -> listOf(
             when {
-                this is UnicastRange && other is UnicastRange ->
-                    UnicastAddress(min(low, other.low))..
-                            UnicastAddress(max(high, other.high))
+                this is UnicastRange && other is UnicastRange -> UnicastAddress(
+                    min(
+                        low,
+                        other.low
+                    )
+                )..UnicastAddress(max(high, other.high))
 
-                this is GroupRange && other is GroupRange ->
-                    GroupAddress(min(low, other.low))..
-                            GroupAddress(max(high, other.high))
+                this is GroupRange && other is GroupRange -> GroupAddress(
+                    min(
+                        low,
+                        other.low
+                    )
+                )..GroupAddress(max(high, other.high))
 
                 this is SceneRange && other is SceneRange -> SceneRange(
-                    min(low, other.low),
-                    max(high, other.high)
+                    min(low, other.low), max(high, other.high)
                 )
+
                 else -> throw IllegalArgumentException(
                     "Left and Right ranges must be of same range type!"
                 )
             }
         )
+
         false -> listOf(this, other)
     }
 
@@ -137,16 +173,22 @@ sealed class Range {
         // Result: |---|                           |-----------|                 |--|
         if (other.low > low) {
             result = result + when {
-                this is UnicastRange && other is UnicastRange ->
-                    UnicastAddress(low)..
-                            UnicastAddress(min(high, (other.low - 1u).toUShort()))
+                this is UnicastRange && other is UnicastRange -> UnicastAddress(low)..UnicastAddress(
+                    min(high, (other.low - 1u).toUShort())
+                )
 
-                this is GroupRange && other is GroupRange ->
-                    GroupAddress(low)..
-                            GroupAddress(min(high, (other.low - 1u).toUShort()))
+                this is GroupRange && other is GroupRange -> GroupAddress(low)..GroupAddress(
+                    min(
+                        high,
+                        (other.low - 1u).toUShort()
+                    )
+                )
 
-                this is SceneRange && other is SceneRange ->
-                    SceneRange(low, min(high, (other.low - 1u).toUShort()))
+                this is SceneRange && other is SceneRange -> SceneRange(
+                    low,
+                    min(high, (other.low - 1u).toUShort())
+                )
+
                 else -> throw IllegalArgumentException(
                     "Left and Right ranges must be of same range type!"
                 )
@@ -159,16 +201,27 @@ sealed class Range {
         // Result:                      |--|                      |--|                   |--------|
         if (other.high < high) {
             result = result + when {
-                this is UnicastRange && other is UnicastRange ->
-                    UnicastAddress(max((other.high + 1u).toUShort(), low))..
-                            UnicastAddress(high)
+                this is UnicastRange && other is UnicastRange -> UnicastAddress(
+                    max(
+                        (other.high + 1u).toUShort(),
+                        low
+                    )
+                )..UnicastAddress(high)
 
-                this is GroupRange && other is GroupRange ->
-                    GroupAddress(max((other.high + 1u).toUShort(), low))..
-                            GroupAddress(high)
+                this is GroupRange && other is GroupRange -> GroupAddress(
+                    max(
+                        (other.high + 1u).toUShort(),
+                        low
+                    )
+                )..GroupAddress(high)
 
-                this is SceneRange && other is SceneRange ->
-                    SceneRange(max((other.high + 1u).toUShort(), low), high)
+                this is SceneRange && other is SceneRange -> SceneRange(
+                    max(
+                        (other.high + 1u).toUShort(),
+                        low
+                    ), high
+                )
+
                 else -> throw IllegalArgumentException(
                     "Left and Right ranges must be of same range type!"
                 )
@@ -208,13 +261,11 @@ sealed class AddressRange : Range() {
  */
 @Serializable
 data class UnicastRange(
-    override val lowAddress: UnicastAddress,
-    override val highAddress: UnicastAddress
+    override val lowAddress: UnicastAddress, override val highAddress: UnicastAddress
 ) : AddressRange() {
 
     constructor(
-        address: UnicastAddress,
-        elementsCount: Int
+        address: UnicastAddress, elementsCount: Int
     ) : this(lowAddress = address, highAddress = address + (elementsCount - 1))
 }
 
@@ -231,13 +282,11 @@ data class UnicastRange(
  */
 @Serializable
 data class GroupRange(
-    override val lowAddress: GroupAddress,
-    override val highAddress: GroupAddress
+    override val lowAddress: GroupAddress, override val highAddress: GroupAddress
 ) : AddressRange() {
 
     constructor(
-        address: GroupAddress,
-        size: Int
+        address: GroupAddress, size: Int
     ) : this(lowAddress = address, highAddress = address + size)
 }
 
@@ -254,14 +303,14 @@ data class GroupRange(
  */
 @Serializable
 data class SceneRange(
-    @Serializable(with = UShortAsStringSerializer::class)
-    val firstScene: SceneNumber,
-    @Serializable(with = UShortAsStringSerializer::class)
-    val lastScene: SceneNumber
+    @Serializable(with = UShortAsStringSerializer::class) val firstScene: SceneNumber,
+    @Serializable(with = UShortAsStringSerializer::class) val lastScene: SceneNumber
 ) : Range() {
 
-    internal constructor(firstScene: Int, lastScene: Int) :
-            this(firstScene = firstScene.toUShort(), lastScene = lastScene.toUShort())
+    internal constructor(firstScene: Int, lastScene: Int) : this(
+        firstScene = firstScene.toUShort(),
+        lastScene = lastScene.toUShort()
+    )
 
     @Transient
     override var range = firstScene..lastScene
@@ -294,8 +343,7 @@ fun List<Range>.overlaps(ranges: List<Range>) = distinctBy {
  *  @param other Range to be checked.
  *  @return true if the given range is within the range.
  */
-operator fun UIntRange.contains(other: UIntRange) =
-    contains(other.first) && contains(other.last)
+operator fun UIntRange.contains(other: UIntRange) = contains(other.first) && contains(other.last)
 
 /**
  * Checks if an element in the list of ranges contains the given range.
@@ -364,8 +412,7 @@ operator fun MutableList<Range>.minusAssign(other: List<Range>) {
  * @return List of merged ranges.
  */
 fun List<Range>.merged(): List<Range> {
-    if (size <= 1)
-        return this
+    if (size <= 1) return this
     val result = mutableListOf<Range>()
     var accumulator: Range? = null
 
