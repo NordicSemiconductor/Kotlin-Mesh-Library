@@ -52,15 +52,9 @@ internal fun AllocatedRanges(
                     .background(color = Color.LightGray)
             ) {
                 // Mark own ranges
-                markRanges(
-                    color = ownRangeColor,
-                    ranges = ranges
-                )
+                markRanges(color = ownRangeColor, ranges = ranges)
                 // Mark other provisioners' ranges
-                markRanges(
-                    color = otherRangeColor,
-                    ranges = otherRanges
-                )
+                markRanges(color = otherRangeColor, ranges = otherRanges)
                 // Mark conflicting ranges
                 markRanges(
                     color = conflictingColor,
@@ -77,10 +71,11 @@ internal fun AllocatedRange(
     title: String,
     range: Range,
     otherRanges: List<Range>,
-    onClick: () -> Unit
+    onClick: (Range) -> Unit
 ) {
+    1..2
     TwoLineRangeListItem(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier.clickable { onClick(range) },
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -92,7 +87,6 @@ internal fun AllocatedRange(
         title = title,
         lineTwo = {
             val ownRangeColor = MaterialTheme.colorScheme.primary
-            val otherRangeColor = Color.DarkGray
             val conflictingColor = Color.Red
             Canvas(
                 modifier = Modifier
@@ -102,31 +96,16 @@ internal fun AllocatedRange(
                     .background(color = Color.LightGray)
             ) {
                 // Mark own ranges
-                markRanges(
-                    color = otherRangeColor,
-                    ranges = otherRanges
-                )
-                // Mark other provisioners' ranges
-                markRange(
-                    color = ownRangeColor,
-                    range = range
-                )
+                markRange(color = ownRangeColor, range = range)
                 // Mark conflicting ranges
-                if(range.overlaps(otherRanges)){
-                    markRanges(
-                        color = conflictingColor,
-                        ranges = otherRanges.filter { it.overlaps(range) }
-                    )
-                }
+                markRanges(color = conflictingColor, ranges = otherRanges)
             }
         }
     )
 }
 
-private fun DrawScope.markRanges(
-    color: Color,
-    ranges: List<Range>
-) {
+
+private fun DrawScope.markRanges(color: Color, ranges: List<Range>) {
     ranges.forEach { range ->
         when (range) {
             is UnicastRange -> {
@@ -138,32 +117,31 @@ private fun DrawScope.markRanges(
                     upperBound = maxUnicastAddress.toInt()
                 )
             }
+
             is GroupRange -> {
                 mark(
                     color = color,
                     low = range.lowAddress.address.toInt(),
                     high = range.highAddress.address.toInt(),
-                    lowerBound = 0xC000u.toInt(),
-                    upperBound = 0xFEFFu.toInt()
+                    lowerBound = minGroupAddress.toInt(),
+                    upperBound = maxGroupAddress.toInt()
                 )
             }
+
             is SceneRange -> {
                 mark(
                     color = color,
                     low = range.firstScene.toInt(),
                     high = range.lastScene.toInt(),
-                    lowerBound = 0x0001u.toInt(),
-                    upperBound = 0xFFFFu.toInt()
+                    lowerBound = minSceneNumber.toInt(),
+                    upperBound = maxSceneNumber.toInt()
                 )
             }
         }
     }
 }
 
-private fun DrawScope.markRange(
-    color: Color,
-    range: Range
-) {
+private fun DrawScope.markRange(color: Color, range: Range) {
     when (range) {
         is UnicastRange -> {
             mark(
@@ -174,6 +152,7 @@ private fun DrawScope.markRange(
                 upperBound = maxUnicastAddress.toInt()
             )
         }
+
         is GroupRange -> {
             mark(
                 color = color,
@@ -183,6 +162,7 @@ private fun DrawScope.markRange(
                 upperBound = 0xFEFFu.toInt()
             )
         }
+
         is SceneRange -> {
             mark(
                 color = color,
@@ -195,21 +175,13 @@ private fun DrawScope.markRange(
     }
 }
 
-internal fun DrawScope.mark(
-    color: Color,
-    low: Int,
-    high: Int,
-    lowerBound: Int,
-    upperBound: Int
-) {
-    size.let { size ->
-        val rangeWidth = size.width * (high - low) / (upperBound - lowerBound)
-        val rangeStart = size.width * (low - lowerBound) / (upperBound - lowerBound)
-        drawRect(
-            color = color,
-            topLeft = Offset(x = rangeStart, y = 0f),
-            size = Size(width = rangeWidth.inc(), height = size.height),
-            style = Fill
-        )
-    }
+internal fun DrawScope.mark(color: Color, low: Int, high: Int, lowerBound: Int, upperBound: Int) {
+    val rangeWidth = size.width * (high - low) / (upperBound - lowerBound)
+    val rangeStart = size.width * (low - lowerBound) / (upperBound - lowerBound)
+    drawRect(
+        color = color,
+        topLeft = Offset(x = rangeStart, y = 0f),
+        size = Size(width = rangeWidth.inc(), height = size.height),
+        style = Fill
+    )
 }

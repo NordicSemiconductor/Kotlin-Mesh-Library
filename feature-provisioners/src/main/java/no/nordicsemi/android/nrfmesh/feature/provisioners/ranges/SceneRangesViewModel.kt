@@ -6,7 +6,6 @@ import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
 import no.nordicsemi.kotlin.mesh.core.model.*
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,10 +15,20 @@ internal class SceneRangesViewModel @Inject internal constructor(
     repository: DataStoreRepository
 ) : RangesViewModel(savedStateHandle, navigator, repository) {
 
-    override var uuid: UUID = parameterOf(sceneRanges)
-    override fun getRanges(): List<Range> = provisioner.allocatedSceneRanges
+    override fun getDestinationId() = sceneRanges
+    override fun getAllocatedRanges(): List<Range> = provisioner.allocatedSceneRanges
+
     override fun getOtherRanges(): List<Range> = getOtherProvisioners()
         .flatMap { it.allocatedSceneRanges }
+        .toList()
+
+    override fun addRange(start: UInt, end: UInt) = runCatching {
+        val range = SceneRange(start.toUShort(), end.toUShort())
+        _uiState.value = with(_uiState.value) {
+            copy(ranges = ranges + range)
+        }
+    }
+
     override fun onAddRangeClicked(): Range = network.nextAvailableSceneRange(rangeSize = 0x199A)
         ?: SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber)
 }

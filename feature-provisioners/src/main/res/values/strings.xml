@@ -35,4 +35,6 @@
     <string name="label_new_range_rationale">Enter lower and upper bounds as a 4–character
         hexadecimal value. \n\nValid range: 0x0001 – 0x7FFF</string>
     <string name="label_overlapping_ranges_rationale">Overlapping ranges merge automatically.</string>
+    <string name="label_lower_bound">Lower bound</string>
+    <string name="label_upper_bound">Upper bound</string>
 </resources>

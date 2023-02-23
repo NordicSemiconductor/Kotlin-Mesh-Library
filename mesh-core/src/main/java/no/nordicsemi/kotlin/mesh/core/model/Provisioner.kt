@@ -77,6 +77,7 @@ data class Provisioner internal constructor(
      * @param range Allocated range could [UnicastRange], [GroupRange] or a [SceneRange].
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
      */
+    @Throws(OverlappingProvisionerRanges::class)
     fun allocate(range: Range) {
         // TODO clarify the api with iOS version
         when (range) {
@@ -103,7 +104,6 @@ data class Provisioner internal constructor(
                     .none { it._allocatedUnicastRanges.overlaps(range) }
             ) { throw OverlappingProvisionerRanges }
             _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
-            println("Ranges ${_allocatedUnicastRanges.size}")
         } ?: run {
             _allocatedUnicastRanges.add(range)
         }

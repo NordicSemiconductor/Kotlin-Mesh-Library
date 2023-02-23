@@ -39,4 +39,6 @@ dependencies {
     implementation (project(":feature-provisioners"))
     implementation (project(":feature-export"))
     implementation (project(":mesh-core"))
+
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.10")
 }

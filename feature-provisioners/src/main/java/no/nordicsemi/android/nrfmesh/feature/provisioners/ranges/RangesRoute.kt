@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -40,10 +41,9 @@ import java.util.*
 internal fun RangesRoute(
     viewModel: RangesViewModel = hiltViewModel()
 ) {
-    val uiState: RangesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     RangesScreen(
         uiState = uiState,
-        onAddRangeClicked = viewModel::onAddRangeClicked,
         addRange = viewModel::addRange,
         onRangeUpdated = viewModel::onRangeUpdated,
         onSwiped = viewModel::onSwiped,
@@ -56,8 +56,7 @@ internal fun RangesRoute(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun RangesScreen(
     uiState: RangesScreenUiState,
-    onAddRangeClicked: () -> Range,
-    addRange: (Range) -> Unit,
+    addRange: (start: UInt, end: UInt) -> Result<Unit>,
     onRangeUpdated: (Range, Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
@@ -68,12 +67,16 @@ private fun RangesScreen(
     var showAddRangeDialog by remember { mutableStateOf(false) }
     Scaffold(
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = { showAddRangeDialog = !showAddRangeDialog }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_range)
-                )
+            if (!uiState.conflicts) {
+                ExtendedFloatingActionButton(onClick = {
+                    showAddRangeDialog = !showAddRangeDialog
+                }) {
+                    Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = stringResource(R.string.action_add_range)
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -83,10 +86,12 @@ private fun RangesScreen(
                 imageVector = Icons.Outlined.AutoAwesome,
                 title = stringResource(R.string.no_ranges_currently_added)
             )
+
             false -> Ranges(
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 ranges = uiState.ranges,
+                otherRanges = uiState.otherRanges,
                 onRangeUpdated = onRangeUpdated,
                 onSwiped = onSwiped,
                 onUndoClicked = onUndoClicked,
@@ -95,12 +100,10 @@ private fun RangesScreen(
         }
         if (showAddRangeDialog) {
             AddRangeDialog(
+                scope = coroutineScope,
+                snackbarHostState = snackbarHostState,
                 onDismissRequest = { showAddRangeDialog = false },
-                range = onAddRangeClicked(),
-                onConfirmClicked = { range ->
-                    showAddRangeDialog = false
-                    addRange(range)
-                }
+                onConfirmClicked = { start, end -> addRange(start, end) }
             )
         }
     }
@@ -111,6 +114,7 @@ private fun Ranges(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
+    otherRanges: List<Range>,
     onRangeUpdated: (Range, Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
@@ -118,6 +122,7 @@ private fun Ranges(
 ) {
     val listState = rememberLazyListState()
     var showAddRangeDialog by remember { mutableStateOf(false) }
+    var rangeToEdit by rememberSaveable { mutableStateOf<Range?>(null) }
     Column {
         LazyColumn(
             modifier = Modifier
@@ -126,6 +131,7 @@ private fun Ranges(
             state = listState
         ) {
             items(items = ranges) { range ->
+                val conflicts = otherRanges.filter { it.overlap(range) != null }
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState()
                 var rangeDismissed by remember { mutableStateOf(false) }
@@ -170,36 +176,19 @@ private fun Ranges(
                         }
                         rangeDismissed = isDismissed
                         Surface(color = MaterialTheme.colorScheme.background) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                            }
                             AllocatedRange(
-                                imageVector = when (range) {
-                                    is UnicastRange -> Icons.Outlined.Lan
-                                    is GroupRange -> Icons.Outlined.GroupWork
-                                    is SceneRange -> Icons.Outlined.AutoAwesome
-                                },
+                                imageVector = range.toImageVector(),
                                 title = "${range.low.toHex(true)} - ${range.high.toHex(true)}",
                                 range = range,
-                                otherRanges = listOf(),
-                                onClick = { showAddRangeDialog = true }
+                                otherRanges = conflicts,
+                                onClick = {
+                                    rangeToEdit = it
+                                    showAddRangeDialog = true
+                                }
                             )
                         }
                     }
                 )
-
-                if (showAddRangeDialog) {
-                    AddRangeDialog(
-                        onDismissRequest = { showAddRangeDialog = false },
-                        range = range,
-                        onConfirmClicked = { newRange ->
-                            showAddRangeDialog = false
-                            onRangeUpdated(range, newRange)
-                        }
-                    )
-                }
-            }
-            item {
-
             }
         }
         Divider()
@@ -212,43 +201,57 @@ private fun Ranges(
         )
         AddressRangeLegendsForRanges()
         Spacer(modifier = Modifier.size(16.dp))
+
+        if (showAddRangeDialog) {
+            rangeToEdit?.let { range ->
+                UpdateRangeDialog(
+                    onDismissRequest = { showAddRangeDialog = false },
+                    range = range,
+                    onConfirmClicked = { newRange ->
+                        onRangeUpdated(range, newRange)
+                    }
+                )
+            }
+        }
     }
 }
 
+
 @Composable
 private fun AddRangeDialog(
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
     onDismissRequest: () -> Unit,
-    range: Range,
-    onConfirmClicked: (Range) -> Unit
+    onConfirmClicked: (start: UInt, end: UInt) -> Result<Unit>
 ) {
+    val context = LocalContext.current
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(range.low.toHex()))
+        mutableStateOf(TextFieldValue(""))
     }
     var end by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(range.high.toHex()))
+        mutableStateOf(TextFieldValue(""))
     }
     var startInFocus by rememberSaveable { mutableStateOf(false) }
     var endInFocus by rememberSaveable { mutableStateOf(false) }
+    var error by rememberSaveable { mutableStateOf(false) }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
         onConfirmClick = {
-            if (start.text.isNotBlank() && end.text.isNotBlank()) {
-                onConfirmClicked(
-                    when (range) {
-                        is UnicastRange -> UnicastRange(
-                            UnicastAddress(start.text.trim().toInt(radix = 16)),
-                            UnicastAddress(end.text.trim().toInt(radix = 16))
-                        )
-                        is GroupRange -> GroupRange(
-                            GroupAddress(start.text.trim().toInt(radix = 16)),
-                            GroupAddress(end.text.trim().toInt(radix = 16))
-                        )
-                        is SceneRange -> SceneRange(
-                            start.text.trim().toUShort(radix = 16),
-                            end.text.trim().toUShort(radix = 16)
+            val startValue = start.text.trim()
+            val endValue = end.text.trim()
+            if (startValue.isNotBlank() && endValue.isNotBlank()) {
+                onConfirmClicked(startValue.toUInt(radix = 16), endValue.toUInt(radix = 16))
+                    .onSuccess {
+                        onDismissRequest()
+                    }
+                    .onFailure {
+                        error = true
+                        showSnackbar(
+                            scope = scope,
+                            snackbarHostState = snackbarHostState,
+                            message = it.message ?: context.getString(R.string.unknown_error)
                         )
                     }
-                )
             }
         },
         onDismissClick = { onDismissRequest() },
@@ -268,7 +271,126 @@ private fun AddRangeDialog(
                     showPrefix = true,
                     onFocus = startInFocus,
                     value = start,
-                    onValueChanged = { start = it },
+                    onValueChanged = {
+                        startInFocus = true
+                        endInFocus = false
+                        error = false
+                        start = it
+                    },
+                    label = { Text(text = stringResource(R.string.label_lower_bound)) },
+                    internalTrailingIcon = {
+                        IconButton(
+                            enabled = start.text.isNotBlank(),
+                            onClick = {
+                                startInFocus = true
+                                endInFocus = false
+                                error = false
+                                start = TextFieldValue("")
+                            }
+                        ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    },
+                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    isError = error
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                MeshOutlinedHexTextField(
+                    modifier = Modifier.clickable {
+                        startInFocus = false
+                        endInFocus = true
+                    },
+                    showPrefix = true,
+                    onFocus = endInFocus,
+                    value = end,
+                    onValueChanged = {
+                        startInFocus = false
+                        endInFocus = true
+                        error = false
+                        end = it
+                    },
+                    label = { Text(text = stringResource(R.string.label_upper_bound)) },
+                    internalTrailingIcon = {
+                        IconButton(
+                            enabled = end.text.isNotBlank(),
+                            onClick = {
+                                startInFocus = false
+                                endInFocus = true
+                                error = false
+                                end = TextFieldValue("")
+                            }
+                        ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    },
+                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun UpdateRangeDialog(
+    onDismissRequest: () -> Unit,
+    range: Range,
+    onConfirmClicked: (Range) -> Unit
+) {
+    var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(range.low.toHex()))
+    }
+    var end by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(range.high.toHex()))
+    }
+    var startInFocus by rememberSaveable { mutableStateOf(false) }
+    var endInFocus by rememberSaveable { mutableStateOf(false) }
+    MeshAlertDialog(
+        onDismissRequest = { onDismissRequest() },
+        onConfirmClick = {
+            val startValue = start.text.trim()
+            val endValue = end.text.trim()
+            if (startValue.isNotBlank() && endValue.isNotBlank()) {
+                onDismissRequest()
+                /*onConfirmClicked(
+                    when (range) {
+                        is UnicastRange ->
+                            UnicastAddress(
+                                address = startValue.toInt(radix = 16)
+                            )..UnicastAddress(
+                                address = endValue.toInt(radix = 16)
+                            )
+                        is GroupRange ->
+                            GroupAddress(startValue.toInt(radix = 16))..GroupAddress(
+                                endValue.toInt(
+                                    radix = 16
+                                )
+                            )
+                        is SceneRange -> SceneRange(
+                            startValue.toUShort(radix = 16),
+                            endValue.toUShort(radix = 16)
+                        )
+                    }
+                )*/
+            }
+        },
+        onDismissClick = { onDismissRequest() },
+        icon = Icons.Outlined.Compress,
+        title = stringResource(R.string.title_new_range),
+        content = {
+            Column {
+                Text(
+                    text = stringResource(R.string.label_new_range_rationale)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                MeshOutlinedHexTextField(
+                    modifier = Modifier.clickable {
+                        startInFocus = true
+                        endInFocus = false
+                    },
+                    showPrefix = true,
+                    onFocus = startInFocus,
+                    value = start,
+                    onValueChanged = {
+                        startInFocus = true
+                        endInFocus = false
+                        start = it
+                    },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = start.text.isNotBlank(),
@@ -290,7 +412,11 @@ private fun AddRangeDialog(
                     showPrefix = true,
                     onFocus = endInFocus,
                     value = end,
-                    onValueChanged = { end = it },
+                    onValueChanged = {
+                        startInFocus = false
+                        endInFocus = true
+                        end = it
+                    },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = end.text.isNotBlank(),
@@ -306,4 +432,11 @@ private fun AddRangeDialog(
             }
         }
     )
+}
+
+@Composable
+internal fun Range.toImageVector() = when (this) {
+    is UnicastRange -> Icons.Outlined.Lan
+    is GroupRange -> Icons.Outlined.GroupWork
+    is SceneRange -> Icons.Outlined.AutoAwesome
 }

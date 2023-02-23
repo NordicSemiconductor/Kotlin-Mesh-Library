@@ -1,15 +1,18 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.Range
+import no.nordicsemi.kotlin.mesh.core.model.overlaps
 import java.util.*
 
 internal abstract class RangesViewModel(
@@ -18,29 +21,34 @@ internal abstract class RangesViewModel(
     private val repository: DataStoreRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
 
-    private var rangesToBeRemoved = mutableListOf<Range>()
     protected lateinit var network: MeshNetwork
     protected lateinit var provisioner: Provisioner
-    protected open lateinit var uuid: UUID
 
-    private val _uiState = MutableStateFlow(RangesScreenUiState(listOf()))
-    val uiState: StateFlow<RangesScreenUiState> = repository.network.map { network ->
-        this@RangesViewModel.network = network
-        RangesScreenUiState(ranges = network.provisioner((uuid))?.let { provisioner ->
-            this@RangesViewModel.provisioner = provisioner
-            getRanges()
-        } ?: listOf())
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        RangesScreenUiState()
+    private val uuid: UUID by lazy { parameterOf(getDestinationId()) }
+
+    private var rangesToBeRemoved = mutableListOf<Range>()
+
+    protected val _uiState = MutableStateFlow(RangesScreenUiState(listOf()))
+    val uiState: StateFlow<RangesScreenUiState> = _uiState.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = RangesScreenUiState()
     )
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
+                Log.d("RangesViewModel", "Collecting network: $network")
                 this@RangesViewModel.network = network
-                _uiState.value = RangesScreenUiState(ranges = listOf())
+                val ranges1 = network.provisioner(uuid)?.let { provisioner ->
+                    this@RangesViewModel.provisioner = provisioner
+                    getAllocatedRanges()
+                } ?: emptyList()
+
+                _uiState.value = RangesScreenUiState(
+                    ranges = ranges1,
+                    otherRanges = getOtherRanges()
+                )
             }
         }
     }
@@ -50,23 +58,24 @@ internal abstract class RangesViewModel(
         removeRanges()
     }
 
-    protected fun getOtherProvisioners(): List<Provisioner> =
-        network.provisioners.filter { it.uuid != uuid }
+    protected abstract fun getDestinationId(): DestinationId<UUID, Unit>
+
     internal abstract fun onAddRangeClicked(): Range
-    protected abstract fun getRanges(): List<Range>
+    protected abstract fun getAllocatedRanges(): List<Range>
+    protected fun getOtherProvisioners(): List<Provisioner> = network.provisioners
+        .filter { it.uuid != uuid }
 
     protected abstract fun getOtherRanges(): List<Range>
 
     /**
      * Adds a range to the network.
      */
-    internal fun addRange(range: Range) {
-        provisioner.allocate(range = range)
-    }
+    internal abstract fun addRange(start: UInt, end: UInt): Result<Unit>
 
     internal fun onRangeUpdated(range: Range, newRange: Range) {
-        provisioner.allocate(range = newRange)
-        _uiState.value = RangesScreenUiState(ranges = getRanges())
+        _uiState.value = with(_uiState.value) {
+            copy(ranges = ranges.map { if (it == range) newRange else it })
+        }
     }
 
     /**
@@ -135,4 +144,7 @@ internal abstract class RangesViewModel(
 data class RangesScreenUiState internal constructor(
     val ranges: List<Range> = listOf(),
     val otherRanges: List<Range> = listOf()
-)
+) {
+    val conflicts: Boolean
+        get() = ranges.overlaps(otherRanges)
+}
