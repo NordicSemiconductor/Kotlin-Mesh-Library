@@ -9,12 +9,10 @@ import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.Range
-import no.nordicsemi.kotlin.mesh.core.model.overlaps
+import no.nordicsemi.kotlin.mesh.core.model.*
 import java.util.*
 
+@Suppress("ConvertArgumentToSet")
 internal abstract class RangesViewModel(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
@@ -58,13 +56,29 @@ internal abstract class RangesViewModel(
         removeRanges()
     }
 
+    /**
+     * Returns the destination id that is used to retrieve the user arguments from the saved state
+     * handle.
+     * @return destination id.
+     */
     protected abstract fun getDestinationId(): DestinationId<UUID, Unit>
 
-    internal abstract fun onAddRangeClicked(): Range
+    /**
+     * Returns the list of ranges allocated to the provisioner.
+     * @return list of ranges.
+     */
     protected abstract fun getAllocatedRanges(): List<Range>
+
+    /**
+     * Returns the list of other provisioners in the network.
+     */
     protected fun getOtherProvisioners(): List<Provisioner> = network.provisioners
         .filter { it.uuid != uuid }
 
+    /**
+     * Returns the list of ranges allocated to other provisioners in the network.
+     * @return list of ranges of other provisioners.
+     */
     protected abstract fun getOtherRanges(): List<Range>
 
     /**
@@ -75,6 +89,15 @@ internal abstract class RangesViewModel(
     internal fun onRangeUpdated(range: Range, newRange: Range) {
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges.map { if (it == range) newRange else it })
+        }
+    }
+
+    /**
+     * Resolves any conflicting ranges with the other ranges.
+     */
+    internal fun resolve() {
+        _uiState.value = with(_uiState.value) {
+            copy(ranges = ranges - otherRanges)
         }
     }
 

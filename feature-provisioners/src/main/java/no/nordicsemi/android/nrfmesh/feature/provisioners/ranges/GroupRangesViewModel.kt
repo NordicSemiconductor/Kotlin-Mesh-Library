@@ -29,10 +29,4 @@ internal class GroupRangesViewModel @Inject internal constructor(
         }
     }
 
-    override fun onAddRangeClicked(): Range = network.nextAvailableGroupAddressRange(
-        rangeSize = 0x199A
-    ) ?: GroupRange(
-        lowAddress = GroupAddress(0xC000u),
-        highAddress = GroupAddress(0xFEFFu)
-    )
 }

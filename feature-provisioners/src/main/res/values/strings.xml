@@ -37,4 +37,6 @@
     <string name="label_overlapping_ranges_rationale">Overlapping ranges merge automatically.</string>
     <string name="label_lower_bound">Lower bound</string>
     <string name="label_upper_bound">Upper bound</string>
+    <string name="label_resolve">Resolve</string>
+    <string name="title_edit_ranges">Edit Ranges</string>
 </resources>

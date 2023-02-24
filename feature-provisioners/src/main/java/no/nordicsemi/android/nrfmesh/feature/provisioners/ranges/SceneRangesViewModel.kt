@@ -29,6 +29,4 @@ internal class SceneRangesViewModel @Inject internal constructor(
         }
     }
 
-    override fun onAddRangeClicked(): Range = network.nextAvailableSceneRange(rangeSize = 0x199A)
-        ?: SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber)
 }

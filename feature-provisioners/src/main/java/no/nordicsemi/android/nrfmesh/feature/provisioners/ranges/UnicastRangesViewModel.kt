@@ -7,7 +7,7 @@ import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
 import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.model.plus
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,16 +26,10 @@ internal class UnicastRangesViewModel @Inject internal constructor(
         .toList()
 
     override fun addRange(start: UInt, end: UInt) = runCatching {
-        val range = UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort())
+        val range = (UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort()))
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges + range)
         }
     }
 
-    override fun onAddRangeClicked(): Range = network.nextAvailableUnicastAddressRange(
-        rangeSize = 0x199A
-    ) ?: UnicastRange(
-        lowAddress = UnicastAddress(0x0001u),
-        highAddress = UnicastAddress(0x7FFFu)
-    )
 }

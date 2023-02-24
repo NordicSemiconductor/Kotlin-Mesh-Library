@@ -1,4 +1,6 @@
-@file:Suppress("unused", "EXPERIMENTAL_API_USAGE", "SERIALIZER_TYPE_INCOMPATIBLE")
+@file:Suppress("unused", "EXPERIMENTAL_API_USAGE", "SERIALIZER_TYPE_INCOMPATIBLE",
+    "ConvertArgumentToSet"
+)
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -64,6 +66,8 @@ sealed class Range {
         } else null
     } else null
 
+    fun overlap(other: List<Range>) = other.mapNotNull { overlap(it) }
+
     /**
      * Checks if the given range overlaps.
      *
@@ -79,9 +83,7 @@ sealed class Range {
      * @param otherRanges List of ranges to check for overlapping elements.
      * @return true if there are overlapping elements.
      */
-    fun overlaps(otherRanges: List<Range>) = otherRanges.any { otherRange ->
-        overlaps(otherRange)
-    }
+    fun overlaps(otherRanges: List<Range>) = otherRanges.any { it.overlaps(this) }
 
     /**
      * Returns the closest distance between this and the given range.
@@ -320,21 +322,37 @@ data class SceneRange(
 }
 
 /**
- * Checks if an element in the list of ranges overlaps with the given range.
+ * Returns a list of overlapping regions for a given range.
  *
  * @param range Range to be checked.
+ * @return the overlapping region or null.
+ */
+fun List<Range>.overlap(range: Range) = mapNotNull { it.overlap(range) }
+
+/**
+ * Returns the overlapping region for a given range.
+ *
+ * @param other Range to be checked.
+ * @return the overlapping region or null.
+ */
+fun List<Range>.overlap(other: List<Range>) = mapNotNull { other.overlap(it) }.flatten()
+
+/**
+ * Checks if an element in the list of ranges overlaps with the given range.
+ *
+ * @param other Range to be checked.
  * @return true if the given range overlaps with any of the ranges in the list.
  */
-fun List<Range>.overlaps(range: Range) = any { it.overlaps(range) }
+fun List<Range>.overlaps(other: Range) = any { it.overlaps(other) }
 
 /**
  * Checks if the elements in the list of ranges overlaps with the given ranges.
  *
- * @param ranges Ranges to be checked.
+ * @param other Ranges to be checked.
  * @return true if the given list of ranges overlaps with any of the ranges in the list.
  */
-fun List<Range>.overlaps(ranges: List<Range>) = any {
-    it.overlaps(ranges)
+fun List<Range>.overlaps(other: List<Range>) = any {
+    it.overlaps(other)
 }
 
 /**
@@ -351,7 +369,7 @@ operator fun UIntRange.contains(other: UIntRange) = contains(other.first) && con
  * @param range Range to be checked.
  * @return true if the given range overlaps with any of the ranges in the list.
  */
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY _MEMBER")
 operator fun List<Range>.contains(range: Range) = any { it.contains(range) }
 
 operator fun List<Range>.plus(other: Range): List<Range> {

@@ -31,11 +31,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.android.nrfmesh.feature.provisioners.AllocatedRange
 import no.nordicsemi.kotlin.mesh.core.model.*
 import java.util.*
+import kotlin.reflect.KFunction0
 
 @Composable
 internal fun RangesRoute(
@@ -48,7 +50,9 @@ internal fun RangesRoute(
         onRangeUpdated = viewModel::onRangeUpdated,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
+        remove = viewModel::remove,
+        resolve = viewModel::resolve,
+        onBackPressed = viewModel::navigateUp
     )
 }
 
@@ -60,23 +64,39 @@ private fun RangesScreen(
     onRangeUpdated: (Range, Range) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
-    remove: (Range) -> Unit
+    remove: (Range) -> Unit,
+    resolve: () -> Unit,
+    onBackPressed: KFunction0<Unit>
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
+    var showResolveConflictsDialog by remember { mutableStateOf(false) }
     Scaffold(
         floatingActionButton = {
             if (!uiState.conflicts) {
-                ExtendedFloatingActionButton(onClick = {
-                    showAddRangeDialog = !showAddRangeDialog
-                }) {
-                    Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                    Text(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = stringResource(R.string.action_add_range)
-                    )
-                }
+                ExtendedFloatingActionButton(
+                    onClick = { showAddRangeDialog = !showAddRangeDialog },
+                    icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
+                    text = {
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = stringResource(R.string.action_add_range)
+                        )
+                    }
+                )
+            } else {
+                ExtendedFloatingActionButton(
+                    onClick = { resolve() },
+                    icon = { Icon(imageVector = Icons.Outlined.Check, contentDescription = null) },
+                    text = {
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = stringResource(R.string.label_resolve)
+                        )
+                    },
+                    containerColor = Color.Red
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -88,6 +108,7 @@ private fun RangesScreen(
             )
 
             false -> Ranges(
+                padding = it,
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 ranges = uiState.ranges,
@@ -106,11 +127,22 @@ private fun RangesScreen(
                 onConfirmClicked = { start, end -> addRange(start, end) }
             )
         }
+
+        if (showResolveConflictsDialog)
+            MeshAlertDialog(
+                onDismissRequest = { /*TODO*/ },
+                onConfirmClick = { /*TODO*/ },
+                onDismissClick = { /*TODO*/ },
+                title = "Resolve conflicts",
+                text = "You have conflicting ranges. Please resolve them before leaving this screen.",
+                icon = Icons.Outlined.SwapHoriz,
+            )
     }
 }
 
 @Composable
 private fun Ranges(
+    padding: PaddingValues,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
@@ -127,11 +159,11 @@ private fun Ranges(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(padding)
                 .weight(0.6f, true),
             state = listState
         ) {
-            items(items = ranges) { range ->
-                val conflicts = otherRanges.filter { it.overlap(range) != null }
+            items(items = ranges/*, key = { (it.low..it.high).random().toInt() }*/) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState()
                 var rangeDismissed by remember { mutableStateOf(false) }
@@ -180,7 +212,7 @@ private fun Ranges(
                                 imageVector = range.toImageVector(),
                                 title = "${range.low.toHex(true)} - ${range.high.toHex(true)}",
                                 range = range,
-                                otherRanges = conflicts,
+                                otherRanges = otherRanges.filter { it.overlap(range) != null },
                                 onClick = {
                                     rangeToEdit = it
                                     showAddRangeDialog = true
@@ -255,7 +287,7 @@ private fun AddRangeDialog(
             }
         },
         onDismissClick = { onDismissRequest() },
-        icon = Icons.Outlined.Compress,
+        icon = Icons.Outlined.SwapHoriz,
         title = stringResource(R.string.title_new_range),
         content = {
             Column {
@@ -370,7 +402,7 @@ private fun UpdateRangeDialog(
             }
         },
         onDismissClick = { onDismissRequest() },
-        icon = Icons.Outlined.Compress,
+        icon = Icons.Outlined.SwapHoriz,
         title = stringResource(R.string.title_new_range),
         content = {
             Column {
@@ -439,4 +471,8 @@ internal fun Range.toImageVector() = when (this) {
     is UnicastRange -> Icons.Outlined.Lan
     is GroupRange -> Icons.Outlined.GroupWork
     is SceneRange -> Icons.Outlined.AutoAwesome
+}
+
+private fun no.nordicsemi.kotlin.mesh.core.model.Range.random() {
+    (low..high).random()
 }

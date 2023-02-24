@@ -51,9 +51,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
             NordicLargeAppBar(
                 text = currentDestination?.title() ?: "",
                 scrollBehavior = scrollBehavior,
-                onNavigationButtonClick = {
-                    viewModel.navigateUp()
-                },
+                onNavigationButtonClick = { viewModel.navigateUp() },
                 showBackButton = when (currentDestination) {
                     nodes, groups, proxyFilter, settings -> false
                     else -> true
