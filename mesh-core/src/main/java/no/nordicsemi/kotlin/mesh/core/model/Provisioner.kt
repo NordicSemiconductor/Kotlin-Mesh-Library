@@ -5,10 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
-import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
-import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
-import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
+import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
@@ -77,7 +74,7 @@ data class Provisioner internal constructor(
      * @param range Allocated range could [UnicastRange], [GroupRange] or a [SceneRange].
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
      */
-    @Throws(OverlappingProvisionerRanges::class)
+    @Throws(OverlappingProvisionerRanges::class, RangeAlreadyAllocated::class)
     fun allocate(range: Range) {
         // TODO clarify the api with iOS version
         when (range) {
@@ -88,12 +85,19 @@ data class Provisioner internal constructor(
     }
 
     /**
+     * Allocates a list of ranges to a given provisioner.
+     */
+    fun allocate(ranges: List<Range>) {
+        ranges.forEach { allocate(it) }
+    }
+
+    /**
      * Allocates the given unicast range to a provisioner.
      *
      * @param range Allocated unicast range.
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
      */
-    @Throws(OverlappingProvisionerRanges::class)
+    @Throws(OverlappingProvisionerRanges::class, RangeAlreadyAllocated::class)
     fun allocate(range: UnicastRange) {
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // unicast ranges. This will be validated when the provisioner is added to the network.
@@ -103,6 +107,7 @@ data class Provisioner internal constructor(
                     .filter { it.uuid != uuid }
                     .none { it._allocatedUnicastRanges.overlaps(range) }
             ) { throw OverlappingProvisionerRanges }
+            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
             _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
         } ?: run {
             _allocatedUnicastRanges.add(range)
@@ -115,7 +120,7 @@ data class Provisioner internal constructor(
      * @param range Allocated group range.
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
      */
-    @Throws(OverlappingProvisionerRanges::class)
+    @Throws(OverlappingProvisionerRanges::class, RangeAlreadyAllocated::class)
     fun allocate(range: GroupRange) {
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // group ranges. This will be validated when the provisioner is added to the network.
@@ -125,6 +130,7 @@ data class Provisioner internal constructor(
                 .none { it._allocatedGroupRanges.overlaps(range) }) {
                 throw OverlappingProvisionerRanges
             }
+            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
             _allocatedGroupRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedGroupRanges.add(range) }
     }
@@ -135,7 +141,7 @@ data class Provisioner internal constructor(
      * @param range Allocated scene range.
      * @throws OverlappingProvisionerRanges if the given range is allocated to another provisioner.
      */
-    @Throws(OverlappingProvisionerRanges::class)
+    @Throws(OverlappingProvisionerRanges::class, RangeAlreadyAllocated::class)
     fun allocate(range: SceneRange) {
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // scene ranges. This will be validated when the provisioner is added to the network.
@@ -145,8 +151,45 @@ data class Provisioner internal constructor(
                 .none { it._allocatedSceneRanges.overlaps(range) }) {
                 throw OverlappingProvisionerRanges
             }
+            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
             _allocatedSceneRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedSceneRanges.add(range) }
+    }
+
+    /**
+     * Removes the given range from the allocated ranges.
+     * @param range Range to be removed.
+     */
+    fun remove(range: Range) {
+        when (range) {
+            is UnicastRange -> remove(range)
+            is GroupRange -> remove(range)
+            is SceneRange -> remove(range)
+        }
+    }
+
+    /**
+     * Removes the given range from the allocated ranges.
+     * @param range Range to be removed.
+     */
+    fun remove(range: UnicastRange) {
+        _allocatedUnicastRanges.remove(range).also { network?.updateTimestamp() }
+    }
+
+    /**
+     * Removes the given range from the allocated ranges.
+     * @param range Range to be removed.
+     */
+    fun remove(range: SceneRange) {
+        _allocatedSceneRanges.remove(range).also { network?.updateTimestamp() }
+    }
+
+    /**
+     * Removes the given range from the allocated ranges.
+     * @param range Range to be removed.
+     */
+    fun remove(range: GroupRange) {
+        _allocatedGroupRanges.remove(range).also { network?.updateTimestamp() }
     }
 
     /**

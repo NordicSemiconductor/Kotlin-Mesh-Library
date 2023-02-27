@@ -26,6 +26,8 @@ object NodeAlreadyExists : MeshNetworkException()
 /** Thrown when no unicast address range is allocated to a provisioner. */
 object ProvisionerAlreadyExists : MeshNetworkException()
 
+/** Thrown when any allocated range of a provisioner is already allocated. */
+object RangeAlreadyAllocated : MeshNetworkException()
 /** Thrown when any allocated range of a new provisioner overlaps with an existing one. */
 object OverlappingProvisionerRanges : MeshNetworkException()
 
