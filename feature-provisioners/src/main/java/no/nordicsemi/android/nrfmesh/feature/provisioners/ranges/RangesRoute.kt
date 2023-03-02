@@ -31,13 +31,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.android.nrfmesh.feature.provisioners.AllocatedRange
 import no.nordicsemi.kotlin.mesh.core.model.*
 import java.util.*
-import kotlin.reflect.KFunction0
 
 @Composable
 internal fun RangesRoute(
@@ -52,7 +50,7 @@ internal fun RangesRoute(
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove,
         resolve = viewModel::resolve,
-        onBackPressed = viewModel::navigateUp
+        navigateUp = viewModel::navigateUp
     )
 }
 
@@ -66,12 +64,12 @@ private fun RangesScreen(
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit,
     resolve: () -> Unit,
-    onBackPressed: KFunction0<Unit>
+    navigateUp: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
-    var showResolveConflictsDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         floatingActionButton = {
             if (!uiState.conflicts) {
@@ -98,8 +96,7 @@ private fun RangesScreen(
                     containerColor = Color.Red
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) {
         when (uiState.ranges.isEmpty()) {
             true -> MeshNoItemsAvailable(
@@ -108,7 +105,6 @@ private fun RangesScreen(
             )
 
             false -> Ranges(
-                padding = it,
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 ranges = uiState.ranges,
@@ -128,21 +124,21 @@ private fun RangesScreen(
             )
         }
 
-        if (showResolveConflictsDialog)
+        /*if (showResolveConflictsDialog)
             MeshAlertDialog(
-                onDismissRequest = { /*TODO*/ },
-                onConfirmClick = { /*TODO*/ },
-                onDismissClick = { /*TODO*/ },
+                onDismissRequest = { *//*TODO*//* },
+                onConfirmClick = { *//*TODO*//* },
+                onDismissClick = { *//*TODO*//* },
                 title = "Resolve conflicts",
                 text = "You have conflicting ranges. Please resolve them before leaving this screen.",
                 icon = Icons.Outlined.SwapHoriz,
-            )
+            )*/
     }
 }
 
 @Composable
 private fun Ranges(
-    padding: PaddingValues,
+    //padding: PaddingValues,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
@@ -159,7 +155,6 @@ private fun Ranges(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(padding)
                 .weight(0.6f, true),
             state = listState
         ) {
@@ -471,8 +466,4 @@ internal fun Range.toImageVector() = when (this) {
     is UnicastRange -> Icons.Outlined.Lan
     is GroupRange -> Icons.Outlined.GroupWork
     is SceneRange -> Icons.Outlined.AutoAwesome
-}
-
-private fun no.nordicsemi.kotlin.mesh.core.model.Range.random() {
-    (low..high).random()
 }

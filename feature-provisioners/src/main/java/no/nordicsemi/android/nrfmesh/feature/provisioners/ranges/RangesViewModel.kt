@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
@@ -36,7 +35,6 @@ internal abstract class RangesViewModel(
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
-                Log.d("RangesViewModel", "Collecting network: $network")
                 this@RangesViewModel.network = network
                 val ranges1 = network.provisioner(uuid)?.let { provisioner ->
                     this@RangesViewModel.provisioner = provisioner
@@ -53,7 +51,13 @@ internal abstract class RangesViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        removeRanges()
+        // Resolve any conflicts if they are not resolved already.
+        resolve()
+        // Allocate the newly added ranges to the provisioner.
+        allocate()
+        // Remove the ranges that were swiped for removal.
+        remove()
+        save()
     }
 
     /**
@@ -70,16 +74,16 @@ internal abstract class RangesViewModel(
     protected abstract fun getAllocatedRanges(): List<Range>
 
     /**
-     * Returns the list of other provisioners in the network.
-     */
-    protected fun getOtherProvisioners(): List<Provisioner> = network.provisioners
-        .filter { it.uuid != uuid }
-
-    /**
      * Returns the list of ranges allocated to other provisioners in the network.
      * @return list of ranges of other provisioners.
      */
     protected abstract fun getOtherRanges(): List<Range>
+
+    /**
+     * Returns the list of other provisioners in the network.
+     */
+    protected fun getOtherProvisioners(): List<Provisioner> = network.provisioners
+        .filter { it.uuid != uuid }
 
     /**
      * Adds a range to the network.
@@ -101,6 +105,12 @@ internal abstract class RangesViewModel(
         }
     }
 
+    protected fun allocate() {
+        _uiState.value.ranges
+            .filter { it !in getAllocatedRanges() }
+            .forEach { provisioner.allocate(it) }
+    }
+
     /**
      * Invoked when a range is swiped to be deleted. The given range is added to a list
      * of ranges to be deleted.
@@ -110,26 +120,27 @@ internal abstract class RangesViewModel(
     internal fun onSwiped(range: Range) {
         if (!rangesToBeRemoved.contains(range))
             rangesToBeRemoved.add(range)
-        // TODO Fix this
-        if (rangesToBeRemoved.size == network.scenes.size) {
-            /*_uiState.value =
-                UnicastRangesScreenUiState(ranges = filterProvisionersTobeRemoved())*/
-        }
+        if (rangesToBeRemoved.size == getAllocatedRanges().size)
+            _uiState.value = _uiState.value.copy(ranges = filterRangesToBeRemoved())
     }
 
     /**
-     * Invoked when a provisioner is swiped to be deleted is undone. When invoked the given
-     * provisioner is removed from the list of provisioners to be deleted.
+     * Invoked when a ranges that is swiped to be deleted is undone. When invoked the given
+     * range is removed from the list of ranges to be deleted.
      *
-     * @param provisioner Scene to be reverted.
+     * @param range Scene to be reverted.
      */
-    internal fun onUndoSwipe(provisioner: Range) {
-        rangesToBeRemoved.remove(provisioner)
-        // TODO Fix this
-        if (rangesToBeRemoved.isEmpty()) {
-            /*_uiState.value =
-                UnicastRangesScreenUiState(ranges = filterProvisionersTobeRemoved())*/
-        }
+    internal fun onUndoSwipe(range: Range) {
+        rangesToBeRemoved.remove(range)
+        if (rangesToBeRemoved.isEmpty())
+            _uiState.value = _uiState.value.copy(ranges = filterRangesToBeRemoved())
+    }
+
+    /**
+     * Filters the ranges to be removed from the list of ranges.
+     */
+    private fun filterRangesToBeRemoved() = _uiState.value.ranges.filter {
+        it !in rangesToBeRemoved
     }
 
     /**
@@ -138,22 +149,21 @@ internal abstract class RangesViewModel(
      * @param range range to be removed.
      */
     internal fun remove(range: Range) {
-        // TODO Fix this
+        rangesToBeRemoved.find { it == range }?.let {
+            rangesToBeRemoved.add(it)
+        }
     }
 
     /**
-     * Removes the range from a network.
-     */
-    private fun removeRanges() {
-        remove()
-        save()
-    }
-
-    /**
-     * Removes the selected provisioners from the network.
+     * Removes the selected ranges from the network.
      */
     private fun remove() {
-        // TODO Fix this
+        getAllocatedRanges().filter {
+            it in rangesToBeRemoved
+        }.forEach {
+            provisioner.remove(it)
+        }
+        rangesToBeRemoved.clear()
     }
 
     /**

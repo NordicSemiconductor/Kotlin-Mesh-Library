@@ -1,7 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
@@ -30,6 +32,8 @@ internal class UnicastRangesViewModel @Inject internal constructor(
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges + range)
         }
+        if(!_uiState.value.conflicts) {
+            allocate()
+        }
     }
-
 }

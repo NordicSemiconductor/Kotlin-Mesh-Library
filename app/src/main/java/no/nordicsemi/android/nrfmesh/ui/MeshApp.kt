@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.ui
 
@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.common.navigation.*
@@ -38,12 +37,12 @@ fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
         NetworkScreen(viewModel)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NetworkScreen(viewModel: NetworkViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val currentDestination by viewModel.navigator.currentDestination().collectAsStateWithLifecycle()
-
+    val currentDestination by viewModel.currentDestination().collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -59,12 +58,9 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
             )
         },
         bottomBar = {
-            BottomNavigationBar(
-                destinations = navigationItems,
-                navigator = viewModel.navigator
-            )
+            BottomNavigationBar(destinations = navigationItems, navigator = viewModel.navigator)
         }
-    ) { padding ->
+    ) {
         NavigationView(
             destinations = listOf(
                 topLevelTabs with ((nodesTab with nodesDestinations) +
@@ -72,7 +68,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                         (proxyFilterTab with proxyFilterDestinations) +
                         (settingsTab with settingsDestinations))
             ),
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(it)
         )
     }
 }
@@ -82,14 +78,7 @@ fun BottomNavigationBar(
     destinations: List<NavigationItem>,
     navigator: Navigator
 ) {
-    NavigationBar(
-        modifier = Modifier.windowInsetsPadding(
-            WindowInsets.safeDrawing.only(
-                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
-            )
-        ),
-        tonalElevation = 0.dp
-    ) {
+    NavigationBar {
         destinations.forEach { destination ->
             val selected by navigator.isInHierarchy(destination.destinationId)
                 .collectAsStateWithLifecycle()

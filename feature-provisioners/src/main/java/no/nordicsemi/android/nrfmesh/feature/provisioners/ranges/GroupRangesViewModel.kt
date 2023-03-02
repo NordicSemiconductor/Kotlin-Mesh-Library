@@ -27,6 +27,9 @@ internal class GroupRangesViewModel @Inject internal constructor(
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges + range)
         }
+        if(!_uiState.value.conflicts) {
+            allocate()
+        }
     }
 
 }

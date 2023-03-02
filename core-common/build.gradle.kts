@@ -8,3 +8,8 @@ plugins {
 android {
     namespace = "no.nordicsemi.android.nrfmesh.core.common"
 }
+
+dependencies {
+
+    implementation(libs.nordic.navigation)
+}
