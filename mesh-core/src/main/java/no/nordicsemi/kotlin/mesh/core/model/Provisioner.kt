@@ -157,6 +157,50 @@ data class Provisioner internal constructor(
     }
 
     /**
+     * Updates the given range with the new range.
+     *
+     * @param range Range to be updated.
+     * @param newRange New range.
+     */
+    fun update(range: Range, newRange: Range) {
+        when {
+            range is UnicastRange && newRange is UnicastRange -> update(range, newRange)
+            range is GroupRange && newRange is GroupRange -> update(range, newRange)
+            range is SceneRange && newRange is SceneRange -> update(range, newRange)
+        }
+    }
+
+    /**
+     * Updates the given unicast range with the new unicast range.
+     *
+     * @param range unicast range to be updated.
+     * @param newRange new unicast range.
+     */
+    fun update(range: UnicastRange, newRange: UnicastRange) {
+        _allocatedUnicastRanges.map { if (it == range) newRange else it }
+    }
+
+    /**
+     * Updates the given group range with the new group range.
+     *
+     * @param range Range to be updated.
+     * @param newRange new group range.
+     */
+    fun update(range: GroupRange, newRange: GroupRange) {
+        _allocatedGroupRanges.map { if (it == range) newRange else it }
+    }
+
+    /**
+     * Updates the given scene range with the new scene range.
+     *
+     * @param range scene range to be updated.
+     * @param newRange new scene range.
+     */
+    fun update(range: SceneRange, newRange: SceneRange) {
+        _allocatedSceneRanges.map { if (it == range) newRange else it }
+    }
+
+    /**
      * Removes the given range from the allocated ranges.
      * @param range Range to be removed.
      */
