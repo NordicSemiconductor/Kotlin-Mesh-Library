@@ -1,4 +1,5 @@
-@file:Suppress("unused", "EXPERIMENTAL_API_USAGE", "SERIALIZER_TYPE_INCOMPATIBLE",
+@file:Suppress(
+    "unused", "EXPERIMENTAL_API_USAGE", "SERIALIZER_TYPE_INCOMPATIBLE",
     "ConvertArgumentToSet"
 )
 
@@ -50,18 +51,17 @@ sealed class Range {
         if (overlap.isNotEmpty()) {
             when (other) {
                 is UnicastRange -> UnicastRange(
-                    UnicastAddress(overlap.first().toUShort()), UnicastAddress(
-                        overlap.last().toUShort()
-                    )
+                    lowAddress = UnicastAddress(overlap.first().toUShort()),
+                    highAddress = UnicastAddress(overlap.last().toUShort())
                 )
-
                 is GroupRange -> GroupRange(
-                    GroupAddress(overlap.first().toUShort()), GroupAddress(
-                        overlap.last().toUShort()
-                    )
+                    lowAddress = GroupAddress(overlap.first().toUShort()),
+                    highAddress = GroupAddress(overlap.last().toUShort())
                 )
-
-                is SceneRange -> SceneRange(overlap.first().toUShort(), overlap.last().toUShort())
+                is SceneRange -> SceneRange(
+                    firstScene = overlap.first().toUShort(),
+                    lastScene = overlap.last().toUShort()
+                )
             }
         } else null
     } else null
@@ -75,7 +75,8 @@ sealed class Range {
      * @param other Range to check for overlapping elements.
      * @return true if there are overlapping elements.
      */
-    fun overlaps(other: Range): Boolean = contains(other.low) || contains(other.high)
+    fun overlaps(other: Range): Boolean = contains(other.low) || contains(other.high) ||
+            other.contains(low) || other.contains(high)
 
     /**
      * Checks if the given list of ranges overlaps with the current range
