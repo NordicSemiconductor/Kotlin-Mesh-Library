@@ -132,7 +132,6 @@ fun MeshOutlinedHexTextField(
     modifier: Modifier = Modifier,
     showPrefix: Boolean = true,
     onFocus: Boolean = false,
-    externalLeadingIcon: @Composable () -> Unit = {},
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     value: TextFieldValue,
@@ -161,7 +160,6 @@ fun MeshOutlinedHexTextField(
         MeshOutlinedTextField(
             modifier = modifier,
             onFocus = onFocus,
-            externalLeadingIcon = externalLeadingIcon,
             label = label,
             placeholder = placeholder,
             value = value,
