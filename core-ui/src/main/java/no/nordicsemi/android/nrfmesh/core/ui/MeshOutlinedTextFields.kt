@@ -2,13 +2,13 @@
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
@@ -87,6 +87,7 @@ fun MeshOutlinedTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value.text),
+    supportingText: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
     val requester = remember { FocusRequester() }
@@ -112,6 +113,7 @@ fun MeshOutlinedTextField(
             trailingIcon = internalTrailingIcon,
             readOnly = readOnly,
             isError = isError,
+            supportingText = supportingText,
             singleLine = true,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions
@@ -141,11 +143,21 @@ fun MeshOutlinedHexTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value.text),
+    supportingText: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (showPrefix)
-            Text(modifier = Modifier.padding(end = 8.dp), text = "0x")
+    Row {
+        Column(
+            modifier = Modifier.height(TextFieldDefaults.MinHeight),
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (showPrefix)
+                Text(
+                    modifier = Modifier
+                        .padding(end = 8.dp),
+                    text = "0x"
+                )
+        }
         MeshOutlinedTextField(
             modifier = modifier,
             onFocus = onFocus,
@@ -160,6 +172,7 @@ fun MeshOutlinedHexTextField(
             keyboardActions = keyboardActions,
             regex = regex,
             isError = isError,
+            supportingText = supportingText,
             content = content
         )
     }

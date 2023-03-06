@@ -51,12 +51,12 @@ internal abstract class RangesViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        // Remove the ranges that were swiped for removal.
+        remove()
         // Resolve any conflicts if they are not resolved already.
         resolve()
         // Allocate the newly added ranges to the provisioner.
         allocate()
-        // Remove the ranges that were swiped for removal.
-        remove()
         save()
     }
 
@@ -80,21 +80,52 @@ internal abstract class RangesViewModel(
     protected abstract fun getOtherRanges(): List<Range>
 
     /**
+     * Adds a range to the network.
+     *
+     * @param start start address of the range.
+     * @param end end address of the range.
+     */
+    internal abstract fun addRange(start: UInt, end: UInt)
+
+    /**
+     * Checks if the given bound is valid.
+     *
+     * @param bound bound to be checked.
+     * @return true if valid, false otherwise.
+     */
+    internal abstract fun isValidBound(bound: UShort): Boolean
+
+    /**
+     * Invoked when the user updates a given range
+     *
+     * @param range range to be updated.
+     * @param low low address of the new range.
+     * @param high high address of the new range.
+     */
+    internal abstract fun onRangeUpdated(range: Range, low: UShort, high: UShort)
+
+    /**
+     * Updates the given range with the given new range.
+     *
+     * @param range range to be updated.
+     * @param newRange new range to be updated with.
+     */
+    protected fun updateRange(range: Range, newRange: Range) {
+        _uiState.value = with(_uiState.value) {
+            copy(ranges = ranges.map {
+                if (it == range) newRange else it
+            })
+        }
+        if (!_uiState.value.conflicts) {
+            provisioner.update(range, newRange)
+        }
+    }
+
+    /**
      * Returns the list of other provisioners in the network.
      */
     protected fun getOtherProvisioners(): List<Provisioner> = network.provisioners
         .filter { it.uuid != uuid }
-
-    /**
-     * Adds a range to the network.
-     */
-    internal abstract fun addRange(start: UInt, end: UInt): Result<Unit>
-
-    internal fun onRangeUpdated(range: Range, newRange: Range) {
-        _uiState.value = with(_uiState.value) {
-            copy(ranges = ranges.map { if (it == range) newRange else it })
-        }
-    }
 
     /**
      * Resolves any conflicting ranges with the other ranges.
@@ -108,7 +139,11 @@ internal abstract class RangesViewModel(
     protected fun allocate() {
         _uiState.value.ranges
             .filter { it !in getAllocatedRanges() }
-            .forEach { provisioner.allocate(it) }
+            .forEach {
+                runCatching {
+                    provisioner.allocate(it)
+                }
+            }
     }
 
     /**
@@ -172,6 +207,15 @@ internal abstract class RangesViewModel(
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
+
+    /*internal fun isValidBound(range: Range, bound: UShort): Boolean = when (range) {
+        is UnicastRange -> if (UnicastAddress.isValid(address = bound)) true
+        else throw Throwable("Invalid unicast address")
+        is GroupRange -> if (GroupAddress.isValid(address = bound)) true
+        else throw Throwable("Invalid group address")
+        is SceneRange -> if (!Scene.isValid(sceneNumber = bound)) true
+        else throw Throwable("Invalid scene number")
+    }*/
 }
 
 data class RangesScreenUiState internal constructor(

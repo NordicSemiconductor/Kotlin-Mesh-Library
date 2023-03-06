@@ -22,14 +22,22 @@ internal class GroupRangesViewModel @Inject internal constructor(
         .flatMap { it.allocatedGroupRanges }
         .toList()
 
-    override fun addRange(start: UInt, end: UInt) = runCatching {
+    override fun addRange(start: UInt, end: UInt) {
         val range = GroupAddress(start.toUShort())..GroupAddress(end.toUShort())
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges + range)
         }
-        if(!_uiState.value.conflicts) {
+        if (!_uiState.value.conflicts) {
             allocate()
         }
     }
 
+    override fun onRangeUpdated(range: Range, low: UShort, high: UShort) {
+        updateRange(range, GroupAddress(address = low)..GroupAddress(address = high))
+    }
+
+    override fun isValidBound(bound: UShort): Boolean = when {
+        GroupAddress.isValid(address = bound) -> true
+        else -> throw Throwable("Invalid group address")
+    }
 }

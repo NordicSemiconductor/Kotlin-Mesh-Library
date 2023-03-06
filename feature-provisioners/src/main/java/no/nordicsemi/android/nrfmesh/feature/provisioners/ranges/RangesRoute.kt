@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -50,7 +49,7 @@ internal fun RangesRoute(
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove,
         resolve = viewModel::resolve,
-        navigateUp = viewModel::navigateUp
+        isValidBound = viewModel::isValidBound
     )
 }
 
@@ -58,13 +57,13 @@ internal fun RangesRoute(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun RangesScreen(
     uiState: RangesScreenUiState,
-    addRange: (start: UInt, end: UInt) -> Result<Unit>,
-    onRangeUpdated: (Range, Range) -> Unit,
+    addRange: (start: UInt, end: UInt) -> Unit,
+    onRangeUpdated: (Range, UShort, UShort) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit,
     resolve: () -> Unit,
-    navigateUp: () -> Unit
+    isValidBound: (UShort) -> Boolean
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -112,45 +111,35 @@ private fun RangesScreen(
                 onRangeUpdated = onRangeUpdated,
                 onSwiped = onSwiped,
                 onUndoClicked = onUndoClicked,
+                isValidBound = isValidBound,
                 remove = remove
             )
         }
         if (showAddRangeDialog) {
             AddRangeDialog(
-                scope = coroutineScope,
-                snackbarHostState = snackbarHostState,
-                onDismissRequest = { showAddRangeDialog = false },
-                onConfirmClicked = { start, end -> addRange(start, end) }
-            )
+                isValidBound = isValidBound,
+                onDismissRequest = { showAddRangeDialog = false }
+            ) { start, end -> addRange(start, end) }
         }
-
-        /*if (showResolveConflictsDialog)
-            MeshAlertDialog(
-                onDismissRequest = { *//*TODO*//* },
-                onConfirmClick = { *//*TODO*//* },
-                onDismissClick = { *//*TODO*//* },
-                title = "Resolve conflicts",
-                text = "You have conflicting ranges. Please resolve them before leaving this screen.",
-                icon = Icons.Outlined.SwapHoriz,
-            )*/
+        // TODO Look into how to handle back button on the top app bar for
     }
 }
 
 @Composable
 private fun Ranges(
-    //padding: PaddingValues,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
     otherRanges: List<Range>,
-    onRangeUpdated: (Range, Range) -> Unit,
+    onRangeUpdated: (Range, UShort, UShort) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
+    isValidBound: (UShort) -> Boolean,
     remove: (Range) -> Unit
 ) {
     val listState = rememberLazyListState()
     var showAddRangeDialog by remember { mutableStateOf(false) }
-    var rangeToEdit by rememberSaveable { mutableStateOf<Range?>(null) }
+    var rangeToEdit by remember { mutableStateOf<Range?>(null) }
     Column {
         LazyColumn(
             modifier = Modifier
@@ -158,7 +147,7 @@ private fun Ranges(
                 .weight(0.6f, true),
             state = listState
         ) {
-            items(items = ranges/*, key = { (it.low..it.high).random().toInt() }*/) { range ->
+            items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val dismissState = rememberDismissState()
                 var rangeDismissed by remember { mutableStateOf(false) }
@@ -171,9 +160,7 @@ private fun Ranges(
                         onDismissed = { remove(range) },
                         onActionPerformed = {
                             onUndoClicked(range)
-                            coroutineScope.launch {
-                                dismissState.reset()
-                            }
+                            coroutineScope.launch { dismissState.reset() }
                         },
                         withDismissAction = true
                     )
@@ -234,8 +221,9 @@ private fun Ranges(
                 UpdateRangeDialog(
                     onDismissRequest = { showAddRangeDialog = false },
                     range = range,
-                    onConfirmClicked = { newRange ->
-                        onRangeUpdated(range, newRange)
+                    isValidBound = isValidBound,
+                    onConfirmClicked = { oldRange, low, high ->
+                        onRangeUpdated(oldRange, low, high)
                     }
                 )
             }
@@ -243,15 +231,12 @@ private fun Ranges(
     }
 }
 
-
 @Composable
 private fun AddRangeDialog(
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    isValidBound: (UShort) -> Boolean,
     onDismissRequest: () -> Unit,
-    onConfirmClicked: (start: UInt, end: UInt) -> Result<Unit>
+    onConfirmClicked: (start: UInt, end: UInt) -> Unit
 ) {
-    val context = LocalContext.current
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
@@ -260,7 +245,9 @@ private fun AddRangeDialog(
     }
     var startInFocus by rememberSaveable { mutableStateOf(false) }
     var endInFocus by rememberSaveable { mutableStateOf(false) }
-    var error by rememberSaveable { mutableStateOf(false) }
+    var invalidStart by rememberSaveable { mutableStateOf(false) }
+    var invalidEnd by rememberSaveable { mutableStateOf(false) }
+    var supportingErrorText by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
         onConfirmClick = {
@@ -268,27 +255,19 @@ private fun AddRangeDialog(
             val endValue = end.text.trim()
             if (startValue.isNotBlank() && endValue.isNotBlank()) {
                 onConfirmClicked(startValue.toUInt(radix = 16), endValue.toUInt(radix = 16))
-                    .onSuccess {
-                        onDismissRequest()
-                    }
-                    .onFailure {
-                        error = true
-                        showSnackbar(
-                            scope = scope,
-                            snackbarHostState = snackbarHostState,
-                            message = it.message ?: context.getString(R.string.unknown_error)
-                        )
-                    }
+                onDismissRequest()
             }
         },
         onDismissClick = { onDismissRequest() },
         icon = Icons.Outlined.SwapHoriz,
         title = stringResource(R.string.title_new_range),
+        error = invalidStart ||
+                invalidEnd ||
+                start.text.trim().isBlank() ||
+                end.text.trim().isBlank(),
         content = {
             Column {
-                Text(
-                    text = stringResource(R.string.label_new_range_rationale)
-                )
+                Text(text = stringResource(R.string.label_new_range_rationale))
                 Spacer(modifier = Modifier.size(16.dp))
                 MeshOutlinedHexTextField(
                     modifier = Modifier.clickable {
@@ -301,23 +280,37 @@ private fun AddRangeDialog(
                     onValueChanged = {
                         startInFocus = true
                         endInFocus = false
-                        error = false
                         start = it
+                        if (start.text.trim().isNotEmpty()){
+                            runCatching {
+                                invalidStart = !isValidBound(start.text.toUShort(radix = 16))
+                            }.onFailure { throwable ->
+                                supportingErrorText = throwable.message ?: ""
+                                invalidStart = true
+                            }
+                        }
                     },
                     label = { Text(text = stringResource(R.string.label_lower_bound)) },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = start.text.isNotBlank(),
                             onClick = {
+                                start = TextFieldValue("")
                                 startInFocus = true
                                 endInFocus = false
-                                error = false
-                                start = TextFieldValue("")
+                                invalidStart = false
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
                     regex = Regex("[0-9A-Fa-f]{0,4}"),
-                    isError = error
+                    isError = invalidStart,
+                    supportingText = {
+                        if (invalidStart)
+                            Text(
+                                text = supportingErrorText,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                    }
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 MeshOutlinedHexTextField(
@@ -331,22 +324,37 @@ private fun AddRangeDialog(
                     onValueChanged = {
                         startInFocus = false
                         endInFocus = true
-                        error = false
                         end = it
+                        if (end.text.trim().isNotEmpty()){
+                            runCatching {
+                                invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
+                            }.onFailure { throwable ->
+                                supportingErrorText = throwable.message ?: ""
+                                invalidEnd = true
+                            }
+                        }
                     },
                     label = { Text(text = stringResource(R.string.label_upper_bound)) },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = end.text.isNotBlank(),
                             onClick = {
+                                end = TextFieldValue("")
                                 startInFocus = false
                                 endInFocus = true
-                                error = false
-                                end = TextFieldValue("")
+                                invalidEnd = false
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    isError = invalidEnd,
+                    supportingText = {
+                        if (invalidEnd)
+                            Text(
+                                text = supportingErrorText,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                    }
                 )
             }
         }
@@ -357,7 +365,8 @@ private fun AddRangeDialog(
 private fun UpdateRangeDialog(
     onDismissRequest: () -> Unit,
     range: Range,
-    onConfirmClicked: (Range) -> Unit
+    isValidBound: (UShort) -> Boolean,
+    onConfirmClicked: (Range, UShort, UShort) -> Unit
 ) {
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(range.low.toHex()))
@@ -367,6 +376,9 @@ private fun UpdateRangeDialog(
     }
     var startInFocus by rememberSaveable { mutableStateOf(false) }
     var endInFocus by rememberSaveable { mutableStateOf(false) }
+    var invalidStart by rememberSaveable { mutableStateOf(false) }
+    var invalidEnd by rememberSaveable { mutableStateOf(false) }
+    var supportingErrorText by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
         onConfirmClick = {
@@ -374,31 +386,23 @@ private fun UpdateRangeDialog(
             val endValue = end.text.trim()
             if (startValue.isNotBlank() && endValue.isNotBlank()) {
                 onDismissRequest()
-                /*onConfirmClicked(
-                    when (range) {
-                        is UnicastRange ->
-                            UnicastAddress(
-                                address = startValue.toInt(radix = 16)
-                            )..UnicastAddress(
-                                address = endValue.toInt(radix = 16)
-                            )
-                        is GroupRange ->
-                            GroupAddress(startValue.toInt(radix = 16))..GroupAddress(
-                                endValue.toInt(
-                                    radix = 16
-                                )
-                            )
-                        is SceneRange -> SceneRange(
-                            startValue.toUShort(radix = 16),
-                            endValue.toUShort(radix = 16)
-                        )
-                    }
-                )*/
+                onConfirmClicked(
+                    range,
+                    startValue.toUShort(radix = 16),
+                    endValue.toUShort(radix = 16)
+                )
             }
         },
         onDismissClick = { onDismissRequest() },
         icon = Icons.Outlined.SwapHoriz,
         title = stringResource(R.string.title_new_range),
+        error = invalidStart || invalidEnd ||
+                start.text
+                    .trim()
+                    .isBlank() ||
+                end.text
+                    .trim()
+                    .isBlank(),
         content = {
             Column {
                 Text(
@@ -417,18 +421,35 @@ private fun UpdateRangeDialog(
                         startInFocus = true
                         endInFocus = false
                         start = it
+                        if (start.text.trim().isNotEmpty()){
+                            runCatching {
+                                invalidStart = !isValidBound(start.text.toUShort(radix = 16))
+                            }.onFailure { throwable ->
+                                supportingErrorText = throwable.message ?: ""
+                                invalidStart = true
+                            }
+                        }
                     },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = start.text.isNotBlank(),
                             onClick = {
+                                start = TextFieldValue("")
                                 startInFocus = true
                                 endInFocus = false
-                                start = TextFieldValue("")
+                                invalidStart = false
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    isError = invalidStart,
+                    supportingText = {
+                        if (invalidStart)
+                            Text(
+                                text = supportingErrorText,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                    }
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 MeshOutlinedHexTextField(
@@ -443,18 +464,35 @@ private fun UpdateRangeDialog(
                         startInFocus = false
                         endInFocus = true
                         end = it
+                        if (end.text.trim().isNotEmpty()){
+                            runCatching {
+                                invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
+                            }.onFailure { throwable ->
+                                supportingErrorText = throwable.message ?: ""
+                                invalidEnd = true
+                            }
+                        }
                     },
                     internalTrailingIcon = {
                         IconButton(
                             enabled = end.text.isNotBlank(),
                             onClick = {
+                                end = TextFieldValue("")
                                 startInFocus = false
                                 endInFocus = true
-                                end = TextFieldValue("")
+                                invalidEnd = false
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}")
+                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    isError = invalidEnd,
+                    supportingText = {
+                        if (invalidEnd)
+                            Text(
+                                text = supportingErrorText,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                    }
                 )
             }
         }

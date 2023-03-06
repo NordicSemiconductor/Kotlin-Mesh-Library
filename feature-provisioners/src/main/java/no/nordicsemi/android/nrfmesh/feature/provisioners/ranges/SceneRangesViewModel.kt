@@ -22,14 +22,22 @@ internal class SceneRangesViewModel @Inject internal constructor(
         .flatMap { it.allocatedSceneRanges }
         .toList()
 
-    override fun addRange(start: UInt, end: UInt) = runCatching {
+    override fun addRange(start: UInt, end: UInt) {
         val range = SceneRange(start.toUShort(), end.toUShort())
         _uiState.value = with(_uiState.value) {
             copy(ranges = ranges + range)
         }
-        if(!_uiState.value.conflicts) {
+        if (!_uiState.value.conflicts) {
             allocate()
         }
     }
 
+    override fun onRangeUpdated(range: Range, low: UShort, high: UShort) {
+        updateRange(range, SceneRange(low, high))
+    }
+
+    override fun isValidBound(bound: UShort): Boolean = when {
+        Scene.isValid(sceneNumber = bound) -> true
+        else -> throw Throwable("Invalid unicast address")
+    }
 }

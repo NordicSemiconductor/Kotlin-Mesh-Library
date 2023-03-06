@@ -7,9 +7,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
-import no.nordicsemi.kotlin.mesh.core.model.Range
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.plus
+import no.nordicsemi.kotlin.mesh.core.model.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,13 +25,24 @@ internal class UnicastRangesViewModel @Inject internal constructor(
         .flatMap { it.allocatedUnicastRanges }
         .toList()
 
-    override fun addRange(start: UInt, end: UInt) = runCatching {
-        val range = (UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort()))
-        _uiState.value = with(_uiState.value) {
-            copy(ranges = ranges + range)
+    override fun addRange(start: UInt, end: UInt) {
+        viewModelScope.launch {
+            val range = (UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort()))
+            _uiState.value = with(_uiState.value) {
+                copy(ranges = ranges + range)
+            }
+            if (!_uiState.value.conflicts) {
+                allocate()
+            }
         }
-        if(!_uiState.value.conflicts) {
-            allocate()
-        }
+    }
+
+    override fun onRangeUpdated(range: Range, low: UShort, high: UShort) {
+        updateRange(range, UnicastAddress(address = low)..UnicastAddress(address = high))
+    }
+
+    override fun isValidBound(bound: UShort): Boolean = when {
+        UnicastAddress.isValid(address = bound) -> true
+        else -> throw Throwable("Invalid unicast address")
     }
 }

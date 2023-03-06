@@ -30,6 +30,7 @@ import androidx.compose.ui.window.DialogProperties
  * @param title                         Title which should specify the purpose of the dialog. The
  *                                      title is not mandatory, because there may be sufficient
  *                                      information inside the [text].
+ * @param error                         When true the confirm button will be disabled
  * @param content                       Content of the dialog body.
  */
 @Composable
@@ -41,6 +42,7 @@ fun MeshAlertDialog(
     onDismissClick: () -> Unit,
     icon: ImageVector? = null,
     title: String? = null,
+    error: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     AlertDialog(
@@ -48,7 +50,10 @@ fun MeshAlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
-            Button(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
+            Button(
+                enabled = !error,
+                onClick = { onConfirmClick() }
+            ) { Text(text = confirmButtonText) }
         },
         dismissButton = {
             Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
