@@ -47,6 +47,7 @@ internal fun ProvisionerRoute(
         onAddressChanged = viewModel::onAddressChanged,
         disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
         onTtlChanged = viewModel::onTtlChanged,
+        isValidAddress = viewModel::isValidAddress,
         navigateToUnicastRanges = navigateToUnicastRanges,
         navigateToGroupRanges = navigateToGroupRanges,
         navigateToSceneRanges = navigateToSceneRanges
@@ -58,6 +59,7 @@ private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
@@ -76,6 +78,7 @@ private fun ProvisionerScreen(
                 otherProvisioners = provisionerState.otherProvisioners,
                 onNameChanged = onNameChanged,
                 onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
                 disableConfigurationCapabilities = disableConfigurationCapabilities,
                 onTtlChanged = onTtlChanged,
                 navigateToUnicastRanges = navigateToUnicastRanges,
@@ -100,6 +103,7 @@ private fun ProvisionerInfo(
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
@@ -128,6 +132,7 @@ private fun ProvisionerInfo(
                     keyboardController = keyboardController,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
+                    isValidAddress = isValidAddress,
                     disableConfigurationCapabilities = disableConfigurationCapabilities,
                     isCurrentlyEditable = isCurrentlyEditable,
                     onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
@@ -206,7 +211,7 @@ fun Name(
                     IconButton(
                         enabled = value.text.isNotBlank(),
                         onClick = {
-                            value = TextFieldValue(text = name, selection = TextRange(0))
+                            value = TextFieldValue(text = "", selection = TextRange(0))
                         }
                     ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
@@ -228,7 +233,6 @@ fun Name(
                     }
                 }
             )
-
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -269,6 +273,7 @@ private fun UnicastAddress(
     keyboardController: SoftwareKeyboardController?,
     address: Address?,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -282,6 +287,7 @@ private fun UnicastAddress(
     var error by rememberSaveable { mutableStateOf(false) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
+    var supportingErrorText by rememberSaveable { mutableStateOf("") }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
             true -> MeshOutlinedTextField(
@@ -299,6 +305,14 @@ private fun UnicastAddress(
                 onValueChanged = {
                     error = false
                     value = it
+                    if (it.text.isNotEmpty()) {
+                        runCatching {
+                            error = !isValidAddress(it.text.toUShort(16))
+                        }.onFailure { throwable ->
+                            supportingErrorText = throwable.message ?: ""
+                            error = true
+                        }
+                    }
                 },
                 label = { Text(text = stringResource(id = R.string.label_unicast_address)) },
                 internalTrailingIcon = {
@@ -315,6 +329,10 @@ private fun UnicastAddress(
                 ),
                 regex = Regex("[0-9A-Fa-f]{0,4}"),
                 isError = error,
+                supportingText = {
+                    if (error)
+                        Text(text = supportingErrorText, color = MaterialTheme.colorScheme.error)
+                },
                 content = {
                     IconButton(
                         modifier = Modifier.padding(start = 16.dp),

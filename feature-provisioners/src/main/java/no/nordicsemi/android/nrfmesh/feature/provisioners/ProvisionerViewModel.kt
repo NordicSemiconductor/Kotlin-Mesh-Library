@@ -67,6 +67,14 @@ internal class ProvisionerViewModel @Inject internal constructor(
     }
 
     /**
+     * Checks if the given address is valid
+     */
+    fun isValidAddress(address: UShort): Boolean = when {
+        UnicastAddress.isValid(address = address) -> true
+        else -> throw Throwable("Invalid unicast address")
+    }
+
+    /**
      * Invoked when the name of the provisioner is changed.
      *
      * @param address New address of the provisioner.
