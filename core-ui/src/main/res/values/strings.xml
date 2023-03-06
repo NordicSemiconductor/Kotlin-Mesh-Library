@@ -37,5 +37,6 @@
     <string name="at_least_one_net_key_must_be_selected">At least one network key must be selected</string>
     <string name="at_least_one_provisioner_must_be_selected">At least one provisioner must be selected</string>
     <string name="unknown_error">Unknown Error</string>
+    <string name="label_hex_prefix">0x</string>
 
 </resources>

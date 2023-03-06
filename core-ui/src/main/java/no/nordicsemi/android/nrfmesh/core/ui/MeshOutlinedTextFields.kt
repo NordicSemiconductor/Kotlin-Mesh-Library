@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
@@ -154,7 +155,7 @@ fun MeshOutlinedHexTextField(
                 Text(
                     modifier = Modifier
                         .padding(end = 8.dp),
-                    text = "0x"
+                    text = stringResource(R.string.label_hex_prefix)
                 )
         }
         MeshOutlinedTextField(
