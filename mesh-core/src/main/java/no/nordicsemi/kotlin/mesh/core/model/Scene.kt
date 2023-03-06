@@ -42,7 +42,7 @@ data class Scene internal constructor(
     internal var network: MeshNetwork? = null
 
     init {
-        require(number in minSceneNumber..maxSceneNumber) {
+        require(isValid(sceneNumber = number)) {
             "Scene number must be within $minSceneNumber and $maxSceneNumber!"
         }
     }
@@ -125,7 +125,15 @@ data class Scene internal constructor(
         return result
     }
 
+    companion object {
+        /**
+         * Returns true if the given scene number is within the range of 0x0001 to 0xFFFF
+         * @param sceneNumber Scene number to be checked.
+         */
+        fun isValid(sceneNumber: SceneNumber) = sceneNumber in minSceneNumber..maxSceneNumber
+    }
 }
 
 const val minSceneNumber: SceneNumber = 0x0001u
+
 const val maxSceneNumber: SceneNumber = 0xFFFFu
