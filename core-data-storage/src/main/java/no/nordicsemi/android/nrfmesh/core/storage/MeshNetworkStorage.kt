@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import no.nordicsemi.kotlin.mesh.core.Storage
 import java.util.*
@@ -22,29 +24,24 @@ class MeshNetworkStorage @Inject constructor(
 ) : Storage {
 
     // TODO these are not used anymore but are left for reference
-        val dataStream = dataStore.data.map { preferences ->
-            val uuid = preferences[stringPreferencesKey(LAST_NETWORK)]
-            if (uuid != null)
-                preferences[stringPreferencesKey(uuid.toString())]
-                    .toString()
-                    .encodeToByteArray()
-            else
-                byteArrayOf()
-        }
-
-        // TODO consider looking in to storing library related information
-        suspend fun save(uuid: UUID, network: String) {
-            dataStore.edit { preferences ->
-                preferences[stringPreferencesKey(LAST_NETWORK)] = uuid.toString()
-                preferences[stringPreferencesKey(uuid.toString())] = network
-            }
-        }
-
-    override suspend fun load(): ByteArray? {
-        TODO("Not yet implemented")
+    private val dataStream = dataStore.data.map { preferences ->
+        val uuid = preferences[stringPreferencesKey(LAST_NETWORK)]
+        if (uuid != null)
+            preferences[stringPreferencesKey(uuid.toString())]
+                .toString()
+                .encodeToByteArray()
+        else
+            byteArrayOf()
     }
 
-    override suspend fun save(network: ByteArray) {
-        TODO("Not yet implemented")
+
+    override suspend fun load(): ByteArray? = dataStream.firstOrNull()
+
+    // TODO consider looking in to storing library related information
+    override suspend fun save(uuid: UUID, network: ByteArray) {
+        dataStore.edit { preferences ->
+            preferences[stringPreferencesKey(LAST_NETWORK)] = uuid.toString()
+            preferences[stringPreferencesKey(uuid.toString())] = network.decodeToString()
+        }
     }
 }

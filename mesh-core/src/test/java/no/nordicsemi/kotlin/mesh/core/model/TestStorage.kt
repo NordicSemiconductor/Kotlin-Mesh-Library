@@ -9,11 +9,11 @@ import java.util.*
  */
 internal class TestStorage : Storage {
 
-    override suspend fun load(): Flow<ByteArray> {
+    override suspend fun load(): ByteArray? {
         TODO("Do nothing")
     }
 
-    override suspend fun save(uuid: UUID, network: String) {
+    override suspend fun save(uuid: UUID, network: ByteArray) {
         TODO("Do nothing")
     }
 }

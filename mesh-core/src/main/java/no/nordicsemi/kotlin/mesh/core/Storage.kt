@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core
 
+import java.util.*
+
 /**
  * Allows the users to save the mesh network information in a custom location.
  */
@@ -13,5 +15,5 @@ interface Storage {
     /**
      * Saves the Mesh Network in a user specified storage.
      */
-    suspend fun save(network: ByteArray)
+    suspend fun save(uuid: UUID, network: ByteArray)
 }

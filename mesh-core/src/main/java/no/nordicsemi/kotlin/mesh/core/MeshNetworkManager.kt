@@ -25,7 +25,7 @@ class MeshNetworkManager(private val storage: Storage) {
      *
      * @return true if the configuration was successfully loaded or false otherwise.
      */
-    suspend fun load() = storage.load()?.let {
+    suspend fun load() = storage.load()?.takeIf { it.isNotEmpty() }?.let {
         meshNetwork = deserialize(it)
         true
     } ?: false
@@ -34,7 +34,7 @@ class MeshNetworkManager(private val storage: Storage) {
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        export()?.also { storage.save(it) }
+        export()?.also { storage.save(meshNetwork!!.uuid, it) }
     }
 
     /**
