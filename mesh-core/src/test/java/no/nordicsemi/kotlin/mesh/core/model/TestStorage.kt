@@ -1,18 +1,19 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import no.nordicsemi.kotlin.mesh.core.LocalStorage
+import no.nordicsemi.kotlin.mesh.core.Storage
 import java.util.*
 
 /**
  * Mocked for tests.
  */
-internal class TestStorage : LocalStorage {
-    override val dataStream: Flow<ByteArray>
-        get() = flow { emit(byteArrayOf()) }
+internal class TestStorage : Storage {
 
-    override suspend fun save(uuid: UUID, network: String) {
+    override suspend fun load(): ByteArray? {
+        TODO("Do nothing")
+    }
+
+    override suspend fun save(uuid: UUID, network: ByteArray) {
         TODO("Do nothing")
     }
 }

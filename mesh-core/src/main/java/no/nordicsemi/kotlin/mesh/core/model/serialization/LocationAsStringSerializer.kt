@@ -16,7 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
  */
 internal object LocationAsStringSerializer : KSerializer<Location> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName = "UShort", kind = PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(serialName = "UShortSerializer", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Location = runCatching {
         Location.from(decoder.decodeString().toUInt(radix = 16).toUShort())

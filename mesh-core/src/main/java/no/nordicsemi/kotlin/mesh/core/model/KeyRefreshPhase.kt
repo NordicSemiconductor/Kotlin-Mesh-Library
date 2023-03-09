@@ -31,6 +31,12 @@ sealed class KeyRefreshPhase(val phase: Int) {
             )
         }
     }
+
+    fun description() = when (this) {
+        NormalOperation -> "Normal operation"
+        KeyDistribution -> "Key distribution"
+        UsingNewKeys -> "Using new keys"
+    }
 }
 
 /**

@@ -38,6 +38,8 @@ sealed class Security {
             Secure -> SECURE
         }
     }
+
+    override fun toString() = toString(this)
 }
 
 object Insecure : Security()

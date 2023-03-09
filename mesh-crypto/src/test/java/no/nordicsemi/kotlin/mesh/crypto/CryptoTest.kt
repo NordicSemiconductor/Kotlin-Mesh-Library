@@ -171,4 +171,50 @@ class CryptoTest {
         val actual = createVirtualAddress(uuid = uuid)
         Assert.assertEquals(expected, actual)
     }
+
+    /**
+     * Unit test for [Crypto.authenticate].
+     *
+     * Refer 8.4.3 "Secure Network beacon" for test data for Beacon Key and Beacon PDU.
+     */
+    @Test
+    fun testAuthenticate() {
+        val beaconPDU = "01003ecaff672f673370123456788ea261582f364f6f".decodeHex()
+        val beaconKey = "5423d967da639a99cb02231a83f7d254".decodeHex()
+        val expected = true
+        val actual = Crypto.authenticate(beaconPDU, beaconKey)
+        Assert.assertEquals(expected, actual)
+    }
+
+    /**
+     * Unit test for [Crypto.obfuscate].
+     *
+     * Refer 8.3.16 "Message #16" for test data for Data to Obfuscate/Deobfuscate, Privacy Key
+     * Privacy Random, IV Index and the final expected result.
+     */
+    @Test
+    fun testObfuscate() {
+        val data = "e80e5da5af0e".decodeHex()
+        val random = "6b9be7f5a642f2f98680e61c3a8b47f228".decodeHex()
+        val ivIndex = 0x12345678.toUInt()
+        val privacyKey = "8b84eedec100067d670971dd2aa700cf".decodeHex()
+        val expected = "0b0000061201".decodeHex()
+        val actual = Crypto.obfuscate(data, random, ivIndex, privacyKey)
+        Assert.assertTrue(expected.contentEquals(actual))
+    }
+
+
+    /**
+     * Unit test for [Crypto.calculateECB].
+     *
+     * Refer 8.3.17 "Message #17" for test data for Privacy Plain Text, Privacy Key and PECB.
+     */
+    @Test
+    fun testCalculateECB() {
+        val privacyPlainText = "0000000000123456782a80d381b91f82".decodeHex()
+        val privacyKey = "8b84eedec100067d670971dd2aa700cf".decodeHex()
+        val expectedPECB = "b8bd2c18096e".decodeHex()
+        val actualPECB = Crypto.calculateECB(privacyPlainText, privacyKey).copyOfRange(0, 6)
+        Assert.assertTrue(expectedPECB.contentEquals(actualPECB))
+    }
 }
