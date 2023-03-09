@@ -14,7 +14,7 @@ android {
 
 dependencies {
 
-    //implementation(libs.nordic.theme)
+    implementation(libs.nordic.theme)
     implementation(libs.nordic.navigation)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
