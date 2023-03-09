@@ -49,6 +49,8 @@ class SettingsViewModel @Inject constructor(
                 }
             } ?: ""
             repository.importMeshNetwork(networkJson.encodeToByteArray())
+            // Let's save the imported network
+            repository.save()
         }
     }
 
