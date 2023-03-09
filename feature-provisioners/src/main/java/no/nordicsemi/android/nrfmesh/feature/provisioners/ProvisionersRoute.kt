@@ -70,6 +70,7 @@ private fun ProvisionersScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
                 navigateToProvisioner(onAddProvisionerClicked().uuid)
@@ -80,8 +81,7 @@ private fun ProvisionersScreen(
                     text = stringResource(R.string.action_add_provisioner)
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) {
         when (uiState.provisioners.isEmpty()) {
             true -> MeshNoItemsAvailable(
@@ -98,7 +98,6 @@ private fun ProvisionersScreen(
                 remove = remove
             )
         }
-
     }
 }
 
@@ -113,10 +112,7 @@ private fun Provisioners(
     remove: (Provisioner) -> Unit
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState
-    ) {
+    LazyColumn(state = listState) {
         items(items = provisioners, key = { it.uuid }) { provisioner ->
             // Hold the current state from the Swipe to Dismiss composable
             val dismissState = rememberDismissState()

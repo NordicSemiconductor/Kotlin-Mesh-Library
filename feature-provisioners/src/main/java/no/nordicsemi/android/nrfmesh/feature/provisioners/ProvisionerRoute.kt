@@ -4,8 +4,6 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,12 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -38,16 +31,26 @@ import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import java.util.*
 
 @Composable
-internal fun ProvisionerRoute(viewModel: ProvisionerViewModel = hiltViewModel()) {
+internal fun ProvisionerRoute(
+    viewModel: ProvisionerViewModel = hiltViewModel(),
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
+) {
     val uiState: ProvisionerScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
         disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
-        onTtlChanged = viewModel::onTtlChanged
+        onTtlChanged = viewModel::onTtlChanged,
+        isValidAddress = viewModel::isValidAddress,
+        navigateToUnicastRanges = navigateToUnicastRanges,
+        navigateToGroupRanges = navigateToGroupRanges,
+        navigateToSceneRanges = navigateToSceneRanges
     )
 }
 
@@ -56,13 +59,18 @@ private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
     onTtlChanged: (Int) -> Unit,
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     when (provisionerState) {
         ProvisionerState.Loading -> { /* Do nothing */
         }
+
         is ProvisionerState.Success -> {
             ProvisionerInfo(
                 snackbarHostState = snackbarHostState,
@@ -70,10 +78,15 @@ private fun ProvisionerScreen(
                 otherProvisioners = provisionerState.otherProvisioners,
                 onNameChanged = onNameChanged,
                 onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
                 disableConfigurationCapabilities = disableConfigurationCapabilities,
-                onTtlChanged = onTtlChanged
+                onTtlChanged = onTtlChanged,
+                navigateToUnicastRanges = navigateToUnicastRanges,
+                navigateToGroupRanges = navigateToGroupRanges,
+                navigateToSceneRanges = navigateToSceneRanges
             )
         }
+
         is ProvisionerState.Error -> {
             MeshNoItemsAvailable(
                 imageVector = Icons.Outlined.Group,
@@ -90,19 +103,19 @@ private fun ProvisionerInfo(
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
-    onTtlChanged: (Int) -> Unit
+    onTtlChanged: (Int) -> Unit,
+    navigateToUnicastRanges: (UUID) -> Unit,
+    navigateToGroupRanges: (UUID) -> Unit,
+    navigateToSceneRanges: (UUID) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
-    LazyColumn(
-        modifier = Modifier
-            .padding(end = 16.dp)
-            .fillMaxSize()
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         provisioner.run {
             item {
                 Name(
@@ -119,6 +132,7 @@ private fun ProvisionerInfo(
                     keyboardController = keyboardController,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
+                    isValidAddress = isValidAddress,
                     disableConfigurationCapabilities = disableConfigurationCapabilities,
                     isCurrentlyEditable = isCurrentlyEditable,
                     onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
@@ -137,19 +151,22 @@ private fun ProvisionerInfo(
             item {
                 UnicastRange(
                     ranges = provisioner.allocatedUnicastRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
+                    navigateToRanges = { navigateToUnicastRanges(provisioner.uuid) }
                 )
             }
             item {
                 GroupRange(
                     ranges = provisioner.allocatedGroupRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
+                    navigateToRanges = { navigateToGroupRanges(provisioner.uuid) }
                 )
             }
             item {
                 SceneRange(
                     ranges = provisioner.allocatedSceneRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges }
+                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
+                    navigateToRanges = { navigateToSceneRanges(provisioner.uuid) }
                 )
             }
             item {
@@ -170,9 +187,7 @@ fun Name(
     onEditableStateChanged: () -> Unit,
 ) {
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(
-            TextFieldValue(text = name, selection = TextRange(name.length))
-        )
+        mutableStateOf(TextFieldValue(text = name, selection = TextRange(name.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
@@ -196,7 +211,7 @@ fun Name(
                     IconButton(
                         enabled = value.text.isNotBlank(),
                         onClick = {
-                            value = TextFieldValue(text = name, selection = TextRange(0))
+                            value = TextFieldValue(text = "", selection = TextRange(0))
                         }
                     ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
@@ -258,6 +273,7 @@ private fun UnicastAddress(
     keyboardController: SoftwareKeyboardController?,
     address: Address?,
     onAddressChanged: (Int) -> Result<Unit>,
+    isValidAddress: (UShort) -> Boolean,
     disableConfigurationCapabilities: () -> Result<Unit>,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -271,6 +287,7 @@ private fun UnicastAddress(
     var error by rememberSaveable { mutableStateOf(false) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
+    var supportingErrorText by rememberSaveable { mutableStateOf("") }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
             true -> MeshOutlinedTextField(
@@ -288,6 +305,14 @@ private fun UnicastAddress(
                 onValueChanged = {
                     error = false
                     value = it
+                    if (it.text.isNotEmpty()) {
+                        runCatching {
+                            error = !isValidAddress(it.text.toUShort(16))
+                        }.onFailure { throwable ->
+                            supportingErrorText = throwable.message ?: ""
+                            error = true
+                        }
+                    }
                 },
                 label = { Text(text = stringResource(id = R.string.label_unicast_address)) },
                 internalTrailingIcon = {
@@ -304,6 +329,10 @@ private fun UnicastAddress(
                 ),
                 regex = Regex("[0-9A-Fa-f]{0,4}"),
                 isError = error,
+                supportingText = {
+                    if (error)
+                        Text(text = supportingErrorText, color = MaterialTheme.colorScheme.error)
+                },
                 content = {
                     IconButton(
                         modifier = Modifier.padding(start = 16.dp),
@@ -349,6 +378,7 @@ private fun UnicastAddress(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -468,6 +498,7 @@ private fun Ttl(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
@@ -518,138 +549,47 @@ private fun DeviceKey(key: ByteArray?) {
     )
 }
 
-
 @Composable
-private fun UnicastRange(ranges: List<UnicastRange>, otherRanges: List<UnicastRange>) {
-    Ranges(
+private fun UnicastRange(
+    ranges: List<UnicastRange>,
+    otherRanges: List<UnicastRange>,
+    navigateToRanges: () -> Unit
+) {
+    AllocatedRanges(
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_unicast_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        onClick = navigateToRanges
     )
 }
 
 @Composable
-private fun GroupRange(ranges: List<GroupRange>, otherRanges: List<GroupRange>) {
-    Ranges(
+private fun GroupRange(
+    ranges: List<GroupRange>,
+    otherRanges: List<GroupRange>,
+    navigateToRanges: () -> Unit
+) {
+    AllocatedRanges(
         imageVector = Icons.Outlined.GroupWork,
         title = stringResource(id = R.string.label_group_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        onClick = navigateToRanges
     )
 }
 
-
 @Composable
-private fun SceneRange(ranges: List<SceneRange>, otherRanges: List<SceneRange>) {
-    Ranges(
+private fun SceneRange(
+    ranges: List<SceneRange>,
+    otherRanges: List<SceneRange>,
+    navigateToRanges: () -> Unit
+) {
+    AllocatedRanges(
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_range),
         ranges = ranges,
-        otherRanges = otherRanges
+        otherRanges = otherRanges,
+        onClick = navigateToRanges
     )
-}
-
-@Composable
-private fun Ranges(
-    imageVector: ImageVector,
-    title: String,
-    ranges: List<Range>,
-    otherRanges: List<Range>,
-) {
-    TwoLineRangeListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = imageVector,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
-        title = title,
-        lineTwo = {
-            val ownRangeColor = MaterialTheme.colorScheme.primary
-            val otherRangeColor = Color.DarkGray
-            val conflictingColor = Color.Red
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-                    .height(height = 16.dp)
-                    .background(color = Color.LightGray)
-            ) {
-                // Mark own ranges
-                markRanges(
-                    color = ownRangeColor,
-                    ranges = ranges
-                )
-                // Mark other provisioners' ranges
-                markRanges(
-                    color = otherRangeColor,
-                    ranges = otherRanges
-                )
-                // Mark conflicting ranges
-                markRanges(
-                    color = conflictingColor,
-                    ranges = ranges.intersect(otherRanges.toSet()).toList()
-                )
-            }
-        }
-    )
-}
-
-private fun DrawScope.markRanges(
-    color: Color,
-    ranges: List<Range>
-) {
-    ranges.forEach { range ->
-        when (range) {
-            is UnicastRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.lowAddress.address.toInt(),
-                    highAddress = range.highAddress.address.toInt(),
-                    lowerBound = minUnicastAddress.toInt(),
-                    upperBound = maxUnicastAddress.toInt()
-                )
-            }
-            is GroupRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.lowAddress.address.toInt(),
-                    highAddress = range.highAddress.address.toInt(),
-                    lowerBound = 0xC000u.toInt(),
-                    upperBound = 0xFEFFu.toInt()
-                )
-            }
-            is SceneRange -> {
-                markRange(
-                    color = color,
-                    lowAddress = range.firstScene.toInt(),
-                    highAddress = range.lastScene.toInt(),
-                    lowerBound = 0x0001u.toInt(),
-                    upperBound = 0xFFFFu.toInt()
-                )
-            }
-        }
-    }
-}
-
-private fun DrawScope.markRange(
-    color: Color,
-    lowAddress: Int,
-    highAddress: Int,
-    lowerBound: Int,
-    upperBound: Int
-) {
-    size.let { size ->
-        val rangeWidth = size.width * (highAddress - lowAddress) / (upperBound - lowerBound)
-        val rangeStart = size.width * (lowAddress - lowerBound) / (upperBound - lowerBound)
-        drawRect(
-            color = color,
-            topLeft = Offset(x = rangeStart, y = 0f),
-            size = Size(width = rangeWidth.inc(), height = size.height),
-            style = Fill
-        )
-    }
 }

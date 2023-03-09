@@ -83,7 +83,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun onSwiped(provisioner: Provisioner) {
         if (!provisionersToBeRemoved.contains(provisioner))
             provisionersToBeRemoved.add(provisioner)
-        if (provisionersToBeRemoved.size == network.scenes.size)
+        if (provisionersToBeRemoved.size == network.provisioners.size)
             _uiState.value =
                 ProvisionersScreenUiState(provisioners = filterProvisionersTobeRemoved())
     }

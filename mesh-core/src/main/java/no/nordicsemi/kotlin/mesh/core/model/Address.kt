@@ -29,8 +29,8 @@ const val maxUnicastAddress: Address = 0x7FFFu
 private const val minVirtualAddress: Address = 0x8000u
 private const val maxVirtualAddress: Address = 0xBFFFu
 
-internal const val minGroupAddress: Address = 0xC000u
-internal const val maxGroupAddress: Address = 0xFEFFu
+const val minGroupAddress: Address = 0xC000u
+const val maxGroupAddress: Address = 0xFEFFu
 
 //TODO is this really needed?
 internal const val unassignedAddress: Address = 0x0000u
