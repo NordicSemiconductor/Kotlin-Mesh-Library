@@ -17,12 +17,15 @@ class DataStoreRepository @Inject constructor(
 ) {
 
     //val network: Flow<MeshNetwork> = meshNetworkManager.network
-    val network: Flow<MeshNetwork> = flow{
+    val network: Flow<MeshNetwork> = flow {
         meshNetworkManager.meshNetwork?.let { emit(it) }
     }
 
     suspend fun load() = withContext(ioDispatcher) {
-        meshNetworkManager.load()
+        if (!meshNetworkManager.load()) {
+            meshNetworkManager.create()
+        }
+        true
     }
 
     suspend fun importMeshNetwork(data: ByteArray) {
