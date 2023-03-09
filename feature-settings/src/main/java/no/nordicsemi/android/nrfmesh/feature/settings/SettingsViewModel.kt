@@ -2,7 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver
 import android.net.Uri
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
@@ -17,8 +19,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    navigator: Navigator,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     val uiState: StateFlow<SettingsScreenUiState> =
         repository.network.map { network ->
             this@SettingsViewModel.network = network

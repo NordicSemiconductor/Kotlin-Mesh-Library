@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,15 +8,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.DestinationId
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
-class NetworkKeysViewModel @Inject internal constructor(
+internal class NetworkKeysViewModel @Inject internal constructor(
+    savedStateHandle: SavedStateHandle,
+    private val navigator: Navigator,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
 
     private val _uiState = MutableStateFlow(NetworkKeysScreenUiState(listOf()))
     val uiState: StateFlow<NetworkKeysScreenUiState> = _uiState.stateIn(
@@ -35,6 +40,15 @@ class NetworkKeysViewModel @Inject internal constructor(
                 _uiState.value = NetworkKeysScreenUiState(keys = filterKeysToBeRemoved())
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        removeKeys()
+    }
+
+    internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
+        navigator.navigateTo(destinationId, keyIndex)
     }
 
     /**
@@ -88,7 +102,7 @@ class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Removes the keys from a network.
      */
-    internal fun removeKeys() {
+    private fun removeKeys() {
         remove()
         save()
     }

@@ -1,17 +1,16 @@
 @file:OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalLifecycleComposeApi::class,
     ExperimentalMaterialApi::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,74 +30,53 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-fun NetworkKeysRoute(
+internal fun NetworkKeysRoute(
     viewModel: NetworkKeysViewModel = hiltViewModel(),
-    navigateToNetworkKey: (KeyIndex) -> Unit,
-    onBackClicked: () -> Unit
+    navigateToKey: (KeyIndex) -> Unit
 ) {
     val uiState: NetworkKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeysScreen(
         uiState = uiState,
-        navigateToNetworkKey = navigateToNetworkKey,
+        navigateToKey = navigateToKey,
         onAddKeyClicked = viewModel::addNetworkKey,
         onSwiped = viewModel::onSwiped,
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove
-    ) {
+    ) /*{
         viewModel.removeKeys()
-        onBackClicked()
-    }
+    }*/
 }
 
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
-    navigateToNetworkKey: (KeyIndex) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
-    remove: (NetworkKey) -> Unit,
-    onBackPressed: () -> Unit
+    remove: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_network_keys),
-                navigationIcon = {
-                    IconButton(onClick = {
-                        snackbarHostState.currentSnackbarData?.dismiss()
-                        onBackPressed()
-                    }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
-                navigateToNetworkKey(onAddKeyClicked().index)
+                navigateToKey(onAddKeyClicked().index)
             }) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
@@ -109,42 +86,39 @@ private fun NetworkKeysScreen(
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    ) {
         when (uiState.keys.isEmpty()) {
             true -> MeshNoItemsAvailable(
                 imageVector = Icons.Outlined.VpnKey,
                 title = stringResource(R.string.label_no_keys_added)
             )
             false -> NetworkKeys(
-                    padding = padding,
-                    context = context,
-                    coroutineScope = rememberCoroutineScope(),
-                    snackbarHostState = snackbarHostState,
-                    keys = uiState.keys,
-                    navigateToApplicationKey = navigateToNetworkKey,
-                    onSwiped = onSwiped,
-                    onUndoClicked = onUndoClicked,
-                    remove = remove
-                )
+                context = context,
+                coroutineScope = rememberCoroutineScope(),
+                snackbarHostState = snackbarHostState,
+                keys = uiState.keys,
+                navigateToKey = navigateToKey,
+                onSwiped = onSwiped,
+                onUndoClicked = onUndoClicked,
+                remove = remove
+            )
         }
     }
 }
 
 @Composable
 private fun NetworkKeys(
-    padding: PaddingValues,
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
-    navigateToApplicationKey: (KeyIndex /* = kotlin.UShort */) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
-        contentPadding = padding,
         modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
@@ -206,9 +180,9 @@ private fun NetworkKeys(
                     Surface(color = MaterialTheme.colorScheme.background) {
                         MeshTwoLineListItem(
                             modifier = Modifier.clickable {
-                                navigateToApplicationKey(key.index)
+                                navigateToKey(key.index)
                             },
-                            leadingIcon = {
+                            leadingComposable = {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     imageVector = Icons.Outlined.VpnKey,

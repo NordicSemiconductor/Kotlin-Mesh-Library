@@ -26,7 +26,7 @@ sealed class ProvisionersConfig {
      */
     data class Some(val provisioners: List<Provisioner>) : ProvisionersConfig() {
         init {
-            require(provisioners.isNotEmpty()) { throw AtLeastOneProvisionerMustBeSelected() }
+            require(provisioners.isNotEmpty()) { throw AtLeastOneProvisionerMustBeSelected }
         }
     }
 

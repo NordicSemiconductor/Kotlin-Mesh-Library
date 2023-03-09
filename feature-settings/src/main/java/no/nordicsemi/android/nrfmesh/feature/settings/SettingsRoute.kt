@@ -1,6 +1,5 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalLifecycleComposeApi::class
+    ExperimentalMaterial3Api::class
 )
 
 package no.nordicsemi.android.nrfmesh.feature.settings
@@ -28,13 +27,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.*
@@ -46,6 +43,7 @@ import java.util.*
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
+    navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
@@ -58,10 +56,12 @@ fun SettingsRoute(
             viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
         },
         onNameChanged = viewModel::onNameChanged,
+        onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
         onExportClicked = navigateToExportNetwork
+
     )
 }
 
@@ -70,62 +70,45 @@ fun SettingsScreen(
     networkState: MeshNetworkState,
     importNetwork: (Uri, ContentResolver) -> Unit,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit,
     onExportClicked: () -> Unit
 ) {
     val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val fileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri -> uri?.let { importNetwork(uri, context.contentResolver) } }
 
     var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MeshLargeTopAppBar(
-                title = "Network",
-                actions = {
-                    IconButton(onClick = { isOptionsMenuExpanded = !isOptionsMenuExpanded }) {
-                        Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        content = { padding ->
-            LazyColumn(
-                contentPadding = padding
-            ) {
-                when (networkState) {
-                    is MeshNetworkState.Success -> {
-                        settingsInfo(
-                            context = context,
-                            network = networkState.network,
-                            onNameChanged = onNameChanged,
-                            onNetworkKeysClicked = onNetworkKeysClicked,
-                            onApplicationKeysClicked = onApplicationKeysClicked,
-                            onScenesClicked = onScenesClicked
-                        )
-                    }
-                    is MeshNetworkState.Loading -> {}
-                    is MeshNetworkState.Error -> {}
-                }
+    LazyColumn {
+        when (networkState) {
+            is MeshNetworkState.Success -> {
+                settingsInfo(
+                    context = context,
+                    network = networkState.network,
+                    onNameChanged = onNameChanged,
+                    onProvisionersClicked = onProvisionersClicked,
+                    onNetworkKeysClicked = onNetworkKeysClicked,
+                    onApplicationKeysClicked = onApplicationKeysClicked,
+                    onScenesClicked = onScenesClicked
+                )
             }
-            SettingsDropDown(
-                navigate = {
-                    isOptionsMenuExpanded = !isOptionsMenuExpanded
-                    onExportClicked()
-                },
-                isOptionsMenuExpanded = isOptionsMenuExpanded,
-                onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
-                importNetwork = {
-                    isOptionsMenuExpanded = !isOptionsMenuExpanded
-                    fileLauncher.launch("application/json")
-                }
-            )
+            is MeshNetworkState.Loading -> {}
+            is MeshNetworkState.Error -> {}
+        }
+    }
+    SettingsDropDown(
+        navigate = {
+            isOptionsMenuExpanded = !isOptionsMenuExpanded
+            onExportClicked()
+        },
+        isOptionsMenuExpanded = isOptionsMenuExpanded,
+        onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
+        importNetwork = {
+            isOptionsMenuExpanded = !isOptionsMenuExpanded
+            fileLauncher.launch("application/json")
         }
     )
 }
@@ -133,13 +116,19 @@ fun SettingsScreen(
 private fun LazyListScope.settingsInfo(
     context: Context, network: MeshNetwork,
     onNameChanged: (String) -> Unit,
+    onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
     item { SectionTitle(title = stringResource(R.string.label_configuration)) }
     item { NetworkNameRow(name = network.name, onNameChanged = onNameChanged) }
-    item { ProvisionersRow(count = network.provisioners.size) }
+    item {
+        ProvisionersRow(
+            count = network.provisioners.size,
+            onProvisionersClicked = onProvisionersClicked
+        )
+    }
     item {
         NetworkKeysRow(
             count = network.networkKeys.size,
@@ -214,7 +203,7 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
                     modifier = Modifier.padding(horizontal = 8.dp),
                     title = stringResource(id = R.string.label_name),
                     subtitle = value,
-                    trailingIcon = {
+                    trailingComposable = {
                         IconButton(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             onClick = {
@@ -235,10 +224,10 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun ProvisionersRow(count: Int) {
+private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
-        leadingIcon = {
+        modifier = Modifier.clickable(onClick = { onProvisionersClicked() }),
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Groups,
@@ -255,7 +244,7 @@ private fun ProvisionersRow(count: Int) {
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onNetworkKeysClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
@@ -272,7 +261,7 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onApplicationKeysClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
@@ -289,7 +278,7 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { onScenesClicked() }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.AutoAwesome,
@@ -305,7 +294,7 @@ private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
 @Composable
 private fun IvIndexRow(ivIndex: IvIndex) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Tune,
@@ -321,7 +310,7 @@ private fun IvIndexRow(ivIndex: IvIndex) {
 @Composable
 private fun LastModifiedTimeRow(timestamp: Instant) {
     MeshTwoLineListItem(
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Update,
@@ -342,7 +331,7 @@ private fun VersionNameRow(context: Context) {
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.Subtitles,
@@ -362,7 +351,7 @@ private fun VersionCodeRow(context: Context) {
     MeshTwoLineListItem(
         modifier = Modifier
             .clickable(onClick = { }),
-        leadingIcon = {
+        leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.DataObject,

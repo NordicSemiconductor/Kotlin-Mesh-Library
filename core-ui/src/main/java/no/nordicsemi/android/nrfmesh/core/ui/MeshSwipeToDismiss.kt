@@ -4,6 +4,7 @@ package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.animation.*
 import androidx.compose.material.*
+import androidx.compose.material.DismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity

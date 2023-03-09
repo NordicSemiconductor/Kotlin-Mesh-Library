@@ -23,6 +23,6 @@ sealed class NetworkKeysConfig {
      *                                            key.
      */
     data class Some(val keys: List<NetworkKey>) : NetworkKeysConfig() {
-        init { require(keys.isNotEmpty()) { throw AtLeastOneNetworkKeyMustBeSelected() } }
+        init { require(keys.isNotEmpty()) { throw AtLeastOneNetworkKeyMustBeSelected } }
     }
 }
