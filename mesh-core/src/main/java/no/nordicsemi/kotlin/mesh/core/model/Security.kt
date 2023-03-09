@@ -39,7 +39,7 @@ sealed class Security {
         }
     }
 
-    override fun toString() = Companion.toString(this)
+    override fun toString() = toString(this)
 }
 
 object Insecure : Security()
