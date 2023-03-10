@@ -2,6 +2,9 @@
 
 package no.nordicsemi.android.mesh.provisioning
 
+/**
+ * A set of algorithms supported by the unprovisioned device.
+ */
 sealed class Algorithm(val rawValue: UShort) {
     private constructor(rawValue: Int) : this(rawValue.toUShort())
 
