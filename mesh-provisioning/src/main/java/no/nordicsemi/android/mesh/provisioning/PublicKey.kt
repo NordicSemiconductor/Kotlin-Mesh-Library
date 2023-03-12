@@ -18,12 +18,19 @@ enum class PublicKey {
  *
  * This enumeration is used to specify the Public Key type during provisioning.
  *
- * @property NO_OOB_PUBLIC_KEY No OOB public key is used.
- * @property OOB_PUBLIC_KEY OOB public key is used.
+ * @property NO_OOB_PUBLIC_KEY   No OOB public key is used.
+ * @property OOB_PUBLIC_KEY      OOB public key is used.
+ * @property value               Value of a given public key method.
  */
 enum class PublicKeyMethod {
     NO_OOB_PUBLIC_KEY,
     OOB_PUBLIC_KEY;
+
+    val value: UByte
+        get() = when (this) {
+            NO_OOB_PUBLIC_KEY -> 0x00u
+            OOB_PUBLIC_KEY -> 0x01u
+        }
 
     internal companion object {
 
