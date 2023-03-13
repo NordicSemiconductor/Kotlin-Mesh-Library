@@ -1,9 +1,11 @@
-@file:Suppress("ClassName", "unused")
+@file:Suppress("ClassName", "unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.android.mesh.provisioning
 
 /**
  * Defines possible state of provisioning process.
+ *
+ * @property debugDescription Debug description of the state.
  */
 sealed class ProvisioningState {
 
@@ -41,8 +43,8 @@ sealed class ProvisioningState {
      */
     data class Failed(val error: Throwable) : ProvisioningState()
 
-    fun name(): String {
-        return when (this) {
+    val debugDescription: String
+        get() = when (this) {
             Ready -> "Provisioner is ready"
             RequestingCapabilities -> "Requesting provisioning capabilities"
             is CapabilitiesReceived -> "Provisioning capabilities received"
@@ -50,5 +52,4 @@ sealed class ProvisioningState {
             Complete -> "Provisioning complete"
             is Failed -> "Provisioning failed: $error"
         }
-    }
 }
