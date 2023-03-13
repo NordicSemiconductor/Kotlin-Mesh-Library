@@ -28,12 +28,6 @@ open class OobInformation(val rawValue: UShort) {
     object onPieceOfPaper : OobInformation(rawValue = 1 shl 13)
     object insideManual : OobInformation(rawValue = 1 shl 14)
     object onDevice : OobInformation(rawValue = 1 shl 15)
-
-    companion object {
-        fun init() {
-
-        }
-    }
 }
 
 /**
@@ -102,6 +96,26 @@ sealed class AuthenticationMethod {
             else -> null
         }
     }
+}
+
+/**
+ * A set of Out-of-band types.
+ *
+ * @property rawValue The raw value of the oob type.
+ * @constructor Creates a new OobType.
+ */
+sealed class OobType(val rawValue: UByte) {
+    constructor(rawValue: Int) : this(rawValue.toUByte())
+
+    /**
+     * Static OOB information is available.
+     */
+    object staticOobInformationAvailable : OobType(rawValue = 1 shl 0)
+
+    /**
+     * Only OOB authenticated provisioning is supported. Introduced in Mesh Protocol 1.1.0
+     */
+    object onlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1)
 }
 
 /**
