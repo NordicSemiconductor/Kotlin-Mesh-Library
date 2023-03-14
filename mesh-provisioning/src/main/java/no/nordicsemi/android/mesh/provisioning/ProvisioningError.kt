@@ -42,7 +42,7 @@ sealed class ProvisioningError : Exception() {
     /**
      * Throws when the Unicast Address has not been set.
      */
-    object addressNotSpecified : ProvisioningError()
+    object AddressNotSpecified : ProvisioningError()
 
     /**
      * Throws when the Network Key has not been set.
