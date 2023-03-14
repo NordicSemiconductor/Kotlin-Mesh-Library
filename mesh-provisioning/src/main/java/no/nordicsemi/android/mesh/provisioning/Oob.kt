@@ -2,6 +2,8 @@
 
 package no.nordicsemi.android.mesh.provisioning
 
+import no.nordicsemi.kotlin.mesh.core.util.toShort
+
 
 /**
  * Information that points to the out-of-band information that the device can provide.
@@ -116,6 +118,24 @@ sealed class OobType(val rawValue: UByte) {
      * Only OOB authenticated provisioning is supported. Introduced in Mesh Protocol 1.1.0
      */
     object onlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1)
+
+    companion object {
+
+        /**
+         * Returns OobType from a given provisioning pdu.
+         *
+         * @param pdu      Provisioning pdu.
+         * @param offset   Offset of the oob type.
+         * @return OobType
+         * @throws IllegalArgumentException if the oob type is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
+            0x01.toByte() -> staticOobInformationAvailable
+            0x02.toByte() -> onlyOobAuthenticatedProvisioningSupported
+            else -> throw IllegalArgumentException("Invalid OobType.")
+        }
+    }
 }
 
 /**
@@ -133,6 +153,26 @@ sealed class OutputOobActions(val rawValue: UShort) {
     object outputNumeric : OutputOobActions(rawValue = 1 shl 3)
     object outputAlphanumeric : OutputOobActions(rawValue = 1 shl 4)
 
+    companion object {
+
+        /**
+         * Returns OutputOobActions from a given provisioning pdu.
+         *
+         * @param pdu      Provisioning pdu.
+         * @param offset   Offset of the output oob action.
+         * @return OutputOobActions.
+         * @throws IllegalArgumentException if the output oob action is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu.toShort(offset).toUShort()) {
+            0x0001.toUShort() -> blink
+            0x0002.toUShort() -> beep
+            0x0003.toUShort() -> vibrate
+            0x0004.toUShort() -> outputNumeric
+            0x0005.toUShort() -> outputAlphanumeric
+            else -> throw IllegalArgumentException("Invalid output oob action.")
+        }
+    }
 }
 
 /**
@@ -148,6 +188,26 @@ sealed class InputOobActions(val rawValue: UShort) {
     object twist : InputOobActions(rawValue = 1 shl 1)
     object outputNumeric : InputOobActions(rawValue = 1 shl 2)
     object outputAlphanumeric : InputOobActions(rawValue = 1 shl 3)
+
+    companion object {
+
+        /**
+         * Returns InputOobActions from a given provisioning pdu.
+         *
+         * @param pdu      Provisioning pdu.
+         * @param offset   Offset of the input oob action.
+         * @return InputOobActions.
+         * @throws IllegalArgumentException if the input oob action is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
+            0x01.toByte() -> push
+            0x02.toByte() -> twist
+            0x03.toByte() -> outputNumeric
+            0x04.toByte() -> outputAlphanumeric
+            else -> throw IllegalArgumentException("Invalid input oob action.")
+        }
+    }
 }
 
 enum class OutputAction constructor(val rawValue: UByte) {
