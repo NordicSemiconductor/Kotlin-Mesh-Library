@@ -81,5 +81,19 @@ sealed class PublicKeyType(private val rawValue: UByte) {
             0.toUByte() -> "None"
             else -> "Public OOB Key Information Available"
         }
+
+        /**
+         * Returns the public key type from the given provisioning pdu.
+         *
+         * @param pdu       Provisioning pdu.
+         * @param offset    Offset of the public key type.
+         * @return Public key type.
+         * @throws IllegalArgumentException if the public key type is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
+            0.toByte() -> PublicKeyOobInformationAvailable
+            else -> throw IllegalArgumentException("Invalid public key type")
+        }
     }
 }
