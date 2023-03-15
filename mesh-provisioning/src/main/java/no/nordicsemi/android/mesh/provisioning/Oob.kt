@@ -2,7 +2,7 @@
 
 package no.nordicsemi.android.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.core.util.toShort
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
 
 
 /**
