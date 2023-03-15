@@ -1,6 +1,8 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.android.mesh.provisioning
+
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 
 
 /**
@@ -14,6 +16,7 @@ package no.nordicsemi.android.mesh.provisioning
  * @property outputOobActions                 Output OOB actions supported by the device.
  * @property inputOobSize                     Input OOB size supported by the device.
  * @property inputOobActions                  Input OOB actions supported by the device.
+ * @property value                            The raw data pdu of the provisioning capabilities.
  * @constructor Creates a [ProvisioningCapabilities] object.
  */
 data class ProvisioningCapabilities(
@@ -37,4 +40,15 @@ data class ProvisioningCapabilities(
         inputOobSize = data[9].toUByte(),
         inputOobActions = InputOobActions.from(data, 10)
     )
+
+    val value: ProvisioningPdu
+        get() = byteArrayOf(numberOfElements.toByte()) +
+                algorithms.rawValue.toByteArray() +
+                byteArrayOf(publicKeyType.rawValue.toByte()) +
+                byteArrayOf(oobType.rawValue.toByte()) +
+                byteArrayOf(outputOobSize.toByte()) +
+                outputOobActions.rawValue.toByteArray() +
+                byteArrayOf(inputOobSize.toByte()) +
+                inputOobActions.rawValue.toByteArray() +
+                inputOobActions.rawValue.toByte()
 }
