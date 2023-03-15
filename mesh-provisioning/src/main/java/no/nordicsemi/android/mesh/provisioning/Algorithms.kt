@@ -2,6 +2,8 @@
 
 package no.nordicsemi.android.mesh.provisioning
 
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
+
 /**
  * Algorithm used for calculating a Device Key.
  *
@@ -62,7 +64,7 @@ enum class Algorithm {
  *
  * @property rawValue The raw value of the algorithm.
  */
-sealed class Algorithms(private val rawValue: UShort) {
+sealed class Algorithms(val rawValue: UShort) {
     private constructor(rawValue: Int) : this(rawValue.toUShort())
 
     @Deprecated(
@@ -82,5 +84,23 @@ sealed class Algorithms(private val rawValue: UShort) {
             "BTM ECDH P256 CMAC AES128 AES CCM"
         BTM_ECDH_P256_HMAC_SHA256_AES_CCM ->
             "BTM ECDH P256 HMAC SHA256 AES CCM"
+    }
+
+
+    companion object {
+
+        /**
+         * Returns the algorithm from the given provisioning pdu.
+         *
+         * @param offset The offset of the algorithm.
+         * @return supported algorithm.
+         * @throws IllegalArgumentException if the algorithm is not supported.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu.toShort(offset)) {
+            0x01.toShort() -> BTM_ECDH_P256_CMAC_AES128_AES_CCM
+            0x02.toShort() -> BTM_ECDH_P256_HMAC_SHA256_AES_CCM
+            else -> throw IllegalArgumentException("Algorithm not supported")
+        }
     }
 }

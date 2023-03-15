@@ -1,0 +1,94 @@
+@file:Suppress("unused")
+
+package no.nordicsemi.kotlin.mesh.core.util
+
+
+object Utils {
+
+    /**
+     * Converts a 4-byte array to an Int.
+     *
+     * @return Int.
+     * @throws IllegalArgumentException If the length of byte array is not 4.
+     */
+    fun ByteArray.toInt(): Int {
+        require(size == 4) {
+            throw IndexOutOfBoundsException("byte array must be 4 bytes long")
+        }
+        var result = 0
+        for (i in indices) {
+            result = result or (this[i].toInt() shl 8 * i)
+        }
+        return result
+    }
+
+    /**
+     * Returns an Int from a byte array with a given offset.
+     *
+     * @param offset The index to start from.
+     * @return Int.
+     * @throws IllegalArgumentException If the length of byte array is not >= offset + 4.
+     */
+    fun ByteArray.toInt(offset: Int): Int {
+        require(size >= offset + 4) {
+            throw IndexOutOfBoundsException("Cannot return an Int with the given offset")
+        }
+        var result = 0
+        for (i in offset until offset + 4) {
+            result = result or (this[i].toInt() shl 8 * i)
+        }
+        return result
+    }
+
+    /**
+     * Converts a 2-byte array to a Short.
+     *
+     * @return Short.
+     * @throws IllegalArgumentException If the length of byte array is not 2.
+     */
+    fun ByteArray.toShort(): Short {
+        require(size == 2) {
+            throw IndexOutOfBoundsException("byte array must be 2 bytes long")
+        }
+        var result = 0
+        for (i in indices) {
+            result = result or (this[i].toInt() shl 8 * i)
+        }
+        return result.toShort()
+    }
+
+    /**
+     * Returns an Int from a byte array with a given offset.
+     *
+     * @param offset The index to start from.
+     * @return Short.
+     * @throws IndexOutOfBoundsException If the length of the byte array is not >= offset + 2.
+     */
+    fun ByteArray.toShort(offset: Int): Short {
+        require(size >= offset + 2) {
+            throw IndexOutOfBoundsException("Cannot return a Short with the given offset")
+        }
+        var result = 0
+        for (i in offset until offset + 2) {
+            result = result or (this[i].toInt() shl 8 * i)
+        }
+        return result.toShort()
+    }
+
+    fun Int.toByteArray(data: Number, size: Int = 4): ByteArray =
+        ByteArray(size) { i -> (data.toLong() shr (i * 8)).toByte() }
+
+    /**
+     * Converts an Int to a byte array.
+     */
+    fun Int.toByteArray() = ByteArray(4) {
+        (this shr (24 - it * 8)).toByte()
+    }
+
+    /**
+     * Converts a UShort to a byte array.
+     */
+    fun UShort.toByteArray() = ByteArray(2) {
+        (this.toInt() shr (8 - it * 8)).toByte()
+    }
+}
