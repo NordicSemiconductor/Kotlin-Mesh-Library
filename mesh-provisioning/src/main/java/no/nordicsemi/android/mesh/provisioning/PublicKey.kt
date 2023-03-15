@@ -62,7 +62,7 @@ enum class PublicKeyMethod {
  * @property rawValue The raw value of the public key type.
  * @constructor Creates a new PublicKeyType.
  */
-sealed class PublicKeyType(private val rawValue: UByte) {
+sealed class PublicKeyType(val rawValue: UByte) {
     private constructor(rawValue: Int) : this(rawValue.toUByte())
 
     /**
