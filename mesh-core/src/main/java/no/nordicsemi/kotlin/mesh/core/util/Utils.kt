@@ -2,8 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
+import java.util.*
 
 object Utils {
+
+    private val HEX_UUID_PATTERN = Regex("[0-9a-fA-F]{32}")
 
     /**
      * Converts a 4-byte array to an Int.
@@ -91,4 +94,25 @@ object Utils {
     fun UShort.toByteArray() = ByteArray(2) {
         (this.toInt() shr (8 - it * 8)).toByte()
     }
+
+    /**
+     * Drops the dashes in the UUID.
+     *
+     * @return a UUID string without dashes.
+     */
+    fun encode(uuid: UUID) = uuid.toString().uppercase().filter { it.isLetterOrDigit() }
+
+    /**
+     * Formats a UUID string to a standard UUID format.
+     */
+    fun decode(uuid: String) = UUID.fromString((uuid.uppercase().takeIf {
+        HEX_UUID_PATTERN.matches(it)
+    }?.run {
+        StringBuilder(this).apply {
+            insert(8, "-")
+            insert(13, "-")
+            insert(18, "-")
+            insert(23, "-")
+        }.toString()
+    } ?: uuid))
 }

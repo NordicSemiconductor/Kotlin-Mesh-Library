@@ -1,3 +1,5 @@
+@file:Suppress("HasPlatformType")
+
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.KSerializer
@@ -8,6 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
+import no.nordicsemi.kotlin.mesh.core.util.Utils
 import java.util.*
 
 /**
@@ -15,15 +18,14 @@ import java.util.*
  * as string with and without dashes and this Helper class encodes and decodes them accordingly.
  */
 
-internal object UUIDSerializer : KSerializer<UUID> {
+object UUIDSerializer : KSerializer<UUID> {
 
-    private val HEX_UUID_PATTERN = Regex("[0-9a-fA-F]{32}")
 
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor(serialName = "UUID", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UUID = runCatching {
-        decode(uuid = decoder.decodeString())
+        Utils.decode(uuid = decoder.decodeString())
     }.getOrElse {
         throw ImportError(
             "Error while deserializing UUID " +
@@ -33,25 +35,4 @@ internal object UUIDSerializer : KSerializer<UUID> {
 
     override fun serialize(encoder: Encoder, value: UUID) =
         encoder.encodeString(value = value.toString().uppercase())
-
-    /**
-     * Drops the dashes in the UUID.
-     *
-     * @return a UUID string without dashes.
-     */
-    internal fun encode(uuid: UUID) = uuid.toString().uppercase().filter { it.isLetterOrDigit() }
-
-    /**
-     * Formats a UUID string to a standard UUID format.
-     */
-    internal fun decode(uuid: String) = UUID.fromString((uuid.uppercase().takeIf {
-        HEX_UUID_PATTERN.matches(it)
-    }?.run {
-        StringBuilder(this).apply {
-            insert(8, "-")
-            insert(13, "-")
-            insert(18, "-")
-            insert(23, "-")
-        }.toString()
-    } ?: uuid))
 }
