@@ -12,10 +12,11 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
  * @property rawValue The raw value of the OOB information.
  * @constructor Creates a new OobInformation.
  */
-open class OobInformation(val rawValue: UShort) {
+sealed class OobInformation(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
+    object none : OobInformation(rawValue = 0)
     object other : OobInformation(rawValue = 1 shl 0)
     object electronicURI : OobInformation(rawValue = 1 shl 1)
     object qrCode : OobInformation(rawValue = 1 shl 2)
@@ -30,6 +31,34 @@ open class OobInformation(val rawValue: UShort) {
     object onPieceOfPaper : OobInformation(rawValue = 1 shl 13)
     object insideManual : OobInformation(rawValue = 1 shl 14)
     object onDevice : OobInformation(rawValue = 1 shl 15)
+
+    companion object {
+
+        /**
+         * Creates an OobInformation from the raw value.
+         *
+         * @param rawValue The raw value of the OOB information.
+         * @return The OobInformation or null if the raw value is not valid.
+         * @throws IllegalArgumentException If the raw value is not valid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(rawValue: UShort) = when (rawValue) {
+            none.rawValue -> none
+            other.rawValue -> other
+            electronicURI.rawValue -> electronicURI
+            qrCode.rawValue -> qrCode
+            barCode.rawValue -> barCode
+            nfc.rawValue -> nfc
+            number.rawValue -> number
+            string.rawValue -> string
+            onBox.rawValue -> onBox
+            insideBox.rawValue -> insideBox
+            onPieceOfPaper.rawValue -> onPieceOfPaper
+            insideManual.rawValue -> insideManual
+            onDevice.rawValue -> onDevice
+            else -> throw IllegalArgumentException("Invalid advertisement packet")
+        }
+    }
 }
 
 /**
