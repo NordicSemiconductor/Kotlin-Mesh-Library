@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api(project(":mesh-core"))
+    testImplementation("junit:junit:4.13.2")
 }
