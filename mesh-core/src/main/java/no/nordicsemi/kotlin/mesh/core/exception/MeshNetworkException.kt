@@ -28,6 +28,7 @@ object ProvisionerAlreadyExists : MeshNetworkException()
 
 /** Thrown when any allocated range of a provisioner is already allocated. */
 object RangeAlreadyAllocated : MeshNetworkException()
+
 /** Thrown when any allocated range of a new provisioner overlaps with an existing one. */
 object OverlappingProvisionerRanges : MeshNetworkException()
 
@@ -66,6 +67,9 @@ object AtLeastOneNetworkKeyMustBeSelected : MeshNetworkException()
 
 /** Thrown when at least one provisioner is not selected when exporting a partial network. */
 object AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
+
+/** Thrown when an invalid pdu type is received*/
+object InvalidPduType : MeshNetworkException()
 
 /**
  * Thrown when the Json deserializing encounters an error.
