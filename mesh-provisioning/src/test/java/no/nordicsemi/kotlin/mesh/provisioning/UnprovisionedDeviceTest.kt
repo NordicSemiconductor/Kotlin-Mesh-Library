@@ -22,7 +22,7 @@ class UnprovisionedDeviceTest {
                     0xF1.toByte()
                 ).encodeHex()
             ),
-            oobInformation = OobInformation.none
+            oobInformation = OobInformation.None
         )
         val advertisementData = byteArrayOf(
             0x02, 0x01, 0x06, 0x03, 0x03, 0x27, 0x18, 0x15, 0x16, 0x27, 0x18, 0xA4.toByte(), 0x60,

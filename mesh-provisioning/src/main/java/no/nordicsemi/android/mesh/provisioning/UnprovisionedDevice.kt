@@ -10,7 +10,7 @@ import java.util.*
 data class UnprovisionedDevice(
     var name: String,
     val uuid: UUID,
-    val oobInformation: OobInformation = OobInformation.none
+    val oobInformation: OobInformation = OobInformation.None
 ) {
 
     companion object {
@@ -29,7 +29,7 @@ data class UnprovisionedDevice(
             var length: Int
             var type: Int
             var deviceUuid: UUID? = null
-            var oobInformation: OobInformation = OobInformation.other
+            var oobInformation: OobInformation = OobInformation.Other
             var localName = ""
             var i = 0
             while (i < advertisementData.size) {

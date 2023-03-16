@@ -16,21 +16,21 @@ sealed class OobInformation(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object none : OobInformation(rawValue = 0)
-    object other : OobInformation(rawValue = 1 shl 0)
-    object electronicURI : OobInformation(rawValue = 1 shl 1)
-    object qrCode : OobInformation(rawValue = 1 shl 2)
-    object barCode : OobInformation(rawValue = 1 shl 3)
-    object nfc : OobInformation(rawValue = 1 shl 4)
-    object number : OobInformation(rawValue = 1 shl 5)
-    object string : OobInformation(rawValue = 1 shl 6)
+    object None : OobInformation(rawValue = 0)
+    object Other : OobInformation(rawValue = 1 shl 0)
+    object ElectronicURI : OobInformation(rawValue = 1 shl 1)
+    object QrCode : OobInformation(rawValue = 1 shl 2)
+    object BarCode : OobInformation(rawValue = 1 shl 3)
+    object Nfc : OobInformation(rawValue = 1 shl 4)
+    object Number : OobInformation(rawValue = 1 shl 5)
+    object String : OobInformation(rawValue = 1 shl 6)
 
     // Bits 7-10 are reserved for future use.
-    object onBox : OobInformation(rawValue = 1 shl 11)
-    object insideBox : OobInformation(rawValue = 1 shl 12)
-    object onPieceOfPaper : OobInformation(rawValue = 1 shl 13)
-    object insideManual : OobInformation(rawValue = 1 shl 14)
-    object onDevice : OobInformation(rawValue = 1 shl 15)
+    object OnBox : OobInformation(rawValue = 1 shl 11)
+    object InsideBox : OobInformation(rawValue = 1 shl 12)
+    object OnPieceOfPaper : OobInformation(rawValue = 1 shl 13)
+    object InsideManual : OobInformation(rawValue = 1 shl 14)
+    object OnDevice : OobInformation(rawValue = 1 shl 15)
 
     companion object {
 
@@ -43,19 +43,19 @@ sealed class OobInformation(val rawValue: UShort) {
          */
         @Throws(IllegalArgumentException::class)
         fun from(rawValue: UShort) = when (rawValue) {
-            none.rawValue -> none
-            other.rawValue -> other
-            electronicURI.rawValue -> electronicURI
-            qrCode.rawValue -> qrCode
-            barCode.rawValue -> barCode
-            nfc.rawValue -> nfc
-            number.rawValue -> number
-            string.rawValue -> string
-            onBox.rawValue -> onBox
-            insideBox.rawValue -> insideBox
-            onPieceOfPaper.rawValue -> onPieceOfPaper
-            insideManual.rawValue -> insideManual
-            onDevice.rawValue -> onDevice
+            None.rawValue -> None
+            Other.rawValue -> Other
+            ElectronicURI.rawValue -> ElectronicURI
+            QrCode.rawValue -> QrCode
+            BarCode.rawValue -> BarCode
+            Nfc.rawValue -> Nfc
+            Number.rawValue -> Number
+            String.rawValue -> String
+            OnBox.rawValue -> OnBox
+            InsideBox.rawValue -> InsideBox
+            OnPieceOfPaper.rawValue -> OnPieceOfPaper
+            InsideManual.rawValue -> InsideManual
+            OnDevice.rawValue -> OnDevice
             else -> throw IllegalArgumentException("Invalid advertisement packet")
         }
     }
