@@ -23,6 +23,8 @@ interface Transmitter {
 
 interface Bearer : Transmitter {
 
+    var open: Boolean
+
     /**
      * Opens the bearer.
      */
