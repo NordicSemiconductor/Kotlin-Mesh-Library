@@ -3,6 +3,8 @@
 package no.nordicsemi.android.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
+import no.nordicsemi.kotlin.mesh.crypto.Algorithms
 
 
 /**
@@ -32,7 +34,7 @@ data class ProvisioningCapabilities(
 
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
-        algorithms = Algorithms.from(data, 2),
+        algorithms = Algorithms.from(data.toShort(2)),
         publicKeyType = PublicKeyType.from(data, 4),
         oobType = OobType.from(data, 5),
         outputOobSize = data[6].toUByte(),

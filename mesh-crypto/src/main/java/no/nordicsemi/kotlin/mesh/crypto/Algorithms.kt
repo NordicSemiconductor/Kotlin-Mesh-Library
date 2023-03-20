@@ -1,8 +1,6 @@
 @file:Suppress("ClassName", "unused", "MemberVisibilityCanBePrivate")
 
-package no.nordicsemi.android.mesh.provisioning
-
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
+package no.nordicsemi.kotlin.mesh.crypto
 
 /**
  * Algorithm used for calculating a Device Key.
@@ -45,13 +43,14 @@ enum class Algorithm {
             BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> 0x01u
         }
 
-    internal companion object {
+
+    companion object {
         /**
          * Returns the algorithm from the given provisioning pdu.
          *
          * @param pdu The provisioning pdu.
          */
-        fun from(pdu: ProvisioningPdu): Algorithm? = when (pdu[1]) {
+        fun from(pdu: ByteArray): Algorithm? = when (pdu[1]) {
             0x00.toByte() -> BTM_ECDH_P256_CMAC_AES128_AES_CCM
             0x01.toByte() -> BTM_ECDH_P256_HMAC_SHA256_AES_CCM
             else -> null
@@ -90,14 +89,14 @@ sealed class Algorithms(val rawValue: UShort) {
     companion object {
 
         /**
-         * Returns the algorithm from the given provisioning pdu.
+         * Returns the algorithm from the given value.
          *
-         * @param offset The offset of the algorithm.
+         * @param value value of the algorithm.
          * @return supported algorithm.
          * @throws IllegalArgumentException if the algorithm is not supported.
          */
         @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu.toShort(offset)) {
+        fun from(value: Short) = when (value) {
             0x01.toShort() -> BTM_ECDH_P256_CMAC_AES128_AES_CCM
             0x02.toShort() -> BTM_ECDH_P256_HMAC_SHA256_AES_CCM
             else -> throw IllegalArgumentException("Algorithm not supported")

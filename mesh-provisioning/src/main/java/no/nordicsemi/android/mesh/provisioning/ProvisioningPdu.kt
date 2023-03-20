@@ -3,6 +3,7 @@
 package no.nordicsemi.android.mesh.provisioning
 
 import no.nordicsemi.android.mesh.provisioning.ProvisioningPduType.*
+import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 
 internal typealias ProvisioningPdu = ByteArray
 
