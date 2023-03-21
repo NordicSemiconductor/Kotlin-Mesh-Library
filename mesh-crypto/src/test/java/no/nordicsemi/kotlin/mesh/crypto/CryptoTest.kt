@@ -2,12 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS1
+import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS2
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.createVirtualAddress
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k1
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k2
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k3
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k4
-import no.nordicsemi.kotlin.mesh.crypto.Crypto.salt
+import no.nordicsemi.kotlin.mesh.crypto.Crypto.k5
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import org.junit.Assert
@@ -15,7 +17,8 @@ import org.junit.Test
 import java.util.*
 
 /**
- * Unit tests for crypto module. All test data used can be found at section 8 "Sample data" in the Bluetooth Mesh Profile specification.
+ * Unit tests for crypto module. All test data used can be found at section 8 "Sample data" in the
+ * Bluetooth Mesh Profile specification.
  */
 @Suppress("UNUSED_VARIABLE")
 class CryptoTest {
@@ -26,10 +29,27 @@ class CryptoTest {
      * Refer 8.1.1 "s1 SALT generation function" for test data
      */
     @Test
-    fun testSalt() {
+    fun testSalt1() {
         val expected = "b73cefbd641ef2ea598c2b6efb62f79c".uppercase(Locale.US)
         val data = "test".toByteArray(Charsets.UTF_8)
-        Assert.assertEquals(expected, salt(data).encodeHex())
+        Assert.assertEquals(expected, calculateS1(data).encodeHex())
+    }
+
+    /**
+     * Unit test for salt generation function
+     *
+     * Refer 8.17.2 "BTM_ECDH_P256_HMAC_SHA256_AES_CCM algorithm" for test data
+     */
+    @Test
+    fun testSalt2() {
+        val expected = ("a71141ba8cb6b40f4f52b622e1c091614c73fc308f871b78ca775e769bc3ae69")
+            .uppercase(Locale.US)
+        val M = ("00010003000100000000000001000100002c31a47b5779809ef44cb5eaaf5c3e43d5f8fa" +
+                "ad4a8794cb987e9b03745c78dd919512183898dfbecd52e2408e43871fd021109117bd3e" +
+                "d4eaf8437743715d4ff465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6c" +
+                "f5e16500cc0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb2" +
+                "79").uppercase(Locale.US)
+        Assert.assertEquals(expected, calculateS2(M.decodeHex()).encodeHex())
     }
 
     /**
@@ -81,7 +101,7 @@ class CryptoTest {
     }
 
     /**
-     * Unit test for k4 function
+     * Unit test for k4 function.
      *
      * Refer 8.1.6 "k4 function" for N
      */
@@ -93,10 +113,33 @@ class CryptoTest {
     }
 
     /**
+     * Unit test for k5 function.
+     *
+     * Refer 8.17.2 "BTM_ECDH_P256_HMAC_SHA256_AES_CCM" for test data
+     */
+    @Test
+    fun testK5() {
+        val N = ("ab85843a2f6d883f62e5684b38e307335fe6e1945ecd19604105c6f23221eb69906d73a3c7a7cb3" +
+                "ff730dca68a46b9c18d673f50e078202311473ebbe253669f")
+            .uppercase(Locale.US)
+        val SALT = "a71141ba8cb6b40f4f52b622e1c091614c73fc308f871b78ca775e769bc3ae69"
+            .uppercase(Locale.US)
+        val P = "7072636b323536".uppercase(Locale.US)
+        val T = "bb73fb226a7a26c196f3f649bf8d208eca77ae956fc31a5ab51a47267ad41815"
+            .uppercase(Locale.US)
+        val k5 = "210c3c448152e8d59ef742aa7d22ee5ba59a38648bda6bf05c74f3e46fc2c0bb"
+            .uppercase(Locale.US)
+        Assert.assertEquals(
+            k5,
+            k5(N = N.decodeHex(), SALT = SALT.decodeHex(), P = P.decodeHex()).encodeHex()
+        )
+    }
+
+    /**
      * Unit test for NetworkKeyDerivatives.
      *
-     * Refer 8.2.2 "Encryption and privacy keys (Master)" for test data for NID, EncryptionKey and PrivacyKey.
-     * Refer 5.2.4 for Network ID, 8.2.5 for IdentityKey and 8.2.6 BeaconKey.
+     * Refer 8.2.2 "Encryption and privacy keys (Master)" for test data for NID, EncryptionKey and
+     * PrivacyKey. Refer 5.2.4 for Network ID, 8.2.5 for IdentityKey and 8.2.6 BeaconKey.
      */
     @Test
     fun testNetworkKeyDerivatives() {
@@ -109,11 +152,26 @@ class CryptoTest {
         val beaconKey = "5423d967da639a99cb02231a83f7d254".uppercase(Locale.US).decodeHex()
         val keyDerivatives = Crypto.calculateKeyDerivatives(N)
         Assert.assertTrue("NID do not match!", NID == keyDerivatives.nid)
-        Assert.assertTrue("EncryptionKeys do not match!", encryptionKey.contentEquals(keyDerivatives.encryptionKey))
-        Assert.assertTrue("PrivacyKeys do not match!", privacyKey.contentEquals(keyDerivatives.privacyKey))
-        Assert.assertTrue("Network IDs do not match!", networkId.contentEquals(keyDerivatives.networkId))
-        Assert.assertTrue("Identity Keys do not match!", identityKey.contentEquals(keyDerivatives.identityKey))
-        Assert.assertTrue("Beacon Keys do not match!", beaconKey.contentEquals(keyDerivatives.beaconKey))
+        Assert.assertTrue(
+            "EncryptionKeys do not match!",
+            encryptionKey.contentEquals(keyDerivatives.encryptionKey)
+        )
+        Assert.assertTrue(
+            "PrivacyKeys do not match!",
+            privacyKey.contentEquals(keyDerivatives.privacyKey)
+        )
+        Assert.assertTrue(
+            "Network IDs do not match!",
+            networkId.contentEquals(keyDerivatives.networkId)
+        )
+        Assert.assertTrue(
+            "Identity Keys do not match!",
+            identityKey.contentEquals(keyDerivatives.identityKey)
+        )
+        Assert.assertTrue(
+            "Beacon Keys do not match!",
+            beaconKey.contentEquals(keyDerivatives.beaconKey)
+        )
     }
 
     /**
