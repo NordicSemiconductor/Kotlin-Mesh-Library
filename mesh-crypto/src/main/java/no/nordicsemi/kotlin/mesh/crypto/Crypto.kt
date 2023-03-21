@@ -1,4 +1,4 @@
-@file:Suppress("LocalVariableName", "unused", "UNUSED_PARAMETER")
+@file:Suppress("LocalVariableName", "unused", "UNUSED_PARAMETER", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.crypto
 
@@ -8,21 +8,28 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.toBigEndian
 import no.nordicsemi.kotlin.mesh.crypto.Utils.xor
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
+import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.engines.AESEngine
 import org.bouncycastle.crypto.macs.CMac
+import org.bouncycastle.crypto.macs.HMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
-import java.security.SecureRandom
+import org.bouncycastle.jce.ECNamedCurveTable
+import org.bouncycastle.jce.interfaces.ECPublicKey
+import org.bouncycastle.jce.spec.ECPublicKeySpec
+import org.bouncycastle.util.BigIntegers
+import java.security.*
+import java.security.spec.InvalidKeySpecException
 import java.util.*
 import javax.crypto.Cipher
+import javax.crypto.KeyAgreement
 import javax.crypto.spec.SecretKeySpec
 
 object Crypto {
 
     private val secureRandom = SecureRandom()
     private val blockCipher: BlockCipher = AESEngine()
-    private val SALT_KEY = ByteArray(16) { 0x00 }
     private val smk2 = "smk2".encodeToByteArray()
     private val smk3 = "smk3".encodeToByteArray()
     private val smk4 = "smk4".encodeToByteArray()
@@ -34,6 +41,9 @@ object Crypto {
     private val ID128 = "id128".encodeToByteArray()
     private val VTAD = "vtad".encodeToByteArray()
 
+    private val PRCK = "prck".encodeToByteArray()
+    private val PRCK256 = "prck256".encodeToByteArray()
+
     /**
      * Generates a 128-bit random key using a SecureRandom.
      */
@@ -44,13 +54,99 @@ object Crypto {
     }
 
     /**
+     * Generates a random number of the given size in bits.
+     *
+     * @param sizeInBits Size of the random number in bits.
+     * @return ByteArray
+     */
+    fun generateRandom(sizeInBits: Int) = secureRandom.run {
+        val random = ByteArray(sizeInBits shr 3) { 0x00 }
+        nextBytes(random)
+        random
+    }
+
+    /**
+     * Generates a pair of Private and Public Keys using P256 Elliptic Curve.
+     * @param algorithm Algorithm to use.
+     * @return KeyPair
+     */
+    fun generateKeyPair(algorithm: Algorithm): KeyPair = when (algorithm) {
+        Algorithm.FIPS_P256_ELLIPTIC_CURVE,
+        Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
+        Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
+            KeyPairGenerator.getInstance("ECDH", "SC").apply {
+                initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
+            }.generateKeyPair()
+        }
+    }
+
+    /**
+     * Calculates the shared secret based on the given public key and the local private key.
+     *
+     * @param privateKey  Private key.
+     * @param publicKey   Public key.
+     * @return Shared secret.
+     * @throws NoSuchAlgorithmException  if the algorithm is not supported.
+     * @throws NoSuchProviderException   if the provider is not supported.
+     * @throws InvalidKeySpecException   if the key spec is invalid.
+     * @throws InvalidKeyException       if the key is invalid.
+     * @throws IllegalStateException     if the key agreement is not initialized or if
+     *                                   [KeyAgreement.doPhase] has not been called to supply the
+     *                                   keys for all parties in the agreement.
+     */
+    @Throws(
+        NoSuchAlgorithmException::class,
+        NoSuchProviderException::class,
+        InvalidKeySpecException::class,
+        InvalidKeyException::class,
+        IllegalStateException::class
+    )
+    fun calculateSharedSecret(privateKey: PrivateKey, publicKey: ByteArray): ByteArray {
+        val x = BigIntegers.fromUnsignedByteArray(publicKey, 0, 32)
+        val y = BigIntegers.fromUnsignedByteArray(publicKey, 32, 32)
+
+        val ecParameters = ECNamedCurveTable.getParameterSpec("secp256r1")
+        val ecPoint = ecParameters.curve.validatePoint(x, y)
+        val keySpec = ECPublicKeySpec(ecPoint, ecParameters)
+        val keyFactory = KeyFactory.getInstance("ECDH", "SC")
+        val devicePublicKey = keyFactory.generatePublic(keySpec) as ECPublicKey
+        return KeyAgreement.getInstance("ECDH", "SC").let {
+            it.init(privateKey)
+            it.doPhase(devicePublicKey, true)
+            it.generateSecret()
+        }
+    }
+
+    fun calculateConfirmation(
+        confirmationInputs: ByteArray,
+        sharedSecret: ByteArray,
+        deviceRandom: ByteArray,
+        authValue: ByteArray,
+        algorithm: Algorithm
+    ): ByteArray {
+        return when (algorithm) {
+            Algorithm.FIPS_P256_ELLIPTIC_CURVE,
+            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM -> {
+                val confirmationSalt = calculateS1(confirmationInputs)
+                val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
+                calculateCmac(deviceRandom + authValue, confirmationKey)
+            }
+            Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
+                val confirmationSalt = calculateS2(confirmationInputs)
+                val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
+                calculateHmac256(deviceRandom + authValue, confirmationKey)
+            }
+        }
+    }
+
+    /**
      * Creates a 16-bit virtual address for a given UUID.
      * @param uuid 128-bit Label UUID.
      */
     fun createVirtualAddress(uuid: UUID): UShort {
         val uuidHex = uuid.toString().replace("-", "").decodeHex()
-        val salt = salt(VTAD)
-        val hash = cmac(input = uuidHex, key = salt)
+        val salt = calculateS1(VTAD)
+        val hash = calculateCmac(input = uuidHex, key = salt)
         return (0x8000 or (hash.copyOfRange(fromIndex = 14, toIndex = hash.count()).encodeHex()
             .toInt(radix = 16) and 0x3FFF)).toUShort()
     }
@@ -60,7 +156,8 @@ object Crypto {
      * PrivateBeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
-     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
+     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship
+     *          credentials.
      * @return Key Derivatives.
      */
     fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
@@ -88,7 +185,8 @@ object Crypto {
     }
 
     /**
-     * Encrypts the [data] with the EncryptionKey , Nonce and concatenates the MIC(Message Integrity Check).
+     * Encrypts the [data] with the EncryptionKey , Nonce and concatenates the MIC(Message Integrity
+     * Check).
      *
      * @param data                  Data to be encrypted.
      * @param key                   128-bit key.
@@ -149,7 +247,12 @@ object Crypto {
      *  @param privacyKey   The 128-bit Privacy Key.
      *  @returns a byte array containing Obfuscated or De-obfuscated input data.
      */
-    fun obfuscate(data: ByteArray, random: ByteArray, ivIndex: UInt, privacyKey: ByteArray): ByteArray {
+    fun obfuscate(
+        data: ByteArray,
+        random: ByteArray,
+        ivIndex: UInt,
+        privacyKey: ByteArray
+    ): ByteArray {
         // Privacy Random = (EncDST || EncTransportPDU || NetMIC)[0–6]
         // Privacy Plaintext = 0x0000000000 || IV Index || Privacy Random
         // PECB = e (PrivacyKey, Privacy Plaintext)
@@ -178,7 +281,8 @@ object Crypto {
         // byte 0 is the beacon type 0x01
         val flagsNetIdAndIvIndex = pdu.sliceArray(1 until 14)
         val authenticationValue = pdu.sliceArray(14 until 22)
-        val hash = cmac(input = flagsNetIdAndIvIndex, key = beaconKey).sliceArray(0 until 8)
+        val hash = calculateCmac(input = flagsNetIdAndIvIndex, key = beaconKey)
+            .sliceArray(0 until 8)
         return hash.contentEquals(authenticationValue)
     }
 
@@ -201,7 +305,9 @@ object Crypto {
 
     /**
      * Calculates the 64-bit Network ID.
-     * The Network ID is derived from the network key such that each network key generates one Network ID.
+     * The Network ID is derived from the network key such that each network key generates one
+     * Network ID.
+     *
      * This identifier becomes public information.
      *
      * @param N     128-bit Network key.
@@ -211,26 +317,29 @@ object Crypto {
 
     /**
      * Calculates the 128-bit IdentityKey.
-     * The IdentityKey is derived from the network key such that each network key generates one IdentityKey
+     * The IdentityKey is derived from the network key such that each network key generates one
+     * IdentityKey
      *
      * @param N     128-bit Network key.
      * @return 128-bit key T.
      */
     private fun calculateIdentityKey(N: ByteArray): ByteArray {
-        val s1 = salt(NKIK)
+        val s1 = calculateS1(NKIK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
 
     /**
-     * Calculates the 128-bit BeaconKey
-     * The BeaconKey is derived from the network key such that each network key generates one BeaconKey.
+     * Calculates the 128-bit BeaconKey.
+     *
+     * The BeaconKey is derived from the network key such that each network key generates one
+     * BeaconKey.
      *
      * @param N     128-bit Network key.
      * @return 128-bit key T.
      */
     private fun calculateBeaconKey(N: ByteArray): ByteArray {
-        val s1 = salt(NKBK)
+        val s1 = calculateS1(NKBK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
@@ -244,7 +353,7 @@ object Crypto {
      * @return 128-bit key T.
      */
     private fun calculatePrivateBeaconKey(N: ByteArray): ByteArray {
-        val s1 = salt(NKPK)
+        val s1 = calculateS1(NKPK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
@@ -252,16 +361,29 @@ object Crypto {
     /**
      * Calculates the salt based on a given input.
      *
-     * @param input     A non-zero length octet array or ASCII encoded string.
+     * @param input A non-zero length octet array or ASCII encoded string.
      * @return 128-bit salt of the given input.
      */
-    fun salt(input: ByteArray): ByteArray {
-        return cmac(input = input, key = SALT_KEY)
+    fun calculateS1(input: ByteArray): ByteArray {
+        val key = ByteArray(16) { 0x00 }
+        return calculateCmac(input = input, key = key)
     }
 
     /**
-     * The network key material derivation function k1 is used to generate instances of IdentityKey and BeaconKey.
-     * The definition of this key generation function makes use of the MAC function AES-CMAC(T) with a 128-bit key T.
+     * Calculates the salt based on a given input.
+     *
+     * @param input A non-zero length octet array or ASCII encoded string.
+     * @return 128-bit salt of the given input.
+     */
+    fun calculateS2(input: ByteArray): ByteArray {
+        val key = ByteArray(32) { 0x00 }
+        return calculateHmac256(input = input, key = key)
+    }
+
+    /**
+     * The network key material derivation function k1 is used to generate instances of IdentityKey
+     * and BeaconKey. The definition of this key generation function makes use of the MAC function
+     * AES-CMAC(T) with a 128-bit key T.
      *
      * @param N         0 or more octets.
      * @param SALT      128 bits salt.
@@ -270,14 +392,17 @@ object Crypto {
      */
     internal fun k1(N: ByteArray, SALT: ByteArray, P: ByteArray): ByteArray {
         require(SALT.size == 16) { "Salt must be 128-bits." }
-        val t = cmac(N, SALT)
-        return cmac(P, t)
+        val t = calculateCmac(N, SALT)
+        return calculateCmac(P, t)
     }
 
     /**
-     * The network key material derivation function k2 is used to generate instances of EncryptionKey, PrivacyKey,
-     * and NID for use as Master and Private Low Power node communication.
-     * The definition of this key generation function makes use of the MAC function AES-CMAC(T) with a 128-bit key T.
+     * The network key material derivation function k2 is used to generate instances of
+     * EncryptionKey, PrivacyKey, and NID for use as Master and Private Low Power node
+     * communication.
+     *
+     * The definition of this key generation function makes use of the MAC function AES-CMAC(T) with
+     * a 128-bit key T.
      *
      * @param N     128-bit key.
      * @param P     1 or more octets.
@@ -290,52 +415,71 @@ object Crypto {
         require(P.isNotEmpty()) {
             "P must be 1 or more octets."
         }
-        val s1 = salt(smk2)
-        val T = cmac(N, s1)
+        val s1 = calculateS1(smk2)
+        val T = calculateCmac(N, s1)
         val T0 = byteArrayOf()
-        val T1 = cmac(input = (T0 + P + byteArrayOf(0x01)), key = T)
-        val T2 = cmac(input = (T1 + P + byteArrayOf(0x02)), key = T) // EncryptionKey
-        val T3 = cmac(input = (T2 + P + byteArrayOf(0x03)), key = T) // PrivacyKey
+        val T1 = calculateCmac(input = (T0 + P + byteArrayOf(0x01)), key = T)
+        val T2 = calculateCmac(input = (T1 + P + byteArrayOf(0x02)), key = T) // EncryptionKey
+        val T3 = calculateCmac(input = (T2 + P + byteArrayOf(0x03)), key = T) // PrivacyKey
 
         val nid = T1.last().toInt() and 0x7F
         return Triple(nid, T2, T3)
     }
 
     /**
-     * The derivation function k3 is used to generate a public value of 64 bits derived from a private key.
-     * The definition of this derivation function makes use of the MAC function AES-CMAC(T) with a 128-bit key T.
+     * The derivation function k3 is used to generate a public value of 64 bits derived from a
+     * private key. The definition of this derivation function makes use of the MAC function
+     * AES-CMAC(T) with a 128-bit key T.
      *
      * @param N 128-bit key.
      * @return 64-bit key T.
      */
     internal fun k3(N: ByteArray): ByteArray {
-        val s1 = salt(smk3)
-        val T = cmac(N, s1)
-        val result = cmac(input = (id64 + 0x01), key = T)
+        val s1 = calculateS1(smk3)
+        val T = calculateCmac(N, s1)
+        val result = calculateCmac(input = (id64 + 0x01), key = T)
         return result.copyOfRange(8, result.count())
     }
 
     /**
-     * The derivation function k4 is used to generate a public value of 6 bits derived from a private key.
-     * The definition of this derivation function makes use of the MAC function AES-CMAC(T) with a 128-bit key T.
+     * The derivation function k4 is used to generate a public value of 6 bits derived from a
+     * private key. The definition of this derivation function makes use of the MAC function
+     * AES-CMAC(T) with a 128-bit key T.
      *
      * @param N 128-bit key.
      * @return 128-bit key T.
      */
     internal fun k4(N: ByteArray): Int {
-        val s1 = salt(smk4)
-        val T = cmac(N, s1)
-        val result = cmac(input = (id6 + 0x01), key = T)
+        val s1 = calculateS1(smk4)
+        val T = calculateCmac(N, s1)
+        val result = calculateCmac(input = (id6 + 0x01), key = T)
         return result.last().toInt() and 0x3F
     }
 
     /**
-     * Calculates Cipher-based Message Authentication Code (CMAC) that uses AES-128 as the block cipher function (AES-CMAC).
+     * The provisioning material derivation function k5 is used to generate the 256-bit key used in
+     * provisioning. The definition of this derivation function makes use of the MAC function
+     * HMAC-SHA-256 with a 256-bit key T.
+     *
+     * @param N 128-bit key.
+     * @param SALT 128-bit salt.
+     * @param P 1 or more octets.
+     * @return 256-bit key T.
+     */
+    internal fun k5(N: ByteArray, SALT: ByteArray, P: ByteArray): ByteArray {
+        val T = calculateHmac256(N, SALT)
+        return calculateHmac256(P, T)
+    }
+
+    /**
+     * Calculates Cipher-based Message Authentication Code (CMAC) that uses AES-128 as the block
+     * cipher function (AES-CMAC).
+     *
      * @param input Input to be authenticated.
      * @param key   128-bit key.
      * @return 128-bit message authentication code (MAC).
      */
-    private fun cmac(input: ByteArray, key: ByteArray): ByteArray {
+    private fun calculateCmac(input: ByteArray, key: ByteArray): ByteArray {
         require(key.size == 16) { "Key must be 128-bits." }
         return CMac(blockCipher).run {
             init(KeyParameter(key))
@@ -347,8 +491,31 @@ object Crypto {
     }
 
     /**
-     * This method  generates the ciphertext and MIC (Message Integrity Check) and validates the ciphertext
-     * RFC3610 [10] defines the AES Counter with CBC-MAC (CCM).
+     * Calculates message authentication using cryptographic hash functions.
+     *
+     * FIPS 180-4 defines the SHA-256 secure hash algorithm. The SHA-256 algorithm is used as a hash
+     * function for the HMAC mechanism for the HMAC-SHA-256 function.
+     * Bluetooth Mesh Protocol 1.1 defines HMAC-SHA-256 as a function that takes two inputs and
+     * results in one output.
+     *
+     * @param input Input to be authenticated.
+     * @param key   256-bit key.
+     * @return 256-bit hash-based message authentication code (HMAC).
+     */
+    private fun calculateHmac256(input: ByteArray, key: ByteArray): ByteArray {
+        require(key.size == 32) { "Key must be 256-bits." }
+        return HMac(SHA256Digest()).run {
+            init(KeyParameter(key))
+            update(input, 0, input.count())
+            val output = ByteArray(macSize) { 0x00 }
+            doFinal(output, 0)
+            output
+        }
+    }
+
+    /**
+     * This method  generates the ciphertext and MIC (Message Integrity Check) and validates the
+     * ciphertext RFC3610 [10] defines the AES Counter with CBC-MAC (CCM).
      *
      * @param data                  Data to be encrypted and authenticated.
      * @param key                   128-bit key.
@@ -356,7 +523,8 @@ object Crypto {
      * @param additionalData        Additional data to be authenticated.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param mode                  True to encrypt or false to decrypt
-     * @returns if [mode] was set to true, returns the encrypted data with the MIC concatenated otherwise returns the decrypted data.
+     * @returns if [mode] was set to true, returns the encrypted data with the MIC concatenated
+     *          otherwise returns the decrypted data.
      */
     private fun calculateCCM(
         data: ByteArray,
