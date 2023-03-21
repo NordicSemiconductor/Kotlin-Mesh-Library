@@ -117,6 +117,17 @@ object Crypto {
         }
     }
 
+    /**
+     * Calculates the provisioning confirmation based on the confirmation inputs, device random,
+     * shared secret and the auth value.
+     *
+     * @param confirmationInputs Confirmation inputs.
+     * @param sharedSecret       Shared secret.
+     * @param deviceRandom       128-bit or 256-bit device random.
+     * @param authValue          128-bit or 256-bit auth value.
+     * @param algorithm          Algorithm to use.
+     * @return Provisioning confirmation value.
+     */
     fun calculateConfirmation(
         confirmationInputs: ByteArray,
         sharedSecret: ByteArray,
