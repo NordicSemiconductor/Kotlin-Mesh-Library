@@ -78,13 +78,13 @@ object Utils {
         return result.toShort()
     }
 
-    fun Int.toByteArray(data: Number, size: Int = 4): ByteArray =
+    fun UInt.toByteArray(data: Number, size: Int = 4): ByteArray =
         ByteArray(size) { i -> (data.toLong() shr (i * 8)).toByte() }
 
     /**
      * Converts an Int to a byte array.
      */
-    fun Int.toByteArray() = ByteArray(4) {
+    fun UInt.toByteArray() = ByteArray(4) {
         (this shr (24 - it * 8)).toByte()
     }
 
@@ -92,6 +92,13 @@ object Utils {
      * Converts a UShort to a byte array.
      */
     fun UShort.toByteArray() = ByteArray(2) {
+        (this.toInt() shr (8 - it * 8)).toByte()
+    }
+
+    /**
+     * Converts a UByte to a byte array.
+     */
+    fun UByte.toByteArray() = ByteArray(1) {
         (this.toInt() shr (8 - it * 8)).toByte()
     }
 
