@@ -1,15 +1,15 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "ArrayInDataClass")
 
 package no.nordicsemi.android.mesh.provisioning
 
-enum class PublicKey {
-    NO_OOB_PUBLIC_KEY,
-    OOB_PUBLIC_KEY;
+sealed class PublicKey {
+    object NoOobPublicKey : PublicKey()
+    data class OobPublicKey(val key: ByteArray) : PublicKey()
 
     val method: PublicKeyMethod
         get() = when (this) {
-            NO_OOB_PUBLIC_KEY -> PublicKeyMethod.NO_OOB_PUBLIC_KEY
-            OOB_PUBLIC_KEY -> PublicKeyMethod.OOB_PUBLIC_KEY
+            NoOobPublicKey -> PublicKeyMethod.NO_OOB_PUBLIC_KEY
+            is OobPublicKey  -> PublicKeyMethod.OOB_PUBLIC_KEY
         }
 }
 
