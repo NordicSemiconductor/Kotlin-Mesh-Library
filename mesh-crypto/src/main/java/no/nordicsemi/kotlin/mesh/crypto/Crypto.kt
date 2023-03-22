@@ -43,6 +43,9 @@ object Crypto {
 
     private val PRCK = "prck".encodeToByteArray()
     private val PRCK256 = "prck256".encodeToByteArray()
+    private val PRSK = "prsk".encodeToByteArray()
+    private val PRSN = "prsn".encodeToByteArray()
+    private val PRDK = "prdk".encodeToByteArray()
 
     /**
      * Generates a 128-bit random key using a SecureRandom.
@@ -550,5 +553,39 @@ object Crypto {
         processBytes(data, 0, data.size, ccm, data.size)
         doFinal(ccm, 0)
         ccm
+    }
+
+    /**
+     * Calculates the Session Key, Session Nonce and the Device Key based on the
+     * Confirmation Inputs, 16 or 32-byte Provisioner Random and 16 or 32-byte device Random.
+     *
+     * @param confirmationInputs   Confirmation inputs is built over hte provisioning process.
+     * @param sharedSecret         Shared secret obtained in the previous step.
+     * @param provisionerRandom    Array of 16 or 32 bytes random bytes.
+     * @param deviceRandom         Array of 16 or 32 bytes random bytes received from the device.
+     * @param algorithm            Algorithm to be used.
+     * @return Triple of Session Key, Session Nonce and Device Key.
+     */
+    fun calculateKeys(
+        algorithm: Algorithm,
+        confirmationInputs: ByteArray,
+        sharedSecret: ByteArray,
+        provisionerRandom: ByteArray,
+        deviceRandom: ByteArray
+    ): Triple<ByteArray, ByteArray, ByteArray> {
+        val confirmationSalt = when (algorithm) {
+            Algorithm.FIPS_P256_ELLIPTIC_CURVE,
+            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM -> {
+                calculateS1(confirmationInputs)
+            }
+            Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
+                calculateS2(confirmationInputs)
+            }
+        }
+        val provisioningSalt = calculateS1(confirmationSalt + provisionerRandom + deviceRandom)
+        val sessionKey = k1(sharedSecret, provisioningSalt, PRSK)
+        val sessionNonce = k1(sessionKey, provisioningSalt, PRSN)
+        val deviceKey = k1(sessionKey, provisioningSalt, PRDK)
+        return Triple(sessionKey, sessionNonce, deviceKey)
     }
 }
