@@ -2,7 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.bearer
 
-interface BearerDataDelegate {
+interface BearerData {
 
     fun bearer(bearer: Bearer, data: ByteArray, type: PduType)
 }
