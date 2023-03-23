@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
 
 /**

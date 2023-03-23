@@ -1,8 +1,8 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.android.mesh.provisioning.ProvisioningError.InvalidPublicKey
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningError.InvalidPublicKey
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm

@@ -1,6 +1,6 @@
 @file:Suppress("ClassName", "unused")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
 /**
  * Set of errors which may be thrown during provisioning a device.

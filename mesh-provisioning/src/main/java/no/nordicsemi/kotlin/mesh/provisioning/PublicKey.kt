@@ -1,6 +1,6 @@
 @file:Suppress("unused", "MemberVisibilityCanBePrivate", "ArrayInDataClass")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
 sealed class PublicKey {
     object NoOobPublicKey : PublicKey()

@@ -1,6 +1,6 @@
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort

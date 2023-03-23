@@ -1,8 +1,8 @@
 @file:Suppress("ArrayInDataClass", "unused")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.android.mesh.provisioning.ProvisioningPduType.*
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningPduType.*
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 
 internal typealias ProvisioningPdu = ByteArray
@@ -13,6 +13,7 @@ internal typealias ProvisioningPdu = ByteArray
  *  @property type The type of provisioning pdu.
  */
 internal enum class ProvisioningPduType(val type: Int) {
+    
     /**
      * A Provisioner sends a Provisioning Invite PDU to indicate to the intended Provisionee that
      * the provisioning process is starting. The attention timer is used to identify the device

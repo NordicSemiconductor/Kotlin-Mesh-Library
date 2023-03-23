@@ -1,6 +1,6 @@
 @file:Suppress("ClassName", "unused", "MemberVisibilityCanBePrivate")
 
-package no.nordicsemi.android.mesh.provisioning
+package no.nordicsemi.kotlin.mesh.provisioning
 
 /**
  * Defines possible state of provisioning process.
