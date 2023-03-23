@@ -1,6 +1,6 @@
-package no.nordicsemi.kotlin.mesh.core.bearer
+package no.nordicsemi.kotlin.mesh.bearer
 
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
+import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
 
 
 /**
@@ -26,15 +26,15 @@ enum class PduType(val type: UByte) {
          *
          * @param value The value of the PDU type.
          * @return PduType or throws an exception if the value is invalid.
-         * @throws InvalidPduType if the value is invalid.
+         * @throws PduTypeNotSupported if the value is invalid.
          */
-        @Throws(InvalidPduType::class)
+        @Throws(PduTypeNotSupported::class)
         fun from(value: UByte): PduType = when (value) {
             0x00.toUByte() -> NETWORK_PDU
             0x01.toUByte() -> MESH_BEACON
             0x02.toUByte() -> PROXY_CONFIGURATION
             0x03.toUByte() -> PROVISIONING_PDU
-            else -> throw InvalidPduType
+            else -> throw PduTypeNotSupported
         }
     }
 }
@@ -54,16 +54,16 @@ sealed class PduTypes(val value: UByte) {
          * Returns the PDU type from the given value.
          *
          * @param value The value of the PDU type.
-         * @return PduType or throws [InvalidPduType] if the value is invalid.
-         * @throws InvalidPduType if the value is invalid.
+         * @return PduType or throws [PduTypeNotSupported] if the value is invalid.
+         * @throws PduTypeNotSupported if the value is invalid.
          */
-        @Throws(InvalidPduType::class)
+        @Throws(PduTypeNotSupported::class)
         fun from(value: UByte): PduTypes = when (value) {
             0x01.toUByte() -> NetworkPdu
             0x02.toUByte() -> MeshBeacon
             0x03.toUByte() -> ProxyConfiguration
             0x04.toUByte() -> ProvisioningPdu
-            else -> throw InvalidPduType
+            else -> throw PduTypeNotSupported
         }
     }
 }

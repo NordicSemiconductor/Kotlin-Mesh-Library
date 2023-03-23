@@ -1,9 +1,8 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.kotlin.mesh.core.bearer
+package no.nordicsemi.kotlin.mesh.bearer
 
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
-
+import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
 
 /**
  * A transmitter is responsible for delivering messages to the mesh network.
@@ -16,14 +15,16 @@ interface Transmitter {
      *
      * @param pdu     Data to be sent.
      * @param pduType Type of the PDU.
-     * @throws InvalidPduType if the PDU type is not supported by the bearer.
+     * @throws PduTypeNotSupported if the PDU type is not supported by the bearer.
      */
     fun send(pdu: ByteArray, pduType: PduType)
 }
 
 interface Bearer : Transmitter {
 
-    var open: Boolean
+    var supportedTypes: PduTypes
+
+    var isOpen: Boolean
 
     /**
      * Opens the bearer.
@@ -45,7 +46,4 @@ interface Bearer : Transmitter {
     }.isSuccess
 }
 
-/**
- * Mesh bearer is used to send mesh messages to provisioned nodes.
- */
 interface MeshBearer : Bearer

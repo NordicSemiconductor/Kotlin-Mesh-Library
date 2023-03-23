@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.kotlin.mesh.core.bearer
+package no.nordicsemi.kotlin.mesh.bearer
 
 /** Set of errors that may be thrown by the bearer. */
 sealed class BearerError : Exception() {
