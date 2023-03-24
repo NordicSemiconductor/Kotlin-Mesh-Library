@@ -2,10 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.bearer
 
+import kotlinx.coroutines.flow.Flow
 import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
 
 /**
- * A transmitter is responsible for delivering messages to the mesh network.
+ * transmitter is responsible for delivering messages to the mesh network.
  */
 interface Transmitter {
 
@@ -20,11 +21,32 @@ interface Transmitter {
     fun send(pdu: ByteArray, pduType: PduType)
 }
 
-interface Bearer : Transmitter {
+/**
+ * Receiver is responsible for receiving messages from the mesh network.
+ * @property pdu A flow that emits events whenever a PDU is received.
+ */
+interface Receiver {
+    /**
+     * Returns a flow of received PDUs.
+     */
+    val pdu: Flow<BearerPdu>
 
-    var supportedTypes: PduTypes
+}
 
-    var isOpen: Boolean
+/**
+ * Bearer is responsible for sending and receiving messages to and from the mesh network.
+ *
+ * @property bearerState         A flow that emits events whenever the bearer state changes.
+ * @property supportedTypes      List of supported PDU types.
+ * @property isOpen              Returns true if the bearer is open, false otherwise.
+ */
+interface Bearer : Transmitter, Receiver {
+
+    val bearerState: Flow<BearerEvent>
+
+    val supportedTypes: Array<PduTypes>
+
+    val isOpen: Boolean
 
     /**
      * Opens the bearer.
@@ -38,12 +60,13 @@ interface Bearer : Transmitter {
 
     /**
      * Returns whether the bearer supports the given message type.
-     * @param pduType PDU type.
+     *
+     * @param type PDU type.
      * @return True if the bearer supports the given message type, false otherwise.
      */
-    fun supports(pduType: PduType): Boolean = runCatching {
+    fun supports(type: PduType): Boolean = runCatching {
         // TODO: Check against [supportedTypes]
-        PduTypes.from(pduType.type)
+        PduTypes.from(type.type)
     }.isSuccess
 }
 

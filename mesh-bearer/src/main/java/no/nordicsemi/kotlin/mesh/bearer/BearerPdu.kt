@@ -3,22 +3,15 @@
 package no.nordicsemi.kotlin.mesh.bearer
 
 /**
- * Bearer data event emitted by the bearer.
+ * Event emitted when the bearer receives data.
+ *
+ * @param data   Data that was received.
+ * @param type   Type of the data.
  */
-sealed class BearerDataEvent {
-    /**
-     * Event emitted when the bearer receives data.
-     *
-     * @param bearer Bearer that received the data.
-     * @param data   Data that was received.
-     * @param type   Type of the data.
-     */
-    data class OnBearerReceiveData(
-        val bearer: Bearer,
-        val data: ByteArray,
-        val type: PduType
-    ) : BearerDataEvent()
-}
+data class BearerPdu(
+    val data: ByteArray,
+    val type: PduType
+)
 
 
 /**
