@@ -106,8 +106,8 @@ class MeshNetwork internal constructor(
     var ivIndex = IvIndex()
         internal set
 
-    val localProvisioner: Provisioner
-        get() = _provisioners.first()
+    val localProvisioner: Provisioner?
+        get() = _provisioners.firstOrNull()
 
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
@@ -1185,7 +1185,7 @@ class MeshNetwork internal constructor(
         }
     }
 
-    internal companion object {
+    companion object {
         /**
          *  Invoked when an observable property is changed.
          *
@@ -1193,7 +1193,7 @@ class MeshNetwork internal constructor(
          *  @param newValue New value to be assigned.
          *  @param action Lambda to be invoked if the [newValue] is not the same as [oldValue].
          */
-        internal fun <T> onChange(oldValue: T, newValue: T, action: () -> Unit) {
+        fun <T> onChange(oldValue: T, newValue: T, action: () -> Unit) {
             if (newValue != oldValue) action()
         }
     }
