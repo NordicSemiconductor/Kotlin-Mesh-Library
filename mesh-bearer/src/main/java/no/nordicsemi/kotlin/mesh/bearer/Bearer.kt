@@ -42,6 +42,7 @@ interface Bearer : Transmitter {
      * @return True if the bearer supports the given message type, false otherwise.
      */
     fun supports(pduType: PduType): Boolean = runCatching {
+        // TODO: Check against [supportedTypes]
         PduTypes.from(pduType.type)
     }.isSuccess
 }
