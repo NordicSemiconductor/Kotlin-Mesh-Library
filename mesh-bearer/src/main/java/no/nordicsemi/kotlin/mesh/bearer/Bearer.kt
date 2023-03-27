@@ -15,10 +15,10 @@ interface Transmitter {
      * using the bearer protocol if bearer implements segmentation.
      *
      * @param pdu     Data to be sent.
-     * @param pduType Type of the PDU.
+     * @param type    Type of the PDU.
      * @throws PduTypeNotSupported if the PDU type is not supported by the bearer.
      */
-    fun send(pdu: ByteArray, pduType: PduType)
+    fun send(pdu: ByteArray, type: PduType)
 }
 
 /**
