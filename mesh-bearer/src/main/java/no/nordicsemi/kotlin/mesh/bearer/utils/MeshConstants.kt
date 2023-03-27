@@ -35,7 +35,7 @@ object MeshProvisioningService : MeshService {
  *
  * This is used to send mesh messages over gatt.
  */
-object MeshProxy : MeshService {
+object MeshProxyService : MeshService {
     override var uuid: UUID = UUID.fromString("00001827-0000-1000-8000-00805f9b34fb")
     override var dataInUuid: UUID = UUID.fromString("00002add-0000-1000-8000-00805f9b34fb")
     override var dataOutUuid: UUID = UUID.fromString("00002ade-0000-1000-8000-00805f9b34fb")
