@@ -14,17 +14,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
  * @property isOpen                Returns true if the bearer is open, false otherwise.
  */
 open class BaseGattProxyBearer<MeshService> : Bearer {
-    override val bearerState: Flow<BearerEvent>
-        get() = MutableSharedFlow()
-    override val pdu: Flow<BearerPdu>
-        get() = MutableSharedFlow()
-    override val supportedTypes: Array<PduTypes>
-        get() = arrayOf(
-            PduTypes.NetworkPdu,
-            PduTypes.MeshBeacon,
-            PduTypes.ProxyConfiguration,
-            PduTypes.ProvisioningPdu
-        )
+    override val bearerState: Flow<BearerEvent> = MutableSharedFlow()
+    override val pdu: Flow<BearerPdu> = MutableSharedFlow()
+    override val supportedTypes: Array<PduTypes> = arrayOf(
+        PduTypes.NetworkPdu,
+        PduTypes.MeshBeacon,
+        PduTypes.ProxyConfiguration,
+        PduTypes.ProvisioningPdu
+    )
 
     override val isOpen: Boolean
         get() = TODO("Not yet implemented")

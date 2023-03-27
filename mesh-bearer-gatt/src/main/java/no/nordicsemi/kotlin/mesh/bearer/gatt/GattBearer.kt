@@ -12,6 +12,6 @@ import no.nordicsemi.kotlin.mesh.bearer.utils.MeshProxyService
  */
 class GattBearer : BaseGattProxyBearer<MeshProxyService>(), MeshBearer {
 
-    override val supportedTypes: Array<PduTypes>
-        get() = arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)
+    override val supportedTypes: Array<PduTypes> =
+        arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)
 }
