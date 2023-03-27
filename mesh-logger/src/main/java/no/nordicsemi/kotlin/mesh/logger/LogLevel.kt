@@ -1,6 +1,6 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package no.nordicsemi.kotlin.mesh.core.logger
+package no.nordicsemi.kotlin.mesh.logger
 
 
 /**

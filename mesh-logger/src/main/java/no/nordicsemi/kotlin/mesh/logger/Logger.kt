@@ -1,6 +1,7 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.kotlin.mesh.core.logger
+package no.nordicsemi.kotlin.mesh.logger
+
 
 interface Logger {
 

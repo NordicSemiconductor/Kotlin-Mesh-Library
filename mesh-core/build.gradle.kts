@@ -5,12 +5,12 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":mesh-crypto"))
+    api(project(":mesh-crypto"))
     implementation(project(":mesh-bearer"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    // Instant is used
+    // Instant is used as a part of the API
     api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     testImplementation("junit:junit:4.13.2")

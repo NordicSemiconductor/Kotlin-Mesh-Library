@@ -1,6 +1,6 @@
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
-package no.nordicsemi.kotlin.mesh.core.logger
+package no.nordicsemi.kotlin.mesh.logger
 
 /**
  * The log category indicates the component that created the log entry.
