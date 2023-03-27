@@ -66,7 +66,7 @@ interface Bearer : Transmitter, Receiver {
      */
     fun supports(type: PduType): Boolean = runCatching {
         // TODO: Check against [supportedTypes]
-        PduTypes.from(type.type)
+        PduTypes.from(type.value)
     }.isSuccess
 }
 
