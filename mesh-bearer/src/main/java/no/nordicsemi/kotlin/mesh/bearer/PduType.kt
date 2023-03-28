@@ -31,12 +31,12 @@ enum class PduType(val value: UByte) {
          * @throws PduTypeNotSupported if the value is invalid.
          */
         @Throws(PduTypeNotSupported::class)
-        fun from(value: UByte): PduType = when (value) {
+        fun from(value: UByte): PduType? = when (value) {
             0x00.toUByte() -> NETWORK_PDU
             0x01.toUByte() -> MESH_BEACON
             0x02.toUByte() -> PROXY_CONFIGURATION
             0x03.toUByte() -> PROVISIONING_PDU
-            else -> throw PduTypeNotSupported
+            else -> null
         }
     }
 }
