@@ -4,10 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.kotlin.mesh.bearer.gatt"
+    namespace = "no.nordicsemi.android.kotlin.mesh.bearer.ble"
 }
 
 dependencies {
-    api(project(":mesh-bearer-ble"))
-    api(project(":mesh-bearer-provisioning"))
+    api(project(":mesh-bearer"))
+    implementation("androidx.test.ext:junit-ktx:1.1.5")
+    testImplementation("junit:junit:4.13.2")
 }

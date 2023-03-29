@@ -2,11 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningError.InvalidPublicKey
 import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningError.InvalidPublicKey
 import java.security.PrivateKey
 import java.security.PublicKey
 

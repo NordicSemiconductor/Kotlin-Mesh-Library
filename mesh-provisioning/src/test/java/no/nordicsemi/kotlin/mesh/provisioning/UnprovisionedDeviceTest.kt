@@ -1,11 +1,8 @@
-@file:Suppress("unused")
-
 package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.util.Utils
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import org.junit.Test
-import java.util.*
 
 class UnprovisionedDeviceTest {
 

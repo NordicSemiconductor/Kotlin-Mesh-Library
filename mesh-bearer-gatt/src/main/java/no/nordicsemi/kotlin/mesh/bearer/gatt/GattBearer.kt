@@ -2,10 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
-import no.nordicsemi.kotlin.mesh.bearer.BaseGattProxyBearer
+import no.nordicsemi.android.kotllin.mesh.bearer.ble.BaseGattProxyBearer
+import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
-import no.nordicsemi.kotlin.mesh.bearer.utils.MeshProxyService
 
 /**
  * Responsible for receiving and sending mesh messages to and from the GATT Proxy Node.

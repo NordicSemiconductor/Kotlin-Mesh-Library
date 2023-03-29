@@ -45,7 +45,7 @@ class MeshNetworkManager(private val storage: Storage) {
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
      *             multiple mesh networks.
      */
-    suspend fun create(name: String = "Mesh Network", uuid: UUID = UUID.randomUUID()) =
+    /*suspend*/ fun create(name: String = "Mesh Network", uuid: UUID = UUID.randomUUID()) =
         MeshNetwork(uuid = uuid, _name = name).also { meshNetwork = it }
 
     /**
