@@ -51,12 +51,12 @@ interface Bearer : Transmitter, Receiver {
     /**
      * Opens the bearer.
      */
-    fun open()
+    suspend fun open()
 
     /**
      * Closes the bearer.
      */
-    fun close()
+    suspend fun close()
 
     /**
      * Returns whether the bearer supports the given message type.

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.android.kotllin.mesh.bearer.ble
+package no.nordicsemi.android.kotlin.mesh.bearer.android
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,12 +36,12 @@ open class BaseGattProxyBearer<MeshService> : Bearer {
 
     var logger: Logger? = null
 
-    override fun open() {
+    override suspend fun open() {
         isOpened = true
         // TODO("Not yet implemented")
     }
 
-    override fun close() {
+    override suspend fun close() {
         isOpened = false
         // TODO("Not yet implemented")
     }

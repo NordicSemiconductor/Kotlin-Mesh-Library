@@ -2,7 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
-import no.nordicsemi.android.kotllin.mesh.bearer.ble.BaseGattProxyBearer
+import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
 import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes

@@ -48,5 +48,4 @@ include(":mesh-bearer-provisioning")
 
 include(":mesh-bearer-android")
 include(":mesh-bearer-gatt")
-include(":mesh-bearer-ble")
 include(":mesh-bearer-pbgatt")
