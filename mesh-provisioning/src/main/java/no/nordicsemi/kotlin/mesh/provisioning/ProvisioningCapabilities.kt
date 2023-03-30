@@ -3,8 +3,11 @@
 package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms
+import no.nordicsemi.kotlin.mesh.crypto.Algorithms.Companion.toUShort
+import no.nordicsemi.kotlin.mesh.provisioning.InputOobActions.Companion.toUShort
+import no.nordicsemi.kotlin.mesh.provisioning.OutputOobActions.Companion.toUShort
 
 
 /**
@@ -23,34 +26,33 @@ import no.nordicsemi.kotlin.mesh.crypto.Algorithms
  */
 data class ProvisioningCapabilities(
     val numberOfElements: Int,
-    val algorithms: Algorithms,
+    val algorithms: List<Algorithms>,
     val publicKeyType: PublicKeyType,
     val oobType: OobType,
     val outputOobSize: UByte,
-    val outputOobActions: OutputOobActions,
+    val outputOobActions: List<OutputOobActions>,
     val inputOobSize: UByte,
-    val inputOobActions: InputOobActions
+    val inputOobActions: List<InputOobActions>
 ) {
 
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
-        algorithms = Algorithms.from(data.toShort(2)),
+        algorithms = Algorithms.from(data.toUShort(2)),
         publicKeyType = PublicKeyType.from(data, 4),
         oobType = OobType.from(data, 5),
         outputOobSize = data[6].toUByte(),
-        outputOobActions = OutputOobActions.from(data, 7),
+        outputOobActions = OutputOobActions.from(data.toUShort(7)),
         inputOobSize = data[9].toUByte(),
-        inputOobActions = InputOobActions.from(data, 10)
+        inputOobActions = InputOobActions.from(data.toUShort(10))
     )
 
     val value: ProvisioningPdu
         get() = byteArrayOf(numberOfElements.toByte()) +
-                algorithms.rawValue.toByteArray() +
+                algorithms.toUShort().toByteArray() +
                 byteArrayOf(publicKeyType.rawValue.toByte()) +
                 byteArrayOf(oobType.rawValue.toByte()) +
                 byteArrayOf(outputOobSize.toByte()) +
-                outputOobActions.rawValue.toByteArray() +
+                outputOobActions.toUShort().toByteArray() +
                 byteArrayOf(inputOobSize.toByte()) +
-                inputOobActions.rawValue.toByteArray() +
-                inputOobActions.rawValue.toByte()
+                inputOobActions.toUShort().toByteArray()
 }

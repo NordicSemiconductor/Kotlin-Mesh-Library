@@ -71,35 +71,48 @@ sealed class Algorithms(val rawValue: UShort) {
         replaceWith = ReplaceWith("BTM_ECDH_P256_CMAC_AES128_AES_CCM"),
         level = DeprecationLevel.WARNING
     )
-    object FIPS_P256_ELLIPTIC_CURVE : Algorithms(rawValue = 1 shl 0)
-    object BTM_ECDH_P256_CMAC_AES128_AES_CCM : Algorithms(rawValue = 1 shl 0)
-    object BTM_ECDH_P256_HMAC_SHA256_AES_CCM : Algorithms(rawValue = 1 shl 1)
+    object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0)
+    object BtmEcdhP256CmacAes128AesCcm : Algorithms(rawValue = 1 shl 0)
+    object BtmEcdhP256HmacSha256AesCcm : Algorithms(rawValue = 1 shl 1)
 
     /**
      * Returns the name of the given algorithm.
      */
     fun name(): String = when (this) {
-        FIPS_P256_ELLIPTIC_CURVE, BTM_ECDH_P256_CMAC_AES128_AES_CCM ->
+        FipsP256EllipticCurve, BtmEcdhP256CmacAes128AesCcm ->
             "BTM ECDH P256 CMAC AES128 AES CCM"
-        BTM_ECDH_P256_HMAC_SHA256_AES_CCM ->
+        BtmEcdhP256HmacSha256AesCcm ->
             "BTM ECDH P256 HMAC SHA256 AES CCM"
     }
 
 
     companion object {
 
+        private val algorithms = listOf(BtmEcdhP256CmacAes128AesCcm, BtmEcdhP256HmacSha256AesCcm)
+
         /**
-         * Returns the algorithm from the given value.
+         * Returns the list supported algorithms.
          *
-         * @param value value of the algorithm.
-         * @return supported algorithm.
-         * @throws IllegalArgumentException if the algorithm is not supported.
+         * @param supportedAlgorithms Supported algorithms from provisioning capabilities pdu.
+         * @return a list of supported algorithms or an empty list if none is supported.
          */
-        @Throws(IllegalArgumentException::class)
-        fun from(value: Short) = when (value) {
-            0x01.toShort() -> BTM_ECDH_P256_CMAC_AES128_AES_CCM
-            0x02.toShort() -> BTM_ECDH_P256_HMAC_SHA256_AES_CCM
-            else -> throw IllegalArgumentException("Algorithm not supported")
+        fun from(supportedAlgorithms: UShort): List<Algorithms> = algorithms.filter {
+            it.rawValue.toInt() and supportedAlgorithms.toInt() != 0
+        }
+
+        /**
+         * Converts a list of supported algorithms to a UShort value.
+         *
+         * @receiver List of supported algorithms.
+         * @return UShort containing the raw value of the list of algorithms.
+         */
+        fun List<Algorithms>.toUShort(): UShort {
+            var value = 0
+            sortedBy { it.rawValue.toInt() }
+            forEach {
+                value = value or it.rawValue.toInt()
+            }
+            return value.toUShort()
         }
     }
 }

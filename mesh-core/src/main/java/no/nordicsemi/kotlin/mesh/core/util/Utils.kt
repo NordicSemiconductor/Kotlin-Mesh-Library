@@ -67,15 +67,15 @@ object Utils {
      * @return Short.
      * @throws IndexOutOfBoundsException If the length of the byte array is not >= offset + 2.
      */
-    fun ByteArray.toShort(offset: Int): Short {
+    fun ByteArray.toUShort(offset: Int): UShort {
         require(size >= offset + 2) {
             throw IndexOutOfBoundsException("Cannot return a Short with the given offset")
         }
         var result = 0
         for (i in offset until offset + 2) {
-            result = result or (this[i].toInt() shl 8 * i)
+            result = (result shl 8) + this[i].toInt()
         }
-        return result.toShort()
+        return result.toUShort()
     }
 
     fun UInt.toByteArray(data: Number, size: Int = 4): ByteArray =

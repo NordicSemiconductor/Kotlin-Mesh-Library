@@ -3,7 +3,7 @@
 package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.util.*
 
@@ -49,7 +49,7 @@ data class UnprovisionedDevice(
 
                         val oobInformationIndex = deviceUuidIndex + 16
                         oobInformation = OobInformation.from(
-                            advertisementData.toShort(oobInformationIndex).toUShort()
+                            advertisementData.toUShort(oobInformationIndex)
                         )
                     }
                     COMPLETE_LOCAL_NAME -> {

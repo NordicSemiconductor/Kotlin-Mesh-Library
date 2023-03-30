@@ -2,8 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toShort
-
 
 /**
  * Information that points to the out-of-band information that the device can provide.
@@ -138,6 +136,8 @@ sealed class AuthenticationMethod {
 sealed class OobType(val rawValue: UByte) {
     constructor(rawValue: Int) : this(rawValue.toUByte())
 
+    object none : OobType(rawValue = 0)
+
     /**
      * Static OOB information is available.
      */
@@ -159,9 +159,10 @@ sealed class OobType(val rawValue: UByte) {
          * @throws IllegalArgumentException if the oob type is invalid.
          */
         @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
-            0x01.toByte() -> staticOobInformationAvailable
-            0x02.toByte() -> onlyOobAuthenticatedProvisioningSupported
+        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset].toUByte()) {
+            0x00.toUByte() -> none
+            0x01.toUByte() -> staticOobInformationAvailable
+            0x02.toUByte() -> onlyOobAuthenticatedProvisioningSupported
             else -> throw IllegalArgumentException("Invalid OobType.")
         }
     }
@@ -176,30 +177,45 @@ sealed class OutputOobActions(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object blink : OutputOobActions(rawValue = 1 shl 0)
-    object beep : OutputOobActions(rawValue = 1 shl 1)
-    object vibrate : OutputOobActions(rawValue = 1 shl 2)
-    object outputNumeric : OutputOobActions(rawValue = 1 shl 3)
-    object outputAlphanumeric : OutputOobActions(rawValue = 1 shl 4)
+    object None : OutputOobActions(rawValue = 0)
+    object Blink : OutputOobActions(rawValue = 1 shl 0)
+    object Beep : OutputOobActions(rawValue = 1 shl 1)
+    object Vibrate : OutputOobActions(rawValue = 1 shl 2)
+    object OutputNumeric : OutputOobActions(rawValue = 1 shl 3)
+    object OutputAlphanumeric : OutputOobActions(rawValue = 1 shl 4)
 
     companion object {
+        private val outputOobActions = listOf(
+            None,
+            Blink,
+            Beep,
+            Vibrate,
+            OutputNumeric,
+            OutputAlphanumeric
+        )
 
         /**
-         * Returns OutputOobActions from a given provisioning pdu.
+         * Returns the list supported OutputOobActions from a given Output OOB Actions value.
          *
-         * @param pdu      Provisioning pdu.
-         * @param offset   Offset of the output oob action.
-         * @return OutputOobActions.
-         * @throws IllegalArgumentException if the output oob action is invalid.
+         * @param value Output oob actions value from provisioning capabilities pdu.
+         * @return a list of supported OutputOobActions or an empty list if none is supported.
          */
-        @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu.toShort(offset).toUShort()) {
-            0x0001.toUShort() -> blink
-            0x0002.toUShort() -> beep
-            0x0003.toUShort() -> vibrate
-            0x0004.toUShort() -> outputNumeric
-            0x0005.toUShort() -> outputAlphanumeric
-            else -> throw IllegalArgumentException("Invalid output oob action.")
+        fun from(value: UShort) = outputOobActions.filter {
+            it.rawValue.toInt() and value.toInt() != 0
+        }
+
+        /**
+         * Converts a list of OutputOobActions to a UShort value.
+         *
+         * @receiver List of OutputOobActions.
+         * @return UShort containing the raw value of the list of OutputOobActions.
+         */
+        fun List<OutputOobActions>.toUShort(): UShort {
+            var value = 0
+            forEach {
+                value = value or it.rawValue.toInt()
+            }
+            return value.toUShort()
         }
     }
 }
@@ -213,43 +229,56 @@ sealed class InputOobActions(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object push : InputOobActions(rawValue = 1 shl 0)
-    object twist : InputOobActions(rawValue = 1 shl 1)
-    object outputNumeric : InputOobActions(rawValue = 1 shl 2)
-    object outputAlphanumeric : InputOobActions(rawValue = 1 shl 3)
+    object Push : InputOobActions(rawValue = 1 shl 0)
+    object Twist : InputOobActions(rawValue = 1 shl 1)
+    object InputNumeric : InputOobActions(rawValue = 1 shl 2)
+    object InputAlphanumeric : InputOobActions(rawValue = 1 shl 3)
 
     companion object {
+        private val inputOobActions = listOf(
+            Push,
+            Twist,
+            InputNumeric,
+            InputAlphanumeric
+        )
 
         /**
-         * Returns InputOobActions from a given provisioning pdu.
+         * Returns the list supported InputOobActions from a given provisioning pdu.
          *
-         * @param pdu      Provisioning pdu.
-         * @param offset   Offset of the input oob action.
-         * @return InputOobActions.
-         * @throws IllegalArgumentException if the input oob action is invalid.
+         * @param value Input oob actions value from provisioning capabilities pdu.
+         * @return a list of supported OutputOobActions or an empty list if none is supported.
          */
-        @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
-            0x01.toByte() -> push
-            0x02.toByte() -> twist
-            0x03.toByte() -> outputNumeric
-            0x04.toByte() -> outputAlphanumeric
-            else -> throw IllegalArgumentException("Invalid input oob action.")
+        fun from(value: UShort) = inputOobActions.filter {
+            it.rawValue.toInt() and value.toInt() != 0
+        }
+
+        /**
+         * Converts a list of InputOobActions to a UShort.
+         *
+         * @receiver List of InputOobActions.
+         * @return UShort containing the raw value of the input oob actions.
+         */
+        fun List<InputOobActions>.toUShort() = run {
+            var value = 0
+            forEach {
+                value = value or it.rawValue.toInt()
+            }
+            value.toUShort()
         }
     }
 }
 
 enum class OutputAction constructor(val rawValue: UByte) {
-    BLINK(0.toUByte()),
-    BEEP(1.toUByte()),
-    VIBRATE(2.toUByte()),
-    OUTPUT_NUMERIC(3.toUByte()),
-    OUTPUT_ALPHANUMERIC(4.toUByte())
+    BLINK(0u),
+    BEEP(1u),
+    VIBRATE(2u),
+    OUTPUT_NUMERIC(3u),
+    OUTPUT_ALPHANUMERIC(4u)
 }
 
 enum class InputAction(val rawValue: UByte) {
-    PUSH(0.toUByte()),
-    TWIST(1.toUByte()),
-    INPUT_NUMERIC(2.toUByte()),
-    INPUT_ALPHANUMERIC(3.toUByte())
+    PUSH(0u),
+    TWIST(1u),
+    INPUT_NUMERIC(2u),
+    INPUT_ALPHANUMERIC(3u)
 }
