@@ -12,8 +12,8 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.9.0")
 
-    implementation("no.nordicsemi.android.kotlin.ble:core:0.0.1")
-    implementation("no.nordicsemi.android.kotlin.ble:client:0.0.1")
+    api("no.nordicsemi.android.kotlin.ble:core:0.0.1")
+    api("no.nordicsemi.android.kotlin.ble:client:0.0.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
