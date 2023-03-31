@@ -79,14 +79,18 @@ sealed class AuthenticationMethod {
      *
      * @property action      Output action type.
      * @property size        Size of the input.
+     * @constructor Constructs a new OutputOob.
      */
-    data class OutputOob(val action: OutputAction, val size: UByte) : AuthenticationMethod()
+    data class OutputOob(val action: OutputAction, val size: UByte) : AuthenticationMethod() {
+        constructor(action: OutputAction) : this(action, action.rawValue)
+    }
 
     /**
      * Input OOB authentication method is used. Size must be in range 1...8.
      *
      * @property action      Input action type.
      * @property size        Size of the input.
+     * @constructor Constructs a new InputOob.
      */
     data class InputOob(val action: InputAction, val size: UByte) : AuthenticationMethod()
 
@@ -278,12 +282,58 @@ enum class OutputAction constructor(val rawValue: UByte) {
     BEEP(1u),
     VIBRATE(2u),
     OUTPUT_NUMERIC(3u),
-    OUTPUT_ALPHANUMERIC(4u)
+    OUTPUT_ALPHANUMERIC(4u);
+
+    companion object {
+
+        /**
+         * Converts a list of OutputOobActions to a list of OutputActions.
+         *
+         * @receiver List of OutputOobActions.
+         */
+        fun List<OutputOobActions>.toOutputActions() = map { from(it) }
+
+        /**
+         * Returns the OutputAction from given OutputOobActions.
+         *
+         * @param outputOobAction OutputOobActions to convert.
+         * @return OutputAction
+         */
+        fun from(outputOobAction: OutputOobActions) = when (outputOobAction) {
+            OutputOobActions.Blink -> BLINK
+            OutputOobActions.Beep -> BEEP
+            OutputOobActions.Vibrate -> VIBRATE
+            OutputOobActions.OutputNumeric -> OUTPUT_NUMERIC
+            OutputOobActions.OutputAlphanumeric -> OUTPUT_ALPHANUMERIC
+        }
+    }
 }
 
 enum class InputAction(val rawValue: UByte) {
     PUSH(0u),
     TWIST(1u),
     INPUT_NUMERIC(2u),
-    INPUT_ALPHANUMERIC(3u)
+    INPUT_ALPHANUMERIC(3u);
+
+    companion object {
+
+        /**
+         * Converts a list of InputOobActions to a list of InputActions.
+         *
+         * @receiver List of InputOobActions.
+         */
+        fun List<InputOobActions>.toInputActions() = map { from(it) }
+
+        /**
+         * Returns the InputAction from given InputOobActions.
+         *
+         * @param inputOobActions InputOobActions to convert.
+         */
+        fun from(inputOobActions: InputOobActions) = when (inputOobActions) {
+            InputOobActions.Push -> PUSH
+            InputOobActions.Twist -> TWIST
+            InputOobActions.InputNumeric -> INPUT_NUMERIC
+            InputOobActions.InputAlphanumeric -> INPUT_ALPHANUMERIC
+        }
+    }
 }
