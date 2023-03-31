@@ -18,7 +18,7 @@ interface Transmitter {
      * @param type    Type of the PDU.
      * @throws PduTypeNotSupported if the PDU type is not supported by the bearer.
      */
-    fun send(pdu: ByteArray, type: PduType)
+    suspend fun send(pdu: ByteArray, type: PduType)
 }
 
 /**

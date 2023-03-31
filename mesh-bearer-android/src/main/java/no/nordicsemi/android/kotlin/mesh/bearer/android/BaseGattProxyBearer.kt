@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PropertyName")
 
 package no.nordicsemi.android.kotlin.mesh.bearer.android
 
@@ -18,9 +18,9 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
  *                                 events.
  * @property isOpen                Returns true if the bearer is open, false otherwise.
  */
-open class BaseGattProxyBearer<MeshService> : Bearer {
+abstract class BaseGattProxyBearer<MeshService> : Bearer {
+    protected val _pdu = MutableSharedFlow<BearerPdu>()
     override val bearerState: Flow<BearerEvent> = MutableSharedFlow()
-    override val pdu: Flow<BearerPdu> = MutableSharedFlow()
     override val supportedTypes: Array<PduTypes> = arrayOf(
         PduTypes.NetworkPdu,
         PduTypes.MeshBeacon,
@@ -46,7 +46,7 @@ open class BaseGattProxyBearer<MeshService> : Bearer {
         // TODO("Not yet implemented")
     }
 
-    override fun send(pdu: ByteArray, type: PduType) {
+    override suspend fun send(pdu: ByteArray, type: PduType) {
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
 
         require(isOpen) { throw BearerError.BearerClosed }

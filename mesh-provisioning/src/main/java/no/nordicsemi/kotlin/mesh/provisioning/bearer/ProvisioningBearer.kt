@@ -20,7 +20,7 @@ interface ProvisioningBearer : MeshProvisioningBearer {
      * @throws InvalidPduType if the PDU type is not supported by the bearer.
      */
     @Throws(InvalidPduType::class)
-    fun send(request: ProvisioningRequest) {
+    suspend fun send(request: ProvisioningRequest) {
         send(request.pdu, PduType.PROVISIONING_PDU)
     }
 }
