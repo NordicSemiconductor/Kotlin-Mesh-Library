@@ -120,7 +120,6 @@ sealed class Algorithms(val rawValue: UShort) {
          */
         fun List<Algorithms>.toUShort(): UShort {
             var value = 0
-            sortedBy { it.rawValue.toInt() }
             forEach {
                 value = value or it.rawValue.toInt()
             }
