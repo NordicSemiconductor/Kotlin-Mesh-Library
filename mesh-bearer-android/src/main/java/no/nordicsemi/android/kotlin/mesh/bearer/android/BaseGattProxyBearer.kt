@@ -10,7 +10,7 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 /**
  * Base implementation of the GATT Proxy Bearer.
  *
- * @property bearerState           Flow that emits events whenever the bearer state changes.
+ * @property state           Flow that emits events whenever the bearer state changes.
  * @property pdu                   Flow that emits events whenever a PDU is received.
  * @property supportedTypes        List of supported PDU types.
  * @property logger                Logger receives logs sent from the bearer. The logs will contain
@@ -20,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
  */
 abstract class BaseGattProxyBearer<MeshService> : Bearer {
     protected val _pdu = MutableSharedFlow<BearerPdu>()
-    override val bearerState: Flow<BearerEvent> = MutableSharedFlow()
+    override val state: Flow<BearerEvent> = MutableSharedFlow()
     override val supportedTypes: Array<PduTypes> = arrayOf(
         PduTypes.NetworkPdu,
         PduTypes.MeshBeacon,

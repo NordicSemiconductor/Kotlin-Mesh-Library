@@ -36,13 +36,13 @@ interface Receiver {
 /**
  * Bearer is responsible for sending and receiving messages to and from the mesh network.
  *
- * @property bearerState         A flow that emits events whenever the bearer state changes.
+ * @property state         A flow that emits events whenever the bearer state changes.
  * @property supportedTypes      List of supported PDU types.
  * @property isOpen              Returns true if the bearer is open, false otherwise.
  */
 interface Bearer : Transmitter, Receiver {
 
-    val bearerState: Flow<BearerEvent>
+    val state: Flow<BearerEvent>
 
     val supportedTypes: Array<PduTypes>
 
