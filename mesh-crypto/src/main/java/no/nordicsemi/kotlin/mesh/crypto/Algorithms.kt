@@ -55,6 +55,18 @@ enum class Algorithm {
             0x01.toByte() -> BTM_ECDH_P256_HMAC_SHA256_AES_CCM
             else -> null
         }
+
+        /**
+         * Returns the strongest algorithm from a given list of supported algorithms.
+         *
+         * @receiver list of Algorithms.
+         * @return strongest algorithm supported.
+         */
+        fun List<Algorithms>.strongest(): Algorithm = find {
+            it.rawValue == Algorithms.BtmEcdhP256HmacSha256AesCcm.rawValue
+        }?.let {
+            BTM_ECDH_P256_HMAC_SHA256_AES_CCM
+        } ?: BTM_ECDH_P256_CMAC_AES128_AES_CCM
     }
 }
 
@@ -114,5 +126,15 @@ sealed class Algorithms(val rawValue: UShort) {
             }
             return value.toUShort()
         }
+
+        /**
+         * Returns the strongest algorithm from a given list of supported algorithms.
+         *
+         * @receiver list of Algorithms.
+         * @return strongest algorithm supported.
+         */
+        fun List<Algorithms>.strongest(): Algorithms = find {
+            it.rawValue == BtmEcdhP256HmacSha256AesCcm.rawValue
+        } ?: BtmEcdhP256CmacAes128AesCcm
     }
 }
