@@ -17,6 +17,7 @@ import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.interfaces.ECPublicKey
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECPublicKeySpec
 import org.bouncycastle.util.BigIntegers
 import java.security.*
@@ -46,6 +47,10 @@ object Crypto {
     private val PRSK = "prsk".encodeToByteArray()
     private val PRSN = "prsn".encodeToByteArray()
     private val PRDK = "prdk".encodeToByteArray()
+
+    init {
+        Security.addProvider(BouncyCastleProvider())
+    }
 
     /**
      * Generates a 128-bit random key using a SecureRandom.
@@ -77,7 +82,7 @@ object Crypto {
         Algorithm.FIPS_P256_ELLIPTIC_CURVE,
         Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
         Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
-            KeyPairGenerator.getInstance("ECDH", "SC").apply {
+            KeyPairGenerator.getInstance("ECDH", "BC").apply {
                 initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
             }.generateKeyPair()
         }
