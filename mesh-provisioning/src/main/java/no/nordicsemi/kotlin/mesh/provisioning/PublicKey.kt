@@ -9,7 +9,7 @@ sealed class PublicKey {
     val method: PublicKeyMethod
         get() = when (this) {
             NoOobPublicKey -> PublicKeyMethod.NO_OOB_PUBLIC_KEY
-            is OobPublicKey  -> PublicKeyMethod.OOB_PUBLIC_KEY
+            is OobPublicKey -> PublicKeyMethod.OOB_PUBLIC_KEY
         }
 }
 
@@ -71,6 +71,7 @@ sealed class PublicKeyType(val rawValue: UByte) {
     object PublicKeyOobInformationAvailable : PublicKeyType(rawValue = 1 shl 0)
 
     companion object {
+        val publicKeyTypes = listOf(PublicKeyOobInformationAvailable)
 
         /**
          * Returns the name of the given public key type.
@@ -83,17 +84,29 @@ sealed class PublicKeyType(val rawValue: UByte) {
         }
 
         /**
-         * Returns the public key type from the given provisioning pdu.
+         * Returns a list of public key information based on the give value.
          *
-         * @param pdu       Provisioning pdu.
-         * @param offset    Offset of the public key type.
-         * @return Public key type.
-         * @throws IllegalArgumentException if the public key type is invalid.
+         * @param value Supported public key types value obtained from the provisioning
+         *              capabilities pdu.
+         * @return List a of supported public key type or empty if oob information is not available.
          */
         @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset]) {
-            0.toByte() -> PublicKeyOobInformationAvailable
-            else -> throw IllegalArgumentException("Invalid public key type")
+        fun from(value: UByte) = publicKeyTypes.filter {
+            it.rawValue.toInt() and value.toInt() != 0
+        }
+
+        /**
+         * Converts a list of supported public key types to a UByte value.
+         *
+         * @receiver List of public key types.
+         * @return UByte containing the raw value of the list of public key types.
+         */
+        fun List<PublicKeyType>.toByte(): Byte {
+            var value = 0
+            forEach {
+                value = value or it.rawValue.toInt()
+            }
+            return value.toByte()
         }
     }
 }

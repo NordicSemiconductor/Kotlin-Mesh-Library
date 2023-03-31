@@ -99,6 +99,13 @@ sealed class AuthenticationMethod {
         }
 
     companion object {
+
+        /**
+         * Returns the authentication method from a given provisioning pdu.
+         *
+         * @param pdu Provisioning pdu.
+         * @return AuthenticationMethod or null otherwise.
+         */
         fun from(pdu: ProvisioningPdu): AuthenticationMethod? = when (pdu[3]) {
             0x00.toByte() -> NoOob
             0x01.toByte() -> StaticOob
@@ -136,34 +143,45 @@ sealed class AuthenticationMethod {
 sealed class OobType(val rawValue: UByte) {
     constructor(rawValue: Int) : this(rawValue.toUByte())
 
-    object none : OobType(rawValue = 0)
-
     /**
      * Static OOB information is available.
      */
-    object staticOobInformationAvailable : OobType(rawValue = 1 shl 0)
+    object StaticOobInformationAvailable : OobType(rawValue = 1 shl 0)
 
     /**
      * Only OOB authenticated provisioning is supported. Introduced in Mesh Protocol 1.1.0
      */
-    object onlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1)
+    object OnlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1)
 
     companion object {
 
+        private val oobTypes = listOf(
+            StaticOobInformationAvailable, OnlyOobAuthenticatedProvisioningSupported
+        )
+
         /**
-         * Returns OobType from a given provisioning pdu.
+         * Returns the supported oob types based on the give value.
          *
-         * @param pdu      Provisioning pdu.
-         * @param offset   Offset of the oob type.
-         * @return OobType
-         * @throws IllegalArgumentException if the oob type is invalid.
+         * @param value    Supported OobTypes value contained from the provisioning capabilities.
+         * @return List a of supported OobTypes or an empty list if none are supported.
          */
         @Throws(IllegalArgumentException::class)
-        fun from(pdu: ProvisioningPdu, offset: Int) = when (pdu[offset].toUByte()) {
-            0x00.toUByte() -> none
-            0x01.toUByte() -> staticOobInformationAvailable
-            0x02.toUByte() -> onlyOobAuthenticatedProvisioningSupported
-            else -> throw IllegalArgumentException("Invalid OobType.")
+        fun from(value: UByte) = oobTypes.filter {
+            it.rawValue.toInt() and value.toInt() != 0
+        }
+
+        /**
+         * Converts a list of supported oob types to a UByte value.
+         *
+         * @receiver List of OOB types.
+         * @return UByte containing the raw value of the list of algorithms.
+         */
+        fun List<OobType>.toByte(): Byte {
+            var value = 0
+            forEach {
+                value = value or it.rawValue.toInt()
+            }
+            return value.toByte()
         }
     }
 }
@@ -177,7 +195,6 @@ sealed class OutputOobActions(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object None : OutputOobActions(rawValue = 0)
     object Blink : OutputOobActions(rawValue = 1 shl 0)
     object Beep : OutputOobActions(rawValue = 1 shl 1)
     object Vibrate : OutputOobActions(rawValue = 1 shl 2)
@@ -185,14 +202,7 @@ sealed class OutputOobActions(val rawValue: UShort) {
     object OutputAlphanumeric : OutputOobActions(rawValue = 1 shl 4)
 
     companion object {
-        private val outputOobActions = listOf(
-            None,
-            Blink,
-            Beep,
-            Vibrate,
-            OutputNumeric,
-            OutputAlphanumeric
-        )
+        private val actions = listOf(Blink, Beep, Vibrate, OutputNumeric, OutputAlphanumeric)
 
         /**
          * Returns the list supported OutputOobActions from a given Output OOB Actions value.
@@ -200,7 +210,7 @@ sealed class OutputOobActions(val rawValue: UShort) {
          * @param value Output oob actions value from provisioning capabilities pdu.
          * @return a list of supported OutputOobActions or an empty list if none is supported.
          */
-        fun from(value: UShort) = outputOobActions.filter {
+        fun from(value: UShort) = actions.filter {
             it.rawValue.toInt() and value.toInt() != 0
         }
 
@@ -235,12 +245,7 @@ sealed class InputOobActions(val rawValue: UShort) {
     object InputAlphanumeric : InputOobActions(rawValue = 1 shl 3)
 
     companion object {
-        private val inputOobActions = listOf(
-            Push,
-            Twist,
-            InputNumeric,
-            InputAlphanumeric
-        )
+        private val actions = listOf(Push, Twist, InputNumeric, InputAlphanumeric)
 
         /**
          * Returns the list supported InputOobActions from a given provisioning pdu.
@@ -248,7 +253,7 @@ sealed class InputOobActions(val rawValue: UShort) {
          * @param value Input oob actions value from provisioning capabilities pdu.
          * @return a list of supported OutputOobActions or an empty list if none is supported.
          */
-        fun from(value: UShort) = inputOobActions.filter {
+        fun from(value: UShort) = actions.filter {
             it.rawValue.toInt() and value.toInt() != 0
         }
 
