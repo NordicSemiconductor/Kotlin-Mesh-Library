@@ -10,7 +10,7 @@ android {
 dependencies {
     api(project(":mesh-bearer"))
 
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.0")
 
     api("no.nordicsemi.android.kotlin.ble:core:0.0.1")
     api("no.nordicsemi.android.kotlin.ble:client:0.0.1")
