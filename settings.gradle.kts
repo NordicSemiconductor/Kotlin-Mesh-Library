@@ -13,10 +13,11 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven(url = "https://androidx.dev/storage/compose-compiler/repository/")
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.3.3")
+            from("no.nordicsemi.android.gradle:version-catalog:1.4.1")
         }
     }
 }
