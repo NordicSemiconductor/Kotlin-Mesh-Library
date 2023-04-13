@@ -82,11 +82,19 @@ object Crypto {
         Algorithm.FIPS_P256_ELLIPTIC_CURVE,
         Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
         Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
-            KeyPairGenerator.getInstance("ECDH", "BC").apply {
-                initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
-            }.generateKeyPair()
+            val keyPairGenerator = KeyPairGenerator.getInstance("ECDH", "BC")
+            keyPairGenerator.initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
+            keyPairGenerator.generateKeyPair()
         }
     }
+
+    /**
+     * Returns the public key encoded as a 64-byte array
+     *
+     * @receiver Public key.
+     */
+    fun PublicKey.toByteArray() = (this as ECPublicKey).q.getEncoded(false)
+        .sliceArray(1 until 65)
 
     /**
      * Calculates the shared secret based on the given public key and the local private key.
@@ -110,20 +118,40 @@ object Crypto {
         IllegalStateException::class
     )
     fun calculateSharedSecret(privateKey: PrivateKey, publicKey: ByteArray): ByteArray {
+        val devicePublicKey = calculateDeviceEcPublicKey(publicKey) as ECPublicKey
+        return KeyAgreement.getInstance("ECDH", "BC").let {
+            it.init(privateKey)
+            it.doPhase(devicePublicKey, true)
+            it.generateSecret()
+        }
+    }
+
+    /**
+     * Calculates the device public key based on the provisioners public key.
+     *
+     * @param publicKey Provisioner public key.
+     * @return Device public key.
+     */
+    private fun calculateDeviceEcPublicKey(publicKey: ByteArray): PublicKey {
         val x = BigIntegers.fromUnsignedByteArray(publicKey, 0, 32)
         val y = BigIntegers.fromUnsignedByteArray(publicKey, 32, 32)
 
         val ecParameters = ECNamedCurveTable.getParameterSpec("secp256r1")
         val ecPoint = ecParameters.curve.validatePoint(x, y)
         val keySpec = ECPublicKeySpec(ecPoint, ecParameters)
-        val keyFactory = KeyFactory.getInstance("ECDH", "SC")
-        val devicePublicKey = keyFactory.generatePublic(keySpec) as ECPublicKey
-        return KeyAgreement.getInstance("ECDH", "SC").let {
-            it.init(privateKey)
-            it.doPhase(devicePublicKey, true)
-            it.generateSecret()
-        }
+        val keyFactory = KeyFactory.getInstance("ECDH", "BC")
+        return keyFactory.generatePublic(keySpec)
     }
+
+    /**
+     * Calculates the device public key based on the provisioners public key.
+     *
+     * TODO This API needs to be clarified currently used for tests
+     *
+     * @param publicKey Provisioner public key.
+     */
+    fun calculateDevicePublicKey(publicKey: ByteArray): ByteArray =
+        calculateDeviceEcPublicKey(publicKey).toByteArray()
 
     /**
      * Calculates the provisioning confirmation based on the confirmation inputs, device random,
