@@ -6,8 +6,10 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms.Companion.toUShort
+import no.nordicsemi.kotlin.mesh.provisioning.InputAction.Companion.toInputActions
 import no.nordicsemi.kotlin.mesh.provisioning.InputOobActions.Companion.toUShort
 import no.nordicsemi.kotlin.mesh.provisioning.OobType.Companion.toByte
+import no.nordicsemi.kotlin.mesh.provisioning.OutputAction.Companion.toOutputActions
 import no.nordicsemi.kotlin.mesh.provisioning.OutputOobActions.Companion.toUShort
 import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyType.Companion.toByte
 
@@ -18,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyType.Companion.toByte
  * @property numberOfElements                 Number of elements supported by the device.
  * @property algorithms                       Algorithms supported by the device.
  * @property publicKeyType                    Public key type supported by the device.
- * @property oobTypes                          OOB type supported by the device.
+ * @property oobTypes                         OOB type supported by the device.
  * @property outputOobSize                    Output OOB size supported by the device.
  * @property outputOobActions                 Output OOB actions supported by the device.
  * @property inputOobSize                     Input OOB size supported by the device.
@@ -55,4 +57,27 @@ data class ProvisioningCapabilities(
                 outputOobActions.toUShort().toByteArray() +
                 byteArrayOf(inputOobSize.toByte()) +
                 inputOobActions.toUShort().toByteArray()
+
+    val supportedAuthenticationMethods: List<AuthenticationMethod>
+        get() {
+            val authMethods = mutableListOf<AuthenticationMethod>()
+            if (oobTypes.contains(OobType.OnlyOobAuthenticatedProvisioningSupported)) {
+                authMethods.add(AuthenticationMethod.StaticOob)
+            } else {
+                authMethods.add(AuthenticationMethod.NoOob)
+                authMethods.add(AuthenticationMethod.StaticOob)
+
+            }
+            outputOobActions.toOutputActions().first().let {
+                authMethods.add(
+                    AuthenticationMethod.OutputOob(it, it.rawValue)
+                )
+            }
+            inputOobActions.toInputActions().first().let {
+                authMethods.add(
+                    AuthenticationMethod.InputOob(it, it.rawValue)
+                )
+            }
+            return authMethods
+        }
 }
