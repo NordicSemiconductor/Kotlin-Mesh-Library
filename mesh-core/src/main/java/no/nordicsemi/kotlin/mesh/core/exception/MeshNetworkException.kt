@@ -23,6 +23,9 @@ object CannotRemove : MeshNetworkException()
 /** Thrown when a node already exists. */
 object NodeAlreadyExists : MeshNetworkException()
 
+/** Thrown when no provisioner is available in the mesh network. */
+object NoLocalProvisioner : MeshNetworkException()
+
 /** Thrown when no unicast address range is allocated to a provisioner. */
 object ProvisionerAlreadyExists : MeshNetworkException()
 
