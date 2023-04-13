@@ -10,8 +10,8 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 /**
  * Base implementation of the GATT Proxy Bearer.
  *
- * @property state           Flow that emits events whenever the bearer state changes.
- * @property pdu                   Flow that emits events whenever a PDU is received.
+ * @property state                 Flow that emits events whenever the bearer state changes.
+ * @property pdus                  Flow that emits events whenever a PDU is received.
  * @property supportedTypes        List of supported PDU types.
  * @property logger                Logger receives logs sent from the bearer. The logs will contain
  *                                 raw data of sent and received packets, as well as connection

@@ -26,7 +26,7 @@ open class PbGattBearer(
     private val context: Context,
     private val device: ServerDevice
 ) : BaseGattProxyBearer<MeshProvisioningService>(), MeshProvisioningBearer {
-    override val pdu: Flow<BearerPdu> = _pdu.asSharedFlow()
+    override val pdus: Flow<BearerPdu> = _pdu.asSharedFlow()
     private lateinit var dataInCharacteristic: BleGattCharacteristic
     private lateinit var dataOutCharacteristic: BleGattCharacteristic
 

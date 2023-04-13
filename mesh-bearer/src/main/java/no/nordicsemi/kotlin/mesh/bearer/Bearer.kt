@@ -23,13 +23,12 @@ interface Transmitter {
 
 /**
  * Receiver is responsible for receiving messages from the mesh network.
- * @property pdu A flow that emits events whenever a PDU is received.
+ *
+ * @property pdus A flow that emits events whenever a PDU is received.
  */
 interface Receiver {
-    /**
-     * Returns a flow of received PDUs.
-     */
-    val pdu: Flow<BearerPdu>
+
+    val pdus: Flow<BearerPdu>
 
 }
 

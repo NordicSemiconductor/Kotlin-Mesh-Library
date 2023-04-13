@@ -15,7 +15,7 @@ import no.nordicsemi.kotlin.mesh.bearer.PduTypes
  */
 class GattBearer : BaseGattProxyBearer<MeshProxyService>(), MeshBearer {
 
-    override val pdu: Flow<BearerPdu> = _pdu.asSharedFlow()
+    override val pdus: Flow<BearerPdu> = _pdu.asSharedFlow()
 
     override val supportedTypes: Array<PduTypes> =
         arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)
