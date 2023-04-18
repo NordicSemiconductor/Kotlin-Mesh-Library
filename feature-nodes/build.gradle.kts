@@ -10,4 +10,10 @@ android {
 dependencies {
     implementation(libs.nordic.navigation)
 
+
+    implementation(project(":core-ui"))
+    implementation(project(":core-data"))
+
+    implementation(project(":mesh-core"))
+    implementation (project(":feature-scanner"))
 }
