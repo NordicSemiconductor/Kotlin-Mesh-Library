@@ -6,6 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.model.*
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import no.nordicsemi.kotlin.mesh.crypto.Crypto.toByteArray
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningError.InvalidPublicKey
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -103,13 +104,18 @@ internal class ProvisioningData {
         this.unicastAddress = unicastAddress
     }
 
+    /**
+     * Generates a key pair based on the given algorithm.
+     *
+     * @param algorithm Algorithm to use for key generation.
+     */
     fun generateKeys(algorithm: Algorithm) {
-        Crypto.generateKeyPair(algorithm).also {
-            privateKey = it.private
+        Crypto.generateKeyPair(algorithm).let {
             publicKey = it.public
+            privateKey = it.private
         }
 
-        provisionerPublicKey = publicKey.encoded
+        provisionerPublicKey = publicKey.toByteArray()
         this.algorithm = algorithm
 
         // Generate Provisioner Random
@@ -137,18 +143,13 @@ internal class ProvisioningData {
      * Invoked when the Provisionee's Public Key has been obtained. This must be called after
      * generating keys.
      *
-     * @param publicKey Provisionee's Public Key.
+     * @param key       Provisionee's Public Key.
      * @param usingOob  Indicates whether the Public Key was obtained Out-Of-Band.
      * @throws InvalidPublicKey if the Provisioner's keys have not been generated.
      */
-    @Throws(InvalidPublicKey::class)
-    fun onDevicePublicKeyReceived(publicKey: ByteArray, usingOob: Boolean) {
-        runCatching {
-            sharedSecret = Crypto.calculateSharedSecret(privateKey, publicKey)
-            oobPublicKey = usingOob
-        }.onFailure {
-            throw InvalidPublicKey
-        }
+    fun onDevicePublicKeyReceived(key: ByteArray, usingOob: Boolean) {
+        sharedSecret = Crypto.calculateSharedSecret(privateKey, key)
+        oobPublicKey = usingOob
     }
 
     /**
@@ -162,9 +163,20 @@ internal class ProvisioningData {
 
     /**
      * Invoked when the device confirmation is received from the device.
+     *
+     * @param confirmation device confirmation
      */
-    fun onDeviceConfirmationReceived(deviceConfirmation: ByteArray) {
-        this.deviceConfirmation = deviceConfirmation
+    fun onDeviceConfirmationReceived(confirmation: ByteArray) {
+        this.deviceConfirmation = confirmation
+    }
+
+    /**
+     * Invoked when the device random is received from the device.
+     *
+     * @param random device random
+     */
+    fun onDeviceRandomReceived(random: ByteArray) {
+        this.deviceRandom = random
     }
 
     /**
