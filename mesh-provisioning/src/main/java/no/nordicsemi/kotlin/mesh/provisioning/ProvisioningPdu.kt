@@ -13,7 +13,7 @@ internal typealias ProvisioningPdu = ByteArray
  *  @property type The type of provisioning pdu.
  */
 internal enum class ProvisioningPduType(val type: Int) {
-    
+
     /**
      * A Provisioner sends a Provisioning Invite PDU to indicate to the intended Provisionee that
      * the provisioning process is starting. The attention timer is used to identify the device
@@ -299,19 +299,24 @@ sealed class ProvisioningResponse {
      */
     data class Failed(val error: RemoteProvisioningError) : ProvisioningResponse()
 
-    val pdu:ProvisioningPdu
-    get() {
-        return when (this) {
-            is Capabilities -> ProvisioningPdu(1) { CAPABILITIES.type.toByte() } + capabilities.value
-            is InputComplete -> ProvisioningPdu(1) { INPUT_COMPLETE.type.toByte() }
-            is PublicKey -> ProvisioningPdu(1) { PUBLIC_KEY.type.toByte() } + key
-            is Confirmation -> ProvisioningPdu(1) { CONFIRMATION.type.toByte() } + confirmation
-            is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
-            is Complete -> ProvisioningPdu(1) { COMPLETE.type.toByte() }
-            is Failed -> ProvisioningPdu(2) { FAILED.type.toByte() } + error.errorCode.toByte()
+    val pdu: ProvisioningPdu
+        get() {
+            return when (this) {
+                is Capabilities -> ProvisioningPdu(1) {
+                    CAPABILITIES.type.toByte()
+                } + capabilities.value
+                is InputComplete -> ProvisioningPdu(1) { INPUT_COMPLETE.type.toByte() }
+                is PublicKey -> ProvisioningPdu(1) { PUBLIC_KEY.type.toByte() } + key
+                is Confirmation -> ProvisioningPdu(1) {
+                    CONFIRMATION.type.toByte()
+                } + confirmation
+                is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
+                is Complete -> ProvisioningPdu(1) { COMPLETE.type.toByte() }
+                is Failed -> ProvisioningPdu(2) {
+                    FAILED.type.toByte()
+                } + error.errorCode.toByte()
+            }
         }
-    }
-
 
 
     companion object {
