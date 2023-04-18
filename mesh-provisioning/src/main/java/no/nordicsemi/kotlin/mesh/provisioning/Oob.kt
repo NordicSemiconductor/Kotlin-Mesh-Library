@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import kotlin.math.pow
+
 
 /**
  * Information that points to the out-of-band information that the device can provide.
@@ -77,29 +79,29 @@ sealed class AuthenticationMethod {
     /**
      * Output OOB authentication method is used. Size must be in range 1...8.
      *
-     * @property action      Output action type.
-     * @property size        Size of the input.
+     * @property action        Output action type.
+     * @property length        Size of the input.
      * @constructor Constructs a new OutputOob.
      */
-    data class OutputOob(val action: OutputAction, val size: UByte) : AuthenticationMethod() {
+    data class OutputOob(val action: OutputAction, val length: UByte) : AuthenticationMethod() {
         constructor(action: OutputAction) : this(action, action.rawValue)
     }
 
     /**
      * Input OOB authentication method is used. Size must be in range 1...8.
      *
-     * @property action      Input action type.
-     * @property size        Size of the input.
+     * @property action        Input action type.
+     * @property length        Size of the input.
      * @constructor Constructs a new InputOob.
      */
-    data class InputOob(val action: InputAction, val size: UByte) : AuthenticationMethod()
+    data class InputOob(val action: InputAction, val length: UByte) : AuthenticationMethod()
 
-    val value: ByteArray
+    internal val value: ByteArray
         get() = when (this) {
             NoOob -> byteArrayOf(0, 0, 0)
             StaticOob -> byteArrayOf(1, 0, 0)
-            is OutputOob -> byteArrayOf(2, action.rawValue.toByte(), size.toByte())
-            is InputOob -> byteArrayOf(3, action.rawValue.toByte(), size.toByte())
+            is OutputOob -> byteArrayOf(2, action.rawValue.toByte(), length.toByte())
+            is InputOob -> byteArrayOf(3, action.rawValue.toByte(), length.toByte())
         }
 
     companion object {
@@ -120,9 +122,10 @@ sealed class AuthenticationMethod {
                     }?.let { outputAction ->
                         OutputOob(
                             action = outputAction,
-                            size = pdu[5].toUByte()
+                            length = pdu[5].toUByte()
                         )
                     }
+
             0x03.toByte() ->
                 InputAction.values()
                     .find {
@@ -130,11 +133,26 @@ sealed class AuthenticationMethod {
                     }?.let {
                         InputOob(
                             action = it,
-                            size = pdu[5].toUByte()
+                            length = pdu[5].toUByte()
                         )
                     }
+
             else -> null
         }
+
+        fun randomAlphaNumeric(length: Int): String {
+            val letters = ('0'..'9') + ('A'..'Z')
+            return (1 until length).map {
+                letters.random()
+            }.joinToString("")
+        }
+
+        /**
+         * Returns a random integer with the given length.
+         *
+         * @param length The length of the integer.
+         */
+        fun randomInt(length: Int) = (0 until 10.0.pow(length.toDouble()).toInt()).random()
     }
 }
 
