@@ -10,10 +10,10 @@ import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristi
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
-import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProvisioningService
-import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProvisioningService.dataInUuid
-import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProvisioningService.dataOutUuid
-import no.nordicsemi.android.kotllin.mesh.bearer.ble.utils.MeshProvisioningService.uuid
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService.dataInUuid
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService.dataOutUuid
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService.uuid
 import no.nordicsemi.kotlin.mesh.bearer.BearerPdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes

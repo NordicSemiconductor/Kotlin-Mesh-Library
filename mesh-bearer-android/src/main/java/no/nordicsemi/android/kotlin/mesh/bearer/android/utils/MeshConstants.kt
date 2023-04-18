@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.android.kotllin.mesh.bearer.ble.utils
+package no.nordicsemi.android.kotlin.mesh.bearer.android.utils
 
 import java.util.*
 
