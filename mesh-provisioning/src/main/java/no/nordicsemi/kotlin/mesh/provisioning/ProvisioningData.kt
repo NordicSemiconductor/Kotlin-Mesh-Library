@@ -181,7 +181,7 @@ internal class ProvisioningData {
 
     /**
      * Validates the received the Provisioning Confirmation and matches it with one calculated
-     * locally based on the Provisioning received from the device and Auth Value.
+     * locally based on the Provisioning data received from the device and Auth Value.
      *
      * @return true if the confirmation matches, false otherwise.
      */
