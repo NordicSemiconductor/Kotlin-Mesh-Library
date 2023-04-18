@@ -2,17 +2,17 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.crypto.Algorithm
+
+
 /**
  * Defines possible state of provisioning process.
  *
  * @property debugDescription Debug description of the state.
  */
 sealed class ProvisioningState {
-
-    /**
-     * Provisioning Manager is ready to start.
-     */
-    object Ready : ProvisioningState()
 
     /**
      * The manager is requesting Provisioning Capabilities from the device.
@@ -23,15 +23,34 @@ sealed class ProvisioningState {
      * Provisioning Capabilities were received.
      *
      * @property capabilities Capabilities of the device.
+     * @property start        Lambda func to invoke to start provisioning with the capabilities.
+     * @property cancel       Lambda func to invoke to cancel the provisioning.
      */
     data class CapabilitiesReceived(
-        val capabilities: ProvisioningCapabilities
+        val capabilities: ProvisioningCapabilities,
+        val start: (
+            unicastAddress: UnicastAddress,
+            networkKey: NetworkKey,
+            algorithm: Algorithm,
+            publicKey: PublicKey,
+            authenticationMethod: AuthenticationMethod
+        ) -> Unit,
+        val cancel: () -> Unit
     ) : ProvisioningState()
 
     /**
      * Provisioning has been started.
      */
     object Provisioning : ProvisioningState()
+
+    /**
+     * Authentication action is required. The user provide an authentication value.
+     *
+     * @property action Lambda func to invoke to authenticate provisioning process.
+     */
+    data class AuthActionRequired(
+        val action: AuthAction
+    ) : ProvisioningState()
 
     /**
      * The provisioning process is complete.
@@ -45,11 +64,63 @@ sealed class ProvisioningState {
 
     val debugDescription: String
         get() = when (this) {
-            Ready -> "Provisioner is ready"
             RequestingCapabilities -> "Requesting provisioning capabilities"
             is CapabilitiesReceived -> "Provisioning capabilities received"
             Provisioning -> "Provisioning started"
             Complete -> "Provisioning complete"
             is Failed -> "Provisioning failed: $error"
+            is AuthActionRequired -> "Requesting authentication action"
         }
+}
+
+/**
+ * Defines a set of authentication methods aimed at strengthening the provisioning process.
+ */
+sealed class AuthAction {
+    /**
+     * The user must provide a 16-byte static authentication value.
+     *
+     * @property authenticate Lambda func to invoke to authenticate provisioning process.
+     */
+    data class ProvideStaticKey(val authenticate: (ByteArray) -> Unit) : AuthAction()
+
+    /**
+     * The user shall provide a number.
+     *
+     * @property maxNumberOfDigits Maximum number of digits of the authentication number to provide.
+     * @property action            Action to perform after the number is provided.
+     * @property authenticate      Lambda func to invoke provide the number.
+     */
+    data class ProvideNumeric(
+        val maxNumberOfDigits: UByte,
+        val action: OutputAction,
+        val authenticate: (UByte) -> Unit
+    ) : AuthAction()
+
+    /**
+     * The user shall provide an alphanumeric text.
+     *
+     * @property maxNumberOfCharacters Maximum number of characters of the alphanumeric text to
+     *                                 provide.
+     * @property authenticate          Lambda func to invoke provide the alphanumeric text.
+     */
+    data class ProvideAlphaNumeric(
+        val maxNumberOfCharacters: UByte,
+        val authenticate: (String) -> Unit
+    ) : AuthAction()
+
+    /**
+     * The application should display this number to the user. The user should perform the selected
+     * action given number of times.
+     *
+     * @property number Number to display.
+     * @property action Input action to perform.
+     */
+    data class DisplayNumber(val number: UInt, val action: InputAction) : AuthAction()
+
+    /**
+     * The application should display this alphanumeric text to the user. The user must enter this
+     * text on the provisioning device.
+     */
+    data class DisplayAlphaNumeric(val text: String) : AuthAction()
 }
