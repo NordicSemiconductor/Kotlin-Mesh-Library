@@ -24,7 +24,7 @@ interface MeshService {
  * This is used to send provisioning messages over gatt.
  */
 object MeshProvisioningService : MeshService {
-    override var uuid: UUID = UUID.fromString("00001828-0000-1000-8000-00805f9b34fb")
+    override var uuid: UUID = UUID.fromString("00001827-0000-1000-8000-00805f9b34fb")
     override var dataInUuid: UUID = UUID.fromString("00002adb-0000-1000-8000-00805f9b34fb")
     override var dataOutUuid: UUID = UUID.fromString("00002adc-0000-1000-8000-00805f9b34fb")
 }
@@ -36,7 +36,7 @@ object MeshProvisioningService : MeshService {
  * This is used to send mesh messages over gatt.
  */
 object MeshProxyService : MeshService {
-    override var uuid: UUID = UUID.fromString("00001827-0000-1000-8000-00805f9b34fb")
+    override var uuid: UUID = UUID.fromString("00001828-0000-1000-8000-00805f9b34fb")
     override var dataInUuid: UUID = UUID.fromString("00002add-0000-1000-8000-00805f9b34fb")
     override var dataOutUuid: UUID = UUID.fromString("00002ade-0000-1000-8000-00805f9b34fb")
 }
