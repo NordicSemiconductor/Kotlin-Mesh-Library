@@ -1,1 +1,0 @@
-package no.nordicsemi.android.nrfmesh.feature.scanner

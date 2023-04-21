@@ -1,28 +1,68 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 
 package no.nordicsemi.android.nrfmesh.ui
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.common.navigation.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.DestinationId
+import no.nordicsemi.android.common.navigation.NavigationView
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.popUpToStartDestination
+import no.nordicsemi.android.common.navigation.with
 import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
-import no.nordicsemi.android.nrfmesh.destinations.*
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
+import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
+import no.nordicsemi.android.nrfmesh.destinations.groupsTab
+import no.nordicsemi.android.nrfmesh.destinations.navigationItems
+import no.nordicsemi.android.nrfmesh.destinations.nodesTab
+import no.nordicsemi.android.nrfmesh.destinations.proxyFilterTab
+import no.nordicsemi.android.nrfmesh.destinations.settingsTab
+import no.nordicsemi.android.nrfmesh.destinations.topLevelTabs
 import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeys
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
+import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.*
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.groupRanges
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
+import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilter
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
@@ -37,39 +77,78 @@ fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
         NetworkScreen(viewModel)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NetworkScreen(viewModel: NetworkViewModel) {
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val currentDestination by viewModel.currentDestination().collectAsStateWithLifecycle()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            NordicLargeAppBar(
-                text = currentDestination?.title() ?: "",
-                scrollBehavior = scrollBehavior,
-                onNavigationButtonClick = { viewModel.navigateUp() },
-                showBackButton = when (currentDestination) {
-                    nodes, groups, proxyFilter, settings -> false
-                    else -> true
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true
+    )
+
+    ModalBottomSheetLayout(
+        sheetContent = {
+            ScannerSheet(
+                service = MeshProvisioningService,
+                hideScanner = {
+                    hideScanner(scope, bottomSheetState)
                 }
             )
         },
-        bottomBar = {
-            BottomNavigationBar(destinations = navigationItems, navigator = viewModel.navigator)
-        }
+        sheetState = bottomSheetState
     ) {
-        NavigationView(
-            destinations = listOf(
-                topLevelTabs with ((nodesTab with nodesDestinations) +
-                        (groupsTab with groupsDestinations) +
-                        (proxyFilterTab with proxyFilterDestinations) +
-                        (settingsTab with settingsDestinations))
-            ),
-            modifier = Modifier.padding(it)
-        )
+        if (bottomSheetState.isVisible) {
+            BackHandler(enabled = true, onBack = { hideScanner(scope, bottomSheetState) })
+        }
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                NordicLargeAppBar(
+                    text = currentDestination?.title() ?: "",
+                    scrollBehavior = scrollBehavior,
+                    onNavigationButtonClick = { viewModel.navigateUp() },
+                    showBackButton = when (currentDestination) {
+                        nodes, groups, proxyFilter, settings -> false
+                        else -> true
+                    }
+                )
+            },
+            floatingActionButton = {
+                if (currentDestination == nodes) {
+                    ExtendedFloatingActionButton(onClick = {
+                        if (!bottomSheetState.isVisible) {
+                            openBottomSheet = true
+                            scope.launch {
+                                bottomSheetState.show()
+                            }
+                        }
+                    }) {
+                        Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = stringResource(R.string.action_add_node)
+                        )
+                    }
+                }
+            },
+            bottomBar = {
+                BottomNavigationBar(destinations = navigationItems, navigator = viewModel.navigator)
+            }
+        ) {
+            NavigationView(
+                destinations = listOf(
+                    topLevelTabs with ((nodesTab with nodesDestinations) +
+                            (groupsTab with groupsDestinations) +
+                            (proxyFilterTab with proxyFilterDestinations) +
+                            (settingsTab with settingsDestinations))
+                ),
+                modifier = Modifier.padding(it)
+            )
+        }
     }
 }
 
@@ -111,6 +190,10 @@ fun BottomNavigationBar(
             )
         }
     }
+}
+
+private fun hideScanner(scope: CoroutineScope, bottomSheetState: ModalBottomSheetState) {
+    scope.launch { bottomSheetState.hide() }
 }
 
 @Composable

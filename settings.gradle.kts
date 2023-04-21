@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.4.2")
+            from("no.nordicsemi.android.gradle:version-catalog:1.4.3")
         }
     }
 }
@@ -50,4 +50,3 @@ include(":mesh-bearer-provisioning")
 include(":mesh-bearer-android")
 include(":mesh-bearer-gatt")
 include(":mesh-bearer-pbgatt")
-include(":feature-scanner")
