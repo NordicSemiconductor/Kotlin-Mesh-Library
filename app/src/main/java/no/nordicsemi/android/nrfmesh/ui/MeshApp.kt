@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -79,6 +80,7 @@ fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
 
 @Composable
 fun NetworkScreen(viewModel: NetworkViewModel) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -93,9 +95,8 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         sheetContent = {
             ScannerSheet(
                 service = MeshProvisioningService,
-                hideScanner = {
-                    hideScanner(scope, bottomSheetState)
-                }
+                onDeviceFound = { viewModel.connect(context, it) },
+                hideScanner = { hideScanner(scope, bottomSheetState) }
             )
         },
         sheetState = bottomSheetState

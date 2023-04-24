@@ -7,20 +7,13 @@ import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningRequest
 
-
 /**
- * Provisioning bearer is used to send provisioning messages to provisioned nodes.
+ * Sends the given provisioning request using the provisioning bearer.
+ *
+ * @param request Provisioning request to be sent.
+ * @throws InvalidPduType if the PDU type is not supported by the bearer.
  */
-interface ProvisioningBearer : MeshProvisioningBearer {
-
-    /**
-     * Sends the given provisioning request using the provisioning bearer.
-     *
-     * @param request Provisioning request to be sent.
-     * @throws InvalidPduType if the PDU type is not supported by the bearer.
-     */
-    @Throws(InvalidPduType::class)
-    suspend fun send(request: ProvisioningRequest) {
-        send(request.pdu, PduType.PROVISIONING_PDU)
-    }
+@Throws(InvalidPduType::class)
+suspend fun MeshProvisioningBearer.send(request: ProvisioningRequest) {
+    send(request.pdu, PduType.PROVISIONING_PDU)
 }

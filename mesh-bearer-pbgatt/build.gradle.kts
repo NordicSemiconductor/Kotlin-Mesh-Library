@@ -10,6 +10,7 @@ android {
 dependencies {
     api(project(":mesh-bearer-android"))
     api(project(":mesh-bearer-provisioning"))
+    implementation(project(":mesh-provisioning"))
     implementation("androidx.test.ext:junit-ktx:1.1.5")
 
     api("no.nordicsemi.android.kotlin.ble:core:0.0.1")

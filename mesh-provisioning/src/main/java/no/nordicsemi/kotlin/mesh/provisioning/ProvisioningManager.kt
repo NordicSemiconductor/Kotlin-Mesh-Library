@@ -8,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import no.nordicsemi.kotlin.mesh.bearer.*
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -18,18 +19,21 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
-import no.nordicsemi.kotlin.mesh.provisioning.bearer.ProvisioningBearer
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningResponse.Complete.pdu
+import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
 
 /**
  * Provisioning manager is responsible for provisioning new devices to a mesh network.
  *
  * @property unprovisionedDevice          Unprovisioned device to be provisioned.
  * @property meshNetwork                  Mesh network to which the device will be provisioned.
+ * @property bearer                       Bearer used to send provisioning PDUs.
  */
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
-    private val bearer: ProvisioningBearer
+    private val bearer: MeshProvisioningBearer
 ) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var authenticationMethod: AuthenticationMethod
@@ -51,10 +55,14 @@ class ProvisioningManager(
     }
 
     /**
+     * Starts the provisioning process with the given attention timer.
      *
+     * @param attentionTimer Attention timer value in seconds.
+     * @return A flow of provisioning states that could be used to observe and continue/cancel the
+     *         provisioning process.
      */
     @Throws(ProvisioningError::class, BearerError::class)
-    fun provision(attentionTimer: UByte) = flow<ProvisioningState> {
+    fun provision(attentionTimer: UByte) = flow {
         var networkKey: NetworkKey = meshNetwork.networkKeys.first()
         var unicastAddress: UnicastAddress
         var algorithm: Algorithm
@@ -85,7 +93,7 @@ class ProvisioningManager(
         logger?.w(LogCategory.PROVISIONING) { "Sending $provisioningInvite" }
 
         //Sends the provisioning invite
-        send(provisioningInvite, provisioningData)
+        send(provisioningInvite).also { provisioningData.accumulate(it) }
 
         val capabilities = awaitCapabilities().capabilities.apply {
             // Lets init based on the capabilities
@@ -151,14 +159,14 @@ class ProvisioningManager(
             authMethod,
         )
         logger?.v(LogCategory.PROVISIONING) { "Sending $provisioningStart" }
-        send(provisioningStart, provisioningData)
+        send(provisioningStart).also { provisioningData.accumulate(it) }
         this@ProvisioningManager.authenticationMethod = authMethod
 
         val provisioningPublicKey = ProvisioningRequest.PublicKey(
             provisioningData.provisionerPublicKey
         )
         logger?.v(LogCategory.PROVISIONING) { "Sending $provisioningPublicKey" }
-        send(provisioningPublicKey, provisioningData)
+        send(provisioningPublicKey).also { provisioningData.accumulate(it) }
 
         if (publicKey is PublicKey.OobPublicKey) {
             provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
@@ -185,7 +193,7 @@ class ProvisioningManager(
             confirmation = provisioningData.provisionerConfirmation
         ).also { confirmation ->
             logger?.v(LogCategory.PROVISIONING) { "Sending $confirmation" }
-            send(confirmation, provisioningData)
+            send(confirmation).also { provisioningData.accumulate(it) }
         }
 
         val confirmation = awaitConfirmation().confirmation
@@ -195,7 +203,7 @@ class ProvisioningManager(
             random = provisioningData.provisionerRandom
         ).also { random ->
             logger?.v(LogCategory.PROVISIONING) { "Sending $random" }
-            send(random, provisioningData)
+            send(random).also { provisioningData.accumulate(it) }
         }
 
         provisioningData.onDeviceRandomReceived(awaitRandom().random)
@@ -207,7 +215,7 @@ class ProvisioningManager(
 
         val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
         logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
-        send(data, provisioningData)
+        send(data).also { provisioningData.accumulate(it) }
 
         awaitComplete()
     }
@@ -383,23 +391,12 @@ class ProvisioningManager(
      *
      * @param request Provisioning request to be sent.
      */
-    private suspend fun send(request: ProvisioningRequest) {
+    private suspend fun send(request: ProvisioningRequest): ByteArray {
+        println("Sending provisioning request: ${request.pdu.encodeHex()}")
         bearer.send(request)
+        return request.pdu.sliceArray(1 until pdu.size)
     }
 
-    /**
-     * Sends the provisioning request to the device over the Bearer specified in the constructor.
-     * Additionally it adds the request payload to given inputs. Inputs are required in device
-     * authorization.
-     *
-     * @param request Provisioning request to be sent.
-     * @param data    Provisioning data.
-     */
-    private suspend fun send(request: ProvisioningRequest, data: ProvisioningData) {
-        val pdu = request.pdu
-        data.accumulate(pdu.sliceArray(1 until pdu.size))
-        bearer.send(pdu, PduType.PROVISIONING_PDU)
-    }
 
     private fun observeBearerStateChanges() {
         bearer.state.onEach {

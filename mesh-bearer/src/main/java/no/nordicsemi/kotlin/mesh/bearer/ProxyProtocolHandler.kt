@@ -78,7 +78,7 @@ class ProxyProtocolHandler {
         singlePacket += data
         arrayOf(singlePacket)
     } else {
-        var packets: Array<ByteArray> = emptyArray()
+        var packets: Array<ByteArray> = arrayOf()
         for (i in data.indices step mtu - 1) {
             val sar = when {
                 i == 0 -> SAR.FIRST_SEGMENT

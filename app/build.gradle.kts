@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":mesh-core"))
     implementation(project(":mesh-provisioning"))
     implementation(project(":mesh-bearer-android"))
+    implementation(project(":mesh-bearer-pbgatt"))
 
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.10")
 }

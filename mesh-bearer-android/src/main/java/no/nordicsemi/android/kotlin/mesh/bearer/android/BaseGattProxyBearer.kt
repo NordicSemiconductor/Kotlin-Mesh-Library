@@ -2,8 +2,11 @@
 
 package no.nordicsemi.android.kotlin.mesh.bearer.android
 
+import android.annotation.SuppressLint
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
+import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.kotlin.mesh.bearer.*
 import no.nordicsemi.kotlin.mesh.logger.Logger
 
@@ -29,10 +32,14 @@ abstract class BaseGattProxyBearer<MeshService> : Bearer {
     )
     override val isOpen: Boolean
         get() = isOpened
+    var mtu: Int = 20
+        protected set
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
-    private lateinit var queue: Array<ByteArray>
     private var isOpened = false
+    private lateinit var queue: Array<ByteArray>
+    protected lateinit var dataInCharacteristic: BleGattCharacteristic
+    protected lateinit var dataOutCharacteristic: BleGattCharacteristic
 
     var logger: Logger? = null
 
@@ -46,10 +53,12 @@ abstract class BaseGattProxyBearer<MeshService> : Bearer {
         // TODO("Not yet implemented")
     }
 
+    @SuppressLint("MissingPermission")
     override suspend fun send(pdu: ByteArray, type: PduType) {
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
-
         require(isOpen) { throw BearerError.BearerClosed }
-
+        proxyProtocolHandler.segment(pdu, type, mtu).forEach {
+            dataInCharacteristic.write(it, BleWriteType.NO_RESPONSE)
+        }
     }
 }
