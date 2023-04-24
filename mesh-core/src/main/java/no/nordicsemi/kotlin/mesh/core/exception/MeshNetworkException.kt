@@ -14,7 +14,7 @@ object InvalidKeyLength : MeshNetworkException()
 /** Thrown when a given key is in use. */
 object KeyInUse : MeshNetworkException()
 
-/** Thrown when a node does not contain any network key. */
+/** Thrown when a network and a node does not contain any network key. */
 object NoNetworkKeysAdded : MeshNetworkException()
 
 /** Thrown when an object cannot be removed. */

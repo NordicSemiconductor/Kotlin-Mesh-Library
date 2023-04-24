@@ -5,14 +5,20 @@ package no.nordicsemi.kotlin.mesh.provisioning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
-import no.nordicsemi.kotlin.mesh.bearer.*
+import no.nordicsemi.kotlin.mesh.bearer.BearerError
+import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
+import no.nordicsemi.kotlin.mesh.bearer.BearerPdu
+import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
+import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
-import no.nordicsemi.kotlin.mesh.logger.LogCategory
-import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -20,6 +26,8 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.logger.LogCategory
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningResponse.Complete.pdu
 import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
 
@@ -61,9 +69,10 @@ class ProvisioningManager(
      * @return A flow of provisioning states that could be used to observe and continue/cancel the
      *         provisioning process.
      */
-    @Throws(ProvisioningError::class, BearerError::class)
+    @Throws(MeshNetworkException::class, ProvisioningError::class, BearerError::class)
     fun provision(attentionTimer: UByte) = flow {
-        var networkKey: NetworkKey = meshNetwork.networkKeys.first()
+        var networkKey: NetworkKey = meshNetwork.networkKeys
+            .firstOrNull() ?: throw NoNetworkKeysAdded
         var unicastAddress: UnicastAddress
         var algorithm: Algorithm
         var publicKey: PublicKey
