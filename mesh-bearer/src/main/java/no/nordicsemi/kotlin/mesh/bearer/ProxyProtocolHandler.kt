@@ -113,7 +113,7 @@ class ProxyProtocolHandler {
             // Disregard invalid packet.
             return null
         }
-        val messageType = PduType.from(data[1].toUByte()) ?: run {
+        val messageType = PduType.from(data[0].toUByte()) ?: run {
             // Disregard invalid packet.
             return null
         }
