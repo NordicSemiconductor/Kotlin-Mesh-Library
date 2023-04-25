@@ -46,6 +46,9 @@ dependencies {
     implementation(project(":mesh-provisioning"))
     implementation(project(":mesh-bearer-android"))
     implementation(project(":mesh-bearer-pbgatt"))
+    
+    implementation("no.nordicsemi.android.kotlin.ble:core:0.0.1")
+    implementation("no.nordicsemi.android.kotlin.ble:client:0.0.1")
 
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.10")
 }
