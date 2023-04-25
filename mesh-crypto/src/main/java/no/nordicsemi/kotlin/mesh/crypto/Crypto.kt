@@ -1,4 +1,4 @@
-@file:Suppress("LocalVariableName", "unused", "UNUSED_PARAMETER", "MemberVisibilityCanBePrivate")
+@file:Suppress("LocalVariableName", "unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.crypto
 
@@ -49,7 +49,13 @@ object Crypto {
     private val PRDK = "prdk".encodeToByteArray()
 
     init {
-        Security.addProvider(BouncyCastleProvider())
+        // First let's check if the BouncyCastle provider is already available
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) != null) {
+            // Remove any existing BouncyCastle provider
+            Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
+        }
+        // Install the provider
+        Security.insertProviderAt(BouncyCastleProvider(), 1)
     }
 
     /**
@@ -178,6 +184,7 @@ object Crypto {
                 val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
                 calculateCmac(deviceRandom + authValue, confirmationKey)
             }
+
             Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
                 val confirmationSalt = calculateS2(confirmationInputs)
                 val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
@@ -611,6 +618,7 @@ object Crypto {
             Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM -> {
                 calculateS1(confirmationInputs)
             }
+
             Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
                 calculateS2(confirmationInputs)
             }
