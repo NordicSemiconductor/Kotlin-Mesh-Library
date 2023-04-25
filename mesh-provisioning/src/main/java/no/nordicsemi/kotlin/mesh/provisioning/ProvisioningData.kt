@@ -2,7 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.Insecure
+import no.nordicsemi.kotlin.mesh.core.model.IvIndex
+import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.Secure
+import no.nordicsemi.kotlin.mesh.core.model.Security
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -60,7 +67,7 @@ internal class ProvisioningData {
     lateinit var provisionerPublicKey: ByteArray
         private set
 
-    private var confirmationInputs = ByteArray(1 + 11 + 5 + 64 + 64)
+    private var confirmationInputs = byteArrayOf()
 
     val provisionerConfirmation: ByteArray
         get() = Crypto.calculateConfirmation(
