@@ -27,7 +27,7 @@ private enum class SAR(val rawValue: UByte) {
          *  @param data PDU data
          *  @return SAR type or null if the data is invalid.
          */
-        internal fun from(data: ByteArray): SAR? = when (data.first().toUByte()) {
+        internal fun from(data: ByteArray): SAR? = when ((data.first().toInt() shr 6).toUByte()) {
             COMPLETE_MESSAGE.value -> COMPLETE_MESSAGE
             FIRST_SEGMENT.value -> FIRST_SEGMENT
             CONTINUATION.value -> CONTINUATION
