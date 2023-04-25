@@ -99,8 +99,11 @@ object Crypto {
      *
      * @receiver Public key.
      */
-    fun PublicKey.toByteArray() = (this as ECPublicKey).q.getEncoded(false)
-        .sliceArray(1 until 65)
+    fun PublicKey.toByteArray() = (this as ECPublicKey).q.getEncoded(false).let { key ->
+        // Drop the first byte that contains the encoding.
+        key.sliceArray(1 until key.size)
+    }
+
 
     /**
      * Calculates the shared secret based on the given public key and the local private key.
