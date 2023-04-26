@@ -18,7 +18,7 @@ sealed class ProvisioningError : Exception() {
     object InvalidPdu : ProvisioningError()
 
     /**
-     * The received Public Key is invalid or equal to Provisioner's Public Key.
+     * The received Public Key is invalid or not equal to Provisioner's Public Key.
      */
     object InvalidPublicKey : ProvisioningError()
 
