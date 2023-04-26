@@ -17,16 +17,18 @@ import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyType.Companion.toByte
 /**
  * The device sends this PDU to indicate the supported capabilities to a provisioner.
  *
- * @property numberOfElements                 Number of elements supported by the device.
- * @property algorithms                       Algorithms supported by the device.
- * @property publicKeyType                    Public key type supported by the device.
- * @property oobTypes                         OOB type supported by the device.
- * @property outputOobSize                    Output OOB size supported by the device.
- * @property outputOobActions                 Output OOB actions supported by the device.
- * @property inputOobSize                     Input OOB size supported by the device.
- * @property inputOobActions                  Input OOB actions supported by the device.
- * @property value                            The raw data pdu of the provisioning capabilities.
- * @constructor Creates a [ProvisioningCapabilities] object.
+ * @property numberOfElements                   Number of elements supported by the device.
+ * @property algorithms                         Algorithms supported by the device.
+ * @property publicKeyType                      Public key type supported by the device.
+ * @property oobTypes                           OOB type supported by the device.
+ * @property outputOobSize                      Output OOB size supported by the device.
+ * @property outputOobActions                   Output OOB actions supported by the device.
+ * @property inputOobSize                       Input OOB size supported by the device.
+ * @property inputOobActions                    Input OOB actions supported by the device.
+ * @property value                              The raw data pdu of the provisioning capabilities.
+ * @property supportedAuthenticationMethods     List of supported authentication methods.
+ * @property debugDescription                   Debug description of the provisioning capabilities.
+ * @constructor constructs a [ProvisioningCapabilities] object.
  */
 data class ProvisioningCapabilities(
     val numberOfElements: Int,
@@ -38,7 +40,6 @@ data class ProvisioningCapabilities(
     val inputOobSize: UByte,
     val inputOobActions: List<InputOobActions>
 ) {
-
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
         algorithms = Algorithms.from(data.toUShort(2)),
@@ -80,4 +81,18 @@ data class ProvisioningCapabilities(
             }
             return authMethods
         }
+
+    val debugDescription: String
+        get() = toString()
+
+    override fun toString(): String {
+        return "Number of elements: $numberOfElements\n" +
+                "Algorithms: $algorithms\n" +
+                "Public Key Type: $publicKeyType\n" +
+                "OOB Type: $oobTypes\n" +
+                "Output OOB Size: $outputOobSize\n" +
+                "Output OOB Actions: $outputOobActions\n" +
+                "Input OOB Size: $inputOobSize\n" +
+                "Input OOB Actions: $inputOobActions"
+    }
 }
