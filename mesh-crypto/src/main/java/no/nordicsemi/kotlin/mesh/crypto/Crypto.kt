@@ -628,8 +628,11 @@ object Crypto {
         }
         val provisioningSalt = calculateS1(confirmationSalt + provisionerRandom + deviceRandom)
         val sessionKey = k1(sharedSecret, provisioningSalt, PRSK)
-        val sessionNonce = k1(sessionKey, provisioningSalt, PRSN)
-        val deviceKey = k1(sessionKey, provisioningSalt, PRDK)
+        // Only the 13 least significant bits of the calculated session nonce are used.
+        val sessionNonce = k1(sharedSecret, provisioningSalt, PRSN).let { nonce ->
+            nonce.sliceArray(3 until nonce.size)
+        }
+        val deviceKey = k1(sharedSecret, provisioningSalt, PRDK)
         return Triple(sessionKey, sessionNonce, deviceKey)
     }
 }
