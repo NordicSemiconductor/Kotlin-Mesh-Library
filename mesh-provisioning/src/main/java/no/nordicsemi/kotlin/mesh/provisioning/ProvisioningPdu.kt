@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningPduType.*
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 internal typealias ProvisioningPdu = ByteArray
 
@@ -22,8 +23,8 @@ internal enum class ProvisioningPduType(val type: Int) {
     INVITE(0),
 
     /**
-     * The Provisionee sends a Provisioning Capabilities PDU to indicate its supported provisioning
-     * capabilities to a Provisioner.
+     *  A Provisionee sends a Provisioning Capabilities PDU to indicate the provisioning
+     *  capabilities of the device.
      */
     CAPABILITIES(1),
 
@@ -104,7 +105,7 @@ internal enum class ProvisioningPduType(val type: Int) {
  *
  *  @return provisioning pdu type or null if empty.
  */
-internal fun ProvisioningPdu.type(): ProvisioningPduType? = if (size > 0) {
+internal fun ProvisioningPdu.type(): ProvisioningPduType? = if (isNotEmpty()) {
     ProvisioningPduType.from(this[0].toInt())
 } else null
 
@@ -201,10 +202,23 @@ sealed class ProvisioningRequest {
                     algorithm.value.toByte() +
                     publicKey.value.toByte() +
                     method.value
+
             is PublicKey -> ProvisioningPdu(1) { PUBLIC_KEY.type.toByte() } + publicKey
             is Confirmation -> ProvisioningPdu(1) { CONFIRMATION.type.toByte() } + confirmation
             is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
             is Data -> ProvisioningPdu(1) { DATA.type.toByte() } + encryptedDataWithMic
+        }
+
+    val debugDescription: String
+        get() = when (this) {
+            is Invite -> "Provisioning Invite (attention timer : $attentionTimer sec)"
+            is Start -> "Provisioning Start (algorithm : $algorithm, public key : $publicKey, " +
+                    "method : $method)"
+
+            is PublicKey -> "Provisioner Public Key (${publicKey.encodeHex()})"
+            is Confirmation -> "Provisioning Confirmation (${confirmation.encodeHex()})"
+            is Random -> "Provisioning Random (${random.encodeHex()})"
+            is Data -> "Encrypted Provisioning Data (${encryptedDataWithMic.encodeHex()})"
         }
 
     companion object {
@@ -231,6 +245,7 @@ sealed class ProvisioningRequest {
                     }
                     Start(algorithm, publicKey, method)
                 }
+
                 PUBLIC_KEY -> PublicKey(pdu.copyOfRange(1, pdu.size))
                 CONFIRMATION -> Confirmation(pdu.copyOfRange(1, pdu.size))
                 RANDOM -> Random(pdu.copyOfRange(1, pdu.size))
@@ -300,24 +315,34 @@ sealed class ProvisioningResponse {
     data class Failed(val error: RemoteProvisioningError) : ProvisioningResponse()
 
     val pdu: ProvisioningPdu
-        get() {
-            return when (this) {
-                is Capabilities -> ProvisioningPdu(1) {
-                    CAPABILITIES.type.toByte()
-                } + capabilities.value
-                is InputComplete -> ProvisioningPdu(1) { INPUT_COMPLETE.type.toByte() }
-                is PublicKey -> ProvisioningPdu(1) { PUBLIC_KEY.type.toByte() } + key
-                is Confirmation -> ProvisioningPdu(1) {
-                    CONFIRMATION.type.toByte()
-                } + confirmation
-                is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
-                is Complete -> ProvisioningPdu(1) { COMPLETE.type.toByte() }
-                is Failed -> ProvisioningPdu(2) {
-                    FAILED.type.toByte()
-                } + error.errorCode.toByte()
-            }
+        get() = when (this) {
+            is Capabilities -> ProvisioningPdu(1) {
+                CAPABILITIES.type.toByte()
+            } + capabilities.value
+
+            is InputComplete -> ProvisioningPdu(1) { INPUT_COMPLETE.type.toByte() }
+            is PublicKey -> ProvisioningPdu(1) { PUBLIC_KEY.type.toByte() } + key
+            is Confirmation -> ProvisioningPdu(1) {
+                CONFIRMATION.type.toByte()
+            } + confirmation
+
+            is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
+            is Complete -> ProvisioningPdu(1) { COMPLETE.type.toByte() }
+            is Failed -> ProvisioningPdu(2) {
+                FAILED.type.toByte()
+            } + error.errorCode.toByte()
         }
 
+    val debugDescription: String
+        get() = when (this) {
+            is Capabilities -> "Device Capabilities (${capabilities})"
+            is InputComplete -> "Input Complete"
+            is PublicKey -> "Device Public Key (${key.encodeHex(prefixOx = true)})"
+            is Confirmation -> "Device Confirmation (${confirmation.encodeHex(prefixOx = true)})"
+            is Random -> "Device Random (${random.encodeHex(prefixOx = true)})"
+            is Complete -> "Complete"
+            is Failed -> "Error (${error.debugDescription})"
+        }
 
     companion object {
 
@@ -346,6 +371,7 @@ sealed class ProvisioningResponse {
                     require(error != null) { throw ProvisioningError.InvalidPdu }
                     Failed(error)
                 }
+
                 else -> throw ProvisioningError.InvalidPdu
             }
         }
