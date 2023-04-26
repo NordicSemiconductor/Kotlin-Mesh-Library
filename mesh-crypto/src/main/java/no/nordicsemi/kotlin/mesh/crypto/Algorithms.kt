@@ -79,8 +79,8 @@ sealed class Algorithms(val rawValue: UShort) {
     private constructor(rawValue: Int) : this(rawValue.toUShort())
 
     @Deprecated(
-        message = "Renamed to BTM_ECDH_P256_CMAC_AES128_AES_CCM in Mesh Protocol 1.1",
-        replaceWith = ReplaceWith("BTM_ECDH_P256_CMAC_AES128_AES_CCM"),
+        message = "Renamed to BtmEcdhP256CmacAes128AesCcm in Mesh Protocol 1.1",
+        replaceWith = ReplaceWith("BtmEcdhP256CmacAes128AesCcm"),
         level = DeprecationLevel.WARNING
     )
     object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0)
@@ -96,7 +96,6 @@ sealed class Algorithms(val rawValue: UShort) {
         BtmEcdhP256HmacSha256AesCcm ->
             "BTM ECDH P256 HMAC SHA256 AES CCM"
     }
-
 
     companion object {
 
