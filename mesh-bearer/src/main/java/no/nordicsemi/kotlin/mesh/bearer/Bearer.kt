@@ -24,18 +24,18 @@ interface Transmitter {
 /**
  * Receiver is responsible for receiving messages from the mesh network.
  *
- * @property pdus A flow that emits events whenever a PDU is received.
+ * @property pdus A flow that emits the Reassembled PDU received from the Proxy Protocol handler.
  */
 interface Receiver {
 
-    val pdus: Flow<BearerPdu>
+    val pdus: Flow<ReassembledPdu>
 
 }
 
 /**
  * Bearer is responsible for sending and receiving messages to and from the mesh network.
  *
- * @property state         A flow that emits events whenever the bearer state changes.
+ * @property state               A flow that emits events whenever the bearer state changes.
  * @property supportedTypes      List of supported PDU types.
  * @property isOpen              Returns true if the bearer is open, false otherwise.
  */

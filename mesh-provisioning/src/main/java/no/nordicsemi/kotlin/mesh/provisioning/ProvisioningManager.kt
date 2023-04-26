@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
-import no.nordicsemi.kotlin.mesh.bearer.BearerPdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
+import no.nordicsemi.kotlin.mesh.bearer.ReassembledPdu
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
@@ -28,7 +28,6 @@ import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningResponse.Complete.pdu
 import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
 
 /**
@@ -104,7 +103,7 @@ class ProvisioningManager(
         //Sends the provisioning invite
         send(provisioningInvite).also { provisioningData.accumulate(it) }
 
-        val capabilities = awaitCapabilities().capabilities.apply {
+        val capabilities = awaitCapabilities(provisioningData).capabilities.apply {
             // Lets init based on the capabilities
             unicastAddress = meshNetwork.run {
                 nextAvailableUnicastAddress(numberOfElements, localProvisioner!!)!!
@@ -157,6 +156,7 @@ class ProvisioningManager(
                     usingOob = true
                 )
             }.onFailure { throw ProvisioningError.InvalidPublicKey }
+            provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
         }
 
         emit(ProvisioningState.Provisioning)
@@ -181,12 +181,6 @@ class ProvisioningManager(
             provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
         } else {
             val provisioneePublicKey = awaitProvisioneePublicKey(provisioningData).key
-            // Errata E1650 added an extra validation step to ensure the received public key is the same
-            // as the provisioner's public key.
-            require(provisioneePublicKey.contentEquals(provisioningData.provisionerPublicKey)) {
-                logger?.e(LogCategory.PROVISIONING) { "Public keys do not match" }
-                throw ProvisioningError.InvalidPublicKey
-            }
             provisioningData.onDevicePublicKeyReceived(key = provisioneePublicKey, usingOob = false)
         }
 
@@ -202,7 +196,7 @@ class ProvisioningManager(
             confirmation = provisioningData.provisionerConfirmation
         ).also { confirmation ->
             logger?.v(LogCategory.PROVISIONING) { "Sending $confirmation" }
-            send(confirmation).also { provisioningData.accumulate(it) }
+            send(confirmation)
         }
 
         val confirmation = awaitConfirmation().confirmation
@@ -212,7 +206,7 @@ class ProvisioningManager(
             random = provisioningData.provisionerRandom
         ).also { random ->
             logger?.v(LogCategory.PROVISIONING) { "Sending $random" }
-            send(random).also { provisioningData.accumulate(it) }
+            send(random)
         }
 
         provisioningData.onDeviceRandomReceived(awaitRandom().random)
@@ -224,7 +218,7 @@ class ProvisioningManager(
 
         val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
         logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
-        send(data).also { provisioningData.accumulate(it) }
+        send(data)
 
         awaitComplete()
     }
@@ -233,32 +227,34 @@ class ProvisioningManager(
      * Waits for the capabilities response from the device.
      */
     @Throws(ProvisioningError.InvalidPdu::class, ProvisioningError.NoAddressAvailable::class)
-    private suspend fun awaitCapabilities() = ProvisioningResponse.from(
-        pdu = awaitBearerPdu().data
-    ).apply {
-        require(this is ProvisioningResponse.Capabilities) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${ProvisioningError.InvalidPdu}"
+    private suspend fun awaitCapabilities(provisioningData: ProvisioningData) =
+        ProvisioningResponse.from(
+            pdu = awaitBearerPdu().data
+        ).apply {
+            logger?.v(LogCategory.PROVISIONING) { "Received ${pdu.encodeHex()}" }
+            require(this is ProvisioningResponse.Capabilities) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: ${ProvisioningError.InvalidPdu}"
+                }
+                throw ProvisioningError.InvalidPdu
             }
-            throw ProvisioningError.InvalidPdu
-        }
-
-        meshNetwork.localProvisioner?.let {
-            // Calculates the unicast address automatically based ont he number of elements.
-            if (unicastAddress == null) {
-                val count = capabilities.numberOfElements
-                unicastAddress = meshNetwork.nextAvailableUnicastAddress(count, it)?.apply {
-                    suggestedUnicastAddress = this
+            provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
+            meshNetwork.localProvisioner?.let {
+                // Calculates the unicast address automatically based ont he number of elements.
+                if (unicastAddress == null) {
+                    val count = capabilities.numberOfElements
+                    unicastAddress = meshNetwork.nextAvailableUnicastAddress(count, it)?.apply {
+                        suggestedUnicastAddress = this
+                    }
                 }
             }
-        }
-        require(unicastAddress != null) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${ProvisioningError.NoAddressAvailable}"
+            require(unicastAddress != null) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: ${ProvisioningError.NoAddressAvailable}"
+                }
+                throw ProvisioningError.NoAddressAvailable
             }
-            throw ProvisioningError.NoAddressAvailable
-        }
-    } as ProvisioningResponse.Capabilities
+        } as ProvisioningResponse.Capabilities
 
     /**
      * Waits for the provisionee's public key. This is called only if the provisionee's public key
@@ -268,12 +264,16 @@ class ProvisioningManager(
         ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
         ).apply {
+            logger?.v(LogCategory.PROVISIONING) { "Received ${pdu.encodeHex()}" }
             require(this is ProvisioningResponse.PublicKey) {
                 throw ProvisioningError.InvalidPdu
             }
-            require(key.contentEquals(provisioningData.provisionerPublicKey)) {
-                throw ProvisioningError.InvalidPdu
+            // Errata E1650 added an extra validation step to ensure the received public key is the same
+            // as the provisioner's public key.
+            require(!key.contentEquals(provisioningData.provisionerPublicKey)) {
+                throw ProvisioningError.InvalidPublicKey
             }
+            provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
 
         } as ProvisioningResponse.PublicKey
 
@@ -357,8 +357,11 @@ class ProvisioningManager(
     private suspend fun awaitConfirmation() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
-        require(this is ProvisioningResponse.Confirmation) {
-            throw ProvisioningError.InvalidPdu
+        if (this is ProvisioningResponse.Failed) {
+            logger?.e(LogCategory.PROVISIONING) {
+                "Provisioning failed with error: ${error.debugDescription}"
+            }
+            throw ProvisioningError.RemoteError(error)
         }
     } as ProvisioningResponse.Confirmation
 
@@ -368,18 +371,30 @@ class ProvisioningManager(
     private suspend fun awaitRandom() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
-        require(this is ProvisioningResponse.Random) {
-            throw ProvisioningError.InvalidPdu
+        if (this is ProvisioningResponse.Failed) {
+            logger?.e(LogCategory.PROVISIONING) {
+                "Provisioning failed with error: ${error.debugDescription}"
+            }
+            throw ProvisioningError.RemoteError(error)
         }
     } as ProvisioningResponse.Random
 
     private suspend fun awaitComplete() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
-        require(this is ProvisioningResponse.Failed) {
-            throw ProvisioningError.InvalidPdu
+        if (this is ProvisioningResponse.Failed) {
+            logger?.e(LogCategory.PROVISIONING) {
+                "Provisioning failed with error: ${error.debugDescription}"
+            }
+            throw ProvisioningError.RemoteError(error)
         }
     } as ProvisioningResponse.Complete
+
+    private fun isPublicKeyValid(provisionerPublicKey: ByteArray, devicePublicKey: ByteArray) {
+        require(!provisionerPublicKey.contentEquals(devicePublicKey)) {
+            throw ProvisioningError.InvalidPublicKey
+        }
+    }
 
     /**
      * Checks if the unicast address valid.
@@ -401,22 +416,16 @@ class ProvisioningManager(
      * @param request Provisioning request to be sent.
      */
     private suspend fun send(request: ProvisioningRequest): ByteArray {
-        println("Sending provisioning request: ${request.pdu.encodeHex()}")
         bearer.send(request)
-        return request.pdu.sliceArray(1 until pdu.size)
+        return request.pdu.let { it.sliceArray(1 until it.size) }
     }
 
 
     private fun observeBearerStateChanges() {
         bearer.state.onEach {
             when (it) {
-                is BearerEvent.OnBearerOpen -> {
-                    bearer.open()
-                }
-
-                is BearerEvent.OnBearerClosed -> {
-                    bearer.close()
-                }
+                is BearerEvent.OnBearerOpen -> bearer.open()
+                is BearerEvent.OnBearerClosed -> bearer.close()
             }
         }.launchIn(scope)
     }
@@ -427,7 +436,7 @@ class ProvisioningManager(
      *
      * @return First Provisioning PDU received over the Bearer.
      */
-    private suspend fun awaitBearerPdu(): BearerPdu = bearer.pdus.first {
+    private suspend fun awaitBearerPdu(): ReassembledPdu = bearer.pdus.first {
         it.type == PduType.PROVISIONING_PDU
     }
 }

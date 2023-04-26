@@ -3,8 +3,14 @@
 package no.nordicsemi.android.kotlin.mesh.bearer.android
 
 import android.annotation.SuppressLint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.kotlin.mesh.bearer.*
@@ -22,7 +28,9 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
  * @property isOpen                Returns true if the bearer is open, false otherwise.
  */
 abstract class BaseGattProxyBearer<MeshService> : Bearer {
-    protected val _pdu = MutableSharedFlow<BearerPdu>()
+    protected val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val _pdus = MutableSharedFlow<ReassembledPdu>()
+    override val pdus: Flow<ReassembledPdu> = _pdus.asSharedFlow()
     override val state: Flow<BearerEvent> = MutableSharedFlow()
     override val supportedTypes: Array<PduTypes> = arrayOf(
         PduTypes.NetworkPdu,
@@ -32,7 +40,7 @@ abstract class BaseGattProxyBearer<MeshService> : Bearer {
     )
     override val isOpen: Boolean
         get() = isOpened
-    var mtu: Int = 20
+    var mtu: Int = DEFAULT_MTU
         protected set
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
@@ -60,5 +68,17 @@ abstract class BaseGattProxyBearer<MeshService> : Bearer {
         proxyProtocolHandler.segment(pdu, type, mtu).forEach {
             dataInCharacteristic.write(it, BleWriteType.NO_RESPONSE)
         }
+    }
+
+    protected suspend fun awaitNotifications() {
+        dataOutCharacteristic.getNotifications().onEach { data ->
+            proxyProtocolHandler.reassemble(data)?.let { reassembledPdu ->
+                _pdus.emit(reassembledPdu)
+            }
+        }.launchIn(scope)
+    }
+
+    companion object {
+        const val DEFAULT_MTU = 23 - 3
     }
 }
