@@ -9,7 +9,6 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Secure
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -204,49 +203,4 @@ internal class ProvisioningData {
         } else {
             throw ProvisioningError.InvalidState
         }
-}
-
-/**
- * Flags that define the key refresh phase and the IV update state.
- *
- * @property rawValue raw value of the flags.
- */
-private sealed class Flags(val rawValue: UByte) {
-    private constructor(rawValue: Int) : this(rawValue.toUByte())
-
-    /**
-     * Defines the key refresh phase in the flags of the Provisioning Data PDU.
-     */
-    object UseNewKeys : Flags(1 shl 0)
-
-    /**
-     * Defines the key refresh phase in the flags of the Provisioning Data PDU.
-     */
-    object IvUpdateActive : Flags(1 shl 1)
-
-    companion object {
-
-        /**
-         * Returns the flags based on the iv index and network key.
-         *
-         * @param ivIndex       IV Index of the network.
-         * @param networkKey    Network Key of the network.
-         * @throws IllegalArgumentException if the flags are invalid.
-         */
-        @Throws(IllegalArgumentException::class)
-        fun from(ivIndex: IvIndex, networkKey: NetworkKey): Flags {
-            var value: UByte = 0u
-            if (networkKey.phase is UsingNewKeys) {
-                value = value.or((1 shl 0).toUByte())
-            }
-            if (ivIndex.isIvUpdateActive) {
-                value = value.or((1 shl 1).toUByte())
-            }
-            return when (value) {
-                UseNewKeys.rawValue -> UseNewKeys
-                IvUpdateActive.rawValue -> IvUpdateActive
-                else -> throw IllegalArgumentException("Invalid value")
-            }
-        }
-    }
 }
