@@ -69,12 +69,16 @@ sealed class AuthenticationMethod {
     /**
      * No OOB authentication method is used.
      */
-    object NoOob : AuthenticationMethod()
+    object NoOob : AuthenticationMethod() {
+        override fun toString() = "No OOB"
+    }
 
     /**
      * Static OOB authentication method is used.
      */
-    object StaticOob : AuthenticationMethod()
+    object StaticOob : AuthenticationMethod() {
+        override fun toString() = "Static OOB"
+    }
 
     /**
      * Output OOB authentication method is used. Size must be in range 1...8.
@@ -85,6 +89,8 @@ sealed class AuthenticationMethod {
      */
     data class OutputOob(val action: OutputAction, val length: UByte) : AuthenticationMethod() {
         constructor(action: OutputAction) : this(action, action.rawValue)
+
+        override fun toString() = "Output Action: $action (size $length)"
     }
 
     /**
@@ -94,7 +100,9 @@ sealed class AuthenticationMethod {
      * @property length        Size of the input.
      * @constructor Constructs a new InputOob.
      */
-    data class InputOob(val action: InputAction, val length: UByte) : AuthenticationMethod()
+    data class InputOob(val action: InputAction, val length: UByte) : AuthenticationMethod() {
+        override fun toString() = "Input Action: $action (size $length)"
+    }
 
     internal val value: ByteArray
         get() = when (this) {
@@ -168,17 +176,22 @@ sealed class OobType(val rawValue: UByte) {
     /**
      * Static OOB information is available.
      */
-    object StaticOobInformationAvailable : OobType(rawValue = 1 shl 0)
+    object StaticOobInformationAvailable : OobType(rawValue = 1 shl 0) {
+        override fun toString() = "Static OOB information is available"
+    }
 
     /**
      * Only OOB authenticated provisioning is supported. Introduced in Mesh Protocol 1.1.0
      */
-    object OnlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1)
+    object OnlyOobAuthenticatedProvisioningSupported : OobType(rawValue = 1 shl 1) {
+        override fun toString() = "Only OOB authenticated provisioning is supported"
+    }
 
-    companion object {
+    internal companion object {
 
         private val oobTypes = listOf(
-            StaticOobInformationAvailable, OnlyOobAuthenticatedProvisioningSupported
+            StaticOobInformationAvailable,
+            OnlyOobAuthenticatedProvisioningSupported
         )
 
         /**
@@ -217,13 +230,27 @@ sealed class OutputOobActions(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object Blink : OutputOobActions(rawValue = 1 shl 0)
-    object Beep : OutputOobActions(rawValue = 1 shl 1)
-    object Vibrate : OutputOobActions(rawValue = 1 shl 2)
-    object OutputNumeric : OutputOobActions(rawValue = 1 shl 3)
-    object OutputAlphanumeric : OutputOobActions(rawValue = 1 shl 4)
+    object Blink : OutputOobActions(rawValue = 1 shl 0) {
+        override fun toString() = "Blink"
+    }
 
-    companion object {
+    object Beep : OutputOobActions(rawValue = 1 shl 1) {
+        override fun toString() = "Beep"
+    }
+
+    object Vibrate : OutputOobActions(rawValue = 1 shl 2) {
+        override fun toString() = "Vibrate"
+    }
+
+    object OutputNumeric : OutputOobActions(rawValue = 1 shl 3) {
+        override fun toString() = "OutputNumeric"
+    }
+
+    object OutputAlphanumeric : OutputOobActions(rawValue = 1 shl 4) {
+        override fun toString() = "OutputAlphanumeric"
+    }
+
+    internal companion object {
         private val actions = listOf(Blink, Beep, Vibrate, OutputNumeric, OutputAlphanumeric)
 
         /**
@@ -261,12 +288,23 @@ sealed class InputOobActions(val rawValue: UShort) {
 
     constructor(rawValue: Int) : this(rawValue.toUShort())
 
-    object Push : InputOobActions(rawValue = 1 shl 0)
-    object Twist : InputOobActions(rawValue = 1 shl 1)
-    object InputNumeric : InputOobActions(rawValue = 1 shl 2)
-    object InputAlphanumeric : InputOobActions(rawValue = 1 shl 3)
+    object Push : InputOobActions(rawValue = 1 shl 0) {
+        override fun toString() = "Push"
+    }
 
-    companion object {
+    object Twist : InputOobActions(rawValue = 1 shl 1) {
+        override fun toString() = "Twist"
+    }
+
+    object InputNumeric : InputOobActions(rawValue = 1 shl 2) {
+        override fun toString() = "InputNumeric"
+    }
+
+    object InputAlphanumeric : InputOobActions(rawValue = 1 shl 3) {
+        override fun toString() = "InputAlphanumeric"
+    }
+
+    internal companion object {
         private val actions = listOf(Push, Twist, InputNumeric, InputAlphanumeric)
 
         /**
@@ -302,7 +340,7 @@ enum class OutputAction constructor(val rawValue: UByte) {
     OUTPUT_NUMERIC(3u),
     OUTPUT_ALPHANUMERIC(4u);
 
-    companion object {
+    internal companion object {
 
         /**
          * Converts a list of OutputOobActions to a list of OutputActions.
@@ -333,7 +371,7 @@ enum class InputAction(val rawValue: UByte) {
     INPUT_NUMERIC(2u),
     INPUT_ALPHANUMERIC(3u);
 
-    companion object {
+    internal companion object {
 
         /**
          * Converts a list of InputOobActions to a list of InputActions.

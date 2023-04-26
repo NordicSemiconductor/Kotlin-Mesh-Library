@@ -68,7 +68,9 @@ sealed class PublicKeyType(val rawValue: UByte) {
     /**
      * Public key OOB information is available.
      */
-    object PublicKeyOobInformationAvailable : PublicKeyType(rawValue = 1 shl 0)
+    object PublicKeyOobInformationAvailable : PublicKeyType(rawValue = 1 shl 0) {
+        override fun toString() = "Public OOB Key Information Available"
+    }
 
     companion object {
         val publicKeyTypes = listOf(PublicKeyOobInformationAvailable)

@@ -263,7 +263,7 @@ class ProvisioningManager(
             logger?.v(LogCategory.PROVISIONING) { "Received $this" }
             if (this is ProvisioningResponse.Failed) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${error.debugDescription}"
+                    "Provisioning failed with error: $error"
                 }
                 throw ProvisioningError.RemoteError(error)
             }
@@ -366,7 +366,7 @@ class ProvisioningManager(
         logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${error.debugDescription}"
+                "Provisioning failed with error: $error"
             }
             throw ProvisioningError.RemoteError(error)
         }
@@ -381,7 +381,7 @@ class ProvisioningManager(
         logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${error.debugDescription}"
+                "Provisioning failed with error: $error"
             }
             throw ProvisioningError.RemoteError(error)
         }
@@ -393,7 +393,7 @@ class ProvisioningManager(
         logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${error.debugDescription}"
+                "Provisioning failed with error: $error"
             }
             throw ProvisioningError.RemoteError(error)
         }

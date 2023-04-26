@@ -142,7 +142,9 @@ sealed class ProvisioningRequest {
      * @property attentionTimer The attention timer value in seconds.
      * @constructor Creates a new Provisioning Invite PDU.
      */
-    data class Invite(val attentionTimer: UByte) : ProvisioningRequest()
+    data class Invite(val attentionTimer: UByte) : ProvisioningRequest() {
+        override fun toString() = "Provisioning Invite (attention timer : $attentionTimer sec)"
+    }
 
     /**
      * A Provisioner sends a Provisioning Start PDU to indicate the method it has selected from the
@@ -157,7 +159,10 @@ sealed class ProvisioningRequest {
         val algorithm: Algorithm,
         val publicKey: PublicKeyMethod,
         val method: AuthenticationMethod
-    ) : ProvisioningRequest()
+    ) : ProvisioningRequest() {
+        override fun toString() = "Provisioning Start (algorithm: $algorithm, public key: " +
+                "$publicKey, method: $method)"
+    }
 
     /**
      * The Provisioner sends a Provisioning Public Key PDU to deliver the public key to be used in
@@ -166,7 +171,9 @@ sealed class ProvisioningRequest {
      * @property publicKey Public key to be used in the ECDH calculation.
      * @constructor Creates a new Provisioning PublicKey PDU.
      */
-    data class PublicKey(val publicKey: ByteArray) : ProvisioningRequest()
+    data class PublicKey(val publicKey: ByteArray) : ProvisioningRequest() {
+        override fun toString() = "Provisioning PublicKey (${publicKey.encodeHex(true)})"
+    }
 
     /**
      * The Provisioner or the Provisionee sends a Provisioning Confirmation PDU to its peer to
@@ -176,7 +183,10 @@ sealed class ProvisioningRequest {
      * @property confirmation Confirmation value.
      * @constructor Creates a new Provisioning Confirmation PDU.
      */
-    data class Confirmation(val confirmation: ByteArray) : ProvisioningRequest()
+    data class Confirmation(val confirmation: ByteArray) : ProvisioningRequest() {
+        override fun toString() = "Provisioning Confirmation " +
+                "(${confirmation.encodeHex(true)})"
+    }
 
     /**
      * The Provisioner or the Provisionee sends a Provisioning Random PDU to allow its peer device
@@ -185,7 +195,9 @@ sealed class ProvisioningRequest {
      * @property random Random value.
      * @constructor Creates a new Provisioning Random PDU.
      */
-    data class Random(val random: ByteArray) : ProvisioningRequest()
+    data class Random(val random: ByteArray) : ProvisioningRequest() {
+        override fun toString() = "Provisioning Random (${random.encodeHex(true)})"
+    }
 
     /**
      * The Provisioner sends a Provisioning Data PDU to deliver provisioning data to a Provisionee.
@@ -193,7 +205,9 @@ sealed class ProvisioningRequest {
      * @property encryptedDataWithMic Random value.
      * @constructor Creates a new Provisioning Data PDU.
      */
-    data class Data(val encryptedDataWithMic: ByteArray) : ProvisioningRequest()
+    data class Data(val encryptedDataWithMic: ByteArray) : ProvisioningRequest() {
+        override fun toString() = "Provisioning Data (${encryptedDataWithMic.encodeHex(true)})"
+    }
 
     val pdu: ProvisioningPdu
         get() = when (this) {
@@ -207,18 +221,6 @@ sealed class ProvisioningRequest {
             is Confirmation -> ProvisioningPdu(1) { CONFIRMATION.type.toByte() } + confirmation
             is Random -> ProvisioningPdu(1) { RANDOM.type.toByte() } + random
             is Data -> ProvisioningPdu(1) { DATA.type.toByte() } + encryptedDataWithMic
-        }
-
-    val debugDescription: String
-        get() = when (this) {
-            is Invite -> "Provisioning Invite (attention timer : $attentionTimer sec)"
-            is Start -> "Provisioning Start (algorithm : $algorithm, public key : $publicKey, " +
-                    "method : $method)"
-
-            is PublicKey -> "Provisioner Public Key (${publicKey.encodeHex()})"
-            is Confirmation -> "Provisioning Confirmation (${confirmation.encodeHex()})"
-            is Random -> "Provisioning Random (${random.encodeHex()})"
-            is Data -> "Encrypted Provisioning Data (${encryptedDataWithMic.encodeHex()})"
         }
 
     companion object {
@@ -267,13 +269,17 @@ sealed class ProvisioningResponse {
      *
      * @property capabilities Provisioning capabilities.
      */
-    data class Capabilities(val capabilities: ProvisioningCapabilities) : ProvisioningResponse()
+    data class Capabilities(val capabilities: ProvisioningCapabilities) : ProvisioningResponse() {
+        override fun toString() = "Device Capabilities \n$capabilities"
+    }
 
     /**
      * The Provisionee sends a Provisioning Input Complete PDU when the user completes the input
      * operation.
      */
-    object InputComplete : ProvisioningResponse()
+    object InputComplete : ProvisioningResponse() {
+        override fun toString() = "Input Complete"
+    }
 
     /**
      * The Provisioner sends a Provisioning Public Key PDU to deliver the public key to be used in
@@ -281,7 +287,9 @@ sealed class ProvisioningResponse {
      *
      * @property key public key.
      */
-    data class PublicKey(val key: ByteArray) : ProvisioningResponse()
+    data class PublicKey(val key: ByteArray) : ProvisioningResponse() {
+        override fun toString() = "Device PublicKey (${key.encodeHex(true)})"
+    }
 
     /**
      * The provisioner or the Provisionee sends a Provisioning Confirmation PDU to its peer to
@@ -290,7 +298,9 @@ sealed class ProvisioningResponse {
      *
      * @property confirmation confirmation value.
      */
-    data class Confirmation(val confirmation: ByteArray) : ProvisioningResponse()
+    data class Confirmation(val confirmation: ByteArray) : ProvisioningResponse() {
+        override fun toString() = "Device Confirmation (${confirmation.encodeHex(true)})"
+    }
 
     /**
      * The Provisioner or the Provisionee sends a Provisioning Random PDU to allow its peer device
@@ -298,13 +308,17 @@ sealed class ProvisioningResponse {
      *
      * @property random random value.
      */
-    data class Random(val random: ByteArray) : ProvisioningResponse()
+    data class Random(val random: ByteArray) : ProvisioningResponse() {
+        override fun toString() = "Device Random (${random.encodeHex(true)})"
+    }
 
     /**
      * The Provisionee sends a Provisioning Complete PDU to indicate that it has successfully
      * received and processed the provisioning data.
      */
-    object Complete : ProvisioningResponse()
+    object Complete : ProvisioningResponse() {
+        override fun toString() = "Provisioning Complete"
+    }
 
     /**
      * The Provisionee sends a Provisioning Failed PDU if it fails to process a received
@@ -312,7 +326,9 @@ sealed class ProvisioningResponse {
      *
      * @property error Provisioning error
      */
-    data class Failed(val error: RemoteProvisioningError) : ProvisioningResponse()
+    data class Failed(val error: RemoteProvisioningError) : ProvisioningResponse() {
+        override fun toString() = "Provisioning Failed (${error})"
+    }
 
     val pdu: ProvisioningPdu
         get() = when (this) {
@@ -331,17 +347,6 @@ sealed class ProvisioningResponse {
             is Failed -> ProvisioningPdu(2) {
                 FAILED.type.toByte()
             } + error.errorCode.toByte()
-        }
-
-    val debugDescription: String
-        get() = when (this) {
-            is Capabilities -> "Device Capabilities (${capabilities})"
-            is InputComplete -> "Input Complete"
-            is PublicKey -> "Device Public Key (${key.encodeHex(prefixOx = true)})"
-            is Confirmation -> "Device Confirmation (${confirmation.encodeHex(prefixOx = true)})"
-            is Random -> "Device Random (${random.encodeHex(prefixOx = true)})"
-            is Complete -> "Complete"
-            is Failed -> "Error (${error.debugDescription})"
         }
 
     companion object {
@@ -364,13 +369,9 @@ sealed class ProvisioningResponse {
                 CONFIRMATION -> Confirmation(pdu.copyOfRange(1, pdu.size))
                 RANDOM -> Random(pdu.copyOfRange(1, pdu.size))
                 COMPLETE -> Complete
-                FAILED -> {
-                    val error = RemoteProvisioningError.values().firstOrNull {
-                        it.errorCode == pdu[1].toInt()
-                    }
-                    require(error != null) { throw ProvisioningError.InvalidPdu }
-                    Failed(error)
-                }
+                FAILED -> RemoteProvisioningError.values().firstOrNull {
+                    it.errorCode == pdu[1].toInt()
+                }?.let { Failed(it) } ?: throw ProvisioningError.InvalidPdu
 
                 else -> throw ProvisioningError.InvalidPdu
             }

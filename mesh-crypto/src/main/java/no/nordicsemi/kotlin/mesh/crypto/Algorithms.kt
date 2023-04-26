@@ -83,18 +83,14 @@ sealed class Algorithms(val rawValue: UShort) {
         replaceWith = ReplaceWith("BtmEcdhP256CmacAes128AesCcm"),
         level = DeprecationLevel.WARNING
     )
-    object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0)
-    object BtmEcdhP256CmacAes128AesCcm : Algorithms(rawValue = 1 shl 0)
-    object BtmEcdhP256HmacSha256AesCcm : Algorithms(rawValue = 1 shl 1)
-
-    /**
-     * Returns the name of the given algorithm.
-     */
-    fun name(): String = when (this) {
-        FipsP256EllipticCurve, BtmEcdhP256CmacAes128AesCcm ->
-            "BTM ECDH P256 CMAC AES128 AES CCM"
-        BtmEcdhP256HmacSha256AesCcm ->
-            "BTM ECDH P256 HMAC SHA256 AES CCM"
+    object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0) {
+        override fun toString(): String = "FIPS P256 ELLIPTIC CURVE"
+    }
+    object BtmEcdhP256CmacAes128AesCcm : Algorithms(rawValue = 1 shl 0) {
+        override fun toString(): String = "BTM ECDH P256 CMAC AES128 AES CCM"
+    }
+    object BtmEcdhP256HmacSha256AesCcm : Algorithms(rawValue = 1 shl 1) {
+        override fun toString(): String = "BTM ECDH P256 HMAC SHA256 AES CCM"
     }
 
     companion object {

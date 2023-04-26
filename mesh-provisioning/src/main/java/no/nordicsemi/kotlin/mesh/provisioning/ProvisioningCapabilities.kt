@@ -27,7 +27,6 @@ import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyType.Companion.toByte
  * @property inputOobActions                    Input OOB actions supported by the device.
  * @property value                              The raw data pdu of the provisioning capabilities.
  * @property supportedAuthenticationMethods     List of supported authentication methods.
- * @property debugDescription                   Debug description of the provisioning capabilities.
  * @constructor constructs a [ProvisioningCapabilities] object.
  */
 data class ProvisioningCapabilities(
@@ -82,17 +81,12 @@ data class ProvisioningCapabilities(
             return authMethods
         }
 
-    val debugDescription: String
-        get() = toString()
-
-    override fun toString(): String {
-        return "Number of elements: $numberOfElements\n" +
-                "Algorithms: $algorithms\n" +
-                "Public Key Type: $publicKeyType\n" +
-                "OOB Type: $oobTypes\n" +
-                "Output OOB Size: $outputOobSize\n" +
-                "Output OOB Actions: $outputOobActions\n" +
-                "Input OOB Size: $inputOobSize\n" +
-                "Input OOB Actions: $inputOobActions"
-    }
+    override fun toString(): String = "Number of elements: $numberOfElements\n" +
+            "Algorithms: ${algorithms.ifEmpty { "None" }}\n" +
+            "Public Key Type: ${publicKeyType.ifEmpty { "None" }}\n" +
+            "OOB Type: ${oobTypes.ifEmpty { "None" }}\n" +
+            "Output OOB Size: $outputOobSize\n" +
+            "Output OOB Actions: ${outputOobActions.ifEmpty { "None" }}\n" +
+            "Input OOB Size: $inputOobSize\n" +
+            "Input OOB Actions: ${inputOobActions.ifEmpty { "None" }}"
 }
