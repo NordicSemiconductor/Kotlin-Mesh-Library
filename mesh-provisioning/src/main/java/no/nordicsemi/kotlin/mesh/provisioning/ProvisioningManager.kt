@@ -25,7 +25,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
@@ -97,11 +96,12 @@ class ProvisioningManager(
 
         // Initialize Provisioning data.
         val provisioningData = ProvisioningData()
-        val provisioningInvite = ProvisioningRequest.Invite(attentionTimer)
-        logger?.w(LogCategory.PROVISIONING) { "Sending $provisioningInvite" }
 
-        //Sends the provisioning invite
-        send(provisioningInvite).also { provisioningData.accumulate(it) }
+        // Sends the provisioning invite
+        ProvisioningRequest.Invite(attentionTimer).also { invite ->
+            logger?.v(LogCategory.PROVISIONING) { "Sending $invite" }
+            send(invite).also { provisioningData.accumulate(it) }
+        }
 
         val capabilities = awaitCapabilities(provisioningData).capabilities.apply {
             // Lets init based on the capabilities
@@ -162,20 +162,16 @@ class ProvisioningManager(
         emit(ProvisioningState.Provisioning)
         provisioningData.prepare(networkKey, meshNetwork.ivIndex, unicastAddress)
 
-        val provisioningStart = ProvisioningRequest.Start(
-            algorithm,
-            publicKey.method,
-            authMethod,
-        )
-        logger?.v(LogCategory.PROVISIONING) { "Sending $provisioningStart" }
-        send(provisioningStart).also { provisioningData.accumulate(it) }
+        ProvisioningRequest.Start(algorithm, publicKey.method, authMethod).also { start ->
+            logger?.v(LogCategory.PROVISIONING) { "Sending $start" }
+            send(start).also { provisioningData.accumulate(it) }
+        }
         this@ProvisioningManager.authenticationMethod = authMethod
 
-        val provisioningPublicKey = ProvisioningRequest.PublicKey(
-            provisioningData.provisionerPublicKey
-        )
-        logger?.v(LogCategory.PROVISIONING) { "Sending $provisioningPublicKey" }
-        send(provisioningPublicKey).also { provisioningData.accumulate(it) }
+        ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey).also { key ->
+            logger?.v(LogCategory.PROVISIONING) { "Sending $key" }
+            send(key).also { provisioningData.accumulate(it) }
+        }
 
         if (publicKey is PublicKey.OobPublicKey) {
             provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
@@ -231,7 +227,7 @@ class ProvisioningManager(
         ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
         ).apply {
-            logger?.v(LogCategory.PROVISIONING) { "Received ${pdu.encodeHex()}" }
+            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
             require(this is ProvisioningResponse.Capabilities) {
                 logger?.e(LogCategory.PROVISIONING) {
                     "Provisioning failed with error: ${ProvisioningError.InvalidPdu}"
@@ -264,13 +260,19 @@ class ProvisioningManager(
         ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
         ).apply {
-            logger?.v(LogCategory.PROVISIONING) { "Received ${pdu.encodeHex()}" }
+            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+            if (this is ProvisioningResponse.Failed) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: ${error.debugDescription}"
+                }
+                throw ProvisioningError.RemoteError(error)
+            }
             require(this is ProvisioningResponse.PublicKey) {
                 throw ProvisioningError.InvalidPdu
             }
             // Errata E1650 added an extra validation step to ensure the received public key is the same
             // as the provisioner's public key.
-            require(!key.contentEquals(provisioningData.provisionerPublicKey)) {
+            require(!this.key.contentEquals(provisioningData.provisionerPublicKey)) {
                 throw ProvisioningError.InvalidPublicKey
             }
             provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
@@ -280,9 +282,9 @@ class ProvisioningManager(
     /**
      * Waits for the user to provide the authentication value.
      *
-     * @param method             Authentication method.
-     * @param provisioningData   Provisioning data.
-     * @param mutex              Mutex to unlock when the user has provided the authentication value.
+     * @param method            Authentication method.
+     * @param provisioningData  Provisioning data.
+     * @param mutex             Mutex to unlock when the user has provided the authentication value.
      */
     private fun requestAuthentication(
         method: AuthenticationMethod,
@@ -346,8 +348,12 @@ class ProvisioningManager(
     private suspend fun awaitInputComplete() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
-        require(this is ProvisioningResponse.InputComplete) {
-            throw ProvisioningError.InvalidPdu
+        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+        if (this is ProvisioningResponse.Failed) {
+            logger?.e(LogCategory.PROVISIONING) {
+                "Provisioning failed with error: ${error.debugDescription}"
+            }
+            throw ProvisioningError.RemoteError(error)
         }
     } as ProvisioningResponse.InputComplete
 
@@ -357,6 +363,7 @@ class ProvisioningManager(
     private suspend fun awaitConfirmation() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
+        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: ${error.debugDescription}"
@@ -371,6 +378,7 @@ class ProvisioningManager(
     private suspend fun awaitRandom() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
+        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: ${error.debugDescription}"
@@ -382,6 +390,7 @@ class ProvisioningManager(
     private suspend fun awaitComplete() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
+        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
         if (this is ProvisioningResponse.Failed) {
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: ${error.debugDescription}"
