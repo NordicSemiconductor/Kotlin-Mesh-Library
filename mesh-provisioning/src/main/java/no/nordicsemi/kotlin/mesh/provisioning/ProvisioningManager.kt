@@ -64,7 +64,7 @@ class ProvisioningManager(
      * Starts the provisioning process with the given attention timer.
      *
      * @param attentionTimer Attention timer value in seconds.
-     * @return A flow of provisioning states that could be used to observe and continue/cancel the
+     * @return Flow of provisioning states that could be used to observe and continue/cancel the
      *         provisioning process.
      */
     @Throws(MeshNetworkException::class, ProvisioningError::class, BearerError::class)
@@ -97,13 +97,11 @@ class ProvisioningManager(
         // Initialize Provisioning data.
         val provisioningData = ProvisioningData()
 
-        // Sends the provisioning invite
-        ProvisioningRequest.Invite(attentionTimer).also { invite ->
-            logger?.v(LogCategory.PROVISIONING) { "Sending $invite" }
-            send(invite).also { provisioningData.accumulate(it) }
-        }
-
-        val capabilities = awaitCapabilities(provisioningData).capabilities.apply {
+        // Sends the provisioning invite and awaits for the capabilities.
+        val capabilities = awaitCapabilities(
+            invite = ProvisioningRequest.Invite(attentionTimer),
+            provisioningData = provisioningData
+        ).apply {
             // Lets init based on the capabilities
             unicastAddress = meshNetwork.run {
                 nextAvailableUnicastAddress(numberOfElements, localProvisioner!!)!!
@@ -129,9 +127,7 @@ class ProvisioningManager(
                     authMethod = method
                     mutex.unlock()
                 },
-                cancel = {
-                    mutex.unlock()
-                }
+                cancel = { mutex.unlock() }
             )
         )
         mutex.lock()
@@ -141,23 +137,12 @@ class ProvisioningManager(
         // Is the Unicast address valid?
         require(isUnicastAddressValid(unicastAddress, capabilities.numberOfElements)) {
             logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
-            throw ProvisioningError.NoAddressAvailable
+            throw NoAddressAvailable
         }
 
         // Try generating Private and Public keys. This may fail if the given algorithm is not
         // supported.
         provisioningData.generateKeys(algorithm)
-        // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
-        // Shared Secret.
-        if (publicKey is PublicKey.OobPublicKey) {
-            runCatching {
-                provisioningData.onDevicePublicKeyReceived(
-                    key = (publicKey as PublicKey.OobPublicKey).key,
-                    usingOob = true
-                )
-            }.onFailure { throw ProvisioningError.InvalidPublicKey }
-            provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
-        }
 
         emit(ProvisioningState.Provisioning)
         provisioningData.prepare(networkKey, meshNetwork.ivIndex, unicastAddress)
@@ -168,16 +153,21 @@ class ProvisioningManager(
         }
         this@ProvisioningManager.authenticationMethod = authMethod
 
-        ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey).also { key ->
-            logger?.v(LogCategory.PROVISIONING) { "Sending $key" }
-            send(key).also { provisioningData.accumulate(it) }
+        // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
+        // Shared Secret, if not we need send the provisioner public key and wait for the device's
+        // Public Key.
+        val key = when (publicKey) {
+            is PublicKey.OobPublicKey -> (publicKey as PublicKey.OobPublicKey).key
+            else -> {
+                awaitProvisioneePublicKey(
+                    request = ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey),
+                    provisioningData = provisioningData
+                )
+            }
         }
-
-        if (publicKey is PublicKey.OobPublicKey) {
-            provisioningData.accumulate((publicKey as PublicKey.OobPublicKey).key)
-        } else {
-            val provisioneePublicKey = awaitProvisioneePublicKey(provisioningData).key
-            provisioningData.onDevicePublicKeyReceived(key = provisioneePublicKey, usingOob = false)
+        provisioningData.apply {
+            onDevicePublicKeyReceived(key, publicKey is PublicKey.OobPublicKey)
+            accumulate(key)
         }
 
         requestAuthentication(authMethod, provisioningData, mutex)?.also { action ->
@@ -188,28 +178,23 @@ class ProvisioningManager(
             }
         }
 
-        ProvisioningRequest.Confirmation(
-            confirmation = provisioningData.provisionerConfirmation
-        ).also { confirmation ->
-            logger?.v(LogCategory.PROVISIONING) { "Sending $confirmation" }
-            send(confirmation)
-        }
-
-        val confirmation = awaitConfirmation().confirmation
+        val confirmation = awaitConfirmation(
+            request = ProvisioningRequest.Confirmation(
+                confirmation = provisioningData.provisionerConfirmation
+            )
+        )
         provisioningData.onDeviceConfirmationReceived(confirmation = confirmation)
 
-        ProvisioningRequest.Random(
-            random = provisioningData.provisionerRandom
-        ).also { random ->
-            logger?.v(LogCategory.PROVISIONING) { "Sending $random" }
-            send(random)
-        }
-
-        provisioningData.onDeviceRandomReceived(awaitRandom().random)
+        val random = awaitRandom(
+            request = ProvisioningRequest.Random(
+                random = provisioningData.provisionerRandom
+            )
+        )
+        provisioningData.onDeviceRandomReceived(random = random)
 
         require(provisioningData.checkIfConfirmationsMatch()) {
             logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
-            throw ProvisioningError.ConfirmationFailed
+            throw ConfirmationFailed
         }
 
         val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
@@ -221,18 +206,25 @@ class ProvisioningManager(
 
     /**
      * Waits for the capabilities response from the device.
+     *
+     * @param invite           Provisioning invite to send.
+     * @param provisioningData The provisioning data to accumulate the received PDUs.
      */
-    @Throws(ProvisioningError.InvalidPdu::class, ProvisioningError.NoAddressAvailable::class)
-    private suspend fun awaitCapabilities(provisioningData: ProvisioningData) =
-        ProvisioningResponse.from(
+    private suspend fun awaitCapabilities(
+        invite: ProvisioningRequest.Invite,
+        provisioningData: ProvisioningData
+    ): ProvisioningCapabilities {
+        logger?.v(LogCategory.PROVISIONING) { "Sending $invite" }
+        send(invite).also { provisioningData.accumulate(it) }
+        val response = ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
         ).apply {
             logger?.v(LogCategory.PROVISIONING) { "Received $this" }
             require(this is ProvisioningResponse.Capabilities) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${ProvisioningError.InvalidPdu}"
+                    "Provisioning failed with error: ${InvalidPdu}"
                 }
-                throw ProvisioningError.InvalidPdu
+                throw InvalidPdu
             }
             provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
             meshNetwork.localProvisioner?.let {
@@ -246,38 +238,45 @@ class ProvisioningManager(
             }
             require(unicastAddress != null) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${ProvisioningError.NoAddressAvailable}"
+                    "Provisioning failed with error: ${NoAddressAvailable}"
                 }
-                throw ProvisioningError.NoAddressAvailable
+                throw NoAddressAvailable
             }
         } as ProvisioningResponse.Capabilities
+        return response.capabilities
+    }
 
     /**
-     * Waits for the provisionee's public key. This is called only if the provisionee's public key
-     * was not obtained via OOB.
+     * Waits for the device's Public Key.
+     *
+     * @param request                Provisioner's Public Key.
+     * @param provisioningData   Provisioning data to accumulate the received PDUs.
      */
-    private suspend fun awaitProvisioneePublicKey(provisioningData: ProvisioningData) =
-        ProvisioningResponse.from(
-            pdu = awaitBearerPdu().data
-        ).apply {
+    private suspend fun awaitProvisioneePublicKey(
+        request: ProvisioningRequest.PublicKey,
+        provisioningData: ProvisioningData
+    ): ByteArray {
+        logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
+        send(request).also { provisioningData.accumulate(it) }
+        val response = ProvisioningResponse.from(pdu = awaitBearerPdu().data).also { response ->
             logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-            if (this is ProvisioningResponse.Failed) {
+            if (response is ProvisioningResponse.Failed) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: $error"
+                    "Provisioning failed with error: ${response.error}"
                 }
-                throw ProvisioningError.RemoteError(error)
+                throw RemoteError(response.error)
             }
-            require(this is ProvisioningResponse.PublicKey) {
-                throw ProvisioningError.InvalidPdu
+            require(response is ProvisioningResponse.PublicKey) {
+                throw InvalidPdu
             }
-            // Errata E1650 added an extra validation step to ensure the received public key is the same
-            // as the provisioner's public key.
-            require(!this.key.contentEquals(provisioningData.provisionerPublicKey)) {
-                throw ProvisioningError.InvalidPublicKey
+            // Errata E1650 added an extra validation step to ensure the received public key is
+            // the same as the provisioner's public key.
+            require(!response.key.contentEquals(request.publicKey)) {
+                throw InvalidPublicKey
             }
-            provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
-
         } as ProvisioningResponse.PublicKey
+        return response.key
+    }
 
     /**
      * Waits for the user to provide the authentication value.
@@ -301,7 +300,7 @@ class ProvisioningManager(
 
             AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey {
                 require(it.size == sizeInBytes) {
-                    throw ProvisioningError.InvalidOobValueFormat
+                    throw InvalidOobValueFormat
                 }
                 provisioningData.onAuthValueReceived(it)
                 mutex.unlock()
@@ -353,24 +352,49 @@ class ProvisioningManager(
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: ${error.debugDescription}"
             }
-            throw ProvisioningError.RemoteError(error)
+            throw RemoteError(error)
         }
     } as ProvisioningResponse.InputComplete
 
     /**
      * Waits for the confirmation response from the device.
+     *
+     * @param request  Confirmation value to send to the device.
      */
-    private suspend fun awaitConfirmation() = ProvisioningResponse.from(
-        pdu = awaitBearerPdu().data
-    ).apply {
-        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-        if (this is ProvisioningResponse.Failed) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: $error"
+    private suspend fun awaitConfirmation(
+        request: ProvisioningRequest.Confirmation,
+    ): ByteArray {
+        logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
+        send(request)
+        val response = ProvisioningResponse.from(
+            pdu = awaitBearerPdu().data
+        ).apply {
+            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+            if (this is ProvisioningResponse.Failed) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: $error"
+                }
+                throw RemoteError(error)
             }
-            throw ProvisioningError.RemoteError(error)
-        }
-    } as ProvisioningResponse.Confirmation
+        } as ProvisioningResponse.Confirmation
+        return response.confirmation
+    }
+
+    private suspend fun awaitRandom(request: ProvisioningRequest.Random): ByteArray {
+        logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
+        send(request)
+        return (ProvisioningResponse.from(
+            pdu = awaitBearerPdu().data
+        ).apply {
+            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+            if (this is ProvisioningResponse.Failed) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: $error"
+                }
+                throw RemoteError(error)
+            }
+        } as ProvisioningResponse.Random).random
+    }
 
     /**
      * Waits for the provisioning random response from the device.
@@ -383,7 +407,7 @@ class ProvisioningManager(
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: $error"
             }
-            throw ProvisioningError.RemoteError(error)
+            throw RemoteError(error)
         }
     } as ProvisioningResponse.Random
 
@@ -395,13 +419,13 @@ class ProvisioningManager(
             logger?.e(LogCategory.PROVISIONING) {
                 "Provisioning failed with error: $error"
             }
-            throw ProvisioningError.RemoteError(error)
+            throw RemoteError(error)
         }
     } as ProvisioningResponse.Complete
 
     private fun isPublicKeyValid(provisionerPublicKey: ByteArray, devicePublicKey: ByteArray) {
         require(!provisionerPublicKey.contentEquals(devicePublicKey)) {
-            throw ProvisioningError.InvalidPublicKey
+            throw InvalidPublicKey
         }
     }
 

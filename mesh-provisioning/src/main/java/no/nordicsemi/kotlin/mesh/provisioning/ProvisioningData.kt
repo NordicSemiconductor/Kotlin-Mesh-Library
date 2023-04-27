@@ -13,7 +13,6 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.toByteArray
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningError.InvalidPublicKey
 import java.security.PrivateKey
 import java.security.PublicKey
 
@@ -139,10 +138,10 @@ internal class ProvisioningData {
      * - Provisioner's Public Key,
      * - Provisionee's Public Key.
      *
-     * @param pdu provisioning pdu.
+     * @param data provisioning pdu.
      */
-    fun accumulate(pdu: ByteArray) {
-        confirmationInputs += pdu
+    fun accumulate(data: ByteArray) {
+        confirmationInputs += data
     }
 
     /**
@@ -201,6 +200,6 @@ internal class ProvisioningData {
                 algorithm
             ).contentEquals(deviceConfirmation)
         } else {
-            throw ProvisioningError.InvalidState
+            throw InvalidState
         }
 }

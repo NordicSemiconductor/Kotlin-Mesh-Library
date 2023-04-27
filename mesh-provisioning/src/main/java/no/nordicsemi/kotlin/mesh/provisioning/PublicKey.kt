@@ -2,8 +2,24 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+/**
+ * Defines Public Key type that's supported by the device. This field is received as a part of the
+ * Provisioning Capabilities PDU.
+ *
+ * @property method Method of the public key.
+ */
 sealed class PublicKey {
+
+    /**
+     * No OOB public key is used.
+     */
     object NoOobPublicKey : PublicKey()
+
+    /**
+     * OOB public key is used.
+     *
+     * @property key OOB public key.
+     */
     data class OobPublicKey(val key: ByteArray) : PublicKey()
 
     val method: PublicKeyMethod
