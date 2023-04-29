@@ -190,8 +190,8 @@ object Crypto {
 
             Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
                 val confirmationSalt = calculateS2(confirmationInputs)
-                val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
-                calculateHmac256(deviceRandom + authValue, confirmationKey)
+                val confirmationKey = k5(sharedSecret + authValue, confirmationSalt, PRCK256)
+                calculateHmac256(deviceRandom, confirmationKey)
             }
         }
     }
