@@ -259,7 +259,7 @@ class ProvisioningManager(
         logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
         send(request).also { provisioningData.accumulate(it) }
         val response = ProvisioningResponse.from(pdu = awaitBearerPdu().data).also { response ->
-            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+            logger?.v(LogCategory.PROVISIONING) { "Received $response" }
             if (response is ProvisioningResponse.Failed) {
                 logger?.e(LogCategory.PROVISIONING) {
                     "Provisioning failed with error: ${response.error}"
