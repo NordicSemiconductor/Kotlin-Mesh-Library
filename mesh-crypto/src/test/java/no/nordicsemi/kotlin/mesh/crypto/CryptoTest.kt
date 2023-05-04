@@ -187,6 +187,21 @@ class CryptoTest {
     }
 
     /**
+     * Unit test for [Crypto.decodeAndAuthenticate].
+     *
+     * Refer 8.4.6.1 "Mesh Private Beacon - IV update in Progress" for test data for Beacon Key and Beacon PDU.
+     */
+    @Test
+    fun testDecodeAndAuthenticate() {
+        val beaconPDU = "02435f18f85cf78a3121f58478a561e488e7cbf3174f022a514741".decodeHex()
+        val beaconKey = "6be76842460b2d3a5850d4698409f1bb".decodeHex()
+        val expected = Pair(0x02.toByte(), "1010abcd".decodeHex())
+        val actual = Crypto.decodeAndAuthenticate(beaconPDU, beaconKey)
+        val isEqual = expected.first == actual?.first && expected.second.contentEquals(actual.second)
+        Assert.assertEquals(true, isEqual)
+    }
+
+    /**
      * Unit test for [Crypto.obfuscate].
      *
      * Refer 8.3.16 "Message #16" for test data for Data to Obfuscate/Deobfuscate, Privacy Key

@@ -16,7 +16,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.3.3")
+            from("no.nordicsemi.android.gradle:version-catalog:1.4.6")
         }
     }
 }
@@ -35,7 +35,6 @@ include (":core-common")
 include (":feature-application-keys")
 include (":feature-scenes")
 include (":feature-provisioners")
-
 include (":mesh-core")
 include (":mesh-crypto")
 include (":mesh-provisioning")
