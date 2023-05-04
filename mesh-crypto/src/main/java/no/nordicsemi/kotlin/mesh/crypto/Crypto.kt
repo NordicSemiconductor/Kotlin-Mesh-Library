@@ -183,6 +183,40 @@ object Crypto {
     }
 
     /**
+     * Decodes and authenticates the received Private Beacon using the given Private Beacon Key.
+     *
+     * @param pdu                   The received Private Beacon beacon.
+     * @param privateBeaconKey      The Private Beacon Key generated from a Network Key.
+     *
+     * @returns a Pair containing the network information from the beacon. First value is the Flags
+     *          Byte and the second is the IV Index.
+     */
+    fun decodeAndAuthenticate(pdu: ByteArray, privateBeaconKey: ByteArray): Pair<Byte, ByteArray>? {
+        // Byte 0 of the PDU is the Beacon Type (0x02)
+        val random = pdu.sliceArray(1 until 14)
+        val obfuscatedData = pdu.sliceArray(14 until 19)
+        val authenticationTag = pdu.sliceArray(19 until 27)
+
+        // Deobfuscate Private Beacon Data
+        val C1 = byteArrayOf(0x01) + random + byteArrayOf(0x00, 0x01)
+        val S = calculateECB(C1, privateBeaconKey)
+        val privateBeaconData = S.sliceArray(0 until 5) xor obfuscatedData
+
+        // Authenticate the Beacon
+        val B0 = byteArrayOf(0x19) + random + byteArrayOf(0x00, 0x05)
+        val C0 = byteArrayOf(0x01) + random + byteArrayOf(0x00, 0x00)
+        val P = privateBeaconData + byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+        val T0 = calculateECB(B0, privateBeaconKey)
+        val T1 = calculateECB(T0 xor P, privateBeaconKey)
+        val T2 = T1 xor calculateECB(C0, privateBeaconKey)
+        val calculatedAuthenticationTag = T2.sliceArray(0 until 8)
+
+        if (!authenticationTag.contentEquals(calculatedAuthenticationTag)) return null
+
+        return Pair(privateBeaconData[0], privateBeaconData.sliceArray(1 until 5))
+    }
+
+    /**
      * Calculates Electronic Code Book (ECB) for the given [data] and [key].
      *
      * @param data the input data.
