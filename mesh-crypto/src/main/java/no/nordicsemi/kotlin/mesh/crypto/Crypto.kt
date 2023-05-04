@@ -208,7 +208,7 @@ object Crypto {
         // Authenticate the Beacon
         val B0 = byteArrayOf(0x19) + random + byteArrayOf(0x00, 0x05)
         val C0 = byteArrayOf(0x01) + random + byteArrayOf(0x00, 0x00)
-        val P = privateBeaconData + byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+        val P = privateBeaconData + ByteArray(11) { 0x00 }
         val T0 = calculateECB(B0, privateBeaconKey)
         val T1 = calculateECB(T0 xor P, privateBeaconKey)
         val T2 = T1 xor calculateECB(C0, privateBeaconKey)
