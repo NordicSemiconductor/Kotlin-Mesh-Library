@@ -190,6 +190,9 @@ object Crypto {
      *
      * @returns a Pair containing the network information from the beacon. First value is the Flags
      *          Byte and the second is the IV Index.
+     * TODO decide whether to keep this as a return type or use a data class PrivateBeaconData
+     *  containing the flags and ivIndex. Note that this is specific to the Private Beacon as in
+     *  a Secure Network Beacon the Flags and IV Index are separated by the Network ID.
      */
     fun decodeAndAuthenticate(pdu: ByteArray, privateBeaconKey: ByteArray): Pair<Byte, ByteArray>? {
         // Byte 0 of the PDU is the Beacon Type (0x02)
