@@ -5,6 +5,7 @@ package no.nordicsemi.android.kotlin.mesh.bearer.pbgatt
 import android.annotation.SuppressLint
 import android.content.Context
 import kotlinx.coroutines.flow.*
+import no.nordicsemi.android.kotlin.ble.client.main.callback.BleGattClient
 import no.nordicsemi.android.kotlin.ble.client.main.connect
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
@@ -27,11 +28,12 @@ open class PbGattBearer(
     override val supportedTypes: Array<PduTypes>
         get() = arrayOf(PduTypes.ProvisioningPdu)
 
+    private var client: BleGattClient? = null
+
     @SuppressLint("MissingPermission")
     override suspend fun open() {
         val client = device.connect(context)
-        if (!client.isConnected) return
-
+        this.client = client
         client.discoverServices()
             .filterNotNull()
             .onEach { configureGatt(it) }
@@ -41,6 +43,7 @@ open class PbGattBearer(
     }
 
     override suspend fun close() {
+        client?.disconnect()
         super.close()
     }
 
