@@ -1,7 +1,3 @@
-@file:OptIn(
-    ExperimentalMaterial3Api::class
-)
-
 package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver

@@ -7,4 +7,18 @@
     <string name="label_nav_bar_settings">Settings</string>
     <string name="label_import">Import</string>
     <string name="label_reset">Reset</string>
+    <string name="title_scanning">Scanning</string>
+    <string name="label_name">Name</string>
+    <string name="label_placeholder_provisioner_name">nRF Mesh Provisioner</string>
+    <string name="title_device_capabilities">Device Capabilities</string>
+    <string name="title_provisioning_data">Provisioning Data</string>
+    <string name="label_element_count">Element Count</string>
+    <string name="label_supported_algorithms">Supported Algorithms</string>
+    <string name="label_public_key_type">Public Key Type</string>
+    <string name="label_static_oob_type">Static OOB Type</string>
+    <string name="label_unicast_address">Unicast Address</string>
+    <string name="label_output_oob_size">Output Oob Size</string>
+    <string name="label_output_oob_actions">Output Oob Actions</string>
+    <string name="label_input_oob_size">Input Oob Size</string>
+    <string name="label_input_oob_actions">Input Oob Actions</string>
 </resources>

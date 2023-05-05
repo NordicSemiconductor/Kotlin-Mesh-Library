@@ -10,6 +10,8 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -30,7 +32,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +49,8 @@ import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
 import no.nordicsemi.android.nrfmesh.destinations.navigationItems
 import no.nordicsemi.android.nrfmesh.destinations.nodesTab
+import no.nordicsemi.android.nrfmesh.destinations.provisioning
+import no.nordicsemi.android.nrfmesh.destinations.provisioningDestination
 import no.nordicsemi.android.nrfmesh.destinations.proxyFilterTab
 import no.nordicsemi.android.nrfmesh.destinations.settingsTab
 import no.nordicsemi.android.nrfmesh.destinations.topLevelTabs
@@ -73,14 +76,13 @@ import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDesti
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
-fun MeshApp(viewModel: NetworkViewModel = hiltViewModel()) {
+fun NetworkRoute(viewModel: NetworkViewModel = hiltViewModel()) {
     if (viewModel.isNetworkLoaded)
         NetworkScreen(viewModel)
 }
 
 @Composable
 fun NetworkScreen(viewModel: NetworkViewModel) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -95,7 +97,10 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         sheetContent = {
             ScannerSheet(
                 service = MeshProvisioningService,
-                onDeviceFound = { viewModel.connect(context, it) },
+                onDeviceFound = {
+                    hideScanner(scope, bottomSheetState)
+                    viewModel.navigateTo(provisioning, it)
+                },
                 hideScanner = { hideScanner(scope, bottomSheetState) }
             )
         },
@@ -111,6 +116,10 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                 NordicLargeAppBar(
                     text = currentDestination?.title() ?: "",
                     scrollBehavior = scrollBehavior,
+                    backButtonIcon = when (currentDestination) {
+                        provisioning -> Icons.Rounded.Close
+                        else -> Icons.Rounded.ArrowBack
+                    },
                     onNavigationButtonClick = { viewModel.navigateUp() },
                     showBackButton = when (currentDestination) {
                         nodes, groups, proxyFilter, settings -> false
@@ -137,7 +146,11 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                 }
             },
             bottomBar = {
-                BottomNavigationBar(destinations = navigationItems, navigator = viewModel.navigator)
+                if (currentDestination != provisioning)
+                    BottomNavigationBar(
+                        destinations = navigationItems,
+                        navigator = viewModel.navigator
+                    )
             }
         ) {
             NavigationView(
@@ -145,7 +158,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     topLevelTabs with ((nodesTab with nodesDestinations) +
                             (groupsTab with groupsDestinations) +
                             (proxyFilterTab with proxyFilterDestinations) +
-                            (settingsTab with settingsDestinations))
+                            (settingsTab with settingsDestinations)) + provisioningDestination
                 ),
                 modifier = Modifier.padding(it)
             )
@@ -193,7 +206,7 @@ fun BottomNavigationBar(
     }
 }
 
-private fun hideScanner(scope: CoroutineScope, bottomSheetState: ModalBottomSheetState) {
+internal fun hideScanner(scope: CoroutineScope, bottomSheetState: ModalBottomSheetState) {
     scope.launch { bottomSheetState.hide() }
 }
 
@@ -201,6 +214,7 @@ private fun hideScanner(scope: CoroutineScope, bottomSheetState: ModalBottomShee
 fun DestinationId<*, *>.title(): String {
     return when (this) {
         nodes, groups, proxyFilter, settings -> "Network"
+        provisioning -> "Provisioner"
         provisioners -> "Provisioners"
         provisioner -> "Edit Provisioner"
         networkKeys -> "Network Keys"
