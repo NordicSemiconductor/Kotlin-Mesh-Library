@@ -2,10 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.crypto.Algorithm
-
 
 /**
  * Defines possible state of provisioning process.
@@ -28,13 +24,8 @@ sealed class ProvisioningState {
      */
     data class CapabilitiesReceived(
         val capabilities: ProvisioningCapabilities,
-        val start: (
-            unicastAddress: UnicastAddress,
-            networkKey: NetworkKey,
-            algorithm: Algorithm,
-            publicKey: PublicKey,
-            authenticationMethod: AuthenticationMethod
-        ) -> Unit,
+        val configuration: ProvisioningConfiguration,
+        val start: (configuration: ProvisioningConfiguration) -> Unit,
         val cancel: () -> Unit
     ) : ProvisioningState()
 

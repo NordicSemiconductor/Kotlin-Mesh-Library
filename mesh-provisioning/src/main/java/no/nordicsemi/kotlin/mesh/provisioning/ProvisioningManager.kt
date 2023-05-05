@@ -17,13 +17,10 @@ import no.nordicsemi.kotlin.mesh.bearer.ReassembledPdu
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
-import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -42,14 +39,25 @@ class ProvisioningManager(
     private val bearer: MeshProvisioningBearer
 ) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private lateinit var authenticationMethod: AuthenticationMethod
+    lateinit var configuration: ProvisioningConfiguration
     var logger: Logger? = null
-    var unicastAddress: UnicastAddress? = null
-        private set
+
     var suggestedUnicastAddress: UnicastAddress? = null
         private set
 
     init {
+        // Ensures that the mesh network has at least one provisioner added and a unicast address
+        // range is allocated.
+        meshNetwork.localProvisioner?.let {
+            require(it.allocatedUnicastRanges.isNotEmpty()) {
+                logger?.e(LogCategory.PROVISIONING) { "No unicast ranges allocated" }
+                throw NoUnicastRangeAllocated
+            }
+        } ?: run {
+            logger?.e(LogCategory.PROVISIONING) { "No local provisioner" }
+            throw NoLocalProvisioner
+        }
+
         // Ensures the provided bearer supports provisioning PDUs.
         require(bearer.supports(PduType.PROVISIONING_PDU)) {
             logger?.e(LogCategory.PROVISIONING) {
@@ -69,23 +77,6 @@ class ProvisioningManager(
      */
     @Throws(MeshNetworkException::class, ProvisioningError::class, BearerError::class)
     fun provision(attentionTimer: UByte) = flow {
-        var networkKey: NetworkKey = meshNetwork.networkKeys
-            .firstOrNull() ?: throw NoNetworkKeysAdded
-        var unicastAddress: UnicastAddress
-        var algorithm: Algorithm
-        var publicKey: PublicKey
-        var authMethod: AuthenticationMethod
-
-        meshNetwork.localProvisioner?.let {
-            require(it.allocatedUnicastRanges.isNotEmpty()) {
-                logger?.e(LogCategory.PROVISIONING) { "No unicast ranges allocated" }
-                throw NoUnicastRangeAllocated
-            }
-        } ?: run {
-            logger?.e(LogCategory.PROVISIONING) { "No local provisioner" }
-            throw NoLocalProvisioner
-        }
-
         // Is there bearer open?
         require(bearer.isOpen) {
             logger?.e(LogCategory.PROVISIONING) { "Bearer closed" }
@@ -103,14 +94,14 @@ class ProvisioningManager(
             provisioningData = provisioningData
         ).apply {
             // Lets init based on the capabilities
-            unicastAddress = meshNetwork.run {
+            configuration.unicastAddress = meshNetwork.run {
                 nextAvailableUnicastAddress(numberOfElements, localProvisioner!!)!!
             }
-            algorithm = algorithms.strongest()
-            publicKey = if (publicKeyType.isNotEmpty()) {
+            configuration.algorithm = algorithms.strongest()
+            configuration.publicKey = if (publicKeyType.isNotEmpty()) {
                 PublicKey.OobPublicKey(ByteArray(16) { 0x00 })
             } else PublicKey.NoOobPublicKey
-            authMethod = supportedAuthenticationMethods.first()
+            configuration.authMethod = supportedAuthenticationMethods.first()
         }
 
         // We use a mutex here to wait for the user to either start or cancel the provisioning.
@@ -119,12 +110,9 @@ class ProvisioningManager(
         emit(
             value = ProvisioningState.CapabilitiesReceived(
                 capabilities = capabilities,
-                start = { address, netKey, alg, pubKey, method ->
-                    unicastAddress = address
-                    networkKey = netKey
-                    algorithm = alg
-                    publicKey = pubKey
-                    authMethod = method
+                configuration = configuration,
+                start = { configuration ->
+                    this@ProvisioningManager.configuration = configuration
                     mutex.unlock()
                 },
                 cancel = { mutex.unlock() }
@@ -134,30 +122,41 @@ class ProvisioningManager(
 
         // TODO Can the Unprovisioned Device be provisioned by this manager?
 
+        require(configuration.unicastAddress != null){
+            throw NoAddressAvailable
+        }
         // Is the Unicast address valid?
-        require(isUnicastAddressValid(unicastAddress, capabilities.numberOfElements)) {
+        require(
+            isUnicastAddressValid(
+                configuration.unicastAddress!!,
+                capabilities.numberOfElements
+            )
+        ) {
             logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
             throw NoAddressAvailable
         }
 
         // Try generating Private and Public keys. This may fail if the given algorithm is not
         // supported.
-        provisioningData.generateKeys(algorithm)
+        provisioningData.generateKeys(configuration.algorithm)
 
         emit(ProvisioningState.Provisioning)
-        provisioningData.prepare(networkKey, meshNetwork.ivIndex, unicastAddress)
+        provisioningData.prepare(
+            configuration.networkKey,
+            meshNetwork.ivIndex,
+            configuration.unicastAddress!!
+        )
 
-        ProvisioningRequest.Start(algorithm, publicKey.method, authMethod).also { start ->
+        ProvisioningRequest.Start(configuration).also { start ->
             logger?.v(LogCategory.PROVISIONING) { "Sending $start" }
             send(start).also { provisioningData.accumulate(it) }
         }
-        this@ProvisioningManager.authenticationMethod = authMethod
 
         // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
         // Shared Secret, if not we need send the provisioner public key and wait for the device's
         // Public Key.
-        val key = when (publicKey) {
-            is PublicKey.OobPublicKey -> (publicKey as PublicKey.OobPublicKey).key
+        val key = when (configuration.publicKey) {
+            is PublicKey.OobPublicKey -> (configuration.publicKey as PublicKey.OobPublicKey).key
             else -> {
                 awaitProvisioneePublicKey(
                     request = ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey),
@@ -166,11 +165,11 @@ class ProvisioningManager(
             }
         }
         provisioningData.apply {
-            onDevicePublicKeyReceived(key, publicKey is PublicKey.OobPublicKey)
+            onDevicePublicKeyReceived(key, configuration.publicKey is PublicKey.OobPublicKey)
             accumulate(key)
         }
 
-        requestAuthentication(authMethod, provisioningData, mutex)?.also { action ->
+        requestAuthentication(configuration.authMethod, provisioningData, mutex)?.also { action ->
             emit(ProvisioningState.AuthActionRequired(action))
             mutex.lock()
             if (action is AuthAction.DisplayNumber || action is AuthAction.DisplayAlphaNumeric) {
@@ -222,26 +221,29 @@ class ProvisioningManager(
             logger?.v(LogCategory.PROVISIONING) { "Received $this" }
             require(this is ProvisioningResponse.Capabilities) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${InvalidPdu}"
+                    "Provisioning failed with error: $InvalidPdu"
                 }
                 throw InvalidPdu
             }
             provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
+            configuration = ProvisioningConfiguration(meshNetwork, capabilities)
             meshNetwork.localProvisioner?.let {
                 // Calculates the unicast address automatically based ont he number of elements.
-                if (unicastAddress == null) {
+                if (configuration.unicastAddress == null) {
                     val count = capabilities.numberOfElements
-                    unicastAddress = meshNetwork.nextAvailableUnicastAddress(count, it)?.apply {
-                        suggestedUnicastAddress = this
-                    }
+                    configuration.unicastAddress =
+                        meshNetwork.nextAvailableUnicastAddress(count, it)?.apply {
+                            suggestedUnicastAddress = this
+                        }
                 }
             }
-            require(unicastAddress != null) {
+            require(configuration.unicastAddress != null) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${NoAddressAvailable}"
+                    "Provisioning failed with error: $NoAddressAvailable"
                 }
                 throw NoAddressAvailable
             }
+            suggestedUnicastAddress = configuration.unicastAddress
         } as ProvisioningResponse.Capabilities
         return response.capabilities
     }

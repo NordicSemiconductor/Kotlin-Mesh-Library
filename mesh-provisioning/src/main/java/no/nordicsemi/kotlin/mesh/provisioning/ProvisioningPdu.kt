@@ -160,6 +160,13 @@ sealed class ProvisioningRequest {
         val publicKey: PublicKeyMethod,
         val method: AuthenticationMethod
     ) : ProvisioningRequest() {
+
+        internal constructor(configuration: ProvisioningConfiguration) : this(
+            configuration.algorithm,
+            configuration.publicKey.method,
+            configuration.authMethod
+        )
+
         override fun toString() = "Provisioning Start (algorithm: $algorithm, public key: " +
                 "$publicKey, method: $method)"
     }
