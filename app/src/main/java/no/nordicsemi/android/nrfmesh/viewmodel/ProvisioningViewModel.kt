@@ -25,6 +25,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
@@ -108,9 +109,13 @@ class ProvisioningViewModel @Inject constructor(
         Log.println(level.toAndroidLogLevel(), category.category, message)
     }
 
-    fun onAddressChanged(address: Int): Result<Unit> {
-        TODO("Not yet implemented")
-    }
+    fun onAddressChanged(
+        configuration: ProvisioningConfiguration,
+        elementCount: Int,
+        address: Int
+    ) = runCatching {
+        // TODO check if address is valid
+    }.onSuccess { }
 
     /**
      * Checks if the given address is valid

@@ -21,4 +21,9 @@
     <string name="label_output_oob_actions">Output Oob Actions</string>
     <string name="label_input_oob_size">Input Oob Size</string>
     <string name="label_input_oob_actions">Input Oob Actions</string>
+    <string name="label_connecting">Connecting…</string>
+    <string name="label_connected">Connected</string>
+    <string name="label_identifying">Identifying…</string>
+    <string name="label_disconnected">Disconnected</string>
+    <string name="title_network_key">Network Key</string>
 </resources>

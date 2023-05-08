@@ -63,6 +63,7 @@ import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.toHex
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
@@ -92,13 +93,19 @@ private fun ProvisioningScreen(
     provisionerState: ProvisionerState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Unit>,
     isValidAddress: (UShort) -> Boolean
 ) {
     when (provisionerState) {
-        is ProvisionerState.Connecting -> ProvisionerStateInfo(text = "Connecting...")
-        is ProvisionerState.Connected -> ProvisionerStateInfo(text = "Connected")
-        ProvisionerState.Identifying -> ProvisionerStateInfo(text = "Identifying")
+        is ProvisionerState.Connecting -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_connecting)
+        )
+        is ProvisionerState.Connected -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_connected)
+        )
+        ProvisionerState.Identifying -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_identifying)
+        )
         is ProvisionerState.Provisioning -> ProvisioningInfo(
             unprovisionedDevice = unprovisionedDevice,
             provisioningState = provisionerState.state,
@@ -106,8 +113,9 @@ private fun ProvisioningScreen(
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress
         )
-
-        is ProvisionerState.Disconnected -> ProvisionerStateInfo(text = "Disconnected")
+        is ProvisionerState.Disconnected -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_disconnected)
+        )
     }
 }
 
@@ -116,7 +124,7 @@ private fun ProvisioningInfo(
     provisioningState: ProvisioningState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Unit>,
     isValidAddress: (UShort) -> Boolean
 ) {
     when (provisioningState) {
@@ -150,7 +158,13 @@ private fun ProvisioningInfo(
                         snackbarHostState = snackbarHostState,
                         keyboardController = keyboardController,
                         address = provisioningState.configuration.unicastAddress!!.address,
-                        onAddressChanged = onAddressChanged,
+                        onAddressChanged = {
+                            onAddressChanged(
+                                provisioningState.configuration,
+                                provisioningState.capabilities.numberOfElements,
+                                it
+                            )
+                        },
                         isValidAddress = isValidAddress,
                         isCurrentlyEditable = isCurrentlyEditable,
                         onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
@@ -159,10 +173,9 @@ private fun ProvisioningInfo(
                 item {
                     KeyRow(
                         modifier = Modifier.clickable {
-                            //navigateToApplicationKey(key.index)
+                            // TODO navigate to network keys
                         },
-                        title = "Network Key",
-                        subtitle = "Some key name"
+                        name = provisioningState.configuration.networkKey.name
                     )
                 }
                 item {
@@ -548,7 +561,7 @@ private fun UnicastAddressRow(
 }
 
 @Composable
-private fun KeyRow(modifier: Modifier, title: String, subtitle: String) {
+private fun KeyRow(modifier: Modifier, name: String) {
     MeshTwoLineListItem(
         modifier = modifier,
         leadingComposable = {
@@ -559,8 +572,8 @@ private fun KeyRow(modifier: Modifier, title: String, subtitle: String) {
                 tint = LocalContentColor.current.copy(alpha = 0.6f)
             )
         },
-        title = title,
-        subtitle = subtitle
+        title = stringResource(R.string.title_network_key),
+        subtitle = name
     )
 }
 
