@@ -2,7 +2,6 @@ package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
-import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -26,9 +25,6 @@ data class ProvisioningConfiguration(
     private val capabilities: ProvisioningCapabilities
 ) {
     var unicastAddress: UnicastAddress? = meshNetwork.localProvisioner?.let {
-        require(it.allocatedUnicastRanges.isNotEmpty()) {
-            throw NoUnicastRangeAllocated
-        }
         // Calculates the unicast address automatically based ont he number of elements.
         meshNetwork.nextAvailableUnicastAddress(capabilities.numberOfElements, it)
     } ?: run {
