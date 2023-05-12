@@ -10,6 +10,8 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto.k4
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.salt
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.uint16ToUtf8
+import no.nordicsemi.kotlin.mesh.crypto.Utils.utf8ToUint16
 import org.junit.Assert
 import org.junit.Test
 import java.util.*
@@ -231,5 +233,19 @@ class CryptoTest {
         val expectedPECB = "b8bd2c18096e".decodeHex()
         val actualPECB = Crypto.calculateECB(privacyPlainText, privacyKey).copyOfRange(0, 6)
         Assert.assertTrue(expectedPECB.contentEquals(actualPECB))
+    }
+
+    @Test
+    fun testUint16ToUTF8() {
+        val expected = "0010C280C480".decodeHex()
+        val actual = "0000001000800100".decodeHex().uint16ToUtf8()
+        Assert.assertTrue(expected.contentEquals(actual))
+    }
+
+    @Test
+    fun testUTF8ToUint16() {
+        val expected = "0000001000800100".decodeHex()
+        val actual = "0010C280C480".decodeHex().utf8ToUint16()
+        Assert.assertTrue(expected.contentEquals(actual))
     }
 }
