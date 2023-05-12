@@ -235,6 +235,11 @@ class CryptoTest {
         Assert.assertTrue(expectedPECB.contentEquals(actualPECB))
     }
 
+    /**
+     * Unit test for [Utils.uint16ToUtf8].
+     *
+     * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
+     */
     @Test
     fun testUint16ToUTF8() {
         val expected = "0010C280C480".decodeHex()
@@ -242,6 +247,11 @@ class CryptoTest {
         Assert.assertTrue(expected.contentEquals(actual))
     }
 
+    /**
+     * Unit test for [Utils.utf8ToUint16].
+     *
+     * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
+     */
     @Test
     fun testUTF8ToUint16() {
         val expected = "0000001000800100".decodeHex()
