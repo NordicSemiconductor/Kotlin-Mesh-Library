@@ -1,7 +1,5 @@
 package no.nordicsemi.kotlin.mesh.crypto
 
-import java.nio.ByteOrder
-import java.nio.ByteOrder.nativeOrder
 import java.util.*
 import kotlin.experimental.xor
 
