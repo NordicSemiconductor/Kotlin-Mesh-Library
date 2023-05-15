@@ -136,7 +136,7 @@ class ProvisioningManager(
             )
         ) {
             logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
-            throw NoAddressAvailable
+            throw InvalidAddress
         }
 
         // Try generating Private and Public keys. This may fail if the given algorithm is not

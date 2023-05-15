@@ -40,6 +40,11 @@ object InvalidOobValueFormat : ProvisioningError()
 object NoAddressAvailable : ProvisioningError()
 
 /**
+ * Thrown when the unicast address is invalid.
+ */
+object InvalidAddress : ProvisioningError()
+
+/**
  * Throws when the Unicast Address has not been set.
  */
 object AddressNotSpecified : ProvisioningError()
