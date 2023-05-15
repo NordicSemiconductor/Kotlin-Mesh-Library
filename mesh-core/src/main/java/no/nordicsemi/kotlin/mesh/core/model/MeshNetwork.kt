@@ -686,7 +686,7 @@ class MeshNetwork internal constructor(
      * to a new node based on the given number of elements. The zeroth element is identified by the
      * node's Unicast Address. Each following element is  identified by a subsequent Unicast
      * Address.
-     *
+     * @param offset       Unicast address offset.
      * @param elementCount Number of elements in the node.
      * @param provisioner  Provisioner that's provisioning the node.
      * @return the next available Unicast Address that can be assigned to the node or null if there
@@ -694,7 +694,11 @@ class MeshNetwork internal constructor(
      * @throws NoUnicastRangeAllocated if the provisioner has no address range allocated.
      */
     @Throws(NoUnicastRangeAllocated::class)
-    fun nextAvailableUnicastAddress(elementCount: Int, provisioner: Provisioner): UnicastAddress? {
+    fun nextAvailableUnicastAddress(
+        offset: UnicastAddress = UnicastAddress(minUnicastAddress),
+        elementCount: Int,
+        provisioner: Provisioner
+    ): UnicastAddress? {
         require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
 
         val excludedAddresses = _networkExclusions.sortedBy { it.ivIndex }.flatMap { it._addresses }
@@ -708,6 +712,9 @@ class MeshNetwork internal constructor(
 
         provisioner._allocatedUnicastRanges.forEach { range ->
             var address = range.lowAddress
+
+            if (offset > address && range.contains(offset.address)) address = offset
+
             for (index in totalAddressesInUse.indices) {
                 val usedAddress = totalAddressesInUse[index]
 
@@ -715,12 +722,12 @@ class MeshNetwork internal constructor(
                 if (address > usedAddress) continue
 
                 // If we found a space before the current node, return the address.
-                if (usedAddress > address + (elementCount - 1)) return address
+                if ((address + (elementCount - 1) < usedAddress)) return address
 
                 // Else, move the address to the next available address.
                 address = usedAddress + 1
 
-                if (range.highAddress < address + (elementCount - 1)) break
+                if (address + (elementCount - 1) > range.highAddress) break
             }
             if (range.highAddress >= address + (elementCount - 1)) return address
         }

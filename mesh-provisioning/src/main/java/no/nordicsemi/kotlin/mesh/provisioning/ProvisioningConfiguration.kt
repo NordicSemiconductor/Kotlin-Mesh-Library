@@ -26,7 +26,10 @@ data class ProvisioningConfiguration(
 ) {
     var unicastAddress: UnicastAddress? = meshNetwork.localProvisioner?.let {
         // Calculates the unicast address automatically based ont he number of elements.
-        meshNetwork.nextAvailableUnicastAddress(capabilities.numberOfElements, it)
+        meshNetwork.nextAvailableUnicastAddress(
+            elementCount = capabilities.numberOfElements,
+            provisioner = it
+        )
     } ?: run {
         throw NoLocalProvisioner
     }

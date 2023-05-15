@@ -95,7 +95,10 @@ class ProvisioningManager(
         ).apply {
             // Lets init based on the capabilities
             configuration.unicastAddress = meshNetwork.run {
-                nextAvailableUnicastAddress(numberOfElements, localProvisioner!!)!!
+                nextAvailableUnicastAddress(
+                    elementCount = numberOfElements,
+                    provisioner = localProvisioner!!
+                )!!
             }
             configuration.algorithm = algorithms.strongest()
             configuration.publicKey = if (publicKeyType.isNotEmpty()) {
@@ -122,7 +125,7 @@ class ProvisioningManager(
 
         // TODO Can the Unprovisioned Device be provisioned by this manager?
 
-        require(configuration.unicastAddress != null){
+        require(configuration.unicastAddress != null) {
             throw NoAddressAvailable
         }
         // Is the Unicast address valid?
@@ -232,7 +235,10 @@ class ProvisioningManager(
                 if (configuration.unicastAddress == null) {
                     val count = capabilities.numberOfElements
                     configuration.unicastAddress =
-                        meshNetwork.nextAvailableUnicastAddress(count, it)?.apply {
+                        meshNetwork.nextAvailableUnicastAddress(
+                            elementCount = count,
+                            provisioner = it
+                        )?.apply {
                             suggestedUnicastAddress = this
                         }
                 }
@@ -438,7 +444,7 @@ class ProvisioningManager(
      * @param numberOfElements   Number of elements in the node.
      * @return true if the address is valid, false otherwise.
      */
-    private fun isUnicastAddressValid(unicastAddress: UnicastAddress, numberOfElements: Int) =
+    fun isUnicastAddressValid(unicastAddress: UnicastAddress, numberOfElements: Int) =
         meshNetwork.localProvisioner?.let { provisioner ->
             val range = UnicastRange(unicastAddress, numberOfElements)
             meshNetwork.isAddressRangeAvailable(range) && provisioner.hasAllocatedRange(range)
