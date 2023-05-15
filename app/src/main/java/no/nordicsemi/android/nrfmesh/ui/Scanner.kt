@@ -36,11 +36,11 @@ fun ScannerSheet(
             )
             ScannerView(
                 uuid = ParcelUuid(service.uuid),
-                onResult = { discoveredBluetoothDevice ->
-                    discoveredBluetoothDevice.scanResult?.scanRecord?.bytes?.let { bytes ->
+                onResult = { discoveredBleDevice ->
+                    discoveredBleDevice.scanResult?.scanRecord?.bytes?.let { bytes ->
                         unprovisionedDevice = UnprovisionedDevice.from(bytes)
                     }?.let {
-                        onDeviceFound(discoveredBluetoothDevice)
+                        onDeviceFound(discoveredBleDevice)
                     }
                 },
                 deviceItem = {

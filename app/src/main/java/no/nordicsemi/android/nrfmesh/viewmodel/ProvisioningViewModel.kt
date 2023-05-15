@@ -9,8 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
@@ -68,7 +68,7 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     private fun connect() {
-        viewModelScope.launch {
+        viewModelScope.launch() {
             pbGattBearer.open()
             _uiState.value = ProvisioningScreenUiState(
                 unprovisionedDevice = unprovisionedDevice,
@@ -86,12 +86,8 @@ class ProvisioningViewModel @Inject constructor(
                     unprovisionedDevice = unprovisionedDevice,
                     provisionerState = ProvisionerState.Provisioning(state)
                 )
-            }.onCompletion {
-                pbGattBearer.close()
-                _uiState.value = ProvisioningScreenUiState(
-                    unprovisionedDevice = unprovisionedDevice,
-                    provisionerState = ProvisionerState.Disconnected
-                )
+            }.catch {
+
             }.launchIn(viewModelScope)
         }
     }
@@ -114,8 +110,18 @@ class ProvisioningViewModel @Inject constructor(
         elementCount: Int,
         address: Int
     ) = runCatching {
-        // TODO check if address is valid
-    }.onSuccess { }
+        val unicastAddress = UnicastAddress(address.toUShort())
+        provisioningManager.isUnicastAddressValid(
+            unicastAddress = UnicastAddress(address.toUShort()),
+            numberOfElements = elementCount
+        ).also {
+            configuration.unicastAddress = UnicastAddress(address.toUShort())
+            val provisionerState = _uiState.value.provisionerState as ProvisionerState.Provisioning
+            val state = provisionerState.state as ProvisioningState.CapabilitiesReceived
+            state.configuration.unicastAddress = unicastAddress
+            _uiState.value = _uiState.value.copy(provisionerState = provisionerState)
+        }
+    }
 
     /**
      * Checks if the given address is valid
@@ -123,6 +129,21 @@ class ProvisioningViewModel @Inject constructor(
     fun isValidAddress(address: UShort): Boolean = when {
         UnicastAddress.isValid(address = address) -> true
         else -> throw Throwable("Invalid unicast address")
+    }
+
+    fun onProvisionClick() {
+        val state = uiState.value
+        viewModelScope.launch {
+            state.provisionerState.let {
+                if (it is ProvisionerState.Provisioning) {
+                    if (it.state is ProvisioningState.CapabilitiesReceived) {
+                        it.state.run {
+                            start(configuration)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

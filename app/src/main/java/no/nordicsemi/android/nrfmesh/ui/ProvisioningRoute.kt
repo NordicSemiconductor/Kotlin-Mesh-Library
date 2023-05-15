@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -66,6 +67,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
+
 
 @Composable
 fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
@@ -84,7 +86,8 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         provisionerState = uiState.provisionerState,
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
-        isValidAddress = viewModel::isValidAddress
+        isValidAddress = viewModel::isValidAddress,
+        onProvisionClick = viewModel::onProvisionClick
     )
 }
 
@@ -93,26 +96,32 @@ private fun ProvisioningScreen(
     provisionerState: ProvisionerState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Unit>,
-    isValidAddress: (UShort) -> Boolean
+    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    isValidAddress: (UShort) -> Boolean,
+    onProvisionClick: () -> Unit
 ) {
     when (provisionerState) {
         is ProvisionerState.Connecting -> ProvisionerStateInfo(
             text = stringResource(R.string.label_connecting)
         )
+
         is ProvisionerState.Connected -> ProvisionerStateInfo(
             text = stringResource(R.string.label_connected)
         )
+
         ProvisionerState.Identifying -> ProvisionerStateInfo(
             text = stringResource(R.string.label_identifying)
         )
+
         is ProvisionerState.Provisioning -> ProvisioningInfo(
             unprovisionedDevice = unprovisionedDevice,
             provisioningState = provisionerState.state,
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
-            isValidAddress = isValidAddress
+            isValidAddress = isValidAddress,
+            onProvisionClick = onProvisionClick
         )
+
         is ProvisionerState.Disconnected -> ProvisionerStateInfo(
             text = stringResource(R.string.label_disconnected)
         )
@@ -124,8 +133,9 @@ private fun ProvisioningInfo(
     provisioningState: ProvisioningState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Unit>,
-    isValidAddress: (UShort) -> Boolean
+    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    isValidAddress: (UShort) -> Boolean,
+    onProvisionClick: () -> Unit
 ) {
     when (provisioningState) {
         is ProvisioningState.RequestingCapabilities -> {
@@ -140,7 +150,6 @@ private fun ProvisioningInfo(
             var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-
                 item {
                     Name(
                         name = unprovisionedDevice.name,
@@ -184,7 +193,18 @@ private fun ProvisioningInfo(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(
-                            onClick = { provisioningState.start(provisioningState.configuration) }
+                            onClick = {
+                                runCatching {
+                                    onProvisionClick()
+                                }.onFailure {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = it.message
+                                                ?: context.getString(R.string.label_unknown_error)
+                                        )
+                                    }
+                                }
+                            }
                         ) {
                             Text(text = "Provision")
                         }
@@ -318,8 +338,7 @@ private fun ProvisioningInfo(
             }
         }
 
-        else -> {
-        }
+        else -> {}
     }
 }
 
@@ -336,7 +355,7 @@ private fun ProvisionerStateInfo(text: String) {
 }
 
 @Composable
-fun Name(
+private fun Name(
     name: String,
     onNameChanged: (String) -> Unit,
     isCurrentlyEditable: Boolean,
@@ -429,7 +448,7 @@ private fun UnicastAddressRow(
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address = UnicastAddress(1u).address,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -501,8 +520,17 @@ private fun UnicastAddressRow(
                             if (value.text.isNotEmpty()) {
                                 onAddressChanged(value.text.toInt(radix = 16))
                                     .onSuccess {
-                                        onEditClick = !onEditClick
-                                        onEditableStateChanged()
+                                        if (it) {
+                                            onEditClick = !onEditClick
+                                            onEditableStateChanged()
+                                        } else {
+                                            error = true
+                                            showSnackbar(
+                                                scope = scope,
+                                                snackbarHostState = snackbarHostState,
+                                                message = context.getString(R.string.error_invalid_address)
+                                            )
+                                        }
                                     }
                                     .onFailure {
                                         error = true

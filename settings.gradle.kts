@@ -22,27 +22,27 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Kotlin-nRF Mesh-Library"
-include (":app")
-include (":core-ui")
-include (":core-data-storage")
-include (":feature-nodes")
-include (":feature-groups")
-include (":feature-settings")
-include (":feature-proxy-filter")
-include (":core-data")
-include (":feature-export")
-include (":feature-network-keys")
-include (":core-common")
-include (":feature-application-keys")
-include (":feature-scenes")
-include (":feature-provisioners")
+include(":app")
+include(":core-ui")
+include(":core-data-storage")
+include(":feature-nodes")
+include(":feature-groups")
+include(":feature-settings")
+include(":feature-proxy-filter")
+include(":core-data")
+include(":feature-export")
+include(":feature-network-keys")
+include(":core-common")
+include(":feature-application-keys")
+include(":feature-scenes")
+include(":feature-provisioners")
 
-include (":mesh-core")
-include (":mesh-crypto")
-include (":mesh-provisioning")
-include (":mesh-configuration")
-include (":mesh-generic")
-include (":mesh-lighting")
+include(":mesh-core")
+include(":mesh-crypto")
+include(":mesh-provisioning")
+include(":mesh-configuration")
+include(":mesh-generic")
+include(":mesh-lighting")
 include(":mesh-logger")
 include(":mesh-bearer")
 include(":mesh-bearer-provisioning")
@@ -51,9 +51,11 @@ include(":mesh-bearer-android")
 include(":mesh-bearer-gatt")
 include(":mesh-bearer-pbgatt")
 
+/*
 if (file("../Kotlin-BLE-Library").exists()) {
     includeBuild("../Kotlin-BLE-Library")
 }
+*/
 if (file("../Android-Common-Libraries").exists()) {
     includeBuild("../Android-Common-Libraries")
 }
