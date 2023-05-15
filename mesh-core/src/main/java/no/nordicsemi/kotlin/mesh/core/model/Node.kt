@@ -108,7 +108,7 @@ data class Node internal constructor(
     val primaryUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress
 
-    var name: String = "Mesh Network"
+    var name: String = "nRF Mesh Node"
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
             network?.updateTimestamp()
@@ -205,7 +205,7 @@ data class Node internal constructor(
         get() = List(elementsCount) { index -> _primaryUnicastAddress + index }
 
     val unicastRange: UnicastRange
-        get() = _primaryUnicastAddress..(_primaryUnicastAddress + elementsCount)
+        get() = UnicastRange(_primaryUnicastAddress, elementsCount)
 
     val lastUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress + when (elementsCount > 0) {
