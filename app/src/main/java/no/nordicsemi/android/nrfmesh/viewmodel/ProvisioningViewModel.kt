@@ -47,11 +47,11 @@ class ProvisioningViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
 
-    private val discoveredBluetoothDevice = parameterOf(provisioning)
+    private val bleScanResults = parameterOf(provisioning)
     private val pbGattBearer =
-        PbGattBearer(context, RealServerDevice(discoveredBluetoothDevice.device))
+        PbGattBearer(context, bleScanResults.device as RealServerDevice)
     private var unprovisionedDevice: UnprovisionedDevice =
-        UnprovisionedDevice.from(discoveredBluetoothDevice.scanResult!!.scanRecord!!.bytes!!)
+        UnprovisionedDevice.from(bleScanResults.lastScanResult!!.scanRecord!!.bytes)
 
     private var _uiState = MutableStateFlow(
         ProvisioningScreenUiState(
@@ -65,9 +65,8 @@ class ProvisioningViewModel @Inject constructor(
 
     init {
         observeNetwork()
-        connect()
         observeNetKeySelector()
-
+        connect()
     }
 
     private fun observeNetwork() {

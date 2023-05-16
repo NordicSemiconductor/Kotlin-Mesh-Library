@@ -13,8 +13,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import no.nordicsemi.android.common.ui.scanner.ScannerView
 import no.nordicsemi.android.common.ui.scanner.main.DeviceListItem
-import no.nordicsemi.android.common.ui.scanner.model.DiscoveredBluetoothDevice
 import no.nordicsemi.android.common.ui.scanner.view.ScannerAppBar
+import no.nordicsemi.android.kotlin.ble.scanner.data.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshService
 import no.nordicsemi.android.nrfmesh.R
@@ -23,7 +23,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 @Composable
 fun ScannerSheet(
     service: MeshService,
-    onDeviceFound: (DiscoveredBluetoothDevice) -> Unit,
+    onDeviceFound: (BleScanResults) -> Unit,
     hideScanner: () -> Unit
 ) {
     Surface {
@@ -36,21 +36,21 @@ fun ScannerSheet(
             )
             ScannerView(
                 uuid = ParcelUuid(service.uuid),
-                onResult = { discoveredBleDevice ->
-                    discoveredBleDevice.scanResult?.scanRecord?.bytes?.let { bytes ->
+                onResult = { result ->
+                    result.lastScanResult?.scanRecord?.bytes?.let { bytes ->
                         unprovisionedDevice = UnprovisionedDevice.from(bytes)
                     }?.let {
-                        onDeviceFound(discoveredBleDevice)
+                        onDeviceFound(result)
                     }
                 },
                 deviceItem = {
                     DeviceListItem(
-                        name = it.displayName,
+                        name = it.device.name,
                         address = if (service is MeshProvisioningService) {
-                            it.scanResult?.scanRecord?.bytes?.let { bytes ->
+                            it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
                                 UnprovisionedDevice.from(bytes).uuid.toString().uppercase()
-                            } ?: it.address
-                        } else it.address
+                            } ?: it.device.address
+                        } else it.device.address
                     )
                 }
             )

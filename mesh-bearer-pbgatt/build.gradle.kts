@@ -13,8 +13,8 @@ dependencies {
     implementation(project(":mesh-provisioning"))
     implementation("androidx.test.ext:junit-ktx:1.1.5")
 
-    implementation("no.nordicsemi.android.kotlin.ble:core:0.0.1")
-    implementation("no.nordicsemi.android.kotlin.ble:client:0.0.1")
+    implementation(libs.nordic.blek.core)
+    implementation(libs.nordic.blek.client)
 
     testImplementation("junit:junit:4.13.2")
 }

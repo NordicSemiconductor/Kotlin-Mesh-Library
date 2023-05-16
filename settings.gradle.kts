@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.5.2")
+            from("no.nordicsemi.android.gradle:version-catalog:1.5.4")
         }
     }
 }
@@ -54,7 +54,7 @@ include(":mesh-bearer-pbgatt")
 /*if (file("../Kotlin-BLE-Library").exists()) {
     includeBuild("../Kotlin-BLE-Library")
 }
-*/
 if (file("../Android-Common-Libraries").exists()) {
     includeBuild("../Android-Common-Libraries")
 }
+*/
