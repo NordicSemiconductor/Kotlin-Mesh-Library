@@ -10,8 +10,7 @@ android {
 dependencies {
     api(project(":mesh-bearer"))
 
-    implementation("androidx.core:core-ktx:1.10.0")
-
+    implementation(libs.androidx.core)
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)
 
