@@ -11,15 +11,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.NavigationResult
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.kotlin.ble.core.RealServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -59,12 +64,18 @@ class ProvisioningViewModel @Inject constructor(
     private lateinit var provisioningJob: Job
 
     init {
+        observeNetwork()
+        connect()
+        observeNetKeySelector()
+
+    }
+
+    private fun observeNetwork() {
         viewModelScope.launch {
             repository.network.collect {
                 meshNetwork = it
             }
         }
-        connect()
     }
 
     private fun connect() {
@@ -96,16 +107,36 @@ class ProvisioningViewModel @Inject constructor(
         provisioningJob.cancel()
     }
 
-    fun onNameChanged(name: String) {
+    private fun observeNetKeySelector() {
+        resultFrom(netKeySelector)
+            // Filter out results of cancelled navigation.
+            .mapNotNull { it as? NavigationResult.Success }
+            .map { it.value }
+            // Save the result in SavedStateHandle.
+            .onEach { keyIndex ->
+                //savedStateHandle[KEY_INDEX] = it
+                uiState.value.provisionerState.let { provisionerState ->
+                    if (provisionerState is ProvisionerState.Provisioning) {
+                        if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
+                            meshNetwork.networkKeys.find { key ->
+                                keyIndex == key.index.toInt()
+                            }?.let {
+                                provisionerState.state.configuration.networkKey = it
+                            }
+                        }
+                    }
+                }
+            }
+            // And finally, launch the flow in the ViewModelScope.
+            .launchIn(viewModelScope)
+    }
+
+    internal fun onNameChanged(name: String) {
         unprovisionedDevice.name = name
         _uiState.value = _uiState.value.copy(unprovisionedDevice = unprovisionedDevice)
     }
 
-    override fun log(message: String, category: LogCategory, level: LogLevel) {
-        Log.println(level.toAndroidLogLevel(), category.category, message)
-    }
-
-    fun onAddressChanged(
+    internal fun onAddressChanged(
         configuration: ProvisioningConfiguration,
         elementCount: Int,
         address: Int
@@ -116,7 +147,8 @@ class ProvisioningViewModel @Inject constructor(
             numberOfElements = elementCount
         ).also {
             configuration.unicastAddress = UnicastAddress(address.toUShort())
-            val provisionerState = _uiState.value.provisionerState as ProvisionerState.Provisioning
+            val provisionerState =
+                _uiState.value.provisionerState as ProvisionerState.Provisioning
             val state = provisionerState.state as ProvisioningState.CapabilitiesReceived
             state.configuration.unicastAddress = unicastAddress
             _uiState.value = _uiState.value.copy(provisionerState = provisionerState)
@@ -126,12 +158,16 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Checks if the given address is valid
      */
-    fun isValidAddress(address: UShort): Boolean = when {
+    internal fun isValidAddress(address: UShort): Boolean = when {
         UnicastAddress.isValid(address = address) -> true
         else -> throw Throwable("Invalid unicast address")
     }
 
-    fun onProvisionClick() {
+    internal fun onNetworkKeyClick(keyIndex: KeyIndex) {
+        navigateTo(netKeySelector, keyIndex.toInt())
+    }
+
+    internal fun onProvisionClick() {
         val state = uiState.value
         viewModelScope.launch {
             state.provisionerState.let {
@@ -144,6 +180,10 @@ class ProvisioningViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun log(message: String, category: LogCategory, level: LogLevel) {
+        Log.println(level.toAndroidLogLevel(), category.category, message)
     }
 }
 

@@ -62,6 +62,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
@@ -87,6 +88,7 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         onNameChanged = viewModel::onNameChanged,
         onAddressChanged = viewModel::onAddressChanged,
         isValidAddress = viewModel::isValidAddress,
+        onNetworkKeyClick = viewModel::onNetworkKeyClick,
         onProvisionClick = viewModel::onProvisionClick
     )
 }
@@ -98,6 +100,7 @@ private fun ProvisioningScreen(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
+    onNetworkKeyClick:(KeyIndex) -> Unit,
     onProvisionClick: () -> Unit
 ) {
     when (provisionerState) {
@@ -119,6 +122,7 @@ private fun ProvisioningScreen(
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
+            onNetworkKeyClick = onNetworkKeyClick,
             onProvisionClick = onProvisionClick
         )
 
@@ -135,6 +139,7 @@ private fun ProvisioningInfo(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
+    onNetworkKeyClick:(KeyIndex) -> Unit,
     onProvisionClick: () -> Unit
 ) {
     when (provisioningState) {
@@ -182,7 +187,7 @@ private fun ProvisioningInfo(
                 item {
                     KeyRow(
                         modifier = Modifier.clickable {
-                            // TODO navigate to network keys
+                            onNetworkKeyClick(provisioningState.configuration.networkKey.index)
                         },
                         name = provisioningState.configuration.networkKey.name
                     )

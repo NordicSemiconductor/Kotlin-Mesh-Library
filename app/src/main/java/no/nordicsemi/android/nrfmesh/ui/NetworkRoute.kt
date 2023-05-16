@@ -48,6 +48,7 @@ import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningSe
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
 import no.nordicsemi.android.nrfmesh.destinations.navigationItems
+import no.nordicsemi.android.nrfmesh.destinations.netKeySelectorDestination
 import no.nordicsemi.android.nrfmesh.destinations.nodesTab
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
 import no.nordicsemi.android.nrfmesh.destinations.provisioningDestination
@@ -158,7 +159,9 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     topLevelTabs with ((nodesTab with nodesDestinations) +
                             (groupsTab with groupsDestinations) +
                             (proxyFilterTab with proxyFilterDestinations) +
-                            (settingsTab with settingsDestinations)) + provisioningDestination
+                            (settingsTab with settingsDestinations)) +
+                            provisioningDestination +
+                            netKeySelectorDestination
                 ),
                 modifier = Modifier.padding(it)
             )
