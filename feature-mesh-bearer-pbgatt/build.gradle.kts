@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    api(project(":mesh-bearer-android"))
+    api(project(":feature-mesh-bearer-android"))
     api(project(":mesh-bearer-provisioning"))
     implementation(project(":mesh-provisioning"))
     implementation("androidx.test.ext:junit-ktx:1.1.5")

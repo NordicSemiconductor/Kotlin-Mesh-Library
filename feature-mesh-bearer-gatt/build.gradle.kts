@@ -8,6 +8,6 @@ android {
 }
 
 dependencies {
-    api(project(":mesh-bearer-android"))
+    api(project(":feature-mesh-bearer-android"))
     api(project(":mesh-bearer-provisioning"))
 }

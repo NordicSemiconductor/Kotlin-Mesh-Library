@@ -47,9 +47,9 @@ include(":mesh-logger")
 include(":mesh-bearer")
 include(":mesh-bearer-provisioning")
 
-include(":mesh-bearer-android")
-include(":mesh-bearer-gatt")
-include(":mesh-bearer-pbgatt")
+include(":feature-mesh-bearer-android")
+include(":feature-mesh-bearer-gatt")
+include(":feature-mesh-bearer-pbgatt")
 
 /*if (file("../Kotlin-BLE-Library").exists()) {
     includeBuild("../Kotlin-BLE-Library")

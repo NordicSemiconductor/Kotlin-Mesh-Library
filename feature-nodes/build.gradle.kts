@@ -15,5 +15,5 @@ dependencies {
     implementation(project(":core-data"))
 
     implementation(project(":mesh-core"))
-    implementation(project(":mesh-bearer-android"))
+    implementation(project(":feature-mesh-bearer-android"))
 }
