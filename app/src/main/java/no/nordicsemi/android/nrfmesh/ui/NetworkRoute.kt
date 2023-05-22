@@ -48,6 +48,7 @@ import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningSe
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
 import no.nordicsemi.android.nrfmesh.destinations.navigationItems
+import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
 import no.nordicsemi.android.nrfmesh.destinations.netKeySelectorDestination
 import no.nordicsemi.android.nrfmesh.destinations.nodesTab
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
@@ -217,7 +218,8 @@ internal fun hideScanner(scope: CoroutineScope, bottomSheetState: ModalBottomShe
 fun DestinationId<*, *>.title(): String {
     return when (this) {
         nodes, groups, proxyFilter, settings -> "Network"
-        provisioning -> "Provisioner"
+        provisioning -> "Provisioning"
+        netKeySelector -> "Select Network Key"
         provisioners -> "Provisioners"
         provisioner -> "Edit Provisioner"
         networkKeys -> "Network Keys"
