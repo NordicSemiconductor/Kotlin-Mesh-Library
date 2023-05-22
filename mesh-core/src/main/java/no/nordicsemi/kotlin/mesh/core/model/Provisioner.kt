@@ -325,6 +325,7 @@ data class Provisioner internal constructor(
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
+                name = this@Provisioner.name
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?

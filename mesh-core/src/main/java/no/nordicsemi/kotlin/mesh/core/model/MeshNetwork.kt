@@ -225,15 +225,21 @@ class MeshNetwork internal constructor(
         // Add the provisioner's node
         address?.let { unicastAddress ->
             val node = Node(
-                provisioner, Crypto.generateRandomKey(), unicastAddress, listOf(
+                provisioner = provisioner,
+                deviceKey = Crypto.generateRandomKey(),
+                unicastAddress = unicastAddress,
+                elements = listOf(
                     Element(
-                        Location.UNKNOWN,
-                        listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
+                        location = Location.UNKNOWN,
+                        models = listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
                     )
-                ), _networkKeys, _applicationKeys
+                ),
+                netKeys = _networkKeys,
+                appKeys = _applicationKeys
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
+                name = provisioner.name
             }
             add(node)
         }
