@@ -3,12 +3,16 @@
 package no.nordicsemi.android.nrfmesh.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
@@ -32,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,6 +50,7 @@ import no.nordicsemi.android.common.navigation.popUpToStartDestination
 import no.nordicsemi.android.common.navigation.with
 import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
+import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
 import no.nordicsemi.android.nrfmesh.destinations.navigationItems
@@ -57,11 +63,12 @@ import no.nordicsemi.android.nrfmesh.destinations.proxyFilterTab
 import no.nordicsemi.android.nrfmesh.destinations.settingsTab
 import no.nordicsemi.android.nrfmesh.destinations.topLevelTabs
 import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeys
+import no.nordicsemi.android.nrfmesh.feature.export.destination.export
+import no.nordicsemi.android.nrfmesh.feature.export.destination.exportDestinations
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
-import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.groupRanges
@@ -73,6 +80,7 @@ import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilter
 import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDropDown
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDestinations
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
@@ -94,6 +102,12 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         initialValue = ModalBottomSheetValue.Hidden,
         skipHalfExpanded = true
     )
+    val context = LocalContext.current
+    val fileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let { viewModel.importNetwork(uri, context.contentResolver) } }
+
+    var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     ModalBottomSheetLayout(
         sheetContent = {
@@ -126,23 +140,38 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     showBackButton = when (currentDestination) {
                         nodes, groups, proxyFilter, settings -> false
                         else -> true
+                    },
+                    actions = {
+                        if (currentDestination == settings) {
+                            IconButton(onClick = {
+                                isOptionsMenuExpanded = !isOptionsMenuExpanded
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreVert,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
                 )
             },
             floatingActionButton = {
-                if (currentDestination == nodes) {
+                if (currentDestination == nodes || currentDestination == groups) {
                     ExtendedFloatingActionButton(onClick = {
-                        if (!bottomSheetState.isVisible) {
-                            openBottomSheet = true
-                            scope.launch {
-                                bottomSheetState.show()
+                        if (currentDestination == nodes)
+                            if (!bottomSheetState.isVisible) {
+                                openBottomSheet = true
+                                scope.launch {
+                                    bottomSheetState.show()
+                                }
                             }
-                        }
                     }) {
                         Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = stringResource(R.string.action_add_node)
+                            text = if (currentDestination == nodes)
+                                stringResource(R.string.action_add_node)
+                            else stringResource(R.string.action_add_group)
                         )
                     }
                 }
@@ -162,9 +191,22 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                             (proxyFilterTab with proxyFilterDestinations) +
                             (settingsTab with settingsDestinations)) +
                             provisioningDestination +
-                            netKeySelectorDestination
+                            netKeySelectorDestination +
+                            exportDestinations
                 ),
                 modifier = Modifier.padding(it)
+            )
+            SettingsDropDown(
+                navigate = {
+                    isOptionsMenuExpanded = !isOptionsMenuExpanded
+                    viewModel.launchExport()
+                },
+                isOptionsMenuExpanded = isOptionsMenuExpanded,
+                onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
+                importNetwork = {
+                    isOptionsMenuExpanded = !isOptionsMenuExpanded
+                    fileLauncher.launch("application/json")
+                }
             )
         }
     }
@@ -228,6 +270,7 @@ fun DestinationId<*, *>.title(): String {
         scenes -> "Scenes"
         scene -> "Edit Scene"
         unicastRanges, groupRanges, sceneRanges -> "Edit Ranges"
+        export -> "Export"
         else -> ""
     }
 }

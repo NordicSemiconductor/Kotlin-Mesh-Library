@@ -7,15 +7,34 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.DataObject
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Subtitles
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.Update
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.LockReset
-import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,15 +45,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.text.DateFormat
-import java.util.*
+import java.util.Date
 
 @Composable
 fun SettingsRoute(
@@ -57,7 +78,6 @@ fun SettingsRoute(
         onApplicationKeysClicked = navigateToApplicationKeys,
         onScenesClicked = navigateToScenes,
         onExportClicked = navigateToExportNetwork
-
     )
 }
 
@@ -146,8 +166,8 @@ private fun LazyListScope.settingsInfo(
     item { IvIndexRow(ivIndex = network.ivIndex) }
     item { LastModifiedTimeRow(timestamp = network.timestamp) }
     item { SectionTitle(title = stringResource(R.string.label_about)) }
-    item { VersionNameRow(context = context) }
-    item { VersionCodeRow(context = context) }
+    item { VersionNameRow() }
+    item { VersionCodeRow() }
 }
 
 @Composable
@@ -322,9 +342,8 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
 }
 
 @Composable
-private fun VersionNameRow(context: Context) {
+private fun VersionNameRow() {
     // TODO Clarify version naming
-    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(
         modifier = Modifier.clickable(onClick = { }),
         leadingComposable = {
@@ -336,14 +355,13 @@ private fun VersionNameRow(context: Context) {
             )
         },
         title = stringResource(R.string.label_version),
-        subtitle = packageInfo.versionName
+        subtitle = BuildConfig.VERSION_NAME
     )
 }
 
 @Composable
-private fun VersionCodeRow(context: Context) {
+private fun VersionCodeRow() {
     // TODO Clarify version code
-    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     MeshTwoLineListItem(
         modifier = Modifier
             .clickable(onClick = { }),
@@ -356,12 +374,12 @@ private fun VersionCodeRow(context: Context) {
             )
         },
         title = stringResource(R.string.label_version_code),
-        subtitle = "${PackageInfoCompat.getLongVersionCode(packageInfo)}"
+        subtitle = BuildConfig.VERSION_CODE
     )
 }
 
 @Composable
-internal fun SettingsDropDown(
+fun SettingsDropDown(
     navigate: () -> Unit,
     isOptionsMenuExpanded: Boolean,
     onDismiss: () -> Unit,

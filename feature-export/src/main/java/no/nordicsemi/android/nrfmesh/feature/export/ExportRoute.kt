@@ -7,17 +7,38 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconToggleButton
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +46,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLargeTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -39,22 +59,19 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 fun ExportRoute(
-    viewModel: ExportViewModel = hiltViewModel(),
-    onBackPressed: () -> Unit
+    viewModel: ExportViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     ExportScreen(
         context = context,
         uiState = viewModel.uiState,
-        onExportEverythingToggled = { viewModel.onExportEverythingToggled(it) },
-        onNetworkKeySelected = { key, selected -> viewModel.onNetworkKeySelected(key, selected) },
-        onProvisionerSelected = { provisioner, selected ->
-            viewModel.onProvisionerSelected(provisioner, selected)
-        },
-        onExportDeviceKeysToggled = { viewModel.onExportDeviceKeysToggled(it) },
+        onExportEverythingToggled = viewModel::onExportEverythingToggled,
+        onNetworkKeySelected = viewModel::onNetworkKeySelected,
+        onProvisionerSelected = viewModel::onProvisionerSelected,
+        onExportDeviceKeysToggled = viewModel::onExportDeviceKeysToggled,
         onExportClicked = { uri -> viewModel.export(context.contentResolver, uri) },
-        onExportStateDisplayed = { viewModel.onExportStateDisplayed() },
-        onBackPressed = onBackPressed
+        onExportStateDisplayed = viewModel::onExportStateDisplayed,
+        onBackPressed = viewModel::navigateUp
     )
 }
 
@@ -84,6 +101,7 @@ private fun ExportScreen(
                 )
                 onExportStateDisplayed()
             }
+
         is ExportState.Error -> {
             LaunchedEffect(key1 = snackbarHostState) {
                 onExportStateDisplayed()
@@ -92,17 +110,20 @@ private fun ExportScreen(
                     message = when (uiState.exportState.throwable) {
                         is AtLeastOneProvisionerMustBeSelected ->
                             context.getString(R.string.error_select_one_provisioner)
+
                         is AtLeastOneNetworkKeyMustBeSelected ->
                             context.getString(R.string.error_select_one_network_key)
+
                         else -> context.getString(R.string.error_unknown)
                     }
                 )
             }
         }
+
         is ExportState.Unknown -> { /*Do nothing*/
         }
     }
-    Scaffold(
+    /*Scaffold(
         topBar = {
             MeshLargeTopAppBar(
                 title = stringResource(id = R.string.label_export),
@@ -123,62 +144,61 @@ private fun ExportScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        LazyColumn(
-            contentPadding = padding
-        ) {
+    }*/
+    LazyColumn(
+    ) {
+        item {
+            ExportSelection(
+                uiState = uiState,
+                onExportEverythingToggled = onExportEverythingToggled
+            )
+        }
+        if (uiState.exportEverything) {
             item {
-                ExportSelection(
-                    uiState = uiState,
-                    onExportEverythingToggled = onExportEverythingToggled
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null
+                )
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(id = R.string.label_export_configuration_rationale)
                 )
             }
-            if (uiState.exportEverything) {
+        } else {
+            uiState.apply {
                 item {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null
-                    )
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        text = stringResource(id = R.string.label_export_configuration_rationale)
-                    )
+                    SectionTitle(title = stringResource(R.string.label_provisioners))
                 }
-            } else {
-                uiState.apply {
-                    item {
-                        SectionTitle(title = stringResource(R.string.label_provisioners))
-                    }
-                    items(
-                        items = provisionerItemStates,
-                        key = { it.provisioner.uuid }
-                    ) { state ->
-                        ProvisionerRow(
-                            state = state,
-                            onProvisionerSelected = onProvisionerSelected,
-                            exportEverything = uiState.exportEverything
-                        )
-                    }
-                    item {
-                        SectionTitle(title = stringResource(R.string.label_network_keys))
-                    }
-                    items(
-                        items = networkKeyItemStates,
-                        key = { it.networkKey.key }
-                    ) { state ->
-                        NetworkKeyRow(
-                            state = state,
-                            onNetworkKeySelected = onNetworkKeySelected,
-                            exportEverything = uiState.exportEverything
-                        )
-                    }
+                items(
+                    items = provisionerItemStates,
+                    key = { it.provisioner.uuid }
+                ) { state ->
+                    ProvisionerRow(
+                        state = state,
+                        onProvisionerSelected = onProvisionerSelected,
+                        exportEverything = uiState.exportEverything
+                    )
                 }
                 item {
-                    ExportDeviceKeys(
-                        uiState = uiState,
-                        onExportDeviceKeysToggled = onExportDeviceKeysToggled
+                    SectionTitle(title = stringResource(R.string.label_network_keys))
+                }
+                items(
+                    items = networkKeyItemStates,
+                    key = { it.networkKey.key }
+                ) { state ->
+                    NetworkKeyRow(
+                        state = state,
+                        onNetworkKeySelected = onNetworkKeySelected,
+                        exportEverything = uiState.exportEverything
                     )
                 }
+            }
+            item {
+                ExportDeviceKeys(
+                    uiState = uiState,
+                    onExportDeviceKeysToggled = onExportDeviceKeysToggled
+                )
             }
         }
     }

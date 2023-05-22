@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="action_add_node">Add Node</string>
     <string name="no_nodes_currently_added">No nodes currently added.</string>
 </resources>

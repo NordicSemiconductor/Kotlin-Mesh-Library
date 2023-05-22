@@ -28,4 +28,6 @@
     <string name="title_network_key">Network Key</string>
     <string name="label_unknown_error">Unknown Error</string>
     <string name="error_invalid_address">Invalid address.</string>
+    <string name="action_add_node">Add Node</string>
+    <string name="action_add_group">Add Group</string>
 </resources>
