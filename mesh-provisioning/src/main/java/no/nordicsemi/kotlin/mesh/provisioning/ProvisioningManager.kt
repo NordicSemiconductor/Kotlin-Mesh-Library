@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
@@ -203,7 +204,17 @@ class ProvisioningManager(
         logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
         send(data)
 
-        awaitComplete()
+        awaitComplete().also {
+            val node = Node(
+                uuid = unprovisionedDevice.uuid,
+                deviceKey = provisioningData.deviceKey,
+                unicastAddress = configuration.unicastAddress!!,
+                elementCount = capabilities.numberOfElements,
+                assignedNetworkKey = configuration.networkKey,
+                security = provisioningData.security
+            )
+            meshNetwork.add(node)
+        }
     }
 
     /**
