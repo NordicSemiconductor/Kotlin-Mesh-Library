@@ -116,6 +116,14 @@ class CryptoTest {
         Assert.assertTrue("Network IDs do not match!", networkId.contentEquals(keyDerivatives.networkId))
         Assert.assertTrue("Identity Keys do not match!", identityKey.contentEquals(keyDerivatives.identityKey))
         Assert.assertTrue("Beacon Keys do not match!", beaconKey.contentEquals(keyDerivatives.beaconKey))
+
+        val directedNID = "0D".toInt(16).toUByte()
+        val directedEncryptionKey = "b47a02c6cc9b4ac4cb9b88e765c9ade4".uppercase(Locale.US).decodeHex()
+        val directedPrivacyKey = "9bf7ab5a5ad415fbd77e07bb808f4865".uppercase(Locale.US).decodeHex()
+        val directedKeyDerivatives = Crypto.calculateKeyDerivatives(N, isDirected = true)
+        Assert.assertTrue("NID do not match!", directedNID == directedKeyDerivatives.nid)
+        Assert.assertTrue("EncryptionKeys do not match!", directedEncryptionKey.contentEquals(directedKeyDerivatives.encryptionKey))
+        Assert.assertTrue("PrivacyKeys do not match!", directedPrivacyKey.contentEquals(directedKeyDerivatives.privacyKey))
     }
 
     /**
