@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,8 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.toHex
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import java.util.UUID
 
 @Composable
@@ -38,9 +39,9 @@ internal fun NodesRoute(viewModel: NodesViewModel) {
 private fun NodesScreen(
     uiState: NodesScreenUiState,
     navigateToNode: (UUID) -> Unit,
-    onSwiped: (Provisioner) -> Unit,
-    onUndoClicked: (Provisioner) -> Unit,
-    remove: (Provisioner) -> Unit
+    onSwiped: (Node) -> Unit,
+    onUndoClicked: (Node) -> Unit,
+    remove: (Node) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -69,9 +70,9 @@ private fun Nodes(
     snackbarHostState: SnackbarHostState,
     nodes: List<Node>,
     navigateToNode: (UUID) -> Unit,
-    onSwiped: (Provisioner) -> Unit,
-    onUndoClicked: (Provisioner) -> Unit,
-    remove: (Provisioner) -> Unit
+    onSwiped: (Node) -> Unit,
+    onUndoClicked: (Node) -> Unit,
+    remove: (Node) -> Unit
 ) {
     LazyColumn {
         items(items = nodes, key = { it.uuid }) { node ->
@@ -92,11 +93,21 @@ private fun Nodes(
 fun NodeItem(
     node: Node,
     navigateToNode: (UUID) -> Unit,
-    onSwiped: (Provisioner) -> Unit,
-    onUndoClicked: (Provisioner) -> Unit,
-    remove: (Provisioner) -> Unit,
+    onSwiped: (Node) -> Unit,
+    onUndoClicked: (Node) -> Unit,
+    remove: (Node) -> Unit,
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
-    Text(text = node.name)
+    MeshNodeItem(
+        nodeName = node.name,
+        addressHex = node.primaryUnicastAddress.address.toHex(prefix0x = true),
+        companyName = node.companyIdentifier?.let {
+            CompanyIdentifier.name(it) ?: "Unknown"
+        } ?: "Unknown",
+        elements = node.elementsCount,
+        models = node.elements.flatMap { it.models }.size,
+    ) {
+
+    }
 }

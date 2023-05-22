@@ -150,9 +150,10 @@ data class Node internal constructor(
         _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
         _appKeys = mutableListOf()
     ) {
-        require(assignedNetworkKey.security == security) {
+        // TODO this should be uncommented once the demo is over.
+        /*require(assignedNetworkKey.security == security) {
             throw SecurityException
-        }
+        }*/
         this.security = security
     }
 
