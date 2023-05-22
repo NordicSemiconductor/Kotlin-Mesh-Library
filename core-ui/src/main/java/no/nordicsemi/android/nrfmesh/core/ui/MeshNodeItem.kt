@@ -33,12 +33,12 @@ fun MeshNodeItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .padding(top = 8.dp),
+            .padding(top = 8.dp)
+            .clickable(onClick = { onClick() }),
     ) {
         Row(
             modifier = Modifier
                 .padding(all = 16.dp)
-                .clickable(onClick = { onClick() })
         ) {
             Image(
                 modifier = Modifier
