@@ -61,10 +61,13 @@ object Crypto {
      *
      * @param N 128-bit NetworkKey.
      * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
+     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed message using the
+     *          directed security credentials.
      * @return Key Derivatives.
      */
-    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
-        val k2 = k2(N = N, P = P ?: byteArrayOf(0x00))
+    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null, isDirected: Boolean = false): KeyDerivatives {
+        val defaultP = if (!isDirected) byteArrayOf(0x00) else byteArrayOf(0x02)
+        val k2 = k2(N = N, P = P ?: defaultP)
         return KeyDerivatives(
             nid = k2.first.toUByte(),
             encryptionKey = k2.second,
