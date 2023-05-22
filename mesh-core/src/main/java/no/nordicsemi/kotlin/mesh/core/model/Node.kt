@@ -5,10 +5,12 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import java.util.*
+import kotlin.jvm.Throws
 
 /**
  * The node represents a configured state of a mesh node.
@@ -81,6 +83,16 @@ data class Node internal constructor(
     private var _appKeys: MutableList<NodeKey>,
 ) {
 
+    /**
+     * Convenience constructor to initialize a node of a provisioner.
+     *
+     * @param provisioner               Provisioner.
+     * @param deviceKey                 Device key.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param elements                  List of elements belonging to this node.
+     * @param netKeys                   List of network keys known to this node.
+     * @param appKeys                   List of application keys known to this node.
+     */
     internal constructor(
         provisioner: Provisioner,
         deviceKey: ByteArray,
@@ -104,6 +116,45 @@ data class Node internal constructor(
         _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
         _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
     )
+
+    /**
+     * Convenience constructor to initialize a node from an unprovisioned device.
+     *
+     * @param uuid                      Unprovisioned device uuid.
+     * @param deviceKey                 Device key.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param elementCount              Number of elements.
+     * @param assignedNetworkKey        Network key that was assigned during provisioning.
+     * @param security                  Security level.
+     * @throws SecurityException        If the security level of the network key does not match the
+     *                                  security level used when provisioning the node.
+     */
+    @Throws(SecurityException::class)
+    constructor(
+        uuid: UUID,
+        deviceKey: ByteArray,
+        unicastAddress: UnicastAddress,
+        elementCount: Int,
+        assignedNetworkKey: NetworkKey,
+        security: Security
+    ) : this(
+        uuid = uuid,
+        deviceKey = deviceKey,
+        _primaryUnicastAddress = unicastAddress,
+        _elements = MutableList(elementCount) {
+            Element(
+                location = Location.UNKNOWN,
+                models = listOf()
+            )
+        },
+        _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
+        _appKeys = mutableListOf()
+    ) {
+        require(assignedNetworkKey.security == security) {
+            throw SecurityException
+        }
+        this.security = security
+    }
 
     val primaryUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress

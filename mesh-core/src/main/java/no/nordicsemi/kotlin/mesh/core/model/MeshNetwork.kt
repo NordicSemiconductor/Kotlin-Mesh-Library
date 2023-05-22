@@ -60,7 +60,6 @@ class MeshNetwork internal constructor(
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
-    @Suppress("RedundantSetter")
     var partial: Boolean = false
         internal set(value) {
             onChange(oldValue = field, newValue = value) { updateTimestamp() }
@@ -514,7 +513,7 @@ class MeshNetwork internal constructor(
         NoNetworkKeysAdded::class,
         DoesNotBelongToNetwork::class
     )
-    internal fun add(node: Node) {
+    fun add(node: Node) {
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.

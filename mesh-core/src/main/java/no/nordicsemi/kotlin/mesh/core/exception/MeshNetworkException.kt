@@ -75,6 +75,12 @@ object AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
 object InvalidPduType : MeshNetworkException()
 
 /**
+ * Security exception thrown when level of security of the network key doesn't match with the
+ * security used when provisioning a node.
+ */
+object SecurityException : MeshNetworkException()
+
+/**
  * Thrown when the Json deserializing encounters an error.
  *
  * @property error            Error message.
