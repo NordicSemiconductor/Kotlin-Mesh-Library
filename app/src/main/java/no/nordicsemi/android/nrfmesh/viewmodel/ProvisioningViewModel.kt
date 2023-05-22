@@ -96,6 +96,10 @@ class ProvisioningViewModel @Inject constructor(
                     unprovisionedDevice = unprovisionedDevice,
                     provisionerState = ProvisionerState.Provisioning(state)
                 )
+                if(state is ProvisioningState.Complete) {
+                    // Save when the provisioning completes.
+                    repository.save()
+                }
             }.catch {
 
             }.launchIn(viewModelScope)
