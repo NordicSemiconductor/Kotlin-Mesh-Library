@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Represents a list of unicast addresses that are excluded by a Mesh Manager for a particular IV
@@ -31,6 +32,7 @@ internal data class ExclusionList internal constructor(
     val addresses: List<UnicastAddress>
         get() = _addresses
 
+    @Transient
     internal var network: MeshNetwork? = null
 
     /**
