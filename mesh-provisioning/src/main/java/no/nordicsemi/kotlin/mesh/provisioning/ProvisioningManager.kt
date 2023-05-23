@@ -205,6 +205,7 @@ class ProvisioningManager(
         send(data)
 
         awaitComplete().also {
+            emit(ProvisioningState.Complete)
             val node = Node(
                 uuid = unprovisionedDevice.uuid,
                 deviceKey = provisioningData.deviceKey,
