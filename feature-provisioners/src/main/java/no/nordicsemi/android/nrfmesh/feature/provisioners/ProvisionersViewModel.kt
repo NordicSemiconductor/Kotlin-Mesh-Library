@@ -61,7 +61,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
         val provisioner = Provisioner().apply {
-            name = Build.DEVICE.replaceFirstChar {
+            name = Build.MODEL.replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.ROOT)
                 else it.toString()
             }
