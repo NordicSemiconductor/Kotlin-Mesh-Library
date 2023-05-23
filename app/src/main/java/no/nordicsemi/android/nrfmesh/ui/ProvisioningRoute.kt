@@ -9,9 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Badge
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.EnhancedEncryption
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material3.Button
@@ -53,7 +56,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -89,7 +94,8 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         onAddressChanged = viewModel::onAddressChanged,
         isValidAddress = viewModel::isValidAddress,
         onNetworkKeyClick = viewModel::onNetworkKeyClick,
-        onProvisionClick = viewModel::onProvisionClick
+        onProvisionClick = viewModel::onProvisionClick,
+        onProvisioningComplete = viewModel::onProvisioningComplete
     )
 }
 
@@ -100,8 +106,9 @@ private fun ProvisioningScreen(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick:(KeyIndex) -> Unit,
-    onProvisionClick: () -> Unit
+    onNetworkKeyClick: (KeyIndex) -> Unit,
+    onProvisionClick: () -> Unit,
+    onProvisioningComplete: () -> Unit
 ) {
     when (provisionerState) {
         is ProvisionerState.Connecting -> ProvisionerStateInfo(
@@ -116,14 +123,15 @@ private fun ProvisioningScreen(
             text = stringResource(R.string.label_identifying)
         )
 
-        is ProvisionerState.Provisioning -> ProvisioningInfo(
+        is ProvisionerState.Provisioning -> ProvisioningStateInfo(
             unprovisionedDevice = unprovisionedDevice,
-            provisioningState = provisionerState.state,
+            state = provisionerState.state,
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
             onNetworkKeyClick = onNetworkKeyClick,
-            onProvisionClick = onProvisionClick
+            onProvisionClick = onProvisionClick,
+            onProvisioningComplete = onProvisioningComplete
         )
 
         is ProvisionerState.Disconnected -> ProvisionerStateInfo(
@@ -133,16 +141,17 @@ private fun ProvisioningScreen(
 }
 
 @Composable
-private fun ProvisioningInfo(
-    provisioningState: ProvisioningState,
+private fun ProvisioningStateInfo(
+    state: ProvisioningState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick:(KeyIndex) -> Unit,
-    onProvisionClick: () -> Unit
+    onNetworkKeyClick: (KeyIndex) -> Unit,
+    onProvisionClick: () -> Unit,
+    onProvisioningComplete: () -> Unit
 ) {
-    when (provisioningState) {
+    when (state) {
         is ProvisioningState.RequestingCapabilities -> {
             ProvisionerStateInfo(text = "Requesting capabilities")
         }
@@ -153,6 +162,7 @@ private fun ProvisioningInfo(
             val scope = rememberCoroutineScope()
             val keyboardController = LocalSoftwareKeyboardController.current
             var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+            var showOobType by rememberSaveable { mutableStateOf(false) }
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
@@ -171,11 +181,11 @@ private fun ProvisioningInfo(
                         scope = scope,
                         snackbarHostState = snackbarHostState,
                         keyboardController = keyboardController,
-                        address = provisioningState.configuration.unicastAddress!!.address,
+                        address = state.configuration.unicastAddress!!.address,
                         onAddressChanged = {
                             onAddressChanged(
-                                provisioningState.configuration,
-                                provisioningState.capabilities.numberOfElements,
+                                state.configuration,
+                                state.capabilities.numberOfElements,
                                 it
                             )
                         },
@@ -187,9 +197,9 @@ private fun ProvisioningInfo(
                 item {
                     KeyRow(
                         modifier = Modifier.clickable {
-                            onNetworkKeyClick(provisioningState.configuration.networkKey.index)
+                            onNetworkKeyClick(state.configuration.networkKey.index)
                         },
-                        name = provisioningState.configuration.networkKey.name
+                        name = state.configuration.networkKey.name
                     )
                 }
                 item {
@@ -208,6 +218,8 @@ private fun ProvisioningInfo(
                                                 ?: context.getString(R.string.label_unknown_error)
                                         )
                                     }
+                                }.onSuccess {
+
                                 }
                             }
                         ) {
@@ -229,7 +241,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_element_count),
-                        subtitle = "${provisioningState.capabilities.numberOfElements}"
+                        subtitle = "${state.capabilities.numberOfElements}"
                     )
                 }
                 item {
@@ -243,7 +255,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_supported_algorithms),
-                        subtitle = provisioningState.capabilities.algorithms
+                        subtitle = state.capabilities.algorithms
                             .joinToString(separator = ", ")
                             .ifEmpty { "None" }
                     )
@@ -259,7 +271,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_public_key_type),
-                        subtitle = provisioningState.capabilities.publicKeyType
+                        subtitle = state.capabilities.publicKeyType
                             .joinToString(separator = ", ")
                             .ifEmpty { "None" }
                     )
@@ -275,7 +287,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_static_oob_type),
-                        subtitle = provisioningState.capabilities.oobTypes
+                        subtitle = state.capabilities.oobTypes
                             .joinToString(separator = ", ")
                             .ifEmpty { "None" }
                     )
@@ -291,7 +303,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_output_oob_size),
-                        subtitle = "${provisioningState.capabilities.outputOobSize}"
+                        subtitle = "${state.capabilities.outputOobSize}"
                     )
                 }
                 item {
@@ -305,7 +317,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_output_oob_actions),
-                        subtitle = provisioningState.capabilities.outputOobActions
+                        subtitle = state.capabilities.outputOobActions
                             .joinToString(separator = ", ")
                             .ifEmpty { "None" }
                     )
@@ -321,7 +333,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_input_oob_size),
-                        subtitle = "${provisioningState.capabilities.inputOobSize}"
+                        subtitle = "${state.capabilities.inputOobSize}"
                     )
                 }
                 item {
@@ -335,7 +347,7 @@ private fun ProvisioningInfo(
                             )
                         },
                         title = stringResource(R.string.label_input_oob_actions),
-                        subtitle = provisioningState.capabilities.inputOobActions.joinToString(
+                        subtitle = state.capabilities.inputOobActions.joinToString(
                             separator = ", "
                         ).ifBlank { "None" }
                     )
@@ -343,18 +355,53 @@ private fun ProvisioningInfo(
             }
         }
 
-        else -> {}
+        is ProvisioningState.Provisioning -> {
+            ProvisionerStateInfo(text = "Provisioning in progress..")
+
+        }
+
+        is ProvisioningState.AuthActionRequired -> {
+            ProvisionerStateInfo(text = "Provisioning authentication required!")
+        }
+
+        is ProvisioningState.Failed -> {
+            ProvisionerStateInfo(text = "Provisioning failed ${state.error}")
+        }
+
+        is ProvisioningState.Complete -> {
+            var showDialog by remember { mutableStateOf(true) }
+            if (showDialog)
+                MeshAlertDialog(
+                    onDismissRequest = {
+                        showDialog = !showDialog
+                        onProvisioningComplete()
+                    },
+                    confirmButtonText = stringResource(id = R.string.label_ok),
+                    onConfirmClick = {
+                        showDialog = !showDialog
+                        onProvisioningComplete()
+                    },
+                    dismissButtonText = null,
+                    icon = Icons.Rounded.CheckCircle,
+                    iconColor = MaterialTheme.colorScheme.nordicLightGray,
+                    title = "Status",
+                    text = "Provisioning completed successfully."
+                )
+        }
     }
 }
 
 @Composable
-private fun ProvisionerStateInfo(text: String) {
+private fun ProvisionerStateInfo(text: String, shouldShowProgress: Boolean = true) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator()
+        if (shouldShowProgress) {
+            CircularProgressIndicator()
+        }
+        Spacer(modifier = Modifier.size(16.dp))
         Text(text = text)
     }
 }

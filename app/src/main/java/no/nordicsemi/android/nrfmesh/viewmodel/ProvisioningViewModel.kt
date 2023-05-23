@@ -96,12 +96,11 @@ class ProvisioningViewModel @Inject constructor(
                     unprovisionedDevice = unprovisionedDevice,
                     provisionerState = ProvisionerState.Provisioning(state)
                 )
-                if(state is ProvisioningState.Complete) {
+                if (state is ProvisioningState.Complete) {
                     // Save when the provisioning completes.
                     repository.save()
                 }
             }.catch {
-
             }.launchIn(viewModelScope)
         }
     }
@@ -184,6 +183,12 @@ class ProvisioningViewModel @Inject constructor(
             }
         }
     }
+
+    internal fun onProvisioningComplete() {
+        navigateUp() // Navigates back to the scanner screen
+        navigateUp() // Navigates back to the previous screen
+    }
+
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)

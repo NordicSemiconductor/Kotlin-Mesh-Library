@@ -23,8 +23,8 @@ import androidx.compose.ui.window.DialogProperties
  *                                      up any events for this button so they need to be set up by
  *                                      the caller.
  * @param dismissButtonText             Button which is meant to dismiss the dialog. The dialog does
- *                                      not set up any events for this button so they need to be set
- *                                      up by the caller.
+ *                                      not set up any events for this button so they need to be
+ *                                      setup by the caller. Set null to hide the dismiss button.
  * @param icon                          Optional icon that will appear above the [title] or above
  *                                      the [text], in case a title was not provided.
  * @param title                         Title which should specify the purpose of the dialog. The
@@ -41,6 +41,7 @@ fun MeshAlertDialog(
     dismissButtonText: String = stringResource(id = R.string.cancel),
     onDismissClick: () -> Unit,
     icon: ImageVector? = null,
+    iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
     error: Boolean = false,
     content: @Composable () -> Unit = {}
@@ -59,7 +60,7 @@ fun MeshAlertDialog(
             Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
         },
         icon = {
-            icon?.let { Icon(imageVector = it, contentDescription = null, tint = Color.Red) }
+            icon?.let { Icon(imageVector = it, contentDescription = null, tint = iconColor) }
         },
         title = { title?.let { Text(text = it) } },
         text = content
@@ -92,9 +93,10 @@ fun MeshAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButtonText: String = stringResource(id = R.string.confirm),
     onConfirmClick: () -> Unit,
-    dismissButtonText: String = stringResource(id = R.string.cancel),
-    onDismissClick: () -> Unit,
+    dismissButtonText: String? = stringResource(id = R.string.cancel),
+    onDismissClick: () -> Unit = {},
     icon: ImageVector? = null,
+    iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
     text: String? = null
 ) {
@@ -106,10 +108,11 @@ fun MeshAlertDialog(
             Button(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
         },
         dismissButton = {
-            Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
+            if (dismissButtonText != null)
+                Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
         },
         icon = {
-            icon?.let { Icon(imageVector = it, contentDescription = null, tint = Color.Red) }
+            icon?.let { Icon(imageVector = it, contentDescription = null, tint = iconColor) }
         },
         title = { title?.let { Text(text = it) } },
         text = { text?.let { Text(text = it) } }
