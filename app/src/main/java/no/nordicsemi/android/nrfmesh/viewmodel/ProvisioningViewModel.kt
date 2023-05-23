@@ -66,45 +66,62 @@ class ProvisioningViewModel @Inject constructor(
     init {
         observeNetwork()
         observeNetKeySelector()
-        connect()
+        beginProvisioning()
     }
 
+    /**
+     * Observes the mesh network.
+     */
     private fun observeNetwork() {
-        viewModelScope.launch {
-            repository.network.collect {
-                meshNetwork = it
-            }
-        }
+        repository.network.onEach {
+            meshNetwork = it
+        }.launchIn(viewModelScope)
     }
 
+    private fun beginProvisioning(){
+        connect()
+        identifyNode()
+    }
+
+    /**
+     * Connect to the device.
+     */
     private fun connect() {
-        viewModelScope.launch() {
+        viewModelScope.launch {
             pbGattBearer.open()
             _uiState.value = ProvisioningScreenUiState(
                 unprovisionedDevice = unprovisionedDevice,
                 provisionerState = ProvisionerState.Connected
             )
-            provisioningManager = ProvisioningManager(
-                unprovisionedDevice = unprovisionedDevice,
-                meshNetwork = meshNetwork,
-                bearer = pbGattBearer
-            ).apply {
-                logger = this@ProvisioningViewModel
-            }
-            provisioningJob = provisioningManager.provision(10u).onEach { state ->
-                _uiState.value = ProvisioningScreenUiState(
-                    unprovisionedDevice = unprovisionedDevice,
-                    provisionerState = ProvisionerState.Provisioning(state)
-                )
-                if (state is ProvisioningState.Complete) {
-                    // Save when the provisioning completes.
-                    repository.save()
-                }
-            }.catch {
-            }.launchIn(viewModelScope)
         }
     }
 
+
+    private fun identifyNode() {
+        provisioningManager = ProvisioningManager(
+            unprovisionedDevice = unprovisionedDevice,
+            meshNetwork = meshNetwork,
+            bearer = pbGattBearer
+        ).apply {
+            logger = this@ProvisioningViewModel
+        }
+        provisioningJob = provisioningManager.provision(10u).onEach { state ->
+            _uiState.value = ProvisioningScreenUiState(
+                unprovisionedDevice = unprovisionedDevice,
+                provisionerState = ProvisionerState.Provisioning(state)
+            )
+            if (state is ProvisioningState.Complete) {
+                // Save when the provisioning completes.
+                repository.save()
+            }
+        }.catch {
+            // TODO error handling
+        }.launchIn(viewModelScope)
+    }
+
+    /**
+     * Disconnect from the device.
+     */
     internal fun disconnect() {
         provisioningJob.cancel()
     }
