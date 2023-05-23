@@ -17,7 +17,7 @@ import kotlin.time.toDuration
  */
 internal object DurationToIntSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("Duration", PrimitiveKind.INT)
+        PrimitiveSerialDescriptor("DurationSerializer", PrimitiveKind.INT)
 
     override fun deserialize(decoder: Decoder): Duration = runCatching {
         decoder.decodeInt().toDuration(DurationUnit.MILLISECONDS)
