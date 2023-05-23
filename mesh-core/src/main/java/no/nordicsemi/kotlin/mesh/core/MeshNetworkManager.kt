@@ -17,8 +17,10 @@ import java.util.*
  *                location.
  */
 class MeshNetworkManager(private val storage: Storage) {
-    var meshNetwork: MeshNetwork? = null
-        private set
+
+    private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
+    val meshNetwork = _meshNetwork.asSharedFlow()
+    private lateinit var network: MeshNetwork
 
     /**
      * Loads the network from the storage provided by the user.
@@ -26,7 +28,9 @@ class MeshNetworkManager(private val storage: Storage) {
      * @return true if the configuration was successfully loaded or false otherwise.
      */
     suspend fun load() = storage.load()?.takeIf { it.isNotEmpty() }?.let {
-        meshNetwork = deserialize(it)
+        val meshNetwork = deserialize(it)
+        this@MeshNetworkManager.network = meshNetwork
+        _meshNetwork.emit(meshNetwork)
         true
     } ?: false
 
@@ -34,7 +38,11 @@ class MeshNetworkManager(private val storage: Storage) {
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        export()?.also { storage.save(meshNetwork!!.uuid, it) }
+        export().also {
+            val meshNetwork = this@MeshNetworkManager.network
+            storage.save(meshNetwork.uuid, it)
+            _meshNetwork.emit(meshNetwork)
+        }
     }
 
     /**
@@ -46,7 +54,7 @@ class MeshNetworkManager(private val storage: Storage) {
      *             multiple mesh networks.
      */
     /*suspend*/ fun create(name: String = "Mesh Network", uuid: UUID = UUID.randomUUID()) =
-        MeshNetwork(uuid = uuid, _name = name).also { meshNetwork = it }
+        MeshNetwork(uuid = uuid, _name = name).also { network = it }
 
     /**
      * Imports a Mesh Network from a byte array containing a Json defined by the Mesh Configuration
@@ -57,7 +65,10 @@ class MeshNetworkManager(private val storage: Storage) {
      */
     @Throws(ImportError::class)
     suspend fun import(array: ByteArray) =
-        deserialize(array).also { meshNetwork = it }
+        deserialize(array).also {
+            network = it
+            _meshNetwork.emit(it)
+        }
 
     /**
      * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
@@ -68,7 +79,7 @@ class MeshNetworkManager(private val storage: Storage) {
      */
     suspend fun export(
         configuration: NetworkConfiguration = NetworkConfiguration.Full
-    ) = meshNetwork?.let {
+    ) = network.let {
         serialize(
             network = it,
             configuration = configuration

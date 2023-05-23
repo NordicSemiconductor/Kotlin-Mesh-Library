@@ -43,8 +43,8 @@ internal class NetworkKeysViewModel @Inject internal constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeKeys()
+        super.onCleared()
     }
 
     internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
