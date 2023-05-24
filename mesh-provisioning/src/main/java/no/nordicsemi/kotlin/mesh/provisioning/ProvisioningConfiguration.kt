@@ -42,5 +42,5 @@ data class ProvisioningConfiguration(
     } else PublicKey.NoOobPublicKey
 
     var authMethod: AuthenticationMethod =
-        capabilities.supportedAuthenticationMethods.first()
+        capabilities.supportedAuthMethods.first()
 }

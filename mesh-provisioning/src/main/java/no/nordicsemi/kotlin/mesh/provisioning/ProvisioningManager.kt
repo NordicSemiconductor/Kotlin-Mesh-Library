@@ -105,7 +105,7 @@ class ProvisioningManager(
             configuration.publicKey = if (publicKeyType.isNotEmpty()) {
                 PublicKey.OobPublicKey(ByteArray(16) { 0x00 })
             } else PublicKey.NoOobPublicKey
-            configuration.authMethod = supportedAuthenticationMethods.first()
+            configuration.authMethod = supportedAuthMethods.first()
         }
 
         // We use a mutex here to wait for the user to either start or cancel the provisioning.

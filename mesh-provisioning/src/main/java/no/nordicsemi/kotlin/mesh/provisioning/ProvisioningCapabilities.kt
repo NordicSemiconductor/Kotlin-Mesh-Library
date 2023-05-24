@@ -26,7 +26,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyType.Companion.toByte
  * @property inputOobSize                       Input OOB size supported by the device.
  * @property inputOobActions                    Input OOB actions supported by the device.
  * @property value                              The raw data pdu of the provisioning capabilities.
- * @property supportedAuthenticationMethods     List of supported authentication methods.
+ * @property supportedAuthMethods     List of supported authentication methods.
  * @constructor constructs a [ProvisioningCapabilities] object.
  */
 data class ProvisioningCapabilities(
@@ -58,28 +58,27 @@ data class ProvisioningCapabilities(
                 byteArrayOf(inputOobSize.toByte()) +
                 inputOobActions.toUShort().toByteArray()
 
-    val supportedAuthenticationMethods: List<AuthenticationMethod>
-        get() {
-            val authMethods = mutableListOf<AuthenticationMethod>()
-            if (oobTypes.contains(OobType.OnlyOobAuthenticatedProvisioningSupported)) {
-                authMethods.add(AuthenticationMethod.StaticOob)
-            } else {
-                authMethods.add(AuthenticationMethod.NoOob)
-                authMethods.add(AuthenticationMethod.StaticOob)
+    val supportedAuthMethods: List<AuthenticationMethod> = authMethods()
 
-            }
-            outputOobActions.toOutputActions().first().let {
-                authMethods.add(
-                    AuthenticationMethod.OutputOob(it, it.rawValue)
-                )
-            }
-            inputOobActions.toInputActions().first().let {
-                authMethods.add(
-                    AuthenticationMethod.InputOob(it, it.rawValue)
-                )
-            }
-            return authMethods
+    private fun authMethods(): List<AuthenticationMethod> {
+        val authMethods = mutableListOf<AuthenticationMethod>()
+        if (!oobTypes.contains(OobType.OnlyOobAuthenticatedProvisioningSupported)) {
+            authMethods.add(AuthenticationMethod.NoOob)
         }
+
+        if (oobTypes.contains(OobType.StaticOobInformationAvailable)) {
+            authMethods.add(AuthenticationMethod.StaticOob)
+        }
+
+        outputOobActions.toOutputActions().first().let {
+            authMethods.add(AuthenticationMethod.OutputOob(it, it.rawValue))
+        }
+
+        inputOobActions.toInputActions().first().let {
+            authMethods.add(AuthenticationMethod.InputOob(it, it.rawValue))
+        }
+        return authMethods.toList()
+    }
 
     override fun toString(): String = "Number of elements: $numberOfElements\n" +
             "Algorithms: ${algorithms.ifEmpty { "None" }}\n" +
