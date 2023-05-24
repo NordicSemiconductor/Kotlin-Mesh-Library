@@ -58,7 +58,7 @@ fun MeshNodeItem(
             ) {
                 Text(
                     text = nodeName,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Row {
