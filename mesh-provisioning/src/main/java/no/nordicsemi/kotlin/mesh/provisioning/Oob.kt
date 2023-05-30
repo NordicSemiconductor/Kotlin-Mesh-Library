@@ -340,7 +340,7 @@ enum class OutputAction constructor(val rawValue: UByte) {
     OUTPUT_NUMERIC(3u),
     OUTPUT_ALPHANUMERIC(4u);
 
-    internal companion object {
+    companion object {
 
         /**
          * Converts a list of OutputOobActions to a list of OutputActions.
@@ -355,7 +355,7 @@ enum class OutputAction constructor(val rawValue: UByte) {
          * @param outputOobAction OutputOobActions to convert.
          * @return OutputAction
          */
-        fun from(outputOobAction: OutputOobActions) = when (outputOobAction) {
+        internal fun from(outputOobAction: OutputOobActions) = when (outputOobAction) {
             OutputOobActions.Blink -> BLINK
             OutputOobActions.Beep -> BEEP
             OutputOobActions.Vibrate -> VIBRATE
@@ -371,7 +371,7 @@ enum class InputAction(val rawValue: UByte) {
     INPUT_NUMERIC(2u),
     INPUT_ALPHANUMERIC(3u);
 
-    internal companion object {
+    companion object {
 
         /**
          * Converts a list of InputOobActions to a list of InputActions.
@@ -385,7 +385,7 @@ enum class InputAction(val rawValue: UByte) {
          *
          * @param inputOobActions InputOobActions to convert.
          */
-        fun from(inputOobActions: InputOobActions) = when (inputOobActions) {
+        internal fun from(inputOobActions: InputOobActions) = when (inputOobActions) {
             InputOobActions.Push -> PUSH
             InputOobActions.Twist -> TWIST
             InputOobActions.InputNumeric -> INPUT_NUMERIC

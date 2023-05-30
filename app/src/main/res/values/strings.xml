@@ -31,4 +31,16 @@
     <string name="action_add_node">Add Node</string>
     <string name="action_add_group">Add Group</string>
     <string name="label_ok">OK</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="label_status">Status</string>
+    <string name="label_provisioning_completed">Provisioning completed successfully.</string>
+    <string name="provisioning_in_progress">Provisioning in progress..</string>
+    <string name="provisioning_failed">Provisioning failed %s</string>
+    <string name="label_provisioning_authentication_required">Provisioning authentication required!</string>
+    <string name="label_provision">Provision</string>
+    <string name="label_no_oob">No OOB</string>
+    <string name="label_static_oob">" Static OOB"</string>
+    <string name="label_output_oob">Output OOB</string>
+    <string name="label_input_oob">Input OOB</string>
+    <string name="label_select_oob_type_to_use">Select an OOB type</string>
 </resources>

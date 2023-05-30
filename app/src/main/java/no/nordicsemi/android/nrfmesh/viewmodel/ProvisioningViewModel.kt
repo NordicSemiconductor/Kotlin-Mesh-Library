@@ -30,6 +30,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
@@ -78,9 +79,8 @@ class ProvisioningViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun beginProvisioning(){
+    private fun beginProvisioning() {
         connect()
-        identifyNode()
     }
 
     /**
@@ -93,6 +93,7 @@ class ProvisioningViewModel @Inject constructor(
                 unprovisionedDevice = unprovisionedDevice,
                 provisionerState = ProvisionerState.Connected
             )
+            identifyNode()
         }
     }
 
@@ -186,13 +187,14 @@ class ProvisioningViewModel @Inject constructor(
         navigateTo(netKeySelector, keyIndex.toInt())
     }
 
-    internal fun onProvisionClick() {
+    internal fun startProvisioning(authMethod: AuthenticationMethod) {
         val state = uiState.value
         viewModelScope.launch {
             state.provisionerState.let {
                 if (it is ProvisionerState.Provisioning) {
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
+                            configuration.authMethod = authMethod
                             start(configuration)
                         }
                     }

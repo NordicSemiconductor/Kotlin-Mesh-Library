@@ -1,4 +1,6 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
+@file:OptIn(
+    ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class
+)
 
 package no.nordicsemi.android.nrfmesh.ui
 
@@ -15,7 +17,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Check
@@ -27,6 +33,7 @@ import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.EnhancedEncryption
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -70,10 +77,11 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.toHex
+import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
-
 
 @Composable
 fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
@@ -94,7 +102,7 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         onAddressChanged = viewModel::onAddressChanged,
         isValidAddress = viewModel::isValidAddress,
         onNetworkKeyClick = viewModel::onNetworkKeyClick,
-        onProvisionClick = viewModel::onProvisionClick,
+        startProvisioning = viewModel::startProvisioning,
         onProvisioningComplete = viewModel::onProvisioningComplete
     )
 }
@@ -107,37 +115,60 @@ private fun ProvisioningScreen(
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
-    onProvisionClick: () -> Unit,
+    startProvisioning: (AuthenticationMethod) -> Unit,
     onProvisioningComplete: () -> Unit
 ) {
-    when (provisionerState) {
-        is ProvisionerState.Connecting -> ProvisionerStateInfo(
-            text = stringResource(R.string.label_connecting)
-        )
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true
+    )
+    var capabilities by remember { mutableStateOf<ProvisioningCapabilities?>(null) }
+    ModalBottomSheetLayout(
+        sheetContent = {
+            capabilities?.let { it ->
+                OobBottomSheet(
+                    capabilities = it,
+                    onConfirmClicked = { startProvisioning(it) }
+                )
+            }
+        },
+        sheetState = sheetState,
+        sheetShape = RoundedCornerShape(12.dp),
+    ) {
+        when (provisionerState) {
+            is ProvisionerState.Connecting -> ProvisionerStateInfo(
+                text = stringResource(R.string.label_connecting)
+            )
 
-        is ProvisionerState.Connected -> ProvisionerStateInfo(
-            text = stringResource(R.string.label_connected)
-        )
+            is ProvisionerState.Connected -> ProvisionerStateInfo(
+                text = stringResource(R.string.label_connected)
+            )
 
-        ProvisionerState.Identifying -> ProvisionerStateInfo(
-            text = stringResource(R.string.label_identifying)
-        )
+            ProvisionerState.Identifying -> ProvisionerStateInfo(
+                text = stringResource(R.string.label_identifying)
+            )
 
-        is ProvisionerState.Provisioning -> ProvisioningStateInfo(
-            unprovisionedDevice = unprovisionedDevice,
-            state = provisionerState.state,
-            onNameChanged = onNameChanged,
-            onAddressChanged = onAddressChanged,
-            isValidAddress = isValidAddress,
-            onNetworkKeyClick = onNetworkKeyClick,
-            onProvisionClick = onProvisionClick,
-            onProvisioningComplete = onProvisioningComplete
-        )
+            is ProvisionerState.Provisioning -> ProvisioningStateInfo(
+                unprovisionedDevice = unprovisionedDevice,
+                state = provisionerState.state,
+                onNameChanged = onNameChanged,
+                onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
+                onNetworkKeyClick = onNetworkKeyClick,
+                onProvisionClick = {
+                    capabilities = it
+                    scope.launch { sheetState.show() }
+                },
+                onProvisioningComplete = onProvisioningComplete
+            )
 
-        is ProvisionerState.Disconnected -> ProvisionerStateInfo(
-            text = stringResource(R.string.label_disconnected)
-        )
+            is ProvisionerState.Disconnected -> ProvisionerStateInfo(
+                text = stringResource(R.string.label_disconnected)
+            )
+        }
     }
+
 }
 
 @Composable
@@ -148,8 +179,8 @@ private fun ProvisioningStateInfo(
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
-    onProvisionClick: () -> Unit,
-    onProvisioningComplete: () -> Unit
+    onProvisionClick: (ProvisioningCapabilities) -> Unit,
+    onProvisioningComplete: () -> Unit,
 ) {
     when (state) {
         is ProvisioningState.RequestingCapabilities -> {
@@ -157,236 +188,48 @@ private fun ProvisioningStateInfo(
         }
 
         is ProvisioningState.CapabilitiesReceived -> {
-            val snackbarHostState = remember { SnackbarHostState() }
-            val context = LocalContext.current
-            val scope = rememberCoroutineScope()
-            val keyboardController = LocalSoftwareKeyboardController.current
-            var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-            var showOobType by rememberSaveable { mutableStateOf(false) }
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item {
-                    Name(
-                        name = unprovisionedDevice.name,
-                        onNameChanged = onNameChanged,
-                        isCurrentlyEditable = isCurrentlyEditable,
-                        onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
-                }
-                item {
-                    SectionTitle(title = stringResource(R.string.title_provisioning_data))
-                }
-                item {
-                    UnicastAddressRow(
-                        context = context,
-                        scope = scope,
-                        snackbarHostState = snackbarHostState,
-                        keyboardController = keyboardController,
-                        address = state.configuration.unicastAddress!!.address,
-                        onAddressChanged = {
-                            onAddressChanged(
-                                state.configuration,
-                                state.capabilities.numberOfElements,
-                                it
-                            )
-                        },
-                        isValidAddress = isValidAddress,
-                        isCurrentlyEditable = isCurrentlyEditable,
-                        onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-                    )
-                }
-                item {
-                    KeyRow(
-                        modifier = Modifier.clickable {
-                            onNetworkKeyClick(state.configuration.networkKey.index)
-                        },
-                        name = state.configuration.networkKey.name
-                    )
-                }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(
-                            onClick = {
-                                runCatching {
-                                    onProvisionClick()
-                                }.onFailure {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = it.message
-                                                ?: context.getString(R.string.label_unknown_error)
-                                        )
-                                    }
-                                }.onSuccess {
-
-                                }
-                            }
-                        ) {
-                            Text(text = "Provision")
-                        }
-                    }
-                }
-                item {
-                    SectionTitle(title = stringResource(R.string.title_device_capabilities))
-                }
-                item {
-                    ElementsRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Badge,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_element_count),
-                        subtitle = "${state.capabilities.numberOfElements}"
-                    )
-                }
-                item {
-                    SupportedAlgorithmsRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.EnhancedEncryption,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_supported_algorithms),
-                        subtitle = state.capabilities.algorithms
-                            .joinToString(separator = ", ")
-                            .ifEmpty { "None" }
-                    )
-                }
-                item {
-                    PublicKeyTypeRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_public_key_type),
-                        subtitle = state.capabilities.publicKeyType
-                            .joinToString(separator = ", ")
-                            .ifEmpty { "None" }
-                    )
-                }
-                item {
-                    StaticOobTypeRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_static_oob_type),
-                        subtitle = state.capabilities.oobTypes
-                            .joinToString(separator = ", ")
-                            .ifEmpty { "None" }
-                    )
-                }
-                item {
-                    OutputOobSizeRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_output_oob_size),
-                        subtitle = "${state.capabilities.outputOobSize}"
-                    )
-                }
-                item {
-                    OutputOobActionsRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_output_oob_actions),
-                        subtitle = state.capabilities.outputOobActions
-                            .joinToString(separator = ", ")
-                            .ifEmpty { "None" }
-                    )
-                }
-                item {
-                    InputOobSizeRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_input_oob_size),
-                        subtitle = "${state.capabilities.inputOobSize}"
-                    )
-                }
-                item {
-                    InputOobActionsRow(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                imageVector = Icons.Rounded.Key,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        },
-                        title = stringResource(R.string.label_input_oob_actions),
-                        subtitle = state.capabilities.inputOobActions.joinToString(
-                            separator = ", "
-                        ).ifBlank { "None" }
-                    )
-                }
-            }
+            DeviceCapabilities(
+                state = state,
+                unprovisionedDevice = unprovisionedDevice,
+                onNameChanged = onNameChanged,
+                onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
+                onNetworkKeyClick = onNetworkKeyClick,
+                onProvisionClick = onProvisionClick
+            )
         }
 
-        is ProvisioningState.Provisioning -> {
-            ProvisionerStateInfo(text = "Provisioning in progress..")
+        is ProvisioningState.Provisioning ->
+            ProvisionerStateInfo(text = stringResource(R.string.provisioning_in_progress))
 
-        }
+        is ProvisioningState.AuthActionRequired ->
+            ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_required))
 
-        is ProvisioningState.AuthActionRequired -> {
-            ProvisionerStateInfo(text = "Provisioning authentication required!")
-        }
-
-        is ProvisioningState.Failed -> {
-            ProvisionerStateInfo(text = "Provisioning failed ${state.error}")
-        }
+        is ProvisioningState.Failed -> ProvisionerStateInfo(
+            text = stringResource(
+                R.string.provisioning_failed,
+                state.error
+            )
+        )
 
         is ProvisioningState.Complete -> {
-            var showDialog by remember { mutableStateOf(true) }
-            if (showDialog)
-                MeshAlertDialog(
-                    onDismissRequest = {
-                        showDialog = !showDialog
-                        onProvisioningComplete()
-                    },
-                    confirmButtonText = stringResource(id = R.string.label_ok),
-                    onConfirmClick = {
-                        showDialog = !showDialog
-                        onProvisioningComplete()
-                    },
-                    dismissButtonText = null,
-                    icon = Icons.Rounded.CheckCircle,
-                    iconColor = MaterialTheme.colorScheme.nordicLightGray,
-                    title = "Status",
-                    text = "Provisioning completed successfully."
-                )
+            var showProvisioningComplete by remember { mutableStateOf(true) }
+            if (showProvisioningComplete) MeshAlertDialog(
+                onDismissRequest = {
+                    showProvisioningComplete = !showProvisioningComplete
+                    onProvisioningComplete()
+                },
+                confirmButtonText = stringResource(id = R.string.label_ok),
+                onConfirmClick = {
+                    showProvisioningComplete = !showProvisioningComplete
+                    onProvisioningComplete()
+                },
+                dismissButtonText = null,
+                icon = Icons.Rounded.CheckCircle,
+                iconColor = MaterialTheme.colorScheme.nordicLightGray,
+                title = stringResource(R.string.label_status),
+                text = stringResource(R.string.label_provisioning_completed)
+            )
         }
     }
 }
@@ -407,6 +250,188 @@ private fun ProvisionerStateInfo(text: String, shouldShowProgress: Boolean = tru
 }
 
 @Composable
+private fun DeviceCapabilities(
+    state: ProvisioningState.CapabilitiesReceived,
+    unprovisionedDevice: UnprovisionedDevice,
+    onNameChanged: (String) -> Unit,
+    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    isValidAddress: (UShort) -> Boolean,
+    onNetworkKeyClick: (KeyIndex) -> Unit,
+    onProvisionClick: (ProvisioningCapabilities) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            Name(name = unprovisionedDevice.name,
+                onNameChanged = onNameChanged,
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
+        }
+        item { SectionTitle(title = stringResource(R.string.title_provisioning_data)) }
+        item {
+            UnicastAddressRow(context = context,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                keyboardController = keyboardController,
+                address = state.configuration.unicastAddress!!.address,
+                onAddressChanged = {
+                    onAddressChanged(
+                        state.configuration, state.capabilities.numberOfElements, it
+                    )
+                },
+                isValidAddress = isValidAddress,
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
+        }
+        item {
+            KeyRow(
+                modifier = Modifier.clickable {
+                    onNetworkKeyClick(state.configuration.networkKey.index)
+                }, name = state.configuration.networkKey.name
+            )
+        }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = {
+                    runCatching {
+                        onProvisionClick(state.capabilities)
+                        // showOobType = true
+                    }.onFailure {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = it.message
+                                    ?: context.getString(R.string.label_unknown_error)
+                            )
+                        }
+                    }.onSuccess {
+
+                    }
+                }) {
+                    Text(text = stringResource(R.string.label_provision))
+                }
+            }
+        }
+        item {
+            SectionTitle(title = stringResource(R.string.title_device_capabilities))
+        }
+        item {
+            ElementsRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Badge,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
+                title = stringResource(R.string.label_element_count),
+                subtitle = "${state.capabilities.numberOfElements}"
+            )
+        }
+        item {
+            SupportedAlgorithmsRow(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Rounded.EnhancedEncryption,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+                title = stringResource(R.string.label_supported_algorithms),
+                subtitle = state.capabilities.algorithms.joinToString(separator = ", ")
+                    .ifEmpty { "None" })
+        }
+        item {
+            PublicKeyTypeRow(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Rounded.Key,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+                title = stringResource(R.string.label_public_key_type),
+                subtitle = state.capabilities.publicKeyType.joinToString(separator = ", ")
+                    .ifEmpty { "None" })
+        }
+        item {
+            StaticOobTypeRow(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Rounded.Key,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+                title = stringResource(R.string.label_static_oob_type),
+                subtitle = state.capabilities.oobTypes.joinToString(separator = ", ")
+                    .ifEmpty { "None" })
+        }
+        item {
+            OutputOobSizeRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
+                title = stringResource(R.string.label_output_oob_size),
+                subtitle = "${state.capabilities.outputOobSize}"
+            )
+        }
+        item {
+            OutputOobActionsRow(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Rounded.Key,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+                title = stringResource(R.string.label_output_oob_actions),
+                subtitle = state.capabilities.outputOobActions.joinToString(separator = ", ")
+                    .ifEmpty { "None" })
+        }
+        item {
+            InputOobSizeRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
+                title = stringResource(R.string.label_input_oob_size),
+                subtitle = "${state.capabilities.inputOobSize}"
+            )
+        }
+        item {
+            InputOobActionsRow(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Rounded.Key,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+                title = stringResource(R.string.label_input_oob_actions),
+                subtitle = state.capabilities.inputOobActions.joinToString(separator = ", ")
+                    .ifBlank { "None" })
+        }
+    }
+}
+
+@Composable
 private fun Name(
     name: String,
     onNameChanged: (String) -> Unit,
@@ -419,8 +444,7 @@ private fun Name(
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
+            true -> MeshOutlinedTextField(modifier = Modifier.padding(vertical = 8.dp),
                 onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
@@ -435,60 +459,50 @@ private fun Name(
                 label = { Text(text = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_name)) },
                 placeholder = { Text(text = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_placeholder_provisioner_name)) },
                 internalTrailingIcon = {
-                    IconButton(
-                        enabled = value.text.isNotBlank(),
-                        onClick = {
-                            value = TextFieldValue(text = "", selection = TextRange(0))
-                        }
-                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    IconButton(enabled = value.text.isNotBlank(), onClick = {
+                        value = TextFieldValue(text = "", selection = TextRange(0))
+                    }) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
                 content = {
-                    IconButton(
-                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                    IconButton(modifier = Modifier.padding(start = 8.dp, end = 16.dp),
                         enabled = value.text.isNotBlank(),
                         onClick = {
                             onEditClick = !onEditClick
                             onEditableStateChanged()
                             onNameChanged(value.text.trim())
-                        }
-                    ) {
+                        }) {
                         Icon(
                             imageVector = Icons.Outlined.Check,
                             contentDescription = null,
                             tint = LocalContentColor.current.copy(alpha = 0.6f)
                         )
                     }
-                }
-            )
+                })
 
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
+            false -> MeshTwoLineListItem(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Outlined.Badge,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
                 title = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_name),
                 subtitle = value.text,
                 trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                    IconButton(modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
                             onEditClick = !onEditClick
                             onEditableStateChanged()
-                        }
-                    ) {
+                        }) {
                         Icon(
                             imageVector = Icons.Outlined.Edit,
                             contentDescription = null,
                             tint = LocalContentColor.current.copy(alpha = 0.6f)
                         )
                     }
-                }
-            )
+                })
         }
     }
 }
@@ -516,8 +530,7 @@ private fun UnicastAddressRow(
     var supportingErrorText by rememberSaveable { mutableStateOf("") }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
+            true -> MeshOutlinedTextField(modifier = Modifier.padding(vertical = 8.dp),
                 onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
@@ -546,13 +559,10 @@ private fun UnicastAddressRow(
                     )
                 },
                 internalTrailingIcon = {
-                    IconButton(
-                        enabled = value.text.isNotBlank(),
-                        onClick = {
-                            value = TextFieldValue("", TextRange(0))
-                            error = false
-                        }
-                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
+                    IconButton(enabled = value.text.isNotBlank(), onClick = {
+                        value = TextFieldValue("", TextRange(0))
+                        error = false
+                    }) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                 },
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters
@@ -560,82 +570,75 @@ private fun UnicastAddressRow(
                 regex = Regex("[0-9A-Fa-f]{0,4}"),
                 isError = error,
                 supportingText = {
-                    if (error)
-                        Text(text = supportingErrorText, color = MaterialTheme.colorScheme.error)
+                    if (error) Text(
+                        text = supportingErrorText,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 },
                 content = {
-                    IconButton(
-                        modifier = Modifier.padding(end = 16.dp),
+                    IconButton(modifier = Modifier.padding(end = 16.dp),
                         enabled = value.text.isNotEmpty(),
                         onClick = {
                             keyboardController?.hide()
                             if (value.text.isNotEmpty()) {
-                                onAddressChanged(value.text.toInt(radix = 16))
-                                    .onSuccess {
-                                        if (it) {
-                                            onEditClick = !onEditClick
-                                            onEditableStateChanged()
-                                        } else {
-                                            error = true
-                                            showSnackbar(
-                                                scope = scope,
-                                                snackbarHostState = snackbarHostState,
-                                                message = context.getString(R.string.error_invalid_address)
-                                            )
-                                        }
-                                    }
-                                    .onFailure {
+                                onAddressChanged(value.text.toInt(radix = 16)).onSuccess {
+                                    if (it) {
+                                        onEditClick = !onEditClick
+                                        onEditableStateChanged()
+                                    } else {
                                         error = true
                                         showSnackbar(
                                             scope = scope,
                                             snackbarHostState = snackbarHostState,
-                                            message = it.convertToString(context = context)
+                                            message = context.getString(R.string.error_invalid_address)
                                         )
                                     }
+                                }.onFailure {
+                                    error = true
+                                    showSnackbar(
+                                        scope = scope,
+                                        snackbarHostState = snackbarHostState,
+                                        message = it.convertToString(context = context)
+                                    )
+                                }
                             } else {
                                 onEditClick = !onEditClick
                                 onEditableStateChanged()
                             }
-                        }
-                    ) {
+                        }) {
                         Icon(
                             imageVector = Icons.Outlined.Check,
                             contentDescription = null,
                             tint = LocalContentColor.current.copy(alpha = 0.6f)
                         )
                     }
-                }
-            )
+                })
 
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Lan,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
+            false -> MeshTwoLineListItem(leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Outlined.Lan,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
                 title = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_unicast_address),
                 subtitle = address.toHex(prefix0x = true),
                 trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                    IconButton(modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,
                         onClick = {
                             error = false
                             onEditClick = !onEditClick
                             onEditableStateChanged()
-                        }
-                    ) {
+                        }) {
                         Icon(
                             imageVector = Icons.Outlined.Edit,
                             contentDescription = null,
                             tint = LocalContentColor.current.copy(alpha = 0.6f)
                         )
                     }
-                }
-            )
+                })
         }
     }
 }
@@ -643,17 +646,14 @@ private fun UnicastAddressRow(
 @Composable
 private fun KeyRow(modifier: Modifier, name: String) {
     MeshTwoLineListItem(
-        modifier = modifier,
-        leadingComposable = {
+        modifier = modifier, leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = Icons.Outlined.VpnKey,
                 contentDescription = null,
                 tint = LocalContentColor.current.copy(alpha = 0.6f)
             )
-        },
-        title = stringResource(R.string.title_network_key),
-        subtitle = name
+        }, title = stringResource(R.string.title_network_key), subtitle = name
     )
 }
 
