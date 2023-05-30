@@ -10,7 +10,7 @@ import java.util.*
 class MeshNetworkTest {
 
     private val networkManager = MeshNetworkManager(storage = TestStorage())
-    private val meshNetwork by lazy { networkManager.meshNetwork }
+    private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))
     private val scene = Scene("Test Scene", 0x000Au)
 
@@ -19,7 +19,7 @@ class MeshNetworkTest {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {
-            networkManager.import(jsonBytes!!)
+            meshNetwork = networkManager.import(jsonBytes!!)
         }
     }
 

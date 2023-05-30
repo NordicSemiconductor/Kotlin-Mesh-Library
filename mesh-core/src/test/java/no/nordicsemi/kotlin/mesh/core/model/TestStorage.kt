@@ -1,8 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.coroutines.flow.Flow
 import no.nordicsemi.kotlin.mesh.core.Storage
-import java.util.*
+import java.util.UUID
 
 /**
  * Mocked for tests.
