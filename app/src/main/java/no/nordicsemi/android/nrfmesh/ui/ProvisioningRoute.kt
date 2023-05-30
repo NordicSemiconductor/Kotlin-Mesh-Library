@@ -129,7 +129,12 @@ private fun ProvisioningScreen(
             capabilities?.let { it ->
                 OobBottomSheet(
                     capabilities = it,
-                    onConfirmClicked = { startProvisioning(it) }
+                    onConfirmClicked = {
+                        scope.launch {
+                            sheetState.hide()
+                        }
+                        startProvisioning(it)
+                    }
                 )
             }
         },
