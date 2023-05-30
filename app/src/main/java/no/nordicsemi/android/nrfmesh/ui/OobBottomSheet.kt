@@ -154,15 +154,14 @@ private fun isEnabled(
     capabilities: ProvisioningCapabilities,
     selectedIndex: Int,
     selectedActionIndex: Int
-): Boolean = when (capabilities.supportedAuthMethods[selectedIndex]) {
-    is AuthenticationMethod.NoOob, AuthenticationMethod.StaticOob -> {
-        true
-    }
+): Boolean = if (selectedIndex != -1) {
+    when (capabilities.supportedAuthMethods[selectedIndex]) {
+        is AuthenticationMethod.NoOob, AuthenticationMethod.StaticOob -> true
 
-    is AuthenticationMethod.OutputOob, is AuthenticationMethod.InputOob -> {
-        selectedActionIndex != -1
+        is AuthenticationMethod.OutputOob,
+        is AuthenticationMethod.InputOob -> selectedActionIndex != -1
     }
-}
+} else false
 
 private fun selectedOob(
     capabilities: ProvisioningCapabilities,
