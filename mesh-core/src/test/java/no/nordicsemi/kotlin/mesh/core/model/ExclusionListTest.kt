@@ -1,8 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import org.junit.Assert
-import org.junit.Test
-import java.util.*
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ExclusionListTest {
 
@@ -45,23 +45,23 @@ class ExclusionListTest {
     fun testExcludeUnicast() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(address = UnicastAddress(address = 1u))
-        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
+        assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
     }
 
     @Test
     fun testExcludeNode() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         exclusionList.exclude(node = node)
-        Assert.assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
-        Assert.assertEquals(UnicastAddress(address = 2u), exclusionList._addresses[1])
-        Assert.assertEquals(UnicastAddress(address = 3u), exclusionList._addresses[2])
+        assertEquals(UnicastAddress(address = 1u), exclusionList._addresses[0])
+        assertEquals(UnicastAddress(address = 2u), exclusionList._addresses[1])
+        assertEquals(UnicastAddress(address = 3u), exclusionList._addresses[2])
     }
 
     @Test
     fun testIsExcluded() {
         val exclusionList = ExclusionList(ivIndex = 1u)
         val expected = exclusionList.exclude(address = UnicastAddress(address = 1u))
-        Assert.assertEquals(
+        assertEquals(
             expected,
             exclusionList.isExcluded(address = UnicastAddress(address = 1u))
         )

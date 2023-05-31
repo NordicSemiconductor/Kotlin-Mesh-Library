@@ -13,7 +13,10 @@ dependencies {
     // Instant is used as a part of the API
     api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.junit.platform:junit-platform-commons:1.5.2")
+    testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

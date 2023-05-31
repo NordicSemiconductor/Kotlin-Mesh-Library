@@ -1,8 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import org.junit.Assert
-import org.junit.Test
-import java.util.*
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ProvisionerTest {
 
@@ -14,10 +14,10 @@ class ProvisionerTest {
         // Non overlapping ranges.
         provisioner.allocate(UnicastAddress(1u)..UnicastAddress(10u))
         other.allocate(UnicastAddress(20u)..UnicastAddress(30u))
-        Assert.assertEquals(false, provisioner.hasOverlappingUnicastRanges(other))
+        assertEquals(false, provisioner.hasOverlappingUnicastRanges(other))
 
         other.allocate(UnicastAddress(1u)..UnicastAddress(10u))
-        Assert.assertEquals(true, provisioner.hasOverlappingUnicastRanges(other))
+        assertEquals(true, provisioner.hasOverlappingUnicastRanges(other))
     }
 
     @Test
@@ -25,10 +25,10 @@ class ProvisionerTest {
         // Non overlapping ranges.
         provisioner.allocate(GroupAddress(49152u)..GroupAddress(49200u))
         other.allocate(GroupAddress(49250u)..GroupAddress(49350u))
-        Assert.assertEquals(false, provisioner.hasOverlappingGroupRanges(other))
+        assertEquals(false, provisioner.hasOverlappingGroupRanges(other))
 
         other.allocate(GroupAddress(49152u)..GroupAddress(49200u))
-        Assert.assertEquals(true, provisioner.hasOverlappingGroupRanges(other))
+        assertEquals(true, provisioner.hasOverlappingGroupRanges(other))
     }
 
     @Test
@@ -36,16 +36,16 @@ class ProvisionerTest {
         // Non overlapping ranges.
         provisioner.allocate(SceneRange(1u, 10u))
         other.allocate(SceneRange(20u, 30u))
-        Assert.assertEquals(false, provisioner.hasOverlappingSceneRanges(other))
+        assertEquals(false, provisioner.hasOverlappingSceneRanges(other))
 
         // Overlapping ranges
         other.allocate(SceneRange(1u, 10u))
-        Assert.assertEquals(true, provisioner.hasOverlappingSceneRanges(other))
+        assertEquals(true, provisioner.hasOverlappingSceneRanges(other))
     }
 
     @Test
     fun testHasOverlappingRanges_4() {
         // Non overlapping ranges.
-        Assert.assertEquals(false, provisioner.hasOverlappingRanges(other))
+        assertEquals(false, provisioner.hasOverlappingRanges(other))
     }
 }

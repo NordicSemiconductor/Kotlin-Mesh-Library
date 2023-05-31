@@ -2,17 +2,15 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class GroupTest {
 
     private val networkManager = MeshNetworkManager(storage = TestStorage())
     private lateinit var meshNetwork: MeshNetwork
 
-    @Before
-    fun setUp() {
+    private fun setup() {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {
@@ -22,58 +20,64 @@ class GroupTest {
 
     @Test
     fun isUsed() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
-        Assert.assertTrue(parentGroup.isUsed)
+        assertTrue(parentGroup.isUsed)
     }
 
     @Test
     fun testIsDirectChildOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
         val childGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC024u)
         }!!
-        Assert.assertTrue(childGroup.isDirectChildOf(parentGroup))
+        assertTrue(childGroup.isDirectChildOf(parentGroup))
     }
 
     @Test
     fun testIsDirectParentOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
         val childGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC024u)
         }!!
-        Assert.assertTrue(parentGroup.isDirectParentOf(childGroup))
+        assertTrue(parentGroup.isDirectParentOf(childGroup))
     }
 
     @Test
     fun testIsChildOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
         val childGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC026u)
         }!!
-        Assert.assertTrue(childGroup.isChildOf(parentGroup))
+        assertTrue(childGroup.isChildOf(parentGroup))
     }
 
     @Test
     fun testIsParentOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
         val childGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC026u)
         }!!
-        Assert.assertTrue(parentGroup.isParentOf(childGroup))
+        assertTrue(parentGroup.isParentOf(childGroup))
     }
 
     @Test
     fun testSetAsChildOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address == GroupAddress(0xC023u)
         }!!
@@ -81,11 +85,12 @@ class GroupTest {
             it.address == GroupAddress(0xC103u)
         }!!
         childGroup.setAsChildOf(parentGroup)
-        Assert.assertTrue(childGroup.isChildOf(parentGroup))
+        assertTrue(childGroup.isChildOf(parentGroup))
     }
 
     @Test
     fun testSetAsParentOf() {
+        setup()
         val parentGroup = meshNetwork._groups.find {
             it.address is VirtualAddress
         }!!
@@ -93,7 +98,7 @@ class GroupTest {
             it.address == GroupAddress(0xC103u)
         }!!
         parentGroup.setAsParentOf(childGroup)
-        Assert.assertTrue(parentGroup.isParentOf(childGroup))
+        assertTrue(parentGroup.isParentOf(childGroup))
     }
 
 }

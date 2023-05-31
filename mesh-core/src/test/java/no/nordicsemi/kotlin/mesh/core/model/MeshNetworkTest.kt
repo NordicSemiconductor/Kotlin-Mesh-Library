@@ -2,10 +2,14 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class MeshNetworkTest {
 
@@ -14,8 +18,7 @@ class MeshNetworkTest {
     private val group = Group("Test Group", GroupAddress(0xD000u))
     private val scene = Scene("Test Scene", 0x000Au)
 
-    @Before
-    fun setUp() {
+    private fun setUp() {
         val jsonBytes =
             this.javaClass.classLoader.getResourceAsStream("cdb_json.json")?.readAllBytes()
         runBlocking {
@@ -38,102 +41,135 @@ class MeshNetworkTest {
             elementCount = 6,
             provisioner = provisioner
         )
-        Assert.assertNotNull(address)
-        Assert.assertTrue(address!! == UnicastAddress(address = 1))
+        assertNotNull(address)
+        assertEquals(address, UnicastAddress(address = 1))
     }
 
     @Test
-    fun testNextAvailableUnicastAddressWithOffset() {
-        val meshNetwork = MeshNetwork(_name = "Test Network")
-        meshNetwork.apply {
-            add(
-                node = Node(
-                    name = "Node 0",
-                    unicastAddress = UnicastAddress(1),
-                    elements = 9
-                )
-            )
-            add(
-                node = Node(
-                    name = "Node 1",
-                    unicastAddress = UnicastAddress(10),
-                    elements = 9
-                )
-            )
-            add(
-                node = Node(
-                    name = "Node 2",
-                    unicastAddress = UnicastAddress(20),
-                    elements = 9
-                )
-            )
-            add(
-                node = Node(
-                    name = "Node 3",
-                    unicastAddress = UnicastAddress(30),
-                    elements = 9
-                )
-            )
+    fun testNextAvailableUnicastAddressBasicNetwork() {
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertThrows(MeshNetworkException::class.java) {
+                add(node = Node(name = "Node 0", address = 1, elements = 9))
+            }
+            assertThrows(MeshNetworkException::class.java) {
+                add(node = Node(name = "Node 1", address = 10, elements = 9))
+            }
+            assertThrows(MeshNetworkException::class.java) {
+                add(node = Node(name = "Node 2", address = 20, elements = 9))
+            }
+            assertThrows(MeshNetworkException::class.java) {
+                add(node = Node(name = "Node 3", address = 30, elements = 9))
+            }
         }
         val provisioner = Provisioner(
             name = "Test Provisioner",
             allocatedUnicastRanges = mutableListOf(UnicastRange(100, 200))
-        ).apply {
-            this.network = meshNetwork
-        }
+        ).apply { this.network = meshNetwork }
 
         val address = meshNetwork.nextAvailableUnicastAddress(
             elementCount = 6,
             provisioner = provisioner
         )
-        Assert.assertNotNull(address)
-        Assert.assertTrue(address!! == UnicastAddress(address = 100))
+        assertNotNull(address)
+        assertEquals(expected = UnicastAddress(address = 100), actual = address)
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressWithOffset() {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
+            //add(name = "Primary Network Key", index = 0u)
+            assertDoesNotThrow {
+                add(node = Node(name = "Node 0", address = 1, elements = 9))
+            }
+            assertDoesNotThrow {
+                add(node = Node(name = "Node 1", address = 10, elements = 9))
+            }
+            assertDoesNotThrow {
+                add(node = Node(name = "Node 2", address = 20, elements = 9))
+            }
+            assertDoesNotThrow {
+                add(node = Node(name = "Node 3", address = 30, elements = 9))
+            }
+            assertDoesNotThrow {
+                add(node = Node(name = "Node 4", address = 115, elements = 2))
+            }
+        }
+
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(UnicastRange(100, 200))
+        ).apply { this.network = meshNetwork }
+
+        val address1 = meshNetwork.nextAvailableUnicastAddress(
+            offset = UnicastAddress(110),
+            elementCount = 3,
+            provisioner = provisioner
+        )
+
+        assertNotNull(address1)
+        assertEquals(expected = UnicastAddress(address = 110), actual = address1)
+
+        val address2 = meshNetwork.nextAvailableUnicastAddress(
+            offset = UnicastAddress(110),
+            elementCount = 6,
+            provisioner = provisioner
+        )
+
+        assertNotNull(address2)
+        assertEquals(expected = UnicastAddress(address = 117), actual = address2)
     }
 
     @Test
     fun testAddGroup() {
+        setUp()
         meshNetwork.add(group)
-        Assert.assertTrue(meshNetwork._groups.any { it.address == group.address })
+        assertTrue(meshNetwork._groups.any { it.address == group.address })
     }
 
     @Test
     fun testRemoveGroup() {
+        setUp()
         meshNetwork.add(group)
         meshNetwork.remove(group)
-        Assert.assertEquals(true, meshNetwork._groups.none { it.address == group.address })
+        assertEquals(true, meshNetwork._groups.none { it.address == group.address })
     }
 
     @Test
     fun testNextAvailableGroup() {
+        setUp()
         val expectedGroupAddress = GroupAddress(0xC000u)
         val provisioner = meshNetwork._provisioners.last()
         val actualGroupAddress = meshNetwork.nextAvailableGroup(provisioner)
-        Assert.assertEquals(expectedGroupAddress, actualGroupAddress)
+        assertEquals(expectedGroupAddress, actualGroupAddress)
     }
 
     @Test
     fun testAddScene() {
+        setUp()
         meshNetwork.add(scene)
-        Assert.assertTrue(meshNetwork._scenes.any { it.number == scene.number })
+        assertTrue(meshNetwork._scenes.any { it.number == scene.number })
     }
 
     @Test
     fun testRemoveScene() {
+        setUp()
         meshNetwork.add(scene)
         meshNetwork.remove(scene)
-        Assert.assertEquals(true, meshNetwork._scenes.none { it.number == scene.number })
+        assertEquals(true, meshNetwork._scenes.none { it.number == scene.number })
     }
 
     @Test
     fun testNextAvailableScene() {
+        setUp()
         val expectedSceneNumber: SceneNumber = 1u
         val provisioner = meshNetwork._provisioners.last()
         val actualSceneNumber = meshNetwork.nextAvailableScene(provisioner)
-        Assert.assertTrue(expectedSceneNumber == actualSceneNumber)
+        assertEquals(expectedSceneNumber, actualSceneNumber)
     }
 
     @Test
     fun testMoveProvisionerFromTo() {
+        setUp()
         meshNetwork.add(provisioner = Provisioner(UUID.randomUUID()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
@@ -142,11 +178,12 @@ class MeshNetworkTest {
         val provisioner = meshNetwork._provisioners.first()
         val to = meshNetwork._provisioners.size - 1
         meshNetwork.moveProvisioner(meshNetwork.provisioners.indexOf(provisioner), to)
-        Assert.assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
+        assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
     }
 
     @Test
     fun testMoveProvisionerTo() {
+        setUp()
         meshNetwork.add(provisioner = Provisioner(UUID.randomUUID()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
@@ -155,15 +192,16 @@ class MeshNetworkTest {
         val provisioner = meshNetwork._provisioners.first()
         val to = meshNetwork._provisioners.size - 1
         meshNetwork.move(provisioner, to)
-        Assert.assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
+        assertEquals(to, meshNetwork._provisioners.indexOf(provisioner))
     }
 
     @Test
     fun testAssign() {
+        setUp()
         val expectedAddress = UnicastAddress(255u)
         val provisioner = meshNetwork._provisioners.first()
         provisioner.assign(expectedAddress)
-        Assert.assertEquals(
+        assertEquals(
             expectedAddress,
             meshNetwork.node(provisioner.uuid)?.primaryUnicastAddress
         )
@@ -171,30 +209,33 @@ class MeshNetworkTest {
 
     @Test
     fun testDisableConfigurationCapabilities() {
+        setUp()
         val provisioner = meshNetwork._provisioners.first()
         meshNetwork.disableConfigurationCapabilities(provisioner)
-        Assert.assertEquals(null, meshNetwork.node(provisioner.uuid)?.primaryUnicastAddress)
+        assertEquals(null, meshNetwork.node(provisioner.uuid)?.primaryUnicastAddress)
     }
 
     @Test
     fun testIsRangeAvailableForAllocation() {
+        setUp()
         val range = UnicastAddress(0x7000u)..UnicastAddress(0x7F00u)
         val provisioner = Provisioner(UUID.randomUUID()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
         }
-        Assert.assertEquals(true, provisioner.isRangeAvailableForAllocation(range))
+        assertEquals(true, provisioner.isRangeAvailableForAllocation(range))
     }
 
     @Test
     fun testAreRangesAvailableForAllocation() {
+        setUp()
         val range = UnicastAddress(0x7000u)..UnicastAddress(0x7F00u)
         meshNetwork.provisioners.first().allocate(range)
         val provisioner = Provisioner(UUID.randomUUID()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
         }
-        Assert.assertEquals(
+        assertEquals(
             false,
             provisioner.areRangesAvailableForAllocation(listOf(range))
         )

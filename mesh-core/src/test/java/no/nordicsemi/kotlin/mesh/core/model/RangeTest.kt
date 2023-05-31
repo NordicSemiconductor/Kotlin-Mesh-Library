@@ -1,7 +1,9 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import org.junit.Assert
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class RangeTest {
 
@@ -11,10 +13,10 @@ class RangeTest {
         val overlappingRange = UnicastAddress(5u)..UnicastAddress(20u)
         val nonOverlappingRange = UnicastAddress(11u)..UnicastAddress(20u)
         // Overlapping ranges
-        Assert.assertTrue(range.overlaps(overlappingRange))
+        assertTrue(range.overlaps(overlappingRange))
 
         // Non overlapping ranges
-        Assert.assertFalse(range.overlaps(nonOverlappingRange))
+        assertFalse(range.overlaps(nonOverlappingRange))
     }
 
     @Test
@@ -24,44 +26,44 @@ class RangeTest {
 
         // Overlapping ranges
         val overlappingRanges = listOf(overlappingRange)
-        Assert.assertTrue(range.overlaps(overlappingRanges))
+        assertTrue(range.overlaps(overlappingRanges))
     }
 
     @Test
     fun testDistance() {
-        Assert.assertEquals(
+        assertEquals(
             0, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(21u)..UnicastAddress(40u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             1, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(22u)..UnicastAddress(40u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             9, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(30u)..UnicastAddress(40u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             0, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(15u)..UnicastAddress(40u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             0, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(1u)..UnicastAddress(40u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             0, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(1u)..UnicastAddress(9u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             1, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(1u)..UnicastAddress(8u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             0, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(10u)..UnicastAddress(10u)))
         )
-        Assert.assertEquals(
+        assertEquals(
             7, (UnicastAddress(10u)..UnicastAddress(20u))
                 .distance((UnicastAddress(1u)..UnicastAddress(2u)))
         )
@@ -70,19 +72,19 @@ class RangeTest {
     @Test
     fun testPlus() {
         // Non overlapping ranges.
-        Assert.assertEquals(
+        assertEquals(
             2,
             ((UnicastAddress(10u)..UnicastAddress(20u)) +
                     (UnicastAddress(30u)..UnicastAddress(40u))).size
         )
         // Non adjacent ranges.
-        Assert.assertEquals(
+        assertEquals(
             1,
             ((UnicastAddress(10u)..UnicastAddress(20u)) +
                     (UnicastAddress(21u)..UnicastAddress(40u))).size
         )
         // Overlapping ranges.
-        Assert.assertEquals(
+        assertEquals(
             1,
             ((UnicastAddress(10u)..UnicastAddress(20u)) +
                     (UnicastAddress(15u)..UnicastAddress(40u))).size
@@ -97,11 +99,11 @@ class RangeTest {
             UnicastAddress(30u)..UnicastAddress(40u)
         )
         ranges -= (UnicastAddress(15u)..UnicastAddress(35u))
-        Assert.assertEquals(2, ranges.size)
-        Assert.assertEquals(ranges[0].low.toInt(), 10)
-        Assert.assertEquals(ranges[0].high.toInt(), 14)
-        Assert.assertEquals(ranges[1].low.toInt(), 36)
-        Assert.assertEquals(ranges[1].high.toInt(), 40)
+        assertEquals(2, ranges.size)
+        assertEquals(ranges[0].low.toInt(), 10)
+        assertEquals(ranges[0].high.toInt(), 14)
+        assertEquals(ranges[1].low.toInt(), 36)
+        assertEquals(ranges[1].high.toInt(), 40)
 
         // End overlapping range
         ranges = mutableListOf<Range>(
@@ -109,11 +111,11 @@ class RangeTest {
             UnicastAddress(30u)..UnicastAddress(40u)
         )
         ranges -= (UnicastAddress(40u)..UnicastAddress(40u))
-        Assert.assertEquals(2, ranges.size)
-        Assert.assertEquals(ranges[0].low.toInt(), 10)
-        Assert.assertEquals(ranges[0].high.toInt(), 20)
-        Assert.assertEquals(ranges[1].low.toInt(), 30)
-        Assert.assertEquals(ranges[1].high.toInt(), 39)
+        assertEquals(2, ranges.size)
+        assertEquals(ranges[0].low.toInt(), 10)
+        assertEquals(ranges[0].high.toInt(), 20)
+        assertEquals(ranges[1].low.toInt(), 30)
+        assertEquals(ranges[1].high.toInt(), 39)
 
         // Adjacent overlapping range
         ranges = mutableListOf<Range>(
@@ -122,9 +124,9 @@ class RangeTest {
         ranges -= (UnicastAddress(12289u)..UnicastAddress(28671u))
         ranges -= (UnicastAddress(1u)..UnicastAddress(12288u))
 
-        Assert.assertEquals(1, ranges.size)
-        Assert.assertEquals(ranges[0].low.toInt(), 28672)
-        Assert.assertEquals(ranges[0].high.toInt(), 32767)
+        assertEquals(1, ranges.size)
+        assertEquals(ranges[0].low.toInt(), 28672)
+        assertEquals(ranges[0].high.toInt(), 32767)
     }
 
     @Test
@@ -135,18 +137,18 @@ class RangeTest {
         )
 
         val result = ranges + (UnicastAddress(4000u)..UnicastAddress(5000u))
-        Assert.assertEquals(3, result.size)
-        Assert.assertEquals(result[0].low.toInt(), 1)
-        Assert.assertEquals(result[0].high.toInt(), 1000)
-        Assert.assertEquals(result[1].low.toInt(), 2000)
-        Assert.assertEquals(result[1].high.toInt(), 3000)
-        Assert.assertEquals(result[2].low.toInt(), 4000)
-        Assert.assertEquals(result[2].high.toInt(), 5000)
+        assertEquals(3, result.size)
+        assertEquals(result[0].low.toInt(), 1)
+        assertEquals(result[0].high.toInt(), 1000)
+        assertEquals(result[1].low.toInt(), 2000)
+        assertEquals(result[1].high.toInt(), 3000)
+        assertEquals(result[2].low.toInt(), 4000)
+        assertEquals(result[2].high.toInt(), 5000)
 
         val result2 = ranges + (UnicastAddress(1001u)..UnicastAddress(1999u))
-        Assert.assertEquals(1, result2.size)
-        Assert.assertEquals(result2[0].low.toInt(), 1)
-        Assert.assertEquals(result2[0].high.toInt(), 3000)
+        assertEquals(1, result2.size)
+        assertEquals(result2[0].low.toInt(), 1)
+        assertEquals(result2[0].high.toInt(), 3000)
     }
 
     @Test
@@ -162,13 +164,13 @@ class RangeTest {
         )
 
         val result = ranges - otherRanges
-        Assert.assertEquals(3, result.size)
-        Assert.assertEquals(result[0].low.toInt(), 1)
-        Assert.assertEquals(result[0].high.toInt(), 499)
-        Assert.assertEquals(result[1].low.toInt(), 801)
-        Assert.assertEquals(result[1].high.toInt(), 1000)
-        Assert.assertEquals(result[2].low.toInt(), 2004)
-        Assert.assertEquals(result[2].high.toInt(), 2499)
+        assertEquals(3, result.size)
+        assertEquals(result[0].low.toInt(), 1)
+        assertEquals(result[0].high.toInt(), 499)
+        assertEquals(result[1].low.toInt(), 801)
+        assertEquals(result[1].high.toInt(), 1000)
+        assertEquals(result[2].low.toInt(), 2004)
+        assertEquals(result[2].high.toInt(), 2499)
     }
 
     @Test
@@ -182,6 +184,6 @@ class RangeTest {
             UnicastAddress(1999u)..UnicastAddress(2003u),
             UnicastAddress(2500u)..UnicastAddress(3000u),
         )
-        Assert.assertTrue(ranges.overlaps(otherRanges))
+        assertTrue(ranges.overlaps(otherRanges))
     }
 }
