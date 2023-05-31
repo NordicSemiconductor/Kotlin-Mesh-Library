@@ -121,20 +121,16 @@ data class Node internal constructor(
     /**
      * Convenience constructor to initialize a node for tests.
      *
-     * @param unicastAddress            Unicast address that was assigned during provisioning.
-     * @param elements              Number of elements.
+     * @param address                   Unicast address that was assigned during provisioning.
+     * @param elements                  Number of elements.
      * @throws SecurityException        If the security level of the network key does not match the
      *                                  security level used when provisioning the node.
      */
     @Throws(SecurityException::class)
-    internal constructor(
-        name:String,
-        unicastAddress: UnicastAddress,
-        elements: Int
-    ) : this(
+    internal constructor(name: String, address: Int, elements: Int) : this(
         uuid = UUID.randomUUID(),
         deviceKey = Crypto.generateRandomKey(),
-        _primaryUnicastAddress = unicastAddress,
+        _primaryUnicastAddress = UnicastAddress(address),
         _elements = MutableList(elements) {
             Element(
                 location = Location.UNKNOWN,
@@ -143,7 +139,7 @@ data class Node internal constructor(
         },
         _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
         _appKeys = mutableListOf()
-    ){
+    ) {
         this.name = name
     }
 

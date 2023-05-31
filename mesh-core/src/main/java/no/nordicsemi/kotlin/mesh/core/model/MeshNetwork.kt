@@ -56,9 +56,7 @@ class MeshNetwork internal constructor(
      * @param name The name of the network
      */
     internal constructor(name: String) : this(UUID.randomUUID(), name) {
-        _networkKeys.add(NetworkKey().apply {
-            network = this@MeshNetwork
-        })
+        add(name = "Primary Network Key", index = 0u)
     }
 
     var name: String
