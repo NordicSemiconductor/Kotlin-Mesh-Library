@@ -5,7 +5,7 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import java.util.UUID
 
 class MeshNetworkTest {
 
@@ -21,6 +21,73 @@ class MeshNetworkTest {
         runBlocking {
             meshNetwork = networkManager.import(jsonBytes!!)
         }
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressEmptyNetwork() {
+        val meshNetwork = MeshNetwork(_name = "Test Network")
+        val provisioner = Provisioner(uuid = UUID.randomUUID()).apply {
+            this.network = meshNetwork
+            this.name = "Test Provisioner"
+            this.allocate(
+                range = UnicastAddress(address = 0x0001u)..UnicastAddress(address = 0x7F00u)
+            )
+        }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 6,
+            provisioner = provisioner
+        )
+        Assert.assertNotNull(address)
+        Assert.assertTrue(address!! == UnicastAddress(address = 1))
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressWithOffset() {
+        val meshNetwork = MeshNetwork(_name = "Test Network")
+        meshNetwork.apply {
+            add(
+                node = Node(
+                    name = "Node 0",
+                    unicastAddress = UnicastAddress(1),
+                    elements = 9
+                )
+            )
+            add(
+                node = Node(
+                    name = "Node 1",
+                    unicastAddress = UnicastAddress(10),
+                    elements = 9
+                )
+            )
+            add(
+                node = Node(
+                    name = "Node 2",
+                    unicastAddress = UnicastAddress(20),
+                    elements = 9
+                )
+            )
+            add(
+                node = Node(
+                    name = "Node 3",
+                    unicastAddress = UnicastAddress(30),
+                    elements = 9
+                )
+            )
+        }
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(UnicastRange(100, 200))
+        ).apply {
+            this.network = meshNetwork
+        }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 6,
+            provisioner = provisioner
+        )
+        Assert.assertNotNull(address)
+        Assert.assertTrue(address!! == UnicastAddress(address = 100))
     }
 
     @Test
