@@ -267,6 +267,17 @@ data class UnicastRange(
     override val lowAddress: UnicastAddress, override val highAddress: UnicastAddress
 ) : AddressRange() {
 
+    /**
+     * Convenience constructor to create a Unicast Range for tests.
+     *
+     * @property start        Start address.
+     * @property end          End address.
+     * @constructor Creates a Unicast Range.
+     */
+    internal constructor(
+        start: Int, end: Int
+    ) : this(lowAddress = UnicastAddress(start), highAddress = UnicastAddress(end))
+
     constructor(
         address: UnicastAddress, elementsCount: Int
     ) : this(lowAddress = address, highAddress = address + (elementsCount - 1))

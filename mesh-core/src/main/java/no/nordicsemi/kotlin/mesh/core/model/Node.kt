@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 import kotlin.jvm.Throws
 
@@ -116,6 +117,35 @@ data class Node internal constructor(
         _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
         _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
     )
+
+    /**
+     * Convenience constructor to initialize a node for tests.
+     *
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param elements              Number of elements.
+     * @throws SecurityException        If the security level of the network key does not match the
+     *                                  security level used when provisioning the node.
+     */
+    @Throws(SecurityException::class)
+    internal constructor(
+        name:String,
+        unicastAddress: UnicastAddress,
+        elements: Int
+    ) : this(
+        uuid = UUID.randomUUID(),
+        deviceKey = Crypto.generateRandomKey(),
+        _primaryUnicastAddress = unicastAddress,
+        _elements = MutableList(elements) {
+            Element(
+                location = Location.UNKNOWN,
+                models = listOf()
+            )
+        },
+        _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
+        _appKeys = mutableListOf()
+    ){
+        this.name = name
+    }
 
     /**
      * Convenience constructor to initialize a node from an unprovisioned device.

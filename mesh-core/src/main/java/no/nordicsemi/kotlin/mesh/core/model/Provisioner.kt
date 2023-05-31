@@ -38,6 +38,29 @@ data class Provisioner internal constructor(
     internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
 ) {
 
+    /**
+     * Convenience constructor for tests
+     *
+     * @property name                      Provisioner name.
+     * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
+     * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
+     * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
+     *
+     */
+    internal constructor(
+        name: String,
+        allocatedUnicastRanges: List<UnicastRange> = mutableListOf(),
+        allocatedGroupRanges: List<GroupRange> = mutableListOf(),
+        allocatedSceneRanges: List<SceneRange> = mutableListOf()
+    ) : this(
+        UUID.randomUUID(),
+        allocatedUnicastRanges.toMutableList(),
+        allocatedGroupRanges.toMutableList(),
+        allocatedSceneRanges.toMutableList()
+    ) {
+        this.name = name
+    }
+
     constructor(uuid: UUID = UUID.randomUUID()) : this(
         uuid,
         mutableListOf<UnicastRange>(),
@@ -368,10 +391,12 @@ data class Provisioner internal constructor(
                     provisioners
                         .filter { it.uuid != provisioner.uuid }
                         .none { it._allocatedUnicastRanges.overlaps(range) }
+
                 is GroupRange ->
                     provisioners
                         .filter { it.uuid != provisioner.uuid }
                         .none { it._allocatedGroupRanges.overlaps(range) }
+
                 is SceneRange ->
                     provisioners
                         .filter { it.uuid != provisioner.uuid }
@@ -394,10 +419,12 @@ data class Provisioner internal constructor(
                         provisioners
                             .filter { it.uuid != provisioner.uuid }
                             .none { it._allocatedUnicastRanges.overlaps(ranges) }
+
                     is GroupRange ->
                         provisioners
                             .filter { it.uuid != provisioner.uuid }
                             .none { it._allocatedGroupRanges.overlaps(ranges) }
+
                     is SceneRange ->
                         provisioners
                             .filter { it.uuid != provisioner.uuid }

@@ -50,6 +50,17 @@ class MeshNetwork internal constructor(
     @SerialName(value = "meshName")
     private var _name: String
 ) {
+    /**
+     * Convenience constructor to create a network for tests
+     *
+     * @param name The name of the network
+     */
+    internal constructor(name: String) : this(UUID.randomUUID(), name) {
+        _networkKeys.add(NetworkKey().apply {
+            network = this@MeshNetwork
+        })
+    }
+
     var name: String
         get() = _name
         set(value) {
@@ -177,7 +188,8 @@ class MeshNetwork internal constructor(
     )
     fun add(provisioner: Provisioner) {
         add(
-            provisioner = provisioner, address = nextAvailableUnicastAddress(
+            provisioner = provisioner,
+            address = nextAvailableUnicastAddress(
                 elementCount = 1, provisioner = provisioner
             ) ?: throw NoAddressesAvailable
         )

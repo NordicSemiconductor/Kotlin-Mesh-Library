@@ -50,6 +50,27 @@ data class NetworkKey internal constructor(
     @SerialName(value = "phase")
     private var _phase: KeyRefreshPhase = NormalOperation,
 ) {
+
+    /**
+     * Convenience constructor for creating a new network key for tests
+     *
+     * @property index         The index property contains an integer from 0 to 4095 that represents
+     *                         the NetKey index for this network key.
+     * @property key           128-bit key.
+     * @property security      Security property contains a string with a value of either “insecure”
+     *                         or “secure”, which describes a minimum security level for a subnet
+     *                         associated with this network key. If all the nodes on the subnet
+     *                         associated with this network key have been provisioned using the
+     *                         Secure Provisioning procedure, then the value of minSecurity property
+     *                         for the subnet is set to “secure”; otherwise, the value of the
+     *                         minSecurity is set to “insecure”.
+     */
+    internal constructor(
+        name: String = "Primary Network Key",
+        index: KeyIndex = 0u,
+        key: ByteArray = Crypto.generateRandomKey()
+    ) : this(index = index, _name = name, _key = key)
+
     var name: String
         get() = _name
         set(value) {
