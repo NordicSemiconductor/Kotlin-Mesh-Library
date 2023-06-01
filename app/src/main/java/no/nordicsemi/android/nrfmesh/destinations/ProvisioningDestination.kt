@@ -4,7 +4,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.common.navigation.createDestination
 import no.nordicsemi.android.common.navigation.defineDestination
 import no.nordicsemi.android.kotlin.ble.scanner.data.BleScanResults
-import no.nordicsemi.android.nrfmesh.ui.ProvisioningRoute
+import no.nordicsemi.android.nrfmesh.ui.provisioning.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 
 val provisioning = createDestination<BleScanResults, Unit>("provisioning")

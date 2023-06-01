@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui
+package no.nordicsemi.android.nrfmesh.ui.scanner
 
 import android.os.ParcelUuid
 import androidx.compose.foundation.layout.Column

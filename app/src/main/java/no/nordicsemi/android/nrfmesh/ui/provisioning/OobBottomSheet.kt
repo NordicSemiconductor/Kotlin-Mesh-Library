@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui
+package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement

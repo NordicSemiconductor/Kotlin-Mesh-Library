@@ -5,7 +5,7 @@ import androidx.activity.compose.setContent
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.theme.NordicActivity
 import no.nordicsemi.android.common.theme.NordicTheme
-import no.nordicsemi.android.nrfmesh.ui.NetworkRoute
+import no.nordicsemi.android.nrfmesh.ui.network.NetworkRoute
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {

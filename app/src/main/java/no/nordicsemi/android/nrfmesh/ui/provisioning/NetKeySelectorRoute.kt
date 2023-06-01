@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui
+package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable

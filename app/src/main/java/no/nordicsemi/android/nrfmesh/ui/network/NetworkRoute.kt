@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 
-package no.nordicsemi.android.nrfmesh.ui
+package no.nordicsemi.android.nrfmesh.ui.network
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -83,6 +83,7 @@ import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDropDown
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
 import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDestinations
+import no.nordicsemi.android.nrfmesh.ui.scanner.ScannerSheet
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
