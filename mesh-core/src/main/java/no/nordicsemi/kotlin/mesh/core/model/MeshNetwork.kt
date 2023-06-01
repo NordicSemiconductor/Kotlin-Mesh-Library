@@ -53,9 +53,9 @@ class MeshNetwork internal constructor(
     /**
      * Convenience constructor to create a network for tests
      *
-     * @param name The name of the network
+     * @param _name The name of the network
      */
-    internal constructor(name: String) : this(UUID.randomUUID(), name) {
+    internal constructor(_name: String) : this(UUID.randomUUID(), _name) {
         add(name = "Primary Network Key", index = 0u)
     }
 
@@ -716,35 +716,33 @@ class MeshNetwork internal constructor(
     ): UnicastAddress? {
         require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
 
-        val excludedAddresses = _networkExclusions.sortedBy { it.ivIndex }.flatMap { it._addresses }
+        val excludedAddresses = networkExclusions.excludedAddresses(ivIndex).map { it }
 
-        val addressesInUse = nodes
+        val usedAddresses = (excludedAddresses + nodes
             .flatMap { it.elements }
-            .map { it.unicastAddress }
+            .map { it.unicastAddress })
             .sortedBy { it.address }
-
-        val totalAddressesInUse = excludedAddresses + addressesInUse
 
         provisioner._allocatedUnicastRanges.forEach { range ->
             var address = range.lowAddress
 
-            if (offset > address && range.contains(offset.address)) address = offset
+            if (range.contains(offset.address) && address < offset) address = offset
 
-            for (index in totalAddressesInUse.indices) {
-                val usedAddress = totalAddressesInUse[index]
+            for (index in usedAddresses.indices) {
+                val usedAddress = usedAddresses[index]
 
                 // Skip nodes with addresses below the range.
                 if (address > usedAddress) continue
 
-                // If we found a space before the current node, return the address.
-                if ((address + (elementCount - 1) < usedAddress)) return address
+                if (address + elementCount - 1 < usedAddress) return address
 
-                // Else, move the address to the next available address.
                 address = usedAddress + 1
 
-                if (address + (elementCount - 1) > range.highAddress) break
+                // If the new address is outside of the range, go to the next one.
+                if (address + elementCount - 1 > range.highAddress) break
             }
-            if (range.highAddress >= address + (elementCount - 1)) return address
+            // If the range has available space, return the address.
+            if (address + elementCount - 1 <= range.highAddress) return address
         }
         return null
     }
