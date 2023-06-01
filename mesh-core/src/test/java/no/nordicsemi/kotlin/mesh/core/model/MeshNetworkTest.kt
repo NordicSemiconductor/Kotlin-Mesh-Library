@@ -2,13 +2,13 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
-import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MeshNetworkTest {
@@ -48,18 +48,10 @@ class MeshNetworkTest {
     @Test
     fun testNextAvailableUnicastAddressBasicNetwork() {
         val meshNetwork = MeshNetwork(_name = "Test Network").apply {
-            assertThrows(MeshNetworkException::class.java) {
-                add(node = Node(name = "Node 0", address = 1, elements = 9))
-            }
-            assertThrows(MeshNetworkException::class.java) {
-                add(node = Node(name = "Node 1", address = 10, elements = 9))
-            }
-            assertThrows(MeshNetworkException::class.java) {
-                add(node = Node(name = "Node 2", address = 20, elements = 9))
-            }
-            assertThrows(MeshNetworkException::class.java) {
-                add(node = Node(name = "Node 3", address = 30, elements = 9))
-            }
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 30, elements = 9)) }
         }
         val provisioner = Provisioner(
             name = "Test Provisioner",
@@ -76,23 +68,12 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressWithOffset() {
-        val meshNetwork = MeshNetwork(name = "Test Network").apply {
-            //add(name = "Primary Network Key", index = 0u)
-            assertDoesNotThrow {
-                add(node = Node(name = "Node 0", address = 1, elements = 9))
-            }
-            assertDoesNotThrow {
-                add(node = Node(name = "Node 1", address = 10, elements = 9))
-            }
-            assertDoesNotThrow {
-                add(node = Node(name = "Node 2", address = 20, elements = 9))
-            }
-            assertDoesNotThrow {
-                add(node = Node(name = "Node 3", address = 30, elements = 9))
-            }
-            assertDoesNotThrow {
-                add(node = Node(name = "Node 4", address = 115, elements = 2))
-            }
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 30, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 4", address = 115, elements = 2)) }
         }
 
         val provisioner = Provisioner(
@@ -117,6 +98,149 @@ class MeshNetworkTest {
 
         assertNotNull(address2)
         assertEquals(expected = UnicastAddress(address = 117), actual = address2)
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressComplexNetwork() {
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 30, elements = 9)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 4", address = 103, elements = 5)) }
+        }
+
+        val oldNode = Node(name = "Node 5", address = 110, elements = 2)
+        assertDoesNotThrow { meshNetwork.add(node = oldNode) }
+        assertFalse {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(111), elementCount = 2)
+        }
+        assertTrue {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(111), node = oldNode)
+        }
+        meshNetwork.remove(node = oldNode)
+
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(UnicastRange(100, 120))
+        ).apply { this.network = meshNetwork }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 6, provisioner = provisioner
+        )
+
+        assertNotNull(address)
+        assertEquals(expected = UnicastAddress(address = 112), actual = address)
+
+        // 110 and 111 cannot be assigned until IV Index changes by 2.
+        assertFalse {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(110), elementCount = 3)
+        }
+        assertTrue {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(112), elementCount = 10)
+        }
+
+        meshNetwork.ivIndex = IvIndex(index = 1u, isIvUpdateActive = true)
+        assertFalse {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(110), elementCount = 3)
+        }
+
+        meshNetwork.ivIndex = IvIndex(index = 1u, isIvUpdateActive = false)
+        assertFalse {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(110), elementCount = 3)
+        }
+
+        // When IV Index is incremented by 2 since a Node was removed, the unicast Addresses may be
+        // reused.
+        meshNetwork.ivIndex = IvIndex(index = 2u, isIvUpdateActive = true)
+        assertTrue {
+            meshNetwork.isAddressAvailable(address = UnicastAddress(110), elementCount = 3)
+        }
+        assertEquals(
+            expected = UnicastAddress(address = 108),
+            actual = meshNetwork.nextAvailableUnicastAddress(
+                elementCount = 6,
+                provisioner = provisioner
+            )
+        )
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressAdvancedNetwork() {
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 55, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 4", address = 65, elements = 5)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 5", address = 73, elements = 5)) }
+        }
+
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(
+                UnicastRange(8, 38),
+                UnicastRange(50, 100),
+                UnicastRange(120, 150)
+            )
+        ).apply { this.network = meshNetwork }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 6, provisioner = provisioner
+        )
+        assertNotNull(address)
+        assertEquals(expected = UnicastAddress(address = 78), actual = address)
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressOne() {
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 55, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 4", address = 65, elements = 5)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 5", address = 73, elements = 5)) }
+        }
+
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(
+                UnicastRange(8, 38),
+                UnicastRange(50, 100)
+            )
+        ).apply { this.network = meshNetwork }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 1, provisioner = provisioner
+        )
+        assertNotNull(address)
+        assertEquals(expected = UnicastAddress(address = 11), actual = address)
+    }
+
+    @Test
+    fun testNextAvailableUnicastAddressNone() {
+        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+            assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 3", address = 55, elements = 10)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 4", address = 65, elements = 5)) }
+            assertDoesNotThrow { add(node = Node(name = "Node 5", address = 73, elements = 5)) }
+        }
+
+        val provisioner = Provisioner(
+            name = "Test Provisioner",
+            allocatedUnicastRanges = mutableListOf(
+                UnicastRange(8, 38),
+                UnicastRange(50, 100)
+            )
+        ).apply { this.network = meshNetwork }
+
+        val address = meshNetwork.nextAvailableUnicastAddress(
+            elementCount = 6, provisioner = provisioner
+        )
+        assertNull(address)
     }
 
     @Test
