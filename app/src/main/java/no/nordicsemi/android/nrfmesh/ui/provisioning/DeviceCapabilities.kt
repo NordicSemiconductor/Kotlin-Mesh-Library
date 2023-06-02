@@ -258,7 +258,8 @@ private fun Name(
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     Crossfade(targetState = onEditClick) { state ->
         when (state) {
-            true -> MeshOutlinedTextField(modifier = Modifier.padding(vertical = 8.dp),
+            true -> MeshOutlinedTextField(
+                modifier = Modifier.padding(vertical = 8.dp),
                 onFocus = onEditClick,
                 externalLeadingIcon = {
                     Icon(
@@ -291,16 +292,18 @@ private fun Name(
                             tint = LocalContentColor.current.copy(alpha = 0.6f)
                         )
                     }
-                })
+                }
+            )
 
-            false -> MeshTwoLineListItem(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Outlined.Badge,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            false -> MeshTwoLineListItem(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Outlined.Badge,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_name),
                 subtitle = value.text,
                 trailingComposable = {

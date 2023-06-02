@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
@@ -62,6 +64,7 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         isValidAddress = viewModel::isValidAddress,
         onNetworkKeyClick = viewModel::onNetworkKeyClick,
         startProvisioning = viewModel::startProvisioning,
+        authenticate = viewModel::authenticate,
         onProvisioningComplete = viewModel::onProvisioningComplete
     )
 }
@@ -75,28 +78,46 @@ private fun ProvisioningScreen(
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
+    authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    var expandedState by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
-        skipHalfExpanded = true
+        skipHalfExpanded = expandedState
     )
     var capabilities by remember { mutableStateOf<ProvisioningCapabilities?>(null) }
+
     ModalBottomSheetLayout(
         sheetContent = {
-            capabilities?.let { it ->
-                OobBottomSheet(
-                    capabilities = it,
-                    onConfirmClicked = {
-                        scope.launch { sheetState.hide() }
-                        startProvisioning(it)
+            if (provisionerState is ProvisionerState.Provisioning) {
+                if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
+                    capabilities?.let { it ->
+                        OobBottomSheet(
+                            capabilities = it,
+                            onConfirmClicked = {
+                                scope.launch { sheetState.hide() }
+                                startProvisioning(it)
+                            }
+                        )
                     }
-                )
+                } else if (provisionerState.state is ProvisioningState.AuthActionRequired) {
+                    capabilities?.let {
+                        expandedState = false
+                        OobAuthenticationBottomSheet(
+                            action = provisionerState.state.action,
+                            onOkClicked = { action, input ->
+                                scope.launch { sheetState.hide() }
+                                authenticate(action, input)
+                            }
+                        )
+                    }
+                }
             }
         },
         sheetState = sheetState,
-        sheetShape = RoundedCornerShape(12.dp),
+        sheetShape = RoundedCornerShape(12.dp)
     ) {
         when (provisionerState) {
             is ProvisionerState.Connecting -> ProvisionerStateInfo(
@@ -122,7 +143,10 @@ private fun ProvisioningScreen(
                     capabilities = it
                     scope.launch { sheetState.show() }
                 },
-                onProvisioningComplete = onProvisioningComplete
+                onProvisioningComplete = onProvisioningComplete,
+                onAuthActionRequired = {
+                    scope.launch { sheetState.show() }
+                }
             )
 
             is ProvisionerState.Disconnected -> ProvisionerStateInfo(
@@ -130,7 +154,6 @@ private fun ProvisioningScreen(
             )
         }
     }
-
 }
 
 @Composable
@@ -143,6 +166,7 @@ private fun ProvisioningStateInfo(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     onProvisionClick: (ProvisioningCapabilities) -> Unit,
     onProvisioningComplete: () -> Unit,
+    onAuthActionRequired: () -> Unit
 ) {
     when (state) {
         is ProvisioningState.RequestingCapabilities -> {
@@ -164,8 +188,10 @@ private fun ProvisioningStateInfo(
         is ProvisioningState.Provisioning ->
             ProvisionerStateInfo(text = stringResource(R.string.provisioning_in_progress))
 
-        is ProvisioningState.AuthActionRequired ->
+        is ProvisioningState.AuthActionRequired -> {
             ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_required))
+            onAuthActionRequired()
+        }
 
         is ProvisioningState.Failed -> ProvisionerStateInfo(
             text = stringResource(
@@ -176,22 +202,24 @@ private fun ProvisioningStateInfo(
 
         is ProvisioningState.Complete -> {
             var showProvisioningComplete by remember { mutableStateOf(true) }
-            if (showProvisioningComplete) MeshAlertDialog(
-                onDismissRequest = {
-                    showProvisioningComplete = !showProvisioningComplete
-                    onProvisioningComplete()
-                },
-                confirmButtonText = stringResource(id = R.string.label_ok),
-                onConfirmClick = {
-                    showProvisioningComplete = !showProvisioningComplete
-                    onProvisioningComplete()
-                },
-                dismissButtonText = null,
-                icon = Icons.Rounded.CheckCircle,
-                iconColor = MaterialTheme.colorScheme.nordicLightGray,
-                title = stringResource(R.string.label_status),
-                text = stringResource(R.string.label_provisioning_completed)
-            )
+            if (showProvisioningComplete) {
+                MeshAlertDialog(
+                    onDismissRequest = {
+                        showProvisioningComplete = !showProvisioningComplete
+                        onProvisioningComplete()
+                    },
+                    confirmButtonText = stringResource(id = R.string.label_ok),
+                    onConfirmClick = {
+                        showProvisioningComplete = !showProvisioningComplete
+                        onProvisioningComplete()
+                    },
+                    dismissButtonText = null,
+                    icon = Icons.Rounded.CheckCircle,
+                    iconColor = MaterialTheme.colorScheme.nordicLightGray,
+                    title = stringResource(R.string.label_status),
+                    text = stringResource(R.string.label_provisioning_completed)
+                )
+            }
         }
     }
 }

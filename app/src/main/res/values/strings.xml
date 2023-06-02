@@ -43,4 +43,11 @@
     <string name="label_output_oob">Output OOB</string>
     <string name="label_input_oob">Input OOB</string>
     <string name="label_select_oob_type_to_use">Select an OOB type</string>
+    <string name="label_authentication_required">Authentication Required</string>
+    <string name="label_auth_value">Auth Value</string>
+    <string name="label_display_numeric_rationale">Enter the displayed number on the device.</string>
+    <string name="label_display_alpha_numeric_rationale">Enter the displayed text on the device.</string>
+    <string name="label_provide_numeric_rationale">Enter the number displayed on the device.</string>
+    <string name="label_provide_alpha_numeric_rationale">Enter the text displayed on the device.</string>
+    <string name="label_provide_static_key_rationale">Enter the 32 character text displayed on the device.</string>
 </resources>

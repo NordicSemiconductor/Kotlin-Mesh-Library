@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -37,11 +38,12 @@ internal fun OobBottomSheet(
     capabilities: ProvisioningCapabilities,
     onConfirmClicked: (AuthenticationMethod) -> Unit
 ) {
-    var selectedIndex by rememberSaveable { mutableStateOf(-1) }
-    var selectedActionIndex by rememberSaveable { mutableStateOf(-1) }
+    var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var selectedActionIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var fill by rememberSaveable { mutableStateOf(false) }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(weight = 1f, fill = fill)) {
                 Text(
                     text = stringResource(R.string.label_select_oob_type_to_use),
                     style = MaterialTheme.typography.titleMedium
@@ -55,6 +57,9 @@ internal fun OobBottomSheet(
                         onClick = {
                             selectedActionIndex = -1
                             selectedIndex = index
+                            if (auth is AuthenticationMethod.OutputOob || auth is AuthenticationMethod.InputOob) {
+                                fill = true
+                            }
                         }
                     )
                     AnimatedVisibility(visible = selectedIndex == index) {

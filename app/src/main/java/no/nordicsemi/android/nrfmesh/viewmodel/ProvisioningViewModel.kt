@@ -30,6 +30,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
@@ -97,7 +98,9 @@ class ProvisioningViewModel @Inject constructor(
         }
     }
 
-
+    /**
+     * Identify the node by sending a provisioning invite.
+     */
     private fun identifyNode() {
         provisioningManager = ProvisioningManager(
             unprovisionedDevice = unprovisionedDevice,
@@ -127,6 +130,9 @@ class ProvisioningViewModel @Inject constructor(
         provisioningJob.cancel()
     }
 
+    /**
+     * Observers the result of the NetKeySelector destination.
+     */
     private fun observeNetKeySelector() {
         resultFrom(netKeySelector)
             // Filter out results of cancelled navigation.
@@ -151,11 +157,23 @@ class ProvisioningViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Invoked when the user changes the name of the device.
+     *
+     * @param name New name to be assigned to the device.
+     */
     internal fun onNameChanged(name: String) {
         unprovisionedDevice.name = name
         _uiState.value = _uiState.value.copy(unprovisionedDevice = unprovisionedDevice)
     }
 
+    /**
+     * Invoked when the user changes the unicast address.
+     *
+     * @param configuration Provisioning configuration containing the unicast address.
+     * @param elementCount  Number of elements.
+     * @param address       Address to be assigned to the node.
+     */
     internal fun onAddressChanged(
         configuration: ProvisioningConfiguration,
         elementCount: Int,
@@ -176,17 +194,27 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     /**
-     * Checks if the given address is valid
+     * Checks if the given address is valid.
      */
     internal fun isValidAddress(address: UShort): Boolean = when {
         UnicastAddress.isValid(address = address) -> true
         else -> throw Throwable("Invalid unicast address")
     }
 
+    /**
+     * Navigates to the network key selector.
+     *
+     * @param keyIndex Index of the network key.
+     */
     internal fun onNetworkKeyClick(keyIndex: KeyIndex) {
         navigateTo(netKeySelector, keyIndex.toInt())
     }
 
+    /**
+     * Starts the provisioning process after the identification is completed.
+     *
+     * @param authMethod Authentication method to be used.
+     */
     internal fun startProvisioning(authMethod: AuthenticationMethod) {
         val state = uiState.value
         viewModelScope.launch {
@@ -203,17 +231,36 @@ class ProvisioningViewModel @Inject constructor(
         }
     }
 
-    internal fun onProvisioningComplete() {
-        navigateUp() // Navigates back to the scanner screen
-        navigateUp() // Navigates back to the previous screen
+    /**
+     * Invoked when the user selects an authentication method.
+     */
+    fun authenticate(method: AuthAction, input: String) {
+        when (method) {
+            is AuthAction.ProvideAlphaNumeric -> method.authenticate(input)
+            is AuthAction.ProvideNumeric -> method.authenticate(input.toUInt())
+            is AuthAction.ProvideStaticKey -> method.authenticate(input.encodeToByteArray())
+            is AuthAction.DisplayAlphaNumeric, is AuthAction.DisplayNumber -> {
+                // Do nothing
+            }
+        }
     }
 
+    /**
+     * Invoked when the provisioning process completes and navigates to the list of nodes.
+     */
+    internal fun onProvisioningComplete() {
+        navigateUp() // Navigates back to the scanner screen
+        navigateUp() // Navigates back to the list of nodes
+    }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)
     }
 }
 
+/**
+ * ProvisionerState represents the state of the provisioning process for the UI.
+ */
 sealed class ProvisionerState {
     object Connecting : ProvisionerState()
     object Connected : ProvisionerState()
