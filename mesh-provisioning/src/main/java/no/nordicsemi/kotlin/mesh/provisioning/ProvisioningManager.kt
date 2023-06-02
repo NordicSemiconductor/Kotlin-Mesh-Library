@@ -331,14 +331,18 @@ class ProvisioningManager(
                 when (method.action) {
                     OutputAction.OUTPUT_ALPHANUMERIC ->
                         AuthAction.ProvideAlphaNumeric(method.length) {
-                            provisioningData.onAuthValueReceived(it.encodeToByteArray())
+                            val input = it.toByteArray(charset = Charsets.US_ASCII)
+                            val authValue = input + ByteArray(size = sizeInBytes - input.size)
+                            provisioningData.onAuthValueReceived(
+                                authValue = authValue.sliceArray(0 until sizeInBytes)
+                            )
                             mutex.unlock()
                         }
                     // BLINK,BEEP,VIBRATE,OUTPUT_NUMERIC
                     else -> AuthAction.ProvideNumeric(method.length, method.action) {
                         val input = it.toByteArray()
-                        val authValue = ByteArray(sizeInBytes - input.size) + input
-                        provisioningData.onAuthValueReceived(authValue)
+                        val authValue = ByteArray(size = sizeInBytes - input.size) + input
+                        provisioningData.onAuthValueReceived(authValue = authValue)
                         mutex.unlock()
                     }
                 }
