@@ -94,7 +94,7 @@ private fun ProvisioningScreen(
             if (provisionerState is ProvisionerState.Provisioning) {
                 if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
                     capabilities?.let { it ->
-                        OobBottomSheet(
+                        AuthSelectionBottomSheet(
                             capabilities = it,
                             onConfirmClicked = {
                                 scope.launch { sheetState.hide() }
@@ -105,7 +105,7 @@ private fun ProvisioningScreen(
                 } else if (provisionerState.state is ProvisioningState.AuthActionRequired) {
                     capabilities?.let {
                         expandedState = false
-                        OobAuthenticationBottomSheet(
+                        OobActionSelectionBottomSheet(
                             action = provisionerState.state.action,
                             onOkClicked = { action, input ->
                                 scope.launch { sheetState.hide() }

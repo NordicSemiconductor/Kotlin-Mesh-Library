@@ -34,7 +34,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.OutputAction.Companion.toOutputAct
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
 
 @Composable
-internal fun OobBottomSheet(
+internal fun AuthSelectionBottomSheet(
     capabilities: ProvisioningCapabilities,
     onConfirmClicked: (AuthenticationMethod) -> Unit
 ) {

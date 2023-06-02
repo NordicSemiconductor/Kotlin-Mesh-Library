@@ -36,7 +36,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 
 @Composable
-fun OobAuthenticationBottomSheet(action: AuthAction, onOkClicked: (AuthAction, String) -> Unit) {
+fun OobActionSelectionBottomSheet(action: AuthAction, onOkClicked: (AuthAction, String) -> Unit) {
     var authValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = ""))
     }
@@ -76,8 +76,8 @@ private fun shouldEnable(action: AuthAction, authValue: String): Boolean {
         is AuthAction.DisplayAlphaNumeric,
         is AuthAction.DisplayNumber -> true
 
-        is AuthAction.ProvideAlphaNumeric -> authValue.length == action.maxNumberOfCharacters.toInt()
-        is AuthAction.ProvideNumeric -> authValue.length == action.maxNumberOfDigits.toInt()
+        is AuthAction.ProvideAlphaNumeric -> authValue.length <= action.maxNumberOfCharacters.toInt()
+        is AuthAction.ProvideNumeric -> authValue.length <= action.maxNumberOfDigits.toInt()
         is AuthAction.ProvideStaticKey -> authValue.length == 32
     }
 }
