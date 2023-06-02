@@ -22,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -335,7 +336,8 @@ class ProvisioningManager(
                         }
                     // BLINK,BEEP,VIBRATE,OUTPUT_NUMERIC
                     else -> AuthAction.ProvideNumeric(method.length, method.action) {
-                        val authValue = ByteArray(sizeInBytes - it.toInt()) + it.toByte()
+                        val input = it.toByteArray()
+                        val authValue = ByteArray(sizeInBytes - input.size) + input
                         provisioningData.onAuthValueReceived(authValue)
                         mutex.unlock()
                     }
