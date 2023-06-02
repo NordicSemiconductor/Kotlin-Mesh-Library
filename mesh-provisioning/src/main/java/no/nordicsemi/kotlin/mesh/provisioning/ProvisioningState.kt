@@ -85,7 +85,7 @@ sealed class AuthAction {
     data class ProvideNumeric(
         val maxNumberOfDigits: UByte,
         val action: OutputAction,
-        val authenticate: (UByte) -> Unit
+        val authenticate: (UInt) -> Unit
     ) : AuthAction()
 
     /**
