@@ -16,7 +16,7 @@ dependencies {
     implementation(libs.nordic.navigation)
     implementation(libs.nordic.permission)
     implementation(libs.nordic.log.timber)
-    api("androidx.compose.material:material:1.4.2")
-    api("androidx.compose.material3:material3:1.1.0-rc01")
+    api("androidx.compose.material:material:1.4.3")
+    api("androidx.compose.material3:material3:1.2.0-alpha02")
     api(libs.androidx.compose.material.iconsExtended)
 }
