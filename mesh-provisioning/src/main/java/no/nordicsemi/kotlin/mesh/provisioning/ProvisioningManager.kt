@@ -174,7 +174,12 @@ class ProvisioningManager(
             accumulate(key)
         }
 
-        requestAuthentication(configuration.authMethod, provisioningData, mutex)?.also { action ->
+        requestAuthentication(
+            method = configuration.authMethod,
+            sizeInBytes = provisioningData.algorithm.length shr 3,
+            onAuthValueReceived = provisioningData::onAuthValueReceived,
+            mutex = mutex
+        )?.also { action ->
             emit(ProvisioningState.AuthActionRequired(action))
             mutex.lock()
             if (action is AuthAction.DisplayNumber || action is AuthAction.DisplayAlphaNumeric) {
@@ -302,19 +307,21 @@ class ProvisioningManager(
     /**
      * Waits for the user to provide the authentication value.
      *
-     * @param method            Authentication method.
-     * @param provisioningData  Provisioning data.
-     * @param mutex             Mutex to unlock when the user has provided the authentication value.
+     * @param method                  Authentication method.
+     * @param sizeInBytes             Size of auth value in bytes based on the algorithm
+     * @param onAuthValueReceived     Lambda to be invoked upon receiving/generating auth value
+     * @param mutex                   Mutex to unlock when the user has provided the authentication
+     *                                value.
      */
     private fun requestAuthentication(
         method: AuthenticationMethod,
-        provisioningData: ProvisioningData,
+        sizeInBytes: Int,
+        onAuthValueReceived: (authValue: ByteArray) -> Unit,
         mutex: Mutex
     ): AuthAction? {
-        val sizeInBytes = provisioningData.algorithm.length shr 3
         return when (method) {
             AuthenticationMethod.NoOob -> {
-                provisioningData.onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })
+                onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })
                 mutex.unlock()
                 null
             }
@@ -323,7 +330,7 @@ class ProvisioningManager(
                 require(it.size == sizeInBytes) {
                     throw InvalidOobValueFormat
                 }
-                provisioningData.onAuthValueReceived(it)
+                onAuthValueReceived(it)
                 mutex.unlock()
             }
 
@@ -333,8 +340,8 @@ class ProvisioningManager(
                         AuthAction.ProvideAlphaNumeric(method.length) {
                             val input = it.toByteArray(charset = Charsets.US_ASCII)
                             val authValue = input + ByteArray(size = sizeInBytes - input.size)
-                            provisioningData.onAuthValueReceived(
-                                authValue = authValue.sliceArray(0 until sizeInBytes)
+                            onAuthValueReceived(
+                                authValue.sliceArray(0 until sizeInBytes)
                             )
                             mutex.unlock()
                         }
@@ -342,7 +349,7 @@ class ProvisioningManager(
                     else -> AuthAction.ProvideNumeric(method.length, method.action) {
                         val input = it.toByteArray()
                         val authValue = ByteArray(size = sizeInBytes - input.size) + input
-                        provisioningData.onAuthValueReceived(authValue = authValue)
+                        onAuthValueReceived(authValue)
                         mutex.unlock()
                     }
                 }
@@ -358,7 +365,7 @@ class ProvisioningManager(
                         ).also {
                             val input = it.text.toByteArray(charset = Charsets.US_ASCII)
                             val authValue = input + ByteArray(size = sizeInBytes - input.size)
-                            provisioningData.onAuthValueReceived(authValue = authValue)
+                            onAuthValueReceived(authValue)
                             mutex.unlock()
                         }
                     }
@@ -371,7 +378,7 @@ class ProvisioningManager(
                     ).also {
                         val input = it.number.toByteArray()
                         val authValue = ByteArray(size = sizeInBytes - input.size) + input
-                        provisioningData.onAuthValueReceived(authValue = authValue)
+                        onAuthValueReceived(authValue)
                         mutex.unlock()
                     }
                 }
