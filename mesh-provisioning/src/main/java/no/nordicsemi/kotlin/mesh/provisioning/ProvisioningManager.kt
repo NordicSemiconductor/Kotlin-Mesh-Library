@@ -350,18 +350,30 @@ class ProvisioningManager(
 
             is AuthenticationMethod.InputOob -> {
                 when (method.action) {
-                    InputAction.INPUT_ALPHANUMERIC -> AuthAction.DisplayAlphaNumeric(
-                        text = AuthenticationMethod.randomAlphaNumeric(
-                            length = method.length.toInt()
-                        )
-                    )
+                    InputAction.INPUT_ALPHANUMERIC -> {
+                        AuthAction.DisplayAlphaNumeric(
+                            text = AuthenticationMethod.randomAlphaNumeric(
+                                length = method.length.toInt()
+                            )
+                        ).also {
+                            val input = it.text.toByteArray(charset = Charsets.US_ASCII)
+                            val authValue = input + ByteArray(size = sizeInBytes - input.size)
+                            provisioningData.onAuthValueReceived(authValue = authValue)
+                            mutex.unlock()
+                        }
+                    }
                     // PUSH, TWIST, INPUT_NUMERIC
                     else -> AuthAction.DisplayNumber(
                         number = AuthenticationMethod.randomInt(
                             length = method.length.toInt()
                         ).toUInt(),
                         action = method.action
-                    )
+                    ).also {
+                        val input = it.number.toByteArray()
+                        val authValue = ByteArray(size = sizeInBytes - input.size) + input
+                        provisioningData.onAuthValueReceived(authValue = authValue)
+                        mutex.unlock()
+                    }
                 }
             }
         }
@@ -370,17 +382,20 @@ class ProvisioningManager(
     /**
      * Waits for the input complete response from the device.
      */
-    private suspend fun awaitInputComplete() = ProvisioningResponse.from(
-        pdu = awaitBearerPdu().data
-    ).apply {
-        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-        if (this is ProvisioningResponse.Failed) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: ${error.debugDescription}"
+    private suspend fun awaitInputComplete(): ProvisioningResponse.InputComplete {
+        val response = ProvisioningResponse.from(
+            pdu = awaitBearerPdu().data
+        ).apply {
+            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+            if (this is ProvisioningResponse.Failed) {
+                logger?.e(LogCategory.PROVISIONING) {
+                    "Provisioning failed with error: ${error.debugDescription}"
+                }
+                throw RemoteError(error)
             }
-            throw RemoteError(error)
-        }
-    } as ProvisioningResponse.InputComplete
+        } as ProvisioningResponse.InputComplete
+        return response
+    }
 
     /**
      * Waits for the confirmation response from the device.
