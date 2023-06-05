@@ -44,6 +44,11 @@ sealed class ProvisioningState {
     ) : ProvisioningState()
 
     /**
+     * Sent by the device once the user has provided an authentication value.
+     */
+    object InputComplete : ProvisioningState()
+
+    /**
      * The provisioning process is complete.
      */
     object Complete : ProvisioningState()
@@ -58,9 +63,10 @@ sealed class ProvisioningState {
             RequestingCapabilities -> "Requesting provisioning capabilities"
             is CapabilitiesReceived -> "Provisioning capabilities received"
             Provisioning -> "Provisioning started"
+            is AuthActionRequired -> "Requesting authentication action"
+            InputComplete -> "Input complete"
             Complete -> "Provisioning complete"
             is Failed -> "Provisioning failed: $error"
-            is AuthActionRequired -> "Requesting authentication action"
         }
 }
 
