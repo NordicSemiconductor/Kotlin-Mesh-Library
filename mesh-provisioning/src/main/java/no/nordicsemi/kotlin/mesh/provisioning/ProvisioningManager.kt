@@ -501,7 +501,9 @@ class ProvisioningManager(
         return request.pdu.let { it.sliceArray(1 until it.size) }
     }
 
-
+    /**
+     * Observes the bearer state changes.
+     */
     private fun observeBearerStateChanges() {
         bearer.state.onEach {
             when (it) {
