@@ -9,10 +9,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.NavigationResult
@@ -118,8 +118,13 @@ class ProvisioningViewModel @Inject constructor(
                 // Save when the provisioning completes.
                 repository.save()
             }
-        }.catch {
-            // TODO error handling
+        }.onCompletion { throwable ->
+            throwable?.let {
+                _uiState.value = ProvisioningScreenUiState(
+                    unprovisionedDevice = unprovisionedDevice,
+                    provisionerState = ProvisionerState.Error(it)
+                )
+            }
         }.launchIn(viewModelScope)
     }
 
@@ -233,6 +238,9 @@ class ProvisioningViewModel @Inject constructor(
 
     /**
      * Invoked when the user selects an authentication method.
+     *
+     * @param method Authentication method to be used.
+     * @param input  Authentication input.
      */
     fun authenticate(method: AuthAction, input: String) {
         when (method) {
@@ -253,6 +261,13 @@ class ProvisioningViewModel @Inject constructor(
         navigateUp() // Navigates back to the list of nodes
     }
 
+    /**
+     * Invoked when the provisioning process completes and navigates to the list of nodes.
+     */
+    internal fun onProvisioningFailed() {
+        navigateUp() // Navigates back to the scanner screen
+    }
+
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)
     }
@@ -268,6 +283,8 @@ sealed class ProvisionerState {
     data class Provisioning(
         val state: ProvisioningState
     ) : ProvisionerState()
+
+    data class Error(val throwable: Throwable) : ProvisionerState()
 
     object Disconnected : ProvisionerState()
 }

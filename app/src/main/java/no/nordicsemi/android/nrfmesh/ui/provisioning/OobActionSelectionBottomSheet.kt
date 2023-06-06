@@ -26,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -57,15 +60,20 @@ fun OobActionSelectionBottomSheet(action: AuthAction, onOkClicked: (AuthAction, 
                 })
                 Spacer(modifier = Modifier.size(size = 16.dp))
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .defaultMinSize(minWidth = 120.dp),
-                    enabled = shouldEnable(action, authValue.text),
-                    onClick = { onOkClicked(action, authValue.text) },
-                    content = { Text(text = stringResource(id = R.string.label_ok)) }
-                )
+            if (action !is AuthAction.DisplayNumber && action !is AuthAction.DisplayAlphaNumeric) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .defaultMinSize(minWidth = 120.dp),
+                        enabled = shouldEnable(action, authValue.text),
+                        onClick = { onOkClicked(action, authValue.text) },
+                        content = { Text(text = stringResource(id = R.string.label_ok)) }
+                    )
+                }
             }
         }
     }
@@ -120,24 +128,39 @@ private fun AuthRow(
 private fun DisplayAlphaNumeric(
     action: AuthAction.DisplayAlphaNumeric
 ) {
-    Text(
-        text = stringResource(id = R.string.label_display_alpha_numeric_rationale),
-        style = MaterialTheme.typography.bodyMedium
-    )
+    val message = stringResource(id = R.string.label_display_alpha_numeric_rationale, action.text)
+    val start = message.indexOf(action.text)
+    val end = start + action.text.length
+    val input = AnnotatedString.Builder(message)
+        .apply {
+            addStyle(
+                style = SpanStyle(fontWeight = FontWeight.Bold),
+                start = start,
+                end = end
+            )
+        }.toAnnotatedString()
+    Text(text = input, style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.size(size = 16.dp))
-    Text(text = action.text, style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable
 private fun DisplayNumber(
     action: AuthAction.DisplayNumber
 ) {
-    Text(
-        text = stringResource(id = R.string.label_display_numeric_rationale),
-        style = MaterialTheme.typography.bodyMedium
-    )
+    val number = action.number.toString()
+    val message = stringResource(id = R.string.label_display_alpha_numeric_rationale, number)
+    val start = message.indexOf(number)
+    val end = start + number.length
+    val input = AnnotatedString.Builder(message)
+        .apply {
+            addStyle(
+                style = SpanStyle(fontWeight = FontWeight.Bold),
+                start = start,
+                end = end
+            )
+        }.toAnnotatedString()
+    Text(text = input, style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.size(size = 16.dp))
-    Text(text = "${action.number}", style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable

@@ -1,4 +1,7 @@
-@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(
+    ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class
+)
 
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
@@ -10,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.CheckCircleOutline
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
+import no.nordicsemi.android.common.theme.nordicRed
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
@@ -65,7 +72,8 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
         onNetworkKeyClick = viewModel::onNetworkKeyClick,
         startProvisioning = viewModel::startProvisioning,
         authenticate = viewModel::authenticate,
-        onProvisioningComplete = viewModel::onProvisioningComplete
+        onProvisioningComplete = viewModel::onProvisioningComplete,
+        onProvisioningFailed = viewModel::onProvisioningFailed
     )
 }
 
@@ -79,7 +87,8 @@ private fun ProvisioningScreen(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit
+    onProvisioningComplete: () -> Unit,
+    onProvisioningFailed: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var expandedState by remember { mutableStateOf(false) }
@@ -144,10 +153,17 @@ private fun ProvisioningScreen(
                     scope.launch { sheetState.show() }
                 },
                 onProvisioningComplete = onProvisioningComplete,
-                onAuthActionRequired = {
-                    scope.launch { sheetState.show() }
-                }
+                onProvisioningFailed = onProvisioningFailed,
+                onAuthActionRequired = { scope.launch { sheetState.show() } },
+                onInputComplete = { scope.launch { sheetState.hide() } }
             )
+
+            is ProvisionerState.Error -> {
+                ProvisionerStateInfo(
+                    text = provisionerState.throwable.message
+                        ?: stringResource(id = R.string.label_unknown_error)
+                )
+            }
 
             is ProvisionerState.Disconnected -> ProvisionerStateInfo(
                 text = stringResource(R.string.label_disconnected)
@@ -166,39 +182,62 @@ private fun ProvisioningStateInfo(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     onProvisionClick: (ProvisioningCapabilities) -> Unit,
     onProvisioningComplete: () -> Unit,
-    onAuthActionRequired: () -> Unit
+    onProvisioningFailed: () -> Unit,
+    onAuthActionRequired: () -> Unit,
+    onInputComplete: () -> Unit
 ) {
     when (state) {
-        is ProvisioningState.RequestingCapabilities -> {
-            ProvisionerStateInfo(text = "Requesting capabilities")
-        }
+        is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
+            text = stringResource(id = R.string.label_provisioning_requesting_capabilities)
+        )
 
-        is ProvisioningState.CapabilitiesReceived -> {
-            DeviceCapabilities(
-                state = state,
-                unprovisionedDevice = unprovisionedDevice,
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                onNetworkKeyClick = onNetworkKeyClick,
-                onProvisionClick = onProvisionClick
-            )
-        }
+        is ProvisioningState.CapabilitiesReceived -> DeviceCapabilities(
+            state = state,
+            unprovisionedDevice = unprovisionedDevice,
+            onNameChanged = onNameChanged,
+            onAddressChanged = onAddressChanged,
+            isValidAddress = isValidAddress,
+            onNetworkKeyClick = onNetworkKeyClick,
+            onProvisionClick = onProvisionClick
+        )
 
-        is ProvisioningState.Provisioning ->
-            ProvisionerStateInfo(text = stringResource(R.string.provisioning_in_progress))
+        is ProvisioningState.Provisioning -> ProvisionerStateInfo(
+            text = stringResource(R.string.provisioning_in_progress)
+        )
 
         is ProvisioningState.AuthActionRequired -> {
             ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_required))
             onAuthActionRequired()
         }
 
-        is ProvisioningState.Failed -> ProvisionerStateInfo(
-            text = stringResource(
-                R.string.provisioning_failed,
-                state.error
+        ProvisioningState.InputComplete -> {
+            ProvisionerStateInfo(
+                text = stringResource(R.string.label_provisioning_authentication_completed)
             )
-        )
+            onInputComplete()
+        }
+
+        is ProvisioningState.Failed -> {
+            var showProvisioningFailed by remember { mutableStateOf(true) }
+            if (showProvisioningFailed) {
+                MeshAlertDialog(
+                    onDismissRequest = {
+                        showProvisioningFailed = !showProvisioningFailed
+                        onProvisioningFailed()
+                    },
+                    confirmButtonText = stringResource(id = R.string.label_ok),
+                    onConfirmClick = {
+                        showProvisioningFailed = !showProvisioningFailed
+                        onProvisioningFailed()
+                    },
+                    dismissButtonText = null,
+                    icon = Icons.Rounded.ErrorOutline,
+                    iconColor = MaterialTheme.colorScheme.nordicRed,
+                    title = stringResource(R.string.label_status),
+                    text = stringResource(R.string.label_provisioning_failed, state.error)
+                )
+            }
+        }
 
         is ProvisioningState.Complete -> {
             var showProvisioningComplete by remember { mutableStateOf(true) }
@@ -214,7 +253,7 @@ private fun ProvisioningStateInfo(
                         onProvisioningComplete()
                     },
                     dismissButtonText = null,
-                    icon = Icons.Rounded.CheckCircle,
+                    icon = Icons.Rounded.CheckCircleOutline,
                     iconColor = MaterialTheme.colorScheme.nordicLightGray,
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_completed)
@@ -225,7 +264,11 @@ private fun ProvisioningStateInfo(
 }
 
 @Composable
-private fun ProvisionerStateInfo(text: String, shouldShowProgress: Boolean = true) {
+private fun ProvisionerStateInfo(
+    text: String,
+    shouldShowProgress: Boolean = true,
+    isError: Boolean = false
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
@@ -234,7 +277,15 @@ private fun ProvisionerStateInfo(text: String, shouldShowProgress: Boolean = tru
         if (shouldShowProgress) {
             CircularProgressIndicator()
         }
+        if (isError) {
+            Icon(
+                imageVector = Icons.Rounded.Error,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
         Spacer(modifier = Modifier.size(16.dp))
         Text(text = text)
     }
 }
+
