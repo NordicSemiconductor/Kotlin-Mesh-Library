@@ -13,7 +13,7 @@ import kotlinx.coroutines.sync.Mutex
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.PduType
-import no.nordicsemi.kotlin.mesh.bearer.ReassembledPdu
+import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
@@ -84,7 +84,7 @@ class ProvisioningManager(
             // Is there bearer open?
             require(bearer.isOpen) {
                 logger?.e(LogCategory.PROVISIONING) { "Bearer closed" }
-                throw BearerError.BearerClosed
+                throw BearerError.Closed
             }
             // Emit the current state.
             emit(ProvisioningState.RequestingCapabilities)
@@ -524,8 +524,14 @@ class ProvisioningManager(
     private fun observeBearerStateChanges() {
         bearer.state.onEach {
             when (it) {
-                is BearerEvent.OnBearerOpen -> bearer.open()
-                is BearerEvent.OnBearerClosed -> bearer.close()
+                is BearerEvent.Opened ->  {
+                    bearer.open()
+                    logger?.v(LogCategory.BEARER) { "Bearer opened." }
+                }
+                is BearerEvent.Closed -> {
+                    bearer.close()
+                    logger?.v(LogCategory.BEARER) { "Bearer closed." }
+                }
             }
         }.launchIn(scope)
     }
@@ -536,7 +542,7 @@ class ProvisioningManager(
      *
      * @return First Provisioning PDU received over the Bearer.
      */
-    private suspend fun awaitBearerPdu(): ReassembledPdu = bearer.pdus.first {
+    private suspend fun awaitBearerPdu(): Pdu = bearer.pdus.first {
         it.type == PduType.PROVISIONING_PDU
     }
 }

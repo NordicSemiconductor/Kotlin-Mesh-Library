@@ -103,7 +103,7 @@ class ProxyProtocolHandler {
      * @param data  The data received.
      * @return The message and its type, or `null`, if more data are expected.
      */
-    fun reassemble(data: ByteArray): ReassembledPdu? {
+    fun reassemble(data: ByteArray): Pdu? {
         require(data.isNotEmpty()) {
             // Disregard invalid packet.
             return null
@@ -156,15 +156,15 @@ class ProxyProtocolHandler {
             val tmp = buffer!!
             buffer = null
             bufferType = null
-            ReassembledPdu(tmp, messageType)
+            Pdu(tmp, messageType)
         } else null
     }
 }
 
 /**
- * Reassembled PDU containing the pdu and the type of the message.
+ * Pdu containing the pdu and the type of the message.
  *
  * @property data  Reassembled PDU.
  * @property type  Type of the message.
  */
-data class ReassembledPdu(val data: ByteArray, val type: PduType)
+data class Pdu(val data: ByteArray, val type: PduType)

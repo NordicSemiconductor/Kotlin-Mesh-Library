@@ -9,5 +9,5 @@ sealed class BearerError : Exception() {
     object PduTypeNotSupported : BearerError()
 
     /** Thrown when the Bearer is not ready to send data. */
-    object BearerClosed : BearerError()
+    object Closed : BearerError()
 }

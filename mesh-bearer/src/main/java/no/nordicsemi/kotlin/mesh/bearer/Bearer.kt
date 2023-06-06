@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.bearer
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
 
 /**
@@ -28,7 +29,7 @@ interface Transmitter {
  */
 interface Receiver {
 
-    val pdus: Flow<ReassembledPdu>
+    val pdus: Flow<Pdu>
 
 }
 
@@ -41,7 +42,7 @@ interface Receiver {
  */
 interface Bearer : Transmitter, Receiver {
 
-    val state: Flow<BearerEvent>
+    val state: StateFlow<BearerEvent>
 
     val supportedTypes: Array<PduTypes>
 

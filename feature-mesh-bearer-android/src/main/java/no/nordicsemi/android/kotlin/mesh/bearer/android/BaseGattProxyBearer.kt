@@ -3,15 +3,24 @@
 package no.nordicsemi.android.kotlin.mesh.bearer.android
 
 import android.annotation.SuppressLint
+import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.kotlin.ble.client.main.callback.BleGattClient
+import no.nordicsemi.android.kotlin.ble.client.main.connect
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
+import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
+import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.kotlin.mesh.bearer.*
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -27,11 +36,15 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
  *                                 events.
  * @property isOpen                Returns true if the bearer is open, false otherwise.
  */
-abstract class BaseGattProxyBearer<MeshService> : Bearer {
-    protected val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val _pdus = MutableSharedFlow<ReassembledPdu>()
-    override val pdus: Flow<ReassembledPdu> = _pdus.asSharedFlow()
-    override val state: Flow<BearerEvent> = MutableSharedFlow()
+abstract class BaseGattProxyBearer<MeshService>(
+    protected val context: Context,
+    protected val device: ServerDevice
+) : Bearer {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val _pdus = MutableSharedFlow<Pdu>()
+    override val pdus: Flow<Pdu> = _pdus.asSharedFlow()
+    private val _state = MutableStateFlow<BearerEvent>(BearerEvent.Closed(BearerError.Closed))
+    override val state: StateFlow<BearerEvent> = _state.asStateFlow()
     override val supportedTypes: Array<PduTypes> = arrayOf(
         PduTypes.NetworkPdu,
         PduTypes.MeshBeacon,
@@ -49,22 +62,35 @@ abstract class BaseGattProxyBearer<MeshService> : Bearer {
     protected lateinit var dataInCharacteristic: BleGattCharacteristic
     protected lateinit var dataOutCharacteristic: BleGattCharacteristic
 
+    private var client: BleGattClient? = null
+
     var logger: Logger? = null
 
+    abstract suspend fun configureGatt(services: BleGattServices)
+
+    @SuppressLint("MissingPermission")
     override suspend fun open() {
+        val client = device.connect(context)
+        this.client = client
+        client.discoverServices()
+            .filterNotNull()
+            .onEach { configureGatt(it) }
+            .launchIn(scope = scope)
+        mtu = client.requestMtu(517) - 3
         isOpened = true
-        // TODO("Not yet implemented")
+        _state.value = BearerEvent.Opened
     }
 
     override suspend fun close() {
+        client?.disconnect()
         isOpened = false
-        // TODO("Not yet implemented")
+        _state.value = BearerEvent.Closed(BearerError.Closed)
     }
 
     @SuppressLint("MissingPermission")
     override suspend fun send(pdu: ByteArray, type: PduType) {
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
-        require(isOpen) { throw BearerError.BearerClosed }
+        require(isOpen) { throw BearerError.Closed }
         proxyProtocolHandler.segment(pdu, type, mtu).forEach {
             dataInCharacteristic.write(it, BleWriteType.NO_RESPONSE)
         }
