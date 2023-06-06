@@ -24,6 +24,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
+import no.nordicsemi.kotlin.mesh.crypto.Algorithms
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
@@ -79,148 +80,167 @@ class ProvisioningManager(
      */
     @Throws(MeshNetworkException::class, ProvisioningError::class, BearerError::class)
     fun provision(attentionTimer: UByte) = flow {
-        // Is there bearer open?
-        require(bearer.isOpen) {
-            logger?.e(LogCategory.PROVISIONING) { "Bearer closed" }
-            throw BearerError.BearerClosed
-        }
-        // Emit the current state.
-        emit(ProvisioningState.RequestingCapabilities)
-
-        // Initialize Provisioning data.
-        val provisioningData = ProvisioningData()
-
-        // Sends the provisioning invite and awaits for the capabilities.
-        val capabilities = awaitCapabilities(
-            invite = ProvisioningRequest.Invite(attentionTimer),
-            provisioningData = provisioningData
-        ).apply {
-            // Lets init based on the capabilities
-            configuration.unicastAddress = meshNetwork.run {
-                nextAvailableUnicastAddress(
-                    elementCount = numberOfElements,
-                    provisioner = localProvisioner!!
-                )!!
+        try {
+            // Is there bearer open?
+            require(bearer.isOpen) {
+                logger?.e(LogCategory.PROVISIONING) { "Bearer closed" }
+                throw BearerError.BearerClosed
             }
-            configuration.algorithm = algorithms.strongest()
-            configuration.publicKey = if (publicKeyType.isNotEmpty()) {
-                PublicKey.OobPublicKey(ByteArray(16) { 0x00 })
-            } else PublicKey.NoOobPublicKey
-            configuration.authMethod = supportedAuthMethods.first()
-        }
+            // Emit the current state.
+            emit(ProvisioningState.RequestingCapabilities)
 
-        // We use a mutex here to wait for the user to either start or cancel the provisioning.
-        val mutex = Mutex(true)
-        // Emit to the user that the capabilities have been received.
-        emit(
-            value = ProvisioningState.CapabilitiesReceived(
-                capabilities = capabilities,
-                configuration = configuration,
-                start = { configuration ->
-                    this@ProvisioningManager.configuration = configuration
-                    mutex.unlock()
-                },
-                cancel = { mutex.unlock() }
-            )
-        )
-        mutex.lock()
+            // Initialize Provisioning data.
+            val provisioningData = ProvisioningData()
 
-        // TODO Can the Unprovisioned Device be provisioned by this manager?
+            // Sends the provisioning invite and awaits for the capabilities.
+            val capabilities = awaitCapabilities(
+                invite = ProvisioningRequest.Invite(attentionTimer),
+                provisioningData = provisioningData
+            ).apply {
+                // Lets init based on the capabilities
+                configuration.unicastAddress = meshNetwork.run {
+                    nextAvailableUnicastAddress(
+                        elementCount = numberOfElements,
+                        provisioner = localProvisioner!!
+                    )!!
+                }
+                configuration.algorithm = algorithms.strongest()
+                configuration.publicKey = if (publicKeyType.isNotEmpty()) {
+                    PublicKey.OobPublicKey(ByteArray(16) { 0x00 })
+                } else PublicKey.NoOobPublicKey
+                configuration.authMethod = supportedAuthMethods.first()
+            }
 
-        require(configuration.unicastAddress != null) {
-            throw NoAddressAvailable
-        }
-        // Is the Unicast address valid?
-        require(
-            isUnicastAddressValid(
-                configuration.unicastAddress!!,
-                capabilities.numberOfElements
-            )
-        ) {
-            logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
-            throw InvalidAddress
-        }
-
-        // Try generating Private and Public keys. This may fail if the given algorithm is not
-        // supported.
-        provisioningData.generateKeys(configuration.algorithm)
-
-        emit(ProvisioningState.Provisioning)
-        provisioningData.prepare(
-            configuration.networkKey,
-            meshNetwork.ivIndex,
-            configuration.unicastAddress!!
-        )
-
-        ProvisioningRequest.Start(configuration).also { start ->
-            logger?.v(LogCategory.PROVISIONING) { "Sending $start" }
-            send(start).also { provisioningData.accumulate(it) }
-        }
-
-        // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
-        // Shared Secret, if not we need send the provisioner public key and wait for the device's
-        // Public Key.
-        val key = when (configuration.publicKey) {
-            is PublicKey.OobPublicKey -> (configuration.publicKey as PublicKey.OobPublicKey).key
-            else -> {
-                awaitProvisioneePublicKey(
-                    request = ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey),
-                    provisioningData = provisioningData
+            // We use a mutex here to wait for the user to either start or cancel the provisioning.
+            val mutex = Mutex(true)
+            // Emit to the user that the capabilities have been received.
+            emit(
+                value = ProvisioningState.CapabilitiesReceived(
+                    capabilities = capabilities,
+                    configuration = configuration,
+                    start = { configuration ->
+                        this@ProvisioningManager.configuration = configuration
+                        mutex.unlock()
+                    },
+                    cancel = { mutex.unlock() }
                 )
-            }
-        }
-        provisioningData.apply {
-            onDevicePublicKeyReceived(key, configuration.publicKey is PublicKey.OobPublicKey)
-            accumulate(key)
-        }
-
-        requestAuthentication(
-            method = configuration.authMethod,
-            sizeInBytes = provisioningData.algorithm.length shr 3,
-            onAuthValueReceived = provisioningData::onAuthValueReceived,
-            mutex = mutex
-        )?.also { action ->
-            emit(ProvisioningState.AuthActionRequired(action))
+            )
             mutex.lock()
-            if (action is AuthAction.DisplayNumber || action is AuthAction.DisplayAlphaNumeric) {
-                awaitInputComplete()
+
+            // Checks if the device supports the required algorithms.
+            require(
+                capabilities.algorithms.containsAll(
+                    listOf(
+                        Algorithms.BtmEcdhP256HmacSha256AesCcm,
+                        Algorithms.BtmEcdhP256HmacSha256AesCcm
+                    )
+                )
+            ) { throw UnsupportedDevice }
+
+
+            require(configuration.unicastAddress != null) { throw NoAddressAvailable }
+
+            // Is the Unicast address valid?
+            require(
+                isUnicastAddressValid(configuration.unicastAddress!!, capabilities.numberOfElements)
+            ) {
+                logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
+                throw InvalidAddress
             }
-        }
 
-        val confirmation = awaitConfirmation(
-            request = ProvisioningRequest.Confirmation(
-                confirmation = provisioningData.provisionerConfirmation
+            // Try generating Private and Public keys. This may fail if the given algorithm is not
+            // supported.
+            provisioningData.generateKeys(configuration.algorithm)
+
+            emit(ProvisioningState.Provisioning)
+            provisioningData.prepare(
+                configuration.networkKey,
+                meshNetwork.ivIndex,
+                configuration.unicastAddress!!
             )
-        )
-        provisioningData.onDeviceConfirmationReceived(confirmation = confirmation)
 
-        val random = awaitRandom(
-            request = ProvisioningRequest.Random(
-                random = provisioningData.provisionerRandom
+            ProvisioningRequest.Start(configuration).also { start ->
+                logger?.v(LogCategory.PROVISIONING) { "Sending $start" }
+                send(start).also { provisioningData.accumulate(it) }
+            }
+
+            // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
+            // Shared Secret, if not we need send the provisioner public key and wait for the device's
+            // Public Key.
+            val key = when (configuration.publicKey) {
+                is PublicKey.OobPublicKey -> (configuration.publicKey as PublicKey.OobPublicKey).key
+                else -> {
+                    awaitProvisioneePublicKey(
+                        request = ProvisioningRequest.PublicKey(provisioningData.provisionerPublicKey),
+                        provisioningData = provisioningData
+                    )
+                }
+            }
+            provisioningData.apply {
+                onDevicePublicKeyReceived(key, configuration.publicKey is PublicKey.OobPublicKey)
+                accumulate(key)
+            }
+
+            requestAuthentication(
+                method = configuration.authMethod,
+                sizeInBytes = provisioningData.algorithm.length shr 3,
+                onAuthValueReceived = provisioningData::onAuthValueReceived,
+                mutex = mutex
+            )?.also { action ->
+                emit(ProvisioningState.AuthActionRequired(action))
+                when (action) {
+                    is AuthAction.DisplayNumber, is AuthAction.DisplayAlphaNumeric -> {
+                        mutex.unlock()
+                        awaitInputComplete()
+                        emit(ProvisioningState.InputComplete)
+                    }
+
+                    is AuthAction.ProvideStaticKey,
+                    is AuthAction.ProvideNumeric,
+                    is AuthAction.ProvideAlphaNumeric -> {
+                        mutex.lock()
+                    }
+                }
+            }
+
+            val confirmation = awaitConfirmation(
+                request = ProvisioningRequest.Confirmation(
+                    confirmation = provisioningData.provisionerConfirmation
+                )
             )
-        )
-        provisioningData.onDeviceRandomReceived(random = random)
+            provisioningData.onDeviceConfirmationReceived(confirmation = confirmation)
 
-        require(provisioningData.checkIfConfirmationsMatch()) {
-            logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
-            throw ConfirmationFailed
-        }
-
-        val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
-        logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
-        send(data)
-
-        awaitComplete().also {
-            emit(ProvisioningState.Complete)
-            val node = Node(
-                uuid = unprovisionedDevice.uuid,
-                deviceKey = provisioningData.deviceKey,
-                unicastAddress = configuration.unicastAddress!!,
-                elementCount = capabilities.numberOfElements,
-                assignedNetworkKey = configuration.networkKey,
-                security = provisioningData.security
+            val random = awaitRandom(
+                request = ProvisioningRequest.Random(
+                    random = provisioningData.provisionerRandom
+                )
             )
-            meshNetwork.add(node)
+            provisioningData.onDeviceRandomReceived(random = random)
+
+            require(provisioningData.checkIfConfirmationsMatch()) {
+                logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
+                throw ConfirmationFailed
+            }
+
+            val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
+            logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
+            send(data)
+
+            awaitComplete().also {
+                emit(ProvisioningState.Complete)
+                val node = Node(
+                    uuid = unprovisionedDevice.uuid,
+                    deviceKey = provisioningData.deviceKey,
+                    unicastAddress = configuration.unicastAddress!!,
+                    elementCount = capabilities.numberOfElements,
+                    assignedNetworkKey = configuration.networkKey,
+                    security = provisioningData.security
+                )
+                meshNetwork.add(node)
+            }
+
+        } catch (error: RemoteError) {
+            emit(ProvisioningState.Failed(error))
         }
     }
 
@@ -322,7 +342,6 @@ class ProvisioningManager(
         return when (method) {
             AuthenticationMethod.NoOob -> {
                 onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })
-                mutex.unlock()
                 null
             }
 
@@ -366,7 +385,6 @@ class ProvisioningManager(
                             val input = it.text.toByteArray(charset = Charsets.US_ASCII)
                             val authValue = input + ByteArray(size = sizeInBytes - input.size)
                             onAuthValueReceived(authValue)
-                            mutex.unlock()
                         }
                     }
                     // PUSH, TWIST, INPUT_NUMERIC
@@ -379,7 +397,6 @@ class ProvisioningManager(
                         val input = it.number.toByteArray()
                         val authValue = ByteArray(size = sizeInBytes - input.size) + input
                         onAuthValueReceived(authValue)
-                        mutex.unlock()
                     }
                 }
             }
@@ -396,7 +413,7 @@ class ProvisioningManager(
             logger?.v(LogCategory.PROVISIONING) { "Received $this" }
             if (this is ProvisioningResponse.Failed) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: ${error.debugDescription}"
+                    "Provisioning failed with error: $error"
                 }
                 throw RemoteError(error)
             }
@@ -416,13 +433,13 @@ class ProvisioningManager(
         send(request)
         val response = ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
-        ).apply {
-            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-            if (this is ProvisioningResponse.Failed) {
+        ).also {
+            logger?.v(LogCategory.PROVISIONING) { "Received $it" }
+            if (it is ProvisioningResponse.Failed) {
                 logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: $error"
+                    "Provisioning failed with error: $it.error"
                 }
-                throw RemoteError(error)
+                throw RemoteError(it.error)
             }
         } as ProvisioningResponse.Confirmation
         return response.confirmation
