@@ -240,7 +240,7 @@ class ProvisioningManager(
             }
 
         } catch (error: RemoteError) {
-            emit(ProvisioningState.Failed(error))
+            emit(ProvisioningState.Failed(error.error))
         }
     }
 

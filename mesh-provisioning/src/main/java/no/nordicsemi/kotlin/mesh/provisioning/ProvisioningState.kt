@@ -53,8 +53,10 @@ sealed class ProvisioningState {
 
     /**
      * The provisioning has failed because of a local error.
+     *
+     * @property error Remote provisioning error
      */
-    data class Failed(val error: Throwable) : ProvisioningState()
+    data class Failed(val error: RemoteProvisioningError) : ProvisioningState()
 
     override fun toString() = when (this) {
         RequestingCapabilities -> "Requesting provisioning capabilities"
