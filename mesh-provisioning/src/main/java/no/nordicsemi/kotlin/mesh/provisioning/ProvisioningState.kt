@@ -5,8 +5,6 @@ package no.nordicsemi.kotlin.mesh.provisioning
 
 /**
  * Defines possible state of provisioning process.
- *
- * @property debugDescription Debug description of the state.
  */
 sealed class ProvisioningState {
 
@@ -58,16 +56,15 @@ sealed class ProvisioningState {
      */
     data class Failed(val error: Throwable) : ProvisioningState()
 
-    val debugDescription: String
-        get() = when (this) {
-            RequestingCapabilities -> "Requesting provisioning capabilities"
-            is CapabilitiesReceived -> "Provisioning capabilities received"
-            Provisioning -> "Provisioning started"
-            is AuthActionRequired -> "Requesting authentication action"
-            InputComplete -> "Input complete"
-            Complete -> "Provisioning complete"
-            is Failed -> "Provisioning failed: $error"
-        }
+    override fun toString() = when (this) {
+        RequestingCapabilities -> "Requesting provisioning capabilities"
+        is CapabilitiesReceived -> "Provisioning capabilities received"
+        Provisioning -> "Provisioning started"
+        is AuthActionRequired -> "Requesting authentication action"
+        InputComplete -> "Input complete"
+        Complete -> "Provisioning complete"
+        is Failed -> "Provisioning failed: $error"
+    }
 }
 
 /**

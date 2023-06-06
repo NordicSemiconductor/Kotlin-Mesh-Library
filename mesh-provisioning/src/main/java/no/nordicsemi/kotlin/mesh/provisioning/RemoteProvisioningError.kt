@@ -54,16 +54,15 @@ enum class RemoteProvisioningError(val errorCode: Int) {
      */
     INVALID_ADDRESS(errorCode = 9);
 
-    val debugDescription: String
-        get() = when (this) {
-            INVALID_PDU -> "Invalid PDU"
-            INVALID_FORMAT -> "Invalid format"
-            UNEXPECTED_PDU -> "Unexpected PDU"
-            CONFIRMATION_FAILED -> "Confirmation failed"
-            OUT_OF_RESOURCES -> "Out of resources"
-            DECRYPTION_FAILED -> "Decryption failed"
-            UNEXPECTED_ERROR -> "Unexpected error"
-            CANNOT_ASSIGN_ADDRESS -> "Cannot assign addresses"
-            INVALID_ADDRESS -> "Invalid data"
-        }
+    override fun toString(): String = when (this) {
+        INVALID_PDU -> "Invalid PDU"
+        INVALID_FORMAT -> "Invalid format"
+        UNEXPECTED_PDU -> "Unexpected PDU"
+        CONFIRMATION_FAILED -> "Confirmation failed"
+        OUT_OF_RESOURCES -> "Out of resources"
+        DECRYPTION_FAILED -> "Decryption failed"
+        UNEXPECTED_ERROR -> "Unexpected error"
+        CANNOT_ASSIGN_ADDRESS -> "Cannot assign addresses"
+        INVALID_ADDRESS -> "Invalid data"
+    }
 }
