@@ -7,13 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
-import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
-import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.Pdu
+import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
@@ -68,7 +65,6 @@ class ProvisioningManager(
             }
             throw BearerError.PduTypeNotSupported
         }
-        observeBearerStateChanges()
     }
 
     /**
@@ -517,25 +513,6 @@ class ProvisioningManager(
         bearer.send(request)
         return request.pdu.let { it.sliceArray(1 until it.size) }
     }
-
-    /**
-     * Observes the bearer state changes.
-     */
-    private fun observeBearerStateChanges() {
-        bearer.state.onEach {
-            when (it) {
-                is BearerEvent.Opened ->  {
-                    bearer.open()
-                    logger?.v(LogCategory.BEARER) { "Bearer opened." }
-                }
-                is BearerEvent.Closed -> {
-                    bearer.close()
-                    logger?.v(LogCategory.BEARER) { "Bearer closed." }
-                }
-            }
-        }.launchIn(scope)
-    }
-
 
     /**
      * Awaits and returns the first Provisioning PDU received over the Bearer.
