@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.NavigationResult
 import no.nordicsemi.android.common.navigation.Navigator
@@ -24,6 +25,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
+import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -50,10 +52,14 @@ class ProvisioningViewModel @Inject constructor(
     private lateinit var provisioningManager: ProvisioningManager
 
     private val bleScanResults = parameterOf(provisioning)
-    private val pbGattBearer =
-        PbGattBearer(context, bleScanResults.device as RealServerDevice)
-    private var unprovisionedDevice: UnprovisionedDevice =
-        UnprovisionedDevice.from(bleScanResults.lastScanResult!!.scanRecord!!.bytes)
+    private val pbGattBearer = PbGattBearer(
+        context = context,
+        device = bleScanResults.device as RealServerDevice
+    ).apply { logger = this@ProvisioningViewModel }
+
+    private var unprovisionedDevice: UnprovisionedDevice = UnprovisionedDevice.from(
+        advertisementData = bleScanResults.lastScanResult!!.scanRecord!!.bytes
+    )
 
     private var _uiState = MutableStateFlow(
         ProvisioningScreenUiState(
@@ -90,11 +96,23 @@ class ProvisioningViewModel @Inject constructor(
     private fun connect() {
         viewModelScope.launch {
             pbGattBearer.open()
-            _uiState.value = ProvisioningScreenUiState(
-                unprovisionedDevice = unprovisionedDevice,
-                provisionerState = ProvisionerState.Connected
-            )
-            identifyNode()
+            pbGattBearer.state.takeWhile {
+                it !is BearerEvent.Closed
+            }.onEach {
+                if (it is BearerEvent.Opened) {
+                    _uiState.value = ProvisioningScreenUiState(
+                        unprovisionedDevice = unprovisionedDevice,
+                        provisionerState = ProvisionerState.Connected
+                    )
+                    identifyNode()
+                }
+            }.onCompletion {
+                _uiState.value = ProvisioningScreenUiState(
+                    unprovisionedDevice = unprovisionedDevice,
+                    provisionerState = ProvisionerState.Disconnected
+                )
+
+            }.launchIn(this)
         }
     }
 
@@ -106,9 +124,8 @@ class ProvisioningViewModel @Inject constructor(
             unprovisionedDevice = unprovisionedDevice,
             meshNetwork = meshNetwork,
             bearer = pbGattBearer
-        ).apply {
-            logger = this@ProvisioningViewModel
-        }
+        ).apply { logger = this@ProvisioningViewModel }
+
         provisioningJob = provisioningManager.provision(10u).onEach { state ->
             _uiState.value = ProvisioningScreenUiState(
                 unprovisionedDevice = unprovisionedDevice,

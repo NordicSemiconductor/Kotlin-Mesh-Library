@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -130,15 +133,15 @@ private fun ProvisioningScreen(
     ) {
         when (provisionerState) {
             is ProvisionerState.Connecting -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_connecting)
+                text = stringResource(R.string.label_connecting, unprovisionedDevice.name)
             )
 
             is ProvisionerState.Connected -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_connected)
+                text = stringResource(R.string.label_connected, unprovisionedDevice.name)
             )
 
             ProvisionerState.Identifying -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_identifying)
+                text = stringResource(R.string.label_identifying, unprovisionedDevice.name)
             )
 
             is ProvisionerState.Provisioning -> ProvisioningStateInfo(
@@ -166,7 +169,9 @@ private fun ProvisioningScreen(
             }
 
             is ProvisionerState.Disconnected -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_disconnected)
+                text = stringResource(R.string.label_disconnected, unprovisionedDevice.name),
+                isError = true,
+                imageVector = Icons.Rounded.SentimentVeryDissatisfied
             )
         }
     }
@@ -267,21 +272,24 @@ private fun ProvisioningStateInfo(
 private fun ProvisionerStateInfo(
     text: String,
     shouldShowProgress: Boolean = true,
-    isError: Boolean = false
+    isError: Boolean = false,
+    imageVector: ImageVector = Icons.Rounded.Error,
+    errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (shouldShowProgress) {
+        if (shouldShowProgress && !isError) {
             CircularProgressIndicator()
         }
         if (isError) {
             Icon(
-                imageVector = Icons.Rounded.Error,
+                modifier = Modifier.size(100.dp),
+                imageVector = imageVector,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
+                tint = errorTint
             )
         }
         Spacer(modifier = Modifier.size(16.dp))
