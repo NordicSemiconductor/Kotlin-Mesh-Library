@@ -243,11 +243,11 @@ sealed class OutputOobActions(val rawValue: UShort) {
     }
 
     object OutputNumeric : OutputOobActions(rawValue = 1 shl 3) {
-        override fun toString() = "OutputNumeric"
+        override fun toString() = "Output Numeric"
     }
 
     object OutputAlphanumeric : OutputOobActions(rawValue = 1 shl 4) {
-        override fun toString() = "OutputAlphanumeric"
+        override fun toString() = "Output Alphanumeric"
     }
 
     internal companion object {
@@ -297,11 +297,11 @@ sealed class InputOobActions(val rawValue: UShort) {
     }
 
     object InputNumeric : InputOobActions(rawValue = 1 shl 2) {
-        override fun toString() = "InputNumeric"
+        override fun toString() = "Input Numeric"
     }
 
     object InputAlphanumeric : InputOobActions(rawValue = 1 shl 3) {
-        override fun toString() = "InputAlphanumeric"
+        override fun toString() = "Input Alphanumeric"
     }
 
     internal companion object {
