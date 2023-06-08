@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import android.content.Context
@@ -13,11 +15,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,11 +43,19 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 
 @Composable
-fun OobActionSelectionBottomSheet(action: AuthAction, onOkClicked: (AuthAction, String) -> Unit) {
+fun OobActionSelectionBottomSheet(
+    action: AuthAction,
+    onOkClicked: (AuthAction, String) -> Unit,
+    onDismissRequest: () -> Unit
+) {
     var authValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = ""))
     }
-    Surface(modifier = Modifier.fillMaxWidth()) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Column(
                 modifier = Modifier

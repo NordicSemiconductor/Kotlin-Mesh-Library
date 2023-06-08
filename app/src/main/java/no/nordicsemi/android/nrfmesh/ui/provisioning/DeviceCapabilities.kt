@@ -58,7 +58,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.toHex
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
+import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
@@ -71,13 +71,15 @@ internal fun DeviceCapabilities(
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
-    onProvisionClick: (ProvisioningCapabilities) -> Unit
+    startProvisioning: (AuthenticationMethod) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
+
+    var showModalBottomSheet by remember { mutableStateOf(false) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -115,8 +117,7 @@ internal fun DeviceCapabilities(
             ) {
                 Button(onClick = {
                     runCatching {
-                        onProvisionClick(state.capabilities)
-                        // showOobType = true
+                        showModalBottomSheet = true
                     }.onFailure {
                         scope.launch {
                             snackbarHostState.showSnackbar(
@@ -150,43 +151,49 @@ internal fun DeviceCapabilities(
             )
         }
         item {
-            SupportedAlgorithmsRow(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Rounded.EnhancedEncryption,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            SupportedAlgorithmsRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.EnhancedEncryption,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(R.string.label_supported_algorithms),
                 subtitle = state.capabilities.algorithms.joinToString(separator = ", ")
-                    .ifEmpty { "None" })
+                    .ifEmpty { "None" }
+            )
         }
         item {
-            PublicKeyTypeRow(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Rounded.Key,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            PublicKeyTypeRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(R.string.label_public_key_type),
                 subtitle = state.capabilities.publicKeyType.joinToString(separator = ", ")
-                    .ifEmpty { "None" })
+                    .ifEmpty { "None" }
+            )
         }
         item {
-            StaticOobTypeRow(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Rounded.Key,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            StaticOobTypeRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(R.string.label_static_oob_type),
                 subtitle = state.capabilities.oobTypes.joinToString(separator = ", ")
-                    .ifEmpty { "None" })
+                    .ifEmpty { "None" }
+            )
         }
         item {
             OutputOobSizeRow(
@@ -203,17 +210,19 @@ internal fun DeviceCapabilities(
             )
         }
         item {
-            OutputOobActionsRow(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Rounded.Key,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            OutputOobActionsRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(R.string.label_output_oob_actions),
                 subtitle = state.capabilities.outputOobActions.joinToString(separator = ", ")
-                    .ifEmpty { "None" })
+                    .ifEmpty { "None" }
+            )
         }
         item {
             InputOobSizeRow(
@@ -230,18 +239,28 @@ internal fun DeviceCapabilities(
             )
         }
         item {
-            InputOobActionsRow(leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Rounded.Key,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            InputOobActionsRow(
+                leadingComposable = {
+                    Icon(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        imageVector = Icons.Rounded.Key,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                },
                 title = stringResource(R.string.label_input_oob_actions),
                 subtitle = state.capabilities.inputOobActions.joinToString(separator = ", ")
-                    .ifBlank { "None" })
+                    .ifBlank { "None" }
+            )
         }
+    }
+
+    if (showModalBottomSheet) {
+        AuthSelectionBottomSheet(
+            capabilities = state.capabilities,
+            onConfirmClicked = { startProvisioning(it) },
+            onDismissRequest = { showModalBottomSheet = !showModalBottomSheet },
+        )
     }
 }
 

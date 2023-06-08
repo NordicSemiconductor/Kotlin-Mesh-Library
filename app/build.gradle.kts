@@ -52,5 +52,5 @@ dependencies {
     implementation(libs.nordic.blek.client)
     implementation(libs.nordic.blek.scanner)
 
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.10")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.11")
 }

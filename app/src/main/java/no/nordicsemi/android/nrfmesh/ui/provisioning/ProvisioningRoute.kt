@@ -1,7 +1,4 @@
-@file:OptIn(
-    ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
-)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
@@ -11,21 +8,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,13 +42,12 @@ import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
 @Composable
-fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
+fun ProvisioningRoute1(viewModel: ProvisioningViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
@@ -94,86 +86,47 @@ private fun ProvisioningScreen(
     onProvisioningFailed: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    var expandedState by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-        skipHalfExpanded = expandedState
-    )
-    var capabilities by remember { mutableStateOf<ProvisioningCapabilities?>(null) }
+    val sheetState = rememberModalBottomSheetState()
 
-    ModalBottomSheetLayout(
-        sheetContent = {
-            if (provisionerState is ProvisionerState.Provisioning) {
-                if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
-                    capabilities?.let { it ->
-                        AuthSelectionBottomSheet(
-                            capabilities = it,
-                            onConfirmClicked = {
-                                scope.launch { sheetState.hide() }
-                                startProvisioning(it)
-                            }
-                        )
-                    }
-                } else if (provisionerState.state is ProvisioningState.AuthActionRequired) {
-                    capabilities?.let {
-                        expandedState = false
-                        OobActionSelectionBottomSheet(
-                            action = provisionerState.state.action,
-                            onOkClicked = { action, input ->
-                                scope.launch { sheetState.hide() }
-                                authenticate(action, input)
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        sheetState = sheetState,
-        sheetShape = RoundedCornerShape(12.dp)
-    ) {
-        when (provisionerState) {
-            is ProvisionerState.Connecting -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_connecting, unprovisionedDevice.name)
-            )
+    when (provisionerState) {
+        is ProvisionerState.Connecting -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_connecting, unprovisionedDevice.name)
+        )
 
-            is ProvisionerState.Connected -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_connected, unprovisionedDevice.name)
-            )
+        is ProvisionerState.Connected -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_connected, unprovisionedDevice.name)
+        )
 
-            ProvisionerState.Identifying -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_identifying, unprovisionedDevice.name)
-            )
+        ProvisionerState.Identifying -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_identifying, unprovisionedDevice.name)
+        )
 
-            is ProvisionerState.Provisioning -> ProvisioningStateInfo(
-                unprovisionedDevice = unprovisionedDevice,
-                state = provisionerState.state,
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                onNetworkKeyClick = onNetworkKeyClick,
-                onProvisionClick = {
-                    capabilities = it
-                    scope.launch { sheetState.show() }
-                },
-                onProvisioningComplete = onProvisioningComplete,
-                onProvisioningFailed = onProvisioningFailed,
-                onAuthActionRequired = { scope.launch { sheetState.show() } },
-                onInputComplete = { scope.launch { sheetState.hide() } }
-            )
+        is ProvisionerState.Provisioning -> ProvisioningStateInfo(
+            unprovisionedDevice = unprovisionedDevice,
+            state = provisionerState.state,
+            onNameChanged = onNameChanged,
+            onAddressChanged = onAddressChanged,
+            isValidAddress = isValidAddress,
+            onNetworkKeyClick = onNetworkKeyClick,
+            authenticate = authenticate,
+            onProvisioningComplete = onProvisioningComplete,
+            onProvisioningFailed = onProvisioningFailed,
+            onInputComplete = { scope.launch { sheetState.hide() } },
+            startProvisioning = startProvisioning
+        )
 
-            is ProvisionerState.Error -> {
-                ProvisionerStateInfo(
-                    text = provisionerState.throwable.message
-                        ?: stringResource(id = R.string.label_unknown_error)
-                )
-            }
-
-            is ProvisionerState.Disconnected -> ProvisionerStateInfo(
-                text = stringResource(R.string.label_disconnected, unprovisionedDevice.name),
-                isError = true,
-                imageVector = Icons.Rounded.SentimentVeryDissatisfied
+        is ProvisionerState.Error -> {
+            ProvisionerStateInfo(
+                text = provisionerState.throwable.message
+                    ?: stringResource(id = R.string.label_unknown_error)
             )
         }
+
+        is ProvisionerState.Disconnected -> ProvisionerStateInfo(
+            text = stringResource(R.string.label_disconnected, unprovisionedDevice.name),
+            isError = true,
+            imageVector = Icons.Rounded.SentimentVeryDissatisfied
+        )
     }
 }
 
@@ -185,12 +138,13 @@ private fun ProvisioningStateInfo(
     onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
-    onProvisionClick: (ProvisioningCapabilities) -> Unit,
+    authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
-    onAuthActionRequired: () -> Unit,
-    onInputComplete: () -> Unit
+    onInputComplete: () -> Unit,
+    startProvisioning: (AuthenticationMethod) -> Unit
 ) {
+    BackHandler(enabled = state is ProvisioningState.AuthActionRequired) {}
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
             text = stringResource(id = R.string.label_provisioning_requesting_capabilities)
@@ -203,7 +157,7 @@ private fun ProvisioningStateInfo(
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
             onNetworkKeyClick = onNetworkKeyClick,
-            onProvisionClick = onProvisionClick
+            startProvisioning = startProvisioning
         )
 
         is ProvisioningState.Provisioning -> ProvisionerStateInfo(
@@ -212,7 +166,11 @@ private fun ProvisioningStateInfo(
 
         is ProvisioningState.AuthActionRequired -> {
             ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_required))
-            onAuthActionRequired()
+            OobActionSelectionBottomSheet(
+                action = state.action,
+                onOkClicked = authenticate,
+                onDismissRequest = {  },
+            )
         }
 
         ProvisioningState.InputComplete -> {

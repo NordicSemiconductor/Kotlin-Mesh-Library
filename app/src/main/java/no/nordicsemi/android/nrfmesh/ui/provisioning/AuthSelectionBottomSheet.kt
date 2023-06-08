@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import androidx.compose.animation.AnimatedVisibility
@@ -6,20 +8,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,67 +38,66 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningCapabilities
 @Composable
 internal fun AuthSelectionBottomSheet(
     capabilities: ProvisioningCapabilities,
-    onConfirmClicked: (AuthenticationMethod) -> Unit
+    onConfirmClicked: (AuthenticationMethod) -> Unit,
+    onDismissRequest: () -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState()
     var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
     var selectedActionIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var fill by rememberSaveable { mutableStateOf(false) }
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Column(modifier = Modifier.weight(weight = 1f, fill = fill)) {
-                Text(
-                    text = stringResource(R.string.label_select_oob_type_to_use),
-                    style = MaterialTheme.typography.titleMedium
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
+        Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 32.dp)) {
+            Text(
+                text = stringResource(R.string.label_select_oob_type_to_use),
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            capabilities.supportedAuthMethods.forEachIndexed { index, auth ->
+                RadioButtonRow(
+                    text = auth.description(),
+                    selectedIndex = selectedIndex,
+                    index = index,
+                    onClick = {
+                        selectedActionIndex = -1
+                        selectedIndex = index
+                    }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                capabilities.supportedAuthMethods.forEachIndexed { index, auth ->
-                    RadioButtonRow(
-                        text = auth.description(),
-                        selectedIndex = selectedIndex,
-                        index = index,
-                        onClick = {
-                            selectedActionIndex = -1
-                            selectedIndex = index
-                            if (auth is AuthenticationMethod.OutputOob || auth is AuthenticationMethod.InputOob) {
-                                fill = true
+                AnimatedVisibility(visible = selectedIndex == index) {
+                    Column(modifier = Modifier.padding(start = 32.dp)) {
+                        when (auth) {
+                            is AuthenticationMethod.StaticOob -> {
+                                MeshOutlinedTextField(value = "", onValueChanged = {})
                             }
-                        }
-                    )
-                    AnimatedVisibility(visible = selectedIndex == index) {
-                        Column(modifier = Modifier.padding(start = 32.dp)) {
-                            when (auth) {
-                                is AuthenticationMethod.StaticOob -> {
-                                    MeshOutlinedTextField(value = "", onValueChanged = {})
-                                }
 
-                                is AuthenticationMethod.OutputOob -> {
-                                    capabilities.outputOobActions.forEachIndexed { index, action ->
-                                        RadioButtonRow(
-                                            text = action.toString(),
-                                            selectedIndex = selectedActionIndex,
-                                            index = index,
-                                            onClick = { selectedActionIndex = index }
-                                        )
-                                    }
+                            is AuthenticationMethod.OutputOob -> {
+                                capabilities.outputOobActions.forEachIndexed { index, action ->
+                                    RadioButtonRow(
+                                        text = action.toString(),
+                                        selectedIndex = selectedActionIndex,
+                                        index = index,
+                                        onClick = { selectedActionIndex = index }
+                                    )
                                 }
-
-                                is AuthenticationMethod.InputOob -> {
-                                    capabilities.inputOobActions.forEachIndexed { index, action ->
-                                        RadioButtonRow(
-                                            text = action.toString(),
-                                            selectedIndex = selectedActionIndex,
-                                            index = index,
-                                            onClick = { selectedActionIndex = index }
-                                        )
-                                    }
-                                }
-
-                                else -> {}
                             }
+
+                            is AuthenticationMethod.InputOob -> {
+                                capabilities.inputOobActions.forEachIndexed { index, action ->
+                                    RadioButtonRow(
+                                        text = action.toString(),
+                                        selectedIndex = selectedActionIndex,
+                                        index = index,
+                                        onClick = { selectedActionIndex = index }
+                                    )
+                                }
+                            }
+
+                            else -> {}
                         }
                     }
-                    Spacer(modifier = Modifier.size(8.dp))
                 }
+                Spacer(modifier = Modifier.size(8.dp))
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Button(
