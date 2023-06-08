@@ -15,6 +15,7 @@ import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -223,20 +224,23 @@ class ProvisioningManager(
             send(data)
 
             awaitComplete().also {
-                emit(ProvisioningState.Complete)
-                val node = Node(
-                    uuid = unprovisionedDevice.uuid,
-                    deviceKey = provisioningData.deviceKey,
-                    unicastAddress = configuration.unicastAddress!!,
-                    elementCount = capabilities.numberOfElements,
-                    assignedNetworkKey = configuration.networkKey,
-                    security = provisioningData.security
+                meshNetwork.add(
+                    node = Node(
+                        uuid = unprovisionedDevice.uuid,
+                        deviceKey = provisioningData.deviceKey,
+                        unicastAddress = configuration.unicastAddress!!,
+                        elementCount = capabilities.numberOfElements,
+                        assignedNetworkKey = configuration.networkKey,
+                        security = provisioningData.security
+                    )
                 )
-                meshNetwork.add(node)
+                emit(ProvisioningState.Complete)
             }
 
         } catch (error: RemoteError) {
-            emit(ProvisioningState.Failed(error.error))
+            emit(ProvisioningState.Failed(error))
+        } catch (error: NodeAlreadyExists) {
+            emit(ProvisioningState.Failed(error))
         }
     }
 
