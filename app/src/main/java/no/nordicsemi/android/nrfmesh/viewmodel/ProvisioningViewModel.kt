@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -131,16 +132,24 @@ class ProvisioningViewModel @Inject constructor(
                 unprovisionedDevice = unprovisionedDevice,
                 provisionerState = ProvisionerState.Provisioning(state)
             )
-            if (state is ProvisioningState.Complete) {
-                // Save when the provisioning completes.
-                repository.save()
-            }
+        }.catch {
+            log(
+                message = "Error while provisioning $it",
+                category = LogCategory.PROVISIONING,
+                level = LogLevel.ERROR
+            )
+            _uiState.value = ProvisioningScreenUiState(
+                unprovisionedDevice = unprovisionedDevice,
+                provisionerState = ProvisionerState.Error(it)
+            )
         }.onCompletion { throwable ->
-            throwable?.let {
-                _uiState.value = ProvisioningScreenUiState(
-                    unprovisionedDevice = unprovisionedDevice,
-                    provisionerState = ProvisionerState.Error(it)
-                )
+            _uiState.value.provisionerState.let { provisionerState ->
+                if (provisionerState is ProvisionerState.Provisioning) {
+                    // Save when the provisioning completes.
+                    if (throwable == null && provisionerState.state is ProvisioningState.Complete) {
+                        repository.save()
+                    }
+                }
             }
         }.launchIn(viewModelScope)
     }
