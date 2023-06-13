@@ -12,10 +12,8 @@ import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
-import no.nordicsemi.kotlin.mesh.core.exception.MeshNetworkException
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
-import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -33,13 +31,16 @@ import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
  * @property unprovisionedDevice          Unprovisioned device to be provisioned.
  * @property meshNetwork                  Mesh network to which the device will be provisioned.
  * @property bearer                       Bearer used to send provisioning PDUs.
+ * @property configuration                Provisioning configuration used to provision the device.
+ * @property suggestedUnicastAddress      Suggested unicast address to be assigned to the device.
+ * @property logger                       Logger for the provisioning manager.
  */
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
     private val bearer: MeshProvisioningBearer
 ) {
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var configuration: ProvisioningConfiguration
     var logger: Logger? = null
 
@@ -74,8 +75,19 @@ class ProvisioningManager(
      * @param attentionTimer Attention timer value in seconds.
      * @return Flow of provisioning states that could be used to observe and continue/cancel the
      *         provisioning process.
+     * @throws UnsupportedDevice If the device does not support the required algorithms.
+     * @throws NoAddressAvailable If the device does not have any unicast address available.
+     * @throws InvalidAddress If the device has an invalid unicast address.
+     * @throws ProvisioningError If the provisioning process failed.
+     *
      */
-    @Throws(MeshNetworkException::class, ProvisioningError::class, BearerError::class)
+    @Throws(
+        UnsupportedDevice::class,
+        NoAddressAvailable::class,
+        InvalidAddress::class,
+        ProvisioningError::class,
+        BearerError.Closed::class
+    )
     fun provision(attentionTimer: UByte) = flow {
         try {
             // Is there bearer open?
@@ -151,9 +163,9 @@ class ProvisioningManager(
 
             emit(ProvisioningState.Provisioning)
             provisioningData.prepare(
-                configuration.networkKey,
-                meshNetwork.ivIndex,
-                configuration.unicastAddress!!
+                networkKey = configuration.networkKey,
+                ivIndex = meshNetwork.ivIndex,
+                unicastAddress = configuration.unicastAddress!!
             )
 
             ProvisioningRequest.Start(configuration).also { start ->
@@ -216,6 +228,7 @@ class ProvisioningManager(
 
             require(provisioningData.checkIfConfirmationsMatch()) {
                 logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
+                emit(ProvisioningState.Failed(ConfirmationFailed))
                 throw ConfirmationFailed
             }
 
@@ -224,6 +237,7 @@ class ProvisioningManager(
             send(data)
 
             awaitComplete().also {
+                emit(ProvisioningState.Complete)
                 meshNetwork.add(
                     node = Node(
                         uuid = unprovisionedDevice.uuid,
@@ -234,13 +248,32 @@ class ProvisioningManager(
                         security = provisioningData.security
                     )
                 )
-                emit(ProvisioningState.Complete)
             }
 
         } catch (error: RemoteError) {
             emit(ProvisioningState.Failed(error))
-        } catch (error: NodeAlreadyExists) {
-            emit(ProvisioningState.Failed(error))
+        }
+    }
+
+    init {
+        // Ensures that the mesh network has at least one provisioner added and a unicast address
+        // range is allocated.
+        meshNetwork.localProvisioner?.let {
+            require(it.allocatedUnicastRanges.isNotEmpty()) {
+                logger?.e(LogCategory.PROVISIONING) { "No unicast ranges allocated" }
+                throw NoUnicastRangeAllocated
+            }
+        } ?: run {
+            logger?.e(LogCategory.PROVISIONING) { "No local provisioner" }
+            throw NoLocalProvisioner
+        }
+
+        // Ensures the provided bearer supports provisioning PDUs.
+        require(bearer.supports(PduType.PROVISIONING_PDU)) {
+            logger?.e(LogCategory.PROVISIONING) {
+                "Bearer does not support provisioning pdu"
+            }
+            throw BearerError.PduTypeNotSupported
         }
     }
 
@@ -249,7 +282,10 @@ class ProvisioningManager(
      *
      * @param invite           Provisioning invite to send.
      * @param provisioningData The provisioning data to accumulate the received PDUs.
+     * @throws InvalidPdu If the received PDU is invalid.
+     * @throws NoAddressAvailable If the device does not have any unicast addresses available.
      */
+    @Throws(InvalidPdu::class, NoAddressAvailable::class)
     private suspend fun awaitCapabilities(
         invite: ProvisioningRequest.Invite,
         provisioningData: ProvisioningData
@@ -297,7 +333,10 @@ class ProvisioningManager(
      *
      * @param request                Provisioner's Public Key.
      * @param provisioningData   Provisioning data to accumulate the received PDUs.
+     * @throws InvalidPdu If the received PDU is invalid.
+     * @throws RemoteError If the device returns an error.
      */
+    @Throws(InvalidPdu::class, RemoteError::class)
     private suspend fun awaitProvisioneePublicKey(
         request: ProvisioningRequest.PublicKey,
         provisioningData: ProvisioningData
@@ -332,7 +371,9 @@ class ProvisioningManager(
      * @param onAuthValueReceived     Lambda to be invoked upon receiving/generating auth value
      * @param mutex                   Mutex to unlock when the user has provided the authentication
      *                                value.
+     * @throws InvalidOobValueFormat If the user provided an invalid
      */
+    @Throws(InvalidOobValueFormat::class)
     private fun requestAuthentication(
         method: AuthenticationMethod,
         sizeInBytes: Int,
@@ -405,7 +446,10 @@ class ProvisioningManager(
 
     /**
      * Waits for the input complete response from the device.
+     *
+     * @throws RemoteError If the device returns an error.
      */
+    @Throws(RemoteError::class)
     private suspend fun awaitInputComplete(): ProvisioningResponse.InputComplete {
         val response = ProvisioningResponse.from(
             pdu = awaitBearerPdu().data
@@ -425,7 +469,9 @@ class ProvisioningManager(
      * Waits for the confirmation response from the device.
      *
      * @param request  Confirmation value to send to the device.
+     * @throws RemoteError If the device returns an error.
      */
+    @Throws(RemoteError::class)
     private suspend fun awaitConfirmation(
         request: ProvisioningRequest.Confirmation,
     ): ByteArray {
@@ -445,6 +491,13 @@ class ProvisioningManager(
         return response.confirmation
     }
 
+    /**
+     * Waits for the provisioning random response from the device.
+     *
+     * @param request  Random value to send to the device.
+     * @throws RemoteError If the device returns an error.
+     */
+    @Throws(RemoteError::class)
     private suspend fun awaitRandom(request: ProvisioningRequest.Random): ByteArray {
         logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
         send(request)
@@ -462,20 +515,11 @@ class ProvisioningManager(
     }
 
     /**
-     * Waits for the provisioning random response from the device.
+     * Waits for the provisioning complete response from the device.
+     *
+     * @throws RemoteError If the device returns an error.
      */
-    private suspend fun awaitRandom() = ProvisioningResponse.from(
-        pdu = awaitBearerPdu().data
-    ).apply {
-        logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-        if (this is ProvisioningResponse.Failed) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Provisioning failed with error: $error"
-            }
-            throw RemoteError(error)
-        }
-    } as ProvisioningResponse.Random
-
+    @Throws(RemoteError::class)
     private suspend fun awaitComplete() = ProvisioningResponse.from(
         pdu = awaitBearerPdu().data
     ).apply {
