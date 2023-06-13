@@ -386,7 +386,7 @@ class ProvisioningManager(
                 null
             }
 
-            AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey {
+            AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey(length = sizeInBytes) {
                 require(it.size == sizeInBytes) {
                     throw InvalidOobValueFormat
                 }

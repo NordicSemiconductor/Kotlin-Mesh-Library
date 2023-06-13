@@ -76,9 +76,13 @@ sealed class AuthAction {
     /**
      * The user must provide a 16-byte static authentication value.
      *
+     * @property length       Length of the static authentication value.
      * @property authenticate Lambda func to invoke to authenticate provisioning process.
      */
-    data class ProvideStaticKey(val authenticate: (ByteArray) -> Unit) : AuthAction()
+    data class ProvideStaticKey(
+        val length: Int,
+        val authenticate: (ByteArray) -> Unit
+    ) : AuthAction()
 
     /**
      * The user shall provide a number.
