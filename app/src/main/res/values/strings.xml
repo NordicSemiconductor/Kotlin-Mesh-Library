@@ -38,6 +38,8 @@
     <string name="label_provisioning_authentication_required">Provisioning authentication required</string>
     <string name="label_provisioning_authentication_completed">Provisioning authentication completed</string>
     <string name="label_provisioning_completed">Provisioning completed successfully.</string>
+    <string name="label_provisioning_completed_node_already_exists">Provisioning completed successfully.
+        \n\nUnable to add the node to the network, node already exists in the network.</string>
     <string name="label_provisioning_failed">Provisioning failed %s</string>
     <string name="label_provision">Provision</string>
     <string name="label_no_oob">No OOB</string>

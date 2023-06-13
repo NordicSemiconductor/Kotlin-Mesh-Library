@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.R
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.InputAction.Companion.toInputActions
 import no.nordicsemi.kotlin.mesh.provisioning.OutputAction.Companion.toOutputActions
@@ -67,10 +66,6 @@ internal fun AuthSelectionBottomSheet(
                 AnimatedVisibility(visible = selectedIndex == index) {
                     Column(modifier = Modifier.padding(start = 32.dp)) {
                         when (auth) {
-                            is AuthenticationMethod.StaticOob -> {
-                                MeshOutlinedTextField(value = "", onValueChanged = {})
-                            }
-
                             is AuthenticationMethod.OutputOob -> {
                                 capabilities.outputOobActions.forEachIndexed { index, action ->
                                     RadioButtonRow(
@@ -103,7 +98,7 @@ internal fun AuthSelectionBottomSheet(
                 Button(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .defaultMinSize(minWidth = 120.dp),
+                        .defaultMinSize(minWidth = 100.dp),
                     enabled = isEnabled(capabilities, selectedIndex, selectedActionIndex),
                     onClick = {
                         onConfirmClicked(

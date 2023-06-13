@@ -39,6 +39,7 @@ import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
+import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
@@ -83,7 +84,7 @@ private fun ProvisioningScreen(
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
-    onProvisioningFailed: () -> Unit
+    onProvisioningFailed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -116,10 +117,31 @@ private fun ProvisioningScreen(
         )
 
         is ProvisionerState.Error -> {
-            ProvisionerStateInfo(
-                text = provisionerState.throwable.message
-                    ?: stringResource(id = R.string.label_unknown_error)
-            )
+            var showAlertDialog by remember { mutableStateOf(true) }
+            if (showAlertDialog) {
+                MeshAlertDialog(
+                    onDismissRequest = {
+                        showAlertDialog = !showAlertDialog
+                        onProvisioningFailed()
+                    },
+                    confirmButtonText = stringResource(id = R.string.label_ok),
+                    onConfirmClick = {
+                        showAlertDialog = !showAlertDialog
+                        onProvisioningFailed()
+                    },
+                    dismissButtonText = null,
+                    icon = Icons.Rounded.ErrorOutline,
+                    iconColor = MaterialTheme.colorScheme.error,
+                    title = stringResource(R.string.label_status),
+                    text = when (provisionerState.throwable) {
+                        is NodeAlreadyExists -> stringResource(
+                            id = R.string.label_provisioning_completed_node_already_exists
+                        )
+                        else -> provisionerState.throwable.toString()
+                    }
+                )
+            }
+
         }
 
         is ProvisionerState.Disconnected -> ProvisionerStateInfo(
@@ -144,7 +166,6 @@ private fun ProvisioningStateInfo(
     onInputComplete: () -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit
 ) {
-    BackHandler(enabled = state is ProvisioningState.AuthActionRequired) {}
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
             text = stringResource(id = R.string.label_provisioning_requesting_capabilities)
@@ -166,10 +187,10 @@ private fun ProvisioningStateInfo(
 
         is ProvisioningState.AuthActionRequired -> {
             ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_required))
-            OobActionSelectionBottomSheet(
+            AuthenticationDialog(
                 action = state.action,
                 onOkClicked = authenticate,
-                onDismissRequest = {  },
+                onCancelClicked = onProvisioningFailed
             )
         }
 

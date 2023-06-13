@@ -14,14 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,55 +38,69 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 
 @Composable
-fun OobActionSelectionBottomSheet(
+fun AuthenticationDialog(
     action: AuthAction,
     onOkClicked: (AuthAction, String) -> Unit,
-    onDismissRequest: () -> Unit
+    onCancelClicked: () -> Unit
 ) {
+    var showAuthDialog by rememberSaveable { mutableStateOf(true) }
     var authValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = ""))
     }
-    val sheetState = rememberModalBottomSheetState()
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        sheetState = sheetState
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(weight = 1f, fill = false)
-            ) {
-                Text(
-                    text = stringResource(R.string.label_authentication_required),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.size(size = 16.dp))
-                AuthRow(action = action, authValue = authValue, onValueChanged = {
-                    authValue = it
-                })
-                Spacer(modifier = Modifier.size(size = 16.dp))
-            }
-            if (action !is AuthAction.DisplayNumber && action !is AuthAction.DisplayAlphaNumeric) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .defaultMinSize(minWidth = 120.dp),
-                        enabled = shouldEnable(action, authValue.text),
-                        onClick = { onOkClicked(action, authValue.text) },
-                        content = { Text(text = stringResource(id = R.string.label_ok)) }
-                    )
+    if (showAuthDialog) {
+        MeshAlertDialog(
+            onDismissRequest = {
+                showAuthDialog = !showAuthDialog
+                onCancelClicked()
+            },
+            title = stringResource(R.string.label_authentication_required),
+            icon = Icons.Outlined.Pin,
+            content = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    AuthRow(action = action, authValue = authValue, onValueChanged = {
+                        authValue = it
+                    })
+                    Spacer(modifier = Modifier.size(size = 16.dp))
+
+                    when {
+                        action !is AuthAction.DisplayNumber &&
+                                action !is AuthAction.DisplayAlphaNumeric -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Button(
+                                    modifier = Modifier
+                                        .defaultMinSize(minWidth = 100.dp),
+                                    onClick = {
+                                        showAuthDialog = !showAuthDialog
+                                        onCancelClicked()
+                                    },
+                                    content = {
+                                        Text(text = stringResource(id = R.string.label_cancel))
+                                    }
+                                )
+                                Spacer(modifier = Modifier.size(size = 8.dp))
+                                Button(
+                                    modifier = Modifier
+                                        .defaultMinSize(minWidth = 100.dp),
+                                    enabled = shouldEnable(action, authValue.text),
+                                    onClick = { onOkClicked(action, authValue.text.trim()) },
+                                    content = {
+                                        Text(text = stringResource(id = R.string.label_ok))
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
+        )
     }
 }
 
@@ -98,7 +111,12 @@ private fun shouldEnable(action: AuthAction, authValue: String): Boolean {
 
         is AuthAction.ProvideAlphaNumeric -> authValue.length <= action.maxNumberOfCharacters.toInt()
         is AuthAction.ProvideNumeric -> authValue.length <= action.maxNumberOfDigits.toInt()
-        is AuthAction.ProvideStaticKey -> authValue.length == 32
+        is AuthAction.ProvideStaticKey ->
+            when (action.length) {
+                16 -> authValue.length == 32
+                32 -> authValue.length == 64
+                else -> false
+            }
     }
 }
 
@@ -130,6 +148,7 @@ private fun AuthRow(
 
         is AuthAction.ProvideStaticKey -> ProvideStaticKey(
             context = context,
+            length = action.length,
             authValue = authValue,
             onValueChanged = onValueChanged
         )
@@ -234,7 +253,7 @@ private fun ProvideNumeric(
         modifier = Modifier.padding(vertical = 8.dp),
         externalLeadingIcon = {
             Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(end = 16.dp),
                 imageVector = Icons.Outlined.Password,
                 contentDescription = null,
                 tint = LocalContentColor.current.copy(alpha = 0.6f)
@@ -261,6 +280,7 @@ private fun ProvideNumeric(
 @Composable
 private fun ProvideStaticKey(
     context: Context,
+    length: Int,
     authValue: TextFieldValue,
     onValueChanged: (TextFieldValue) -> Unit
 ) {
@@ -271,18 +291,18 @@ private fun ProvideStaticKey(
     Spacer(modifier = Modifier.size(size = 16.dp))
     MeshOutlinedTextField(
         modifier = Modifier.padding(vertical = 8.dp),
-        externalLeadingIcon = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Password,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
         value = authValue,
-        onValueChanged = { if (it.text.length <= 32) onValueChanged(it) },
+        onValueChanged = {
+            when (length) {
+                16 -> if (it.text.length <= 32) onValueChanged(it)
+                else -> if (it.text.length <= 64) onValueChanged(it)
+            }
+        },
         label = { TextFieldValue(text = context.getString(R.string.label_auth_value)) },
-        regex = Regex("[0-9A-Fa-f]{0,32}"),
+        regex = when (length) {
+            16 -> Regex("[0-9A-Fa-f]{0,32}")
+            else -> Regex("[0-9A-Fa-f]{0,64}")
+        },
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Characters,
             autoCorrect = false
