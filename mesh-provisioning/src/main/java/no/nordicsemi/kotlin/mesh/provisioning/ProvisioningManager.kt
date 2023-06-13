@@ -78,13 +78,21 @@ class ProvisioningManager(
      * @throws UnsupportedDevice If the device does not support the required algorithms.
      * @throws NoAddressAvailable If the device does not have any unicast address available.
      * @throws InvalidAddress If the device has an invalid unicast address.
+     * @throws InvalidPdu If the device has sent an invalid PDU.
+     * @throws InvalidPublicKey If the device has sent an invalid public key.
+     * @throws InvalidOobValueFormat If the device has sent an invalid OOB value.
+     * @throws RemoteError If the device has sent an error.
      * @throws ProvisioningError If the provisioning process failed.
-     *
+     * @throws BearerError.Closed If the bearer is closed.
      */
     @Throws(
         UnsupportedDevice::class,
         NoAddressAvailable::class,
         InvalidAddress::class,
+        InvalidPdu::class,
+        InvalidPublicKey::class,
+        InvalidOobValueFormat::class,
+        RemoteError::class,
         ProvisioningError::class,
         BearerError.Closed::class
     )
@@ -311,10 +319,11 @@ class ProvisioningManager(
      *
      * @param request                Provisioner's Public Key.
      * @param provisioningData   Provisioning data to accumulate the received PDUs.
-     * @throws InvalidPdu If the received PDU is invalid.
      * @throws RemoteError If the device returns an error.
+     * @throws InvalidPdu If the received PDU is invalid.
+     * @throws InvalidPublicKey If the device's Public Key is invalid.
      */
-    @Throws(InvalidPdu::class, RemoteError::class)
+    @Throws(InvalidPdu::class, RemoteError::class, InvalidPublicKey::class)
     private suspend fun awaitProvisioneePublicKey(
         request: ProvisioningRequest.PublicKey,
         provisioningData: ProvisioningData
