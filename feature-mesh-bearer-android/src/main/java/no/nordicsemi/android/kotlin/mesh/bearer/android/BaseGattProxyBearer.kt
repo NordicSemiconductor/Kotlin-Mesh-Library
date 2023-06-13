@@ -110,7 +110,6 @@ abstract class BaseGattProxyBearer<MeshService>(
         isOpened = true
         _state.value = BearerEvent.Opened
         logger?.v(LogCategory.BEARER) { "Bearer opened." }
-        client = null
     }
 
 
@@ -122,6 +121,7 @@ abstract class BaseGattProxyBearer<MeshService>(
             isOpened = false
             _state.value = BearerEvent.Closed(BearerError.Closed)
             logger?.v(LogCategory.BEARER) { "Bearer closed." }
+            client = null
         }
     }
 
