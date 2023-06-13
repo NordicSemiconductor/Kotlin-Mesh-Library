@@ -1,16 +1,25 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+
 
 /**
  * Common Alert Dialog composable to maintain consistency.
@@ -33,13 +42,14 @@ import androidx.compose.ui.window.DialogProperties
  * @param error                         When true the confirm button will be disabled
  * @param content                       Content of the dialog body.
  */
+// TODO needs to be revisited
 @Composable
 fun MeshAlertDialog(
-    onDismissRequest: () -> Unit,
+    onDismissRequest: () -> Unit = {},
     confirmButtonText: String = stringResource(id = R.string.confirm),
     onConfirmClick: () -> Unit,
-    dismissButtonText: String = stringResource(id = R.string.cancel),
-    onDismissClick: () -> Unit,
+    dismissButtonText: String? = stringResource(id = R.string.cancel),
+    onDismissClick: () -> Unit = {},
     icon: ImageVector? = null,
     iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
@@ -57,7 +67,9 @@ fun MeshAlertDialog(
             ) { Text(text = confirmButtonText) }
         },
         dismissButton = {
-            Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
+            dismissButtonText?.let {
+                Button(onClick = { onDismissClick() }) { Text(text = it) }
+            }
         },
         icon = {
             icon?.let { Icon(imageVector = it, contentDescription = null, tint = iconColor) }
@@ -96,7 +108,7 @@ fun MeshAlertDialog(
     dismissButtonText: String? = stringResource(id = R.string.cancel),
     onDismissClick: () -> Unit = {},
     icon: ImageVector? = null,
-    iconColor: Color = MaterialTheme.colorScheme.error,
+    iconColor: Color = AlertDialogDefaults.iconContentColor,
     title: String? = null,
     text: String? = null
 ) {
@@ -108,13 +120,110 @@ fun MeshAlertDialog(
             Button(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
         },
         dismissButton = {
-            if (dismissButtonText != null)
-                Button(onClick = { onDismissClick() }) { Text(text = dismissButtonText) }
+            dismissButtonText?.let {
+                Button(onClick = { onDismissClick() }) { Text(text = it) }
+            }
         },
         icon = {
             icon?.let { Icon(imageVector = it, contentDescription = null, tint = iconColor) }
         },
         title = { title?.let { Text(text = it) } },
         text = { text?.let { Text(text = it) } }
+    )
+}
+
+/**
+ * Common Alert Dialog composable to maintain consistency.
+ *
+ * @param onDismissRequest              Called when the user tries to dismiss the Dialog by clicking
+ *                                      outside or pressing the back button. This is not called when
+ *                                      the dismiss button is clicked.
+ * @param content                       Content of the Mesh alert dialog.
+ */
+@Composable
+fun MeshAlertDialog(
+    onDismissRequest: () -> Unit,
+    icon: ImageVector? = null,
+    iconColor: Color = AlertDialogDefaults.iconContentColor,
+    title: String? = null,
+    text: String? = null,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.fillMaxWidth(0.85f),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        content = {
+            Surface(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                Column(
+                    modifier = Modifier.padding(PaddingValues(all = 24.dp))
+                ) {
+                    icon?.let {
+                        CompositionLocalProvider(
+                            LocalContentColor provides AlertDialogDefaults.iconContentColor
+                        ) {
+                            Box(
+                                Modifier
+                                    .padding(PaddingValues(bottom = 16.dp))
+                                    .align(Alignment.CenterHorizontally)
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = iconColor
+                                )
+                            }
+                        }
+                    }
+                    title?.let {
+                        CompositionLocalProvider(
+                            LocalContentColor provides AlertDialogDefaults.titleContentColor
+                        ) {
+                            val textStyle = MaterialTheme.typography.headlineSmall
+                            ProvideTextStyle(textStyle) {
+                                Box(
+                                    // Align the title to the center when an icon is present.
+                                    Modifier
+                                        .padding(PaddingValues(bottom = 16.dp))
+                                        .align(
+                                            if (icon == null) {
+                                                Alignment.Start
+                                            } else {
+                                                Alignment.CenterHorizontally
+                                            }
+                                        )
+                                ) {
+                                    Text(text = it)
+                                }
+                            }
+                        }
+                    }
+                    text?.let {
+                        CompositionLocalProvider(
+                            LocalContentColor provides AlertDialogDefaults.textContentColor
+                        ) {
+                            val textStyle = MaterialTheme.typography.bodyMedium
+                            ProvideTextStyle(textStyle) {
+                                Box(
+                                    Modifier
+                                        .weight(weight = 1f, fill = false)
+                                        .padding(PaddingValues(bottom = 24.dp))
+                                        .align(Alignment.Start)
+                                ) {
+                                    Text(text = it)
+                                }
+                            }
+                        }
+                    }
+                    content()
+                }
+            }
+        }
     )
 }
