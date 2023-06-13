@@ -72,14 +72,15 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        val client = device.connect(context)
-        this.client = client
-        observeConnectionState(client)
-        client.discoverServices()
-            .filterNotNull()
-            .onEach { configureGatt(it) }
-            .launchIn(scope = scope)
-        mtu = client.requestMtu(517) - 3
+        client = device.connect(context)
+        client?.let { client ->
+            observeConnectionState(client)
+            client.discoverServices()
+                .filterNotNull()
+                .onEach { configureGatt(it) }
+                .launchIn(scope = scope)
+            mtu = client.requestMtu(517) - 3
+        }
     }
 
     override suspend fun close() {
