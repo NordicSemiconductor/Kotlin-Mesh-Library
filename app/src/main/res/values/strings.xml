@@ -53,5 +53,5 @@
     <string name="label_display_alpha_numeric_rationale">Enter the following text %s on the device.</string>
     <string name="label_provide_numeric_rationale">Enter the number displayed on the device.</string>
     <string name="label_provide_alpha_numeric_rationale">Enter the text displayed on the device.</string>
-    <string name="label_provide_static_key_rationale">Enter the 32 character text displayed on the device.</string>
+    <string name="label_provide_static_key_rationale">Enter the %d character text displayed on the device.</string>
 </resources>

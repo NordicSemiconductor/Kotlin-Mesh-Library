@@ -135,14 +135,14 @@ private fun AuthRow(
         is AuthAction.ProvideAlphaNumeric -> ProvideAlphaNumeric(
             context = context,
             authValue = authValue,
-            action = action,
+            length = action.maxNumberOfCharacters.toInt(),
             onValueChanged = onValueChanged
         )
 
         is AuthAction.ProvideNumeric -> ProvideNumeric(
             context = context,
             authValue = authValue,
-            action = action,
+            length = action.maxNumberOfDigits.toInt(),
             onValueChanged = onValueChanged
         )
 
@@ -197,7 +197,7 @@ private fun DisplayNumber(
 @Composable
 private fun ProvideAlphaNumeric(
     context: Context,
-    action: AuthAction.ProvideAlphaNumeric,
+    length: Int,
     authValue: TextFieldValue,
     onValueChanged: (TextFieldValue) -> Unit
 ) {
@@ -218,7 +218,7 @@ private fun ProvideAlphaNumeric(
         },
         value = authValue,
         onValueChanged = {
-            if (it.text.length <= action.maxNumberOfCharacters.toInt())
+            if (it.text.length <= length)
                 onValueChanged(it)
         },
         label = { TextFieldValue(text = context.getString(R.string.label_auth_value)) },
@@ -229,7 +229,7 @@ private fun ProvideAlphaNumeric(
         placeholder = { TextFieldValue(text = "e.g. 12E4S6") },
         supportingText = {
             Text(
-                text = "${authValue.text.length} / ${action.maxNumberOfCharacters}",
+                text = "${authValue.text.length} / $length",
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.End,
             )
@@ -240,7 +240,7 @@ private fun ProvideAlphaNumeric(
 @Composable
 private fun ProvideNumeric(
     context: Context,
-    action: AuthAction.ProvideNumeric,
+    length: Int,
     authValue: TextFieldValue,
     onValueChanged: (TextFieldValue) -> Unit
 ) {
@@ -261,7 +261,7 @@ private fun ProvideNumeric(
         },
         value = authValue,
         onValueChanged = {
-            if (it.text.length <= action.maxNumberOfDigits.toInt())
+            if (it.text.length <= length)
                 onValueChanged(it)
         },
         label = { Text(text = context.getString(R.string.label_auth_value)) },
@@ -269,7 +269,7 @@ private fun ProvideNumeric(
         placeholder = { Text(text = "e.g. 123456") },
         supportingText = {
             Text(
-                text = "${authValue.text.length} / ${action.maxNumberOfDigits}",
+                text = "${authValue.text.length} / $length",
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.End,
             )
@@ -285,7 +285,7 @@ private fun ProvideStaticKey(
     onValueChanged: (TextFieldValue) -> Unit
 ) {
     Text(
-        text = stringResource(id = R.string.label_provide_static_key_rationale),
+        text = stringResource(id = R.string.label_provide_static_key_rationale, length * 2),
         style = MaterialTheme.typography.bodyMedium
     )
     Spacer(modifier = Modifier.size(size = 16.dp))
@@ -307,6 +307,13 @@ private fun ProvideStaticKey(
             capitalization = KeyboardCapitalization.Characters,
             autoCorrect = false
         ),
-        placeholder = { TextFieldValue(text = "") }
+        placeholder = { TextFieldValue(text = "") },
+        supportingText = {
+            Text(
+                text = "${authValue.text.length} / ${length * 2}",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End,
+            )
+        }
     )
 }
