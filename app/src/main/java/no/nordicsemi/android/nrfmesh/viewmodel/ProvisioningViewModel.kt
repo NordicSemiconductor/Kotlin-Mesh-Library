@@ -6,7 +6,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -70,8 +69,6 @@ class ProvisioningViewModel @Inject constructor(
     )
     internal val uiState = _uiState.asStateFlow()
 
-    private lateinit var provisioningJob: Job
-
     init {
         observeNetwork()
         observeNetKeySelector()
@@ -127,20 +124,20 @@ class ProvisioningViewModel @Inject constructor(
             bearer = pbGattBearer
         ).apply { logger = this@ProvisioningViewModel }
 
-        provisioningJob = provisioningManager.provision(10u).onEach { state ->
+        provisioningManager.provision(10u).onEach { state ->
             _uiState.value = ProvisioningScreenUiState(
                 unprovisionedDevice = unprovisionedDevice,
                 provisionerState = ProvisionerState.Provisioning(state)
             )
-        }.catch {
+        }.catch { throwable ->
             log(
-                message = "Error while provisioning $it",
+                message = "Error while provisioning $throwable",
                 category = LogCategory.PROVISIONING,
                 level = LogLevel.ERROR
             )
             _uiState.value = ProvisioningScreenUiState(
                 unprovisionedDevice = unprovisionedDevice,
-                provisionerState = ProvisionerState.Error(it)
+                provisionerState = ProvisionerState.Error(throwable)
             )
         }.onCompletion { throwable ->
             _uiState.value.provisionerState.let { provisionerState ->
@@ -158,7 +155,9 @@ class ProvisioningViewModel @Inject constructor(
      * Disconnect from the device.
      */
     internal fun disconnect() {
-        provisioningJob.cancel()
+        viewModelScope.launch {
+            pbGattBearer.close()
+        }
     }
 
     /**
@@ -283,6 +282,7 @@ class ProvisioningViewModel @Inject constructor(
      * Invoked when the provisioning process completes and navigates to the list of nodes.
      */
     internal fun onProvisioningComplete() {
+        disconnect()
         navigateUp() // Navigates back to the scanner screen
         navigateUp() // Navigates back to the list of nodes
     }
@@ -291,6 +291,7 @@ class ProvisioningViewModel @Inject constructor(
      * Invoked when the provisioning process completes and navigates to the list of nodes.
      */
     internal fun onProvisioningFailed() {
+        disconnect()
         navigateUp() // Navigates back to the scanner screen
     }
 
