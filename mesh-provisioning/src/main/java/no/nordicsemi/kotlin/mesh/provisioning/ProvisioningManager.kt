@@ -255,28 +255,6 @@ class ProvisioningManager(
         }
     }
 
-    init {
-        // Ensures that the mesh network has at least one provisioner added and a unicast address
-        // range is allocated.
-        meshNetwork.localProvisioner?.let {
-            require(it.allocatedUnicastRanges.isNotEmpty()) {
-                logger?.e(LogCategory.PROVISIONING) { "No unicast ranges allocated" }
-                throw NoUnicastRangeAllocated
-            }
-        } ?: run {
-            logger?.e(LogCategory.PROVISIONING) { "No local provisioner" }
-            throw NoLocalProvisioner
-        }
-
-        // Ensures the provided bearer supports provisioning PDUs.
-        require(bearer.supports(PduType.PROVISIONING_PDU)) {
-            logger?.e(LogCategory.PROVISIONING) {
-                "Bearer does not support provisioning pdu"
-            }
-            throw BearerError.PduTypeNotSupported
-        }
-    }
-
     /**
      * Waits for the capabilities response from the device.
      *
@@ -379,67 +357,61 @@ class ProvisioningManager(
         sizeInBytes: Int,
         onAuthValueReceived: (authValue: ByteArray) -> Unit,
         mutex: Mutex
-    ): AuthAction? {
-        return when (method) {
-            AuthenticationMethod.NoOob -> {
-                onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })
-                null
-            }
+    ): AuthAction? = when (method) {
+        AuthenticationMethod.NoOob -> {
+            onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })
+            null
+        }
 
-            AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey(length = sizeInBytes) {
-                require(it.size == sizeInBytes) {
-                    throw InvalidOobValueFormat
+        AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey(length = sizeInBytes) {
+            require(it.size == sizeInBytes) {
+                throw InvalidOobValueFormat
+            }
+            onAuthValueReceived(it)
+            mutex.unlock()
+        }
+
+        is AuthenticationMethod.OutputOob -> when (method.action) {
+            OutputAction.OUTPUT_ALPHANUMERIC ->
+                AuthAction.ProvideAlphaNumeric(method.length) {
+                    val input = it.toByteArray(charset = Charsets.US_ASCII)
+                    val authValue = input + ByteArray(size = sizeInBytes - input.size)
+                    onAuthValueReceived(
+                        authValue.sliceArray(0 until sizeInBytes)
+                    )
+                    mutex.unlock()
                 }
-                onAuthValueReceived(it)
+            // BLINK,BEEP,VIBRATE,OUTPUT_NUMERIC
+            else -> AuthAction.ProvideNumeric(method.length, method.action) {
+                val input = it.toByteArray()
+                val authValue = ByteArray(size = sizeInBytes - input.size) + input
+                onAuthValueReceived(authValue)
                 mutex.unlock()
             }
+        }
 
-            is AuthenticationMethod.OutputOob -> {
-                when (method.action) {
-                    OutputAction.OUTPUT_ALPHANUMERIC ->
-                        AuthAction.ProvideAlphaNumeric(method.length) {
-                            val input = it.toByteArray(charset = Charsets.US_ASCII)
-                            val authValue = input + ByteArray(size = sizeInBytes - input.size)
-                            onAuthValueReceived(
-                                authValue.sliceArray(0 until sizeInBytes)
-                            )
-                            mutex.unlock()
-                        }
-                    // BLINK,BEEP,VIBRATE,OUTPUT_NUMERIC
-                    else -> AuthAction.ProvideNumeric(method.length, method.action) {
-                        val input = it.toByteArray()
-                        val authValue = ByteArray(size = sizeInBytes - input.size) + input
-                        onAuthValueReceived(authValue)
-                        mutex.unlock()
-                    }
+        is AuthenticationMethod.InputOob -> when (method.action) {
+            InputAction.INPUT_ALPHANUMERIC -> {
+                AuthAction.DisplayAlphaNumeric(
+                    text = AuthenticationMethod.randomAlphaNumeric(
+                        length = method.length.toInt()
+                    )
+                ).also {
+                    val input = it.text.toByteArray(charset = Charsets.US_ASCII)
+                    val authValue = input + ByteArray(size = sizeInBytes - input.size)
+                    onAuthValueReceived(authValue)
                 }
             }
-
-            is AuthenticationMethod.InputOob -> {
-                when (method.action) {
-                    InputAction.INPUT_ALPHANUMERIC -> {
-                        AuthAction.DisplayAlphaNumeric(
-                            text = AuthenticationMethod.randomAlphaNumeric(
-                                length = method.length.toInt()
-                            )
-                        ).also {
-                            val input = it.text.toByteArray(charset = Charsets.US_ASCII)
-                            val authValue = input + ByteArray(size = sizeInBytes - input.size)
-                            onAuthValueReceived(authValue)
-                        }
-                    }
-                    // PUSH, TWIST, INPUT_NUMERIC
-                    else -> AuthAction.DisplayNumber(
-                        number = AuthenticationMethod.randomInt(
-                            length = method.length.toInt()
-                        ).toUInt(),
-                        action = method.action
-                    ).also {
-                        val input = it.number.toByteArray()
-                        val authValue = ByteArray(size = sizeInBytes - input.size) + input
-                        onAuthValueReceived(authValue)
-                    }
-                }
+            // PUSH, TWIST, INPUT_NUMERIC
+            else -> AuthAction.DisplayNumber(
+                number = AuthenticationMethod.randomInt(
+                    length = method.length.toInt()
+                ).toUInt(),
+                action = method.action
+            ).also {
+                val input = it.number.toByteArray()
+                val authValue = ByteArray(size = sizeInBytes - input.size) + input
+                onAuthValueReceived(authValue)
             }
         }
     }
