@@ -8,7 +8,7 @@ package no.nordicsemi.kotlin.mesh.provisioning
 sealed class ProvisioningError : Exception()
 
 /**
- * Thrown when the ProvisioningManager is in an
+ * Thrown when the ProvisioningManager is in an invalid state.
  */
 object InvalidState : ProvisioningError()
 
