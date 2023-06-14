@@ -1,6 +1,7 @@
 plugins {
     id("kotlin")
     kotlin("plugin.serialization") version "1.8.0"
+    id("org.jetbrains.dokka")
 }
 dependencies {
     api(project(":mesh:crypto"))

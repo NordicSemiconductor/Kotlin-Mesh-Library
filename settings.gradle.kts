@@ -5,6 +5,10 @@ pluginManagement {
         google()
         mavenCentral()
     }
+
+    plugins{
+        id("org.jetbrains.dokka") version "1.8.20"
+    }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

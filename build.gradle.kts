@@ -11,4 +11,9 @@ plugins {
     alias(libs.plugins.nordic.feature) apply false
     alias(libs.plugins.nordic.kotlin) apply false
     alias(libs.plugins.nordic.hilt) apply false
+    id("org.jetbrains.dokka")
+}
+
+tasks.dokkaHtmlMultiModule.configure {
+    outputDirectory.set(rootDir.resolve("docs"))
 }
