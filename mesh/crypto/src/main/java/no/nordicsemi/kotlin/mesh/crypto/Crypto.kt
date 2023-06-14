@@ -31,6 +31,7 @@ object Crypto {
 
     private val secureRandom = SecureRandom()
     private val blockCipher: BlockCipher = AESEngine()
+    private val SALT_KEY = ByteArray(16) { 0x00 }
     private val smk2 = "smk2".encodeToByteArray()
     private val smk3 = "smk3".encodeToByteArray()
     private val smk4 = "smk4".encodeToByteArray()
@@ -213,12 +214,14 @@ object Crypto {
      * PrivateBeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
-     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship
-     *          credentials.
+     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
+     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed message using the
+     *          directed security credentials.
      * @return Key Derivatives.
      */
-    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null): KeyDerivatives {
-        val k2 = k2(N = N, P = P ?: byteArrayOf(0x00))
+    private fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null, isDirected: Boolean = false): KeyDerivatives {
+        val defaultP = if (!isDirected) byteArrayOf(0x00) else byteArrayOf(0x02)
+        val k2 = k2(N = N, P = P ?: defaultP)
         return KeyDerivatives(
             nid = k2.first.toUByte(),
             encryptionKey = k2.second,
@@ -229,6 +232,29 @@ object Crypto {
             privateBeaconKey = calculatePrivateBeaconKey(N = N)
         )
     }
+
+    /**
+     * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
+     * PrivateBeaconKey for a given NetworkKey
+     *
+     * @param N 128-bit NetworkKey.
+     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed message using the
+     *          directed security credentials.
+     * @return Key Derivatives.
+     */
+    fun calculateKeyDerivatives(N:ByteArray, isDirected: Boolean = false) = calculateKeyDerivatives(N, null, isDirected)
+
+    /**
+     * /**
+     * Calculates the Friendship Credentials NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
+     * PrivateBeaconKey for a given NetworkKey
+     *
+     * @param N 128-bit NetworkKey.
+     * @param P additional data to be used when calculating the Key Derivatives for Friendship Credentials
+     * @return Friendship Credentials Key Derivatives.
+    */
+     */
+    fun calculateKeyDerivatives(N:ByteArray, P: ByteArray) = calculateKeyDerivatives(N, P, false)
 
     /**
      * Calculates the AID for a given ApplicationKey.
@@ -341,6 +367,43 @@ object Crypto {
         val hash = calculateCmac(input = flagsNetIdAndIvIndex, key = beaconKey)
             .sliceArray(0 until 8)
         return hash.contentEquals(authenticationValue)
+    }
+
+    /**
+     * Decodes and authenticates the received Private Beacon using the given Private Beacon Key.
+     *
+     * @param pdu                   The received Private Beacon beacon.
+     * @param privateBeaconKey      The Private Beacon Key generated from a Network Key.
+     *
+     * @returns a Pair containing the network information from the beacon. First value is the Flags
+     *          Byte and the second is the IV Index.
+     * TODO decide whether to keep this as a return type or use a data class PrivateBeaconData
+     *  containing the flags and ivIndex. Note that this is specific to the Private Beacon as in
+     *  a Secure Network Beacon the Flags and IV Index are separated by the Network ID.
+     */
+    fun decodeAndAuthenticate(pdu: ByteArray, privateBeaconKey: ByteArray): Pair<Byte, ByteArray>? {
+        // Byte 0 of the PDU is the Beacon Type (0x02)
+        val random = pdu.sliceArray(1 until 14)
+        val obfuscatedData = pdu.sliceArray(14 until 19)
+        val authenticationTag = pdu.sliceArray(19 until 27)
+
+        // Deobfuscate Private Beacon Data
+        val C1 = byteArrayOf(0x01) + random + byteArrayOf(0x00, 0x01)
+        val S = calculateECB(C1, privateBeaconKey)
+        val privateBeaconData = S.sliceArray(0 until 5) xor obfuscatedData
+
+        // Authenticate the Beacon
+        val B0 = byteArrayOf(0x19) + random + byteArrayOf(0x00, 0x05)
+        val C0 = byteArrayOf(0x01) + random + ByteArray(2) { 0x00 }
+        val P = privateBeaconData + ByteArray(11) { 0x00 }
+        val T0 = calculateECB(B0, privateBeaconKey)
+        val T1 = calculateECB(T0 xor P, privateBeaconKey)
+        val T2 = T1 xor calculateECB(C0, privateBeaconKey)
+        val calculatedAuthenticationTag = T2.sliceArray(0 until 8)
+
+        if (!authenticationTag.contentEquals(calculatedAuthenticationTag)) return null
+
+        return Pair(privateBeaconData[0], privateBeaconData.sliceArray(1 until 5))
     }
 
     /**

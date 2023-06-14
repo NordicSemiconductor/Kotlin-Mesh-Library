@@ -12,6 +12,8 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto.k4
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k5
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.uint16ToUtf8
+import no.nordicsemi.kotlin.mesh.crypto.Utils.utf8ToUint16
 import org.junit.Assert
 import org.junit.Test
 import java.util.*
@@ -172,6 +174,14 @@ class CryptoTest {
             "Beacon Keys do not match!",
             beaconKey.contentEquals(keyDerivatives.beaconKey)
         )
+
+        val directedNID = "0D".toInt(16).toUByte()
+        val directedEncryptionKey = "b47a02c6cc9b4ac4cb9b88e765c9ade4".uppercase(Locale.US).decodeHex()
+        val directedPrivacyKey = "9bf7ab5a5ad415fbd77e07bb808f4865".uppercase(Locale.US).decodeHex()
+        val directedKeyDerivatives = Crypto.calculateKeyDerivatives(N, isDirected = true)
+        Assert.assertTrue("NID do not match!", directedNID == directedKeyDerivatives.nid)
+        Assert.assertTrue("EncryptionKeys do not match!", directedEncryptionKey.contentEquals(directedKeyDerivatives.encryptionKey))
+        Assert.assertTrue("PrivacyKeys do not match!", directedPrivacyKey.contentEquals(directedKeyDerivatives.privacyKey))
     }
 
     /**
@@ -245,6 +255,21 @@ class CryptoTest {
     }
 
     /**
+     * Unit test for [Crypto.decodeAndAuthenticate].
+     *
+     * Refer 8.4.6.1 "Mesh Private Beacon - IV update in Progress" for test data for Beacon Key and Beacon PDU.
+     */
+    @Test
+    fun testDecodeAndAuthenticate() {
+        val beaconPDU = "02435f18f85cf78a3121f58478a561e488e7cbf3174f022a514741".decodeHex()
+        val beaconKey = "6be76842460b2d3a5850d4698409f1bb".decodeHex()
+        val expected = Pair(0x02.toByte(), "1010abcd".decodeHex())
+        val actual = Crypto.decodeAndAuthenticate(beaconPDU, beaconKey)
+        val isEqual = expected.first == actual?.first && expected.second.contentEquals(actual.second)
+        Assert.assertEquals(true, isEqual)
+    }
+
+    /**
      * Unit test for [Crypto.obfuscate].
      *
      * Refer 8.3.16 "Message #16" for test data for Data to Obfuscate/Deobfuscate, Privacy Key
@@ -274,5 +299,29 @@ class CryptoTest {
         val expectedPECB = "b8bd2c18096e".decodeHex()
         val actualPECB = Crypto.calculateECB(privacyPlainText, privacyKey).copyOfRange(0, 6)
         Assert.assertTrue(expectedPECB.contentEquals(actualPECB))
+    }
+
+    /**
+     * Unit test for [Utils.uint16ToUtf8].
+     *
+     * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
+     */
+    @Test
+    fun testUint16ToUTF8() {
+        val expected = "0010C280C480".decodeHex()
+        val actual = "0000001000800100".decodeHex().uint16ToUtf8()
+        Assert.assertTrue(expected.contentEquals(actual))
+    }
+
+    /**
+     * Unit test for [Utils.utf8ToUint16].
+     *
+     * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
+     */
+    @Test
+    fun testUTF8ToUint16() {
+        val expected = "0000001000800100".decodeHex()
+        val actual = "0010C280C480".decodeHex().utf8ToUint16()
+        Assert.assertTrue(expected.contentEquals(actual))
     }
 }
