@@ -8,8 +8,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":mesh:mesh-core"))
 
+    implementation(project(":mesh:core"))
     api(libs.nordic.theme)
     implementation(libs.nordic.uilogger)
     implementation(libs.nordic.uiscanner)

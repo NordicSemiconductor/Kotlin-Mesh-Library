@@ -4,8 +4,8 @@ plugins {
     kotlin("plugin.serialization") version "1.8.0"
 }
 dependencies {
-    api(project(":mesh:mesh-crypto"))
-    implementation(project(":mesh:mesh-bearer"))
+    api(project(":mesh:crypto"))
+    implementation(project(":mesh:bearer"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")

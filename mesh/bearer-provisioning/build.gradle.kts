@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    api(project(":mesh:mesh-bearer"))
+    api(project(":mesh:bearer"))
 }

@@ -45,8 +45,8 @@ dependencies {
     implementation(project(":feature-mesh-bearer-android"))
     implementation(project(":feature-mesh-bearer-pbgatt"))
     implementation(project(":feature-export"))
-    implementation(project(":mesh:mesh-core"))
-    implementation(project(":mesh:mesh-provisioning"))
+    implementation(project(":mesh:core"))
+    implementation(project(":mesh:provisioning"))
 
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)
