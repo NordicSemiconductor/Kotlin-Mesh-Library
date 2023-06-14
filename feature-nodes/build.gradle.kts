@@ -9,5 +9,10 @@ android {
 
 dependencies {
     implementation(libs.nordic.navigation)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
+    implementation(project(":core-ui"))
+    implementation(project(":core-data"))
+    implementation(project(":feature-mesh-bearer-android"))
+    implementation(project(":mesh:core"))
 }

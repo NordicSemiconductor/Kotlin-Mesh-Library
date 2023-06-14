@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
+import android.os.Build
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,8 @@ import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewMod
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,7 +60,12 @@ internal class ProvisionersViewModel @Inject internal constructor(
      */
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
-        val provisioner = Provisioner()
+        val provisioner = Provisioner().apply {
+            name = Build.MODEL.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.ROOT)
+                else it.toString()
+            }
+        }
         network.run {
             nextAvailableUnicastAddressRange(rangeSize = 0x199A)?.let { range ->
                 provisioner.allocate(range)

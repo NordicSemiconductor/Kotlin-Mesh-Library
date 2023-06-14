@@ -5,6 +5,10 @@ pluginManagement {
         google()
         mavenCentral()
     }
+
+    plugins{
+        id("org.jetbrains.dokka") version "1.8.20"
+    }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -13,31 +17,39 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven(url = "https://androidx.dev/storage/compose-compiler/repository/")
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.5.2")
+            from("no.nordicsemi.android.gradle:version-catalog:1.5.6")
         }
     }
 }
 rootProject.name = "Kotlin-nRF Mesh-Library"
-include (":app")
-include (":core-ui")
-include (":core-data-storage")
-include (":feature-nodes")
-include (":feature-groups")
-include (":feature-settings")
-include (":feature-proxy-filter")
-include (":core-data")
-include (":feature-export")
-include (":feature-network-keys")
-include (":core-common")
-include (":feature-application-keys")
-include (":feature-scenes")
-include (":feature-provisioners")
-include (":mesh-core")
-include (":mesh-crypto")
-include (":mesh-provisioning")
-include (":mesh-configuration")
-include (":mesh-generic")
-include (":mesh-lighting")
+include(":app")
+include(":core-ui")
+include(":core-data-storage")
+include(":feature-nodes")
+include(":feature-groups")
+include(":feature-settings")
+include(":feature-proxy-filter")
+include(":core-data")
+include(":feature-export")
+include(":feature-network-keys")
+include(":core-common")
+include(":feature-application-keys")
+include(":feature-scenes")
+include(":feature-provisioners")
+include(":feature-mesh-bearer-android")
+include(":feature-mesh-bearer-gatt")
+include(":feature-mesh-bearer-pbgatt")
+
+include(":mesh:core")
+include(":mesh:crypto")
+include(":mesh:provisioning")
+include(":mesh:configuration")
+include(":mesh:generic")
+include(":mesh:lighting")
+include(":mesh:logger")
+include(":mesh:bearer")
+include(":mesh:bearer-provisioning")

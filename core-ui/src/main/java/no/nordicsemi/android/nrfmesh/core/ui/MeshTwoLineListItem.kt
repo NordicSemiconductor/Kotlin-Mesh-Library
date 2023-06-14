@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.layout.*
@@ -58,7 +60,7 @@ fun MeshTwoLineListItem(
     subtitle: String = "",
     trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Clip
+    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
 ) {
     Row(
         modifier = modifier

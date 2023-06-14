@@ -1,0 +1,1222 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
+
+package no.nordicsemi.kotlin.mesh.core.model
+
+import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.exception.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import java.lang.Integer.min
+import java.util.*
+
+/**
+ * MeshNetwork representing a Bluetooth mesh network.
+ *
+ * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows
+ *                                  differentiation among multiple mesh networks.
+ * @property name                   Human-readable name for the mesh network.
+ * @property timestamp              Represents the last time the Mesh Object has been modified. The
+ *                                  timestamp is based on Coordinated Universal Time.
+ * @property partial                Indicates if this Mesh Configuration Database is part of a
+ *                                  larger database.
+ * @property networkKeys            List of network keys that includes information about network
+ *                                  keys used in the mesh network.
+ * @property applicationKeys        List of app keys that includes information about app keys used
+ *                                  in the mesh network.
+ * @property provisioners           List of known Provisioners and ranges of addresses that have
+ *                                  been allocated to these Provisioners.
+ * @property nodes                  List of nodes that includes information about mesh nodes in the
+ *                                  mesh network.
+ * @property groups                 List of groups that includes information about groups configured
+ *                                  in the mesh network.
+ * @property scenes                 List of scenes that includes information about scenes configured
+ *                                  in the mesh network.
+ * @property networkExclusions      List of excluded addresses per IvIndex.
+ * @property ivIndex                IV Index of the network received via the last Secure Network
+ *                                  Beacon and its current state.
+ * @property localProvisioner       Main provisioner of the network which is the first provisioner
+ *                                  in the list of provisioners.
+ * @constructor                     Creates a mesh network.
+ */
+@Serializable
+class MeshNetwork internal constructor(
+    @Serializable(with = UUIDSerializer::class)
+    @SerialName(value = "meshUUID")
+    val uuid: UUID = UUID.randomUUID(),
+    @SerialName(value = "meshName")
+    private var _name: String
+) {
+    /**
+     * Convenience constructor to create a network for tests
+     *
+     * @param _name The name of the network
+     */
+    internal constructor(_name: String) : this(UUID.randomUUID(), _name) {
+        add(name = "Primary Network Key", index = 0u)
+    }
+
+    var name: String
+        get() = _name
+        set(value) {
+            require(value.isNotBlank()) { "Name cannot be empty!" }
+            onChange(oldValue = _name, newValue = value) { updateTimestamp() }
+            _name = value
+        }
+    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        internal set
+
+    var partial: Boolean = false
+        internal set(value) {
+            onChange(oldValue = field, newValue = value) { updateTimestamp() }
+            field = value
+        }
+
+    @SerialName("provisioners")
+    internal var _provisioners: MutableList<Provisioner> = mutableListOf()
+    val provisioners: List<Provisioner>
+        get() = _provisioners
+
+    @SerialName("netKeys")
+    internal var _networkKeys: MutableList<NetworkKey> = mutableListOf()
+    val networkKeys: List<NetworkKey>
+        get() = _networkKeys
+
+    @SerialName("appKeys")
+    internal var _applicationKeys: MutableList<ApplicationKey> = mutableListOf()
+    val applicationKeys: List<ApplicationKey>
+        get() = _applicationKeys
+
+    @SerialName("nodes")
+    internal var _nodes: MutableList<Node> = mutableListOf()
+    val nodes: List<Node>
+        get() = _nodes
+
+    @SerialName("groups")
+    internal var _groups: MutableList<Group> = mutableListOf()
+    val groups: List<Group>
+        get() = _groups
+
+    @SerialName("scenes")
+    internal var _scenes: MutableList<Scene> = mutableListOf()
+    val scenes: List<Scene>
+        get() = _scenes
+
+    @SerialName("networkExclusions")
+    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf()
+    internal val networkExclusions: List<ExclusionList>
+        get() = _networkExclusions
+
+    @Transient
+    var ivIndex = IvIndex()
+        internal set
+
+    val localProvisioner: Provisioner?
+        get() = _provisioners.firstOrNull()
+
+    /**
+     * THe next available network key index, or null if the index 4095 is already in use.
+     *
+     * Note: this method does not search for gaps in key indexes, takes next after the last one.
+     */
+    val nextAvailableNetworkKeyIndex: KeyIndex?
+        get() {
+            if (_networkKeys.isEmpty()) return 0u
+            val nextKeyIndex = (_networkKeys.last().index + 1u).toUShort()
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            return null
+        }
+
+    /**
+     * Returns the next available application key index that can be used
+     * when construction an application key.
+     */
+    val nextAvailableApplicationKeyIndex: KeyIndex?
+        get() {
+            if (_applicationKeys.isEmpty()) return 0u
+            val nextKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
+            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            return null
+        }
+
+    /**
+     * Updates timestamp to the current time in milliseconds.
+     */
+    internal fun updateTimestamp() {
+        this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    }
+
+    /**
+     * Returns a provisioner with the given UUID.
+     *
+     * @param uuid UUID of the provisioner.
+     * @return Provisioner with the given UUID or null otherwise
+     */
+    fun provisioner(uuid: UUID): Provisioner? = runCatching {
+        provisioners.first { it.uuid == uuid }
+    }.getOrElse { return null }
+
+    /**
+     * Checks if a provisioner with the given UUID already exists in the network.
+     *
+     * @param provisioner provisioner to check.
+     * @return true if the provisioner exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner belongs to another network.
+     */
+    internal fun has(provisioner: Provisioner) = _provisioners.any { it.uuid == provisioner.uuid }
+
+    /**
+     * Adds the given [Provisioner] to the list of provisioners in the network.
+     *
+     * @param provisioner Provisioner to be added.
+     * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner does not belong to this network.
+     * @throws [NoAddressesAvailable] if no address is available to be assigned.
+     * @throws [OverlappingProvisionerRanges] if the given provisioner has any overlapping address
+     * ranges with an existing provisioner.
+     */
+    @Throws(
+        ProvisionerAlreadyExists::class,
+        DoesNotBelongToNetwork::class,
+        NoAddressesAvailable::class,
+        OverlappingProvisionerRanges::class
+    )
+    fun add(provisioner: Provisioner) {
+        add(
+            provisioner = provisioner,
+            address = nextAvailableUnicastAddress(
+                elementCount = 1, provisioner = provisioner
+            ) ?: throw NoAddressesAvailable
+        )
+    }
+
+    /**
+     * Adds the given Provisioner with the given address to the list of provisioners in the network.
+     *
+     * @param provisioner Provisioner to be added.
+     * @throws [ProvisionerAlreadyExists] if the provisioner already exists.
+     * @throws [DoesNotBelongToNetwork] if the provisioner does not belong to this network.
+     * @throws [OverlappingProvisionerRanges] if the given provisioner has any overlapping address
+     * ranges with an existing provisioner.
+     */
+    @Throws(OverlappingProvisionerRanges::class)
+    fun add(provisioner: Provisioner, address: UnicastAddress?) {
+        require(!_provisioners.contains(provisioner)) { throw ProvisionerAlreadyExists }
+        require(provisioner.network == null || provisioner.network == this) {
+            throw DoesNotBelongToNetwork
+        }
+
+        for (other in _provisioners) {
+            require(!provisioner.hasOverlappingRanges(other)) {
+                throw OverlappingProvisionerRanges
+            }
+        }
+
+        address?.apply {
+            // Is the given address inside provisioner's address range?
+            require(provisioner._allocatedUnicastRanges.any { it.contains(this.address) }) {
+                throw AddressNotInAllocatedRanges
+            }
+            // No other node uses the same address?
+            require(!_nodes.any { it.containsElementWithAddress(this) }) {
+                throw AddressAlreadyInUse
+            }
+        }
+
+        // Is it already added?
+        require(!has(provisioner)) { return }
+
+        // is there a node with the provisioner's uuid
+        require(_nodes.none { it.uuid == provisioner.uuid }) { throw NodeAlreadyExists }
+
+        // Add the provisioner's node
+        address?.let { unicastAddress ->
+            val node = Node(
+                provisioner = provisioner,
+                deviceKey = Crypto.generateRandomKey(),
+                unicastAddress = unicastAddress,
+                elements = listOf(
+                    Element(
+                        location = Location.UNKNOWN,
+                        models = listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
+                    )
+                ),
+                netKeys = _networkKeys,
+                appKeys = _applicationKeys
+            ).apply {
+                companyIdentifier = 0x00E0u //Google
+                replayProtectionCount = maxUnicastAddress
+                name = provisioner.name
+            }
+            add(node)
+        }
+        provisioner.network = this
+        _provisioners.add(provisioner).also { updateTimestamp() }
+        // TODO Needs to save the network
+    }
+
+    /**
+     * Removes the provisioner at the given index.
+     * Note: It is not possible to remove the last provisioner.
+     *
+     * @param index The position of the provisioner to be removed.
+     * @return Provisioner that was removed.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(CannotRemove::class)
+    internal fun removeProvisioner(index: Int): Provisioner {
+        require(_provisioners.size > 1) { throw CannotRemove }
+
+        val localProvisionerRemoved = index == 0
+        val provisioner = _provisioners[index]
+        _provisioners.remove(provisioner)
+
+        // If the old local Provisioner has been removed, and a new one has been set in it's place,
+        // it needs the properties to be updated.
+        if (localProvisionerRemoved) {
+            _provisioners.first().node?.apply {
+                netKeys = _networkKeys.map { NodeKey(it) }
+                appKeys = _applicationKeys.map { NodeKey(it) }
+                companyIdentifier = 0x00E0u
+                replayProtectionCount = maxUnicastAddress
+            }
+
+            // TODO Save the local provisioner
+        }
+        updateTimestamp()
+        return provisioner
+    }
+
+    /**
+     * Removes the given provisioner from the list of provisioners in the network.
+     *
+     * @param provisioner Provisioner to be removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
+    fun remove(provisioner: Provisioner) {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
+        removeProvisioner(_provisioners.indexOf(provisioner))
+    }
+
+    /**
+     * Moves the provisioner from the given 'from' index to the specified 'to' index.
+     *
+     * @param from      Current index of the provisioner.
+     * @param to        Destination index, the provisioner must be moved to.
+     * @return Provisioner that was removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    internal fun moveProvisioner(from: Int, to: Int) {
+        require(from >= 0 && from < _provisioners.size) {
+            throw IllegalArgumentException("Invalid 'from' index!")
+        }
+        require(to >= 0 && to < _provisioners.size) {
+            throw IllegalArgumentException("Invalid 'to' index!")
+        }
+        require(from != to) {
+            return
+        }
+        _provisioners.add(to, removeProvisioner(from)).also { updateTimestamp() }
+    }
+
+    /**
+     * Moves the given provisioner to the specified index.
+     *
+     * @param provisioner   Provisioner to be removed.
+     * @param to            Destination index, the provisioner must be moved to.
+     * @return Provisioner that was removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun move(provisioner: Provisioner, to: Int) {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
+        _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
+            moveProvisioner(from, to)
+        }
+    }
+
+    /**
+     * Disables the configuration capabilities by un-assigning provisioner's address. Un-assigning
+     * an address will delete the provisioner's node. This results in the provisioner not being
+     * able to send or receive mesh messages in the mesh network. However, the provisioner will
+     * still retain it's provisioning capabilities.
+     *
+     * @param provisioner Provisioner of whose configurations are to be disabled.
+     */
+    fun disableConfigurationCapabilities(provisioner: Provisioner) {
+        removeNode(provisioner.uuid)
+    }
+
+    /**
+     * Returns the network key with a given key index.
+     *
+     * @param keyIndex Index of the network key.
+     * @return Network key.
+     * @throws NoSuchElementException if a key for a given key index ws not found.
+     */
+    fun networkKey(keyIndex: KeyIndex) = networkKeys.first { key ->
+        key.index == keyIndex
+    }
+
+    /**
+     * Adds the given [NetworkKey] to the list of network keys in the network.
+     *
+     * @param name      Network key name.
+     * @param key       128-bit key to be added.
+     * @param index     Network key index.
+     * @throws [KeyIndexOutOfRange] if the key index is not within 0 - 4095.
+     * @throws [DuplicateKeyIndex] if the key index is already in use.
+     */
+    @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
+    fun add(
+        name: String, key: ByteArray = Crypto.generateRandomKey(), index: KeyIndex? = null
+    ): NetworkKey {
+        if (index != null) {
+            // Check if the network key index is not already in use to avoid duplicates.
+            require(_networkKeys.none { it.index == index }) { throw DuplicateKeyIndex }
+        }
+        return NetworkKey(
+            index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange,
+            _name = name,
+            _key = key
+        ).apply {
+            network = this@MeshNetwork
+        }.also { networkKey ->
+            // Add the new network key to the network keys and sort them by index.
+            _networkKeys.apply {
+                add(networkKey)
+            }.sortBy { it.index }
+            updateTimestamp()
+        }
+    }
+
+    /**
+     * Removes a given [NetworkKey] from the list of network keys in the mesh network.
+     *
+     * @param key Network key to be removed.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the network or bound to any application
+     *                    key in this network.
+     */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
+    fun remove(key: NetworkKey) {
+        require(key.network == this) { throw DoesNotBelongToNetwork }
+        require(!key.isInUse()) { throw KeyInUse }
+        _networkKeys.remove(key).also { updateTimestamp() }
+    }
+
+    /**
+     * Returns the application key with a given key index.
+     *
+     * @param keyIndex Index of the application key.
+     * @return Application key.
+     * @throws NoSuchElementException if a key for a given key index ws not found.
+     */
+    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.first { key -> key.index == keyIndex }
+
+    /**
+     * Adds the given [ApplicationKey] to the list of network keys in the network.
+     *
+     * @param name Application key name.
+     * @param key 128-bit key to be added.
+     * @param index Application key index.
+     * @param boundNetworkKey Network key to which the application key must be bound to.
+     * @throws [KeyIndexOutOfRange] if the key index is not within 0 - 4095.
+     * @throws [DuplicateKeyIndex] if the key index is already in use.
+     */
+    @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class, IllegalArgumentException::class)
+    fun add(
+        name: String,
+        key: ByteArray = Crypto.generateRandomKey(),
+        index: KeyIndex? = null,
+        boundNetworkKey: NetworkKey
+    ): ApplicationKey {
+        // Check if the network key belongs to the same network.
+        require(boundNetworkKey.network == this) {
+            throw IllegalArgumentException(
+                "Network key ${boundNetworkKey.name} does not belong to network $name!"
+            )
+        }
+        if (index != null) {
+            // Check if the application key index is not already in use to avoid duplicates.
+            require(_applicationKeys.none { it.index == index }) { throw DuplicateKeyIndex }
+        }
+        return ApplicationKey(
+            index = (index ?: nextAvailableApplicationKeyIndex) ?: throw KeyIndexOutOfRange,
+            _name = name,
+            _key = key
+        ).apply {
+            boundNetKeyIndex = boundNetworkKey.index
+            network = this@MeshNetwork
+        }.also { applicationKey ->
+            _applicationKeys.apply {
+                add(applicationKey)
+            }.sortBy { key -> key.index }
+            updateTimestamp()
+        }
+    }
+
+    /**
+     * Removes a given [ApplicationKey] from the list of application keys in the mesh network.
+     *
+     * @param key Application key to be removed.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the network.
+     */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
+    fun remove(key: ApplicationKey) {
+        require(key.network == this) { throw DoesNotBelongToNetwork }
+        require(!key.isInUse()) { throw KeyInUse }
+        _applicationKeys.remove(key).also { updateTimestamp() }
+    }
+
+    /**
+     * Returns the provisioner's node or null, if the provisioner is not a part of the network or
+     * does not have an address assigned.
+     *
+     * @param provisioner Provisioner who's node is to be returned.
+     * @return Null if the provisioner is not a part of the network or if the provisioner does not
+     *         have an address assigned.
+     */
+    fun node(provisioner: Provisioner) = try {
+        require(provisioner.network == this) { throw DoesNotBelongToNetwork }
+        require(has(provisioner)) { return null }
+        node(provisioner.uuid)
+    } catch (e: DoesNotBelongToNetwork) {
+        null
+    }
+
+    /**
+     * Returns the provisioned node for an unprovisioned device.
+     *
+     * @param device Unprovisioned node.
+     * @return provisioned Node matching the unprovisioned device.
+     */
+    @Suppress("KDocUnresolvedReference")
+    fun node(/*device:UnprovisionedDevice*/): Node? {
+        TODO("return node(device.uuid)")
+    }
+
+    /**
+     * Returns the node with the given uuid.
+     *
+     * @param uuid matching UUID.
+     * @return Node
+     */
+    fun node(uuid: UUID) = nodes.find { it.uuid == uuid }
+
+    /**
+     * Adds a given [Node] to the list of nodes in the mesh network.
+     *
+     * @param node                         Node to be added to the network.
+     * @throws NodeAlreadyExists           If the node already exists.
+     * @throws NoAddressesAvailable        If the node is not assigned with an address.
+     * @throws NoNetworkKeysAdded          If the node does not contain a network key.
+     * @throws DoesNotBelongToNetwork      If the network key in the node does not match the keys in
+     *                                     the network.
+     */
+    @Throws(
+        NodeAlreadyExists::class,
+        NoAddressesAvailable::class,
+        NoNetworkKeysAdded::class,
+        DoesNotBelongToNetwork::class
+    )
+    fun add(node: Node) {
+        // Ensure the node does not exists already.
+        require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
+        // Verify if the address range is available for the new Node.
+        require(isAddressAvailable(node.primaryUnicastAddress, node)) { throw NoAddressesAvailable }
+        // Ensure the Network Key exists.
+        require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
+        // Make sure the network contains a Network Key with he same Key Index.
+        require(_networkKeys.any { it.index == node.netKeys.first().index }) {
+            throw DoesNotBelongToNetwork
+        }
+        _nodes.add(node.also { it.network = this }).also { updateTimestamp() }
+    }
+
+    /**
+     * Removes a given node from the list of nodes in the mesh network.
+     *
+     * @param node Node to be removed.
+     */
+    fun remove(node: Node) {
+        removeNode(node.uuid)
+    }
+
+    /**
+     * Removes a node with the given UUID from the mesh network.
+     *
+     * @param uuid UUID of the node to be removed.
+     */
+    internal fun removeNode(uuid: UUID) {
+        _nodes.find {
+            it.uuid == uuid
+        }?.let { node ->
+            _nodes.remove(node)
+            // Remove unicast addresses of all node's elements from the scene
+            _scenes.forEach { it.remove(node.addresses) }
+            // When a Node is removed from the network, the unicast addresses that were in used
+            // cannot be assigned to another node until the IV index is incremented by 2 which
+            // effectively resets the Sequence number used by all the nodes in the network.
+            _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
+        }.also { updateTimestamp() }
+    }
+
+    /**
+     * Adds a given [Group] to the list of groups in the mesh network.
+     *
+     * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
+     * @throws [GroupAlreadyExists] If the group already exists.
+     */
+    @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
+    fun add(group: Group) {
+        require(!_groups.contains(group)) { throw GroupAlreadyExists }
+        require(group.network == null) { throw DoesNotBelongToNetwork }
+        _groups.add(group.also { it.network = this }).also { updateTimestamp() }
+    }
+
+    /**
+     * Removes a given [Group] from the list of groups in the mesh network.
+     *
+     * @param group Group to be removed.
+     * @throws [DoesNotBelongToNetwork] If the group does not belong to the network.
+     * @throws [GroupInUse] If the group is already in use.
+     */
+    @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
+    fun remove(group: Group) {
+        require(group.network == this) { throw DoesNotBelongToNetwork }
+        require(!group.isUsed) { throw GroupInUse }
+        _groups.remove(group).also { updateTimestamp() }
+    }
+
+    /**
+     * Returns the Scene key with a given scene number.
+     *
+     * @param number Scene number of the scene.
+     * @return Scene.
+     * @throws NoSuchElementException if a scene for a given scene number ws not found.
+     */
+    fun scene(number: SceneNumber) = scenes.first { scene ->
+        scene.number == number
+    }
+
+    /**
+     * Adds a given Scene with the given name and the scene number to the mesh network.
+     *
+     * @param name Name of the scene.
+     * @param number Scene number.
+     * @throws [SceneAlreadyExists] If the scene already exists.
+     */
+    @Throws(SceneAlreadyExists::class)
+    fun add(name: String, number: SceneNumber): Scene {
+        require(_scenes.map { it.number }.none { it == number }) { throw SceneAlreadyExists }
+        return Scene(_name = name, number = number).apply {
+            network = this@MeshNetwork
+        }.also { scene ->
+            _scenes.apply {
+                add(scene)
+            }.sortBy { it.number }
+            updateTimestamp()
+        }
+    }
+
+    /**
+     * Adds a given [Scene] to the list of scenes in the mesh network.
+     *
+     * @param scene Scene to be added.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneAlreadyExists] If the scene already exists.
+     */
+    @Throws(DoesNotBelongToNetwork::class, SceneAlreadyExists::class)
+    internal fun add(scene: Scene) {
+        require(!_scenes.contains(scene)) { throw SceneAlreadyExists }
+        require(scene.network == null) { throw DoesNotBelongToNetwork }
+        _scenes.add(scene.also { it.network = this }).also { updateTimestamp() }
+    }
+
+    /**
+     * Removes a given [Scene] from the list of groups in the mesh network.
+     *
+     * @param scene Scene to be removed.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneInUse] If the scene is already in use.
+     */
+    @Throws(DoesNotBelongToNetwork::class)
+    fun remove(scene: Scene) {
+        require(scene.network == this) { throw DoesNotBelongToNetwork }
+        require(!scene.isInUse) { throw SceneInUse }
+        _scenes.remove(scene).also { updateTimestamp() }
+    }
+
+    /**
+     * Checks if the address range is available for use.
+     *
+     * @param range Unicast range to check.
+     * @return true if the given address range is available for use or false otherwise.
+     */
+    fun isAddressRangeAvailable(range: UnicastRange) = _nodes.none {
+        it.containsElementsWithAddress(range)
+    } && !_networkExclusions.contains(range, ivIndex)
+
+    /**
+     * Checks if the address is available to be assigned to a node with the given number of
+     * elements or false otherwise.
+     *
+     * @param address         Possible address of the primary element of the node.
+     * @param elementCount    Element count.
+     * @return true if the address is available to be assigned to a node with given number of
+     *         elements or false otherwise.
+     */
+    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) = isAddressRangeAvailable(
+        UnicastRange(address, elementCount)
+    )
+
+    /**
+     * Checks if the address is available to be assigned to a node with the given number of
+     * elements.
+     *
+     * @param address         Possible address of the primary element of the node.
+     * @param node            Node
+     * @return true if the address is assignable to the given node or false otherwise.
+     */
+    fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
+        val range = UnicastRange(address, (address + node.elementsCount))
+        return nodes.filter { it.uuid != node.uuid }
+            .none { it.containsElementsWithAddress(range) } &&
+                !_networkExclusions.contains(range, ivIndex)
+    }
+
+    /**
+     * Returns the next available unicast address from the provisioner's range that can be assigned
+     * to a new node based on the given number of elements. The zeroth element is identified by the
+     * node's Unicast Address. Each following element is  identified by a subsequent Unicast
+     * Address.
+     * @param offset       Unicast address offset.
+     * @param elementCount Number of elements in the node.
+     * @param provisioner  Provisioner that's provisioning the node.
+     * @return the next available Unicast Address that can be assigned to the node or null if there
+     *         are no addresses available in the allocated range.
+     * @throws NoUnicastRangeAllocated if the provisioner has no address range allocated.
+     */
+    @Throws(NoUnicastRangeAllocated::class)
+    fun nextAvailableUnicastAddress(
+        offset: UnicastAddress = UnicastAddress(minUnicastAddress),
+        elementCount: Int,
+        provisioner: Provisioner
+    ): UnicastAddress? {
+        require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
+
+        val excludedAddresses = networkExclusions.excludedAddresses(ivIndex).map { it }
+
+        val usedAddresses = (excludedAddresses + nodes
+            .flatMap { it.elements }
+            .map { it.unicastAddress })
+            .sortedBy { it.address }
+
+        provisioner._allocatedUnicastRanges.forEach { range ->
+            var address = range.lowAddress
+
+            if (range.contains(offset.address) && address < offset) address = offset
+
+            for (index in usedAddresses.indices) {
+                val usedAddress = usedAddresses[index]
+
+                // Skip nodes with addresses below the range.
+                if (address > usedAddress) continue
+
+                if (address + elementCount - 1 < usedAddress) return address
+
+                address = usedAddress + 1
+
+                // If the new address is outside of the range, go to the next one.
+                if (address + elementCount - 1 > range.highAddress) break
+            }
+            // If the range has available space, return the address.
+            if (address + elementCount - 1 <= range.highAddress) return address
+        }
+        return null
+    }
+
+    /**
+     * Returns the next available Group from the Provisioner's range that can be assigned to
+     * a new Group.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available group address that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     * @throws [NoGroupRangeAllocated] if no scene range is allocated to the provisioner.
+     */
+    @Throws(NoGroupRangeAllocated::class)
+    fun nextAvailableGroup(provisioner: Provisioner): GroupAddress? {
+        require(provisioner._allocatedGroupRanges.isNotEmpty()) { throw NoGroupRangeAllocated }
+        val sortedGroups = _groups.sortedBy { it.address.address }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner._allocatedGroupRanges.forEach { groupRange ->
+            var groupAddress = groupRange.lowAddress
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedGroups.size) {
+                val group = sortedGroups[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (groupAddress > group.address) continue
+
+                // If we found a space before the current node, return the scene number.
+                if (groupAddress < group.address) return groupAddress
+
+                // Else, move the address to the next available address.
+                groupAddress = (group.address as GroupAddress) + 1
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (groupAddress > groupRange.highAddress) break
+            }
+
+            // If the range has available space, return the address.
+            if (groupAddress <= groupRange.highAddress) return groupAddress
+        }
+        // No group address was found :(
+        return null
+    }
+
+    /**
+     * Returns the next available Scene number from the Provisioner's range that can be assigned to
+     * a new Scene.
+     *
+     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @return The next available Scene number that can be assigned to a new Scene, or null, if
+     *         there are no more available numbers in the allocated range.
+     * @throws [NoSceneRangeAllocated] if no scene range is allocated to the provisioner.
+     */
+    @Throws(NoSceneRangeAllocated::class)
+    fun nextAvailableScene(provisioner: Provisioner = provisioners.first()): SceneNumber? {
+        require(provisioner._allocatedSceneRanges.isNotEmpty()) { throw NoSceneRangeAllocated }
+        val sortedScenes = _scenes.sortedBy { it.number }
+
+        // Iterate through all scenes just once, while iterating over ranges.
+        var index = 0
+        provisioner._allocatedSceneRanges.forEach { range ->
+            var scene = range.firstScene
+
+            // Iterate through scene objects that weren't checked yet.
+            val currentIndex = index
+            for (i in currentIndex until sortedScenes.size) {
+                val sceneObject = sortedScenes[i]
+                index += 1
+                // Skip scenes with number below the range.
+                if (scene > sceneObject.number) continue
+
+                // If we found a space before the current node, return the scene number.
+                if (scene < sceneObject.number) return scene
+
+                // Else, move the address to the next available address.
+                scene = (sceneObject.number + 1u).toUShort()
+
+                // If the new scene number is outside of the range, go to the next one.
+                if (scene > range.lastScene) break
+            }
+
+            // If the range has available space, return the address.
+            if (scene <= range.lastScene) return scene
+        }
+        // No scene number was found :(
+        return null
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available unicast address range or null if there are no available ranges.
+     */
+    fun nextAvailableUnicastAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+        size = rangeSize,
+        bound = UnicastRange(
+            UnicastAddress(minUnicastAddress),
+            UnicastAddress(maxUnicastAddress)
+        ),
+        ranges = provisioners.flatMap { it.allocatedUnicastRanges }.sortedBy { it.low }
+    )?.let {
+        it as UnicastRange
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available group address range or null if there are no available ranges.
+     */
+    fun nextAvailableGroupAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+        size = rangeSize,
+        bound = GroupRange(
+            GroupAddress(minGroupAddress),
+            GroupAddress(maxGroupAddress)
+        ),
+        ranges = provisioners.flatMap { it.allocatedGroupRanges }.sortedBy { it.low }
+    )?.let {
+        it as GroupRange
+    }
+
+    /**
+     * Next available unicast address range for a given range size.
+     *
+     * @param rangeSize Size of the address range.
+     * @return Next available group address range or null if there are no available ranges.
+     */
+    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableSceneRange(
+        size = rangeSize,
+        bound = SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber),
+        ranges = provisioners.flatMap { it.allocatedSceneRanges }.sortedBy { it.low }
+    )
+
+    /**
+     * Returns the next available address range.
+     *
+     * @param size Size of the range to be allocated.
+     * @param bound Allocated range that will be bound to this provisioner.
+     * @param ranges Allocated ranges.
+     */
+    private fun getNextAvailableAddressRange(
+        size: Int, bound: AddressRange, ranges: List<AddressRange>
+    ): AddressRange? {
+        var bestRange: AddressRange? = null
+        var lastUpperBound = (bound.lowAddress.address - 1u).toInt()
+
+        // Go through all ranges looking for a gaps.
+        for (range in ranges) {
+            // If there is a space available before this range, return it.
+            if (lastUpperBound + size < range.lowAddress.address.toInt())
+                return createRange(
+                    bound,
+                    (lastUpperBound + 1).toUShort(),
+                    (lastUpperBound + size).toUShort()
+                )
+
+            // If the space exists, but it's not as big as requested, compare
+            // it with the best range so far and replace if it's bigger.
+            val availableSize = range.lowAddress.address.toInt() - lastUpperBound - 1
+            if (availableSize > 0) {
+                val newRange = createRange(
+                    bound,
+                    (lastUpperBound + 1).toUShort(),
+                    (lastUpperBound + availableSize).toUShort()
+                )
+
+                if (bestRange == null || newRange.diff > bestRange.diff) {
+                    bestRange = newRange
+                }
+            }
+            lastUpperBound = range.highAddress.address.toInt()
+        }
+        // If if we didn't return earlier, check after the last range and if the requested size
+        // hasn't been found, return the best found.
+        val availableSize = bound.highAddress.address.toInt() - lastUpperBound
+        val bestSize = bestRange?.diff?.toInt() ?: 0
+        return if (availableSize > bestSize) {
+            createRange(
+                bound,
+                (lastUpperBound + 1).toUShort(),
+                (lastUpperBound + min(size, availableSize)).toUShort()
+            )
+        } else bestRange // The gap of requested size hasn't been found. Return the best found.
+    }
+
+    /**
+     * Returns the next available scene range.
+     *
+     * @param size Size of the range to be allocated.
+     * @param bound Allocated range that will be bound to this provisioner.
+     * @param ranges Allocated ranges.
+     */
+    private fun getNextAvailableSceneRange(
+        size: Int, bound: SceneRange, ranges: List<SceneRange>
+    ): SceneRange? {
+        var bestRange: SceneRange? = null
+        var lastUpperBound = (bound.firstScene - 1u).toInt()
+
+        // Go through all ranges looking for a gaps.
+        for (range in ranges) {
+            // If there is a space available before this range, return it.
+            if (lastUpperBound + size < range.firstScene.toInt())
+                return SceneRange(
+                    (lastUpperBound + 1),
+                    (lastUpperBound + size)
+                )
+
+            // If the space exists, but it's not as big as requested, compare
+            // it with the best range so far and replace if it's bigger.
+            if (range.firstScene.toInt() - lastUpperBound > 1) {
+                val newRange = SceneRange(
+                    (lastUpperBound + 1).toUShort(),
+                    (range.firstScene - 1u).toUShort()
+                )
+
+                if (bestRange == null || newRange.diff > bestRange.diff) {
+                    bestRange = newRange
+                }
+            }
+            lastUpperBound = range.firstScene.toInt()
+        }
+        // If if we didn't return earlier, check after the last range and if the requested size
+        // hasn't been found, return the best found.
+        return if (lastUpperBound + size < bound.firstScene.toInt()) {
+            SceneRange((lastUpperBound + 1).toUShort(), (lastUpperBound + size - 1).toUShort())
+        } else bestRange // The gap of requested size hasn't been found. Return the best found.
+    }
+
+    /**
+     * Creates an address rang.
+     *
+     * @param bound Address range bound.
+     * @param low Low address.
+     * @param high High address.
+     */
+    private fun createRange(bound: AddressRange, low: Address, high: Address) = when (bound) {
+        is UnicastRange -> UnicastRange(UnicastAddress(low), UnicastAddress(high))
+        is GroupRange -> GroupRange(GroupAddress(low), GroupAddress(high))
+    }
+
+    internal fun apply(config: NetworkConfiguration) = when (config) {
+        is NetworkConfiguration.Full -> this
+        is NetworkConfiguration.Partial -> {
+            partial = true
+            // List of Network Keys to export.
+            filter(config.networkKeysConfig)
+            // List of Application Keys to export.
+            filter(config.applicationKeysConfig)
+            // List of nodes to export.
+            filter(config.nodesConfig)
+            // List of provisioners to export.
+            filter(config.provisionersConfig)
+
+            // Excludes the nodes unknown to network keys.
+            // TODO what will happen to the provisioner if it's node is excluded due to an
+            //      unknown network key although a provisioner knows all the network keys.
+            filterNodesUnknownToNetworkKeys()
+            // Exclude app keys that are bound but not in the selected application key list.
+            filterUnselectedApplicationKeys()
+            filter(config.groupsConfig)
+            // List of Scenes to export.
+            filter(config.scenesConfig)
+            this
+        }
+    }
+
+    /**
+     * Includes network keys for a partial export with the given configuration.
+     *
+     * @param config Network key configuration.
+     */
+    private fun filter(config: NetworkKeysConfig) {
+        if (config is NetworkKeysConfig.Some) {
+            // Filter the network keys matching the configuration.
+            _networkKeys = _networkKeys.filter { key ->
+                key in config.keys
+            }.toMutableList()
+
+            // Excludes nodes that does not contain selected network keys.
+            _nodes = _nodes.filter { node ->
+                networkKeys.map { it.index }.any { keyIndex ->
+                    keyIndex !in node.netKeys.map { it.index }
+                }
+            }.toMutableList()
+        }
+    }
+
+    /**
+     * Includes application keys for a partial export with the given configuration.
+     *
+     * @param config Application key configuration.
+     */
+    private fun filter(config: ApplicationKeysConfig) {
+        if (config is ApplicationKeysConfig.Some) {
+            // List of application keys set in the configuration, but we must only export the
+            // keys that are bound to that network key.
+            _applicationKeys = _applicationKeys.filter { applicationKey ->
+                applicationKey.netKey?.let {
+                    it in networkKeys
+                } ?: false
+            }.toMutableList()
+        }
+    }
+
+    /**
+     * Filters nodes for a partial export with the given configuration.
+     *
+     * @param config Node configuration.
+     */
+    private fun filter(config: NodesConfig) {
+        when (config) {
+            is NodesConfig.All -> if (config.deviceKeyConfig == DeviceKeyConfig.EXCLUDE_KEY) {
+                _nodes = _nodes.map { node ->
+                    node.copy(deviceKey = null)
+                }.toMutableList()
+            } else _nodes
+
+            is NodesConfig.Some -> {
+                val withDeviceKey = _nodes.filter { node ->
+                    node in config.withDeviceKey
+                }.toMutableList()
+
+                val withoutDeviceKey = _nodes.filter { node ->
+                    node in config.withoutDeviceKey
+                }.map { node ->
+                    node.copy(deviceKey = null)
+                }.toMutableList()
+
+                _nodes.clear()
+                _nodes = (withDeviceKey + withoutDeviceKey).toMutableList()
+
+                // Add any missing provisioner nodes if they were not selected when selecting
+                // nodes.
+                // TODO should the device key be included for such a node?
+                provisioners.forEach { provisioner ->
+                    if (!has(provisioner)) {
+                        provisioner.node?.let { it -> add(it) }
+                    }
+                }
+                nodes
+            }
+        }
+    }
+
+    /**
+     * Filters provisioners for a partial export with the given configuration.
+     *
+     * @param config Provisioners configuration.
+     */
+    private fun filter(config: ProvisionersConfig) {
+        if (config is ProvisionersConfig.Some || config is ProvisionersConfig.One) {
+            // First Let's exclude provisioners that are not selected.
+            _provisioners = _provisioners.filter { provisioner ->
+                node(provisioner = provisioner) != null
+            }.toMutableList()
+        }
+        // The above process will exclude provisioners that does not have an address as they
+        // will not have corresponding nodes. The following step would re-add the selected
+        // provisioners that might have been excluded.
+        _provisioners = _provisioners.filter { provisioner ->
+            when (config) {
+                is ProvisionersConfig.Some -> provisioner in config.provisioners
+                is ProvisionersConfig.One -> provisioner == config.provisioner
+                is ProvisionersConfig.All -> true
+            }
+        }.toMutableList()
+    }
+
+    /**
+     * Filters duplicate provisioners.
+     *
+     * @param provisioners List of provisioners to filter
+     */
+    private fun filterDuplicateProvisioners(provisioners: List<Provisioner>) =
+        provisioners.filter { provisioner -> !has(provisioner) }
+
+    /**
+     * Includes groups for a partial export with the given configuration.
+     *
+     * @param config Groups configuration.
+     */
+    private fun filter(config: GroupsConfig) {
+        if (config is GroupsConfig.Related) {
+            _groups = _groups.filter { group ->
+                group.isUsed
+            }.toMutableList()
+        } else if (config is GroupsConfig.Some) {
+            _groups.forEach { group ->
+                _nodes.filter { node ->
+                    node !in group.nodes()
+                }.forEach { node ->
+                    node.elements.forEach { element ->
+                        element.models.forEach { model ->
+                            if (model.publish?.address is GroupAddress) {
+                                model.publish = null
+                            }
+                            model.subscribe = model.subscribe.filterIsInstance<GroupAddress>()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Includes scenes for a partial export with the given configuration.
+     *
+     * @param config Scenes configuration.
+     */
+    private fun filter(config: ScenesConfig) {
+        if (config is ScenesConfig.Some) {
+            _scenes = _scenes.filter { scene ->
+                scene in config.scenes
+            }.toMutableList()
+        }
+        // Let's exclude unselected nodes from the list of addresses in scenes.
+        _scenes.forEach { scene ->
+            scene.addresses.filter { address ->
+                address !in _nodes.map { node ->
+                    node.primaryUnicastAddress
+                }
+            }
+        }
+    }
+
+    /**
+     * Excludes nodes that does not contain selected network keys.
+     */
+    private fun filterNodesUnknownToNetworkKeys() {
+        _nodes = _nodes.filter { node ->
+            networkKeys.map { it.index }.any { keyIndex ->
+                keyIndex !in node.netKeys.map { it.index }
+            }
+        }.toMutableList()
+    }
+
+    /**
+     * Excludes unselected application keys from models for a partial export.
+     */
+    private fun filterUnselectedApplicationKeys() {
+        _nodes.forEach { node ->
+            node._elements.forEach { element ->
+                element.models.forEach { model ->
+                    model.bind.filter { keyIndex ->
+                        keyIndex !in _applicationKeys.map { key ->
+                            key.index
+                        }
+                    }.forEach { keyIndex ->
+                        if (model.publish?.index == keyIndex.toInt()) {
+                            model.publish = null
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    companion object {
+        /**
+         *  Invoked when an observable property is changed.
+         *
+         *  @param oldValue Old value of the property.
+         *  @param newValue New value to be assigned.
+         *  @param action Lambda to be invoked if the [newValue] is not the same as [oldValue].
+         */
+        fun <T> onChange(oldValue: T, newValue: T, action: () -> Unit) {
+            if (newValue != oldValue) action()
+        }
+    }
+}
+
+

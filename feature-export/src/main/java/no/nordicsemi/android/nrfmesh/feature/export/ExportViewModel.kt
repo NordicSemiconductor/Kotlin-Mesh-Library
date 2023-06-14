@@ -5,23 +5,31 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.DeviceKeyConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkKeysConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NodesConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ProvisionersConfig
 import javax.inject.Inject
 
 @HiltViewModel
 class ExportViewModel @Inject internal constructor(
+    savedStateHandle: SavedStateHandle,
+    navigator: Navigator,
     private val repository: DataStoreRepository
-) : ViewModel() {
+) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
 
     var uiState by mutableStateOf(ExportScreenUiState())
         private set

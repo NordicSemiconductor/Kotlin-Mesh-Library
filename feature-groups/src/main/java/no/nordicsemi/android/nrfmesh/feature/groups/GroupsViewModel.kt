@@ -1,0 +1,48 @@
+package no.nordicsemi.android.nrfmesh.feature.groups
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.navigation.Navigator
+import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
+import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import javax.inject.Inject
+
+@HiltViewModel
+internal class GroupsViewModel @Inject internal constructor(
+    navigator: Navigator,
+    savedStateHandle: SavedStateHandle,
+    private val repository: DataStoreRepository
+) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+    private val _uiState = MutableStateFlow(GroupsScreenUiState(listOf()))
+    val uiState: StateFlow<GroupsScreenUiState> = _uiState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        GroupsScreenUiState()
+    )
+
+    private lateinit var network: MeshNetwork
+
+    init {
+        viewModelScope.launch {
+            repository.network.collect { network ->
+                this@GroupsViewModel.network = network
+                _uiState.value = GroupsScreenUiState(
+                    groups = network.groups
+                )
+            }
+        }
+    }
+}
+
+
+data class GroupsScreenUiState internal constructor(
+    val groups: List<Group> = listOf()
+)

@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":mesh-core"))
 
+    implementation(project(":mesh:core"))
     implementation(libs.nordic.navigation)
 }

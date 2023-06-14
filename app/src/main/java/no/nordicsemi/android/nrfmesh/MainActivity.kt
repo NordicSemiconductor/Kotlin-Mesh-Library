@@ -2,11 +2,10 @@ package no.nordicsemi.android.nrfmesh
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.theme.NordicActivity
 import no.nordicsemi.android.common.theme.NordicTheme
-import no.nordicsemi.android.nrfmesh.ui.MeshApp
+import no.nordicsemi.android.nrfmesh.ui.network.NetworkRoute
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {
@@ -15,7 +14,7 @@ class MainActivity : NordicActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NordicTheme {
-                MeshApp()
+                NetworkRoute()
             }
         }
     }

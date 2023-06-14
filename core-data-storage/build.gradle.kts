@@ -10,7 +10,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":mesh-core"))
+    implementation(project(":mesh:core"))
     implementation(project(":core-common"))
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 }

@@ -13,5 +13,5 @@ android {
 dependencies {
     implementation(project(":core-common"))
     implementation(project(":core-data-storage"))
-    implementation(project(":mesh-core"))
+    implementation(project(":mesh:core"))
 }
