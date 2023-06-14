@@ -13,7 +13,7 @@ dependencies {
 
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
-
-    implementation(project(":mesh-core"))
     implementation(project(":feature-mesh-bearer-android"))
+
+    implementation(project(":mesh:mesh-core"))
 }

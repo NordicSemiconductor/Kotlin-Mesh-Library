@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
 
-    implementation(project(":mesh-core"))
+    implementation(project(":mesh:mesh-core"))
 
     implementation(libs.nordic.navigation)
 }

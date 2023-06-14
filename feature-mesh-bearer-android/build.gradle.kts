@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    api(project(":mesh-bearer"))
+    api(project(":mesh:mesh-bearer"))
 
     implementation(libs.androidx.core)
     implementation(libs.nordic.blek.core)

@@ -9,7 +9,7 @@ android {
 
 dependencies {
     api(project(":feature-mesh-bearer-android"))
-    api(project(":mesh-bearer-provisioning"))
+    api(project(":mesh:mesh-bearer-provisioning"))
 
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)

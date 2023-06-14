@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":mesh-core"))
+    implementation(project(":mesh:mesh-core"))
 
     api(libs.nordic.theme)
     implementation(libs.nordic.uilogger)

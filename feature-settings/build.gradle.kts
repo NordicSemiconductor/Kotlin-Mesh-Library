@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":feature-application-keys"))
     implementation(project(":feature-scenes"))
 
-    implementation(project(":mesh-core"))
+    implementation(project(":mesh:mesh-core"))
 
     implementation(libs.nordic.navigation)
 }

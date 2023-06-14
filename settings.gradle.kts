@@ -36,25 +36,16 @@ include(":core-common")
 include(":feature-application-keys")
 include(":feature-scenes")
 include(":feature-provisioners")
-
-include(":mesh-core")
-include(":mesh-crypto")
-include(":mesh-provisioning")
-include(":mesh-configuration")
-include(":mesh-generic")
-include(":mesh-lighting")
-include(":mesh-logger")
-include(":mesh-bearer")
-include(":mesh-bearer-provisioning")
-
 include(":feature-mesh-bearer-android")
 include(":feature-mesh-bearer-gatt")
 include(":feature-mesh-bearer-pbgatt")
 
-/*if (file("../Kotlin-BLE-Library").exists()) {
-    includeBuild("../Kotlin-BLE-Library")
-}
-if (file("../Android-Common-Libraries").exists()) {
-    includeBuild("../Android-Common-Libraries")
-}
-*/
+include(":mesh:mesh-core")
+include(":mesh:mesh-crypto")
+include(":mesh:mesh-provisioning")
+include(":mesh:mesh-configuration")
+include(":mesh:mesh-generic")
+include(":mesh:mesh-lighting")
+include(":mesh:mesh-logger")
+include(":mesh:mesh-bearer")
+include(":mesh:mesh-bearer-provisioning")
