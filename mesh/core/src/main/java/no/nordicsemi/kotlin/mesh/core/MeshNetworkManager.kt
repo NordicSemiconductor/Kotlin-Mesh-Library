@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.flow.*
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
+import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
@@ -21,6 +22,7 @@ class MeshNetworkManager(private val storage: Storage) {
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
     private lateinit var network: MeshNetwork
+    private lateinit var networkManager: NetworkManager
 
     /**
      * Loads the network from the storage provided by the user.
@@ -57,6 +59,7 @@ class MeshNetworkManager(private val storage: Storage) {
         MeshNetwork(uuid = uuid, _name = name).also {
             network = it
             _meshNetwork.emit(it)
+            networkManager = NetworkManager(this)
         }
 
     /**
@@ -71,6 +74,7 @@ class MeshNetworkManager(private val storage: Storage) {
         deserialize(array).also {
             network = it
             _meshNetwork.emit(it)
+            networkManager = NetworkManager(this)
         }
 
     /**
