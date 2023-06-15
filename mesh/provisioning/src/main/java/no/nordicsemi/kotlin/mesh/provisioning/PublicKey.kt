@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
+
 /**
  * Defines Public Key type that's supported by the device. This field is received as a part of the
  * Provisioning Capabilities PDU.
@@ -20,7 +22,11 @@ sealed class PublicKey {
      *
      * @property key OOB public key.
      */
-    data class OobPublicKey(val key: ByteArray) : PublicKey()
+    data class OobPublicKey(val key: ByteArray) : PublicKey() {
+        init {
+            require(key.size == 16) { throw InvalidKeyLength }
+        }
+    }
 
     val method: PublicKeyMethod
         get() = when (this) {
