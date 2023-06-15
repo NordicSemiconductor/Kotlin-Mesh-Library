@@ -19,8 +19,12 @@ import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
  * @property algorithm         Algorithm to be used for provisioning.
  * @property publicKey         Public key to be used for provisioning.
  * @property authMethod        Authentication method to be used for provisioning.
+ * @throws NoNetworkKeysAdded  Exception thrown when there are no network keys added to the mesh
+ *                             network.
+ * @throws NoLocalProvisioner  Exception thrown when there is no local provisioner added to the mesh
+ *                             network.
  */
-data class ProvisioningConfiguration(
+data class ProvisioningParameters internal constructor(
     private val meshNetwork: MeshNetwork,
     private val capabilities: ProvisioningCapabilities
 ) {
@@ -29,17 +33,14 @@ data class ProvisioningConfiguration(
         meshNetwork.nextAvailableUnicastAddress(
             elementCount = capabilities.numberOfElements,
             provisioner = it
-        )
-    } ?: run {
-        throw NoLocalProvisioner
-    }
+        ) ?: throw NoAddressAvailable
+    } ?: throw NoLocalProvisioner
+
     var networkKey: NetworkKey = meshNetwork.networkKeys.firstOrNull() ?: throw NoNetworkKeysAdded
 
     var algorithm: Algorithm = capabilities.algorithms.strongest()
 
-    var publicKey: PublicKey = if (capabilities.publicKeyType.isNotEmpty()) {
-        PublicKey.OobPublicKey(ByteArray(16) { 0x00 })
-    } else PublicKey.NoOobPublicKey
+    var publicKey: PublicKey = PublicKey.NoOobPublicKey
 
     var authMethod: AuthenticationMethod =
         capabilities.supportedAuthMethods.first()

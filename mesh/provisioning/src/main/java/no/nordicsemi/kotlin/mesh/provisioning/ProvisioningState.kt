@@ -16,14 +16,16 @@ sealed class ProvisioningState {
     /**
      * Provisioning Capabilities were received.
      *
-     * @property capabilities Capabilities of the device.
-     * @property start        Lambda func to invoke to start provisioning with the capabilities.
-     * @property cancel       Lambda func to invoke to cancel the provisioning.
+     * @property capabilities           Capabilities of the device.
+     * @property parameters             Default configuration parameters of the device.
+     * @property start                  Lambda func to invoke to start provisioning with the
+     *                                  capabilities.
+     * @property cancel                 Lambda func to invoke to cancel the provisioning.
      */
     data class CapabilitiesReceived(
         val capabilities: ProvisioningCapabilities,
-        val configuration: ProvisioningConfiguration,
-        val start: (configuration: ProvisioningConfiguration) -> Unit,
+        val parameters: ProvisioningParameters,
+        val start: (parameters: ProvisioningParameters) -> Unit,
         val cancel: () -> Unit
     ) : ProvisioningState()
 

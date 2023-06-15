@@ -41,7 +41,7 @@ class ProvisioningManager(
     private val bearer: MeshProvisioningBearer
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    lateinit var configuration: ProvisioningConfiguration
+    lateinit var configuration: ProvisioningParameters
     var logger: Logger? = null
 
     var suggestedUnicastAddress: UnicastAddress? = null
@@ -134,7 +134,7 @@ class ProvisioningManager(
             emit(
                 value = ProvisioningState.CapabilitiesReceived(
                     capabilities = capabilities,
-                    configuration = configuration,
+                    parameters = configuration,
                     start = { configuration ->
                         this@ProvisioningManager.configuration = configuration
                         mutex.unlock()
@@ -289,7 +289,7 @@ class ProvisioningManager(
                 throw InvalidPdu
             }
             provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
-            configuration = ProvisioningConfiguration(meshNetwork, capabilities)
+            configuration = ProvisioningParameters(meshNetwork, capabilities)
             meshNetwork.localProvisioner?.let {
                 // Calculates the unicast address automatically based ont he number of elements.
                 if (configuration.unicastAddress == null) {

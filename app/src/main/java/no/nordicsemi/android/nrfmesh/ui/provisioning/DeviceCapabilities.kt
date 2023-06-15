@@ -59,7 +59,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
@@ -68,7 +68,7 @@ internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
@@ -94,10 +94,10 @@ internal fun DeviceCapabilities(
                 scope = scope,
                 snackbarHostState = snackbarHostState,
                 keyboardController = keyboardController,
-                address = state.configuration.unicastAddress!!.address,
+                address = state.parameters.unicastAddress!!.address,
                 onAddressChanged = {
                     onAddressChanged(
-                        state.configuration, state.capabilities.numberOfElements, it
+                        state.parameters, state.capabilities.numberOfElements, it
                     )
                 },
                 isValidAddress = isValidAddress,
@@ -107,8 +107,8 @@ internal fun DeviceCapabilities(
         item {
             KeyRow(
                 modifier = Modifier.clickable {
-                    onNetworkKeyClick(state.configuration.networkKey.index)
-                }, name = state.configuration.networkKey.name
+                    onNetworkKeyClick(state.parameters.networkKey.index)
+                }, name = state.parameters.networkKey.name
             )
         }
         item {

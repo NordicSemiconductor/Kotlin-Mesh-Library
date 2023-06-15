@@ -43,7 +43,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
@@ -78,7 +78,7 @@ private fun ProvisioningScreen(
     provisionerState: ProvisionerState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
@@ -157,7 +157,7 @@ private fun ProvisioningStateInfo(
     state: ProvisioningState,
     unprovisionedDevice: UnprovisionedDevice,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningConfiguration, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     authenticate: (AuthAction, String) -> Unit,

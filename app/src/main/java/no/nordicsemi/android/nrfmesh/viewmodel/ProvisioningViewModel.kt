@@ -35,7 +35,7 @@ import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningConfiguration
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
@@ -178,7 +178,7 @@ class ProvisioningViewModel @Inject constructor(
                             meshNetwork.networkKeys.find { key ->
                                 keyIndex == key.index.toInt()
                             }?.let {
-                                provisionerState.state.configuration.networkKey = it
+                                provisionerState.state.parameters.networkKey = it
                             }
                         }
                     }
@@ -206,7 +206,7 @@ class ProvisioningViewModel @Inject constructor(
      * @param address       Address to be assigned to the node.
      */
     internal fun onAddressChanged(
-        configuration: ProvisioningConfiguration,
+        configuration: ProvisioningParameters,
         elementCount: Int,
         address: Int
     ) = runCatching {
@@ -219,7 +219,7 @@ class ProvisioningViewModel @Inject constructor(
             val provisionerState =
                 _uiState.value.provisionerState as ProvisionerState.Provisioning
             val state = provisionerState.state as ProvisioningState.CapabilitiesReceived
-            state.configuration.unicastAddress = unicastAddress
+            state.parameters.unicastAddress = unicastAddress
             _uiState.value = _uiState.value.copy(provisionerState = provisionerState)
         }
     }
@@ -253,8 +253,8 @@ class ProvisioningViewModel @Inject constructor(
                 if (it is ProvisionerState.Provisioning) {
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
-                            configuration.authMethod = authMethod
-                            start(configuration)
+                            parameters.authMethod = authMethod
+                            start(parameters)
                         }
                     }
                 }

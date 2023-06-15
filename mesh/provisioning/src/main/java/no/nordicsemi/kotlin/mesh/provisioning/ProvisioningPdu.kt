@@ -161,7 +161,7 @@ sealed class ProvisioningRequest {
         val method: AuthenticationMethod
     ) : ProvisioningRequest() {
 
-        internal constructor(configuration: ProvisioningConfiguration) : this(
+        internal constructor(configuration: ProvisioningParameters) : this(
             configuration.algorithm,
             configuration.publicKey.method,
             configuration.authMethod
