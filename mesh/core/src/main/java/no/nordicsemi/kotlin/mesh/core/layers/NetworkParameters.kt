@@ -84,7 +84,7 @@ import kotlin.time.toDuration
  *
  */
 data class NetworkParameters(
-    var defaultTtl: Byte = 5,
+    var defaultTtl: UByte = 5u,
     var incompleteMessageTimeout: Duration = 10.toDuration(DurationUnit.SECONDS),
     var acknowledgementTimeInterval: Duration = 0.150.toDuration(DurationUnit.SECONDS),
     var transmissionTimeInterval: Duration = 0.200.toDuration(DurationUnit.SECONDS),
