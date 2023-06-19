@@ -12,7 +12,7 @@ import kotlin.time.toDuration
  * Network parameters configure the transmission and retransmission intervals, acknowledge message
  * timeout, the default Time To Live (TTL) and others.
  *
- * @property defaultTt                          Default Time To Live (TTL) will be used for
+ * @property defaultTtl                         Default Time To Live (TTL) will be used for
  *                                              sending messages. If the value has not been set in
  *                                              the Provisioner's Node. By default it is set to 5,
  *                                              which is a reasonable value. The TTL shall be in
@@ -84,7 +84,7 @@ import kotlin.time.toDuration
  *
  */
 data class NetworkParameters(
-    var defaultTt: Byte = 5,
+    var defaultTtl: Byte = 5,
     var incompleteMessageTimeout: Duration = 10.toDuration(DurationUnit.SECONDS),
     var acknowledgementTimeInterval: Duration = 0.150.toDuration(DurationUnit.SECONDS),
     var transmissionTimeInterval: Duration = 0.200.toDuration(DurationUnit.SECONDS),
