@@ -98,6 +98,17 @@ sealed interface MeshMessage : BaseMeshMessage {
         get() = opCode and 0x80000000.toUInt() == 0x80000000.toUInt()
 }
 
+
+/**
+ * The base interface for unacknowledged unacknowledged messages.
+ */
+sealed interface UnacknowledgedMeshMessage : MeshMessage
+
+/**
+ * The base interface for response messages.
+ */
+sealed interface MeshResponse : MeshMessage
+
 /**
  * The base interface for acknowledged messages. An acknowledged message is transmitted and
  * acknowledged by each receiving element by responding to that message. The response is typically a
