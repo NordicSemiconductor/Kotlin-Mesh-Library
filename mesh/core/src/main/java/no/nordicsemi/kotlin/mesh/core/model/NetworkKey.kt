@@ -10,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -50,7 +51,6 @@ data class NetworkKey internal constructor(
     @SerialName(value = "phase")
     private var _phase: KeyRefreshPhase = NormalOperation,
 ) {
-
     /**
      * Convenience constructor for creating a new network key for tests
      *
@@ -78,6 +78,7 @@ data class NetworkKey internal constructor(
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
+
     var security: Security
         get() = _security
         internal set(value) {
@@ -95,22 +96,53 @@ data class NetworkKey internal constructor(
         get() = _key
         internal set(value) {
             require(value = value.size == 16) { throw InvalidKeyLength }
+            MeshNetwork.onChange(oldValue = _key, newValue = value) {
+                oldKey = _key
+            }
             _key = value
+            _phase = KeyDistribution
+            regenerateKeyDerivatives()
         }
 
     @Serializable(with = KeySerializer::class)
     @SerialName(value = "oldKey")
     var oldKey: ByteArray? = null
-        internal set
+        internal set(value) {
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
+                if (value == null) {
+                    oldDerivatives = null
+                    oldNetworkId = null
+                    _phase = NormalOperation
+                }
+                field = value
+            }
+        }
 
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
+
+    @Transient
+    var networkId: ByteArray? = null
+        private set
+
+    @Transient
+    var oldNetworkId: ByteArray? = null
+        private set
+
+    @Transient
+    internal var derivatives: NetworkKeyDerivatives? = null
+        private set
+
+    @Transient
+    internal var oldDerivatives: NetworkKeyDerivatives? = null
+        private set
 
     @Transient
     internal var network: MeshNetwork? = null
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+        regenerateKeyDerivatives()
     }
 
     private fun updateTimeStamp() {
@@ -147,6 +179,21 @@ data class NetworkKey internal constructor(
         _key = key
     }
 
+    private fun regenerateKeyDerivatives() {
+        // Calculate Network ID.
+        networkId = Crypto.calculateNetworkId(key)
+        // Calculate key derivatives.
+        derivatives = Crypto.calculateKeyDerivatives(key).toNetworkKeyDerivatives()
+
+        // When the Network Key is imported from JSON, old key derivatives must be calculated.
+        oldKey?.let { oldKey ->
+            // Calculate old Network ID.
+            oldNetworkId = Crypto.calculateNetworkId(oldKey)
+            // Calculate old key derivatives.
+            oldDerivatives = Crypto.calculateKeyDerivatives(oldKey).toNetworkKeyDerivatives()
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -181,5 +228,76 @@ data class NetworkKey internal constructor(
     companion object {
         private const val MIN_KEY_INDEX = 0
         private const val MAX_KEY_INDEX = 4095
+    }
+
+}
+
+internal fun KeyDerivatives.toNetworkKeyDerivatives() = NetworkKeyDerivatives(
+    identityKey = identityKey,
+    beaconKey = beaconKey,
+    privateBeaconKey = privateBeaconKey,
+    encryptionKey = encryptionKey,
+    privacyKey = privacyKey,
+    nid = nid
+)
+
+
+/**
+ * Network Key derivatives
+ *
+ * @property identityKey         Identity key.
+ * @property beaconKey           Beacon key.
+ * @property privateBeaconKey    Private beacon key.
+ * @property encryptionKey       Encryption key.
+ * @property privacyKey          Privacy key.
+ * @property nid                 Network identifier.
+ */
+internal data class NetworkKeyDerivatives(
+    val identityKey: ByteArray?,
+    val beaconKey: ByteArray?,
+    val privateBeaconKey: ByteArray?,
+    val encryptionKey: ByteArray?,
+    val privacyKey: ByteArray?,
+    val nid: UByte
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NetworkKeyDerivatives
+
+        if (identityKey != null) {
+            if (other.identityKey == null) return false
+            if (!identityKey.contentEquals(other.identityKey)) return false
+        } else if (other.identityKey != null) return false
+        if (beaconKey != null) {
+            if (other.beaconKey == null) return false
+            if (!beaconKey.contentEquals(other.beaconKey)) return false
+        } else if (other.beaconKey != null) return false
+        if (privateBeaconKey != null) {
+            if (other.privateBeaconKey == null) return false
+            if (!privateBeaconKey.contentEquals(other.privateBeaconKey)) return false
+        } else if (other.privateBeaconKey != null) return false
+        if (encryptionKey != null) {
+            if (other.encryptionKey == null) return false
+            if (!encryptionKey.contentEquals(other.encryptionKey)) return false
+        } else if (other.encryptionKey != null) return false
+        if (privacyKey != null) {
+            if (other.privacyKey == null) return false
+            if (!privacyKey.contentEquals(other.privacyKey)) return false
+        } else if (other.privacyKey != null) return false
+        if (nid != other.nid) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = identityKey?.contentHashCode() ?: 0
+        result = 31 * result + (beaconKey?.contentHashCode() ?: 0)
+        result = 31 * result + (privateBeaconKey?.contentHashCode() ?: 0)
+        result = 31 * result + (encryptionKey?.contentHashCode() ?: 0)
+        result = 31 * result + (privacyKey?.contentHashCode() ?: 0)
+        result = 31 * result + nid.hashCode()
+        return result
     }
 }
