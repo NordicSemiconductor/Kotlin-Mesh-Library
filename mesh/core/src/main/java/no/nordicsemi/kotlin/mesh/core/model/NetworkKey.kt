@@ -253,11 +253,11 @@ internal fun KeyDerivatives.toNetworkKeyDerivatives() = NetworkKeyDerivatives(
  * @property nid                 Network identifier.
  */
 internal data class NetworkKeyDerivatives(
-    val identityKey: ByteArray?,
-    val beaconKey: ByteArray?,
-    val privateBeaconKey: ByteArray?,
-    val encryptionKey: ByteArray?,
-    val privacyKey: ByteArray?,
+    val identityKey: ByteArray,
+    val beaconKey: ByteArray,
+    val privateBeaconKey: ByteArray,
+    val encryptionKey: ByteArray,
+    val privacyKey: ByteArray,
     val nid: UByte
 ) {
     override fun equals(other: Any?): Boolean {
@@ -266,37 +266,22 @@ internal data class NetworkKeyDerivatives(
 
         other as NetworkKeyDerivatives
 
-        if (identityKey != null) {
-            if (other.identityKey == null) return false
-            if (!identityKey.contentEquals(other.identityKey)) return false
-        } else if (other.identityKey != null) return false
-        if (beaconKey != null) {
-            if (other.beaconKey == null) return false
-            if (!beaconKey.contentEquals(other.beaconKey)) return false
-        } else if (other.beaconKey != null) return false
-        if (privateBeaconKey != null) {
-            if (other.privateBeaconKey == null) return false
-            if (!privateBeaconKey.contentEquals(other.privateBeaconKey)) return false
-        } else if (other.privateBeaconKey != null) return false
-        if (encryptionKey != null) {
-            if (other.encryptionKey == null) return false
-            if (!encryptionKey.contentEquals(other.encryptionKey)) return false
-        } else if (other.encryptionKey != null) return false
-        if (privacyKey != null) {
-            if (other.privacyKey == null) return false
-            if (!privacyKey.contentEquals(other.privacyKey)) return false
-        } else if (other.privacyKey != null) return false
+        if (!identityKey.contentEquals(other.identityKey)) return false
+        if (!beaconKey.contentEquals(other.beaconKey)) return false
+        if (!privateBeaconKey.contentEquals(other.privateBeaconKey)) return false
+        if (!encryptionKey.contentEquals(other.encryptionKey)) return false
+        if (!privacyKey.contentEquals(other.privacyKey)) return false
         if (nid != other.nid) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = identityKey?.contentHashCode() ?: 0
-        result = 31 * result + (beaconKey?.contentHashCode() ?: 0)
-        result = 31 * result + (privateBeaconKey?.contentHashCode() ?: 0)
-        result = 31 * result + (encryptionKey?.contentHashCode() ?: 0)
-        result = 31 * result + (privacyKey?.contentHashCode() ?: 0)
+        var result = identityKey.contentHashCode()
+        result = 31 * result + beaconKey.contentHashCode()
+        result = 31 * result + privateBeaconKey.contentHashCode()
+        result = 31 * result + encryptionKey.contentHashCode()
+        result = 31 * result + privacyKey.contentHashCode()
         result = 31 * result + nid.hashCode()
         return result
     }
