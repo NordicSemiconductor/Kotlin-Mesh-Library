@@ -37,6 +37,9 @@ import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
  *                         network key.
  * @property timestamp     The timestamp property contains a string that represents the last time
  *                         the value of the phase property has been updated.
+ * @property networkId     Network ID is derived from a network key and is used to identify the
+ *                         network
+ * @property oldNetworkId  Old Network ID is derived from the old network key.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -54,16 +57,10 @@ data class NetworkKey internal constructor(
     /**
      * Convenience constructor for creating a new network key for tests
      *
-     * @property index         The index property contains an integer from 0 to 4095 that represents
-     *                         the NetKey index for this network key.
-     * @property key           128-bit key.
-     * @property security      Security property contains a string with a value of either “insecure”
-     *                         or “secure”, which describes a minimum security level for a subnet
-     *                         associated with this network key. If all the nodes on the subnet
-     *                         associated with this network key have been provisioned using the
-     *                         Secure Provisioning procedure, then the value of minSecurity property
-     *                         for the subnet is set to “secure”; otherwise, the value of the
-     *                         minSecurity is set to “insecure”.
+     * @param index   The index property contains an integer from 0 to 4095 that represents the
+     *                NetKey index for this network key.
+     * @param key     128-bit key.
+     * @param name    Human readable name for the the mesh subnet associated with this network key.
      */
     internal constructor(
         name: String = "Primary Network Key",
@@ -136,6 +133,12 @@ data class NetworkKey internal constructor(
     @Transient
     internal var oldDerivatives: NetworkKeyDerivatives? = null
         private set
+
+    internal val transmitKeys: NetworkKeyDerivatives
+        get() = when (phase) {
+            KeyDistribution -> oldDerivatives!!
+            else -> derivatives!!
+        }
 
     @Transient
     internal var network: MeshNetwork? = null
