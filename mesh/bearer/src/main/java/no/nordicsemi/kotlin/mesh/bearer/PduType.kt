@@ -13,13 +13,21 @@ import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
  * Some message types are handled only by some bearers, for example the provisioning PDU type must
  * be sent using a provisioning bearer(PB type of bearer).
  *
- * @property value PDU type value.
+ * @property value    PDU type value.
+ * @property nonceId  The Nonce ID used for the PDU type.
  */
 enum class PduType(val value: UByte) {
     NETWORK_PDU(0x00u),
     MESH_BEACON(0x01u),
     PROXY_CONFIGURATION(0x02u),
     PROVISIONING_PDU(0x03u);
+
+    val nonceId: UByte
+        get() = when(this){
+            NETWORK_PDU -> 0x00u
+            PROXY_CONFIGURATION -> 0x03u
+            else -> throw PduTypeNotSupported
+        }
 
     companion object {
 
