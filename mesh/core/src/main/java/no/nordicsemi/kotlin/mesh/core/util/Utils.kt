@@ -82,7 +82,7 @@ object Utils {
         ByteArray(size) { i -> (data.toLong() shr (i * 8)).toByte() }
 
     /**
-     * Converts an Int to a byte array.
+     * Converts an Int to a byte array using the Big Endian representation.
      */
     fun UInt.toByteArray() = ByteArray(4) {
         (this shr (24 - it * 8)).toByte()
