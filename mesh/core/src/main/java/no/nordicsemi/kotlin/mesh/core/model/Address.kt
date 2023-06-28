@@ -75,6 +75,16 @@ sealed class MeshAddress : HasAddress {
         }
 
         /**
+         * Creates a Mesh address of type Unassigned, Unicast or Group address using the given
+         * address value.
+         *
+         * @param address Address value.
+         * @throws IllegalArgumentException If the given address value is not a valid Unassigned,
+         *                                  Unicast or a Group address.
+         */
+        fun create(address: Int): MeshAddress = create(address.toUShort())
+
+        /**
          * Creates a virtual address using the given UUID Label.
          *
          * @param uuid UUID Label.
