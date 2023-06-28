@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
