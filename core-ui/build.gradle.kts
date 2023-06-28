@@ -14,9 +14,9 @@ dependencies {
     implementation(libs.nordic.uilogger)
     implementation(libs.nordic.uiscanner)
     implementation(libs.nordic.navigation)
-    implementation(libs.nordic.permission)
+    implementation(libs.nordic.permissions.ble)
     implementation(libs.nordic.log.timber)
     api("androidx.compose.material:material:1.4.3")
-    api("androidx.compose.material3:material3:1.2.0-alpha02")
+    api("androidx.compose.material3:material3:1.2.0-alpha03")
     api(libs.androidx.compose.material.iconsExtended)
 }
