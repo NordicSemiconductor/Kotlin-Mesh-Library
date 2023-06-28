@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.datetime.Instant
+import kotlin.math.max
 
 /**
  * The IV Index received with the last Secure Network Beacon and its
@@ -51,4 +52,15 @@ data class IvIndex(
             true -> index - 1u
             false -> index
         }
+
+    /**
+     * The IV Index that is to be used for decrypting messages.
+     *
+     * @param ivi   The IV Index received with the message.
+     * @return The IV Index that is to be used for decrypting messages.
+     */
+    fun index(ivi: UByte) = when {
+        ivi.toUInt() == index and 1u -> index
+        else -> max(1u, index) - 1u
+    }
 }
