@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.util.UUID
 
@@ -68,7 +69,7 @@ internal object UnprovisionedDeviceBeaconDecoder {
         pdu.size > 1 -> when (BeaconType.from(pdu[0].toUByte())) {
             BeaconType.UNPROVISIONED_DEVICE -> {
                 val uuid = Utils.decode(pdu.sliceArray(1 until 17).encodeHex())
-                val oob = OobInformation.from(pdu[17].toUShort())
+                val oob = OobInformation.from(pdu.toUShort(17))
                 val uriHash = when (pdu.size == 23) {
                     true -> pdu.sliceArray(19 until pdu.size)
                     false -> null
