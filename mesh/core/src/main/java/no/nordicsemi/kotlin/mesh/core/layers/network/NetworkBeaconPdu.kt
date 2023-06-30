@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.layers.network
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 /**
@@ -63,7 +64,7 @@ internal interface NetworkBeaconPdu : BeaconPdu {
             (ivIndex.index > target.index &&
                     (ivRecoveryOver42Allowed || ivIndex.index <= target.index + 42u)) ||
                     (ivIndex.index == target.index &&
-                            (target.isIvUpdateActive || !target.isIvUpdateActive))
+                            (target.isIvUpdateActive || !ivIndex.isIvUpdateActive))
         ) { return false }
 
         return updatedAt?.let { date ->
@@ -100,4 +101,46 @@ internal interface NetworkBeaconPdu : BeaconPdu {
             numberOfHoursSinceDate >= numberOfHoursRequired
         } ?: true
     }
+}
+
+/**
+ * Helper object for decoding Network beacons.
+ */
+internal object NetworkBeaconPduDecoder {
+
+    /**
+     * Decodes the given beacon PDU by iterating through all network keys
+     *
+     * @param pdu           Beacon PDU
+     * @param meshNetwork   Mesh network
+     * @return A [SecureNetworkBeacon] or [PrivateBeacon] if the beacon was successfully decoded or
+     * null otherwise.
+     */
+    fun decode(pdu: ByteArray, meshNetwork: MeshNetwork): NetworkBeaconPdu? = when {
+        pdu.size > 1 -> when (BeaconType.from(pdu[0].toUByte())) {
+            BeaconType.SECURE_NETWORK -> {
+                meshNetwork.networkKeys.forEach { networkKey ->
+                    SecureNetworkBeaconDecoder.decode(pdu, networkKey)?.let { beacon ->
+                        return beacon
+                    }
+                }
+                null
+            }
+
+            BeaconType.PRIVATE -> {
+                meshNetwork.networkKeys.forEach { networkKey ->
+                    PrivateBeaconDecoder.decode(pdu, networkKey)?.let { beacon ->
+                        return beacon
+                    }
+                }
+                null
+            }
+
+            else -> null
+        }
+
+        else -> null
+
+    }
+
 }
