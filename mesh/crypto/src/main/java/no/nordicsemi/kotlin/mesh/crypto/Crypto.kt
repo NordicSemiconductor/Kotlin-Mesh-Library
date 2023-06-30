@@ -362,20 +362,22 @@ object Crypto {
     }
 
     /**
-     * Authenticates the received Secure Network beacon using the given Beacon Key/
+     * Authenticates the received Secure Network beacon using the given Beacon Key.
      *
-     * @param pdu           The received Secure Network beacon.
-     * @param beaconKey     The beacon key generated from a network key.
+     * @param pdu           Received Secure Network beacon.
+     * @param beaconKey     Beacon key generated from a network key.
      *
      * @returns true if the beacon is valid, false otherwise.
      */
-    fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean {
+    fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean = try {
         // byte 0 is the beacon type 0x01
         val flagsNetIdAndIvIndex = pdu.sliceArray(1 until 14)
         val authenticationValue = pdu.sliceArray(14 until 22)
         val hash = calculateCmac(input = flagsNetIdAndIvIndex, key = beaconKey)
             .sliceArray(0 until 8)
-        return hash.contentEquals(authenticationValue)
+        hash.contentEquals(authenticationValue)
+    } catch (e: Exception) {
+        false
     }
 
     /**
