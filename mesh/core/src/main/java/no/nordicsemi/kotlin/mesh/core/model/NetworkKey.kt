@@ -127,7 +127,8 @@ data class NetworkKey internal constructor(
         private set
 
     @Transient
-    internal var derivatives: NetworkKeyDerivatives? = null
+    internal var derivatives: NetworkKeyDerivatives = Crypto.calculateKeyDerivatives(key)
+        .toNetworkKeyDerivatives()
         private set
 
     @Transient
@@ -137,7 +138,7 @@ data class NetworkKey internal constructor(
     internal val transmitKeys: NetworkKeyDerivatives
         get() = when (phase) {
             KeyDistribution -> oldDerivatives!!
-            else -> derivatives!!
+            else -> derivatives
         }
 
     @Transient
