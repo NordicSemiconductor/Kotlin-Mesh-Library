@@ -3,7 +3,10 @@
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
+import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toInt
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
@@ -48,4 +51,44 @@ internal data class PrivateBeacon(
             "Network ID: ${networkKey.networkId?.encodeHex(prefixOx = true)}, " +
             "IV Index: $ivIndex, " +
             "Key Refresh Flag: $keyRefreshFlag)"
+}
+
+internal object PrivateBeaconDecoder {
+
+    /**
+     * Decodes the private beacon
+     *
+     * @param pdu          Private beacon pdu.
+     * @param networkKey   Network key to decode with.
+     * @return PrivateBeacon or null if the beacon could not be decoded or authenticated.
+     */
+    fun decode(pdu: ByteArray, networkKey: NetworkKey): PrivateBeacon? {
+        require(pdu.size == 27 && pdu[0].toInt() == 2) { return null }
+
+        val privateBeaconData = Crypto.decodeAndAuthenticate(
+            pdu = pdu, privateBeaconKey = networkKey.derivatives.privateBeaconKey
+        )
+
+        return if (privateBeaconData == null &&
+            networkKey.phase == KeyDistribution &&
+            networkKey.oldDerivatives != null
+        ) {
+            Crypto.decodeAndAuthenticate(
+                pdu = pdu, privateBeaconKey = networkKey.oldDerivatives!!.privateBeaconKey
+            )?.let {
+                val flags = it.first
+                val keyRefreshFlag = (flags.toInt() and 0x01) != 0
+                val updateActive = (flags.toInt() and 0x02) != 0
+                val index = it.second.toInt(offset = 0)
+                val ivIndex = IvIndex(index = index.toUInt(), isIvUpdateActive = updateActive)
+                PrivateBeacon(
+                    pdu = pdu,
+                    networkKey = networkKey,
+                    validForKeyRefreshProcedure = true,
+                    keyRefreshFlag = keyRefreshFlag,
+                    ivIndex = ivIndex
+                )
+            }
+        } else null
+    }
 }
