@@ -16,30 +16,36 @@ import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
  * AThe network key object represents the state of the mesh network key that is used for securing
  * communication at the network layer.
  *
- * @property index         The index property contains an integer from 0 to 4095 that represents the
- *                         NetKey index for this network key.
- * @property key           128-bit key.
- * @property security      Security property contains a string with a value of either “insecure” or
- *                         “secure”, which describes a minimum security level for a subnet
- *                         associated with this network key. If all the nodes on the subnet
- *                         associated with this network key have been provisioned using the Secure
- *                         Provisioning procedure, then the value of minSecurity property for the
- *                         subnet is set to “secure”; otherwise, the value of the minSecurity is set
- *                         to “insecure”.
- * @property name          Human-readable name for the the mesh subnet associated with this network
- *                         key.
- * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet
- *                         associated with this network key.
- * @property oldKey        The oldKey property contains a 32-character hexadecimal string that
- *                         represents the 128-bit network key, and shall be present when the phase
- *                         property has a non-zero value, such as when the Key Refresh procedure is
- *                         in progress. The value of the oldKey property contains the previous
- *                         network key.
- * @property timestamp     The timestamp property contains a string that represents the last time
- *                         the value of the phase property has been updated.
- * @property networkId     Network ID is derived from a network key and is used to identify the
- *                         network
- * @property oldNetworkId  Old Network ID is derived from the old network key.
+ * @property index                 The index property contains an integer from 0 to 4095 that
+ *                                 represents the NetKey index for this network key.
+ * @property key                   128-bit key.
+ * @property security              Security property contains a string with a value of either
+ *                                 “insecure” or “secure”, which describes a minimum security level
+ *                                 for a subnet associated with this network key. If all the nodes
+ *                                 on the subnet associated with this network key have been
+ *                                 provisioned using the Secure Provisioning procedure, then the
+ *                                 value of minSecurity property for the subnet is set to “secure”;
+ *                                 otherwise, the value of the minSecurity is set to “insecure”.
+ * @property name                  Human-readable name for the the mesh subnet associated with this
+ *                                 network key.
+ * @property phase                 The phase property represents the [KeyRefreshPhase] for the
+ *                                 subnet associated with this network key.
+ * @property oldKey                The oldKey property contains a 32-character hexadecimal string
+ *                                 that represents the 128-bit network key, and shall be present
+ *                                 when the phase property has a non-zero value, such as when the
+ *                                 Key Refresh procedure is in progress. The value of the oldKey
+ *                                 property contains the previous network key.
+ * @property timestamp             The timestamp property contains a string that represents the last
+ *                                 time the value of the phase property has been updated.
+ * @property networkId             Network ID is derived from a network key and is used to identify
+ *                                 the network
+ * @property oldNetworkId          Old Network ID is derived from the old network key.
+ * @property derivatives           Network key derivatives.
+ * @property oldDerivatives        Old network key derivatives.
+ * @property transmitKeys          Defines the keys used when sending and receiving mesh messages
+ *                                 based on the key refresh phase.
+ * @property isPrimary             Returns true if the network key is the primary network key.
+ * @property network               Returns the network object this network key belongs to.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -140,6 +146,8 @@ data class NetworkKey internal constructor(
             KeyDistribution -> oldDerivatives!!
             else -> derivatives
         }
+
+    val isPrimary: Boolean by lazy { index == 0.toUShort() }
 
     @Transient
     internal var network: MeshNetwork? = null
