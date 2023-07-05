@@ -63,4 +63,10 @@ data class IvIndex(
         ivi.toUInt() == index and 1u -> index
         else -> max(1u, index) - 1u
     }
+
+    companion object {
+        const val TIME_STAMP_KEY = "IVTimestamp"
+        const val IV_RECOVERY_KEY = "IVRecovery"
+        const val INDEX_KEY = "IVIndex"
+    }
 }

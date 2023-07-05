@@ -2,8 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import java.util.UUID
 
 /**
  *
@@ -12,24 +14,27 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
  * This is further extended with helper methods for handling Sequence Numbers of outgoing messages
  * from the local Node. Each message must contain a unique 24-bit Sequence Number, which together
  * with 32-bit IV Index ensure that replay attacks are not possible.
- * @see [SequenceNumberStorage.next], [SequenceNumberStorage.reset], [SequenceNumberStorage.remove]
+ * @see [NetworkPropertiesStorage.next], [NetworkPropertiesStorage.reset], [NetworkPropertiesStorage.remove]
  *
- * @property values Contains the sequence number for each unicast address.
+ * @property sequenceNumbers Contains the sequence number for each unicast address.
  */
-interface SequenceNumberStorage {
+interface NetworkPropertiesStorage {
 
-    val values: MutableMap<UnicastAddress, UInt>
+    val sequenceNumbers: MutableMap<UnicastAddress, UInt>
+    var ivIndex: IvIndex
 
-    /**
-     * Loads the sequence number from the local Sequence number storage. This method should be
-     * called when loading
-     */
-    suspend fun load()
 
     /**
-     * Stores the sequence number in the local Sequence number storage.
+     * Loads Network Properties for a given [uuid].
+     *
+     * @param uuid UUID of the mesh network.
      */
-    suspend fun save()
+    suspend fun load(uuid: UUID)
+
+    /**
+     * Stores the network properties for the given [uuid].
+     */
+    suspend fun save(uuid: UUID)
 }
 
 /**
@@ -39,12 +44,12 @@ interface SequenceNumberStorage {
  * @param address Unicast address of the node or the element.
  * @return next SEQ number to be used.
  */
-internal suspend fun SequenceNumberStorage.next(address: UnicastAddress): UInt {
+internal suspend fun NetworkPropertiesStorage.next(uuid: UUID, address: UnicastAddress): UInt {
     // Get the current sequence number for the given address
-    val sequenceNumber = (values[address] ?: 0u)
+    val sequenceNumber = (sequenceNumbers[address] ?: 0u)
     // As the sequence number was used , it has to be incremented
-    values[address] = sequenceNumber + 1u
-    save()
+    sequenceNumbers[address] = sequenceNumber + 1u
+    save(uuid)
     return sequenceNumber
 }
 
@@ -54,11 +59,11 @@ internal suspend fun SequenceNumberStorage.next(address: UnicastAddress): UInt {
  *
  * @param node Node whose sequence number must be reset.
  */
-internal suspend fun SequenceNumberStorage.reset(node: Node) {
+internal suspend fun NetworkPropertiesStorage.reset(uuid: UUID, node: Node) {
     node.elements.forEach {
-        values[it.unicastAddress] = 0u
+        sequenceNumbers[it.unicastAddress] = 0u
     }
-    save()
+    save(uuid)
 }
 
 /**
@@ -66,7 +71,8 @@ internal suspend fun SequenceNumberStorage.reset(node: Node) {
  *
  * @param unicastAddress Unicast address of the node or the element.
  */
-internal suspend fun SequenceNumberStorage.remove(unicastAddress: UnicastAddress) {
-    values.remove(unicastAddress)
-    save()
+internal suspend fun NetworkPropertiesStorage.remove(uuid: UUID, unicastAddress: UnicastAddress) {
+    sequenceNumbers.remove(unicastAddress)
+    save(uuid)
 }
+

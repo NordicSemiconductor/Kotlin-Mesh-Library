@@ -1,36 +1,59 @@
-@file:Suppress("unused", "RedundantSuspendModifier")
+@file:Suppress("unused", "RedundantSuspendModifier", "UNUSED_PARAMETER")
 
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.*
+import kotlin.properties.Delegates
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
  *
  * @param storage Custom storage option allowing users to save the mesh network to a custom
  *                location.
+ * @param networkProperties Custom storage option allowing users to save the sequence number.
+ * @property transmitter        The transmitter is responsible for sending and receiving mesh
+ *                              messages.
+ * @property logger             The logger is responsible for logging mesh messages.
+ * @property networkManager     Handles the mesh networking stack.
  */
-class MeshNetworkManager(private val storage: Storage) {
+class MeshNetworkManager(
+    private val storage: Storage,
+    internal val networkProperties: NetworkPropertiesStorage
+) {
 
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
-    private lateinit var network: MeshNetwork
+    internal lateinit var network: MeshNetwork
+
     private lateinit var networkManager: NetworkManager
+    var transmitter: Transmitter? by Delegates.observable(null) { _, _, newValue ->
+        networkManager.transmitter = newValue
+    }
+    var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
+        networkManager.logger = newValue
+    }
 
     /**
      * Loads the network from the storage provided by the user.
      *
      * @return true if the configuration was successfully loaded or false otherwise.
      */
-    suspend fun load() = storage.load()?.takeIf { it.isNotEmpty() }?.let {
+    suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
+        // networkProperties.load(uuid = meshNetwork.uuid)
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         true
@@ -40,10 +63,12 @@ class MeshNetworkManager(private val storage: Storage) {
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        export().also {
-            val meshNetwork = this@MeshNetworkManager.network
-            storage.save(meshNetwork.uuid, it)
-            _meshNetwork.emit(meshNetwork)
+        Mutex().withLock {
+            export().also {
+                val meshNetwork = this@MeshNetworkManager.network
+                storage.save(it)
+                _meshNetwork.emit(meshNetwork)
+            }
         }
     }
 
@@ -91,6 +116,15 @@ class MeshNetworkManager(private val storage: Storage) {
             network = it,
             configuration = configuration
         ).toString().toByteArray()
+    }
+
+    // TODO implement
+    fun send(
+        message: ConfigMessage,
+        destination: UnicastAddress,
+        ttl: UByte? = null
+    ) {
+        // TODO networkManager.send(message, destination, ttl)
     }
 }
 
