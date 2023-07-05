@@ -1,47 +1,36 @@
 package no.nordicsemi.android.nrfmesh.core.storage
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import android.content.Context
 import no.nordicsemi.kotlin.mesh.core.Storage
-import java.util.*
+import java.io.FileNotFoundException
 import javax.inject.Inject
-
-private const val FILE = "NETWORK_CONFIGURATION"
-private const val LAST_NETWORK = "LAST_CONFIGURATION"
 
 /**
  * Custom storage implementation using Jetpack DataStore.
  *
- * @param dataStore DataStore to be used to load or save the mesh network configuration locally.
+ * @property context    Context
+ * @property fileName   Name of the file to store the network.
+ * @constructor Creates the MeshNetworkStorage.
  */
 class MeshNetworkStorage @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val context: Context,
+    private val fileName: String = "MeshNetwork",
 ) : Storage {
 
-    // TODO these are not used anymore but are left for reference
-    private val dataStream = dataStore.data.map { preferences ->
-        val uuid = preferences[stringPreferencesKey(LAST_NETWORK)]
-        if (uuid != null)
-            preferences[stringPreferencesKey(uuid.toString())]
-                .toString()
-                .encodeToByteArray()
-        else
-            byteArrayOf()
+    override suspend fun load(): ByteArray = try {
+        context.openFileInput("$fileName.json").use { stream ->
+            val bytes = stream.readBytes()
+            stream.close()
+            bytes
+        }
+    } catch (e: FileNotFoundException) {
+        byteArrayOf()
     }
 
-
-    override suspend fun load(): ByteArray? = dataStream.firstOrNull()
-
-    // TODO consider looking in to storing library related information
-    override suspend fun save(uuid: UUID, network: ByteArray) {
-        dataStore.edit { preferences ->
-            preferences[stringPreferencesKey(LAST_NETWORK)] = uuid.toString()
-            preferences[stringPreferencesKey(uuid.toString())] = network.decodeToString()
+    override suspend fun save(network: ByteArray) {
+        context.openFileOutput("$fileName.json", Context.MODE_PRIVATE).use { stream ->
+            stream.write(network)
+            stream.close()
         }
     }
 }
