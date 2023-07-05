@@ -117,6 +117,9 @@ class MeshNetwork internal constructor(
     val localProvisioner: Provisioner?
         get() = _provisioners.firstOrNull()
 
+    val primaryNetworkKey: NetworkKey?
+        get() = _networkKeys.find { it.isPrimary }
+
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
