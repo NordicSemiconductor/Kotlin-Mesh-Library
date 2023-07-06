@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlin.math.max
 
@@ -38,11 +39,13 @@ import kotlin.math.max
  *                             current IV Index and its current IV Update procedure state from the
  *                             values in this Secure Network beacon.
  * @property transmitIvIndex   IV index used when transmitting messages.
+ * @property next              Next IV Index to be used or null if max value is reached.
+ * @property previous          Previous IV Index or null in case of intiial one.
  */
 data class IvIndex(
     val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,
-    val transitionDate: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    val transitionDate: Instant = Clock.System.now(),
 ) {
     var ivRecoveryFlag = false
         internal set
@@ -51,6 +54,24 @@ data class IvIndex(
         get() = when (isIvUpdateActive && index > 0u) {
             true -> index - 1u
             false -> index
+        }
+
+    val next: IvIndex?
+        get() = when (isIvUpdateActive) {
+            true -> IvIndex(index = index, isIvUpdateActive = false)
+            false -> when (index < UInt.MAX_VALUE - 1u) {
+                true -> IvIndex(index = index + 1u, isIvUpdateActive = true)
+                false -> null
+            }
+        }
+
+    val previous: IvIndex?
+        get() = when (!isIvUpdateActive) {
+            true -> IvIndex(index = index, isIvUpdateActive = true)
+            false -> when (index > 0u) {
+                true -> IvIndex(index = index - 1u, isIvUpdateActive = false)
+                false -> null
+            }
         }
 
     /**
@@ -63,6 +84,13 @@ data class IvIndex(
         ivi.toUInt() == index and 1u -> index
         else -> max(1u, index) - 1u
     }
+
+    override fun toString() = "IV Index: $index, ${
+        when (isIvUpdateActive) {
+            true -> "IV Update Active"
+            false -> "Normal Operation"
+        }
+    }"
 
     companion object {
         const val TIME_STAMP_KEY = "IVTimestamp"
