@@ -95,6 +95,35 @@ data class ApplicationKey internal constructor(
         _key = key
     }
 
+    /**
+     * Binds the application key to a given network key. The application key must not be in use.
+     * If any of the network Nodes already knows this key, this method throws an error
+     *
+     * @param networkKey Network key to which the application key is bound to.
+     */
+    fun bind(networkKey: NetworkKey) {
+        network?.let {
+            require(!isInUse()) { throw KeyInUse }
+            boundNetKeyIndex = networkKey.index
+        }
+    }
+
+    /**
+     * Checks if the application key is bound to a given network key.
+     *
+     * @param networkKey Network key to which the application key is bound to.
+     * @return true if the application key is bound to the given network key, false otherwise.
+     */
+    fun isBoundTo(networkKey: NetworkKey) = boundNetKeyIndex == networkKey.index
+
+    /**
+     * Checks if the application key is bound to any of the given list of network keys.
+     *
+     * @param networkKeys Network key to which the application key is bound to.
+     * @return true if the application key is bound to the given network key, false otherwise.
+     */
+    fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -121,5 +150,24 @@ data class ApplicationKey internal constructor(
         result = 31 * result + (netKey?.hashCode() ?: 0)
         return result
     }
+}
 
+/**
+ * Checks whether any of the Application keys in the List is bound to the given network Key. The key
+ * comparison is based on Key Index property.
+ *
+ * @param networkKey Network key to which the application keys are bound to.
+ * @return True if any of the application keys in the list is bound to the given network key,
+ *         false otherwise.
+ */
+infix fun List<ApplicationKey>.contains(networkKey: NetworkKey) = any { it.isBoundTo(networkKey) }
+
+/**
+ * Returns a list of application keys bound to a given network key.
+ *
+ * @param networkKey Network key to which the application keys are bound to.
+ * @return List<ApplicationKey> List of application keys bound to the given network key.
+ */
+infix fun List<ApplicationKey>.boundTo(networkKey: NetworkKey): List<ApplicationKey> = filter {
+    it.isBoundTo(networkKey)
 }
