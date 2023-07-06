@@ -100,7 +100,9 @@ data class ApplicationKey internal constructor(
      * If any of the network Nodes already knows this key, this method throws an error
      *
      * @param networkKey Network key to which the application key is bound to.
+     * @throws KeyInUse If the key is already in use.
      */
+    @Throws(KeyInUse::class)
     fun bind(networkKey: NetworkKey) {
         network?.let {
             require(!isInUse()) { throw KeyInUse }
