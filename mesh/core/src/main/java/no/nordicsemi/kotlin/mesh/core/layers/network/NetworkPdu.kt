@@ -110,7 +110,7 @@ internal object NetworkPduDecoder {
         val currentIvIndex = meshNetwork.ivIndex
 
         meshNetwork.networkKeys.forEach { networkKey ->
-            networkKey.derivatives?.takeIf { nid == it.nid }?.let { keySets += it }
+            networkKey.derivatives.takeIf { nid == it.nid }?.let { keySets += it }
             networkKey.oldDerivatives?.takeIf { nid == it.nid }?.let { keySets += it }
 
             require(keySets.isNotEmpty()) { return null }
