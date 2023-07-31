@@ -107,7 +107,7 @@ internal data class SegmentAcknowledgementMessage(
          * Decodes the given [NetworkPdu] containing a segmented acknowledgement message.
          *
          * @param networkPdu The network pdu containing the segment acknowledgement message.
-         *
+         * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
         fun decode(networkPdu: NetworkPdu): SegmentAcknowledgementMessage? {
             networkPdu.run {
@@ -141,7 +141,9 @@ internal data class SegmentAcknowledgementMessage(
         /**
          * Decodes the given [SegmentedMessage]s containing a segmented acknowledgement message.
          *
-         * @param segments List of segmented messages containing the segment acknowledgement message.
+         * @param segments List of segmented messages containing the segment acknowledgement
+         *                 message.
+         * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
         fun decode(segments: List<SegmentedMessage>): SegmentAcknowledgementMessage {
             val segmentAck = segments.first { it.isSegmented }
