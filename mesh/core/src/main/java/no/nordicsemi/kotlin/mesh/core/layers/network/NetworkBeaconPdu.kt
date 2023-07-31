@@ -42,9 +42,9 @@ internal interface NetworkBeaconPdu : BeaconPdu {
      *
      * @param target                    IV Index to compare.
      * @param updatedAt                 Date of the most recent transition to the current IV Index.
-     * @param ivRecoveryActive          True if the IV Recovery procedure was used to restore the IV
+     * @param isIvRecoveryActive          True if the IV Recovery procedure was used to restore the IV
      *                                  Index on the previous connection.
-     * @param ivTestMode                True, if IV Update test mode is enabled; false otherwise.
+     * @param isIvTestModeActive                True, if IV Update test mode is enabled; false otherwise.
      * @param ivRecoveryOver42Allowed   Whether the IV Index Recovery procedure should be limited to
      *                                  allow maximum increase of IV Index by 42.
      * @returns: True, if the network information can be applied; false otherwise.
@@ -52,8 +52,8 @@ internal interface NetworkBeaconPdu : BeaconPdu {
     fun canOverWrite(
         target: IvIndex,
         updatedAt: Instant?,
-        ivRecoveryActive: Boolean,
-        ivTestMode: Boolean,
+        isIvRecoveryActive: Boolean,
+        isIvTestModeActive: Boolean,
         ivRecoveryOver42Allowed: Boolean
     ): Boolean {
         // IV Index must increase, or, in case it's equal to the current one, the IV Update Active
@@ -81,7 +81,7 @@ internal interface NetworkBeaconPdu : BeaconPdu {
             val stateDiff = (ivIndex.index - target.index) * 2u - 1u +
                     (if (target.isIvUpdateActive) 1u else 0u) +
                     (if (ivIndex.isIvUpdateActive) 0u else 1u) -
-                    (if (ivRecoveryActive || ivTestMode) 1u else 0u) //  this may set stateDiff = -1
+                    (if (isIvRecoveryActive || isIvTestModeActive) 1u else 0u) //  this may set stateDiff = -1
 
             // Each "state" must last for at least 96 hours.
             // Calculate the minimum number of hours that had to pass since last state change for
@@ -94,7 +94,7 @@ internal interface NetworkBeaconPdu : BeaconPdu {
 
             // The node shall not execute more than one IV Index Recovery within a
             // period of 192 hours.
-            if (ivRecoveryActive && stateDiff.toInt() > 1 && numberOfHoursSinceDate < 192) {
+            if (isIvRecoveryActive && stateDiff.toInt() > 1 && numberOfHoursSinceDate < 192) {
                 return false
             }
 
