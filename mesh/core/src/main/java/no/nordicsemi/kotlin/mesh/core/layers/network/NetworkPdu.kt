@@ -20,8 +20,8 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * @property type             PDU type.
  * @property ttl              Time to live.
  * @property sequence         Sequence number of the message.
- * @property src              Source address of the message.
- * @property dst              Destination address of the message.
+ * @property source              Source address of the message.
+ * @property destination              Destination address of the message.
  * @property transportPdu     Transport protocol data unit that's guaranteed to have 1 to 16 bytes.
  * @property ivi              Raw data of the upper transport layer PDU.
  * @property nid              Flag indicating if the message is a control message.
@@ -34,8 +34,8 @@ internal data class NetworkPdu internal constructor(
     val type: LowerTransportPduType,
     val ttl: UByte,
     val sequence: UInt,
-    val src: MeshAddress,
-    val dst: MeshAddress,
+    val source: MeshAddress,
+    val destination: MeshAddress,
     val transportPdu: ByteArray
 ) {
     val ivi: UByte = (pdu[0].toInt() shr 7).toUByte()
@@ -53,8 +53,8 @@ internal data class NetworkPdu internal constructor(
         if (type != other.type) return false
         if (ttl != other.ttl) return false
         if (sequence != other.sequence) return false
-        if (src != other.src) return false
-        if (dst != other.dst) return false
+        if (source != other.source) return false
+        if (destination != other.destination) return false
         if (!transportPdu.contentEquals(other.transportPdu)) return false
         if (ivi != other.ivi) return false
         if (nid != other.nid) return false
@@ -69,8 +69,8 @@ internal data class NetworkPdu internal constructor(
         result = 31 * result + type.hashCode()
         result = 31 * result + ttl.hashCode()
         result = 31 * result + sequence.hashCode()
-        result = 31 * result + src.hashCode()
-        result = 31 * result + dst.hashCode()
+        result = 31 * result + source.hashCode()
+        result = 31 * result + destination.hashCode()
         result = 31 * result + transportPdu.contentHashCode()
         result = 31 * result + ivi.hashCode()
         result = 31 * result + nid.hashCode()
@@ -171,8 +171,8 @@ internal object NetworkPduDecoder {
                         type = type,
                         ttl = ttl.toUByte(),
                         sequence = sequence,
-                        src = MeshAddress.create(address = src.toUShort()),
-                        dst = MeshAddress.create(
+                        source = MeshAddress.create(address = src.toUShort()),
+                        destination = MeshAddress.create(
                             address = decryptedData[0].toInt() shl 8 or decryptedData[1].toInt()
                         ),
                         decryptedData.sliceArray(2 until decryptedData.size)
@@ -254,8 +254,8 @@ internal object NetworkPduDecoder {
             type = type,
             ttl = ttl,
             sequence = sequence,
-            src = lowerTransportPdu.source,
-            dst = lowerTransportPdu.destination,
+            source = lowerTransportPdu.source,
+            destination = lowerTransportPdu.destination,
             transportPdu = transportPdu
         )
     }
