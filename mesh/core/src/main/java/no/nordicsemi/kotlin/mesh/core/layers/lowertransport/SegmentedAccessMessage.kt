@@ -128,8 +128,8 @@ internal data class SegmentedAccessMessage(
             val upperTransportPdu = transportPdu.drop(4).toByteArray()
             val sequence = (this.sequence and 0xFFE000u) or sequenceZero.toUInt()
             return SegmentedAccessMessage(
-                source = src,
-                destination = dst,
+                source = source,
+                destination = destination,
                 networkKey = key,
                 ivIndex = ivIndex,
                 upperTransportPdu = upperTransportPdu,

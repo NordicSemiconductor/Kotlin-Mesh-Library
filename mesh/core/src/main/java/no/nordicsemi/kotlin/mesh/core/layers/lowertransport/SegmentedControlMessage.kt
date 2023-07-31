@@ -118,8 +118,8 @@ internal data class SegmentedControlMessage(
             SegmentedControlMessage(
                 opCode = opCode,
                 ttl = ttl,
-                source = src,
-                destination = dst,
+                source = source,
+                destination = destination,
                 networkKey = key,
                 ivIndex = ivIndex,
                 upperTransportPdu = transportPdu.drop(4).toByteArray(),
