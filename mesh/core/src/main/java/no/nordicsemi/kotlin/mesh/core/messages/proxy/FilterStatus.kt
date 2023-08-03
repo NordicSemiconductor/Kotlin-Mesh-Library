@@ -1,0 +1,33 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
+package no.nordicsemi.kotlin.mesh.core.messages.proxy
+
+import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
+
+/**
+ * The Filter Status message is sent by a Proxy Server to report the status of the Proxy Filter.
+ *
+ * @property filterType Filter type.
+ * @property listSize   Size of the filter list.
+ */
+
+data class FilterStatus(
+    val filterType: ProxyFilterType,
+    val listSize: UShort
+) : ProxyConfigurationMessage {
+
+    override val opCode: UByte = Decoder.opCode
+
+    override val parameters: ByteArray
+        get() = byteArrayOf(filterType.type.toByte()) + listSize.toByteArray()
+
+    companion object Decoder : ProxyConfigurationMessageDecoder {
+        override val opCode: UByte = 0x03u
+
+        override fun decode(payload: ByteArray) = when (payload.size == 1) {
+            true -> SetFilterType(ProxyFilterType.from(payload[0].toUByte()))
+            false -> throw IllegalArgumentException("Invalid parameters")
+        }
+    }
+}

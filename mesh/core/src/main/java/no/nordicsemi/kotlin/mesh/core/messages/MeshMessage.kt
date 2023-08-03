@@ -44,6 +44,19 @@ sealed class MeshMessageSecurity {
     }
 }
 
+/**
+ * A functional interface containing a decoder for a mesh message.
+ */
+fun interface HasDecoder {
+
+    /**
+     * Decodes the mesh message based on the given parameters.
+     *
+     * @param payload Byte array containing the payload of the mesh message.
+     * @return the decoded [BaseMeshMessage].
+     */
+    fun decode(payload: ByteArray): BaseMeshMessage
+}
 
 /**
  * The base interface of every mesh message. Mesh messages can be sent to and received from a mesh
@@ -53,9 +66,11 @@ sealed class MeshMessageSecurity {
  */
 interface BaseMeshMessage {
 
-    var parameters: ByteArray?
+    val parameters: ByteArray?
 
 }
+
+interface BaseMeshMessageDecoder : HasDecoder
 
 /**
  * The base interface of every mesh message. Mesh messages can be sent to and received from a mesh
@@ -70,20 +85,19 @@ interface BaseMeshMessage {
  *                            shorter than 11 bytes, make sure you return `true` from
  *                            [MeshMessage.isSegmented], otherwise this field will be ignored.
  * @property isSegmented      Defines if the message should be sent or was sent as Segmented Access
- *                            Message. By default, this parameter returns `false`. To force
- *                            segmentation for shorter messages return `true` despite payload
- *                            length. If payload size is longer than 11 bytes this field is not
- *                            checked as the message must be segmented.
+ *                            Message. By default, this  returns `false`. To force segmentation for
+ *                            shorter messages return `true` despite payload length. If payload size
+ *                            is longer than 11 bytes this field is not checked as the message must
+ *                            be segmented.
  * @property isVendorMessage  Whether the message is a Vendor Message, or not.
  *
- *                            Vendor messages use 3-byte Op Codes, where the 2 most significant
- *                            bits of the first octet are set to 1. The remaining bits of the
- *                            first octet are the operation code, while the last 2 bytes are the
- *                            Company Identifier (Big Endian), as registered by Bluetooth SIG
+ *                            Vendor messages use 3-byte Op Codes, where the 2 most significant bits
+ *                            of the first octet are set to 1. The remaining bits of the first octet
+ *                            are the operation code, while the last 2 bytes are the Company
+ *                            Identifier (Big Endian), as registered by Bluetooth SIG.
  * @property isAcknowledged   Defines if the message should be sent as an acknowledged message.
- *
  */
-sealed interface MeshMessage : BaseMeshMessage {
+interface MeshMessage : BaseMeshMessage {
 
     val opCode: UInt
 
