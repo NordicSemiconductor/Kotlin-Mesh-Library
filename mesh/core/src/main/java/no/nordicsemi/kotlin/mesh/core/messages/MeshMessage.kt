@@ -55,7 +55,7 @@ fun interface HasDecoder {
      * @param payload Byte array containing the payload of the mesh message.
      * @return the decoded [BaseMeshMessage].
      */
-    fun decode(payload: ByteArray): BaseMeshMessage
+    fun decode(payload: ByteArray): BaseMeshMessage?
 }
 
 /**

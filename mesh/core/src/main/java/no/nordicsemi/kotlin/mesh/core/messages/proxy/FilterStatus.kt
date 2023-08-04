@@ -27,7 +27,7 @@ data class FilterStatus(
 
         override fun decode(payload: ByteArray) = when (payload.size == 1) {
             true -> SetFilterType(ProxyFilterType.from(payload[0].toUByte()))
-            false -> throw IllegalArgumentException("Invalid parameters")
+            false -> null
         }
     }
 }
