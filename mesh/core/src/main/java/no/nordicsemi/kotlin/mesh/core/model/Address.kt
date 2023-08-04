@@ -240,7 +240,7 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
  *
  * Note: AllNodes cannot be used as subscription address.
  */
-object AllNodes : FixedGroupAddress(address = allNodes)
+data object AllNodes : FixedGroupAddress(address = allNodes)
 
 /**
  * Heartbeat publication destination address for heartbeat messages. This represents a
