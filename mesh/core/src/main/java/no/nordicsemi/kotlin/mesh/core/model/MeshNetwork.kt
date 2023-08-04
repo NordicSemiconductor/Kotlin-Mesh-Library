@@ -509,6 +509,16 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the provisioned node containing an element with the given address.
+     *
+     * @param address Address of the element.
+     * @return Node if an element with the given address was found, null otherwise.
+     */
+    fun node(address: UnicastAddress): Node {
+        return nodes.first { it.containsElementWithAddress(address) }
+    }
+
+    /**
      * Returns the node with the given uuid.
      *
      * @param uuid matching UUID.
