@@ -12,7 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
  *
  * @property addresses List of addresses.
  */
-data class AddAddressToFilter(
+data class AddAddressesToFilter(
     val addresses: List<ProxyFilterAddress>
 ) : AcknowledgedProxyConfigurationMessage {
     override val opCode: UByte = Decoder.opCode
@@ -39,7 +39,7 @@ data class AddAddressToFilter(
                 addresses.add(UnicastAddress(it.toUShort(i)))
                 i += 2
             }
-            AddAddressToFilter(addresses)
+            AddAddressesToFilter(addresses)
         }
     }
 }
