@@ -297,4 +297,5 @@ sealed interface ParentGroupAddress : HasAddress
  * An address type that can be added to a Proxy Filter List. This represents a [UnicastAddress],
  * [GroupAddress] or a [VirtualAddress].
  */
+@Serializable(with = MeshAddressSerializer::class)
 sealed interface ProxyFilterAddress : HasAddress
