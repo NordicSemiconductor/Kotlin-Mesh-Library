@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.proxy
 
+import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
@@ -12,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
  * @property addresses List of addresses.
  */
 data class AddAddressToFilter(
-    val addresses: List<UnicastAddress>
+    val addresses: List<ProxyFilterAddress>
 ) : AcknowledgedProxyConfigurationMessage {
     override val opCode: UByte = Decoder.opCode
     override val responseOpCode: UByte = FilterStatus.opCode
