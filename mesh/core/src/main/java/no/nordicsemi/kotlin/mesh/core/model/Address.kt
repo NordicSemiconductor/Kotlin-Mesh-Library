@@ -122,7 +122,8 @@ data class UnicastAddress(
         PublicationAddress,
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionSource,
-        HeartbeatSubscriptionDestination {
+        HeartbeatSubscriptionDestination,
+        ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -162,7 +163,9 @@ data class VirtualAddress(
         PrimaryGroupAddress,
         ParentGroupAddress,
         PublicationAddress,
-        SubscriptionAddress {
+        SubscriptionAddress,
+        ProxyFilterAddress {
+
     override val address: Address = Crypto.createVirtualAddress(uuid)
 
     operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
@@ -183,7 +186,8 @@ data class GroupAddress(
         PublicationAddress,
         SubscriptionAddress,
         HeartbeatPublicationDestination,
-        HeartbeatSubscriptionDestination {
+        HeartbeatSubscriptionDestination,
+        ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -288,3 +292,9 @@ sealed interface PrimaryGroupAddress : HasAddress
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress
+
+/**
+ * An address type that can be added to a Proxy Filter List. This represents a [UnicastAddress],
+ * [GroupAddress] or a [VirtualAddress].
+ */
+sealed interface ProxyFilterAddress : HasAddress
