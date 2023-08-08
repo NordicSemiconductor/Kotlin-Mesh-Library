@@ -17,11 +17,18 @@ import java.util.*
  * configuring nodes in the mesh network. Otherwise, a provisioner can only provision nodes to a
  * mesh network.
  *
- * @property name                      Provisioner name.
- * @property uuid                      UUID of the provisioner.
- * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
- * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
- * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
+ * @property name                          Provisioner name.
+ * @property uuid                          UUID of the provisioner.
+ * @property allocatedUnicastRanges        List of allocated unicast ranges for a given provisioner.
+ * @property allocatedGroupRanges          List of allocated group ranges for a given provisioner.
+ * @property allocatedSceneRanges          List of allocated scene ranges for a given provisioner.
+ * @property node                          Node of the provisioner.
+ * @property primaryUnicastAddress         Primary unicast address of the provisioner.
+ * @property hasConfigurationCapabilities  Returns true if the provisioner has configuration
+ *                                         capabilities.
+ * @property isLocal                       Returns true if the Provisioner is set as the local
+ *                                         Provisioner.
+ *
  * @constructor Creates a Provisioner object.
  */
 @Suppress("unused")
@@ -87,6 +94,15 @@ data class Provisioner internal constructor(
 
     val node: Node?
         get() = network?._nodes?.find { it.uuid == uuid }
+
+    val primaryUnicastAddress: UnicastAddress?
+        get() = node?.primaryUnicastAddress
+
+    val hasConfigurationCapabilities: Boolean
+        get() = node != null
+
+    val isLocal: Boolean
+        get() = network?.provisioners?.firstOrNull { it.uuid == uuid } != null
 
     @Transient
     internal var network: MeshNetwork? = null
