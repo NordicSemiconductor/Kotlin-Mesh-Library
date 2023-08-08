@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":mesh:core"))
     api(libs.nordic.theme)
     implementation(libs.nordic.uilogger)
-    implementation(libs.nordic.uiscanner)
+    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.navigation)
     implementation(libs.nordic.permissions.ble)
     implementation(libs.nordic.log.timber)
