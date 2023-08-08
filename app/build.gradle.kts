@@ -16,7 +16,7 @@ dependencies {
 
     implementation(libs.nordic.theme)
     implementation(libs.nordic.navigation)
-    implementation(libs.nordic.uiscanner)
+    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
     implementation(libs.nordic.scanner)
