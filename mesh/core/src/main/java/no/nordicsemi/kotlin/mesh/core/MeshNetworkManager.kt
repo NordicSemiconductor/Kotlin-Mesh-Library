@@ -9,11 +9,13 @@ import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
+import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.*
 import kotlin.properties.Delegates
@@ -38,12 +40,13 @@ class MeshNetworkManager(
     val meshNetwork = _meshNetwork.asSharedFlow()
     internal lateinit var network: MeshNetwork
 
-    private lateinit var networkManager: NetworkManager
+    internal var networkManager: NetworkManager? = null
+        private set
     var transmitter: Transmitter? by Delegates.observable(null) { _, _, newValue ->
-        networkManager.transmitter = newValue
+        networkManager?.transmitter = newValue
     }
     var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
-        networkManager.logger = newValue
+        networkManager?.logger = newValue
     }
 
     /**
@@ -125,6 +128,17 @@ class MeshNetworkManager(
         ttl: UByte? = null
     ) {
         // TODO networkManager.send(message, destination, ttl)
+    }
+
+    suspend fun send(message: ProxyConfigurationMessage) {
+        networkManager?.let {
+            networkManager?.send(message)
+        } ?: run {
+            logger?.e(LogCategory.PROXY) {
+                "Error: Mesh Network not created"
+            }
+            throw IllegalStateException("Network manager is not initialized")
+        }
     }
 }
 

@@ -104,13 +104,13 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
     }
 
     /**
-     * This method tries to send the Proxy Configuration Message. The Proxy Filter object will be
-     * informed about the success or a failure.
+     * Sends the Proxy Configuration Message. The Proxy Filter object will be notified about the
+     * success or a failure.
      *
      * @param message The Proxy Configuration message to be sent.
      */
-    fun send(message: ProxyConfigurationMessage) {
-        // TODO
+    suspend fun send(message: ProxyConfigurationMessage) {
+
     }
 
     /**

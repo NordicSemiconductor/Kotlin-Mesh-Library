@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkLayer
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.HasAddress
@@ -25,7 +26,7 @@ import kotlin.time.DurationUnit
  */
 internal class NetworkManager(private val manager: MeshNetworkManager) {
     var logger: Logger? = null
-
+    val networkPropertiesStorage = manager.networkProperties
     var networkLayer = NetworkLayer(this)
     // var lowerTransportLayer = LowerTransportLayer(this)
     // var upperTransportLayer = UpperTransportLayer(this)
@@ -36,7 +37,6 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
     var meshNetwork = manager.meshNetwork.replayCache.first()
 
     var networkParameters = NetworkParameters()
-
 
     fun handle(incomingPdu: ByteArray, type: PduType) {
         networkLayer.handle(incomingPdu = incomingPdu, type = type)
@@ -106,5 +106,14 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
         key: ApplicationKey
     ) {
         // TODO accessLayer.send(message, srcElement, destination, withTtl, using)
+    }
+
+    /**
+     * Sends the Proxy Configuration message to the connected Proxy node.
+     *
+     * @param message Proxy Configuration message to be sent.
+     */
+    suspend fun send(message : ProxyConfigurationMessage){
+        networkLayer.send(message)
     }
 }
