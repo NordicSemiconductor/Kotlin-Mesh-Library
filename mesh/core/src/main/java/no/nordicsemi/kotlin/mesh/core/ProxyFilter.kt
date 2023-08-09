@@ -1,10 +1,8 @@
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
-@file:OptIn(DelicateCoroutinesApi::class)
 
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
