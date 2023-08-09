@@ -1,7 +1,11 @@
-@file:Suppress("unused", "RedundantSuspendModifier", "UNUSED_PARAMETER")
+@file:Suppress(
+    "unused", "RedundantSuspendModifier", "UNUSED_PARAMETER",
+    "MemberVisibilityCanBePrivate"
+)
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -33,7 +37,8 @@ import kotlin.properties.Delegates
  */
 class MeshNetworkManager(
     private val storage: Storage,
-    internal val networkProperties: NetworkPropertiesStorage
+    internal val networkProperties: NetworkPropertiesStorage,
+    scope: CoroutineScope
 ) {
 
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
@@ -47,6 +52,12 @@ class MeshNetworkManager(
     }
     var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
         networkManager?.logger = newValue
+    }
+
+    internal var proxyFilter: ProxyFilter
+
+    init {
+        proxyFilter = ProxyFilter(scope = scope).also { it.use(this) }
     }
 
     /**
