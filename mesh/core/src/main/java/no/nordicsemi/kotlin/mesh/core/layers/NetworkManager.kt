@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.layers
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.ProxyFilterEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkLayer
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -24,7 +25,9 @@ import kotlin.time.DurationUnit
  * @property manager Mesh network manager
  * @constructor Constructs the network manager.
  */
-internal class NetworkManager(private val manager: MeshNetworkManager) {
+internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) {
+    lateinit var proxy: ProxyFilterEventHandler
+
     var logger: Logger? = null
     val networkPropertiesStorage = manager.networkProperties
     var networkLayer = NetworkLayer(this)
@@ -38,7 +41,13 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
 
     var networkParameters = NetworkParameters()
 
-    fun handle(incomingPdu: ByteArray, type: PduType) {
+    /**
+     * Handles the received PDU of a given type.
+     *
+     * @param incomingPdu Incoming PDU.
+     * @param type        PDU type.
+     */
+    suspend fun handle(incomingPdu: ByteArray, type: PduType) {
         networkLayer.handle(incomingPdu = incomingPdu, type = type)
     }
 
@@ -113,7 +122,7 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
      *
      * @param message Proxy Configuration message to be sent.
      */
-    suspend fun send(message : ProxyConfigurationMessage){
+    suspend fun send(message: ProxyConfigurationMessage) {
         networkLayer.send(message)
     }
 }
