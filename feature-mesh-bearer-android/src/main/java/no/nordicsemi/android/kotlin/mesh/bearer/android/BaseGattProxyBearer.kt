@@ -13,13 +13,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import no.nordicsemi.android.kotlin.ble.client.main.callback.BleGattClient
-import no.nordicsemi.android.kotlin.ble.client.main.connect
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
 import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
@@ -72,15 +70,15 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        client = device.connect(context)
-        client?.let { client ->
-            observeConnectionState(client)
-            client.discoverServices()
-                .filterNotNull()
-                .onEach { configureGatt(it) }
-                .launchIn(scope = scope)
-            mtu = client.requestMtu(517) - 3
-        }
+        val client = BleGattClient.connect(context = context, device= device)
+        this.client = client
+
+        if(!client.isConnected){ return }
+
+        // Discover services on the Bluetooth LE Device.
+        val services = client.discoverServices()
+        configureGatt(services)
+        mtu = client.requestMtu(517) - 3
     }
 
     override suspend fun close() {
