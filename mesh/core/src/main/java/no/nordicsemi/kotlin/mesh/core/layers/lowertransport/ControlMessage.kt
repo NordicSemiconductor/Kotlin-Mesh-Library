@@ -4,8 +4,11 @@ package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
+import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import kotlin.experimental.and
 
 /**
@@ -68,13 +71,9 @@ internal object ControlMessageDecoder {
      * @param networkPdu The network pdu to be decoded.
      * @return ControlMessage or null if the pdu could not be decoded.
      */
-    fun decode(networkPdu: NetworkPdu): ControlMessage? = networkPdu.let {
-        require(
-            it.transportPdu.isNotEmpty() &&
-                    it.transportPdu[0] and 0x00.toByte() == 0x00.toByte()
-        ) {
-            return null
-        }
+    fun decode(networkPdu: NetworkPdu) = networkPdu.takeIf {
+        it.transportPdu.isNotEmpty() && it.transportPdu[0] and 0x00.toByte() == 0x00.toByte()
+    }?.let {
         ControlMessage(
             opCode = (it.transportPdu[0] and 0x7F.toByte()).toUByte(),
             upperTransportPdu = it.transportPdu.drop(1).toByteArray(),
@@ -108,5 +107,31 @@ internal object ControlMessageDecoder {
             )
         }
     }
+
+    /**
+     * Creates a Control Message from the given Proxy configuration message. The source should be
+     * set to the local Node address. The given Network Key should be known to the Proxy node.
+     *
+     * @param message      Proxy configuration message.
+     * @param source       Source address of the message.
+     * @param networkKey   Network key to be used to encrypt the message.
+     * @param ivIndex      Current IV Index of the network.
+     *
+     * @return decoded ControlMessage.
+     */
+    fun decode(
+        message: ProxyConfigurationMessage,
+        source: MeshAddress,
+        networkKey: NetworkKey,
+        ivIndex: IvIndex
+    ) = ControlMessage(
+        opCode = message.opCode,
+        upperTransportPdu = message.parameters ?: byteArrayOf(),
+        source = source,
+        destination = UnassignedAddress,
+        networkKey = networkKey,
+        ivIndex = ivIndex.transmitIvIndex,
+        ttl = 0u
+    )
 }
 
