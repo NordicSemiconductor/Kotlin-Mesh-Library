@@ -14,8 +14,8 @@ import kotlin.experimental.and
 /**
  * Data class defining a Control Message.
  *
- * @property opCode             Message Op Code.
- * @property ttl                TTL value of the message.
+ * @property opCode  Message Op Code.
+ * @property ttl     TTL value of the message.
  * @constructor Creates a Control Message.
  */
 internal data class ControlMessage(
@@ -32,7 +32,6 @@ internal data class ControlMessage(
         get() = byteArrayOf() + opCode.toByte() + upperTransportPdu
 
     override val type = LowerTransportPduType.CONTROL_MESSAGE
-
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
