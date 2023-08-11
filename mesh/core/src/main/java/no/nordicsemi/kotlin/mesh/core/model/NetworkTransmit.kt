@@ -33,7 +33,11 @@ data class NetworkTransmit internal constructor(
         }
     }
 
-    fun intervalAsSeconds() = interval.toInt() / 1000.0
+    val intervalAsSeconds : Double
+        get() = interval.toInt() / 1000.0
+
+    val intervalAsMilliseconds : Long
+        get() = interval.toInt() * 1000L
 
     companion object {
         private const val MIN_COUNT = 1
