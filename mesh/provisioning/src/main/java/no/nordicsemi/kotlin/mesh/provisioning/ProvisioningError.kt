@@ -10,55 +10,55 @@ sealed class ProvisioningError : Exception()
 /**
  * Thrown when the ProvisioningManager is in an invalid state.
  */
-object InvalidState : ProvisioningError()
+data object InvalidState : ProvisioningError()
 
 /**
  * The received PDU is invalid.
  */
-object InvalidPdu : ProvisioningError()
+data object InvalidPdu : ProvisioningError()
 
 /**
  * The received Public Key is invalid or not equal to Provisioner's Public Key.
  */
-object InvalidPublicKey : ProvisioningError()
+data object InvalidPublicKey : ProvisioningError()
 
 /**
  * Thrown when the Unprovisioned Device is not supported by the manager.
  */
-object UnsupportedDevice : ProvisioningError()
+data object UnsupportedDevice : ProvisioningError()
 
 /**
  * Thrown when the provided alphanumeric value could not be converted into bytes using ASCII
  * encoding.
  */
-object InvalidOobValueFormat : ProvisioningError()
+data object InvalidOobValueFormat : ProvisioningError()
 
 /**
  * Thrown when no available Unicast Address was found in the Provisioner's range that could be
  * allocated for the device.
  */
-object NoAddressAvailable : ProvisioningError()
+data object NoAddressAvailable : ProvisioningError()
 
 /**
  * Thrown when the unicast address is invalid.
  */
-object InvalidAddress : ProvisioningError()
+data object InvalidAddress : ProvisioningError()
 
 /**
  * Throws when the Unicast Address has not been set.
  */
-object AddressNotSpecified : ProvisioningError()
+data object AddressNotSpecified : ProvisioningError()
 
 /**
  * Throws when the Network Key has not been set.
  */
-object NetworkKeyNotSpecified : ProvisioningError()
+data object NetworkKeyNotSpecified : ProvisioningError()
 
 /**
  * Thrown when confirmation value received from the device does not match calculated value.
  * Authentication failed.
  */
-object ConfirmationFailed : ProvisioningError()
+data object ConfirmationFailed : ProvisioningError()
 
 /**
  * Thrown when the remove device sent a failure indication.
