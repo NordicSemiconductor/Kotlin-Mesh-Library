@@ -93,3 +93,6 @@ data class ImportError internal constructor(
 
 /** Thrown when a network property does not belong to the current network. */
 data object DoesNotBelongToNetwork : MeshNetworkException()
+
+/** Thrown when no network is initialised **/
+data object NoNetwork : MeshNetworkException()
