@@ -173,3 +173,11 @@ infix fun List<ApplicationKey>.contains(networkKey: NetworkKey) = any { it.isBou
 infix fun List<ApplicationKey>.boundTo(networkKey: NetworkKey): List<ApplicationKey> = filter {
     it.isBoundTo(networkKey)
 }
+
+/**
+ * Filters the list of Application keys to only those that are known to the given node.
+ *
+ * @param node Node to check.
+ * @return List of Application Keys known to the node.
+ */
+fun List<ApplicationKey>.knownTo(node: Node): List<ApplicationKey> = filter { node.knows(it) }

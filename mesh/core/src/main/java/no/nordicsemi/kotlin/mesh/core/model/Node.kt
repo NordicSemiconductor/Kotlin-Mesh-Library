@@ -65,6 +65,10 @@ import kotlin.jvm.Throws
  * @property addresses                  List of addresses used by this node.
  * @property unicastRange               Address range used by this node.
  * @property lastUnicastAddress         Address of the last element in the node.
+ * @property primaryUnicastAddress      Address of the primary element in the node.
+ * @property configComplete             True if the node is configured.
+ * @property networkKeys                List of network keys known to this node.
+ * @property applicationKeys            List of application keys known to this node.
  * @constructor                         Creates a mesh node.
  */
 @Serializable
@@ -218,6 +222,11 @@ data class Node internal constructor(
             network?.updateTimestamp()
         }
 
+    val networkKeys: List<NetworkKey>
+        get() = network?.networkKeys?.knownTo(this) ?: emptyList()
+    val applicationKeys: List<ApplicationKey>
+        get() = network?.applicationKeys?.knownTo(this) ?: emptyList()
+
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "cid")
     var companyIdentifier: UShort? = null
@@ -274,6 +283,11 @@ data class Node internal constructor(
         internal set(value) {
             field = value
             network?.updateTimestamp()
+        }
+
+    val primaryElement: Element?
+        get() = companyIdentifier?.let {
+            elements.firstOrNull()
         }
 
     val elementsCount: Int
@@ -388,6 +402,42 @@ data class Node internal constructor(
      * @return true if given range overlaps with the node's address range.
      */
     fun containsElementsWithAddress(range: UnicastRange) = unicastRange.overlaps(range)
+
+    /**
+     * Checks if the given Application Key known by the node.
+     *
+     * Note: This is based on the key index.
+     *
+     * @param applicationKey Application Key.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knows(applicationKey: ApplicationKey) = knowsApplicationKeyIndex(applicationKey.index)
+
+    /**
+     * Checks if the given Application Key index known by the node.
+     *
+     * @param index Application Key index.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knowsApplicationKeyIndex(index: KeyIndex) = appKeys.any { it.index == index }
+
+    /**
+     * Checks if the given Network Key known by the node.
+     *
+     * Note: This is based on the key index.
+     *
+     * @param networkKey Network Key.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(networkKey.index)
+
+    /**
+     * Checks if the given Network Key index known by the node.
+     *
+     * @param index Network Key index.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knowsNetworkKeyIndex(index: KeyIndex) = netKeys.any { it.index == index }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

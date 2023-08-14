@@ -298,3 +298,11 @@ internal data class NetworkKeyDerivatives(
         return result
     }
 }
+
+/**
+ * Filters the list of Network Keys to only those that are known to the given node.
+ *
+ * @param node Node to check.
+ * @return List of network keys known to the node.
+ */
+fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter { node.knows(it) }
