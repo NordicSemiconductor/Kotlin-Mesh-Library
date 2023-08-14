@@ -514,8 +514,8 @@ class MeshNetwork internal constructor(
      * @param address Address of the element.
      * @return Node if an element with the given address was found, null otherwise.
      */
-    fun node(address: UnicastAddress): Node {
-        return nodes.first { it.containsElementWithAddress(address) }
+    fun node(address: UnicastAddress) = nodes.firstOrNull {
+        it.containsElementWithAddress(address)
     }
 
     /**
