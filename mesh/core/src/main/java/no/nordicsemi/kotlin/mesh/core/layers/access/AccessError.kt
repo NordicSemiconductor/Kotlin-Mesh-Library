@@ -12,7 +12,9 @@ sealed class AccessError : Exception() {
         ModelNotBoundToAppKey -> "No Application Key bound to the given Model."
         NoDeviceKey -> "Unknown Device Key."
         CannotDelete -> "Cannot delete the last Network Key."
+        Busy -> "Unable to send a message to specified address. Another transfer in progress."
         Timeout -> "Request timed out."
+        Cancelled -> "Message cancelled."
     }
 }
 
@@ -51,6 +53,12 @@ data object ModelNotBoundToAppKey : AccessError()
 data object NoDeviceKey : AccessError()
 
 /**
+ * Thrown when trying to send a message to an address to which another message is already being
+ * sent.
+ */
+data object Busy : AccessError()
+
+/**
  * Error thrown when the Provisioner is trying to delete the last Network Key from the Node.
  */
 data object CannotDelete : AccessError()
@@ -59,3 +67,8 @@ data object CannotDelete : AccessError()
  * Thrown, when the acknowledgment has not been received until the time run out.
  */
 data object Timeout : AccessError()
+
+/**
+ * Thrown when sending the message was cancelled.
+ */
+data object Cancelled : AccessError()
