@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nordicsemi.kotlin.mesh.core.layers
 
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -35,6 +37,6 @@ data class MessageHandle internal constructor(
      * therefore cannot be cancelled.
      */
     fun cancel() {
-        // TODO manager.cancel(this)
+        manager.cancel(this)
     }
 }
