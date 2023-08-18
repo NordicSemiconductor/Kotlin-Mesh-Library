@@ -10,9 +10,10 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.access.Busy
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkLayer
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -105,12 +106,28 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
         false
     }
 
+    /**
+     * Encrypts the message with the Application Key and a Network Key bound to it, and sends to the
+     * given destination address.
+     *
+     * This method does not send nor return PDUs to be sent. Instead, for each created segment it
+     * calls transmitter's [Transmitter.send] method, which should send the PDU over the air. This
+     * is in order to support retransmission in case a packet was lost and needs to be sent again
+     * after block acknowledgment was received.
+     *
+     * @param message          Message to be sent.
+     * @param element          Source Element.
+     * @param destination      Destination address.
+     * @param initialTtl       Initial TTL (Time To Live) value of the message. If `nil`, the
+     *                         default Node TTL will be used.
+     * @param applicationKey   Application Key to sign the message.
+     */
     suspend fun send(
         message: MeshMessage,
         element: Element,
         destination: MeshAddress,
         initialTtl: UByte?,
-        key: ApplicationKey
+        applicationKey: ApplicationKey
     ) {
         try {
             require(!ensureNotBusy(destination = destination)) { return }
@@ -128,35 +145,28 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
         }
     }
 
+    /**
+     * Encrypts the message with the Application Key and a Network Key bound to it, and sends to the
+     * given destination address.
+     *
+     * This method does not send nor return PDUs to be sent. Instead, for each created segment it
+     * calls transmitter's [Transmitter.send] method, which should send the PDU over the air. This
+     * is in order to support retransmission in case a packet was lost and needs to be sent again
+     * after block acknowledgment was received.
+     *
+     * @param message         Message to be sent.
+     * @param element         Source Element.
+     * @param destination     Destination Unicast Address.
+     * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
+     *                        Node TTL will be used.
+     * @param applicationKey  Application Key to sign the message.
+     */
     suspend fun send(
         message: AcknowledgedMeshMessage,
         element: Element,
         destination: Address,
         initialTtl: UByte?,
-        key: ApplicationKey
-    ) {
-        val meshAddress = MeshAddress.create(address = destination)
-        try {
-            require(!ensureNotBusy(destination = meshAddress)) { return }
-            // TODO setDeliveryCallback
-            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
-        } catch (e: Exception) {
-            cancel(
-                handler = MessageHandle(
-                    message = message,
-                    source = element.unicastAddress,
-                    destination = meshAddress,
-                    manager = this@NetworkManager
-                )
-            )
-        }
-    }
-
-    suspend fun send(
-        message: UnacknowledgedMeshMessage,
-        element: Element,
-        destination: Address,
-        initialTtl: UByte?
+        applicationKey: ApplicationKey
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         try {
@@ -176,27 +186,66 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
     }
 
     /**
-     * Encrypts the message with the Device Key and the first Network Key known to it, and sends to
-     * the given destination address.
-     *
-     * The [ConfigNetKeyDelete] will be signed with a different network key than its removing.
+     * Encrypts the message with the Device Key and the first Network Key known to the target device,
+     * and sends to the given destination address.
      *
      * This method does not send nor return PDUs to be sent. Instead, for each created segment it
-     * calls transmitter's ``Transmitter/send(_:ofType:)`` method, which should send the PDU over
-     * the air. This is in order to support retransmission in case a packet was lost and needs to be
-     * sent again after block acknowledgment was received.
+     * calls transmitter's [Transmitter.send] method, which should send the PDU over the air. This
+     * is in order to support retransmission in case a packet was lost and needs to be sent again
+     * after block acknowledgment was received.
      *
-     * @param configMessage   Config message to be sent.
-     * @param element         Source Element from which the message is originating from.
+     * @param configMessage  Message to be sent.
+     * @param element        Source Element.
+     * @param destination    Destination address.
+     * @param initialTtl     Initial TTL (Time To Live) value of the message. If `nil`, the default
+     *                       Node TTL will be used.
+     */
+    suspend fun send(
+        configMessage: UnacknowledgedConfigMessage,
+        element: Element,
+        destination: Address,
+        initialTtl: UByte?
+    ) {
+        val meshAddress = MeshAddress.create(address = destination)
+        try {
+            require(!ensureNotBusy(destination = meshAddress)) { return }
+            // TODO setDeliveryCallback
+            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+
+        } catch (e: Exception) {
+            cancel(
+                handler = MessageHandle(
+                    message = configMessage,
+                    source = element.unicastAddress,
+                    destination = meshAddress,
+                    manager = this@NetworkManager
+                )
+            )
+        }
+    }
+
+    /**
+     * Encrypts the message with the Device Key and the first Network Key known to the target device,
+     * and sends to the given destination address.
+     *
+     * The [ConfigNetKeyDelete] will be signed with a different Network Key that is removing.
+     *
+     * This method does not send nor return PDUs to be sent. Instead, for each created segment it
+     * calls transmitter's [Transmitter.send] method, which should send the PDU over the air. This
+     * is in order to support retransmission in case a packet was lost and needs to be sent again
+     * after block acknowledgment was received.
+     *
+     * @param configMessage   Message to be sent.
+     * @param element         Source Element.
      * @param destination     Destination address.
-     * @param ttl             Initial TTL (Time To Live) value of the message. If `nil`, default
+     * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                        Node TTL will be used.
      */
     suspend fun send(
-        configMessage: AcknowledgedMeshMessage,
+        configMessage: AcknowledgedConfigMessage,
         element: Element,
         destination: Address,
-        ttl: UByte?
+        initialTtl: UByte?
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         try {
