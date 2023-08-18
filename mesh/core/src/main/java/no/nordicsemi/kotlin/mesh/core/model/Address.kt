@@ -299,3 +299,11 @@ sealed interface ParentGroupAddress : HasAddress
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ProxyFilterAddress : HasAddress
+
+/**
+ * Converts a mesh address to a hex string.
+ *
+ * @param prefix0x If true, the hex string will be prefixed with 0x.
+ * @return The hex string representation of the address.
+ */
+fun MeshAddress.toHex(prefix0x: Boolean = false) = address.toHex(prefix0x = prefix0x)
