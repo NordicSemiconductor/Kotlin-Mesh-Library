@@ -180,4 +180,12 @@ infix fun List<ApplicationKey>.boundTo(networkKey: NetworkKey): List<Application
  * @param node Node to check.
  * @return List of Application Keys known to the node.
  */
-fun List<ApplicationKey>.knownTo(node: Node): List<ApplicationKey> = filter { node.knows(it) }
+infix fun List<ApplicationKey>.knownTo(node: Node): List<ApplicationKey> = filter { node.knows(it) }
+
+/**
+ * Returns an Application Key with the given KeyIndex
+ *
+ * @param index Key index of the application key.
+ * @return Application key with the given key index or null if not found.
+ */
+infix fun List<ApplicationKey>.get(index: KeyIndex): ApplicationKey? = find { it.index == index }
