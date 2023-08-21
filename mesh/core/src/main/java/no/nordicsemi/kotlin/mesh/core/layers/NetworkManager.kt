@@ -99,6 +99,13 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
         }
     }
 
+    /**
+     * Ensures that the local node is not busy sending a message to the given destination address.
+     *
+     * @param destination Destination address.
+     * @return `true` if the node is busy sending a message to the given destination address,
+     * @throws Busy if the node is busy sending a message to the given destination address.
+     */
     @Throws(Busy::class)
     private suspend fun ensureNotBusy(destination: MeshAddress) = mutex.withLock {
         require(!outgoingMessages.contains(destination)) { throw Busy }
@@ -121,7 +128,9 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
      * @param initialTtl       Initial TTL (Time To Live) value of the message. If `nil`, the
      *                         default Node TTL will be used.
      * @param applicationKey   Application Key to sign the message.
+     * @throws
      */
+    @Throws(Busy::class)
     suspend fun send(
         message: MeshMessage,
         element: Element,
@@ -161,6 +170,7 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
      *                        Node TTL will be used.
      * @param applicationKey  Application Key to sign the message.
      */
+    @Throws(Busy::class)
     suspend fun send(
         message: AcknowledgedMeshMessage,
         element: Element,
@@ -200,6 +210,7 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
      * @param initialTtl     Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                       Node TTL will be used.
      */
+    @Throws(Busy::class)
     suspend fun send(
         configMessage: UnacknowledgedConfigMessage,
         element: Element,
@@ -241,6 +252,7 @@ internal class NetworkManager(private val manager: MeshNetworkManager) {
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                        Node TTL will be used.
      */
+    @Throws(Busy::class)
     suspend fun send(
         configMessage: AcknowledgedConfigMessage,
         element: Element,
