@@ -574,7 +574,8 @@ class MeshNetworkManager(
             configMessage = message,
             element = element,
             destination = destination,
-            initialTtl = initialTtl)
+            initialTtl = initialTtl
+        )
     }
 
     /**
@@ -751,5 +752,4 @@ class MeshNetworkManager(
         }
         throw IllegalStateException("Network manager is not initialized")
     }
-
 }

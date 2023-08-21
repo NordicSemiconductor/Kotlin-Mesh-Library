@@ -31,7 +31,7 @@ import kotlin.time.DurationUnit
  * @property manager Mesh network manager
  * @constructor Constructs the network manager.
  */
-internal class NetworkManager(private val manager: MeshNetworkManager) {
+internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) {
     lateinit var proxy: ProxyFilterEventHandler
 
     var logger: Logger? = null
