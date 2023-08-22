@@ -306,3 +306,11 @@ internal data class NetworkKeyDerivatives(
  * @return List of network keys known to the node.
  */
 fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter { node.knows(it) }
+
+/**
+ * Returns an Network Key with the given KeyIndex.
+ *
+ * @param index Application Key Index.
+ * @return Network key that an application key may be bound to.
+ */
+infix fun List<NetworkKey>.get(index: KeyIndex): NetworkKey? = find { it.index == index }
