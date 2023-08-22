@@ -128,7 +128,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param initialTtl       Initial TTL (Time To Live) value of the message. If `nil`, the
      *                         default Node TTL will be used.
      * @param applicationKey   Application Key to sign the message.
-     * @throws
+     * @throws Busy if the node is busy sending a message to the given destination address.
      */
     @Throws(Busy::class)
     suspend fun send(
@@ -138,20 +138,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         initialTtl: UByte?,
         applicationKey: ApplicationKey
     ) {
-        try {
-            require(!ensureNotBusy(destination = destination)) { return }
-            // TODO setDeliveryCallback
-            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = false)
-        } catch (e: Exception) {
-            cancel(
-                handler = MessageHandle(
-                    message = message,
-                    source = element.unicastAddress,
-                    destination = destination,
-                    manager = this@NetworkManager
-                )
-            )
-        }
+        require(!ensureNotBusy(destination = destination)) { return }
+        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = false)
+        mutex.withLock { outgoingMessages.remove(destination) }
     }
 
     /**
@@ -169,6 +158,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                        Node TTL will be used.
      * @param applicationKey  Application Key to sign the message.
+     * @throws Busy if the node is busy sending a message to the given destination address.
      */
     @Throws(Busy::class)
     suspend fun send(
@@ -179,20 +169,10 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         applicationKey: ApplicationKey
     ) {
         val meshAddress = MeshAddress.create(address = destination)
-        try {
-            require(!ensureNotBusy(destination = meshAddress)) { return }
-            // TODO setDeliveryCallback
-            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
-        } catch (e: Exception) {
-            cancel(
-                handler = MessageHandle(
-                    message = message,
-                    source = element.unicastAddress,
-                    destination = meshAddress,
-                    manager = this@NetworkManager
-                )
-            )
-        }
+        require(!ensureNotBusy(destination = meshAddress)) { return }
+
+        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
     /**
@@ -209,6 +189,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param destination    Destination address.
      * @param initialTtl     Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                       Node TTL will be used.
+     * @throws Busy if the node is busy sending a message to the given destination address.
      */
     @Throws(Busy::class)
     suspend fun send(
@@ -218,21 +199,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         initialTtl: UByte?
     ) {
         val meshAddress = MeshAddress.create(address = destination)
-        try {
-            require(!ensureNotBusy(destination = meshAddress)) { return }
-            // TODO setDeliveryCallback
-            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
-
-        } catch (e: Exception) {
-            cancel(
-                handler = MessageHandle(
-                    message = configMessage,
-                    source = element.unicastAddress,
-                    destination = meshAddress,
-                    manager = this@NetworkManager
-                )
-            )
-        }
+        require(!ensureNotBusy(destination = meshAddress)) { return }
+        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
     /**
@@ -251,6 +220,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param destination     Destination address.
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                        Node TTL will be used.
+     * @throws Busy if the node is busy sending a message to the given destination address.
      */
     @Throws(Busy::class)
     suspend fun send(
@@ -260,21 +230,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         initialTtl: UByte?
     ) {
         val meshAddress = MeshAddress.create(address = destination)
-        try {
-            require(!ensureNotBusy(destination = meshAddress)) { return }
-            // TODO setDeliveryCallback
-            // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
-
-        } catch (e: Exception) {
-            cancel(
-                handler = MessageHandle(
-                    message = configMessage,
-                    source = element.unicastAddress,
-                    destination = meshAddress,
-                    manager = this@NetworkManager
-                )
-            )
-        }
+        require(!ensureNotBusy(destination = meshAddress)) { return }
+        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
     /**
@@ -283,10 +241,6 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param message Proxy Configuration message to be sent.
      */
     suspend fun send(message: ProxyConfigurationMessage) {
-        networkLayer.send(message)
-    }
-
-    fun cancel(handler: MessageHandle) {
-        // TODO accessLayer.cancel(handler)
+        networkLayer.send(message = message)
     }
 }
