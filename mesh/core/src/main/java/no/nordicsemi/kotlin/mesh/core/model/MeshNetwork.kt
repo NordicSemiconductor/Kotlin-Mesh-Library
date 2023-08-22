@@ -1058,7 +1058,7 @@ class MeshNetwork internal constructor(
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
             _applicationKeys = _applicationKeys.filter { applicationKey ->
-                applicationKey.netKey?.let {
+                applicationKey.boundNetworkKey?.let {
                     it in networkKeys
                 } ?: false
             }.toMutableList()

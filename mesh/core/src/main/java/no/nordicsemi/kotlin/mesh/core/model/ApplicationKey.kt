@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -24,7 +24,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              of the network key in the mesh network.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
- * @property netKey             Network key to which this application key is bound to.
+ * @property boundNetworkKey             Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
 @Serializable
@@ -51,23 +51,39 @@ data class ApplicationKey internal constructor(
         get() = _key
         internal set(value) {
             require(value.size == 16) { "Key must be 16-bytes long!" }
-            _key = value
+            onChange(oldValue = _key, newValue = value) {
+                oldKey = _key
+                oldAid = aid
+                _key = value
+                regenerateKeyDerivatives()
+            }
         }
 
     @Serializable(with = KeySerializer::class)
     var oldKey: ByteArray? = null
-        internal set
+        internal set(value) {
+            onChange(oldValue = field, newValue = value) {
+                field = value
+                if(field == null){
+                    oldAid = null
+                }
+            }
+        }
 
     @Transient
     internal var network: MeshNetwork? = null
 
-    val netKey: NetworkKey?
-        get() = network?._networkKeys?.find { networkKey ->
-            networkKey.index == boundNetKeyIndex
-        }
+    val boundNetworkKey: NetworkKey?
+        get() = network!!.networkKeys.get(boundNetKeyIndex)
+
+    internal var aid: UByte = Crypto.calculateAid(N = key)
+
+    internal var oldAid : UByte? = null
+
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+        regenerateKeyDerivatives()
     }
 
     /**
@@ -126,6 +142,16 @@ data class ApplicationKey internal constructor(
      */
     fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
 
+    private fun regenerateKeyDerivatives() {
+        aid = Crypto.calculateAid(N = key)
+
+        // When the Application Key is imported from JSOn, old key derivatives must be calculated.
+        val oldKey = requireNotNull(oldKey)
+        if(oldAid == null) {
+            oldAid = Crypto.calculateAid(N = oldKey)
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -139,7 +165,7 @@ data class ApplicationKey internal constructor(
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
-        if (netKey != other.netKey) return false
+        if (boundNetworkKey != other.boundNetworkKey) return false
 
         return true
     }
@@ -149,7 +175,7 @@ data class ApplicationKey internal constructor(
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
-        result = 31 * result + (netKey?.hashCode() ?: 0)
+        result = 31 * result + (boundNetworkKey?.hashCode() ?: 0)
         return result
     }
 }
