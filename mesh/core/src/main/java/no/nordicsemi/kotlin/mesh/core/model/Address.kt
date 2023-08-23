@@ -135,7 +135,11 @@ data class UnicastAddress(
 
     operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
 
+    operator fun plus(other : UnicastAddress) = UnicastAddress((address + other.address).toInt())
+
     operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
+
+    operator fun minus(other : UnicastAddress) = UnicastAddress((address - other.address).toInt())
 
     operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
 
