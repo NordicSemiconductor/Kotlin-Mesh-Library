@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
 import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotDelete
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidDestination
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidElement
@@ -35,6 +36,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
@@ -60,7 +62,7 @@ import kotlin.properties.Delegates
 class MeshNetworkManager(
     private val storage: Storage,
     internal val networkProperties: NetworkPropertiesStorage,
-    scope: CoroutineScope
+    private val scope: CoroutineScope
 ) {
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
@@ -78,8 +80,16 @@ class MeshNetworkManager(
 
     internal var proxyFilter: ProxyFilter
 
+    var localElements: List<Element>
+        get() = network?.localElements ?: emptyList()
+        set(value) {
+            network?._localElements = value.toMutableList()
+            // TODO networkManager?.accessLayer?.reinitializePublishers()
+        }
+
     init {
         proxyFilter = ProxyFilter(scope = scope).also { it.use(this) }
+        observeNetworkManagerEvents()
     }
 
     /**
@@ -117,12 +127,22 @@ class MeshNetworkManager(
      * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
      *             multiple mesh networks.
      */
-    suspend fun create(name: String = "Mesh Network", uuid: UUID = UUID.randomUUID()) =
-        MeshNetwork(uuid = uuid, _name = name).also {
-            network = it
-            _meshNetwork.emit(it)
-            networkManager = NetworkManager(this)
-        }
+    suspend fun create(
+        name: String = "Mesh Network",
+        uuid: UUID = UUID.randomUUID(),
+        provisionerName: String = "Mesh Provisioner"
+    ) = create(name = name, uuid = uuid, provisioner = Provisioner(name = provisionerName))
+
+    suspend fun create(
+        name: String = "Mesh Network",
+        uuid: UUID = UUID.randomUUID(),
+        provisioner: Provisioner
+    ) = MeshNetwork(uuid = uuid, _name = name).also {
+        it.add(provisioner)
+        network = it
+        _meshNetwork.emit(it)
+        networkManager = NetworkManager(this)
+    }
 
     /**
      * Imports a Mesh Network from a byte array containing a Json defined by the Mesh Configuration
@@ -223,6 +243,13 @@ class MeshNetworkManager(
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        InvalidSource::class,
+        InvalidElement::class,
+        InvalidTtl::class
+    )
     suspend fun send(
         message: MeshMessage,
         localElement: Element?,
@@ -288,6 +315,13 @@ class MeshNetworkManager(
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        InvalidSource::class,
+        InvalidElement::class,
+        InvalidTtl::class
+    )
     suspend fun send(
         message: MeshMessage,
         localElement: Element,
@@ -323,6 +357,13 @@ class MeshNetworkManager(
      * @throws InvalidDestination if the element does not belong to a node.
      * @throws ModelNotBoundToAppKey if the model is not bound to any application key.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        ModelNotBoundToAppKey::class,
+        InvalidSource::class,
+        InvalidElement::class
+    )
     suspend fun send(
         message: UnacknowledgedMeshMessage,
         localElement: Element,
@@ -374,6 +415,13 @@ class MeshNetworkManager(
      * @throws InvalidSource if the source model does not belong to an Element or if the element
      *                       does not belong to the local node.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        ModelNotBoundToAppKey::class,
+        InvalidSource::class,
+        InvalidElement::class
+    )
     suspend fun send(
         message: UnacknowledgedMeshMessage,
         localModel: Model,
@@ -411,6 +459,14 @@ class MeshNetworkManager(
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        ModelNotBoundToAppKey::class,
+        InvalidSource::class,
+        InvalidElement::class,
+        InvalidTtl::class
+    )
     suspend fun send(
         message: AcknowledgedMeshMessage,
         localElement: Element?,
@@ -474,15 +530,23 @@ class MeshNetworkManager(
      * @param model           Destination Model.
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
      *                        Node TTL will be used.
-     * @returns A response with the expected [AcknowledgedMeshMessage.responseOpCode] received
-     *           from the target Node.
+     * @returns A response with the expected [AcknowledgedMeshMessage.responseOpCode] received from
+     *          the target Node.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidDestination if the Model does not belong to an Element.
      * @throws ModelNotBoundToAppKey if the model is not bound to any application key.
-     * @throws InvalidSource if the source model does not belong to an Element..
+     * @throws InvalidSource if the source model does not belong to an Element.
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        ModelNotBoundToAppKey::class,
+        InvalidSource::class,
+        InvalidElement::class,
+        InvalidTtl::class
+    )
     suspend fun send(
         message: AcknowledgedMeshMessage,
         localModel: Model,
@@ -597,6 +661,12 @@ class MeshNetworkManager(
      *                            unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        InvalidSource::class,
+        InvalidTtl::class
+    )
     suspend fun send(message: UnacknowledgedConfigMessage, node: Node, initialTtl: UByte?) {
         send(
             message = message,
@@ -627,6 +697,12 @@ class MeshNetworkManager(
      *                            unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @Throws(
+        NoNetwork::class,
+        InvalidDestination::class,
+        InvalidSource::class,
+        InvalidTtl::class
+    )
     suspend fun send(
         message: AcknowledgedConfigMessage,
         destination: Address,
@@ -751,5 +827,29 @@ class MeshNetworkManager(
             "Error: Mesh Network not created"
         }
         throw IllegalStateException("Network manager is not initialized")
+    }
+
+    /**
+     * Observes network manager events.
+     */
+    private fun observeNetworkManagerEvents() {
+        scope.launch {
+            networkManager?.networkManagerEventFlow?.onEach {
+                when (it) {
+                    is NetworkManagerEvent.MessageReceived -> TODO()
+                    is NetworkManagerEvent.MessageSendingFailed -> TODO()
+                    is NetworkManagerEvent.MessageSent -> TODO()
+                    NetworkManagerEvent.NetworkDidChange -> save()
+                    NetworkManagerEvent.NetworkDidReset -> {
+                        network?.localProvisioner?.let { provisioner ->
+                            val localElements = this@MeshNetworkManager.localElements
+                            provisioner.network = null
+                            create()
+                            this@MeshNetworkManager.localElements = localElements
+                        }
+                    }
+                }
+            }
+        }
     }
 }
