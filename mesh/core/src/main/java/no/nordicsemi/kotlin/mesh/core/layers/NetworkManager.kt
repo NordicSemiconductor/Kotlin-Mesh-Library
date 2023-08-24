@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.bearer.PduType
@@ -49,6 +51,10 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     private val mutex = Mutex(locked = true)
 
     private var outgoingMessages = mutableSetOf<MeshAddress>()
+
+    private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>()
+    internal val networkManagerEventFlow = _networkManagerEventFlow.asSharedFlow()
+
 
     /**
      * Handles the received PDU of a given type.
