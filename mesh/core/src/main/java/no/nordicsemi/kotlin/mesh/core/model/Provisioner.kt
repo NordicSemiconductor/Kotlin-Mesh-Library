@@ -44,37 +44,6 @@ data class Provisioner internal constructor(
     @SerialName(value = "allocatedSceneRange")
     internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
 ) {
-
-    /**
-     * Convenience constructor for tests
-     *
-     * @property name                      Provisioner name.
-     * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
-     * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
-     * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
-     *
-     */
-    internal constructor(
-        name: String,
-        allocatedUnicastRanges: List<UnicastRange> = mutableListOf(),
-        allocatedGroupRanges: List<GroupRange> = mutableListOf(),
-        allocatedSceneRanges: List<SceneRange> = mutableListOf()
-    ) : this(
-        UUID.randomUUID(),
-        allocatedUnicastRanges.toMutableList(),
-        allocatedGroupRanges.toMutableList(),
-        allocatedSceneRanges.toMutableList()
-    ) {
-        this.name = name
-    }
-
-    constructor(uuid: UUID = UUID.randomUUID()) : this(
-        uuid,
-        mutableListOf<UnicastRange>(),
-        mutableListOf<GroupRange>(),
-        mutableListOf<SceneRange>()
-    )
-
     @SerialName(value = "provisionerName")
     var name: String = "nRF Mesh Provisioner"
         set(value) {
@@ -106,6 +75,70 @@ data class Provisioner internal constructor(
 
     @Transient
     internal var network: MeshNetwork? = null
+
+    /**
+     * Creates a Provisioner with the given UUID.
+     *
+     * @param uuid Provisioner UUID.
+     */
+    constructor(uuid: UUID = UUID.randomUUID()) : this(
+        uuid = uuid,
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    )
+
+    /**
+     * Creates a Provisioner with the given UUID and name.
+     *
+     * @param uuid Provisioner UUID.
+     * @param name Provisioner name.
+     */
+    constructor(uuid: UUID = UUID.randomUUID(), name: String) : this(
+        uuid = uuid,
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    ) {
+        this.name = name
+    }
+
+    /**
+     * Creates a Provisioner with the given name.
+     *
+     * @param name Provisioner name.
+     */
+    constructor(name: String) : this(
+        uuid = UUID.randomUUID(),
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    ) {
+        this.name = name
+    }
+
+    /**
+     * Convenience constructor for tests
+     *
+     * @property name                      Provisioner name.
+     * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
+     * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
+     * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
+     *
+     */
+    internal constructor(
+        name: String,
+        allocatedUnicastRanges: List<UnicastRange> = mutableListOf(),
+        allocatedGroupRanges: List<GroupRange> = mutableListOf(),
+        allocatedSceneRanges: List<SceneRange> = mutableListOf()
+    ) : this(
+        UUID.randomUUID(),
+        allocatedUnicastRanges.toMutableList(),
+        allocatedGroupRanges.toMutableList(),
+        allocatedSceneRanges.toMutableList()
+    ) {
+        this.name = name
+    }
 
     /**
      * Allocates the given range to a provisioner.
