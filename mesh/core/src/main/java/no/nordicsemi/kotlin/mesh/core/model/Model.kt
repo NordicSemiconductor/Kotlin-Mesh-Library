@@ -155,6 +155,17 @@ data class Model internal constructor(
     }
 
     /**
+     * Copies the properties from the given model
+     *
+     * @param model Model to copy from
+     */
+    fun copyProperties(model: Model){
+        bind = model.bind
+        publish = model.publish
+        subscribe = model.subscribe
+    }
+
+    /**
      * Binds the given application key index to a model.
      *
      * @param index Application key index.

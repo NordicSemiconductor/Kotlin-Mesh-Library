@@ -276,6 +276,43 @@ data class Provisioner internal constructor(
     }
 
     /**
+     * Returns the maximum number of elements that can be assigned to a Node witht he given Unicast
+     * address.
+     *
+     * This method ensures that the addresses are ina single Unicast Address range allocated to the
+     * Provisioner and are not already assigned to any other Node.
+     *
+     * @param address Node address to check
+     * @return Maximum number of elements that the Node can have before the addresses go out of
+     *         Provisioner's range, or will overlap an existing node.
+     */
+    internal fun maxElementCount(address: UnicastAddress): Int {
+        var count = 0
+
+        // CHeck the maximum number of elements that fits inside a single range.
+        for (range in _allocatedUnicastRanges) {
+            if (range.contains(address.address)) {
+                count = minOf(
+                    a = ((range.highAddress - address) + 1).address.toInt(),
+                    b = UByte.MAX_VALUE.toInt()
+                )
+                break
+            }
+        }
+        // The requested address is not in Provisioner's range
+        require(count > 0) { return 0 }
+        // If the Provisioner is not in Provisioner's range
+        val otherNodes = network?.nodes?.filter { it.primaryUnicastAddress != address }
+        val range = UnicastRange(address, count)
+        otherNodes?.forEach { node ->
+            if (node.containsElementsWithAddress(range)) {
+                count = (node._primaryUnicastAddress - address).address.toInt()
+            }
+        }
+        return count
+    }
+
+    /**
      * Checks if the given range is within the Allocated ranges.
      *
      * @param range Range to be checked.
@@ -352,8 +389,8 @@ data class Provisioner internal constructor(
                 address,
                 listOf(
                     Element(
-                        Location.UNKNOWN,
-                        listOf(
+                        location = Location.UNKNOWN,
+                        _models = mutableListOf(
                             Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
                             Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
                         )

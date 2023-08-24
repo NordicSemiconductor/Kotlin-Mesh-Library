@@ -104,8 +104,8 @@ data class Node internal constructor(
         unicastAddress: UnicastAddress,
         elements: List<Element> = listOf(
             Element(
-                Location.UNKNOWN,
-                listOf(
+                location = Location.UNKNOWN,
+                _models = mutableListOf(
                     Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
                     Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
                 )
@@ -135,12 +135,7 @@ data class Node internal constructor(
         uuid = UUID.randomUUID(),
         deviceKey = Crypto.generateRandomKey(),
         _primaryUnicastAddress = UnicastAddress(address),
-        _elements = MutableList(elements) {
-            Element(
-                location = Location.UNKNOWN,
-                models = listOf()
-            )
-        },
+        _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
         _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
         _appKeys = mutableListOf()
     ) {
@@ -173,8 +168,7 @@ data class Node internal constructor(
         _primaryUnicastAddress = unicastAddress,
         _elements = MutableList(elementCount) {
             Element(
-                location = Location.UNKNOWN,
-                models = listOf()
+                location = Location.UNKNOWN
             )
         },
         _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
@@ -321,6 +315,38 @@ data class Node internal constructor(
 
     @Transient
     internal var network: MeshNetwork? = null
+
+    /**
+     * Sets the given list of Elements to the Node.
+     *
+     * Apart from simply replacing the Elements, this method copies properties of matching models
+     * from the old model to the new one. If at least one Model in the new Element was found in the
+     * new Element, the name of the Element is also copied.
+     *
+     * @param elements List of Elements to set.
+     */
+    fun set(elements: List<Element>) {
+        for (e in 0 until minOf(this.elements.size, elements.size)) {
+            val oldElement = this.elements[e]
+            val newElement = elements[e]
+            for (m in 0 until minOf(oldElement.models.size, newElement.models.size)) {
+                val oldModel = oldElement.models[m]
+                val newModel = newElement.models[m]
+                if (oldModel.modelId.id == newModel.modelId.id) {
+                    newModel.copyProperties(oldModel)
+                    // If at least one Model matches, assume the Element didn't change much and copy
+                    // the name of it.
+                    oldElement.name?.let { newElement.name = it }
+                }
+            }
+        }
+        this._elements.forEach { element ->
+            element.parentNode = null
+            element.index = 0
+        }
+        this._elements.clear()
+        this._elements.addAll(elements)
+    }
 
     /**
      * Adds a network key to a node.

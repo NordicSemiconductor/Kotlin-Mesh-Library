@@ -23,7 +23,7 @@ internal object ModelIdSerializer : KSerializer<ModelId> {
         decoder.decodeString().toUInt(radix = 16).let { modelId ->
             when (modelId and 0xFFFF0000u) {
                 0u -> SigModelId(modelIdentifier = modelId.toUShort())
-                else -> VendorModelId(modelId = modelId)
+                else -> VendorModelId(id = modelId)
             }
         }
     }.getOrElse {

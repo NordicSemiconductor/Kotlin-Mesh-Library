@@ -1,5 +1,8 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
@@ -22,7 +25,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
 data class Element internal constructor(
     @Serializable(with = LocationAsStringSerializer::class)
     val location: Location,
-    val models: List<Model>
+    @SerialName(value = "models")
+    private var _models: MutableList<Model> = mutableListOf()
 ) {
     var name: String? = null
         set(value) {
@@ -41,6 +45,9 @@ data class Element internal constructor(
     var index: Int = 0
         internal set
 
+    val models: List<Model>
+        get() = _models
+
     @Transient
     internal var parentNode: Node? = null
 
@@ -49,9 +56,68 @@ data class Element internal constructor(
             primaryUnicastAddress + index
         } ?: UnicastAddress(address = index + 1)
 
+    val isPrimary: Boolean
+        get() = index == 0
+
     init {
         require(index in LOWER_BOUND..HIGHER_BOUND) {
             " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
+        }
+    }
+
+    /**
+     * Adds a model to the element.
+     *
+     * @param model Model to be added.
+     * @return true if the model was added, false otherwise.
+     */
+    internal fun add(model: Model) = _models.add(model).also {
+        model.parentElement = this
+    }
+
+    /**
+     * Inserts a model to the element at the given index.
+     *
+     * @param model Model to be added.
+     * @param index Index at which the model should be added.
+     * @return true if the model was added, false otherwise.
+     */
+    internal fun insert(model: Model, index: Int) = _models.add(index, model).also {
+        model.parentElement = this
+    }
+
+    /**
+     * Adds the natively supported Models to the Element.
+     *
+     * Note: This is only to be called for the primary elemen of the Local Node.
+     *
+     * @param meshNetwork Mesh network.
+     */
+
+    // TODO ModelDelegates?
+    @Suppress("UNUSED_PARAMETER")
+    internal fun addPrimaryElementModels(meshNetwork: MeshNetwork) {
+        require(isPrimary) { return }
+        insert(Model(modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)), 0)
+        insert(Model(modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID)), 1)
+        insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), 2)
+        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_ID)), 3)
+        insert(Model(modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID)), 4)
+        insert(Model(modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID)), 5)
+    }
+
+    /**
+     * Removes the models that are or should be supported by the library.
+     */
+    internal fun removePrimaryElementModels() {
+        _models.removeAll { model ->
+            // Health models are not yet supported.
+            !model.isHealthServer && !model.isHealthClient &&
+                    // The library supports Scene Client model natively.
+                    !model.isSceneClient &&
+                    // The models that require Device Key should not be managed by users.
+                    // Some of them are supported natively in the library.
+                    !model.requiresDeviceKey
         }
     }
 

@@ -145,6 +145,48 @@ class MeshNetwork internal constructor(
             return null
         }
 
+    internal var _localElements = mutableListOf<Element>()
+        set(value) {
+            var elements = value
+            elements.forEach {
+                it.removePrimaryElementModels()
+            }
+            elements = elements.filter { it.models.isEmpty() }.toMutableList()
+            if (elements.isEmpty()) {
+                elements.add(Element(Location.UNKNOWN))
+            }
+            elements.first().addPrimaryElementModels(this)
+
+            // Ensures the indexes are correct
+            elements.forEachIndexed { index, element ->
+                element.index = index
+                element.parentNode = localProvisioner?.node
+            }
+            field = elements
+
+            // Ensure there is enough address space for all the Elements that are nto taken by other
+            // Nodes and are in the local Provisioner's address range. If required,
+            // cut the element array.
+            localProvisioner?.let { provisioner ->
+                provisioner.node?.let { node ->
+                    var availableElements = elements
+                    val availableElementsCount = provisioner.maxElementCount(
+                        address = node.primaryUnicastAddress
+                    )
+                    if (availableElementsCount < elements.size) {
+                        availableElements = elements.dropLast(
+                            n = elements.size - availableElementsCount
+                        ).toMutableList()
+                    }
+                    // Assign the Elements to the Provisioner's node
+                    node.set(elements = availableElements)
+                }
+            }
+        }
+
+    internal val localElements: List<Element>
+        get() = _localElements
+
     /**
      * Updates timestamp to the current time in milliseconds.
      */
@@ -244,7 +286,9 @@ class MeshNetwork internal constructor(
                 elements = listOf(
                     Element(
                         location = Location.UNKNOWN,
-                        models = listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
+                        _models = mutableListOf(
+                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID))
+                        )
                     )
                 ),
                 netKeys = _networkKeys,
