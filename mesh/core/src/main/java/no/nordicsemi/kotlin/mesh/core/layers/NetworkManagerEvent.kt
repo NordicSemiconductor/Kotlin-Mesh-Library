@@ -18,7 +18,6 @@ internal sealed class NetworkManagerEvent {
     /**
      * An event used to notify whenever a Mesh Message has been received from the mesh network.
      *
-     * @property manager      Manager which has received the message.
      * @property message      Received message.
      * @property source       Address of the Element from which the message was sent. This may be an
      *                        address
@@ -26,7 +25,6 @@ internal sealed class NetworkManagerEvent {
      * @constructor Creates a MessageReceived event.
      */
     data class MessageReceived(
-        val manager: NetworkManager,
         val message: MeshMessage,
         val source: Address,
         val destination: MeshAddress
@@ -37,14 +35,12 @@ internal sealed class NetworkManagerEvent {
      * when all segments of a segmented message targeting a Unicast Address were acknowledged by the
      * target Node.
      *
-     * @param networkManager Manager which has received the message.
      * @param message        Received message.
      * @param localElement   Local Element from which the message was sent.
      * @param destination    Address to which the message was sent.
      * @constructor Creates a MessageSent event.
      */
     data class MessageSent(
-        val networkManager: NetworkManager,
         val message: MeshMessage,
         val localElement: Element,
         val destination: MeshAddress
@@ -69,7 +65,6 @@ internal sealed class NetworkManagerEvent {
      * target Node. For acknowledged messages sent to a Group or Virtual Address this will be called
      * when the response has not been received from any Node.
      *
-     * @param manager            Manager used to send the message.
      * @param message            Message that has failed to be delivered.
      * @param localElement       Local Element used as a source of this message.
      * @param destination        Address to which the message was sent.
@@ -83,13 +78,11 @@ internal sealed class NetworkManagerEvent {
      *                                     (for unacknowledged messages only).
      */
     data class MessageSendingFailed(
-        val manager: NetworkManager,
         val message: MeshMessage,
         val localElement: Element,
         val destination: MeshAddress,
         val error: BearerError
     ) : NetworkManagerEvent()
-
 
     /**
      * An event used to notify when the Network Configuration has changed.
