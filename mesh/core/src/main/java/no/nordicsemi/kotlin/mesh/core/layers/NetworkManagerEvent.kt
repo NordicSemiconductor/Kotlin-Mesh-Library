@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportError
 
 /**
  * Defines events that are handled by the [NetworkManagerEvent].
