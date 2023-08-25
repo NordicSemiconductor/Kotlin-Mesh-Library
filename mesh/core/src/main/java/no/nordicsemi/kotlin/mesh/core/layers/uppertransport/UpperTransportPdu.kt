@@ -217,30 +217,38 @@ internal data class UpperTransportPdu(
         }
     }
 
+    /**
+     * Constructs an UpperTransportPdu from a given Access Message.
+     *
+     * @param message AccessMessage to be decode from.
+     * @param network Network to be used for encryption.
+     * @return A pair containing the UpperTransportPdu and the KeySet used to encrypt the message or
+     *         null if the pdu could not be decoded.
+     */
     fun decode(
-        accessMessage: AccessMessage,
+        message: AccessMessage,
         network: MeshNetwork
     ): Pair<UpperTransportPdu, KeySet>? {
         // Was the message signed using Application Key?
-        accessMessage.aid?.let { aid ->
+        message.aid?.let { aid ->
             // When the message was sent to a Virtual Address, the message must be decoded with the
             // Virtual Label as Additional Data.
-            val matchingGroups = if (accessMessage.destination is VirtualAddress) {
+            val matchingGroups = if (message.destination is VirtualAddress) {
                 network.groups.filter { group ->
-                    group.address == accessMessage.destination
+                    group.address == message.destination
                 }.toMutableList()
             } else emptyList()
 
             // Go through all the application keys bound to the network key that the message was
             // decoded with.
-            for (applicationKey in network.applicationKeys.boundTo(accessMessage.networkKey)) {
+            for (applicationKey in network.applicationKeys.boundTo(message.networkKey)) {
                 // The matchingGroups contains either a list of Virtual Groups, or a single nil
                 for (group in matchingGroups) {
                     // Each time try decoding using the new, or the old key (if such exist) when the
                     // generated aid matches the one sent int he message.
                     if (aid == applicationKey.aid) {
                         decode(
-                            message = accessMessage,
+                            message = message,
                             key = applicationKey.key,
                             virtualGroup = group
                         )?.let {
@@ -254,7 +262,7 @@ internal data class UpperTransportPdu(
                     require(aid == oldAid) { return null }
                     val key = requireNotNull(applicationKey.oldKey) { return null }
                     return decode(
-                        message = accessMessage,
+                        message = message,
                         key = key,
                         virtualGroup = group
                     )?.let { pdu ->
@@ -268,17 +276,17 @@ internal data class UpperTransportPdu(
             // sent as a response to a Config Message sent by this Provisioner.
             // On the other hand, if another Provisioner is sending a Config Messages, they will be
             // signed using the target node Device Key instead.
-            val node = network.node(accessMessage.source) ?: network.node(accessMessage.destination)
+            val node = network.node(message.source) ?: network.node(message.destination)
 
             return node?.deviceKey?.let { deviceKey ->
                 decode(
-                    message = accessMessage,
+                    message = message,
                     key = deviceKey,
                     virtualGroup = null
                 )?.let {
                     Pair(
                         it,
-                        DeviceKeySet(networkKey = accessMessage.networkKey, node = node)
+                        DeviceKeySet(networkKey = message.networkKey, node = node)
                     )
                 }
             }
