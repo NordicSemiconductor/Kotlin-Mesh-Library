@@ -311,7 +311,8 @@ object Crypto {
      * @param nonce                 104-bit nonce.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param additionalData        Additional data to be authenticated.
-     * @returns Encrypted data concatenated with MIC of given size.
+     * @throws Error if the decryption failed.
+     * @returns Encrypted data concatenated with MIC of given size or null if the decryption failed.
      */
     fun decrypt(
         data: ByteArray,
@@ -319,14 +320,20 @@ object Crypto {
         nonce: ByteArray,
         additionalData: ByteArray? = null,
         micSize: Int
-    ) = calculateCCM(
-        data = data,
-        key = key,
-        nonce = nonce,
-        additionalData = additionalData,
-        micSize = micSize,
-        mode = false
-    )
+    ) = try {
+        calculateCCM(
+            data = data,
+            key = key,
+            nonce = nonce,
+            additionalData = additionalData,
+            micSize = micSize,
+            mode = false
+        )
+    } catch (e: InvalidCipherTextException) {
+        null
+    } catch (e: Exception) {
+        throw Error("CCM decryption failed: ${e.message}")
+    }
 
     /**
      *  Obfuscates or De+obfuscates given data by XORing it with PECB, which is
@@ -654,9 +661,12 @@ object Crypto {
      * @param additionalData        Additional data to be authenticated.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param mode                  True to encrypt or false to decrypt
+     * @throws InvalidCipherTextException if the cipher text is invalid.
+     * @throws IllegalStateException if the cipher is not initialized.
      * @returns if [mode] was set to true, returns the encrypted data with the MIC concatenated
      *          otherwise returns the decrypted data.
      */
+    @Throws(InvalidCipherTextException::class, IllegalStateException::class)
     private fun calculateCCM(
         data: ByteArray,
         key: ByteArray,
