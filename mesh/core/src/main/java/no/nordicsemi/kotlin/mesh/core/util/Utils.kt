@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
+import java.nio.ByteBuffer
 import java.util.*
 
 object Utils {
@@ -122,4 +123,14 @@ object Utils {
             insert(23, "-")
         }.toString()
     } ?: uuid))
+
+    /**
+     * Converts a UUID to a byte array.
+     */
+    @Suppress("HasPlatformType")
+    fun UUID.toByteArray() = ByteBuffer.wrap(ByteArray(16)).apply {
+        putLong(mostSignificantBits)
+        putLong(leastSignificantBits)
+    }.array()
 }
+
