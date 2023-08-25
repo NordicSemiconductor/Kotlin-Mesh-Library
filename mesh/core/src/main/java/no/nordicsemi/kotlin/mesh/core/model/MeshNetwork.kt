@@ -558,8 +558,20 @@ class MeshNetwork internal constructor(
      * @param address Address of the element.
      * @return Node if an element with the given address was found, null otherwise.
      */
-    fun node(address: UnicastAddress) = nodes.firstOrNull {
-        it.containsElementWithAddress(address)
+    fun node(address: Address) = try {
+        node(MeshAddress.create(address))
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    /**
+     * Returns the provisioned node containing an element with the given mesh address.
+     *
+     * @param address Mesh Address of the element.
+     * @return Node if an element with the given address was found, null otherwise.
+     */
+    fun node(address: MeshAddress) = address.takeIf { it is UnicastAddress }?.let { addr ->
+        nodes.firstOrNull { it.containsElementWithAddress(addr as UnicastAddress) }
     }
 
     /**
@@ -590,7 +602,12 @@ class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.
-        require(isAddressAvailable(node.primaryUnicastAddress, node)) { throw NoAddressesAvailable }
+        require(
+            isAddressAvailable(
+                node.primaryUnicastAddress,
+                node
+            )
+        ) { throw NoAddressesAvailable }
         // Ensure the Network Key exists.
         require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
         // Make sure the network contains a Network Key with he same Key Index.
@@ -734,9 +751,10 @@ class MeshNetwork internal constructor(
      * @return true if the address is available to be assigned to a node with given number of
      *         elements or false otherwise.
      */
-    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) = isAddressRangeAvailable(
-        UnicastRange(address, elementCount)
-    )
+    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) =
+        isAddressRangeAvailable(
+            UnicastRange(address, elementCount)
+        )
 
     /**
      * Checks if the address is available to be assigned to a node with the given number of
