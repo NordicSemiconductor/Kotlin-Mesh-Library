@@ -20,13 +20,13 @@ internal data class AccessMessage(
     override val destination: MeshAddress,
     override val networkKey: NetworkKey,
     override val ivIndex: UInt,
-    override val upperTransportPdu: ByteArray
+    override val upperTransportPdu: ByteArray,
+    val transportMicSize: UByte,
+    val sequence: UInt,
+    val aid: UByte? = null
 ) : LowerTransportPdu {
 
     override val type = LowerTransportPduType.ACCESS_MESSAGE
-    val aid: UByte? = null
-    val sequence: UInt? = null
-    var transportMicSize: UByte? = null
     override val transportPdu: ByteArray
         get() {
             val octet0: UByte = aid?.let { aid ->
@@ -45,9 +45,12 @@ internal data class AccessMessage(
         if (destination != other.destination) return false
         if (networkKey != other.networkKey) return false
         if (ivIndex != other.ivIndex) return false
-        if (!transportPdu.contentEquals(other.transportPdu)) return false
         if (!upperTransportPdu.contentEquals(other.upperTransportPdu)) return false
+        if (transportMicSize != other.transportMicSize) return false
+        if (sequence != other.sequence) return false
+        if (aid != other.aid) return false
         if (type != other.type) return false
+        if (!transportPdu.contentEquals(other.transportPdu)) return false
 
         return true
     }
@@ -57,9 +60,12 @@ internal data class AccessMessage(
         result = 31 * result + destination.hashCode()
         result = 31 * result + networkKey.hashCode()
         result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + transportPdu.contentHashCode()
         result = 31 * result + upperTransportPdu.contentHashCode()
+        result = 31 * result + transportMicSize.hashCode()
+        result = 31 * result + sequence.hashCode()
+        result = 31 * result + (aid?.hashCode() ?: 0)
         result = 31 * result + type.hashCode()
         return result
     }
+
 }
