@@ -64,7 +64,7 @@ data class ApplicationKey internal constructor(
         internal set(value) {
             onChange(oldValue = field, newValue = value) {
                 field = value
-                if(field == null){
+                if (field == null) {
                     oldAid = null
                 }
             }
@@ -78,7 +78,7 @@ data class ApplicationKey internal constructor(
 
     internal var aid: UByte = Crypto.calculateAid(N = key)
 
-    internal var oldAid : UByte? = null
+    internal var oldAid: UByte? = null
 
 
     init {
@@ -146,9 +146,10 @@ data class ApplicationKey internal constructor(
         aid = Crypto.calculateAid(N = key)
 
         // When the Application Key is imported from JSOn, old key derivatives must be calculated.
-        val oldKey = requireNotNull(oldKey)
-        if(oldAid == null) {
-            oldAid = Crypto.calculateAid(N = oldKey)
+        oldKey?.let { oldKey ->
+            if (oldAid == null) {
+                oldAid = Crypto.calculateAid(N = oldKey)
+            }
         }
     }
 
