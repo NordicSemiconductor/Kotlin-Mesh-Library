@@ -213,12 +213,13 @@ internal data class UpperTransportPdu(
         }
 
         /**
-         * Constructs an UpperTransportPdu from a given Access Message.
+         * Decodes the Access Message using a matching Application Key based on the 'aid' field
+         * value, or the Device Key of hte local or source Node.
          *
          * @param message AccessMessage to be decode from.
          * @param network Network to be used for encryption.
-         * @return A pair containing the UpperTransportPdu and the KeySet used to encrypt the message or
-         *         null if the pdu could not be decoded.
+         * @return A pair containing the UpperTransportPdu and the KeySet used to encrypt the
+         *         message or null if the pdu could not be decoded.
          */
         fun decode(
             message: AccessMessage,
