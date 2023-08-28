@@ -4,14 +4,15 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
+import kotlin.jvm.Throws
 
 /**
  * Features represents the functionality of a [Node] that is determined by the set features that the
  * node supports.
  *
- * @property relay      Ability to receive and retransmit mesh messages over the advertising
- *                      bearer to enable larger networks. Null if the current [FeatureState] of
- *                      the [Relay] feature is unknown.
+ * @property relay      Ability to receive and retransmit mesh messages over the advertising bearer
+ *                      to enable larger networks. Null if the current [FeatureState] of the [Relay]
+ *                      feature is unknown.
  * @property proxy      Ability to receive and retransmit mesh messages between GATT and advertising
  *                      bearers. Null if the current [FeatureState] of the [Proxy] feature is
  *                      unknown.
@@ -28,7 +29,19 @@ data class Features internal constructor(
     val proxy: Proxy? = null,
     val friend: Friend? = null,
     val lowPower: LowPower? = null
-)
+) {
+    /**
+     * Constructs a Features object from the given raw value.
+     *
+     * @param rawValue  Raw value of the features.
+     */
+    internal constructor(rawValue: UShort) : this(
+        relay = Relay(FeatureState.from(rawValue.toInt() shl 0)),
+        proxy = Proxy(FeatureState.from(rawValue.toInt() shl 1)),
+        friend = Friend(FeatureState.from(rawValue.toInt() shl 2)),
+        lowPower = LowPower(FeatureState.from(rawValue.toInt() shl 3))
+    )
+}
 
 /**
  * Represents a type feature.
@@ -92,15 +105,15 @@ sealed class FeatureState(val value: Int) {
 
     /** Disabled state. */
     @Serializable
-    object Disabled : FeatureState(value = DISABLED)
+    data object Disabled : FeatureState(value = DISABLED)
 
     /** Enabled state. */
     @Serializable
-    object Enabled : FeatureState(value = ENABLED)
+    data object Enabled : FeatureState(value = ENABLED)
 
     /** Unsupported state. */
     @Serializable
-    object Unsupported : FeatureState(value = UNSUPPORTED)
+    data object Unsupported : FeatureState(value = UNSUPPORTED)
 
     companion object {
 
@@ -114,6 +127,7 @@ sealed class FeatureState(val value: Int) {
          * @param value                         Integer value describing the state.
          * @throws IllegalArgumentException     if the feature value is not 0, 1 or 2.
          */
+        @Throws(IllegalArgumentException::class)
         fun from(value: Int) = when (value) {
             DISABLED -> Disabled
             ENABLED -> Enabled
