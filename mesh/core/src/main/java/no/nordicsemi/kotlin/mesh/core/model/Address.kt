@@ -46,6 +46,14 @@ internal const val allNodes: Address = 0xFFFFu
  */
 sealed interface HasAddress {
     val address: Address
+
+    /**
+     * Converts a mesh address to a hex string.
+     *
+     * @param prefix0x If true, the hex string will be prefixed with 0x.
+     * @return The hex string representation of the address.
+     */
+    fun toHex(prefix0x: Boolean = false) : String
 }
 
 /**
@@ -54,6 +62,8 @@ sealed interface HasAddress {
 @Serializable(with = MeshAddressSerializer::class)
 sealed class MeshAddress : HasAddress {
     abstract override val address: Address
+
+    override fun toHex(prefix0x: Boolean): String = address.toHex(prefix0x = prefix0x)
 
     companion object {
 
@@ -309,11 +319,3 @@ sealed interface ParentGroupAddress : HasAddress
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ProxyFilterAddress : HasAddress
-
-/**
- * Converts a mesh address to a hex string.
- *
- * @param prefix0x If true, the hex string will be prefixed with 0x.
- * @return The hex string representation of the address.
- */
-fun MeshAddress.toHex(prefix0x: Boolean = false) = address.toHex(prefix0x = prefix0x)
