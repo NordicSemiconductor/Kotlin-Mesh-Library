@@ -164,19 +164,21 @@ internal object NetworkPduDecoder {
                         nonce = nonce,
                         micSize = mic.size
                     )
-                    NetworkPdu(
-                        pdu = pdu,
-                        key = networkKey,
-                        ivIndex = ivIndex,
-                        type = type,
-                        ttl = ttl.toUByte(),
-                        sequence = sequence,
-                        source = MeshAddress.create(address = src.toUShort()),
-                        destination = MeshAddress.create(
-                            address = decryptedData[0].toInt() shl 8 or decryptedData[1].toInt()
-                        ),
-                        decryptedData.sliceArray(2 until decryptedData.size)
-                    )
+                    decryptedData?.let {
+                        NetworkPdu(
+                            pdu = pdu,
+                            key = networkKey,
+                            ivIndex = ivIndex,
+                            type = type,
+                            ttl = ttl.toUByte(),
+                            sequence = sequence,
+                            source = MeshAddress.create(address = src.toUShort()),
+                            destination = MeshAddress.create(
+                                address = it[0].toInt() shl 8 or it[1].toInt()
+                            ),
+                            decryptedData.sliceArray(2 until decryptedData.size)
+                        )
+                    }
                 } catch (e: Exception) {
                     continue
                 }
