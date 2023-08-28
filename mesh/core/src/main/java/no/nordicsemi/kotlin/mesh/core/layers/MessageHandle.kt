@@ -37,6 +37,6 @@ data class MessageHandle internal constructor(
      * therefore cannot be cancelled.
      */
     fun cancel() {
-        manager.cancel(this)
+        // manager.cancel(this)
     }
 }
