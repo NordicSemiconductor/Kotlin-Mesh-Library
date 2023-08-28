@@ -174,7 +174,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             val source = meshNetwork.localProvisioner?.node?.primaryUnicastAddress
                 ?: UnicastAddress(address = maxUnicastAddress)
             logger?.i(LogCategory.PROXY) {
-                "Sending $message from: ${source.address.toHex()} to :0000 "
+                "Sending $message from: ${source.toHex()} to :0000 "
             }
             val pdu = ControlMessageDecoder.decode(
                 message = message,
@@ -361,7 +361,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         }?.let { decoder ->
             decoder.decode(payload = controlMessage.upperTransportPdu)?.also { message ->
                 logger?.i(LogCategory.PROXY) {
-                    "$message received from: ${proxyPdu.source.address.toHex()} to ${proxyPdu.destination.address.toHex()}"
+                    "$message received from: ${proxyPdu.source.toHex()} to ${proxyPdu.destination.toHex()}"
                 }
                 // Look for the proxy Node.
                 val proxyNode = meshNetwork.node(proxyPdu.source as UnicastAddress)
