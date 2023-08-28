@@ -135,11 +135,11 @@ data class UnicastAddress(
 
     operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
 
-    operator fun plus(other : UnicastAddress) = UnicastAddress((address + other.address).toInt())
+    operator fun plus(other: UnicastAddress) = UnicastAddress((address + other.address).toInt())
 
     operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
 
-    operator fun minus(other : UnicastAddress) = UnicastAddress((address - other.address).toInt())
+    operator fun minus(other: UnicastAddress) = UnicastAddress((address - other.address).toInt())
 
     operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
 
@@ -251,10 +251,16 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
 data object AllNodes : FixedGroupAddress(address = allNodes)
 
 /**
+ * An address that is used as a destination address by a Heartbeat Publication or a Heartbeat
+ * Subscription message. This represents a [UnicastAddress], [GroupAddress].
+ */
+sealed interface HeartbeatDestination : HasAddress
+
+/**
  * Heartbeat publication destination address for heartbeat messages. This represents a
  * [UnicastAddress] or a [GroupAddress].
  */
-sealed interface HeartbeatPublicationDestination : HasAddress
+sealed interface HeartbeatPublicationDestination : HeartbeatDestination
 
 /**
  * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
@@ -265,7 +271,7 @@ sealed interface HeartbeatSubscriptionSource : HasAddress
  * Heartbeat subscription destination address for heartbeat messages. This represents a
  * [UnicastAddress] or a [GroupAddress].
  */
-sealed interface HeartbeatSubscriptionDestination : HasAddress
+sealed interface HeartbeatSubscriptionDestination : HeartbeatDestination
 
 /**
  * An address a model may publish to. This represents a [UnicastAddress], [GroupAddress]
