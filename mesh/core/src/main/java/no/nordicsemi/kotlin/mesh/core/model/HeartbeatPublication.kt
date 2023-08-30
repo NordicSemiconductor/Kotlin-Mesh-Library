@@ -50,7 +50,7 @@ data class HeartbeatPublication internal constructor(
     private var _countLog: UByte,
     val periodLog: UByte,
     val ttl: UByte,
-    val index: Int,
+    val index: KeyIndex,
     val features: Array<Feature>
 ) {
     val period: UShort by lazy {
@@ -83,7 +83,7 @@ data class HeartbeatPublication internal constructor(
         address: HeartbeatPublicationDestination,
         period: UShort,
         ttl: UByte,
-        index: Int,
+        index: KeyIndex,
         features: Array<Feature>
     ) : this(
         address = address,
@@ -113,6 +113,7 @@ data class HeartbeatPublication internal constructor(
         if (ttl != other.ttl) return false
         if (index != other.index) return false
         if (!features.contentEquals(other.features)) return false
+        if (state != other.state) return false
 
         return true
     }
@@ -122,8 +123,9 @@ data class HeartbeatPublication internal constructor(
         result = 31 * result + _countLog.hashCode()
         result = 31 * result + periodLog.hashCode()
         result = 31 * result + ttl.hashCode()
-        result = 31 * result + index
+        result = 31 * result + index.hashCode()
         result = 31 * result + features.contentHashCode()
+        result = 31 * result + (state?.hashCode() ?: 0)
         return result
     }
 
