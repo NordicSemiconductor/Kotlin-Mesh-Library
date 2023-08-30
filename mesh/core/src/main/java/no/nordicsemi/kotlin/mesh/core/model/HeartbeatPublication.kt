@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.math.log2
 import kotlin.math.pow
 
@@ -28,6 +29,8 @@ import kotlin.math.pow
  * @property period         An integer from 0 to 65536 that represents the cadence of periodical
  *                          heartbeat messages in seconds.
  * @property count          Number of Heartbeat messages, 2^(n-1), that remain to be sent.
+ * @property state          Periodic Heartbeat State containing the variables used to determine
+ *                          sending periodic Heartbeat messages from the local Node.
  */
 @Serializable
 data class HeartbeatPublication internal constructor(
@@ -51,6 +54,9 @@ data class HeartbeatPublication internal constructor(
     val count: UShort by lazy {
         2.toDouble().pow(_countLog.toInt() - 1).toInt().toUShort()
     }
+
+    @Transient
+    internal var state: PeriodicHeartbeatState? = null
 
     internal constructor(
         address: HeartbeatPublicationDestination,
@@ -100,13 +106,132 @@ data class HeartbeatPublication internal constructor(
         return result
     }
 
+    private companion object {
+
+        private const val MIN_PERIOD_LOG = 0x01
+        private const val MAX_PERIOD_LOG = 0x11
+
+        private const val MIN_PERIOD = 0
+        private const val MAX_PERIOD = 65536
+
+        private const val MIN_TTL = 0
+        private const val MAX_TTL = 127
+
+        /**
+         * Converts Publication Count to Publication Count Log.
+         *
+         * @param count Count.
+         * @return Logarithmic value.
+         */
+        fun countToCountLog(count: UShort) = when (count) {
+            0x00.toUShort() -> 0x00.toUByte()
+            0xFFFF.toUShort() -> 0xFF.toUByte()
+            else -> (log2(count.toDouble() * 2 - 1).toInt().toUByte() + 1u).toUByte()
+        }
+
+        /**
+         * Converts Publication Period to Publication Period Log.
+         *
+         * @param value Period value.
+         * @return Logarithmic value.
+         */
+        fun period2PeriodLog(value: UShort): UByte? = when (value) {
+            0x0000.toUShort() -> // Periodic Heartbeat messages are not published.
+                0x00.toUByte()
+
+            0xFFFF.toUShort() -> // Maximum value.
+                0x11.toUByte()
+
+            else -> {
+                val exponent =
+                    ((log2(value.toDouble()) * 2 + 1).toInt().toUByte() + 1u).toUByte()
+                // Ensure power of 2.
+                if (2.0.pow(exponent.toDouble() - 1) != value.toDouble()) null
+                else exponent
+            }
+        }
+
+        /**
+         * Converts Publication Period Log to Publication Period.
+         *
+         * @param periodLog Logarithmic value in range 0x80...0x11.
+         * @return Publication period in seconds.
+         */
+        fun periodLog2Period(periodLog: UByte): UShort {
+            return when {
+                periodLog == 0x00.toUByte() -> // Periodic Heartbeat messages are not published.
+                    0x0000.toUShort()
+
+                periodLog >= 0x01u && periodLog <= 0x10u -> // Period = 2^(periodLog - 1) seconds.
+                    2.0.pow((periodLog - 1u).toDouble()).toInt().toUShort()
+
+                periodLog == 0x11.toUByte() -> // Maximum value.
+                    0xFFFF.toUShort()
+
+                else -> throw IllegalArgumentException(
+                    "PeriodLog out of range $periodLog (required: 0x00-0x11)"
+                )
+            }
+        }
+    }
+
+    /**
+     * Defines the Periodic Heartbeat State. Properties of this class are used to determine sending
+     * periodic Heartbeat messages from the local Node.
+     *
+     * @property count      Current publication count. This is set by the Config Heartbeat
+     *                      Publication Set message and decremented each time a Heartbeat message is
+     *                      sent, until it reaches 0, which means that periodic Heartbeat messages
+     *                      are disabled.
+     *
+     *                      Possible values are:
+     *                      - 0x0000 - Periodic Heartbeats are disabled.
+     *                      - 0x0001 - 0xFFFE - Number of remaining Heartbeat messages to be sent.
+     *                      - 0xFFFF - Periodic Heartbeat messages are published indefinitely.
+     * @property countLog   Number of Heartbeat messages remaining to be sent, represented as
+     *                      2^(n-1) seconds.
+     * @constructor Creates a Periodic Heartbeat State from the given count.
+     */
+    internal data class PeriodicHeartbeatState(private var count: UShort) {
+
+        val countLog: UByte
+            get() = countToCountLog(count)
+
+        /**
+         * Checks if more periodic Heartbeat message should be sent, or not.
+         *
+         * @return True, if more Heartbeat control message should be sent or false otherwise.
+         */
+        fun shouldSendMorePeriodicHeartbeatMessages(): Boolean {
+            if (count < 1.toUShort())
+                return true
+
+            if (count >= 0xFFFF.toUShort())
+                return false
+            count = count.dec()
+            return true
+        }
+
+        companion object {
+
+            /**
+             * Creates a Periodic Heartbeat State from the given count.
+             *
+             * @param countLog Logarithmic value in range 0x00...0x11.
+             * @return Periodic Heartbeat State.
+             */
+            fun init(countLog: UByte) = when {
+                countLog == 0x00.toUByte() -> null
+                countLog >= 1u && countLog <= 0x10.toUByte() ->
+                    2.0.pow(countLog.toDouble() - 1).toInt().toUShort()
+
+                countLog == 0x11.toUByte() -> 0xFFFE.toUShort()
+                countLog == 0xFF.toUByte() -> 0xFFFF.toUShort()
+                else -> null
+            }?.let {
+                PeriodicHeartbeatState(count = it)
+            }
+        }
+
+    }
 }
-
-private const val MIN_PERIOD_LOG = 0x01
-private const val MAX_PERIOD_LOG = 0x11
-
-private const val MIN_PERIOD = 0
-private const val MAX_PERIOD = 65536
-
-private const val MIN_TTL = 0
-private const val MAX_TTL = 127
