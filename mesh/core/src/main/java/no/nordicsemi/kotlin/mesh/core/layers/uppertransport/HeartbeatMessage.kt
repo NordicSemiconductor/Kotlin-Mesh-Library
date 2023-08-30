@@ -107,18 +107,19 @@ internal data class HeartbeatMessage(
          * @param source                       Source address of the HeartbeatMessage.
          * @param destination                  Destination address of the HeartbeatMessage.
          * @param ivIndex                      Current IV Index.
+         * @return HeartbeatMessage or null if the message is invalid.
          */
         fun init(
             heartbeatPublication: HeartbeatPublication,
             source: MeshAddress,
-            destination: MeshAddress,
+            destination: HeartbeatDestination,
             ivIndex: IvIndex
         ) = HeartbeatMessage(
             opCode = OP_CODE,
             initialTtl = heartbeatPublication.ttl,
             features = Features(0u),
             source = source,
-            destination = destination as HeartbeatDestination,
+            destination = destination,
             receivedTtl = null,
             ivIndex = ivIndex.index,
             transportPdu = byteArrayOf((heartbeatPublication.ttl and 0x7Fu).toByte())
