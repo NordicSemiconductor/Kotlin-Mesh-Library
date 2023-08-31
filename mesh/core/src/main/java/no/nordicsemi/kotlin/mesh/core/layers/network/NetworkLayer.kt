@@ -9,7 +9,7 @@ import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
-import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessageDecoder
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -21,7 +21,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.boundTo
 import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.next
 import no.nordicsemi.kotlin.mesh.core.reset
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -109,9 +108,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
     @Throws(BearerError.Closed::class)
     suspend fun send(lowerTransportPdu: LowerTransportPdu, type: PduType, ttl: UByte) {
         networkManager.transmitter?.let { transmitter ->
-            val sequence = (lowerTransportPdu as AccessMessage).sequence ?: nextSequenceNumber(
-                lowerTransportPdu.source as UnicastAddress
-            )
+            val sequence = (lowerTransportPdu as AccessMessage).sequence
             val networkPdu = NetworkPduDecoder.encode(
                 lowerTransportPdu = lowerTransportPdu,
                 pduType = type,
@@ -176,7 +173,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             logger?.i(LogCategory.PROXY) {
                 "Sending $message from: ${source.toHex()} to :0000 "
             }
-            val pdu = ControlMessageDecoder.decode(
+            val pdu = ControlMessage.init(
                 message = message,
                 source = source,
                 networkKey = networkKey,
@@ -347,7 +344,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         val payload = proxyPdu.transportPdu
         require(payload.size > 1) { return }
 
-        val controlMessage = ControlMessageDecoder.decode(proxyPdu) ?: run {
+        val controlMessage = ControlMessage.init(proxyPdu) ?: run {
             logger?.w(LogCategory.NETWORK) { "Failed to decrypt proxy PDU" }
             return
         }
