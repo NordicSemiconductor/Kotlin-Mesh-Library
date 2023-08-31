@@ -88,99 +88,6 @@ data class Node internal constructor(
     private var _appKeys: MutableList<NodeKey>,
 ) {
 
-    /**
-     * Convenience constructor to initialize a node of a provisioner.
-     *
-     * @param provisioner               Provisioner.
-     * @param deviceKey                 Device key.
-     * @param unicastAddress            Unicast address that was assigned during provisioning.
-     * @param elements                  List of elements belonging to this node.
-     * @param netKeys                   List of network keys known to this node.
-     * @param appKeys                   List of application keys known to this node.
-     */
-    internal constructor(
-        provisioner: Provisioner,
-        deviceKey: ByteArray,
-        unicastAddress: UnicastAddress,
-        elements: List<Element> = listOf(
-            Element(
-                location = Location.UNKNOWN,
-                _models = mutableListOf(
-                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                )
-            )
-        ),
-        netKeys: List<NetworkKey>,
-        appKeys: List<ApplicationKey>
-    ) : this(
-        uuid = provisioner.uuid,
-        deviceKey = deviceKey,
-        _primaryUnicastAddress = unicastAddress,
-        _elements = elements.toMutableList(),
-        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
-        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
-    )
-
-    /**
-     * Convenience constructor to initialize a node for tests.
-     *
-     * @param address                   Unicast address that was assigned during provisioning.
-     * @param elements                  Number of elements.
-     * @throws SecurityException        If the security level of the network key does not match the
-     *                                  security level used when provisioning the node.
-     */
-    @Throws(SecurityException::class)
-    internal constructor(name: String, address: Int, elements: Int) : this(
-        uuid = UUID.randomUUID(),
-        deviceKey = Crypto.generateRandomKey(),
-        _primaryUnicastAddress = UnicastAddress(address),
-        _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
-        _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
-        _appKeys = mutableListOf()
-    ) {
-        this.name = name
-    }
-
-    /**
-     * Convenience constructor to initialize a node from an unprovisioned device.
-     *
-     * @param uuid                      Unprovisioned device uuid.
-     * @param deviceKey                 Device key.
-     * @param unicastAddress            Unicast address that was assigned during provisioning.
-     * @param elementCount              Number of elements.
-     * @param assignedNetworkKey        Network key that was assigned during provisioning.
-     * @param security                  Security level.
-     * @throws SecurityException        If the security level of the network key does not match the
-     *                                  security level used when provisioning the node.
-     */
-    @Throws(SecurityException::class)
-    constructor(
-        uuid: UUID,
-        deviceKey: ByteArray,
-        unicastAddress: UnicastAddress,
-        elementCount: Int,
-        assignedNetworkKey: NetworkKey,
-        security: Security
-    ) : this(
-        uuid = uuid,
-        deviceKey = deviceKey,
-        _primaryUnicastAddress = unicastAddress,
-        _elements = MutableList(elementCount) {
-            Element(
-                location = Location.UNKNOWN
-            )
-        },
-        _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
-        _appKeys = mutableListOf()
-    ) {
-        // TODO this should be uncommented once the demo is over.
-        /*require(assignedNetworkKey.security == security) {
-            throw SecurityException
-        }*/
-        this.security = security
-    }
-
     val primaryUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress
 
@@ -298,6 +205,99 @@ data class Node internal constructor(
             true -> elementsCount
             false -> 1 // TODO should we throw here?
         } - 1
+
+    /**
+     * Convenience constructor to initialize a node of a provisioner.
+     *
+     * @param provisioner               Provisioner.
+     * @param deviceKey                 Device key.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param elements                  List of elements belonging to this node.
+     * @param netKeys                   List of network keys known to this node.
+     * @param appKeys                   List of application keys known to this node.
+     */
+    internal constructor(
+        provisioner: Provisioner,
+        deviceKey: ByteArray,
+        unicastAddress: UnicastAddress,
+        elements: List<Element> = listOf(
+            Element(
+                location = Location.UNKNOWN,
+                _models = mutableListOf(
+                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
+                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
+                )
+            )
+        ),
+        netKeys: List<NetworkKey>,
+        appKeys: List<ApplicationKey>
+    ) : this(
+        uuid = provisioner.uuid,
+        deviceKey = deviceKey,
+        _primaryUnicastAddress = unicastAddress,
+        _elements = elements.toMutableList(),
+        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
+        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
+    )
+
+    /**
+     * Convenience constructor to initialize a node for tests.
+     *
+     * @param address                   Unicast address that was assigned during provisioning.
+     * @param elements                  Number of elements.
+     * @throws SecurityException        If the security level of the network key does not match the
+     *                                  security level used when provisioning the node.
+     */
+    @Throws(SecurityException::class)
+    internal constructor(name: String, address: Int, elements: Int) : this(
+        uuid = UUID.randomUUID(),
+        deviceKey = Crypto.generateRandomKey(),
+        _primaryUnicastAddress = UnicastAddress(address),
+        _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
+        _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
+        _appKeys = mutableListOf()
+    ) {
+        this.name = name
+    }
+
+    /**
+     * Convenience constructor to initialize a node from an unprovisioned device.
+     *
+     * @param uuid                      Unprovisioned device uuid.
+     * @param deviceKey                 Device key.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param elementCount              Number of elements.
+     * @param assignedNetworkKey        Network key that was assigned during provisioning.
+     * @param security                  Security level.
+     * @throws SecurityException        If the security level of the network key does not match the
+     *                                  security level used when provisioning the node.
+     */
+    @Throws(SecurityException::class)
+    constructor(
+        uuid: UUID,
+        deviceKey: ByteArray,
+        unicastAddress: UnicastAddress,
+        elementCount: Int,
+        assignedNetworkKey: NetworkKey,
+        security: Security
+    ) : this(
+        uuid = uuid,
+        deviceKey = deviceKey,
+        _primaryUnicastAddress = unicastAddress,
+        _elements = MutableList(elementCount) {
+            Element(
+                location = Location.UNKNOWN
+            )
+        },
+        _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
+        _appKeys = mutableListOf()
+    ) {
+        // TODO this should be uncommented once the demo is over.
+        /*require(assignedNetworkKey.security == security) {
+            throw SecurityException
+        }*/
+        this.security = security
+    }
 
     init {
         require(elements.isNotEmpty()) {
