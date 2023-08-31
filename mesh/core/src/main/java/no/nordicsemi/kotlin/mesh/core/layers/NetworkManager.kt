@@ -1,4 +1,4 @@
-@file:Suppress("unused", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
+@file:Suppress("unused")
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
@@ -11,6 +11,7 @@ import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterEventHandler
+import no.nordicsemi.kotlin.mesh.core.layers.access.AccessLayer
 import no.nordicsemi.kotlin.mesh.core.layers.access.Busy
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportLayer
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkLayer
@@ -48,7 +49,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         private set
     internal var upperTransportLayer = UpperTransportLayer(this)
         private set
-    // var accessLayer = AccessLayer(this)
+    internal var accessLayer = AccessLayer(this)
+        private set
 
     var transmitter: Transmitter? = manager.transmitter
 
@@ -105,7 +107,14 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
                     period = interval.toLong(DurationUnit.MILLISECONDS)
                 ) {
                     if (--count > 0) {
-                        // TODO accessLayer.send(message, localElement, publish.address, ttl, applicationKey, retransmit = true)
+                        accessLayer.send(
+                            message = message,
+                            localElement = localElement,
+                            address = publish.address.address,
+                            ttl = ttl,
+                            applicationKey = applicationKey,
+                            retransmit = true
+                        )
                     } else cancel()
                 }
             }
@@ -152,7 +161,14 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         applicationKey: ApplicationKey
     ) {
         require(!ensureNotBusy(destination = destination)) { return }
-        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = false)
+        accessLayer.send(
+            message = message,
+            localElement = element,
+            address = destination.address,
+            ttl = initialTtl,
+            applicationKey = applicationKey,
+            retransmit = false
+        )
         mutex.withLock { outgoingMessages.remove(destination) }
     }
 
@@ -184,7 +200,14 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return }
 
-        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        accessLayer.send(
+            message = message,
+            localElement = element,
+            address = destination,
+            ttl = initialTtl,
+            applicationKey = applicationKey,
+            retransmit = true
+        )
         mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
@@ -213,7 +236,12 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return }
-        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        accessLayer.send(
+            message = configMessage,
+            localElement = element,
+            address = destination,
+            ttl = initialTtl
+        )
         mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
@@ -244,7 +272,12 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return }
-        // TODO accessLayer.send(message, element, destination, initialTtl, key, retransmit = true)
+        accessLayer.send(
+            message = configMessage,
+            localElement = element,
+            address = destination,
+            ttl = initialTtl
+        )
         mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
 
