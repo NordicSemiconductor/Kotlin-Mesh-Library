@@ -22,6 +22,9 @@ import kotlin.concurrent.fixedRateTimer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+/**
+ * Defines the behaviour of the Upper Transport Layer of the Mesh Networking Stack.
+ */
 internal class UpperTransportLayer(private val networkManager: NetworkManager) {
 
     private val meshNetwork = networkManager.meshNetwork
