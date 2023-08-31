@@ -62,7 +62,7 @@ import kotlin.properties.Delegates
 class MeshNetworkManager(
     private val storage: Storage,
     internal val networkProperties: NetworkPropertiesStorage,
-    private val scope: CoroutineScope
+    internal val scope: CoroutineScope
 ) {
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
