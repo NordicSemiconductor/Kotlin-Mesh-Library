@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
@@ -11,7 +12,9 @@ import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.access.Busy
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportLayer
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkLayer
+import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportLayer
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -34,13 +37,17 @@ import kotlin.time.DurationUnit
  * @constructor Constructs the network manager.
  */
 internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) {
+    internal val scope: CoroutineScope = manager.scope
     lateinit var proxy: ProxyFilterEventHandler
 
     var logger: Logger? = null
     val networkPropertiesStorage = manager.networkProperties
-    private var networkLayer = NetworkLayer(this)
-    // var lowerTransportLayer = LowerTransportLayer(this)
-    // var upperTransportLayer = UpperTransportLayer(this)
+    internal var networkLayer = NetworkLayer(this)
+        private set
+    internal var lowerTransportLayer = LowerTransportLayer(this)
+        private set
+    internal var upperTransportLayer = UpperTransportLayer(this)
+        private set
     // var accessLayer = AccessLayer(this)
 
     var transmitter: Transmitter? = manager.transmitter
