@@ -28,10 +28,10 @@ import kotlin.time.toDuration
 internal class UpperTransportLayer(private val networkManager: NetworkManager) {
 
     private val meshNetwork = networkManager.meshNetwork
+    private val logger = networkManager.logger
     private val queue: MutableMap<Address, MutableList<MessageData>> = mutableMapOf()
     private val mutex = Mutex(locked = true)
     private var heartbeatPublisher: Timer? = null
-    private val logger = networkManager.logger
 
     /**
      * Handles a received Lower Transport Pdu.
