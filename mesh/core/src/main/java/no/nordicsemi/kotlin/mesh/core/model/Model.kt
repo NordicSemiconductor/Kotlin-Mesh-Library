@@ -1,9 +1,10 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 
 /**
  * Represents Bluetooth mesh model contained in an element in a node.
@@ -73,13 +74,17 @@ import kotlinx.serialization.Transient
 @Serializable
 data class Model internal constructor(
     val modelId: ModelId,
+    internal var _bind: MutableList<KeyIndex>,
+    internal var _subscribe: MutableList<SubscriptionAddress>,
+    internal var _publish: Publish? = null,
+    var eventHandler: ModelEventHandler? = null
 ) {
-    var subscribe: List<SubscriptionAddress> = listOf()
-        internal set
-    var publish: Publish? = null
-        internal set
-    var bind: List<KeyIndex> = listOf()
-        private set
+    val subscribe: List<SubscriptionAddress>
+        get() = _subscribe
+    val publish: Publish?
+        get() = _publish
+    val bind: List<KeyIndex>
+        get() = _bind
     val name: String
         get() = nameOf(modelId)
     val isBluetoothSigAssigned: Boolean
@@ -131,14 +136,28 @@ data class Model internal constructor(
     val isLargeCompositionDataClient: Boolean
         get() = modelId.id == LARGE_COMPOSITION_DATA_CLIENT_MODEL_ID.toUInt()
 
-    val requiresDeviceKey : Boolean
+    val requiresDeviceKey: Boolean
         get() = isConfigurationServer || isConfigurationClient || isRemoteProvisioningServer ||
                 isRemoteProvisioningClient || isDirectedForwardingConfigurationServer ||
                 isDirectedForwardingConfigurationClient || isBridgeConfigurationServer ||
-                isBridgeConfigurationClient || isPrivateBeaconServer || isPrivateBeaconClient  ||
+                isBridgeConfigurationClient || isPrivateBeaconServer || isPrivateBeaconClient ||
                 isOnDemandPrivateProxyServer || isOnDemandPrivateProxyClient ||
                 isSarConfigurationServer || isSarConfigurationClient ||
                 isLargeCompositionDataServer || isLargeCompositionDataClient
+
+    /**
+     * Constructs a Model
+     *
+     * @param modelId Model ID.
+     * @param handler Model event handler.
+     */
+    internal constructor(modelId: ModelId, handler: ModelEventHandler?) : this(
+        modelId = modelId,
+        _bind = mutableListOf(),
+        _subscribe = mutableListOf(),
+        _publish = null,
+        eventHandler = handler
+    )
 
     /**
      * Subscribe this model to a given subscription address.
@@ -147,9 +166,9 @@ data class Model internal constructor(
      * @return true if the address is added or false if the address is already exists in the list.
      */
     internal fun subscribe(address: SubscriptionAddress) = when {
-        subscribe.contains(element = address) -> false
+        _subscribe.contains(element = address) -> false
         else -> {
-            subscribe = subscribe + address
+            _subscribe.add(address)
             true
         }
     }
@@ -159,10 +178,10 @@ data class Model internal constructor(
      *
      * @param model Model to copy from
      */
-    fun copyProperties(model: Model){
-        bind = model.bind
-        publish = model.publish
-        subscribe = model.subscribe
+    fun copyProperties(model: Model) {
+        _bind = model._bind
+        _publish = model._publish
+        _subscribe = model._subscribe
     }
 
     /**
@@ -174,7 +193,7 @@ data class Model internal constructor(
     internal fun bind(index: KeyIndex) = when {
         bind.contains(element = index) -> false
         else -> {
-            bind = bind + index
+            _bind.add(index)
             true
         }
     }
@@ -347,6 +366,55 @@ data class Model internal constructor(
                 0x1311.toUInt() -> "Light LC Client"
                 else -> "Unknown"
             }
+
+        /**
+         * Constructs a model object.
+         *
+         * @param model                Model.
+         * @param applicationKeys      List of application keys.
+         * @param nodes                List of nodes.
+         * @param groups               List of groups.
+         *
+         */
+        fun init(
+            model: Model,
+            applicationKeys: List<ApplicationKey>,
+            nodes: List<Node>,
+            groups: List<Group>
+        ): Model? {
+            val bind = model.bind.filter { keyIndex ->
+                applicationKeys.any { it.index == keyIndex }
+            }
+            val subscribe = model.subscribe.filter { address ->
+                groups.any { group -> group.address == address }
+            }
+
+            // Copy the publish settings if
+            // - it exists
+            // - is configured to use one of the exported Application Keys
+            // - The destination addresses is an exported Node, an exported Group or a special group
+            return model.publish?.takeIf { publish ->
+                applicationKeys.any { it.index == publish.index }
+            }?.let { publish ->
+                if (publish.address is FixedGroupAddress ||
+                    (publish.address is UnicastAddress && nodes.any { node ->
+                        node.elements.any { element ->
+                            element.unicastAddress == publish.address
+                        }
+                    }) ||
+                    (publish.address is GroupAddress && groups.any { it.address == publish.address })
+                ) {
+                    Model(
+                        modelId = model.modelId,
+                        _bind = bind.toMutableList(),
+                        _subscribe = subscribe.toMutableList(),
+                        _publish = publish
+                    )
+                } else {
+                    null
+                }
+            }
+        }
     }
 }
 
