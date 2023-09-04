@@ -196,7 +196,6 @@ class MeshNetworkManager(
      * @param model:   The model from which to send the message.
      * @returns Message handle that can be used to cancel sending.
      */
-    @DelicateCoroutinesApi
     suspend fun publish(message: MeshMessage, model: Model) = networkManager?.let {
         model.let {
             val element = it.parentElement ?: return null
@@ -204,7 +203,7 @@ class MeshNetworkManager(
                 val address = publish.address
                 network?.applicationKeys?.get(index = publish.index)?.let {
                     networkManager?.let { networkManager ->
-                        GlobalScope.launch {
+                        scope.launch {
                             networkManager.publish(message = message, from = model)
                         }
                         MessageHandle(
