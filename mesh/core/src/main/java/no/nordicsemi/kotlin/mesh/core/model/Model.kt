@@ -151,7 +151,7 @@ data class Model internal constructor(
      * @param modelId Model ID.
      * @param handler Model event handler.
      */
-    internal constructor(modelId: ModelId, handler: ModelEventHandler?) : this(
+    internal constructor(modelId: ModelId, handler: ModelEventHandler? = null) : this(
         modelId = modelId,
         _bind = mutableListOf(),
         _subscribe = mutableListOf(),
