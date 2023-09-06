@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.kotlin.mesh.foundation
+package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageDecoder
