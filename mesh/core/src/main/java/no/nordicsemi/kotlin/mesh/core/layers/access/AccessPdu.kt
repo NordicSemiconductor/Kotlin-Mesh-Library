@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.layers.access
 
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
@@ -20,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
  * @property parameters      Parameters of the message.
  * @property accessPdu       Access Layer pdu that will be sent.
  * @property isSegmented     Flag to determine if the message is segmented.
+ * @property segmentsCount   Number of packets for this PDU.
  */
 internal data class AccessPdu(
     val message: MeshMessage?,
@@ -37,6 +39,15 @@ internal data class AccessPdu(
             }
             return accessPdu.size > 11 || message.isSegmented
         }
+
+    val segmentsCount: Int
+        get() = message?.let { msg ->
+            if (!isSegmented) 1
+            else when (msg.security) {
+                MeshMessageSecurity.Low -> 1 + (accessPdu.size + 3) / 12
+                MeshMessageSecurity.High -> 1 + (accessPdu.size + 7) / 12
+            }
+        } ?: 0
 
     override fun toString() = "Access PDU (opcode: ${opCode.toByteArray().encodeHex()}, " +
             "parameters: ${parameters.encodeHex()}"
@@ -77,7 +88,7 @@ internal data class AccessPdu(
          * @param pdu UpperTransportPdu to decode.
          * @return an AccessPdu or null if the pdu could not be decoded.
          */
-        fun decode(pdu: UpperTransportPdu): AccessPdu? {
+        fun init(pdu: UpperTransportPdu): AccessPdu? {
             // At least 1 octet is required.
             require(pdu.accessPdu.isNotEmpty()) { return null }
             val octet0 = pdu.accessPdu[0].toUByte()
@@ -141,7 +152,7 @@ internal data class AccessPdu(
          * @param userInitiated   Flag to determine if the message was user initiated.
          * @return the decoded AccessPdu
          */
-        fun decode(
+        fun init(
             message: MeshMessage,
             source: Address,
             destination: MeshAddress,
