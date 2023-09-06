@@ -3,8 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -23,10 +21,10 @@ import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidTtl
 import no.nordicsemi.kotlin.mesh.core.layers.access.ModelNotBoundToAppKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -622,13 +620,6 @@ class MeshNetworkManager(
             println("Fatal Error: Node's device key is unknown.")
             throw InvalidDestination
         }
-        //TODO change to ConfigNetKeyDelete
-        if (message is ConfigMessage) {
-            require(node.netKeys.size > 1) {
-                println("Error: Cannot remove last Network Key.")
-                throw InvalidDestination
-            }
-        }
         require(initialTtl == null || initialTtl <= 127u) {
             println("Error: TTL value $initialTtl is invalid.")
             throw InvalidTtl
@@ -736,8 +727,7 @@ class MeshNetworkManager(
             println("Fatal Error: Node's device key is unknown.")
             throw InvalidDestination
         }
-        //TODO change to ConfigNetKeyDelete
-        if (message is ConfigMessage) {
+        if (message is ConfigNetKeyDelete) {
             require(node.netKeys.size > 1) {
                 println("Error: Cannot remove last Network Key.")
                 throw InvalidDestination
