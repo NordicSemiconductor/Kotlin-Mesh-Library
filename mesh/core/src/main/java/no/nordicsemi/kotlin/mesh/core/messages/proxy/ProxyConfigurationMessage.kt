@@ -32,6 +32,6 @@ interface AcknowledgedProxyConfigurationMessage : ProxyConfigurationMessage {
 }
 
 /**
- * A base decoder interface for all proxy configuration decoders.
+ * Proxy Configuration message decoder for proxy configuration messages.
  */
 interface ProxyConfigurationMessageDecoder : BaseMeshMessageDecoder, HasProxyConfigurationOpCode
