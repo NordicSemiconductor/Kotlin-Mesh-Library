@@ -2,7 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * The mesh message security enum determines authentication level which shall be used when
@@ -59,6 +63,13 @@ fun interface HasDecoder {
 }
 
 /**
+ * Defines the Op Code of a mesh message.
+ */
+interface HasOpCode {
+    val opCode: UInt
+}
+
+/**
  * The base interface of every mesh message. Mesh messages can be sent to and received from a mesh
  * network.
  *
@@ -70,6 +81,9 @@ interface BaseMeshMessage {
 
 }
 
+/**
+ * A base decoder interface for all mesh message decoders.
+ */
 interface BaseMeshMessageDecoder : HasDecoder
 
 /**
@@ -97,13 +111,13 @@ interface BaseMeshMessageDecoder : HasDecoder
  *                            Identifier (Big Endian), as registered by Bluetooth SIG.
  * @property isAcknowledged   Defines if the message should be sent as an acknowledged message.
  */
-interface MeshMessage : BaseMeshMessage {
-
-    val opCode: UInt
+interface MeshMessage : BaseMeshMessage, HasOpCode {
 
     val security: MeshMessageSecurity
+        get() = MeshMessageSecurity.Low
 
     val isSegmented: Boolean
+        get() = false
 
     val isVendorMessage: Boolean
         get() = opCode and 0xFFC00000.toUInt() == 0x00C00000.toUInt()
@@ -130,13 +144,9 @@ sealed interface MeshResponse : MeshMessage
  * be retransmitted automatically until the timeout occurs.
  *
  * @property responseOpCode Op Code of the response message.
- * @property responseType   Response message type.
  */
 sealed interface AcknowledgedMeshMessage : MeshMessage {
-
     val responseOpCode: UInt
-
-    val responseType: MeshMessage
 }
 
 /**
@@ -147,9 +157,9 @@ sealed interface AcknowledgedMeshMessage : MeshMessage {
  */
 interface StatusMessage : MeshMessage {
 
-    var isSuccess: Boolean
+    val isSuccess: Boolean
 
-    var message: String
+    val message: String
 }
 
 /**
@@ -177,9 +187,20 @@ interface StatusMessage : MeshMessage {
  */
 interface TransactionMessage : MeshMessage {
 
-    val tid: Int
+    var tid: UByte?
 
     val continueTransaction: Boolean
+
+    /**
+     * Checks whether this message is a continuation of another transaction message sent before at
+     * the given timestamp
+     *
+     * @param previousTid Transaction Identifier of the previous message.
+     * @param timestamp   Timestamp of the previous message.
+     * @return true if the message is a continuation of the previous message.
+     */
+    fun isNewTransaction(previousTid: UByte, timestamp: Instant) = tid != previousTid ||
+            (Clock.System.now() - timestamp) < 6.toDuration(DurationUnit.SECONDS)
 }
 
 /**

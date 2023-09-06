@@ -17,61 +17,70 @@ import kotlin.experimental.and
  */
 interface ConfigMessage : MeshMessage {
 
-    /**
-     * Encodes given list of Key Indexes into a Data. As each Key Index is 12 bits long, a pair of
-     * them can fit 3 bytes. This method ensures that they are packed in compliance to the Bluetooth
-     * Mesh specification.
-     *
-     * @param limit    Maximum number of Key Indexes to encode.
-     * @param indexes  An array of 12-bit Key Indexes.
-     * @returns Key Indexes encoded to a Data.
-     */
-    fun encode(limit: Int = 10000, indexes: List<KeyIndex>): ByteArray = when {
-        limit == 0 || indexes.isEmpty() -> byteArrayOf()
-        limit == 1 || indexes.size == 1 -> {
-            // Encode a single Key Index into 2 bytes.
-            indexes.first().toShort().toLittleEndian()
+    companion object ConfigMessageUtils {
+
+        /**
+         * Encodes given list of Key Indexes into a Data. As each Key Index is 12 bits long, a pair
+         * of them can fit 3 bytes. This method ensures that they are packed in compliance to the
+         * Bluetooth Mesh specification.
+         *
+         * @param limit    Maximum number of Key Indexes to encode.
+         * @param indexes  An array of 12-bit Key Indexes.
+         * @returns Key Indexes encoded to a Data.
+         */
+        fun encode(limit: Int = 10000, indexes: List<KeyIndex>): ByteArray = when {
+            limit == 0 || indexes.isEmpty() -> byteArrayOf()
+            limit == 1 || indexes.size == 1 -> {
+                // Encode a single Key Index into 2 bytes.
+                indexes.first().toShort().toLittleEndian()
+            }
+
+            else -> {
+                // Encode a pair of Key Indexes into 3 bytes.
+                val first = indexes.first()
+                val second = indexes.drop(1).first()
+                val pair = (first.toInt() shl 12) or second.toInt()
+                val encodedPair = pair.toShort().toLittleEndian().dropLast(1).toByteArray()
+                val remainingIndexes = indexes.drop(2)
+                val encodedRemaining = encode(limit - 2, remainingIndexes)
+                (encodedPair + encodedRemaining)
+            }
         }
 
-        else -> {
-            // Encode a pair of Key Indexes into 3 bytes.
-            val first = indexes.first()
-            val second = indexes.drop(1).first()
-            val pair = (first.toInt() shl 12) or second.toInt()
-            val encodedPair = pair.toShort().toLittleEndian().dropLast(1).toByteArray()
-            val remainingIndexes = indexes.drop(2)
-            val encodedRemaining = encode(limit - 2, remainingIndexes)
-            (encodedPair + encodedRemaining)
-        }
-    }
+        // TODO this needs to be moved to a utils module
+        fun Short.toLittleEndian(): ByteArray = byteArrayOf(toByte(), (toInt() ushr 8).toByte())
 
-    // TODO this needs to be moved to a utils module
-    fun Short.toLittleEndian(): ByteArray = byteArrayOf(toByte(), (toInt() ushr 8).toByte())
+        /**
+         * Decodes number of Key Indexes from the given Data from the given offset. This will decode
+         * as many Indexes as possible, until the end of data is reached.
+         *
+         * @param limit:  Maximum number of Key Indexes to decode.
+         * @param data:   The data from where the indexes should be read.
+         * @param offset: The offset from where to read the indexes.
+         * @returns Decoded Key Indexes.
+         */
+        fun decode(limit: Int = 10000, data: ByteArray, offset: Int): Array<KeyIndex> = when {
+            limit < 0 && data.size - offset < 2 -> emptyArray()
 
-    /**
-     * Decodes number of Key Indexes from the given Data from the given offset. This will decode as
-     * many Indexes as possible, until the end of data is reached.
-     *
-     * @param limit:  Maximum number of Key Indexes to decode.
-     * @param data:   The data from where the indexes should be read.
-     * @param offset: The offset from where to read the indexes.
-     * @returns Decoded Key Indexes.
-     */
-    fun decode(limit: Int = 10000, data: ByteArray, offset: Int): Array<KeyIndex> = when {
-        limit < 0 && data.size - offset < 2 -> emptyArray()
+            limit == 1 || data.size - offset == 2 ->
+                arrayOf((data[offset + 1].toInt() shl 8 or data[offset].toInt()).toUShort())
 
-        limit == 1 || data.size - offset == 2 ->
-            arrayOf((data[offset + 1].toInt() shl 8 or data[offset].toInt()).toUShort())
-
-        else -> {
-            val first = (data[offset + 2].toInt() shl 4 or data[offset + 1].toInt() shr 4)
-                .toUShort()
-            val second = ((data[offset + 1] and 0x0F).toInt() shl 8 or data[offset].toInt())
-                .toUShort()
-            arrayOf(first, second) + decode(limit - 2, data, offset + 3)
+            else -> {
+                val first = (data[offset + 2].toInt() shl 4 or data[offset + 1].toInt() shr 4)
+                    .toUShort()
+                val second = ((data[offset + 1] and 0x0F).toInt() shl 8 or data[offset].toInt())
+                    .toUShort()
+                arrayOf(first, second) + decode(limit - 2, data, offset + 3)
+            }
         }
     }
 }
+
+
+/**
+ * A base decoder interface for Configuration messages.
+ */
+interface  ConfigMessageDecoder : BaseMeshMessageDecoder, HasOpCode
 
 /**
  * THe base interface for unacknowledged Configuration messages.
@@ -149,7 +158,18 @@ enum class ConfigMessageStatus(val value: UByte) {
     UNSPECIFIED_ERROR(0x10.toUByte()),
 
     /** Invalid Binding. */
-    INVALID_BINDING(0x11.toUByte())
+    INVALID_BINDING(0x11.toUByte());
+
+    companion object {
+
+        /**
+         * Returns the ConfigMessageStatus for the given value.
+         *
+         * @param value Value of the status.
+         * @return ConfigMessageStatus
+         */
+        fun from(value: UByte): ConfigMessageStatus? = values().find { it.value == value }
+    }
 }
 
 /**
@@ -159,6 +179,12 @@ enum class ConfigMessageStatus(val value: UByte) {
  */
 interface ConfigStatusMessage : ConfigMessage, StatusMessage {
     val status: ConfigMessageStatus
+
+    override val isSuccess: Boolean
+        get() = status == ConfigMessageStatus.SUCCESS
+
+    override val message: String
+        get() = "$status"
 }
 
 /**
@@ -167,7 +193,30 @@ interface ConfigStatusMessage : ConfigMessage, StatusMessage {
  * @property networkKeyIndex The Network Key Index.
  */
 interface ConfigNetKeyMessage : ConfigMessage {
-    var networkKeyIndex: KeyIndex
+    val networkKeyIndex: KeyIndex
+
+    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(networkKeyIndex)
+
+    fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex = decodeNetKeyIndex(data, offset)
+
+    companion object {
+
+        /**
+         * Encodes the Network Key Index into a 2 octet byte array
+         */
+        fun encodeNetKeyIndex(networkKeyIndex: KeyIndex): ByteArray =
+            ConfigMessage.encode(indexes = listOf(networkKeyIndex))
+
+        /**
+         * Decodes the Network Key Index from the given dat at the given offset.
+         *
+         * @param data       Data from where the indexes should be read.
+         * @param offset     Offset from where to read the indexes.
+         * @return Decoded Key Indexes.
+         */
+        fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
+            ConfigMessage.decode(limit = 1, data = data, offset = offset).first()
+    }
 }
 
 /**
@@ -272,12 +321,12 @@ sealed class RemainingHeartbeatPublicationCount {
     /**
      * Periodic Heartbeat messages are not published.
      */
-    object Disabled : RemainingHeartbeatPublicationCount()
+    data object Disabled : RemainingHeartbeatPublicationCount()
 
     /**
      * Periodic Heartbeat messages are not published.
      */
-    object Indefinitely : RemainingHeartbeatPublicationCount()
+    data object Indefinitely : RemainingHeartbeatPublicationCount()
 
     /**
      * Periodic Heartbeat messages are not published.
@@ -311,7 +360,7 @@ sealed class RemainingHeartbeatSubscriptionPeriod {
     /**
      * Heartbeat messages are not processed.
      */
-    object Disabled : RemainingHeartbeatSubscriptionPeriod()
+    data object Disabled : RemainingHeartbeatSubscriptionPeriod()
 
     /**
      * Exact remaining period for processing Heartbeat messages, in seconds. Exact period is only
@@ -359,7 +408,7 @@ sealed class HeartbeatSubscriptionCount {
     /**
      * More than 0xFFFE messages have been received.
      */
-    object ReallyALot : HeartbeatSubscriptionCount()
+    data object ReallyALot : HeartbeatSubscriptionCount()
 
     /**
      * Unsupported CountLog value sent.
@@ -383,7 +432,7 @@ sealed class RandomUpdateIntervalSteps {
     /**
      * Random field is updated for every Mesh Private beacon.
      */
-    object EveryTime : RandomUpdateIntervalSteps()
+    data object EveryTime : RandomUpdateIntervalSteps()
 
     /**
      * Random field is updated at an interval (in 10 seconds steps).
