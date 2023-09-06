@@ -76,12 +76,11 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     /**
      * Encrypts the Access PDU using given key set and sends it down to the Lower Transport Layer.
      *
-     * @param accessPdu     Access PDU to be sent.
-     * @param initialTtl    Initial TTL value of the message. If 'null', default Node TTL will be
-     *                      used.
-     * @param keySet        Key set to be used to encrypt the message.
+     * @param accessPdu  Access PDU to be sent.
+     * @param ttl        Initial TTL value of the message. If 'null', default Node TTL will be used.
+     * @param keySet     Key set to be used to encrypt the message.
      */
-    suspend fun send(accessPdu: AccessPdu, initialTtl: UByte?, keySet: KeySet) {
+    suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet) {
         // Get the current sequence number for the given source Element's address.
         val sequence = networkManager.networkLayer.nextSequenceNumber(
             address = UnicastAddress(accessPdu.source)
@@ -97,11 +96,11 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         }
         if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
-            enqueue(pdu, initialTtl, keySet.networkKey)
+            enqueue(pdu, ttl, keySet.networkKey)
         } else {
             networkManager.lowerTransportLayer.send(
                 pdu = pdu,
-                initialTtl = initialTtl,
+                initialTtl = ttl,
                 networkKey = keySet.networkKey
             )
         }
