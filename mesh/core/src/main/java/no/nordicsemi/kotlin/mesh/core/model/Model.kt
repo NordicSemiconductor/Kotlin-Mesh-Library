@@ -29,6 +29,10 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
  * @property name                                       Name of the model.
  * @property isBluetoothSigAssigned                     True if the model is a Bluetooth SIG defined
  *                                                      model.
+ * @property parentElement                              Parent element of the model.
+ * @property boundApplicationKeys                       List of [ApplicationKey] bound to the model.
+ * @property supportsApplicationKeyBinding              True if the model supports application key
+ *                                                      binding.
  * @property isConfigurationServer                      True if the model is a configuration server
  *                                                      model.
  * @property isConfigurationClient                      True if the model is a configuration client
@@ -92,6 +96,11 @@ data class Model internal constructor(
 
     @Transient
     internal var parentElement: Element? = null
+
+    val boundApplicationKeys: List<ApplicationKey>
+        get() = parentElement?.parentNode?.applicationKeys?.filter { isBoundTo(it) } ?: emptyList()
+    val supportsApplicationKeyBinding: Boolean
+        get() = !requiresDeviceKey
 
     val isConfigurationServer: Boolean
         get() = modelId.id == CONFIGURATION_SERVER_MODEL_ID.toUInt()
@@ -197,6 +206,14 @@ data class Model internal constructor(
             true
         }
     }
+
+    /**
+     * Checks if the given application key is bound to the model.
+     *
+     * @param applicationKey Application key to check.
+     * @return true if the key is bound to the model or false otherwise.
+     */
+    fun isBoundTo(applicationKey: ApplicationKey) = bind.any { it == applicationKey.index }
 
     internal companion object {
 
