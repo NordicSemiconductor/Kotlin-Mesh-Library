@@ -47,12 +47,12 @@ internal data class AccessKeySet(val applicationKey: ApplicationKey) : KeySet {
  * @property node Node containing the device key.
  * @constructor Creates a DeviceKeySet.
  */
-internal data class DeviceKeySet(
+internal class DeviceKeySet private constructor(
     override val networkKey: NetworkKey,
-    val node: Node
-) : KeySet {
+    val node: Node,
+    val deviceKey: ByteArray,
     override val accessKey: ByteArray
-        get() = node.deviceKey ?: byteArrayOf()
+) : KeySet {
 
     override val aid: UByte? = null
 
@@ -80,5 +80,17 @@ internal data class DeviceKeySet(
 
     override fun toString(): String {
         return "${node.name}'s Device Key."
+    }
+
+    companion object {
+        fun init(networkKey: NetworkKey, node: Node): DeviceKeySet? {
+            val deviceKey = node.deviceKey ?: return null
+            return DeviceKeySet(
+                networkKey = networkKey,
+                node = node,
+                deviceKey = deviceKey,
+                accessKey = deviceKey
+            )
+        }
     }
 }
