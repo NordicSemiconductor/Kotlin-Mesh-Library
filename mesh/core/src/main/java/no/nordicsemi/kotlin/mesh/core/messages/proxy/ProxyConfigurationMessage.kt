@@ -1,7 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.proxy
 
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageDecoder
+import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
 
 
 /**
@@ -34,4 +34,5 @@ interface AcknowledgedProxyConfigurationMessage : ProxyConfigurationMessage {
 /**
  * Proxy Configuration message decoder for proxy configuration messages.
  */
-interface ProxyConfigurationMessageDecoder : BaseMeshMessageDecoder, HasProxyConfigurationOpCode
+interface ProxyConfigurationMessageInitializer : BaseMeshMessageInitializer,
+        HasProxyConfigurationOpCode

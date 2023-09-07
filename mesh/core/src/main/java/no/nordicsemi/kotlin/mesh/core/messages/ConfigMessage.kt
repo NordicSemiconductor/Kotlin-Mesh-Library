@@ -80,7 +80,7 @@ interface ConfigMessage : MeshMessage {
 /**
  * A base decoder interface for Configuration messages.
  */
-interface  ConfigMessageDecoder : BaseMeshMessageDecoder, HasOpCode
+interface  ConfigMessageInitializer : BaseMeshMessageInitializer, HasOpCode
 
 /**
  * THe base interface for unacknowledged Configuration messages.

@@ -3,7 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageDecoder
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage.Companion.decodeNetKeyIndex
@@ -28,7 +28,7 @@ data class ConfigNetKeyStatus(
     override val status: ConfigMessageStatus
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
 
-    override val opCode = Decoder.opCode
+    override val opCode = Initializer.opCode
     override val parameters: ByteArray
         get() = status.value.toByteArray() + encodeNetKeyIndex(networkKeyIndex)
 
@@ -46,11 +46,11 @@ data class ConfigNetKeyStatus(
 
     constructor(networkKey: NetworkKey) : this(networkKey.index, ConfigMessageStatus.SUCCESS)
 
-    companion object Decoder : ConfigMessageDecoder {
+    companion object Initializer : ConfigMessageInitializer {
 
         override val opCode = 0x8044u
 
-        override fun decode(payload: ByteArray): BaseMeshMessage? = if (payload.size == 3) {
+        override fun init(payload: ByteArray): BaseMeshMessage? = if (payload.size == 3) {
             ConfigMessageStatus.from(payload.first().toUByte())?.let {
                 ConfigNetKeyStatus(
                     networkKeyIndex = decodeNetKeyIndex(payload, 1), status = it

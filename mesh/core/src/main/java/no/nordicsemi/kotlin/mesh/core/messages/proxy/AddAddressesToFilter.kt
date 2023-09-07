@@ -15,7 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 data class AddAddressesToFilter(
     val addresses: List<ProxyFilterAddress>
 ) : AcknowledgedProxyConfigurationMessage {
-    override val opCode: UByte = Decoder.opCode
+    override val opCode: UByte = Initializer.opCode
     override val responseOpCode: UByte = FilterStatus.opCode
     override val parameters: ByteArray
         get() {
@@ -28,9 +28,9 @@ data class AddAddressesToFilter(
             return byteArray
         }
 
-    companion object Decoder : ProxyConfigurationMessageDecoder {
+    companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x01u
-        override fun decode(payload: ByteArray) = payload.takeIf {
+        override fun init(payload: ByteArray) = payload.takeIf {
             it.size % 2 == 0
         }?.let {
             val addresses = mutableListOf<UnicastAddress>()

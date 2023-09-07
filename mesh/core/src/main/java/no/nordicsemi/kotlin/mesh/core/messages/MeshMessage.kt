@@ -51,15 +51,16 @@ sealed class MeshMessageSecurity {
 /**
  * A functional interface containing a decoder for a mesh message.
  */
-fun interface HasDecoder {
+fun interface HasInitializer {
 
     /**
-     * Decodes the mesh message based on the given parameters.
+     * Initializes the mesh message based on the given parameters.
      *
      * @param payload Byte array containing the payload of the mesh message.
      * @return the decoded [BaseMeshMessage].
      */
-    fun decode(payload: ByteArray): BaseMeshMessage?
+    fun init(payload: ByteArray): BaseMeshMessage?
+
 }
 
 /**
@@ -84,7 +85,7 @@ interface BaseMeshMessage {
 /**
  * A base decoder interface for all mesh message decoders.
  */
-interface BaseMeshMessageDecoder : HasDecoder
+interface BaseMeshMessageInitializer : HasInitializer
 
 /**
  * The base interface of every mesh message. Mesh messages can be sent to and received from a mesh
