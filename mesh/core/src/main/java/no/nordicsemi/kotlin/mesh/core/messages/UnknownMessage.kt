@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import no.nordicsemi.kotlin.mesh.core.layers.access.AccessPdu
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
@@ -17,6 +18,18 @@ data class UnknownMessage(
     override val opCode: UInt,
     override val parameters: ByteArray
 ) : MeshMessage {
+
+    /**
+     * Constructs an UnknownMessage that cannot be parsed by any of the local models.
+     *
+     * @param accessPdu Access PDU received.
+     * @constructor Constructs an UnknownMessage that cannot be parsed by any of the local models.
+     */
+    internal constructor(accessPdu: AccessPdu) : this(
+        opCode = accessPdu.opCode,
+        parameters = accessPdu.parameters
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
