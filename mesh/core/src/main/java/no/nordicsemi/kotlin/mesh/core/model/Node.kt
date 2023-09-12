@@ -161,7 +161,7 @@ data class Node internal constructor(
             field = value
             network?.updateTimestamp()
         }
-    var defaultTTL: Int = 127
+    var defaultTTL: UByte = 127u
         internal set(value) {
             field = value
             network?.updateTimestamp()
@@ -417,6 +417,16 @@ data class Node internal constructor(
      * @param address Unicast address.
      * @return true if the given address is in use by any of the elements
      */
+    fun containsElementWithAddress(address: Address) = elements.any {
+        it.unicastAddress.address == address
+    }
+
+    /**
+     * Checks if an element in the node uses this address.
+     *
+     * @param address Unicast address.
+     * @return true if the given address is in use by any of the elements
+     */
     fun containsElementWithAddress(address: UnicastAddress) = elements.any {
         it.unicastAddress == address
     }
@@ -514,7 +524,7 @@ data class Node internal constructor(
         result = 31 * result + (secureNetworkBeacon?.hashCode() ?: 0)
         result = 31 * result + (networkTransmit?.hashCode() ?: 0)
         result = 31 * result + (relayRetransmit?.hashCode() ?: 0)
-        result = 31 * result + defaultTTL
+        result = 31 * result + defaultTTL.hashCode()
         result = 31 * result + excluded.hashCode()
         result = 31 * result + (heartbeatPublication?.hashCode() ?: 0)
         result = 31 * result + (heartbeatSubscription?.hashCode() ?: 0)
