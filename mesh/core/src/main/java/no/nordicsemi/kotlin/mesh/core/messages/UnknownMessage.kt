@@ -9,13 +9,14 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
  * Unknown message defines a message that may not be defined in any of the local Models for the
  * received opcode.
  *
- * @property parameters Parameters of the message.
+ * @property opCode      Opcode of the message.
+ * @property parameters  Parameters of the message.
  * @constructor Constructs an UnknownMessage that cannot be parsed by any of the local models.
  */
-data class UnknownMessage(override val parameters: ByteArray) : MeshMessage {
-
-    override val opCode: UInt = 0u
-
+data class UnknownMessage(
+    override val opCode: UInt,
+    override val parameters: ByteArray
+) : MeshMessage {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
