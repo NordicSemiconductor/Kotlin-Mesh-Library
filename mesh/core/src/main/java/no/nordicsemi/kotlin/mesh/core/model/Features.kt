@@ -169,3 +169,13 @@ fun Array<Feature>.toUShort(): UShort {
     }
     return rawValue
 }
+
+/**
+ * Converts an array of Features to a [Features] object.
+ */
+fun Array<Feature>.toFeatures() = Features(
+    relay = this[0] as Relay,
+    proxy = this[1] as Proxy,
+    friend = this[2] as Friend,
+    lowPower = this[3] as LowPower
+)
