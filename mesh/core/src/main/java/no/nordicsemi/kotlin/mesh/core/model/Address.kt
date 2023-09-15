@@ -53,7 +53,7 @@ sealed interface HasAddress {
      * @param prefix0x If true, the hex string will be prefixed with 0x.
      * @return The hex string representation of the address.
      */
-    fun toHex(prefix0x: Boolean = false) : String
+    fun toHex(prefix0x: Boolean = false): String
 }
 
 /**
@@ -268,9 +268,17 @@ sealed interface HeartbeatDestination : HasAddress
 
 /**
  * Heartbeat publication destination address for heartbeat messages. This represents a
- * [UnicastAddress] or a [GroupAddress].
+ * [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
  */
-sealed interface HeartbeatPublicationDestination : HeartbeatDestination
+sealed interface HeartbeatPublicationDestination : HeartbeatDestination {
+
+    companion object {
+        fun isValid(address: Address) =
+            UnicastAddress.isValid(address = address) ||
+                    GroupAddress.isValid(address = address) ||
+                    UnassignedAddress.isValid(address = address)
+    }
+}
 
 /**
  * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
