@@ -2,10 +2,12 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import java.util.UUID
 import kotlin.experimental.and
+import kotlin.math.pow
 
 
 /**
@@ -80,7 +82,7 @@ interface ConfigMessage : MeshMessage {
 /**
  * A base decoder interface for Configuration messages.
  */
-interface  ConfigMessageInitializer : BaseMeshMessageInitializer, HasOpCode
+interface ConfigMessageInitializer : BaseMeshMessageInitializer, HasOpCode
 
 /**
  * THe base interface for unacknowledged Configuration messages.
@@ -340,16 +342,41 @@ sealed class RemainingHeartbeatPublicationCount {
      * Remaining count of periodic Heartbeat messages represented as range. Exact count is only
      * available when the count goes down to 2 and 1; otherwise a range is returned.
      *
-     * @property range The range of values
+     * @property low   Short range value.
+     * @property high  High range value.
+     * @constructor Constructs a range of remaining count of periodic Heartbeat messages.
      */
-    data class Range(val range: ClosedRange<UShort>) : RemainingHeartbeatPublicationCount()
+    data class Range(val low: UShort, val high: UShort) : RemainingHeartbeatPublicationCount()
 
     /**
      * Periodic Heartbeat messages are not published.
      *
      * @property countLog Count log values sent.
      */
-    data class Invalid(val countLog: UShort) : RemainingHeartbeatPublicationCount()
+    data class Invalid(val countLog: UByte) : RemainingHeartbeatPublicationCount()
+
+    companion object {
+
+        /**
+         * Converts the given CountLog value to a RemainingHeartbeatPublicationCount.
+         *
+         * @return RemainingHeartbeatPublicationCount
+         */
+        internal fun CountLog.toRemainingPublicationCount(): RemainingHeartbeatPublicationCount {
+            return when {
+                this == 0x00.toUByte() -> Disabled
+                this == 0xFF.toUByte() -> Indefinitely
+                this == 0x01.toUByte() || this == 0x02.toUByte() -> Exact(this.toUShort())
+                this == 0x11.toUByte() -> Range(low = 0x8001.toUShort(), high = 0xFFFE.toUShort())
+                this >= 0x03.toUByte() && this <= 0x10.toUByte() -> Range(
+                    low = ((2.0.pow(this.toDouble() - 2.0)) + 1.0).toUInt().toUShort(),
+                    high = (2.0.pow(this.toDouble() - 1.0)).toUInt().toUShort()
+                )
+
+                else -> Invalid(this)
+            }
+        }
+    }
 }
 
 /**
