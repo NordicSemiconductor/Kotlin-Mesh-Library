@@ -30,6 +30,12 @@ data class Features internal constructor(
     val friend: Friend? = null,
     val lowPower: LowPower? = null
 ) {
+
+    val rawValue = ((relay?.state?.value ?: 2) shr 0 or
+            (proxy?.state?.value ?: 2) shr 1 or
+            (friend?.state?.value ?: 2) shr 2 or
+            (lowPower?.state?.value ?: 2) shr 3).toUShort()
+
     /**
      * Constructs a Features object from the given raw value.
      *
@@ -41,14 +47,28 @@ data class Features internal constructor(
         friend = Friend(FeatureState.from(rawValue.toInt() shl 2)),
         lowPower = LowPower(FeatureState.from(rawValue.toInt() shl 3))
     )
+
+    /**
+     * Converts the features to an array of [Feature]s.
+     */
+    fun toArray(): Array<Feature> = arrayOf(
+        relay ?: Relay(FeatureState.Unsupported),
+        proxy ?: Proxy(FeatureState.Unsupported),
+        friend ?: Friend(FeatureState.Unsupported),
+        lowPower ?: LowPower(FeatureState.Unsupported)
+    )
 }
 
 /**
  * Represents a type feature.
+ *
+ * @property state    Defines the state of the feature.
+ * @property rawValue Raw value of the feature state.
  */
 @Serializable
 sealed class Feature {
     abstract val state: FeatureState
+    abstract val rawValue: UShort
 }
 
 /**
@@ -58,9 +78,9 @@ sealed class Feature {
  * @property state State of the relay feature.
  */
 @Serializable
-data class Relay internal constructor(
-    override val state: FeatureState
-) : Feature()
+data class Relay internal constructor(override val state: FeatureState) : Feature() {
+    override val rawValue: UShort = (state.value shr 0).toUShort()
+}
 
 /**
  * Proxy feature is the ability to receive and retransmit mesh messages between GATT and
@@ -69,9 +89,9 @@ data class Relay internal constructor(
  * @property state State of the proxy feature.
  */
 @Serializable
-data class Proxy internal constructor(
-    override val state: FeatureState
-) : Feature()
+data class Proxy internal constructor(override val state: FeatureState) : Feature() {
+    override val rawValue: UShort = (state.value shr 1).toUShort()
+}
 
 /**
  * Friend feature is the ability to operate within a mesh network at significantly
@@ -80,9 +100,9 @@ data class Proxy internal constructor(
  * @property state State of friend feature.
  */
 @Serializable
-data class Friend internal constructor(
-    override val state: FeatureState
-) : Feature()
+data class Friend internal constructor(override val state: FeatureState) : Feature() {
+    override val rawValue: UShort = (state.value shr 2).toUShort()
+}
 
 /**
  * LowPower feature is the ability to help a node supporting the Low Power feature
@@ -91,9 +111,9 @@ data class Friend internal constructor(
  * @property state State of low power feature.
  */
 @Serializable
-data class LowPower internal constructor(
-    override val state: FeatureState
-) : Feature()
+data class LowPower internal constructor(override val state: FeatureState) : Feature() {
+    override val rawValue: UShort = (state.value shr 3).toUShort()
+}
 
 /**
  * FeatureState describes the state of a given [Feature].
@@ -137,4 +157,15 @@ sealed class FeatureState(val value: Int) {
             )
         }
     }
+}
+
+/**
+ * Converts an array of [Feature]s to a raw value.
+ */
+fun Array<Feature>.toUShort(): UShort {
+    var rawValue: UShort = 0u
+    for (feature in this) {
+        rawValue = rawValue or feature.rawValue
+    }
+    return rawValue
 }
