@@ -80,8 +80,7 @@ data class Model internal constructor(
     val modelId: ModelId,
     internal var _bind: MutableList<KeyIndex>,
     internal var _subscribe: MutableList<SubscriptionAddress>,
-    internal var _publish: Publish? = null,
-    var eventHandler: ModelEventHandler? = null
+    internal var _publish: Publish? = null
 ) {
     val subscribe: List<SubscriptionAddress>
         get() = _subscribe
@@ -99,8 +98,12 @@ data class Model internal constructor(
 
     val boundApplicationKeys: List<ApplicationKey>
         get() = parentElement?.parentNode?.applicationKeys?.filter { isBoundTo(it) } ?: emptyList()
+
     val supportsApplicationKeyBinding: Boolean
         get() = !requiresDeviceKey
+
+    val supportsDeviceKey: Boolean
+        get() = requiresDeviceKey || isOpcodesAggregatorServer || isOpcodesAggregatorClient
 
     val isConfigurationServer: Boolean
         get() = modelId.id == CONFIGURATION_SERVER_MODEL_ID.toUInt()
@@ -154,6 +157,9 @@ data class Model internal constructor(
                 isSarConfigurationServer || isSarConfigurationClient ||
                 isLargeCompositionDataServer || isLargeCompositionDataClient
 
+    @Transient
+    var eventHandler: ModelEventHandler? = null
+
     /**
      * Constructs a Model
      *
@@ -164,9 +170,10 @@ data class Model internal constructor(
         modelId = modelId,
         _bind = mutableListOf(),
         _subscribe = mutableListOf(),
-        _publish = null,
+        _publish = null
+    ) {
         eventHandler = handler
-    )
+    }
 
     /**
      * Subscribe this model to a given subscription address.
@@ -180,17 +187,6 @@ data class Model internal constructor(
             _subscribe.add(address)
             true
         }
-    }
-
-    /**
-     * Copies the properties from the given model
-     *
-     * @param model Model to copy from
-     */
-    fun copyProperties(model: Model) {
-        _bind = model._bind
-        _publish = model._publish
-        _subscribe = model._subscribe
     }
 
     /**
@@ -208,12 +204,39 @@ data class Model internal constructor(
     }
 
     /**
+     * Copies the properties from the given model
+     *
+     * @param model Model to copy from
+     */
+    fun copyProperties(model: Model) {
+        _bind = model._bind
+        _publish = model._publish
+        _subscribe = model._subscribe
+    }
+
+    /**
      * Checks if the given application key is bound to the model.
      *
      * @param applicationKey Application key to check.
      * @return true if the key is bound to the model or false otherwise.
      */
     fun isBoundTo(applicationKey: ApplicationKey) = bind.any { it == applicationKey.index }
+
+    /**
+     * Checks if the Model is subscribed to the given Group.
+     *
+     * @param group Group to check.
+     * @return true if the model is subscribed to the group or false otherwise.
+     */
+    fun isSubscribedTo(group: Group) = isSubscribedTo(group.address)
+
+    /**
+     * Checks if the Model is subscribed to the given address.
+     *
+     * @param address Address to check.
+     * @return true if the model is subscribed to the address or false otherwise.
+     */
+    fun isSubscribedTo(address: PrimaryGroupAddress) = subscribe.any { it == address }
 
     internal companion object {
 
