@@ -132,5 +132,16 @@ object Utils {
         putLong(mostSignificantBits)
         putLong(leastSignificantBits)
     }.array()
+
+    /**
+     * Converts a byte array to a UUID.
+     * @return UUID
+     * @throws IllegalArgumentException If the byte array is not 16 bytes long.
+     */
+    fun ByteArray.toUuid(): UUID {
+        require(size == 16) { "Byte array must be 16 bytes long" }
+        val buffer = ByteBuffer.wrap(this)
+        return UUID(buffer.long, buffer.long)
+    }
 }
 
