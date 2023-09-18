@@ -31,11 +31,7 @@ sealed class ModelId {
         0u -> "%04X".format(id.toShort())
         else -> "%08X".format(id.toInt())
     }.also {
-        return if (prefix0x) {
-            "0x$it"
-        } else {
-            it
-        }
+        return if (prefix0x) "0x$it" else it
     }
 }
 
