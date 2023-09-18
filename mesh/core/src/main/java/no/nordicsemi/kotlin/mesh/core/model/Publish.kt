@@ -33,7 +33,7 @@ import kotlinx.serialization.Serializable
 data class Publish(
     val address: PublicationAddress,
     val index: KeyIndex,
-    val ttl: Int,
+    val ttl: UByte,
     val period: PublishPeriod,
     val credentials: Credentials,
     val retransmit: Retransmit
@@ -44,11 +44,11 @@ data class Publish(
      * publications.
      */
     constructor() : this(
-        UnassignedAddress,
-        0u,
-        0,
-        PublishPeriod.disabled,
-        MasterSecurity,
-        Retransmit.disabled
+        address = UnassignedAddress,
+        index = 0.toUShort(),
+        ttl = 0.toUByte(),
+        period = PublishPeriod.disabled,
+        credentials = MasterSecurity,
+        retransmit = Retransmit.disabled
     )
 }
