@@ -5,6 +5,9 @@ package no.nordicsemi.kotlin.mesh.core.messages
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.ModelId
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.util.UUID
 import kotlin.experimental.and
 import kotlin.math.pow
@@ -241,7 +244,7 @@ interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage
  * @property elementAddress Unicast Address of the Model's parent Element.
  */
 interface ConfigElementMessage : ConfigMessage {
-    val elementAddress: Address
+    val elementAddress: UnicastAddress
 }
 
 /**
@@ -252,7 +255,7 @@ interface ConfigElementMessage : ConfigMessage {
  */
 interface ConfigModelMessage : ConfigElementMessage {
     val modelIdentifier: UShort
-    val modelId: UInt
+    val modelId: ModelId
 }
 
 /**
@@ -276,8 +279,8 @@ interface ConfigAnyModelMessage : ConfigModelMessage {
  */
 interface ConfigVendorModelMessage : ConfigModelMessage {
     val companyIdentifier: UShort
-    override val modelId: UInt
-        get() = (companyIdentifier.toInt() shl 16 or modelIdentifier.toInt()).toUInt()
+    override val modelId: VendorModelId
+        get() = VendorModelId(modelIdentifier, companyIdentifier)
 }
 
 /**
