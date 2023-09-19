@@ -9,14 +9,14 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
  * This message is used to get the Heartbeat Publication state of an element.
  *
  * @property parameters Message parameters.
+ * @constructor Creates a ConfigHeartbeatPublicationGet message.
  */
-data class ConfigHeartbeatPublicationGet internal constructor(
-    override val parameters: ByteArray
-) : AcknowledgedConfigMessage {
+class ConfigHeartbeatPublicationGet : AcknowledgedConfigMessage {
 
     override val opCode: UInt = Initializer.opCode
 
     override val responseOpCode = ConfigHeartbeatPublicationStatus.opCode
+    override val parameters: ByteArray? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,8 +39,8 @@ data class ConfigHeartbeatPublicationGet internal constructor(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8038u
 
-        override fun init(payload: ByteArray) = if (payload.isNotEmpty()) {
-            ConfigHeartbeatPublicationGet(parameters = payload)
+        override fun init(payload: ByteArray) = if (payload.isEmpty()) {
+            ConfigHeartbeatPublicationGet()
         } else null
     }
 }
