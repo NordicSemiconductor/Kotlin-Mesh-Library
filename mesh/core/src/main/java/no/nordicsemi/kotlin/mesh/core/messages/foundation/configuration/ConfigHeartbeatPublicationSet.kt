@@ -95,14 +95,14 @@ class ConfigHeartbeatPublicationSet(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8039u
 
-        override fun init(payload: ByteArray) = if (payload.size == 9)
+        override fun init(parameters: ByteArray) = if (parameters.size == 9)
             ConfigHeartbeatPublicationSet(
-                destination = payload.toUShort(offset = 0),
-                countLog = payload[2].toUByte(),
-                periodLog = payload[3].toUByte(),
-                ttl = payload[4].toUByte(),
-                features = Features(rawValue = payload.toUShort(offset = 5)).toArray(),
-                networkKeyIndex = payload.toUShort(offset = 7)
+                destination = parameters.toUShort(offset = 0),
+                countLog = parameters[2].toUByte(),
+                periodLog = parameters[3].toUByte(),
+                ttl = parameters[4].toUByte(),
+                features = Features(rawValue = parameters.toUShort(offset = 5)).toArray(),
+                networkKeyIndex = parameters.toUShort(offset = 7)
             ) else null
 
         /**

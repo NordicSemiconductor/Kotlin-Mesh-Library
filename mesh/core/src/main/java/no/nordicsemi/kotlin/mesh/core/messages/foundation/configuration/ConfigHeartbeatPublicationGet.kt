@@ -39,7 +39,7 @@ class ConfigHeartbeatPublicationGet : AcknowledgedConfigMessage {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8038u
 
-        override fun init(payload: ByteArray) = if (payload.isEmpty()) {
+        override fun init(parameters: ByteArray) = if (parameters.isEmpty()) {
             ConfigHeartbeatPublicationGet()
         } else null
     }

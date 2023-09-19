@@ -28,8 +28,8 @@ data class ConfigNetKeyDelete(
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8041u
-        override fun init(payload: ByteArray) = if (payload.size == 2) {
-            ConfigNetKeyDelete(networkKeyIndex = decodeNetKeyIndex(data = payload, offset = 0))
+        override fun init(parameters: ByteArray) = if (parameters.size == 2) {
+            ConfigNetKeyDelete(networkKeyIndex = decodeNetKeyIndex(data = parameters, offset = 0))
         } else null
     }
 }

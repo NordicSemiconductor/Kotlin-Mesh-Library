@@ -113,19 +113,19 @@ data class ConfigModelPublicationVirtualAddressSet(
             )
         }
 
-        override fun init(payload: ByteArray): ConfigModelPublicationVirtualAddressSet? {
-            require(payload.size == 25 || payload.size == 27) { return null }
+        override fun init(parameters: ByteArray): ConfigModelPublicationVirtualAddressSet? {
+            require(parameters.size == 25 || parameters.size == 27) { return null }
 
 
-            val elementAddress = payload.toUShort(offset = 0)
-            val label = VirtualAddress(payload.sliceArray(2 until 17).toUuid())
-            val index = payload.toUShort(18) and 0x0FFFu
-            val flag = (payload.toUShort(19) and 0x10u).toInt() shr 4
-            val ttl = payload[20].toUByte()
-            val periodSteps = (payload.toUShort(21) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((payload[21].toInt() shr 6))
-            val count = (payload[22] and 0x07).toUByte()
-            val intervalSteps = (payload[22].toInt() shr 3).toUByte()
+            val elementAddress = parameters.toUShort(offset = 0)
+            val label = VirtualAddress(parameters.sliceArray(2 until 17).toUuid())
+            val index = parameters.toUShort(18) and 0x0FFFu
+            val flag = (parameters.toUShort(19) and 0x10u).toInt() shr 4
+            val ttl = parameters[20].toUByte()
+            val periodSteps = (parameters.toUShort(21) and 0x3Fu).toUByte()
+            val periodResolution = StepResolution.from((parameters[21].toInt() shr 6))
+            val count = (parameters[22] and 0x07).toUByte()
+            val intervalSteps = (parameters[22].toInt() shr 3).toUByte()
 
             val publish = Publish(
                 address = label,
@@ -136,18 +136,18 @@ data class ConfigModelPublicationVirtualAddressSet(
                 retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
             )
 
-            return if (payload.size == 27) {
+            return if (parameters.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = payload.toUShort(23),
-                    modelIdentifier = payload.toUShort(25),
+                    companyIdentifier = parameters.toUShort(23),
+                    modelIdentifier = parameters.toUShort(25),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = payload.toUShort(23),
+                    modelIdentifier = parameters.toUShort(23),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

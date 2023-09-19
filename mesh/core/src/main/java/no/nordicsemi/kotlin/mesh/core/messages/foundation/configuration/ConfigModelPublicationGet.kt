@@ -37,16 +37,16 @@ data class ConfigModelPublicationGet(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8018u
 
-        override fun init(payload: ByteArray): BaseMeshMessage? {
-            require(payload.size == 4 || payload.size == 6) { return null }
-            val elementAddress = UnicastAddress(payload.toUShort(0))
+        override fun init(parameters: ByteArray): BaseMeshMessage? {
+            require(parameters.size == 4 || parameters.size == 6) { return null }
+            val elementAddress = UnicastAddress(parameters.toUShort(0))
             var companyIdentifier: UShort? = null
             val modelIdentifier: UShort
-            if (payload.size == 6) {
-                companyIdentifier = payload.toUShort(2)
-                modelIdentifier = payload.toUShort(4)
+            if (parameters.size == 6) {
+                companyIdentifier = parameters.toUShort(2)
+                modelIdentifier = parameters.toUShort(4)
             } else {
-                modelIdentifier = payload.toUShort(2)
+                modelIdentifier = parameters.toUShort(2)
             }
             return ConfigModelPublicationGet(
                 elementAddress = elementAddress,

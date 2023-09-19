@@ -107,22 +107,22 @@ data class ConfigModelPublicationStatus(
         /**
          * Constructs the ConfigModelPublicationSet message using the given parameters.
          *
-         * @param payload The message parameters.
+         * @param parameters The message parameters.
          * @return A ConfigModelPublicationSet message or null if parameters are invalid.
          */
-        override fun init(payload: ByteArray): ConfigModelPublicationStatus? {
-            require(payload.size == 11 || payload.size == 13) { return null }
+        override fun init(parameters: ByteArray): ConfigModelPublicationStatus? {
+            require(parameters.size == 11 || parameters.size == 13) { return null }
 
-            val elementAddress = payload.toUShort(offset = 0)
-            val address = MeshAddress.create(payload.toUShort(2))
-            val index = payload.toUShort(4) and 0x0FFFu
-            val flag = (payload.toUShort(5) and 0x10u).toInt() shr 4
-            val ttl = payload[6].toUByte()
-            val periodSteps = (payload.toUShort(7) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((payload[7].toInt() shr 6))
+            val elementAddress = parameters.toUShort(offset = 0)
+            val address = MeshAddress.create(parameters.toUShort(2))
+            val index = parameters.toUShort(4) and 0x0FFFu
+            val flag = (parameters.toUShort(5) and 0x10u).toInt() shr 4
+            val ttl = parameters[6].toUByte()
+            val periodSteps = (parameters.toUShort(7) and 0x3Fu).toUByte()
+            val periodResolution = StepResolution.from((parameters[7].toInt() shr 6))
             val period = PublishPeriod(periodSteps, periodResolution)
-            val count = (payload[8] and 0x07).toUByte()
-            val intervalSteps = (payload[8].toInt() shr 3).toUByte()
+            val count = (parameters[8] and 0x07).toUByte()
+            val intervalSteps = (parameters[8].toInt() shr 3).toUByte()
 
             val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
             val publish = Publish(
@@ -134,18 +134,18 @@ data class ConfigModelPublicationStatus(
                 retransmit = retransmit
             )
 
-            return if (payload.size == 13) {
+            return if (parameters.size == 13) {
                 ConfigModelPublicationStatus(
                     publish = publish,
-                    companyIdentifier = payload.toUShort(9),
-                    modelIdentifier = payload.toUShort(11),
+                    companyIdentifier = parameters.toUShort(9),
+                    modelIdentifier = parameters.toUShort(11),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationStatus(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = payload.toUShort(9),
+                    modelIdentifier = parameters.toUShort(9),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }
