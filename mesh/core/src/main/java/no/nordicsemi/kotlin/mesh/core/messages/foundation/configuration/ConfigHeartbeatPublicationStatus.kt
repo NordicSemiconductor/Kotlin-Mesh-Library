@@ -19,6 +19,18 @@ import no.nordicsemi.kotlin.mesh.core.model.toUShort
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 
+/**
+ * This message contains the Heartbeat Publication status of an element. This is sent in response to
+ * a [ConfigHeartbeatPublicationGet] or [ConfigHeartbeatPublicationSet] message.
+ *
+ * @param destination Destination address of the Heartbeat Publication.
+ * @param countLog    Number of Heartbeat messages remaining to be sent.
+ * @param periodLog   Period between publication of two consecutive periodic heartbeat transport
+ *                    control messages.
+ * @param ttl         TTL value used when sending Heartbeat messages.
+ * @param features    Features that trigger Heartbeat messages.
+ * @constructor Creates a ConfigHeartbeatPublicationStatus message.
+ */
 data class ConfigHeartbeatPublicationStatus(
     val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog = 0x00.toUByte(),
@@ -41,59 +53,6 @@ data class ConfigHeartbeatPublicationStatus(
 
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
-
-    companion object Initializer : ConfigMessageInitializer {
-        override val opCode: UInt = 0x803Cu
-
-        override fun init(payload: ByteArray): ConfigHeartbeatPublicationStatus? {
-            require(payload.size == 10) { return null }
-            require(payload[0].toUByte() == ConfigMessageStatus.SUCCESS.value) { return null }
-            return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress.create(
-                    payload.toUShort(1)
-                ) as HeartbeatPublicationDestination,
-                countLog = payload[3].toUByte(),
-                periodLog = payload[4].toUByte(),
-                ttl = payload[5].toUByte(),
-                features = Features(payload.toUShort(6)).toArray(),
-                networkKeyIndex = payload.toUShort(8)
-            )
-        }
-
-        fun init(publication: HeartbeatPublication?) {
-            if (publication == null) {
-                ConfigHeartbeatPublicationStatus()
-            } else {
-                ConfigHeartbeatPublicationStatus(
-                    destination = publication.address,
-                    countLog = publication.countLog,
-                    periodLog = publication.periodLog,
-                    ttl = publication.ttl,
-                    features = publication.features,
-                    networkKeyIndex = publication.index
-                )
-            }
-        }
-
-        fun init(
-            request: ConfigHeartbeatPublicationSet,
-            statusMessage: ConfigMessageStatus
-        ): ConfigHeartbeatPublicationStatus {
-            return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
-                countLog = request.countLog,
-                periodLog = request.periodLog,
-                ttl = request.ttl,
-                features = request.features,
-                networkKeyIndex = request.networkKeyIndex,
-                status = statusMessage
-            )
-        }
-
-        fun init(request: ConfigHeartbeatPublicationSet) =
-            init(request = request, statusMessage = ConfigMessageStatus.SUCCESS)
-
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -125,5 +84,77 @@ data class ConfigHeartbeatPublicationStatus(
         result = 31 * result + opCode.hashCode()
         result = 31 * result + count.hashCode()
         return result
+    }
+
+    companion object Initializer : ConfigMessageInitializer {
+        override val opCode: UInt = 0x803Cu
+
+        override fun init(payload: ByteArray): ConfigHeartbeatPublicationStatus? {
+            require(payload.size == 10) { return null }
+            require(payload[0].toUByte() == ConfigMessageStatus.SUCCESS.value) { return null }
+            return ConfigHeartbeatPublicationStatus(
+                destination = MeshAddress.create(
+                    payload.toUShort(1)
+                ) as HeartbeatPublicationDestination,
+                countLog = payload[3].toUByte(),
+                periodLog = payload[4].toUByte(),
+                ttl = payload[5].toUByte(),
+                features = Features(payload.toUShort(6)).toArray(),
+                networkKeyIndex = payload.toUShort(8)
+            )
+        }
+
+        /**
+         * Creates a ConfigHeartbeatPublicationStatus message.
+         *
+         * @param publication Heartbeat publication settings.
+         * @return ConfigHeartbeatPublicationStatus message.
+         */
+        fun init(publication: HeartbeatPublication?) {
+            if (publication == null) {
+                ConfigHeartbeatPublicationStatus()
+            } else {
+                ConfigHeartbeatPublicationStatus(
+                    destination = publication.address,
+                    countLog = publication.countLog,
+                    periodLog = publication.periodLog,
+                    ttl = publication.ttl,
+                    features = publication.features,
+                    networkKeyIndex = publication.index
+                )
+            }
+        }
+
+        /**
+         * Creates a ConfigHeartbeatPublicationStatus message.
+         *
+         * @param request       ConfigHeartbeatPublicationSet message.
+         * @param statusMessage Status of the message.
+         * @return ConfigHeartbeatPublicationStatus message.
+         */
+        fun init(
+            request: ConfigHeartbeatPublicationSet,
+            statusMessage: ConfigMessageStatus
+        ): ConfigHeartbeatPublicationStatus {
+            return ConfigHeartbeatPublicationStatus(
+                destination = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
+                countLog = request.countLog,
+                periodLog = request.periodLog,
+                ttl = request.ttl,
+                features = request.features,
+                networkKeyIndex = request.networkKeyIndex,
+                status = statusMessage
+            )
+        }
+
+        /**
+         * Creates a ConfigHeartbeatPublicationStatus message.
+         *
+         * @param request ConfigHeartbeatPublicationSet message.
+         * @return ConfigHeartbeatPublicationStatus message.
+         */
+        fun init(request: ConfigHeartbeatPublicationSet) =
+            init(request = request, statusMessage = ConfigMessageStatus.SUCCESS)
+
     }
 }

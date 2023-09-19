@@ -21,6 +21,18 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import kotlin.math.pow
 
 typealias CountLog = UByte
+
+/**
+ * This message can be sent to set Heartbeat Publication of a given element.
+ *
+ * @param destination Destination address of the Heartbeat Publication.
+ * @param countLog    Number of Heartbeat messages remaining to be sent.
+ * @param periodLog   Period between publication of two consecutive periodic heartbeat transport
+ *                    control messages.
+ * @param ttl         TTL value used when sending Heartbeat messages.
+ * @param features    Features that trigger Heartbeat messages.
+ * @constructor Creates a ConfigHeartbeatPublicationSet message.
+ */
 class ConfigHeartbeatPublicationSet(
     val destination: Address = UnassignedAddress.address,
     val countLog: CountLog,
