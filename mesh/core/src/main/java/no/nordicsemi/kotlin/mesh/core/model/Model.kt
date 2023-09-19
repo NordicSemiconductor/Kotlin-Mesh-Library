@@ -458,3 +458,25 @@ data class Model internal constructor(
     }
 }
 
+/**
+ * Returns the model for a given company and model identifier.
+ *
+ * @param companyIdentifier Company identifier
+ * @param modelIdentifier   Model identifier.
+ * @return Model or null if not found.
+ */
+fun List<Model>.model(companyIdentifier: UShort?, modelIdentifier: UShort) = model(
+    if (companyIdentifier != null) VendorModelId(
+        companyIdentifier = companyIdentifier,
+        modelIdentifier = modelIdentifier
+    ) else SigModelId(modelIdentifier = modelIdentifier)
+)
+
+/**
+ * Returns the model with the given model id.
+ *
+ * @param modelId Model ID.
+ * @return Model or null if not found.
+ */
+fun List<Model>.model(modelId: ModelId) = firstOrNull { it.modelId == modelId }
+
