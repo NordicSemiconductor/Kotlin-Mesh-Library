@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.Credentials
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.Publish
 import no.nordicsemi.kotlin.mesh.core.model.PublishPeriod
 import no.nordicsemi.kotlin.mesh.core.model.Retransmit
@@ -36,11 +35,6 @@ data class ConfigModelPublicationVirtualAddressSet(
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
 
-    override val modelId: ModelId = if (companyIdentifier == null) {
-        SigModelId(modelIdentifier)
-    } else {
-        VendorModelId(modelIdentifier = modelIdentifier, companyIdentifier = companyIdentifier)
-    }
     override val parameters: ByteArray
         get() {
             var data = elementAddress.address.toByteArray() +

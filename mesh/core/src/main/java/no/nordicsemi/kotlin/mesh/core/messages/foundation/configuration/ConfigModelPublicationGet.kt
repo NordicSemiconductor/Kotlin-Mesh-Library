@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
@@ -25,9 +24,6 @@ data class ConfigModelPublicationGet(
 
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
-    override val modelId: ModelId
-        get() = companyIdentifier?.let { VendorModelId(modelIdentifier, it) }
-            ?: SigModelId(modelIdentifier)
 
     override val parameters: ByteArray
         get() = elementAddress.address.toByteArray() + (companyIdentifier?.let {
