@@ -42,8 +42,6 @@ data class ConfigHeartbeatPublicationStatus(
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
 
-
-
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x803Cu
 
