@@ -261,8 +261,8 @@ interface ConfigModelMessage : ConfigElementMessage {
 /**
  * A base interface for a configuration messages sent to a Model including a Vendor specific model.
  *
- * @property companyIdentifier The Company identified, as defined in Assigned Numbers, or `nil`, if
- *                             the Model is defined in Bluetooth Mesh Model Specification.
+ * @property companyIdentifier Company identifier, as defined in Assigned Numbers, or `nil`, if the
+ *                             Model is defined in Bluetooth Mesh Model Specification.
  *
  * @seeAlso https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/
  */
