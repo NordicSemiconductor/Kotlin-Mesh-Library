@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUuid
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -124,6 +125,7 @@ object UnassignedAddress : MeshAddress(),
  * 0x0001 to 0x7FFF inclusive.
  *
  * @property address  16-bit address of the unicast address.
+ * @throws IllegalArgumentException If the given address value is not a valid Unicast address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
@@ -182,6 +184,13 @@ data class VirtualAddress(
 
     override val address: Address = Crypto.createVirtualAddress(uuid)
 
+    /**
+     * Creates a virtual address using the given byte array.
+     * @param label Byte array containing the UUID label.
+     * @throws IllegalArgumentException If the byte array containing the label is not 16 bytes long.
+     */
+    constructor(label: ByteArray) : this(uuid = label.toUuid())
+
     operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }
 
@@ -190,6 +199,9 @@ data class VirtualAddress(
  * bit 15 set to 1 and bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are
  * reserved for [FixedGroupAddress], and addresses in the range 0xC000 through 0xFEFF are generally
  * available for other usage.
+ *
+ * @constructor Creates a Group Address object.
+ * @throws IllegalArgumentException If the given address value is not a valid Group address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
