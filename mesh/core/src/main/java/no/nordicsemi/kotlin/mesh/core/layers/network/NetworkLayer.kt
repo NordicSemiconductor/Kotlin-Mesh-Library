@@ -353,10 +353,10 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         }
 
         when (controlMessage.opCode) {
-            FilterStatus.opCode -> FilterStatus.Decoder
+            FilterStatus.opCode -> FilterStatus.Initializer
             else -> null
         }?.let { decoder ->
-            decoder.decode(payload = controlMessage.upperTransportPdu)?.also { message ->
+            decoder.init(payload = controlMessage.upperTransportPdu)?.also { message ->
                 logger?.i(LogCategory.PROXY) {
                     "$message received from: ${proxyPdu.source.toHex()} to ${proxyPdu.destination.toHex()}"
                 }
