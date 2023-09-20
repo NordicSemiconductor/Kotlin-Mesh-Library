@@ -22,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -233,8 +234,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     }
 
     /**
-     * Encrypts the message with the Device Key and the first Network Key known to the target device,
-     * and sends to the given destination address.
+     * Encrypts the message with the Device Key and the first Network Key known to the target
+     * device, and sends to the given destination address.
      *
      * This method does not send nor return PDUs to be sent. Instead, for each created segment it
      * calls transmitter's [Transmitter.send] method, which should send the PDU over the air. This
@@ -321,13 +322,19 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      *
      *
      */
-    fun reply(
+    suspend fun reply(
         origin: Address,
         message: MeshResponse,
         element: Element,
         destination: Address,
         keySet: KeySet
     ) {
-
+        accessLayer.reply(
+            origin = origin,
+            message = message,
+            element = element,
+            destination = destination,
+            keySet = keySet
+        )
     }
 }
