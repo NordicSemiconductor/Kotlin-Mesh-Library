@@ -42,7 +42,7 @@ sealed class ModelEvent {
         val request: AcknowledgedMeshMessage,
         val source: Address,
         val destination: MeshAddress,
-        val reply: (MeshResponse?) -> Unit
+        val reply: suspend (MeshResponse?) -> Unit
     ) : ModelEvent()
 
     /**
