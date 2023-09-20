@@ -18,7 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import java.util.Timer
-import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -153,7 +153,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                 }
                 val interval = heartbeatPublication.period.toInt()
                     .toDuration(DurationUnit.SECONDS)
-                heartbeatPublisher = fixedRateTimer(
+                heartbeatPublisher = timer(
                     name = "HeartbeatPublisher",
                     period = interval.inWholeMilliseconds
                 ) {
@@ -165,7 +165,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
-                        return@fixedRateTimer
+                        return@timer
                     }
                     // Check if the network key exists.
                     val networkKey = requireNotNull(
@@ -178,7 +178,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
-                        return@fixedRateTimer
+                        return@timer
                     }
 
                     val state = requireNotNull(
@@ -189,7 +189,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
-                        return@fixedRateTimer
+                        return@timer
                     }
                     require(heartbeatPublication.isPeriodicHeartbeatStateEnabled) {
                         layer.heartbeatPublisher?.cancel()
@@ -197,7 +197,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
-                        return@fixedRateTimer
+                        return@timer
                     }
                     val heartbeat = HeartbeatMessage.init(
                         heartbeatPublication = heartbeatPublication,
@@ -216,7 +216,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages finished."
                         }
-                        return@fixedRateTimer
+                        return@timer
                     }
                     // Do nothing. Timer will be fired again.
                 }

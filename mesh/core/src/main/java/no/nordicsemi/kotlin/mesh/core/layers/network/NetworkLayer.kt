@@ -24,7 +24,7 @@ import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
 import no.nordicsemi.kotlin.mesh.core.next
 import no.nordicsemi.kotlin.mesh.core.reset
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
-import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timer
 
 /**
  * Network Layer of the mesh networking stack
@@ -149,7 +149,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     it.count > 1u
                 }?.let { networkTransmit ->
                     var count = networkTransmit.count.toInt()
-                    fixedRateTimer(period = networkTransmit.intervalAsMilliseconds) {
+                    timer(period = networkTransmit.intervalAsMilliseconds) {
                         // networkManager.transmitter?.send(pdu = networkPdu.pdu, type = type)
                         count -= 1
                         if (count == 0)
