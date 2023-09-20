@@ -59,7 +59,7 @@ fun interface HasInitializer {
      * @param parameters Byte array containing the payload of the mesh message.
      * @return the decoded [BaseMeshMessage].
      */
-    fun init(parameters: ByteArray): BaseMeshMessage?
+    fun init(parameters: ByteArray?): BaseMeshMessage?
 
 }
 

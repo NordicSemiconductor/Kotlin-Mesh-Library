@@ -29,7 +29,7 @@ data class RemoveAddressesFromFilter(
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x02u
-        override fun init(parameters: ByteArray) = parameters.takeIf {
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size % 2 == 0
         }?.let {
             val addresses = mutableListOf<UnicastAddress>()

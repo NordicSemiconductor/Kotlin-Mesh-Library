@@ -89,21 +89,24 @@ class ConfigHeartbeatPublicationSet(
     val enablePeriodPublication: Boolean
         get() = isPublicationEnabled && periodLog > 0x00.toUByte()
 
-    val enablesFeatureTriggeredPublication : Boolean
+    val enablesFeatureTriggeredPublication: Boolean
         get() = isPublicationEnabled && features.toFeatures().rawValue > 0x0000u
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8039u
 
-        override fun init(parameters: ByteArray) = if (parameters.size == 9)
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 9
+        }?.let { params ->
             ConfigHeartbeatPublicationSet(
-                destination = parameters.toUShort(offset = 0),
-                countLog = parameters[2].toUByte(),
-                periodLog = parameters[3].toUByte(),
-                ttl = parameters[4].toUByte(),
-                features = Features(rawValue = parameters.toUShort(offset = 5)).toArray(),
-                networkKeyIndex = parameters.toUShort(offset = 7)
-            ) else null
+                destination = params.toUShort(offset = 0),
+                countLog = params[2].toUByte(),
+                periodLog = params[3].toUByte(),
+                ttl = params[4].toUByte(),
+                features = Features(rawValue = params.toUShort(offset = 5)).toArray(),
+                networkKeyIndex = params.toUShort(offset = 7)
+            )
+        }
 
         /**
          * Creates a ConfigurationHeartbeatPublicationSet message.

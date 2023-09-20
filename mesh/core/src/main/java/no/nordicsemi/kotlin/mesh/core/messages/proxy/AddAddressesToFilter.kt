@@ -30,7 +30,7 @@ data class AddAddressesToFilter(
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x01u
-        override fun init(parameters: ByteArray) = parameters.takeIf {
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size % 2 == 0
         }?.let {
             val addresses = mutableListOf<UnicastAddress>()

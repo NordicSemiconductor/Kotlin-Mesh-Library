@@ -104,44 +104,47 @@ data class ConfigModelPublicationStatus(
          * @param parameters The message parameters.
          * @return A ConfigModelPublicationSet message or null if parameters are invalid.
          */
-        override fun init(parameters: ByteArray): ConfigModelPublicationStatus? {
-            require(parameters.size == 11 || parameters.size == 13) { return null }
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            (it.size == 12 || it.size == 14)
+        }?.let { params ->
+            ConfigMessageStatus.from(params[0].toUByte())?.let {
+                val elementAddress = params.toUShort(offset = 1)
+                val address = MeshAddress.create(params.toUShort(2))
+                val index = params.toUShort(4) and 0x0FFFu
+                val flag = (params.toUShort(5) and 0x10u).toInt() shr 4
+                val ttl = params[6].toUByte()
+                val periodSteps = (params.toUShort(7) and 0x3Fu).toUByte()
+                val periodResolution = StepResolution.from((params[7].toInt() shr 6))
+                val period = PublishPeriod(periodSteps, periodResolution)
+                val count = (params[8] and 0x07).toUByte()
+                val intervalSteps = (params[8].toInt() shr 3).toUByte()
 
-            val elementAddress = parameters.toUShort(offset = 0)
-            val address = MeshAddress.create(parameters.toUShort(2))
-            val index = parameters.toUShort(4) and 0x0FFFu
-            val flag = (parameters.toUShort(5) and 0x10u).toInt() shr 4
-            val ttl = parameters[6].toUByte()
-            val periodSteps = (parameters.toUShort(7) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((parameters[7].toInt() shr 6))
-            val period = PublishPeriod(periodSteps, periodResolution)
-            val count = (parameters[8] and 0x07).toUByte()
-            val intervalSteps = (parameters[8].toInt() shr 3).toUByte()
-
-            val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
-            val publish = Publish(
-                address = address as PublicationAddress,
-                index = index,
-                credentials = Credentials.from(flag),
-                ttl = ttl,
-                period = period,
-                retransmit = retransmit
-            )
-
-            return if (parameters.size == 13) {
-                ConfigModelPublicationStatus(
-                    publish = publish,
-                    companyIdentifier = parameters.toUShort(9),
-                    modelIdentifier = parameters.toUShort(11),
-                    elementAddress = UnicastAddress(elementAddress)
+                val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
+                val publish = Publish(
+                    address = address as PublicationAddress,
+                    index = index,
+                    credentials = Credentials.from(flag),
+                    ttl = ttl,
+                    period = period,
+                    retransmit = retransmit
                 )
-            } else {
-                ConfigModelPublicationStatus(
-                    publish = publish,
-                    companyIdentifier = null,
-                    modelIdentifier = parameters.toUShort(9),
-                    elementAddress = UnicastAddress(elementAddress)
-                )
+                if (params.size == 14) {
+                    ConfigModelPublicationStatus(
+                        publish = publish,
+                        companyIdentifier = params.toUShort(9),
+                        modelIdentifier = params.toUShort(11),
+                        elementAddress = UnicastAddress(elementAddress),
+                        status = it
+                    )
+                } else {
+                    ConfigModelPublicationStatus(
+                        publish = publish,
+                        companyIdentifier = null,
+                        modelIdentifier = params.toUShort(9),
+                        elementAddress = UnicastAddress(elementAddress),
+                        status = it
+                    )
+                }
             }
         }
     }

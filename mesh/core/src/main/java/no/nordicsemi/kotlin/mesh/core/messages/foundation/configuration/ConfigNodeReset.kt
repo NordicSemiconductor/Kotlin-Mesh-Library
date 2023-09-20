@@ -17,8 +17,8 @@ class ConfigNodeReset : AcknowledgedConfigMessage {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8049u
 
-        override fun init(parameters: ByteArray): BaseMeshMessage? = parameters.takeIf {
-            it.isNotEmpty()
+        override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters.takeIf {
+            it != null && it.isEmpty()
         }?.let {
             ConfigNodeReset()
         }

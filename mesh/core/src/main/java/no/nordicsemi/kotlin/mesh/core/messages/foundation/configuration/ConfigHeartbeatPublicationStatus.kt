@@ -89,19 +89,22 @@ data class ConfigHeartbeatPublicationStatus(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x803Cu
 
-        override fun init(parameters: ByteArray): ConfigHeartbeatPublicationStatus? {
-            require(parameters.size == 10) { return null }
-            require(parameters[0].toUByte() == ConfigMessageStatus.SUCCESS.value) { return null }
-            return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress.create(
-                    parameters.toUShort(1)
-                ) as HeartbeatPublicationDestination,
-                countLog = parameters[3].toUByte(),
-                periodLog = parameters[4].toUByte(),
-                ttl = parameters[5].toUByte(),
-                features = Features(parameters.toUShort(6)).toArray(),
-                networkKeyIndex = parameters.toUShort(8)
-            )
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 10
+        }?.let {
+            ConfigMessageStatus.from(parameters[0].toUByte())?.let {
+                ConfigHeartbeatPublicationStatus(
+                    destination = MeshAddress.create(
+                        parameters.toUShort(1)
+                    ) as HeartbeatPublicationDestination,
+                    countLog = parameters[3].toUByte(),
+                    periodLog = parameters[4].toUByte(),
+                    ttl = parameters[5].toUByte(),
+                    features = Features(parameters.toUShort(6)).toArray(),
+                    networkKeyIndex = parameters.toUShort(8),
+                    status = it
+                )
+            }
         }
 
         /**

@@ -50,12 +50,14 @@ data class ConfigNetKeyStatus(
 
         override val opCode = 0x8044u
 
-        override fun init(parameters: ByteArray): BaseMeshMessage? = if (parameters.size == 3) {
-            ConfigMessageStatus.from(parameters.first().toUByte())?.let {
+        override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
+            it.size == 3
+        }?.let { params ->
+            ConfigMessageStatus.from(params.first().toUByte())?.let {
                 ConfigNetKeyStatus(
-                    networkKeyIndex = decodeNetKeyIndex(parameters, 1), status = it
+                    networkKeyIndex = decodeNetKeyIndex(params, 1), status = it
                 )
             }
-        } else null
+        }
     }
 }

@@ -22,9 +22,10 @@ data class SetFilterType(val filterType: ProxyFilterType) :
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x00u
-        override fun init(parameters: ByteArray) = when (parameters.size == 1) {
-            true -> SetFilterType(ProxyFilterType.from(parameters[0].toUByte()))
-            false -> null
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 1
+        }?.let {
+            SetFilterType(ProxyFilterType.from(it[0].toUByte()))
         }
     }
 }

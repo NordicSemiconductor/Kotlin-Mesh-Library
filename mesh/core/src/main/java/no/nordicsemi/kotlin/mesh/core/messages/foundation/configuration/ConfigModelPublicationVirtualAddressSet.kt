@@ -107,19 +107,18 @@ data class ConfigModelPublicationVirtualAddressSet(
             )
         }
 
-        override fun init(parameters: ByteArray): ConfigModelPublicationVirtualAddressSet? {
-            require(parameters.size == 25 || parameters.size == 27) { return null }
-
-
-            val elementAddress = parameters.toUShort(offset = 0)
-            val label = VirtualAddress(parameters.sliceArray(2 until 17).toUuid())
-            val index = parameters.toUShort(18) and 0x0FFFu
-            val flag = (parameters.toUShort(19) and 0x10u).toInt() shr 4
-            val ttl = parameters[20].toUByte()
-            val periodSteps = (parameters.toUShort(21) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((parameters[21].toInt() shr 6))
-            val count = (parameters[22] and 0x07).toUByte()
-            val intervalSteps = (parameters[22].toInt() shr 3).toUByte()
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 25 || it.size == 27
+        }?.let { params ->
+            val elementAddress = params.toUShort(offset = 0)
+            val label = VirtualAddress(params.sliceArray(2 until 17).toUuid())
+            val index = params.toUShort(18) and 0x0FFFu
+            val flag = (params.toUShort(19) and 0x10u).toInt() shr 4
+            val ttl = params[20].toUByte()
+            val periodSteps = (params.toUShort(21) and 0x3Fu).toUByte()
+            val periodResolution = StepResolution.from((params[21].toInt() shr 6))
+            val count = (params[22] and 0x07).toUByte()
+            val intervalSteps = (params[22].toInt() shr 3).toUByte()
 
             val publish = Publish(
                 address = label,
@@ -130,18 +129,18 @@ data class ConfigModelPublicationVirtualAddressSet(
                 retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
             )
 
-            return if (parameters.size == 27) {
+            if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = parameters.toUShort(23),
-                    modelIdentifier = parameters.toUShort(25),
+                    companyIdentifier = params.toUShort(23),
+                    modelIdentifier = params.toUShort(25),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = parameters.toUShort(23),
+                    modelIdentifier = params.toUShort(23),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

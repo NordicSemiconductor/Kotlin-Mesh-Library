@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -33,8 +32,9 @@ data class ConfigModelPublicationGet(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8018u
 
-        override fun init(parameters: ByteArray): BaseMeshMessage? {
-            require(parameters.size == 4 || parameters.size == 6) { return null }
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 4 || it.size == 6
+        }?.let {
             val elementAddress = UnicastAddress(parameters.toUShort(0))
             var companyIdentifier: UShort? = null
             val modelIdentifier: UShort
@@ -44,7 +44,7 @@ data class ConfigModelPublicationGet(
             } else {
                 modelIdentifier = parameters.toUShort(2)
             }
-            return ConfigModelPublicationGet(
+            ConfigModelPublicationGet(
                 elementAddress = elementAddress,
                 modelIdentifier = modelIdentifier,
                 companyIdentifier = companyIdentifier
