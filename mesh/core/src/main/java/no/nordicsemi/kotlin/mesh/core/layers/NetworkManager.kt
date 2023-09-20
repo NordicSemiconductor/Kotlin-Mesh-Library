@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.layers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.bearer.PduType
@@ -19,6 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportLayer
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -28,7 +30,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timer
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
@@ -38,7 +40,9 @@ import kotlin.time.DurationUnit
  * @property manager Mesh network manager
  * @constructor Constructs the network manager.
  */
-internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) {
+internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) :
+        NetworkManagerEventTransmitter {
+
     internal val scope: CoroutineScope = manager.scope
     lateinit var proxy: ProxyFilterEventHandler
 
@@ -63,7 +67,12 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     private var outgoingMessages = mutableSetOf<MeshAddress>()
 
     private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>()
-    internal val networkManagerEventFlow = _networkManagerEventFlow.asSharedFlow()
+    override val networkManagerEventFlow
+        get() = _networkManagerEventFlow.asSharedFlow()
+
+    override fun emitNetworkManagerEvent(event: NetworkManagerEvent) {
+        _networkManagerEventFlow.tryEmit(event)
+    }
 
 
     /**
@@ -86,37 +95,48 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param message     Message to be published.
      * @param from        Source model from which the message is originating from.
      */
-    fun publish(message: MeshMessage, from: Model) {
+    suspend fun publish(message: MeshMessage, from: Model) {
         val publish = from.publish ?: return
         val localElement = from.parentElement ?: return
         val applicationKey = meshNetwork.applicationKeys.get(publish.index) ?: return
 
         // calculate the TTL to be used
-        val ttl = when (publish.ttl != 0xFF) {
-            true -> publish.ttl.toUByte()
-            false -> localElement.parentNode?.defaultTTL?.toUByte() ?: networkParameters.defaultTtl
+        val ttl = when (publish.ttl != 0xFF.toUByte()) {
+            true -> publish.ttl
+            false -> localElement.parentNode?.defaultTTL ?: networkParameters.defaultTtl
         }
 
-        //TODO accessLayer.send(message, localElement, publish.address, ttl, applicationKey, retransmit false)
+        accessLayer.send(
+            message = message,
+            element = localElement,
+            destination = publish.address as MeshAddress,
+            ttl = ttl,
+            applicationKey = applicationKey,
+            retransmit = false
+        )
 
         if (message is AcknowledgedMeshMessage) {
             var count = publish.retransmit.count.toInt()
             if (count > 0) {
                 val interval: Duration = publish.retransmit.interval
-                fixedRateTimer(
+                timer(
                     daemon = false,
                     period = interval.toLong(DurationUnit.MILLISECONDS)
                 ) {
                     if (--count > 0) {
-                        accessLayer.send(
-                            message = message,
-                            localElement = localElement,
-                            address = publish.address.address,
-                            ttl = ttl,
-                            applicationKey = applicationKey,
-                            retransmit = true
-                        )
-                    } else cancel()
+                        scope.launch {
+                            accessLayer.send(
+                                message = message,
+                                element = localElement,
+                                destination = publish.address as MeshAddress,
+                                ttl = ttl,
+                                applicationKey = applicationKey,
+                                retransmit = true
+                            )
+                        }
+                    } else  {
+                        cancel()
+                    }
                 }
             }
         }
@@ -164,8 +184,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         require(!ensureNotBusy(destination = destination)) { return }
         accessLayer.send(
             message = message,
-            localElement = element,
-            address = destination.address,
+            element = element,
+            destination = destination,
             ttl = initialTtl,
             applicationKey = applicationKey,
             retransmit = false
@@ -203,8 +223,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
 
         accessLayer.send(
             message = message,
-            localElement = element,
-            address = destination,
+            element = element,
+            destination = meshAddress,
             ttl = initialTtl,
             applicationKey = applicationKey,
             retransmit = true
@@ -240,8 +260,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         accessLayer.send(
             message = configMessage,
             localElement = element,
-            address = destination,
-            ttl = initialTtl
+            destination = destination,
+            initialTtl = initialTtl
         )
         mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
@@ -276,8 +296,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         accessLayer.send(
             message = configMessage,
             localElement = element,
-            address = destination,
-            ttl = initialTtl
+            destination = destination,
+            initialTtl = initialTtl
         )
         mutex.withLock { outgoingMessages.remove(meshAddress) }
     }
@@ -289,5 +309,25 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      */
     suspend fun send(message: ProxyConfigurationMessage) {
         networkLayer.send(message = message)
+    }
+
+    /**
+     * Replies to the received message, which was sent with the given key set, with the given
+     * message.
+     *
+     * @param origin      Destination address of the message that the reply is for.
+     * @param message     Response message to be sent.
+     * @param element     Source Element.
+     *
+     *
+     */
+    fun reply(
+        origin: Address,
+        message: MeshResponse,
+        element: Element,
+        destination: Address,
+        keySet: KeySet
+    ) {
+
     }
 }

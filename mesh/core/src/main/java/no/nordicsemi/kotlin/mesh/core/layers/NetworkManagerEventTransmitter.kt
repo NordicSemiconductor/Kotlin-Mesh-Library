@@ -2,14 +2,28 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
+import kotlinx.coroutines.flow.SharedFlow
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
+import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportError
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
-import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportError
+
+/**
+ * Transmits network manager events.
+ *
+ * @property networkManagerEventFlow Flow containing Network manager events.
+ */
+internal interface NetworkManagerEventTransmitter {
+
+    val networkManagerEventFlow: SharedFlow<NetworkManagerEvent>
+
+    fun emitNetworkManagerEvent(event: NetworkManagerEvent)
+}
 
 /**
  * Defines events that are handled by the [NetworkManagerEvent].
@@ -74,9 +88,9 @@ internal sealed class NetworkManagerEvent {
      * @throws BearerError.Closed if the [MeshNetworkManager.transmitter] was not set.
      * @throws LowerTransportError.Busy if the target Node is busy and can't accept the message.
      * @throws LowerTransportError.Timeout if the segmented message targeting a Unicast Address was
-     *                                     was not acknowledged before the
-     *                                     [NetworkParameters.retransmissionLimit] was reached
-     *                                     (for unacknowledged messages only).
+     *                                     not acknowledged before the
+     *                                     [NetworkParameters.retransmissionLimit] was reached (for
+     *                                     unacknowledged messages only).
      */
     data class MessageSendingFailed(
         val message: MeshMessage,
@@ -91,7 +105,7 @@ internal sealed class NetworkManagerEvent {
     data object NetworkDidChange : NetworkManagerEvent()
 
     /**
-     * An event used to notify when the [ConfigurationNodeReset] message was received for the local
+     * An event used to notify when the [ConfigNodeReset] message was received for the local
      * Node.
      *
      * The Node should forget the mesh network, all the keys, nodes, groups and scenes.
@@ -99,5 +113,4 @@ internal sealed class NetworkManagerEvent {
      * A network might be created.
      */
     data object NetworkDidReset : NetworkManagerEvent()
-
 }
