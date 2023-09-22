@@ -36,3 +36,35 @@ internal interface SegmentedMessage : LowerTransportPdu {
     val count: Int
         get() = lastSegmentNumber.toInt() + 1
 }
+
+/**
+ * Checks if all segments were received.
+ *
+ * @receiver List of segmented messages.
+ * @return true if all segments were received, false otherwise.
+ */
+internal fun List<SegmentedMessage?>.isComplete() = none { it == null }
+
+/**
+ * Checks if some segments were not yet acknowledged
+ *
+ * @receiver List of segmented messages.
+ * @return true if some segments were not yet acknowledged, false otherwise.
+ */
+internal fun List<SegmentedMessage?>.hasMore() = any { it != null }
+
+/**
+ * Returns the first segment that isn't acknowledged yet.
+ *
+ * @receiver List of segmented messages.
+ * @return The first segment that isn't acknowledged yet or null if all segments were acknowledged.
+ */
+internal fun List<SegmentedMessage?>.firstNotAcknowledged() = first { it != null }
+
+/**
+ * Returns a list of unacknowledged segments
+ *
+ * @receiver List of segmented messages.
+ * @return List of unacknowledged segments.
+ */
+internal fun List<SegmentedMessage?>.unacknowledged() = filterNotNull()

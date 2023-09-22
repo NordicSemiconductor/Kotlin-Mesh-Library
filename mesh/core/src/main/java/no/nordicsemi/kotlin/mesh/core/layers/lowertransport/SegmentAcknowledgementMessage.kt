@@ -16,7 +16,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
  * @property isOnBehalfOfLowePowerNode Flag indicating whether the message is on behalf of a low
  *                                     power node.
  * @property sequenceZero              13 least significant bits of SeqAuth.
- * @property blockAck                  Block acknowledgement for segments, bit field.
+ * @property ackedSegments             Block acknowledgement for segments, bit field.
  * @property isBusy                    Flag indicating whether the node is already busy processing a
  *                                     message and should ignore any incoming messages.
  */
@@ -29,13 +29,13 @@ internal data class SegmentAcknowledgementMessage(
     override val upperTransportPdu: ByteArray,
     val isOnBehalfOfLowePowerNode: Boolean = false, // Friend feature not supported
     val sequenceZero: UShort,
-    val blockAck: UInt
+    val ackedSegments: UInt
 ) : LowerTransportPdu {
 
     override val type = LowerTransportPduType.CONTROL_MESSAGE
 
     val isBusy: Boolean
-        get() = blockAck == 0u
+        get() = ackedSegments == 0u
     override val transportPdu: ByteArray
         get() {
             val octet0 = opCode and 0x7F.toUByte()
@@ -78,7 +78,7 @@ internal data class SegmentAcknowledgementMessage(
      * @param m Segment number.
      * @return true if the segment has been received or false otherwise.
      */
-    fun isSegmentReceived(m: Int) = blockAck and (1 shl m).toUInt() != 0.toUInt()
+    fun isSegmentReceived(m: Int) = ackedSegments and (1 shl m).toUInt() != 0.toUInt()
 
     /**
      * Checks if all segments have been received.
@@ -96,20 +96,20 @@ internal data class SegmentAcknowledgementMessage(
      * @return true if all segments have been received or false otherwise.
      */
     fun areAllSegmentsReceived(lastSegmentNumber: Int) =
-        blockAck == ((1 shl lastSegmentNumber) - 1).toUInt()
+        ackedSegments == ((1 shl lastSegmentNumber) - 1).toUInt()
 
     override fun toString() = "ACK (seqZero: $sequenceZero, blockAck: " +
-            "${blockAck.toByteArray().encodeHex(true)})"
+            "${ackedSegments.toByteArray().encodeHex(true)})"
 
-    internal object Decoder {
+    internal companion object {
 
         /**
-         * Decodes the given [NetworkPdu] containing a segmented acknowledgement message.
+         * Creates a segmented acknowledgement message using the given [NetworkPdu].
          *
          * @param networkPdu The network pdu containing the segment acknowledgement message.
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
-        fun decode(networkPdu: NetworkPdu): SegmentAcknowledgementMessage? {
+        fun init(networkPdu: NetworkPdu): SegmentAcknowledgementMessage? {
             networkPdu.run {
                 require(
                     transportPdu.size == 7 &&
@@ -133,24 +133,27 @@ internal data class SegmentAcknowledgementMessage(
                     upperTransportPdu = upperTransportPdu,
                     isOnBehalfOfLowePowerNode = isOnBehalfOfLowePowerNode,
                     sequenceZero = sequenceZero.toUShort(),
-                    blockAck = blockAck.toUInt()
+                    ackedSegments = blockAck.toUInt()
                 )
             }
         }
 
         /**
-         * Decodes the given [SegmentedMessage]s containing a segmented acknowledgement message.
+         * Creates a Segment Acknowledgement Message using the given List of [SegmentedMessage]s.
          *
          * @param segments List of segmented messages containing the segment acknowledgement
          *                 message.
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
-        fun decode(segments: List<SegmentedMessage>): SegmentAcknowledgementMessage {
-            val segmentAck = segments.first { it.isSegmented }
-            val segment = segments.first { it.sequenceZero == segmentAck.sequenceZero }
-
+        fun init(segments: List<SegmentedMessage?>): SegmentAcknowledgementMessage {
+            val segment = segments.first { it != null }!!
             var ack = 0u
-            segments.forEach { ack = ack or ((1 shl it.segmentOffset.toInt()).toUInt()) }
+
+            segments.forEach {
+                it?.let {
+                    ack = ack or ((1 shl it.segmentOffset.toInt()).toUInt())
+                }
+            }
 
             return SegmentAcknowledgementMessage(
                 opCode = 0x00u,
@@ -160,7 +163,7 @@ internal data class SegmentAcknowledgementMessage(
                 ivIndex = segment.ivIndex,
                 upperTransportPdu = segment.upperTransportPdu,
                 sequenceZero = segment.sequenceZero,
-                blockAck = ack
+                ackedSegments = ack
             )
         }
     }

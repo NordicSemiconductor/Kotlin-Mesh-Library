@@ -87,15 +87,15 @@ internal data class SegmentedControlMessage(
             "$segmentOffset, segN: $lastSegmentNumber, " +
             "data: ${upperTransportPdu.encodeHex(true)})"
 
-    internal object Decoder {
+    internal companion object {
 
         /**
-         * Decodes a given NetworkPdu containing a segmented control message.
+         * Crates a Segmented Control Message using the given NetworkPdu.
          *
          * @param networkPdu Network pdu containing the segmented control message.
          * @return SegmentedControlMessage containing the decoded data.
          */
-        fun decode(networkPdu: NetworkPdu): SegmentedControlMessage? = networkPdu.run {
+        fun init(networkPdu: NetworkPdu): SegmentedControlMessage? = networkPdu.run {
             val opCode: UByte
             val sequenceZero: UShort
             val segmentOffset: UByte

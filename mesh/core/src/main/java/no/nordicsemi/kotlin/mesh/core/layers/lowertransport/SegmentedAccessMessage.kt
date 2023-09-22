@@ -89,16 +89,16 @@ internal data class SegmentedAccessMessage(
         return result
     }
 
-    companion object Decoder {
+    internal companion object {
 
         /**
-         * Decodes the given [NetworkPdu] to a [SegmentedAccessMessage].
+         * Creates a SegmentedAccessMessage from a given Network PDU.
          *
          * @param networkPdu Network pdu to be decoded.
          * @return SegmentedAccessMessage or null otherwise.
          */
         @Suppress("MoveVariableDeclarationIntoWhen")
-        fun decode(networkPdu: NetworkPdu): SegmentedAccessMessage? = networkPdu.run {
+        fun init(networkPdu: NetworkPdu): SegmentedAccessMessage? = networkPdu.run {
             require(
                 transportPdu.size >= 5 && transportPdu[0] and
                         0x80.toByte() != 0x00.toByte()
