@@ -3,8 +3,11 @@
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
+import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
+import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import kotlin.experimental.and
 
 /**
  * Data class defining an Access message.
@@ -34,6 +37,27 @@ internal data class AccessMessage(
             } ?: 0.toUByte()
             return ByteArray(octet0.toInt()) + upperTransportPdu
         }
+
+    /**
+     * Creates an Access Message from the given Network PDU and Network Key.
+     *
+     * @param pdu          Network PDU containing the access message.
+     * @param networkKey   Network key used to decode/encode the PDU.
+     * @constructor Creates an Access Message.
+     */
+    internal constructor(
+        pdu: UpperTransportPdu,
+        networkKey: NetworkKey
+    ) : this(
+        source = MeshAddress.create(pdu.source),
+        destination = pdu.destination,
+        networkKey = networkKey,
+        ivIndex = pdu.ivIndex,
+        upperTransportPdu = pdu.transportPdu,
+        transportMicSize = pdu.transportMicSize,
+        sequence = pdu.sequence,
+        aid = pdu.aid
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -68,4 +92,55 @@ internal data class AccessMessage(
         return result
     }
 
+    internal companion object {
+
+        /**
+         * Creates an Access Message from the given Network PDU
+         *
+         * @param pdu Network PDU containing the access message.
+         * @return an AccessMessage or null if the pdu is invalid.
+         */
+        fun init(pdu: NetworkPdu) = pdu.takeIf {
+            it.transportPdu.size >= 6 &&
+                    it.transportPdu[0] and 0x80.toByte() == 0.toByte()
+        }?.let {
+            val akf = it.transportPdu[0] and 0b01000000.toByte() != 0.toByte()
+            val aid = if (akf) {
+                it.transportPdu[0].toUByte() and 0x3Fu
+            } else null
+            AccessMessage(
+                source = it.source,
+                destination = it.destination,
+                networkKey = it.key,
+                ivIndex = it.ivIndex,
+                upperTransportPdu = it.transportPdu.copyOfRange(1, it.transportPdu.size),
+                transportMicSize = (it.transportPdu[1].toInt() shr 7).toUByte(),
+                sequence = it.sequence,
+                aid = aid
+            )
+        }
+
+        /**
+         * Creates an Access Message from the given list of Segmented Access Messages
+         *
+         * @param segments List of segmented access messages.
+         * @return AccessMessage or null if the segments are invalid.
+         */
+        fun init(segments: List<SegmentedAccessMessage>) {
+            val segment = segments.first()
+            val segmentedAccessMessage = segments.reduce { acc, seg ->
+                acc.copy(upperTransportPdu = acc.upperTransportPdu + seg.upperTransportPdu)
+            }
+            AccessMessage(
+                source = segment.source,
+                destination = segment.destination,
+                networkKey = segment.networkKey,
+                ivIndex = segment.ivIndex,
+                upperTransportPdu = segmentedAccessMessage.upperTransportPdu,
+                transportMicSize = segment.transportMicSize,
+                sequence = segment.sequence,
+                aid = segment.aid
+            )
+        }
+    }
 }
