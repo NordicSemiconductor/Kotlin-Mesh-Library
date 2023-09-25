@@ -1217,9 +1217,9 @@ class MeshNetwork internal constructor(
                     node.elements.forEach { element ->
                         element.models.forEach { model ->
                             if (model.publish?.address is GroupAddress) {
-                                model.publish = null
+                                model._publish = null
                             }
-                            model.subscribe = model.subscribe.filterIsInstance<GroupAddress>()
+                            model._subscribe = model.subscribe.filterIsInstance<GroupAddress>().toMutableList()
                         }
                     }
                 }
@@ -1271,8 +1271,8 @@ class MeshNetwork internal constructor(
                             key.index
                         }
                     }.forEach { keyIndex ->
-                        if (model.publish?.index == keyIndex.toInt()) {
-                            model.publish = null
+                        if (model.publish?.index == keyIndex) {
+                            model._publish = null
                         }
                     }
                 }
