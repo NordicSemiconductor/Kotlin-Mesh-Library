@@ -297,6 +297,9 @@ internal enum class LowerTransportPduType(val rawValue: UByte) {
 
         /**
          * Initializes the Lower Transport pdu type from the given value.
+         *
+         * @param type Type of the Lower Transport PDU.
+         * @return LowerTransportPduType or null if the values don't match.
          */
         fun from(type: UByte) = values().firstOrNull { it.rawValue == type }
 
