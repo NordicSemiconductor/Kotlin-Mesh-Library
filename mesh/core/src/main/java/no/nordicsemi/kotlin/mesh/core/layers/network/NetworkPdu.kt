@@ -10,9 +10,10 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKeyDerivatives
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import kotlin.experimental.and
 
 /**
- * Network PDU
+ * Defines a Network PDU received/sent by a node.
  *
  * @property pdu              Raw PDU data.
  * @property key              Network key used to decode/encode the PDU.
@@ -20,11 +21,13 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * @property type             PDU type.
  * @property ttl              Time to live.
  * @property sequence         Sequence number of the message.
- * @property source              Source address of the message.
- * @property destination              Destination address of the message.
+ * @property source           Source address of the message.
+ * @property destination      Destination address of the message.
  * @property transportPdu     Transport protocol data unit that's guaranteed to have 1 to 16 bytes.
  * @property ivi              Raw data of the upper transport layer PDU.
  * @property nid              Flag indicating if the message is a control message.
+ * @property isSegmented      Flag indicating if the message is segmented.
+ * @property messageSequence  Message sequence number.
  * @constructor Creates a Network PDU.
  */
 internal data class NetworkPdu internal constructor(
@@ -40,6 +43,20 @@ internal data class NetworkPdu internal constructor(
 ) {
     val ivi: UByte = (pdu[0].toInt() shr 7).toUByte()
     val nid: UByte = (pdu[0].toInt() and 0x7F).toUByte()
+
+    val isSegmented: Boolean
+        get() = transportPdu[0] and 0x80.toByte() > 1
+
+    val messageSequence: UInt
+        get() = if (isSegmented) {
+            val sequenceZero = ((transportPdu[1] and 0x7F).toInt() shl 6).toUShort() or
+                    (transportPdu[2].toUInt() shr 2).toUShort()
+            if (sequence and 0x1FFFFu < sequenceZero) {
+                (sequence and 0xFFE000u) + sequenceZero.toUInt() - (0x1FFF + 1).toUInt()
+            } else {
+                (sequence and 0xFFE000u) + sequenceZero.toUInt()
+            }
+        } else sequence
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -263,7 +280,9 @@ internal object NetworkPduDecoder {
     }
 }
 
-
+/**
+ * Defines the Lower Transport PDU types.
+ */
 internal enum class LowerTransportPduType(val rawValue: UByte) {
     ACCESS_MESSAGE(0x00u),
     CONTROL_MESSAGE(0x01u);
