@@ -97,7 +97,7 @@ internal data class UpperTransportPdu(
         /**
          * Constructs an UpperTransportPdu from a given AccessMessage.
          *
-         * @param message AccessMessage to be decode from.
+         * @param message       AccessMessage to be decode from.
          * @param key           Key to be used for decryption.
          * @param virtualGroup  Virtual group address if the message is a virtual group message.
          * @return              an UpperTransportPdu or null if the pdu could not be decoded.
@@ -257,11 +257,7 @@ internal data class UpperTransportPdu(
                         val oldAid = requireNotNull(applicationKey.oldAid) { return null }
                         require(aid == oldAid) { return null }
                         val key = requireNotNull(applicationKey.oldKey) { return null }
-                        return init(
-                            message = message,
-                            key = key,
-                            virtualGroup = group
-                        )?.let { pdu ->
+                        return init(message = message, key = key, virtualGroup = group)?.let { pdu ->
                             Pair(pdu, AccessKeySet(applicationKey = applicationKey))
                         }
                     }
@@ -275,15 +271,8 @@ internal data class UpperTransportPdu(
                 val node = network.node(message.source) ?: network.node(message.destination)
 
                 return node?.deviceKey?.let { deviceKey ->
-                    init(
-                        message = message,
-                        key = deviceKey,
-                        virtualGroup = null
-                    )?.let {
-                        Pair(
-                            it,
-                            DeviceKeySet(networkKey = message.networkKey, node = node)
-                        )
+                    init(message = message, key = deviceKey, virtualGroup = null)?.let {
+                        Pair(it, DeviceKeySet.init(networkKey = message.networkKey, node = node)!!)
                     }
                 }
             }
