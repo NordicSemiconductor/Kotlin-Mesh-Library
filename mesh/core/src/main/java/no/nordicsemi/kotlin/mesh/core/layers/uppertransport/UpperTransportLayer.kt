@@ -40,7 +40,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      * internally.
      * @param lowerTransportPdu The received Lower Transport PDU.
      */
-    fun handle(lowerTransportPdu: LowerTransportPdu) {
+    suspend fun handle(lowerTransportPdu: LowerTransportPdu) {
         when (lowerTransportPdu.type) {
             LowerTransportPduType.ACCESS_MESSAGE -> {
                 val accessMessage = lowerTransportPdu as AccessMessage
@@ -49,6 +49,10 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                 )
                 pair?.let {
                     logger?.i(LogCategory.UPPER_TRANSPORT) { "Received ${it.first} received." }
+                    networkManager.accessLayer.handle(
+                        upperTransportPdu = it.first,
+                        keySet = it.second
+                    )
                 } ?: logger?.w(LogCategory.UPPER_TRANSPORT) { "Failed to decode PDU" }
             }
 
@@ -60,6 +64,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                             logger?.i(LogCategory.UPPER_TRANSPORT) {
                                 "$heartbeat received from ${message.source.toHex(prefix0x = true)}"
                             }
+                            handle(heartbeat = heartbeat)
                         }
                     }
 
