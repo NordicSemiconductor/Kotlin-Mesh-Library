@@ -171,8 +171,17 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             .forEach { refreshPeriodicPublisher(it) }
     }
 
-    suspend fun handle(upperTransportPdu: UpperTransportPdu, keySet: KeySet) {
-        val accessPdu = AccessPdu.init(pdu = upperTransportPdu) ?: return
+    /**
+     * This method handles the Upper Transport PDU and reads the Opcode. If the Opcode is supported,
+     * a message is created and sent to the corresponding Model. Otherwise a generic MeshMessage is
+     * created for the app to handle.
+     *
+     * @param upperTransportPdu Upper Transport PDU received.
+     * @param keySet            Key set used to decrypt the message.
+     * @return MeshMessage if the message was handled, null otherwise.
+     */
+    suspend fun handle(upperTransportPdu: UpperTransportPdu, keySet: KeySet): MeshMessage? {
+        val accessPdu = AccessPdu.init(pdu = upperTransportPdu) ?: return null
         var request: AcknowledgedMeshMessage? = null
 
         val index = mutex.withLock {
@@ -197,11 +206,23 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                 "$accessPdu received (decrypted using key: $keySet)"
             }
         }
-        handle(accessPdu = accessPdu, keySet = keySet, request = request)
+        return handle(accessPdu = accessPdu, keySet = keySet, request = request)
     }
 
     /**
+     * sends the the given Mesh Message to the given destination address. The message is encrypted
+     * with the given Application Key and the network key bound to it.
      *
+     * Before sending the message, the transaction identifier is updated for messages that extend
+     * [TransactionMessage].
+     *
+     * @param message          Mesh message to be sent.
+     * @param element          Local Element.
+     * @param destination      Destination address.
+     * @param ttl              Initial TTL value of the message. If 'null' the default Node TTL will
+     *                         be used.
+     * @param applicationKey   Application Key to be used to encrypt the message.
+     * @param retransmit       If the message is a retransmission of a previous message.
      */
     suspend fun send(
         message: MeshMessage,
