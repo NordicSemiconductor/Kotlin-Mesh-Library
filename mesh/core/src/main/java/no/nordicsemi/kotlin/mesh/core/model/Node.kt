@@ -161,7 +161,7 @@ data class Node internal constructor(
             field = value
             network?.updateTimestamp()
         }
-    var defaultTTL: UByte = 127u
+    var defaultTTL: UByte? = 127u
         internal set(value) {
             field = value
             network?.updateTimestamp()
@@ -425,6 +425,17 @@ data class Node internal constructor(
      * Checks if an element in the node uses this address.
      *
      * @param address Unicast address.
+     * @return true if the given address is in use by any of the elements or false if the address is
+     *         not a unicast address or the address is not in use by any of the elements.
+     */
+    fun containsElementWithAddress(address: MeshAddress) = if (address is UnicastAddress)
+        containsElementWithAddress(address)
+    else false
+
+    /**
+     * Checks if an element in the node uses this address.
+     *
+     * @param address Unicast address.
      * @return true if the given address is in use by any of the elements
      */
     fun containsElementWithAddress(address: UnicastAddress) = elements.any {
@@ -438,6 +449,23 @@ data class Node internal constructor(
      * @return true if given range overlaps with the node's address range.
      */
     fun containsElementsWithAddress(range: UnicastRange) = unicastRange.overlaps(range)
+
+    /**
+     * Returns the element with the given address.
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     * @throws IllegalArgumentException If the address is invalid.
+     */
+    fun element(address: UShort) = elements.firstOrNull { it.unicastAddress.address == address }
+
+    /**
+     * Returns the element with the given address
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     */
+    fun element(address: UnicastAddress) = element(address.address)
 
     /**
      * Checks if the given Application Key known by the node.

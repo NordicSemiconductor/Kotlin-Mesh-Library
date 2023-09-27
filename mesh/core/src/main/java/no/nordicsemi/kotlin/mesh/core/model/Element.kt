@@ -126,20 +126,3 @@ data class Element internal constructor(
         const val HIGHER_BOUND = 255
     }
 }
-
-/**
- * Returns the element with the given address.
- *
- * @param address Address of the element.
- * @return Element or null if not found.
- * @throws IllegalArgumentException If the address is invalid.
- */
-fun List<Element>.element(address: UShort) = element(UnicastAddress(address))
-
-/**
- * Returns the element with the given address.
- *
- * @param address Address of the element.
- * @return Element or null if not found.
- */
-fun List<Element>.element(address: UnicastAddress) = firstOrNull { it.unicastAddress == address }

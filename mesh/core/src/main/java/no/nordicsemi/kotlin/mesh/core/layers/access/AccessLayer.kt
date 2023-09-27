@@ -36,7 +36,6 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.element
 import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -545,7 +544,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             val request = message as? ConfigAnyModelMessage
             request?.let { req ->
                 network.localProvisioner?.node?.let { localNode ->
-                    localNode.elements.element(req.elementAddress)?.let { element ->
+                    localNode.element(req.elementAddress)?.let { element ->
                         element.models.model(message.modelId)?.let {
                             refreshPeriodicPublisher(it)
                         }
