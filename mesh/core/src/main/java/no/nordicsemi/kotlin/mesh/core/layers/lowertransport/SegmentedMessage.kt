@@ -14,7 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
  * @property segmentOffset       Zero based segment number of segment m of this upper transport PDU.
  * @property lastSegmentNumber   Zero based segment number of the last segment of this upper
  *                               transport PDU.
- * @property isSegmented         True if the message is composed of multiple segments. Single
+ * @property isSingleSegment     True if the message is composed of multiple segments. Single
  *                               segment messages are used to send short, acknowledged messages. The
  *                               maximum size of payload of upper transport control pdu is 8 bytes.
  * @property index               [segmentOffset] as an Int.
@@ -27,7 +27,7 @@ internal interface SegmentedMessage : LowerTransportPdu {
     val segmentOffset: UByte
     val lastSegmentNumber: UByte
 
-    val isSegmented: Boolean
+    val isSingleSegment: Boolean
         get() = lastSegmentNumber == 0.toUByte()
 
     val index: Int
