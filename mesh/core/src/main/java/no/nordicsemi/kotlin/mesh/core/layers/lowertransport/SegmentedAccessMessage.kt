@@ -4,11 +4,13 @@ package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
+import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import kotlin.experimental.and
 import kotlin.experimental.or
+import kotlin.math.min
 
 /**
  * Data class defining a Segmented Access Message.
@@ -139,6 +141,38 @@ internal data class SegmentedAccessMessage(
                 lastSegmentNumber = lastSegmentNumber,
                 aid = aid,
                 transportMicSize = transportMicSize
+            )
+        }
+
+        /**
+         * Creates a SegmentedAccessMessage from the given Upper Transport PDU, network key and
+         * offset.
+         *
+         * @param pdu        Upper transport PDU.
+         * @param networkKey Network key to be used to encrypt the message.
+         * @param offset     Offset of the segment.
+         * @return SegmentedAccessMessage
+         */
+        fun init(
+            pdu: UpperTransportPdu,
+            networkKey: NetworkKey,
+            offset: UByte
+        ): SegmentedAccessMessage {
+            val lowerBound = offset.toInt() * 12
+            val upperBound = min(pdu.transportPdu.size, (offset.toInt() + 1) * 12)
+            val segment = pdu.transportPdu.sliceArray(lowerBound until upperBound)
+            return SegmentedAccessMessage(
+                source = MeshAddress.create(pdu.source),
+                destination = pdu.destination,
+                networkKey = networkKey,
+                ivIndex = pdu.ivIndex,
+                upperTransportPdu = segment,
+                sequence = pdu.sequence,
+                sequenceZero = (pdu.sequence and 0x1FFFu).toUShort(),
+                segmentOffset = offset,
+                lastSegmentNumber = (((pdu.transportPdu.size + 11).toUByte() / 12u) - 1u).toUByte(),
+                aid = pdu.aid,
+                transportMicSize = pdu.transportMicSize
             )
         }
     }
