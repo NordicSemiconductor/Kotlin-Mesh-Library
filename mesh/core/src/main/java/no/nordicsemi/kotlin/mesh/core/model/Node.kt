@@ -468,6 +468,16 @@ data class Node internal constructor(
     fun element(address: UnicastAddress) = element(address.address)
 
     /**
+     * Returns the element with the given address
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     */
+    fun element(address: MeshAddress) = if (address is UnicastAddress)
+        element(address.address)
+    else null
+
+    /**
      * Checks if the given Application Key known by the node.
      *
      * Note: This is based on the key index.
