@@ -4,7 +4,7 @@ package no.nordicsemi.kotlin.mesh.bearer.gatt
 
 import android.annotation.SuppressLint
 import android.content.Context
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
@@ -27,7 +27,7 @@ class GattBearer(
     override val supportedTypes: Array<PduTypes> =
         arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)
 
-    override suspend fun configureGatt(services: BleGattServices) {
+    override suspend fun configureGatt(services: ClientBleGattServices) {
         services.findService(MeshProxyService.uuid)?.let { service ->
             service.findCharacteristic(MeshProxyService.dataInUuid)
                 ?.let { dataInCharacteristic = it }
@@ -41,5 +41,4 @@ class GattBearer(
     suspend fun send(pdu: ByteArray) {
         send(pdu, PduType.PROVISIONING_PDU)
     }
-
 }

@@ -35,8 +35,8 @@ import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 import javax.inject.Inject
@@ -59,7 +59,7 @@ class ProvisioningViewModel @Inject constructor(
     ).apply { logger = this@ProvisioningViewModel }
 
     private var unprovisionedDevice: UnprovisionedDevice = UnprovisionedDevice.from(
-        advertisementData = bleScanResults.lastScanResult!!.scanRecord!!.bytes
+        advertisementData = bleScanResults.lastScanResult!!.scanRecord!!.bytes!!.value
     )
 
     private var _uiState = MutableStateFlow(
@@ -305,16 +305,16 @@ class ProvisioningViewModel @Inject constructor(
  * ProvisionerState represents the state of the provisioning process for the UI.
  */
 sealed class ProvisionerState {
-    object Connecting : ProvisionerState()
-    object Connected : ProvisionerState()
-    object Identifying : ProvisionerState()
+    data object Connecting : ProvisionerState()
+    data object Connected : ProvisionerState()
+    data object Identifying : ProvisionerState()
     data class Provisioning(
         val state: ProvisioningState
     ) : ProvisionerState()
 
     data class Error(val throwable: Throwable) : ProvisionerState()
 
-    object Disconnected : ProvisionerState()
+    data object Disconnected : ProvisionerState()
 }
 
 internal data class ProvisioningScreenUiState internal constructor(

@@ -17,9 +17,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
-import no.nordicsemi.android.kotlin.ble.client.main.callback.BleGattClient
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
+import no.nordicsemi.android.common.core.DataByteArray
+import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattCharacteristic
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
@@ -59,18 +60,18 @@ abstract class BaseGattProxyBearer<MeshService>(
     private val proxyProtocolHandler = ProxyProtocolHandler()
     private var isOpened = false
     private lateinit var queue: Array<ByteArray>
-    protected lateinit var dataInCharacteristic: BleGattCharacteristic
-    protected lateinit var dataOutCharacteristic: BleGattCharacteristic
+    protected lateinit var dataInCharacteristic: ClientBleGattCharacteristic
+    protected lateinit var dataOutCharacteristic: ClientBleGattCharacteristic
 
-    private var client: BleGattClient? = null
+    private var client: ClientBleGatt? = null
 
     var logger: Logger? = null
 
-    abstract suspend fun configureGatt(services: BleGattServices)
+    abstract suspend fun configureGatt(services: ClientBleGattServices)
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        val client = BleGattClient.connect(context = context, device= device)
+        val client = ClientBleGatt.connect(context = context, device= device)
         this.client = client
 
         if(!client.isConnected){ return }
@@ -90,7 +91,7 @@ abstract class BaseGattProxyBearer<MeshService>(
      *
      * @param client the GATT client.
      */
-    private fun observeConnectionState(client: BleGattClient) {
+    private fun observeConnectionState(client: ClientBleGatt) {
         client.connectionState.takeWhile {
             it != GattConnectionState.STATE_DISCONNECTED
         }.onEach { state ->
@@ -128,13 +129,13 @@ abstract class BaseGattProxyBearer<MeshService>(
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
         require(isOpen) { throw BearerError.Closed }
         proxyProtocolHandler.segment(pdu, type, mtu).forEach {
-            dataInCharacteristic.write(it, BleWriteType.NO_RESPONSE)
+            dataInCharacteristic.write(DataByteArray(it), BleWriteType.NO_RESPONSE)
         }
     }
 
     protected suspend fun awaitNotifications() {
         dataOutCharacteristic.getNotifications().onEach { data ->
-            proxyProtocolHandler.reassemble(data)?.let { reassembledPdu ->
+            proxyProtocolHandler.reassemble(data.value)?.let { reassembledPdu ->
                 _pdus.emit(reassembledPdu)
             }
         }.launchIn(scope)

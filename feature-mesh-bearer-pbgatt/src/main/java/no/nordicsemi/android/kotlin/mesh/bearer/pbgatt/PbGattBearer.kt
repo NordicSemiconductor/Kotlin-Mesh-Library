@@ -5,7 +5,7 @@ package no.nordicsemi.android.kotlin.mesh.bearer.pbgatt
 import android.annotation.SuppressLint
 import android.content.Context
 import kotlinx.coroutines.flow.*
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
@@ -29,7 +29,7 @@ open class PbGattBearer(
     override val supportedTypes: Array<PduTypes>
         get() = arrayOf(PduTypes.ProvisioningPdu)
 
-    override suspend fun configureGatt(services: BleGattServices) {
+    override suspend fun configureGatt(services: ClientBleGattServices) {
         services.findService(uuid)?.let { service ->
             service.findCharacteristic(dataInUuid)?.let { dataInCharacteristic = it }
             service.findCharacteristic(dataOutUuid)?.let { dataOutCharacteristic = it }
