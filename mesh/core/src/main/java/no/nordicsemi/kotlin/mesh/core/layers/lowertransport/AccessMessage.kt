@@ -126,17 +126,16 @@ internal data class AccessMessage(
          * @param segments List of segmented access messages.
          * @return AccessMessage or null if the segments are invalid.
          */
-        fun init(segments: List<SegmentedAccessMessage>) {
+        fun init(segments: List<SegmentedAccessMessage>): AccessMessage {
             val segment = segments.first()
-            val segmentedAccessMessage = segments.reduce { acc, seg ->
-                acc.copy(upperTransportPdu = acc.upperTransportPdu + seg.upperTransportPdu)
-            }
-            AccessMessage(
+            return AccessMessage(
                 source = segment.source,
                 destination = segment.destination,
                 networkKey = segment.networkKey,
                 ivIndex = segment.ivIndex,
-                upperTransportPdu = segmentedAccessMessage.upperTransportPdu,
+                upperTransportPdu = segments.reduce { acc, seg ->
+                    acc.copy(upperTransportPdu = acc.upperTransportPdu + seg.upperTransportPdu)
+                }.upperTransportPdu,
                 transportMicSize = segment.transportMicSize,
                 sequence = segment.sequence,
                 aid = segment.aid
