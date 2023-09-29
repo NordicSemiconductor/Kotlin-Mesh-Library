@@ -2,6 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.Instant
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -22,6 +25,8 @@ interface NetworkPropertiesStorage {
 
     val sequenceNumbers: MutableMap<UnicastAddress, UInt>
     var ivIndex: IvIndex
+    var lastTransitionDate: Instant
+    var isIvRecoveryActive: Boolean
 
 
     /**
@@ -35,6 +40,57 @@ interface NetworkPropertiesStorage {
      * Stores the network properties for the given [uuid].
      */
     suspend fun save(uuid: UUID)
+
+    /**
+     * Returns the last received SeqAuth value for the given source address or null if no message
+     * has ever been received from the given source address.
+     *
+     * @param source Source address.
+     * @return last SeqAuth value or null if no message has ever been received from the given source
+     *         address.
+     */
+    fun lastSeqAuthValue(source: Address): Flow<ULong?>
+
+    /**
+     * Stores the last received SeqAuth value for the given source address.
+     *
+     * @param lastSeqAuth SeqAuth value.
+     * @param source      Source address.
+     */
+    suspend fun storeLastSeqAuthValue(lastSeqAuth: ULong, source: Address)
+
+    /**
+     * Returns the previous SeqAuth value for the given source address.
+     *
+     * @param source Source address
+     * @return previous SeqAuth value or null if no more than 1 message has ever been received from
+     *         the given source address.
+     */
+    fun previousSeqAuthValue(source: Address): Flow<ULong?>
+
+    /**
+     * Stores the previously received SeqAuth value for the given source address, or nil if no more
+     * than 1 message has ever been received from the given source address.
+     *
+     * @param seqAuth SeqAuth value.
+     * @param source  Source address.
+     */
+    suspend fun storePreviousSeqAuthValue(seqAuth: ULong, source: Address)
+
+    /**
+     * Removes all SeqAuth values associated with any of the elements of a given node.
+     *
+     * @param node Node whose SeqAuth values must be removed.
+     */
+    suspend fun removeSeqAuthValues(node: Node)
+
+    /**
+     * Removes all known SeqAuth values associated with any of the Elements of the given remote
+     * Node.
+     *
+     * @param source Source address of the node or it's element.
+     */
+    suspend fun removeSeqAuthValues(source: Address)
 }
 
 /**
