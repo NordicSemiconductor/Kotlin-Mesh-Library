@@ -96,7 +96,7 @@ internal sealed class NetworkManagerEvent {
         val message: MeshMessage,
         val localElement: Element,
         val destination: MeshAddress,
-        val error: BearerError
+        val error: Exception
     ) : NetworkManagerEvent()
 
     /**
