@@ -107,10 +107,10 @@ internal data class ControlMessage(
         /**
          * Creates a Control Message from a given array of message segments.
          *
-         * @param segments Array of [SegmentedControlMessage] to be decoded.
+         * @param segments List of [SegmentedControlMessage] to be decoded.
          * @return a ControlMessage.
          */
-        fun init(segments: Array<SegmentedControlMessage>): ControlMessage {
+        fun init(segments: List<SegmentedControlMessage>): ControlMessage {
             val upperTransportPdu = segments.fold(byteArrayOf()) { acc, segment ->
                 acc + segment.upperTransportPdu
             }
