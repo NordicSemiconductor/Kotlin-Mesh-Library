@@ -68,3 +68,15 @@ internal fun List<SegmentedMessage?>.firstNotAcknowledged() = first { it != null
  * @return List of unacknowledged segments.
  */
 internal fun List<SegmentedMessage?>.unacknowledged() = filterNotNull()
+
+/**
+ * Converts the list of segments in to either an [AccessMessage] or a [ControlMessage], depending on
+ * the first element type.
+ *
+ * All segments in teh array must not be null.
+ */
+internal fun List<SegmentedMessage?>.reassembled() = if (first() is SegmentedAccessMessage) {
+    AccessMessage.init(segments = map { it as SegmentedAccessMessage })
+} else {
+    ControlMessage.init(segments = map { it as SegmentedControlMessage })
+}
