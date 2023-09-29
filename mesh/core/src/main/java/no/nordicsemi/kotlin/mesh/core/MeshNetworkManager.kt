@@ -97,7 +97,7 @@ class MeshNetworkManager(
      */
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
-        // networkProperties.load(uuid = meshNetwork.uuid)
+        networkProperties.load(uuid = meshNetwork.uuid)
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         true
