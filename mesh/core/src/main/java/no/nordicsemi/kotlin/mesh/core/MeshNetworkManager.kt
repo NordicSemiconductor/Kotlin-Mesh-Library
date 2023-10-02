@@ -78,7 +78,6 @@ class MeshNetworkManager(
         networkManager?.bearer = newValue
     }
 
-
     internal var proxyFilter: ProxyFilter
 
     var localElements: List<Element>
