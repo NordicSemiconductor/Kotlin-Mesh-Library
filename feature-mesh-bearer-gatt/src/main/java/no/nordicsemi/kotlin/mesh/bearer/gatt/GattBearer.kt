@@ -14,7 +14,6 @@ import no.nordicsemi.kotlin.mesh.bearer.PduTypes
 
 /**
  * Responsible for receiving and sending mesh messages to and from the GATT Proxy Node.
- *
  */
 class GattBearer(
     context: Context,
@@ -38,7 +37,7 @@ class GattBearer(
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun send(pdu: ByteArray) {
-        send(pdu, PduType.PROVISIONING_PDU)
+    suspend fun sendPdu(pdu: ByteArray, type: PduType) {
+        send(pdu, type)
     }
 }

@@ -58,6 +58,7 @@ abstract class BaseGattProxyBearer<MeshService>(
     private var mtu: Int = DEFAULT_MTU
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
+    override val isGatt: Boolean = true
     private var isOpened = false
     private lateinit var queue: Array<ByteArray>
     protected lateinit var dataInCharacteristic: ClientBleGattCharacteristic
@@ -71,10 +72,12 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        val client = ClientBleGatt.connect(context = context, device= device)
+        val client = ClientBleGatt.connect(context = context, device = device)
         this.client = client
 
-        if(!client.isConnected){ return }
+        if (!client.isConnected) {
+            return
+        }
 
         // Discover services on the Bluetooth LE Device.
         val services = client.discoverServices()

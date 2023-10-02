@@ -46,6 +46,8 @@ interface Bearer : Transmitter, Receiver {
 
     val supportedTypes: Array<PduTypes>
 
+    val isGatt:Boolean
+
     val isOpen: Boolean
 
     /**
