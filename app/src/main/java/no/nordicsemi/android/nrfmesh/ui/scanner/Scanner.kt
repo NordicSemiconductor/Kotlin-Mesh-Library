@@ -11,10 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import no.nordicsemi.android.common.ui.scanner.ScannerView
-import no.nordicsemi.android.common.ui.scanner.main.DeviceListItem
-import no.nordicsemi.android.common.ui.scanner.view.ScannerAppBar
-import no.nordicsemi.android.kotlin.ble.scanner.data.BleScanResults
+import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
+import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
+import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
+import no.nordicsemi.android.kotlin.ble.ui.scanner.view.ScannerAppBar
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshService
 import no.nordicsemi.android.nrfmesh.R
@@ -38,7 +38,7 @@ fun ScannerSheet(
                 uuid = ParcelUuid(service.uuid),
                 onResult = { result ->
                     result.lastScanResult?.scanRecord?.bytes?.let { bytes ->
-                        unprovisionedDevice = UnprovisionedDevice.from(bytes)
+                        unprovisionedDevice = UnprovisionedDevice.from(bytes.value)
                     }?.let {
                         onDeviceFound(result)
                     }
@@ -48,7 +48,7 @@ fun ScannerSheet(
                         name = it.device.name,
                         address = if (service is MeshProvisioningService) {
                             it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
-                                UnprovisionedDevice.from(bytes).uuid.toString().uppercase()
+                                UnprovisionedDevice.from(bytes.value).uuid.toString().uppercase()
                             } ?: it.device.address
                         } else it.device.address
                     )
