@@ -348,7 +348,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      *
      * @return PDU.
      */
-    private suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
+    internal suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
         it.type == PduType.PROVISIONING_PDU
     } ?: throw BearerError.Closed
 }
