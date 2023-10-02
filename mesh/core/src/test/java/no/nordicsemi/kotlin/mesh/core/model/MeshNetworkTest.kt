@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import java.util.UUID
@@ -13,7 +14,11 @@ import kotlin.test.assertTrue
 
 class MeshNetworkTest {
 
-    private val networkManager = MeshNetworkManager(storage = TestStorage())
+    private val networkManager = MeshNetworkManager(
+        storage = TestStorage(),
+        networkProperties = TestPropertiesStorage(),
+        scope = TestScope()
+    )
     private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))
     private val scene = Scene("Test Scene", 0x000Au)

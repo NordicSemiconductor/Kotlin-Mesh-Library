@@ -9,21 +9,21 @@ class ExclusionListTest {
     private val elements = arrayListOf(
         Element(
             location = Location.UNKNOWN,
-            models = listOf(
+            _models = mutableListOf(
                 Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
                 Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
             )
         ),
         Element(
             location = Location.UNKNOWN,
-            models = listOf(
+            _models = mutableListOf(
                 Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
                 Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
             )
         ),
         Element(
             location = Location.UNKNOWN,
-            models = listOf(
+            _models = mutableListOf(
                 Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
                 Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
             )
