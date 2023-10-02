@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import kotlinx.datetime.Clock
-import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
@@ -65,6 +64,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             PduType.NETWORK_PDU -> {
                 NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { networkPdu ->
                     logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
+                    networkManager.lowerTransportLayer.handle(networkPdu)
                 } ?: logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
             }
 
@@ -107,7 +107,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      */
     @Throws(BearerError.Closed::class)
     suspend fun send(lowerTransportPdu: LowerTransportPdu, type: PduType, ttl: UByte) {
-        networkManager.transmitter?.let { transmitter ->
+        networkManager.bearer?.let { bearer ->
             val sequence = (lowerTransportPdu as AccessMessage).sequence
             val networkPdu = NetworkPduDecoder.encode(
                 lowerTransportPdu = lowerTransportPdu,
@@ -127,13 +127,13 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     // No need to send messages targeting local Unicast Addresses.
                     return
                 }
-                // If the message was sent locally, don't report Bearer closer error.
-                transmitter.send(pdu = networkPdu.pdu, type = type)
+                // If the message was sent locally, don't report Bearer closed error.
+                bearer.send(pdu = networkPdu.pdu, type = type)
             } else {
                 // Messages sent with TTL = 1 will only be sent locally.
                 require(ttl == 1.toUByte()) { return }
                 try {
-                    transmitter.send(pdu = networkPdu.pdu, type = type)
+                    bearer.send(pdu = networkPdu.pdu, type = type)
                 } catch (exception: Exception) {
                     if (exception is BearerError.Closed) {
                         proxyNetworkKey = null
@@ -144,7 +144,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
 
             // Unless a GATT Bearer is used, the Network PDUs should be sent multiple times if
             // Network Transmit has been set for the local Provisioner's Node
-            if (type == PduType.NETWORK_PDU && transmitter is Bearer) {
+            if (type == PduType.NETWORK_PDU && !bearer.isGatt) {
                 meshNetwork.localProvisioner?.node?.networkTransmit?.takeIf {
                     it.count > 1u
                 }?.let { networkTransmit ->
