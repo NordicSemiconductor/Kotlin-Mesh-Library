@@ -5,9 +5,13 @@ package no.nordicsemi.kotlin.mesh.core.layers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import no.nordicsemi.kotlin.mesh.bearer.BearerError
+import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
+import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
@@ -58,7 +62,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     internal var accessLayer = AccessLayer(this)
         private set
 
-    var transmitter: Transmitter? = manager.transmitter
+    var bearer: MeshBearer? = manager.meshBearer
 
     var meshNetwork = manager.meshNetwork.replayCache.first()
 
@@ -135,7 +139,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
                                 retransmit = true
                             )
                         }
-                    } else  {
+                    } else {
                         cancel()
                     }
                 }
@@ -337,4 +341,14 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
             keySet = keySet
         )
     }
+
+
+    /**
+     * Awaits and returns the mesh pdu received by the bearer.
+     *
+     * @return PDU.
+     */
+    private suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
+        it.type == PduType.PROVISIONING_PDU
+    } ?: throw BearerError.Closed
 }

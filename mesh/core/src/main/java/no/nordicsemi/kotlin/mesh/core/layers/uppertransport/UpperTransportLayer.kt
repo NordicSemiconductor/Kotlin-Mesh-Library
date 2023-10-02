@@ -103,10 +103,10 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
             enqueue(pdu, ttl, keySet.networkKey)
         } else {
-            networkManager.lowerTransportLayer.sendSegmentedPdu(
+            networkManager.lowerTransportLayer.send(
                 pdu = pdu,
                 initialTtl = ttl,
-                key = keySet.networkKey
+                networkKey = keySet.networkKey
             )
         }
     }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
@@ -49,11 +50,11 @@ import kotlin.properties.Delegates
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
  *
- * @param storage Custom storage option allowing users to save the mesh network to a custom
- *                location.
- * @param networkProperties Custom storage option allowing users to save the sequence number.
- * @property transmitter        The transmitter is responsible for sending and receiving mesh
- *                              messages.
+ * @param storage               Custom storage option allowing users to save the mesh network to a
+ *                              custom location.
+ * @param networkProperties     Custom storage option allowing users to save the sequence number.
+ * @param scope                 The scope in which the mesh network will be created.
+ * @property meshBearer         Mesh bearer is responsible for sending and receiving mesh messages.
  * @property logger             The logger is responsible for logging mesh messages.
  * @property networkManager     Handles the mesh networking stack.
  */
@@ -69,12 +70,14 @@ class MeshNetworkManager(
 
     internal var networkManager: NetworkManager? = null
         private set
-    var transmitter: Transmitter? by Delegates.observable(null) { _, _, newValue ->
-        networkManager?.transmitter = newValue
-    }
+
     var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
         networkManager?.logger = newValue
     }
+    var meshBearer : MeshBearer? by Delegates.observable(null) { _, _, newValue ->
+        networkManager?.bearer = newValue
+    }
+
 
     internal var proxyFilter: ProxyFilter
 
