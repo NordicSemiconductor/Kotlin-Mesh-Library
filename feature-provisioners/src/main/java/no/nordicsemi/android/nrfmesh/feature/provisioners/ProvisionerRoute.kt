@@ -141,7 +141,7 @@ private fun ProvisionerInfo(
             item {
                 Ttl(
                     keyboardController = keyboardController,
-                    ttl = node?.defaultTTL,
+                    ttl = node?.defaultTTL?.toInt(),
                     onTtlChanged = onTtlChanged,
                     isCurrentlyEditable = isCurrentlyEditable
                 ) { isCurrentlyEditable = !isCurrentlyEditable }
@@ -233,6 +233,7 @@ fun Name(
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
