@@ -5,6 +5,9 @@ import kotlinx.coroutines.withContext
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import javax.inject.Inject
 
@@ -20,7 +23,9 @@ class DataStoreRepository @Inject constructor(
 
     suspend fun load() = withContext(ioDispatcher) {
         if (!meshNetworkManager.load()) {
-            meshNetworkManager.create()
+            val provisioner = Provisioner(name = "Mesh Provisioner")
+            provisioner.allocate(UnicastRange(UnicastAddress(1), UnicastAddress(0x7FFF)))
+            meshNetworkManager.create(provisioner = provisioner)
         }
         true
     }
