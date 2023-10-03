@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
@@ -78,8 +79,11 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 @Serializable
 data class Model internal constructor(
     val modelId: ModelId,
+    @SerialName(value = "bind")
     internal var _bind: MutableList<KeyIndex>,
+    @SerialName(value = "subscribe")
     internal var _subscribe: MutableList<SubscriptionAddress>,
+    @SerialName(value = "publish")
     internal var _publish: Publish? = null
 ) {
     val subscribe: List<SubscriptionAddress>
