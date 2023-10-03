@@ -295,7 +295,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param group Group to be added to the filter.
      */
     suspend fun add(group: Group) {
-        add(listOf(group))
+        addGroups(listOf(group))
     }
 
     /**
@@ -303,7 +303,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      *
      * @param groups Group to be added to the filter.
      */
-    suspend fun add(groups: List<Group>) {
+    suspend fun addGroups(groups: List<Group>) {
         add(groups.map { it.address as ProxyFilterAddress })
     }
 
