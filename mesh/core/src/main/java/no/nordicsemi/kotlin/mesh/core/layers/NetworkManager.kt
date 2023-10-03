@@ -32,6 +32,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -64,7 +65,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
 
     var bearer: MeshBearer? = manager.meshBearer
 
-    var meshNetwork = manager.meshNetwork.replayCache.first()
+    val meshNetwork: MeshNetwork
+        get() = manager.network!!
 
     var networkParameters = NetworkParameters()
     private val mutex = Mutex(locked = true)

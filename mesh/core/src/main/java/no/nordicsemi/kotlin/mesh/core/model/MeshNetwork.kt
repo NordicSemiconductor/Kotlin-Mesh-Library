@@ -53,9 +53,9 @@ class MeshNetwork internal constructor(
     /**
      * Convenience constructor to create a network for tests
      *
-     * @param _name The name of the network
+     * @param name The name of the network
      */
-    internal constructor(_name: String) : this(UUID.randomUUID(), _name) {
+    internal constructor(name: String) : this(UUID.randomUUID(), name) {
         add(name = "Primary Network Key", index = 0u)
     }
 

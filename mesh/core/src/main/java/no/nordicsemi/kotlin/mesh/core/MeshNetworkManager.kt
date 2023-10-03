@@ -34,6 +34,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -74,7 +75,7 @@ class MeshNetworkManager(
     var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
         networkManager?.logger = newValue
     }
-    var meshBearer : MeshBearer? by Delegates.observable(null) { _, _, newValue ->
+    var meshBearer: MeshBearer? by Delegates.observable(null) { _, _, newValue ->
         networkManager?.bearer = newValue
     }
 
@@ -138,6 +139,7 @@ class MeshNetworkManager(
         uuid: UUID = UUID.randomUUID(),
         provisioner: Provisioner
     ) = MeshNetwork(uuid = uuid, _name = name).also {
+        it._networkKeys.add(NetworkKey())
         it.add(provisioner)
         network = it
         _meshNetwork.emit(it)
