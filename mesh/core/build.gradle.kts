@@ -1,6 +1,6 @@
 plugins {
     id("kotlin")
-    kotlin("plugin.serialization") version "1.8.0"
+    alias(libs.plugins.kotlin.serialization)
     id("org.jetbrains.dokka")
 }
 dependencies {
