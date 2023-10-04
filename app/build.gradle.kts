@@ -30,6 +30,8 @@ dependencies {
 
     implementation(libs.timber)
 
+    implementation(libs.kotlin.junit)
+
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
     implementation(project(":core-data"))
