@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui.scanner
+package no.nordicsemi.android.nrfmesh.core.data.scanner
 
 import android.os.ParcelUuid
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.ble.ui.scanner.view.ScannerAppBar
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshService
-import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.data.R
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
 @Composable
@@ -28,7 +28,9 @@ fun ScannerSheet(
 ) {
     Surface {
         Column {
-            var unprovisionedDevice by remember { mutableStateOf<UnprovisionedDevice?>(null) }
+            var unprovisionedDevice by remember {
+                mutableStateOf<UnprovisionedDevice?>(null)
+            }
             ScannerAppBar(
                 text = stringResource(R.string.title_scanning),
                 backButtonIcon = Icons.Default.Close,

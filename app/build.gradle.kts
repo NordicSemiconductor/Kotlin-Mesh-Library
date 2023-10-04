@@ -16,6 +16,9 @@ dependencies {
 
     implementation(libs.nordic.theme)
     implementation(libs.nordic.navigation)
+    implementation(libs.nordic.blek.core)
+    implementation(libs.nordic.blek.client)
+    implementation(libs.nordic.blek.scanner)
     implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
@@ -49,10 +52,6 @@ dependencies {
     implementation(project(":feature-export"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
-
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
-    implementation(libs.nordic.blek.scanner)
 
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.11")
 }

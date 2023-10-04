@@ -48,7 +48,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
 @Composable
-fun ProvisioningRoute1(viewModel: ProvisioningViewModel) {
+fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
