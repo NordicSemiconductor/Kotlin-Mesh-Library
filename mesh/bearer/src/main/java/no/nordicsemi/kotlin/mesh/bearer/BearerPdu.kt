@@ -18,7 +18,7 @@ sealed class BearerEvent {
     /**
      * Event emitted when the bearer is opened.
      */
-    object Opened : BearerEvent()
+    data object Opened : BearerEvent()
 
     /**
      * Event emitted when the bearer is closed.
