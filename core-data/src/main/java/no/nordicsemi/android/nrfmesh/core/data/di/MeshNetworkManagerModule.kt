@@ -7,8 +7,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import no.nordicsemi.android.nrfmesh.core.storage.MeshNetworkPropertiesStorage
-import no.nordicsemi.android.nrfmesh.core.storage.MeshNetworkStorage
+import no.nordicsemi.android.nrfmesh.core.data.storage.MeshNetworkPropertiesStorage
+import no.nordicsemi.android.nrfmesh.core.data.storage.MeshNetworkStorage
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
 

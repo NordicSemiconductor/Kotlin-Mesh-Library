@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
     implementation(project(":core-data"))
-    implementation(project(":core-data-storage"))
+    // implementation(project(":core-data-storage"))
     implementation(project(":feature-nodes"))
     implementation(project(":feature-groups"))
     implementation(project(":feature-proxy-filter"))

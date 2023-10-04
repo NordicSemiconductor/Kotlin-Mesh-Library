@@ -11,7 +11,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.dataStore.core)
+    implementation(libs.androidx.dataStore.preferences)
+
     implementation(project(":core-common"))
-    implementation(project(":core-data-storage"))
+    // implementation(project(":core-data-storage"))
     implementation(project(":mesh:core"))
 }

@@ -22,14 +22,14 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.9.9")
+            from("no.nordicsemi.android.gradle:version-catalog:1.9.11")
         }
     }
 }
 rootProject.name = "Kotlin-nRF Mesh-Library"
 include(":app")
 include(":core-ui")
-include(":core-data-storage")
+// include(":core-data-storage")
 include(":feature-nodes")
 include(":feature-groups")
 include(":feature-settings")
