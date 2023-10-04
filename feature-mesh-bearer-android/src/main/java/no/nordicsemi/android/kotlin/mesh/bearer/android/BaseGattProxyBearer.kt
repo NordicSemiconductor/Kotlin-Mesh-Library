@@ -72,17 +72,16 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        val client = ClientBleGatt.connect(context = context, device = device)
-        this.client = client
-
-        if (!client.isConnected) {
-            return
+        client = ClientBleGatt.connect(context = context, device = device).takeIf {
+            it.isConnected
+        }?.let { client ->
+            observeConnectionState(client)
+            // Discover services on the Bluetooth LE Device.
+            val services = client.discoverServices()
+            configureGatt(services)
+            mtu = client.requestMtu(517) - 3
+            client
         }
-
-        // Discover services on the Bluetooth LE Device.
-        val services = client.discoverServices()
-        configureGatt(services)
-        mtu = client.requestMtu(517) - 3
     }
 
     override suspend fun close() {
