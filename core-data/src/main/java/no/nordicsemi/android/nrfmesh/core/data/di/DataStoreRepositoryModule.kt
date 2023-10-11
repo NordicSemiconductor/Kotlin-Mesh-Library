@@ -7,7 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
 
@@ -20,7 +20,7 @@ object DataStoreRepositoryModule {
     fun provideDataStoreRepository(
         meshNetworkManager: MeshNetworkManager,
         @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
-    ) = DataStoreRepository(
+    ) = CoreDataRepository(
         meshNetworkManager = meshNetworkManager,
         ioDispatcher = ioDispatcher
     )

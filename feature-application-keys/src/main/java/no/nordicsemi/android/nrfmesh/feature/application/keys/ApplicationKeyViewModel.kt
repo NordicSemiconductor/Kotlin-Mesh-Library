@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -21,7 +21,7 @@ import javax.inject.Inject
 internal class ApplicationKeyViewModel @Inject internal constructor(
     navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var key: ApplicationKey
     private val appKeyIndexArg: KeyIndex = parameterOf(applicationKey).toUShort()
@@ -102,7 +102,6 @@ sealed interface ApplicationKeyState {
     object Loading : ApplicationKeyState
 }
 
-@Suppress("ArrayInDataClass")
 data class ApplicationKeyScreenUiState internal constructor(
     val applicationKeyState: ApplicationKeyState = ApplicationKeyState.Loading
 )

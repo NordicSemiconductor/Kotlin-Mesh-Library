@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import javax.inject.Inject
@@ -19,7 +19,7 @@ import javax.inject.Inject
 internal class ScenesViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val _uiState = MutableStateFlow(ScenesScreenUiState(listOf()))
     val uiState: StateFlow<ScenesScreenUiState> = _uiState.stateIn(

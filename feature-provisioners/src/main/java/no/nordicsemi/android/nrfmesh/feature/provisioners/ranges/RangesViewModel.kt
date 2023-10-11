@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.*
 import java.util.*
 
@@ -15,7 +15,7 @@ import java.util.*
 internal abstract class RangesViewModel(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
 
     protected lateinit var network: MeshNetwork

@@ -21,7 +21,7 @@ import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewMod
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.*
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
@@ -44,7 +44,7 @@ import javax.inject.Inject
 class ProvisioningViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle), Logger {
 
     private lateinit var meshNetwork: MeshNetwork

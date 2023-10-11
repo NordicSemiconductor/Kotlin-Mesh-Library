@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
@@ -19,7 +19,7 @@ import javax.inject.Inject
 internal class GroupsViewModel @Inject internal constructor(
     navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val _uiState = MutableStateFlow(GroupsScreenUiState(listOf()))
     val uiState: StateFlow<GroupsScreenUiState> = _uiState.stateIn(

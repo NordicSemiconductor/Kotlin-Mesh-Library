@@ -16,7 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import javax.inject.Inject
 
-class DataStoreRepository @Inject constructor(
+class CoreDataRepository @Inject constructor(
     private val meshNetworkManager: MeshNetworkManager,
     @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
 ) {
