@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_automatic_connection">Automatic Connection</string>
+    <string name="title_proxy">Proxy</string>
+    <string name="label_no_device_connected">No device connected</string>
+</resources>

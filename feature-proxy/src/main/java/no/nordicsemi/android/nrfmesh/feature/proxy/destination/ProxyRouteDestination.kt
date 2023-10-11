@@ -11,7 +11,11 @@ val proxy = createSimpleDestination("proxy")
 val proxyDestination = defineDestination(proxy) {
     val viewModel: ProxyViewModel = hiltViewModel()
 
-    ProxyRoute()
+    ProxyRoute(
+        onDeviceFound = { context, results ->
+            viewModel.connect(context = context, results = results)
+        }
+    )
 }
 
 val proxyDestinations = listOf(proxyDestination)

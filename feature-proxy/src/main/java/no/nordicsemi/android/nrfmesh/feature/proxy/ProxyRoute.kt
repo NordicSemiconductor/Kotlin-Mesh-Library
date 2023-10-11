@@ -2,6 +2,7 @@
 
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
+import android.content.Context
 import android.os.ParcelUuid
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -35,6 +36,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,12 +49,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 
 @Composable
-internal fun ProxyRoute() {
-    ProxyFilterScreen()
+internal fun ProxyRoute(onDeviceFound: (Context, BleScanResults) -> Unit) {
+    ProxyFilterScreen(onDeviceFound = onDeviceFound)
 }
 
 @Composable
-private fun ProxyFilterScreen() {
+private fun ProxyFilterScreen(onDeviceFound: (Context, BleScanResults) -> Unit) {
     val scope = rememberCoroutineScope()
     var showProxiesSheet by rememberSaveable { mutableStateOf(false) }
     val capabilitiesSheet = rememberModalBottomSheetState()
@@ -76,7 +79,9 @@ private fun ProxyFilterScreen() {
                 title = "Proxies",
                 titleStyle = MaterialTheme.typography.titleLarge
             )
-            ScannerSection(onDeviceFound = {})
+            ScannerSection(
+                onDeviceFound = onDeviceFound
+            )
         }
 }
 
@@ -100,7 +105,7 @@ private fun AutomaticConnectionRow() {
                 tint = LocalContentColor.current.copy(alpha = 0.6f)
             )
         },
-        title = "Automatic Connection",
+        title = stringResource(R.string.label_automatic_connection),
         trailingComposable = {
             Switch(checked = isChecked, onCheckedChange = { isChecked = it })
         }
@@ -110,7 +115,9 @@ private fun AutomaticConnectionRow() {
 @Composable
 private fun ProxyRow(onProxyRowClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.padding(end = 16.dp).clickable(onClick = onProxyRowClicked),
+        modifier = Modifier
+            .padding(end = 16.dp)
+            .clickable(onClick = onProxyRowClicked),
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(all = 16.dp),
@@ -119,8 +126,8 @@ private fun ProxyRow(onProxyRowClicked: () -> Unit) {
                 tint = LocalContentColor.current.copy(alpha = 0.6f)
             )
         },
-        title = "Proxy",
-        subtitle = "No device connected",
+        title = stringResource(R.string.title_proxy),
+        subtitle = stringResource(R.string.label_no_device_connected),
         trailingComposable = {
             Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                 Divider(
@@ -145,10 +152,13 @@ private fun ProxyRow(onProxyRowClicked: () -> Unit) {
 
 
 @Composable
-private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
+private fun ScannerSection(onDeviceFound: (Context, BleScanResults) -> Unit) {
+    val context = LocalContext.current
     ScannerView(
         uuid = ParcelUuid(MeshProxyService.uuid),
-        onResult = onDeviceFound,
+        onResult = {
+            onDeviceFound(context, it)
+        },
         deviceItem = {
             DeviceListItem(
                 modifier = Modifier.padding(vertical = 16.dp),
