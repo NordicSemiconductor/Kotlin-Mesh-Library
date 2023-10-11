@@ -7,11 +7,9 @@ import android.os.ParcelUuid
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,7 +23,6 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
@@ -39,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,6 +53,7 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connected
@@ -105,7 +102,7 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning:(Context, BleScanResults) -> Unit,
+    beginProvisioning: (Context, BleScanResults) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -144,27 +141,19 @@ private fun ProvisionerScreen(
             sheetState = capabilitiesSheet,
             windowInsets = windowInsets
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = {
-                        scope.launch {
-                            capabilitiesSheet.hide()
-                            delay(1000)
-                            disconnect()
-                            showDeviceCapabilitiesSheet = false
-                        }
-                    }) {
-                        Icon(imageVector = Icons.Rounded.Close, contentDescription = null)
+            BottomSheetTopAppBar(
+                navigationIcon = Icons.Rounded.Close,
+                onNavigationIconClick = {
+                    scope.launch {
+                        capabilitiesSheet.hide()
+                        delay(1000)
+                        disconnect()
+                        showDeviceCapabilitiesSheet = false
                     }
-                    Spacer(modifier = Modifier.size(16.dp))
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.label_device_information),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+                },
+                title = stringResource(R.string.label_device_information),
+                titleStyle = MaterialTheme.typography.titleLarge,
+                actions = {
                     Spacer(modifier = Modifier.size(16.dp))
                     TextButton(
                         enabled = uiState.provisionerState is Provisioning,
@@ -187,26 +176,26 @@ private fun ProvisionerScreen(
                         )
                     }
                 }
-                ProvisioningContent(
-                    provisionerState = uiState.provisionerState,
-                    snackbarHostState = snackbarHostState,
-                    showAuthenticationDialog = showAuthenticationDialog,
-                    onAuthenticationDialogDismissed = {
-                        showAuthenticationDialog = false
-                    },
-                    onNameChanged = onNameChanged,
-                    onAddressChanged = onAddressChanged,
-                    isValidAddress = isValidAddress,
-                    onNetworkKeyClick = onNetworkKeyClick,
-                    startProvisioning = startProvisioning,
-                    authenticate = authenticate,
-                    onProvisioningComplete = {
-                        showDeviceCapabilitiesSheet = false
-                        onProvisioningComplete()
-                    },
-                    onProvisioningFailed = onProvisioningFailed
-                )
-            }
+            )
+            ProvisioningContent(
+                provisionerState = uiState.provisionerState,
+                snackbarHostState = snackbarHostState,
+                showAuthenticationDialog = showAuthenticationDialog,
+                onAuthenticationDialogDismissed = {
+                    showAuthenticationDialog = false
+                },
+                onNameChanged = onNameChanged,
+                onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
+                onNetworkKeyClick = onNetworkKeyClick,
+                startProvisioning = startProvisioning,
+                authenticate = authenticate,
+                onProvisioningComplete = {
+                    showDeviceCapabilitiesSheet = false
+                    onProvisioningComplete()
+                },
+                onProvisioningFailed = onProvisioningFailed
+            )
         }
     }
 }
@@ -227,6 +216,7 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
         },
         deviceItem = {
             DeviceListItem(
+                modifier = Modifier.padding(vertical = 16.dp),
                 name = it.device.name,
                 address = it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
                     UnprovisionedDevice.from(bytes.value).uuid.toString().uppercase()

@@ -4,16 +4,26 @@ package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.os.ParcelUuid
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BluetoothSearching
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -36,7 +46,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 
 @Composable
-internal fun ProxyFilterRoute(viewModel: ProxyRouteViewModel) {
+internal fun ProxyFilterRoute() {
     ProxyFilterScreen()
 }
 
@@ -79,7 +89,9 @@ private fun LazyListScope.proxyFilterInfo(onProxyRowClicked: () -> Unit) {
 private fun AutomaticConnectionRow() {
     var isChecked by rememberSaveable { mutableStateOf(true) }
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
+        modifier = Modifier
+            .padding(end = 16.dp)
+            .clickable(onClick = { }),
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -98,7 +110,7 @@ private fun AutomaticConnectionRow() {
 @Composable
 private fun ProxyRow(onProxyRowClicked: () -> Unit) {
     MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = onProxyRowClicked),
+        modifier = Modifier.padding(end = 16.dp).clickable(onClick = onProxyRowClicked),
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(all = 16.dp),
@@ -108,7 +120,26 @@ private fun ProxyRow(onProxyRowClicked: () -> Unit) {
             )
         },
         title = "Proxy",
-        subtitle = "No device connected"
+        subtitle = "No device connected",
+        trailingComposable = {
+            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                Divider(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                IconButton(
+                    onClick = onProxyRowClicked
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.BluetoothSearching,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
     )
 }
 
@@ -120,6 +151,7 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
         onResult = onDeviceFound,
         deviceItem = {
             DeviceListItem(
+                modifier = Modifier.padding(vertical = 16.dp),
                 name = it.device.name,
                 address = it.device.address
             )

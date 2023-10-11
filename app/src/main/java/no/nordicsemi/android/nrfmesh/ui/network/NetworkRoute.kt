@@ -79,8 +79,8 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provision
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
-import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilter
-import no.nordicsemi.android.nrfmesh.feature.proxyfilter.destination.proxyFilterDestinations
+import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyFilter
+import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyFilterDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDropDown
@@ -149,8 +149,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
         },
         floatingActionButton = {
             if (currentDestination == nodes ||
-                currentDestination == groups ||
-                currentDestination == proxyFilter
+                currentDestination == groups
             ) {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
