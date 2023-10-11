@@ -1,11 +1,14 @@
 @file:Suppress("UNUSED_PARAMETER")
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,7 +91,7 @@ private fun Nodes(
 }
 
 @Composable
-fun NodeItem(
+private fun NodeItem(
     node: Node,
     navigateToNode: (UUID) -> Unit,
     onSwiped: (Node) -> Unit,

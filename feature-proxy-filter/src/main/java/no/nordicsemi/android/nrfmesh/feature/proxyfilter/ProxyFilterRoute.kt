@@ -5,20 +5,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Switch
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 
@@ -72,16 +69,6 @@ private fun ProxyRow() {
             )
         },
         title = "Proxy",
-        subtitle = "No device connected",
-        trailingComposable = {
-            Text(
-                modifier = Modifier.padding(all = 16.dp),
-                text = "CONNECT",
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Clip,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
+        subtitle = "No device connected"
     )
 }

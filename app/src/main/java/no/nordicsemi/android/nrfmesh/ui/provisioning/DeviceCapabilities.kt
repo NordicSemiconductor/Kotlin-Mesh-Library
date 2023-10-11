@@ -5,10 +5,7 @@ package no.nordicsemi.android.nrfmesh.ui.provisioning
 import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,7 +19,6 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.EnhancedEncryption
 import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -47,7 +43,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -63,23 +58,24 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
+
 @Composable
 internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
+    snackbarHostState: SnackbarHostState,
     unprovisionedDevice: UnprovisionedDevice,
+    showAuthenticationDialog: Boolean,
+    onAuthenticationDialogDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-
-    var showModalBottomSheet by remember { mutableStateOf(false) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -110,28 +106,6 @@ internal fun DeviceCapabilities(
                     onNetworkKeyClick(state.parameters.networkKey.index)
                 }, name = state.parameters.networkKey.name
             )
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
-            ) {
-                Button(onClick = {
-                    runCatching {
-                        showModalBottomSheet = true
-                    }.onFailure {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = it.message
-                                    ?: context.getString(R.string.label_unknown_error)
-                            )
-                        }
-                    }.onSuccess {
-
-                    }
-                }) {
-                    Text(text = stringResource(R.string.label_provision))
-                }
-            }
         }
         item {
             SectionTitle(title = stringResource(R.string.title_device_capabilities))
@@ -255,11 +229,11 @@ internal fun DeviceCapabilities(
         }
     }
 
-    if (showModalBottomSheet) {
+    if (showAuthenticationDialog) {
         AuthSelectionBottomSheet(
             capabilities = state.capabilities,
             onConfirmClicked = { startProvisioning(it) },
-            onDismissRequest = { showModalBottomSheet = !showModalBottomSheet },
+            onDismissRequest = { onAuthenticationDialogDismissed(false) },
         )
     }
 }
@@ -275,7 +249,7 @@ private fun Name(
         mutableStateOf(TextFieldValue(text = name, selection = TextRange(name.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "Name") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -364,7 +338,7 @@ private fun UnicastAddressRow(
     var error by rememberSaveable { mutableStateOf(false) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var supportingErrorText by rememberSaveable { mutableStateOf("") }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "UnicastAddress") { state ->
         when (state) {
             true -> MeshOutlinedTextField(modifier = Modifier.padding(vertical = 8.dp),
                 onFocus = onEditClick,

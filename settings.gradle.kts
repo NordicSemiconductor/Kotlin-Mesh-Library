@@ -6,7 +6,7 @@ pluginManagement {
         mavenCentral()
     }
 
-    plugins{
+    plugins {
         id("org.jetbrains.dokka") version "1.9.0"
         id("org.jetbrains.kotlin.jvm") version "1.9.0"
     }
@@ -29,7 +29,6 @@ dependencyResolutionManagement {
 rootProject.name = "Kotlin-nRF Mesh-Library"
 include(":app")
 include(":core-ui")
-// include(":core-data-storage")
 include(":feature-nodes")
 include(":feature-groups")
 include(":feature-settings")
@@ -55,3 +54,7 @@ include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
+
+if (file("../Kotlin-BLE-Library").exists()) {
+    includeBuild("../Kotlin-BLE-Library")
+}

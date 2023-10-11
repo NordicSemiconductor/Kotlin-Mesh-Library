@@ -17,43 +17,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
-    imageVector: ImageVector,
-    title: String,
-    subtitle: String = "",
-    subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Clip
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier
-                .padding(start = 28.dp, end = 16.dp)
-                .size(24.dp),
-            imageVector = imageVector,
-            contentDescription = null,
-            tint = LocalContentColor.current.copy(alpha = 0.6f)
-        )
-        Column(
-            Modifier
-                .padding(vertical = 28.dp)
-        ) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-            if (subtitle.isNotEmpty())
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = subtitleMaxLines,
-                    overflow = subtitleTextOverflow
-                )
-        }
-    }
-}
-
-@Composable
-fun MeshTwoLineListItem(
-    modifier: Modifier = Modifier,
     leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
@@ -89,6 +52,43 @@ fun MeshTwoLineListItem(
                 )
         }
         trailingComposable()
+    }
+}
+
+@Composable
+fun MeshTwoLineListItem(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    title: String,
+    subtitle: String = "",
+    subtitleMaxLines: Int = 1,
+    subtitleTextOverflow: TextOverflow = TextOverflow.Clip
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(start = 28.dp, end = 16.dp)
+                .size(24.dp),
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = LocalContentColor.current.copy(alpha = 0.6f)
+        )
+        Column(
+            Modifier
+                .padding(vertical = 28.dp)
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
+            if (subtitle.isNotEmpty())
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = subtitleMaxLines,
+                    overflow = subtitleTextOverflow
+                )
+        }
     }
 }
 

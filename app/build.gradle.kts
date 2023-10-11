@@ -21,8 +21,6 @@ dependencies {
     implementation(libs.nordic.blek.scanner)
     implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
-    // Workaround to get access to the scanner compat api
-    implementation(libs.nordic.scanner)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -38,7 +36,6 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
     implementation(project(":core-data"))
-    // implementation(project(":core-data-storage"))
     implementation(project(":feature-nodes"))
     implementation(project(":feature-groups"))
     implementation(project(":feature-proxy-filter"))
