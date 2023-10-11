@@ -50,8 +50,6 @@ class ProvisioningViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
 
-    private lateinit var pbGattBearer: PbGattBearer
-
     private var unprovisionedDevice: UnprovisionedDevice? = null
 
     private val _uiState = MutableStateFlow(ProvisioningScreenUiState(provisionerState = Scanning))
@@ -87,12 +85,10 @@ class ProvisioningViewModel @Inject constructor(
             _uiState.value = ProvisioningScreenUiState(
                 provisionerState = Connecting(unprovisionedDevice = device)
             )
-            pbGattBearer = PbGattBearer(
+            val pbGattBearer = repository.connectOverPbGattBearer(
                 context = context,
                 device = scanResults.device
-            ).apply { logger = this@ProvisioningViewModel }
-
-            pbGattBearer.open()
+            )
             pbGattBearer.state.takeWhile {
                 it !is BearerEvent.Closed
             }.onEach {
@@ -100,7 +96,7 @@ class ProvisioningViewModel @Inject constructor(
                     _uiState.value = ProvisioningScreenUiState(
                         provisionerState = Connected(device)
                     )
-                    identifyNode(device)
+                    identifyNode(device, pbGattBearer)
                 }
             }.onCompletion {
                 _uiState.value = ProvisioningScreenUiState(
@@ -114,7 +110,7 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Identify the node by sending a provisioning invite.
      */
-    private fun identifyNode(unprovisionedDevice: UnprovisionedDevice) {
+    private fun identifyNode(unprovisionedDevice: UnprovisionedDevice, pbGattBearer: PbGattBearer) {
         provisioningManager = ProvisioningManager(
             unprovisionedDevice = unprovisionedDevice,
             meshNetwork = meshNetwork,
@@ -151,7 +147,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun disconnect() {
         viewModelScope.launch {
-            pbGattBearer.close()
+            repository.close()
         }
     }
 
