@@ -54,7 +54,3 @@ include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
-
-if (file("../Kotlin-BLE-Library").exists()) {
-    includeBuild("../Kotlin-BLE-Library")
-}
