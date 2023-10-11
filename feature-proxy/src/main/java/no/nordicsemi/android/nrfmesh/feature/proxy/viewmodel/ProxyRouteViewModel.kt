@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.proxy
+package no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
