@@ -38,7 +38,7 @@ dependencies {
     implementation(project(":core-data"))
     implementation(project(":feature-nodes"))
     implementation(project(":feature-groups"))
-    implementation(project(":feature-proxy-filter"))
+    implementation(project(":feature-proxy"))
     implementation(project(":feature-settings"))
     implementation(project(":feature-network-keys"))
     implementation(project(":feature-application-keys"))
