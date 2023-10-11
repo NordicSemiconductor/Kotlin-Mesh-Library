@@ -147,7 +147,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun disconnect() {
         viewModelScope.launch {
-            repository.close()
+            repository.disconnect()
         }
     }
 

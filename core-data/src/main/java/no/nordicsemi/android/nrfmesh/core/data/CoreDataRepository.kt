@@ -64,10 +64,19 @@ class CoreDataRepository @Inject constructor(
 
     suspend fun connectOverGattBearer(context: Context, device: ServerDevice) =
         withContext(ioDispatcher) {
-            // TODO
+            if (bearer is PbGattBearer) {
+                bearer?.close()
+            }
+            GattBearer(
+                context = context,
+                device = device
+            ).also {
+                it.open()
+                bearer = it
+            }
         }
 
-    suspend fun close() = withContext(ioDispatcher) {
+    suspend fun disconnect() = withContext(ioDispatcher) {
         bearer?.close()
     }
 }
