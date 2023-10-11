@@ -110,7 +110,7 @@ sealed interface ProvisionerState {
     ) : ProvisionerState
 
     data class Error(val throwable: Throwable) : ProvisionerState
-    object Loading : ProvisionerState
+    data object Loading : ProvisionerState
 }
 
 data class ProvisionerScreenUiState internal constructor(
