@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
 @HiltViewModel
-internal class ProxyRouteViewModel @Inject internal constructor(
+internal class ProxyViewModel @Inject internal constructor(
     navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository

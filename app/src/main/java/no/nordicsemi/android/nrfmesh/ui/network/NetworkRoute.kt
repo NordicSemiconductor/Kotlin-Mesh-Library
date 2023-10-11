@@ -79,8 +79,8 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provision
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
-import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyFilter
-import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyFilterDestinations
+import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxy
+import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyDestinations
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDropDown
@@ -135,7 +135,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
                 },
                 onNavigationButtonClick = viewModel::navigateUp,
                 showBackButton = when (currentDestination) {
-                    nodes, groups, proxyFilter, settings -> false
+                    nodes, groups, proxy, settings -> false
                     else -> true
                 },
                 actions = {
@@ -157,7 +157,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
                 ) {
                     Icon(
                         imageVector = when (currentDestination) {
-                            proxyFilter -> Icons.Rounded.Hub
+                            proxy -> Icons.Rounded.Hub
                             else -> Icons.Rounded.Add
                         }, contentDescription = null
                     )
@@ -166,7 +166,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
                         text = when (currentDestination) {
                             nodes -> stringResource(R.string.action_add_node)
                             groups -> stringResource(R.string.action_add_group)
-                            proxyFilter -> stringResource(R.string.action_connect)
+                            proxy -> stringResource(R.string.action_connect)
                             else -> ""
                         }
                     )
@@ -190,7 +190,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
             destinations = listOf(
                 topLevelTabs with ((nodesTab with nodesDestinations) +
                         (groupsTab with groupsDestinations) +
-                        (proxyFilterTab with proxyFilterDestinations) +
+                        (proxyFilterTab with proxyDestinations) +
                         (settingsTab with settingsDestinations)) +
                         provisioningDestination +
                         netKeySelectorDestination +
@@ -256,7 +256,7 @@ fun BottomNavigationBar(
 @Composable
 fun DestinationId<*, *>.title(): String {
     return when (this) {
-        nodes, groups, proxyFilter, settings -> "Network"
+        nodes, groups, proxy, settings -> "Network"
         provisioning -> "Provision Device"
         netKeySelector -> "Select Network Key"
         provisioners -> "Provisioners"

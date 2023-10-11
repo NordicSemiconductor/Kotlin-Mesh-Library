@@ -46,7 +46,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 
 @Composable
-internal fun ProxyFilterRoute() {
+internal fun ProxyRoute() {
     ProxyFilterScreen()
 }
 

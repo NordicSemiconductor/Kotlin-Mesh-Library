@@ -3,15 +3,15 @@ package no.nordicsemi.android.nrfmesh.feature.proxy.destination
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.common.navigation.createSimpleDestination
 import no.nordicsemi.android.common.navigation.defineDestination
-import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyFilterRoute
-import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyRouteViewModel
+import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyRoute
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyViewModel
 
-val proxyFilter = createSimpleDestination("proxy_filter")
+val proxy = createSimpleDestination("proxy")
 
-val proxyFilterDestination = defineDestination(proxyFilter) {
-    val viewModel: ProxyRouteViewModel = hiltViewModel()
+val proxyDestination = defineDestination(proxy) {
+    val viewModel: ProxyViewModel = hiltViewModel()
 
-    ProxyFilterRoute()
+    ProxyRoute()
 }
 
-val proxyFilterDestinations = listOf(proxyFilterDestination)
+val proxyDestinations = listOf(proxyDestination)
