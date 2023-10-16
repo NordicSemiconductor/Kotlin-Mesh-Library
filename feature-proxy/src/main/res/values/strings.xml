@@ -3,4 +3,10 @@
     <string name="label_automatic_connection">Automatic Connection</string>
     <string name="title_proxy">Proxy</string>
     <string name="label_no_device_connected">No device connected</string>
+    <string name="label_scanning">Scanning…</string>
+    <string name="label_connecting_to">Connecting to %s…</string>
+    <string name="label_connected_to">Connected to %s</string>
+    <string name="label_disconnected">Disconnected</string>
+    <string name="label_unknown">Unknown</string>
+    <string name="empty" />
 </resources>

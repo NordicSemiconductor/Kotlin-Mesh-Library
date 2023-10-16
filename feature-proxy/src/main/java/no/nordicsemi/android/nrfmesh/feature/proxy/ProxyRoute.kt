@@ -47,56 +47,96 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyScreenUiState
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState
 
 @Composable
-internal fun ProxyRoute(onDeviceFound: (Context, BleScanResults) -> Unit) {
-    ProxyFilterScreen(onDeviceFound = onDeviceFound)
+internal fun ProxyRoute(
+    uiState: ProxyScreenUiState,
+    onAutoConnectChecked: (Boolean) -> Unit,
+    onDeviceFound: (Context, BleScanResults) -> Unit,
+) {
+    ProxyFilterScreen(
+        autoConnect = uiState.autoConnect,
+        onAutoConnectChecked = onAutoConnectChecked,
+        proxyState = uiState.proxyState,
+        onDeviceFound = onDeviceFound
+    )
 }
 
 @Composable
-private fun ProxyFilterScreen(onDeviceFound: (Context, BleScanResults) -> Unit) {
+private fun ProxyFilterScreen(
+    autoConnect: Boolean,
+    onAutoConnectChecked: (Boolean) -> Unit,
+    proxyState: ProxyState,
+    onDeviceFound: (Context, BleScanResults) -> Unit
+) {
     val scope = rememberCoroutineScope()
-    var showProxiesSheet by rememberSaveable { mutableStateOf(false) }
-    val capabilitiesSheet = rememberModalBottomSheetState()
+    var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
+    val proxyScannerSheetState = rememberModalBottomSheetState()
 
     LazyColumn {
-        proxyFilterInfo(onProxyRowClicked = { showProxiesSheet = true })
+        proxyFilterInfo(
+            autoConnect = autoConnect,
+            onAutoConnectChecked = onAutoConnectChecked,
+            proxyState = proxyState,
+            onProxyRowClicked = { showProxyScannerSheet = true }
+        )
     }
-    if (showProxiesSheet)
+    if (showProxyScannerSheet)
         ModalBottomSheet(
-            onDismissRequest = { showProxiesSheet = false },
-            sheetState = capabilitiesSheet
+            onDismissRequest = { showProxyScannerSheet = false },
+            sheetState = proxyScannerSheetState
         ) {
             BottomSheetTopAppBar(
                 navigationIcon = Icons.Rounded.Close,
                 onNavigationIconClick = {
                     scope.launch {
-                        capabilitiesSheet.hide()
+                        proxyScannerSheetState.hide()
                         delay(1000)
-                        showProxiesSheet = false
+                        showProxyScannerSheet = false
                     }
                 },
                 title = "Proxies",
                 titleStyle = MaterialTheme.typography.titleLarge
             )
             ScannerSection(
-                onDeviceFound = onDeviceFound
+                onDeviceFound = { context, results ->
+                    showProxyScannerSheet = false
+                    onDeviceFound(context, results)
+                }
             )
         }
 }
 
-private fun LazyListScope.proxyFilterInfo(onProxyRowClicked: () -> Unit) {
-    item { AutomaticConnectionRow() }
-    item { ProxyRow(onProxyRowClicked = onProxyRowClicked) }
+private fun LazyListScope.proxyFilterInfo(
+    autoConnect: Boolean,
+    onAutoConnectChecked: (Boolean) -> Unit,
+    proxyState: ProxyState,
+    onProxyRowClicked: () -> Unit
+) {
+    item {
+        AutomaticConnectionRow(
+            autoConnect = autoConnect,
+            onAutoConnectChecked = onAutoConnectChecked
+        )
+    }
+    item {
+        ProxyRow(
+            autoConnect = autoConnect,
+            proxyState = proxyState,
+            onProxyRowClicked = onProxyRowClicked
+        )
+    }
 }
 
 @Composable
-private fun AutomaticConnectionRow() {
-    var isChecked by rememberSaveable { mutableStateOf(true) }
+private fun AutomaticConnectionRow(
+    autoConnect: Boolean,
+    onAutoConnectChecked: (Boolean) -> Unit,
+) {
     MeshTwoLineListItem(
-        modifier = Modifier
-            .padding(end = 16.dp)
-            .clickable(onClick = { }),
+        modifier = Modifier.padding(end = 16.dp),
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -107,17 +147,25 @@ private fun AutomaticConnectionRow() {
         },
         title = stringResource(R.string.label_automatic_connection),
         trailingComposable = {
-            Switch(checked = isChecked, onCheckedChange = { isChecked = it })
+            Switch(
+                modifier = Modifier.clickable { onAutoConnectChecked(!autoConnect) },
+                checked = autoConnect,
+                onCheckedChange = null
+            )
         }
     )
 }
 
 @Composable
-private fun ProxyRow(onProxyRowClicked: () -> Unit) {
+private fun ProxyRow(
+    autoConnect: Boolean,
+    proxyState: ProxyState,
+    onProxyRowClicked: () -> Unit
+) {
     MeshTwoLineListItem(
         modifier = Modifier
             .padding(end = 16.dp)
-            .clickable(onClick = onProxyRowClicked),
+            .clickable(enabled = !autoConnect, onClick = onProxyRowClicked),
         leadingComposable = {
             Icon(
                 modifier = Modifier.padding(all = 16.dp),
@@ -127,7 +175,7 @@ private fun ProxyRow(onProxyRowClicked: () -> Unit) {
             )
         },
         title = stringResource(R.string.title_proxy),
-        subtitle = stringResource(R.string.label_no_device_connected),
+        subtitle = proxyState.describe(),
         trailingComposable = {
             Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                 Divider(
@@ -136,9 +184,7 @@ private fun ProxyRow(onProxyRowClicked: () -> Unit) {
                         .width(1.dp)
                 )
                 Spacer(modifier = Modifier.size(16.dp))
-                IconButton(
-                    onClick = onProxyRowClicked
-                ) {
+                IconButton(enabled = !autoConnect, onClick = onProxyRowClicked) {
                     Icon(
                         imageVector = Icons.Outlined.BluetoothSearching,
                         contentDescription = null,
@@ -156,9 +202,7 @@ private fun ScannerSection(onDeviceFound: (Context, BleScanResults) -> Unit) {
     val context = LocalContext.current
     ScannerView(
         uuid = ParcelUuid(MeshProxyService.uuid),
-        onResult = {
-            onDeviceFound(context, it)
-        },
+        onResult = { onDeviceFound(context, it) },
         deviceItem = {
             DeviceListItem(
                 modifier = Modifier.padding(vertical = 16.dp),
@@ -168,4 +212,16 @@ private fun ScannerSection(onDeviceFound: (Context, BleScanResults) -> Unit) {
         },
         showFilter = false
     )
+}
+
+@Composable
+private fun ProxyState.describe() = when (this) {
+    is ProxyState.Connecting -> stringResource(
+        R.string.label_connecting_to, device.name ?: R.string.label_unknown
+    )
+
+    is ProxyState.Connected -> stringResource(
+        R.string.label_connected_to, device.name ?: R.string.label_unknown
+    )
+    ProxyState.Scanning, ProxyState.Disconnected -> stringResource(R.string.empty)
 }

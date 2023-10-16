@@ -13,8 +13,10 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
+import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.*
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
@@ -27,24 +29,32 @@ internal class ProxyViewModel @Inject internal constructor(
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var meshNetwork: MeshNetwork
 
-    private val _uiState = MutableStateFlow(ProxyScreenUiState())
+    private val _uiState = MutableStateFlow(
+        ProxyScreenUiState(
+            autoConnect = true,
+            proxyState = Scanning
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
-    internal fun onAutomaticConnectionChanged(enabled : Boolean) {
-        _uiState.value = ProxyScreenUiState(isAutomaticConnectionEnabled = enabled)
+    internal fun onAutomaticConnectionChanged(enabled: Boolean) {
+        _uiState.value = _uiState.value.copy(autoConnect = enabled)
     }
-    internal fun connect(context: Context, results : BleScanResults) {
+
+    internal fun connect(context: Context, results: BleScanResults) {
         viewModelScope.launch {
+            val device = results.device
+            _uiState.value = _uiState.value.copy(proxyState = Connecting(device = device))
             val gattBearer = repository.connectOverGattBearer(
                 context = context,
                 device = results.device
             )
-            gattBearer.open()
+            // gattBearer.open()
             gattBearer.state.takeWhile {
                 it !is BearerEvent.Closed
             }.onEach {
                 if (it is BearerEvent.Opened) {
-                    _uiState.value = ProxyScreenUiState(isConnected = true)
+                    _uiState.value = _uiState.value.copy(proxyState = Connected(device = device))
                 }
             }.onCompletion {
 
@@ -56,17 +66,19 @@ internal class ProxyViewModel @Inject internal constructor(
     internal fun disconnect() {
         viewModelScope.launch {
             repository.disconnect()
+            _uiState.value = _uiState.value.copy(proxyState = Disconnected)
         }
     }
-
-    /**
-     * Saves the network.
-     */
-    private fun save() {
-        viewModelScope.launch { repository.save() }
-    }
 }
+
+internal sealed class ProxyState {
+    data object Scanning : ProxyState()
+    data class Connecting(val device: ServerDevice) : ProxyState()
+    data class Connected(val device: ServerDevice) : ProxyState()
+    data object Disconnected : ProxyState()
+}
+
 internal data class ProxyScreenUiState internal constructor(
-    val isAutomaticConnectionEnabled : Boolean = true,
-    val isConnected : Boolean = false
+    val autoConnect: Boolean = true,
+    val proxyState: ProxyState
 )
