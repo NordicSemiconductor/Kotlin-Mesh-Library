@@ -38,7 +38,7 @@ open class PbGattBearer(
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun send(pdu: ByteArray) {
+    internal suspend fun send(pdu: ByteArray) {
         send(pdu, PduType.PROVISIONING_PDU)
     }
 }

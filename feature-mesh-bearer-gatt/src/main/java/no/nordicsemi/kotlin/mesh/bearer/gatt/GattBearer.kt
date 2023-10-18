@@ -37,7 +37,7 @@ class GattBearer(
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun sendPdu(pdu: ByteArray, type: PduType) {
+    internal suspend fun sendPdu(pdu: ByteArray, type: PduType) {
         send(pdu, type)
     }
 }
