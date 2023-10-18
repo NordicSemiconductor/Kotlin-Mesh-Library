@@ -1308,7 +1308,7 @@ class MeshNetwork internal constructor(
      * @param networkId Network ID.
      * @return true if matches or false otherwise.
      */
-    fun matches(networkId : NetworkIdentity) = networkKeys.first {
+    fun matches(networkId : NetworkIdentity) = networkKeys.any {
         networkId.matches(it)
     }
 
