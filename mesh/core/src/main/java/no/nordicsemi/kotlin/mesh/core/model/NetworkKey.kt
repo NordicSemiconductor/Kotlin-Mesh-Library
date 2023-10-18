@@ -125,7 +125,7 @@ data class NetworkKey internal constructor(
         internal set
 
     @Transient
-    var networkId: ByteArray? = null
+    lateinit var networkId: ByteArray
         private set
 
     @Transient
