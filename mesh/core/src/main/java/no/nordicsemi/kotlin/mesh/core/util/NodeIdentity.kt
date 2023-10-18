@@ -5,14 +5,13 @@ package no.nordicsemi.kotlin.mesh.core.util
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import java.util.UUID
 
 /**
  * The Node Identity contains information from Node Identity or Private Node Identity beacon.
  *
  * This can be used to identify a node in the network.
  */
-internal interface NodeIdentity {
+interface NodeIdentity {
 
     /**
      * Returns whether the identity matches given node.
@@ -21,18 +20,6 @@ internal interface NodeIdentity {
      * @return true if the identity matches, false otherwise.
      */
     fun matches(node: Node): Boolean
-
-    /**
-     * Checks if the given hash is valid.
-     *
-     * @param hash          Hash to be checked.
-     * @param data          Data to be hashed.
-     * @param identityKey   Identity key.
-     */
-    fun isValidHash(hash: ByteArray, data: ByteArray, identityKey: ByteArray?) =
-        identityKey?.let {
-            hash.contentEquals(Crypto.calculateHash(data, identityKey = it))
-        } ?: false
 }
 
 /**
@@ -48,15 +35,15 @@ data class PublicNodeIdentity internal constructor(
     override fun matches(node: Node): Boolean {
         val data = ByteArray(6) { 0 } + random + node.primaryUnicastAddress.address.toByteArray()
         for (key in node.networkKeys) {
-            if (isValidHash(hash = hash, data = data, identityKey = key.derivatives.identityKey))
+            val calculatedHash =
+                Crypto.calculateHash(data = data, identityKey = key.derivatives.identityKey)
+            if (hash.contentEquals(calculatedHash))
                 return true
 
-            if (isValidHash(
-                    hash = hash,
-                    data = data,
-                    identityKey = key.oldDerivatives?.identityKey
-                )
-            ) return true
+            key.oldDerivatives?.identityKey?.let {
+                if (hash.contentEquals(Crypto.calculateHash(data = data, identityKey = it)))
+                    return true
+            }
         }
         return false
     }
@@ -78,28 +65,6 @@ data class PublicNodeIdentity internal constructor(
         result = 31 * result + random.contentHashCode()
         return result
     }
-
-    companion object {
-
-        /**
-         * Creates a PublicNodeIdentity object from the given advertisement data.
-         *
-         * The advertisement data must be 17 bytes long and the first byte must be 0x01.
-         *
-         * @param uuid UUID of the service.
-         * @param advertisementData Advertisement data.
-         * @return PublicNodeIdentity object or null if the advertisement data is invalid.
-         */
-        fun init(uuid: UUID, advertisementData: HashMap<UUID, ByteArray?>) =
-            advertisementData[uuid]?.takeIf {
-                it.size == 17 && it[0] == 0x01.toByte()
-            }?.let {
-                PublicNodeIdentity(
-                    hash = it.sliceArray(1 until 9),
-                    random = it.sliceArray(9 until 17)
-                )
-            }
-    }
 }
 
 /**
@@ -115,15 +80,15 @@ data class PrivateNodeIdentity internal constructor(
     override fun matches(node: Node): Boolean {
         val data = ByteArray(5) { 0 } + random + node.primaryUnicastAddress.address.toByteArray()
         for (key in node.networkKeys) {
-            if (isValidHash(hash = hash, data = data, identityKey = key.derivatives.identityKey))
+            val calculatedHash =
+                Crypto.calculateHash(data = data, identityKey = key.derivatives.identityKey)
+            if (hash.contentEquals(calculatedHash))
                 return true
 
-            if (isValidHash(
-                    hash = hash,
-                    data = data,
-                    identityKey = key.oldDerivatives?.identityKey
-                )
-            ) return true
+            key.oldDerivatives?.identityKey?.let {
+                if (hash.contentEquals(Crypto.calculateHash(data = data, identityKey = it)))
+                    return true
+            }
         }
         return false
     }
@@ -145,26 +110,24 @@ data class PrivateNodeIdentity internal constructor(
         result = 31 * result + random.contentHashCode()
         return result
     }
+}
 
-    companion object {
+/**
+ * Returns the Node Identity for a given Node Identity beacon.
+ *
+ * @receiver ByteArray Node Identity beacon.
+ * @return NodeIdentity or null if the beacon is invalid.
+ */
+fun ByteArray.nodeIdentity() = when {
+    size == 17 && get(0) == 0x01.toByte() -> PublicNodeIdentity(
+        hash = sliceArray(1 until 9),
+        random = sliceArray(9 until 17)
+    )
 
-        /**
-         * Creates a PrivateNodeIdentity object from the given advertisement data. The advertisement
-         * data must be 17 bytes long and the first byte must be 0x03.
-         *
-         * @param uuid UUID of the service.
-         * @param advertisementData Advertisement data.
-         * @return PrivateNodeIdentity object or null if the advertisement data is invalid.
-         */
-        fun init(uuid: UUID, advertisementData: HashMap<UUID, ByteArray?>) =
-            advertisementData[uuid]?.takeIf {
-                it.size == 17 && it[0] == 0x03.toByte()
-            }?.let {
-                PrivateNodeIdentity(
-                    hash = it.sliceArray(1 until 9),
-                    random = it.sliceArray(9 until 17)
-                )
-            }
-    }
+    size == 17 && get(0) == 0x03.toByte() -> PrivateNodeIdentity(
+        hash = sliceArray(1 until 9),
+        random = sliceArray(9 until 17)
+    )
 
+    else -> null
 }
