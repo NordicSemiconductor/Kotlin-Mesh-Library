@@ -9,6 +9,8 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
+import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
 import java.util.*
@@ -581,6 +583,16 @@ class MeshNetwork internal constructor(
      * @return Node
      */
     fun node(uuid: UUID) = nodes.find { it.uuid == uuid }
+
+    /**
+     * Returns the node with the given node identity.
+     *
+     * @param nodeIdentity Node identity.
+     * @return Node or null otherwise.
+     */
+    fun node(nodeIdentity: NodeIdentity): Node? {
+        return nodes.firstOrNull { nodeIdentity.matches(it) }
+    }
 
     /**
      * Adds a given [Node] to the list of nodes in the mesh network.
@@ -1219,7 +1231,8 @@ class MeshNetwork internal constructor(
                             if (model.publish?.address is GroupAddress) {
                                 model._publish = null
                             }
-                            model._subscribe = model.subscribe.filterIsInstance<GroupAddress>().toMutableList()
+                            model._subscribe =
+                                model.subscribe.filterIsInstance<GroupAddress>().toMutableList()
                         }
                     }
                 }
@@ -1278,6 +1291,35 @@ class MeshNetwork internal constructor(
                 }
             }
         }
+    }
+
+    /**
+     * This method may be used to match the Node Identity or Private Node Identity beacons.
+     *
+     * @param nodeIdentity Node identity.
+     * @return Node matching the given node identity or null otherwise.
+     */
+    fun matches(nodeIdentity: NodeIdentity) = node(nodeIdentity) != null
+
+    /**
+     * Checks if the given Network Identity beacon matches with any of the network keys in the
+     * network.
+     *
+     * @param networkId Network ID.
+     * @return true if matches or false otherwise.
+     */
+    fun matches(networkId : NetworkIdentity) = networkKeys.first {
+        networkId.matches(it)
+    }
+
+    /**
+     * Checks if the given Network ID matches with any of the network keys in the network.
+     *
+     * @param networkId Network ID.
+     * @return true if matches or false otherwise.
+     */
+    fun matches(networkId : ByteArray) = networkKeys.any {
+        it.networkId.contentEquals(networkId) || it.oldNetworkId.contentEquals(networkId)
     }
 
     companion object {
