@@ -95,7 +95,7 @@ data class PrivateNetworkIdentity internal constructor(
  * @receiver ByteArray Advertisement data.
  * @return NetworkIdentity if the data is valid, null otherwise.
  */
-fun ByteArray.networkId() = when {
+fun ByteArray.networkIdentity() = when {
     size == 9 && get(0) == 0x00.toByte() -> PublicNetworkIdentity(
         networkId = sliceArray(1 until 9)
     )
