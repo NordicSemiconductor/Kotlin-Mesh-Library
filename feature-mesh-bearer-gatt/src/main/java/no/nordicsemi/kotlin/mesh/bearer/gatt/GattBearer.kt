@@ -8,6 +8,7 @@ import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattService
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService.uuid
 import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
@@ -27,13 +28,11 @@ class GattBearer(
         arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)
 
     override suspend fun configureGatt(services: ClientBleGattServices) {
-        services.findService(MeshProxyService.uuid)?.let { service ->
-            service.findCharacteristic(MeshProxyService.dataInUuid)
-                ?.let { dataInCharacteristic = it }
-            service.findCharacteristic(MeshProxyService.dataOutUuid)
-                ?.let { dataOutCharacteristic = it }
+        services.findService(uuid)?.let { service ->
+            service.findCharacteristic(MeshProxyService.dataInUuid)?.let { dataInCharacteristic = it }
+            service.findCharacteristic(MeshProxyService.dataOutUuid)?.let { dataOutCharacteristic = it }
+            awaitNotifications()
         }
-        awaitNotifications()
     }
 
     @SuppressLint("MissingPermission")

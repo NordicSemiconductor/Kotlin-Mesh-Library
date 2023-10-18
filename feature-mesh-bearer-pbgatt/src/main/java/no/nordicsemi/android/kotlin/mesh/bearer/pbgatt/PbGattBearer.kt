@@ -33,8 +33,8 @@ open class PbGattBearer(
         services.findService(uuid)?.let { service ->
             service.findCharacteristic(dataInUuid)?.let { dataInCharacteristic = it }
             service.findCharacteristic(dataOutUuid)?.let { dataOutCharacteristic = it }
+            awaitNotifications()
         }
-        awaitNotifications()
     }
 
     @SuppressLint("MissingPermission")
