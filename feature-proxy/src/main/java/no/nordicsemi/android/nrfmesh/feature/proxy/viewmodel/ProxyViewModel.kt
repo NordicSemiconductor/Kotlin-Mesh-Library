@@ -16,7 +16,10 @@ import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewMod
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.*
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.Connected
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.Connecting
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.Disconnected
+import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyState.Scanning
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
@@ -27,29 +30,37 @@ internal class ProxyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private lateinit var meshNetwork: MeshNetwork
+    private var meshNetwork: MeshNetwork? = null
 
     private val _uiState = MutableStateFlow(
-        ProxyScreenUiState(
-            autoConnect = true,
-            proxyState = Scanning
-        )
+        ProxyScreenUiState(autoConnect = repository.autoConnectProxy, proxyState = Scanning)
     )
     val uiState = _uiState.asStateFlow()
 
+    init {
+        observeNetwork()
+    }
+
+    private fun observeNetwork() {
+        repository.network.onEach {
+            meshNetwork = it
+        }.launchIn(viewModelScope)
+    }
+
     internal fun onAutomaticConnectionChanged(enabled: Boolean) {
-        _uiState.value = _uiState.value.copy(autoConnect = enabled)
+        repository.enableAutoConnectProxy(meshNetwork = meshNetwork, enabled = enabled)
+        _uiState.value = _uiState.value.copy(autoConnect = repository.autoConnectProxy)
     }
 
     internal fun connect(context: Context, results: BleScanResults) {
         viewModelScope.launch {
+            repository.disconnect()
             val device = results.device
             _uiState.value = _uiState.value.copy(proxyState = Connecting(device = device))
             val gattBearer = repository.connectOverGattBearer(
                 context = context,
                 device = results.device
             )
-            // gattBearer.open()
             gattBearer.state.takeWhile {
                 it !is BearerEvent.Closed
             }.onEach {

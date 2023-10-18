@@ -196,7 +196,6 @@ private fun ProxyRow(
     )
 }
 
-
 @Composable
 private fun ScannerSection(onDeviceFound: (Context, BleScanResults) -> Unit) {
     val context = LocalContext.current
