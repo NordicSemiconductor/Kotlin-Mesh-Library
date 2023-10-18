@@ -454,6 +454,17 @@ object Crypto {
     fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
 
     /**
+     * Generates Node Identity Hash using the given Identity Key
+     *
+     * @param data         48-bits of padding of 0s, 65-bit random value and the unicast Address of
+     *                     the node.
+     * @param identityKey  Identity key.
+     * @return Function of the included random number and identity information.
+     */
+    fun calculateHash(data : ByteArray, identityKey : ByteArray) =
+        calculateECB(data, identityKey).drop(8).toByteArray()
+
+    /**
      * Calculates the 128-bit IdentityKey.
      * The IdentityKey is derived from the network key such that each network key generates one
      * IdentityKey
