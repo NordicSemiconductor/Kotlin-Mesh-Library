@@ -27,7 +27,7 @@ sealed interface NetworkIdentity {
  *
  * @param networkId 64-bit network identifier derived from the network key.
  */
-data class PublicNetworkIdentity(val networkId: ByteArray) : NetworkIdentity {
+data class PublicNetworkIdentity internal constructor(val networkId: ByteArray) : NetworkIdentity {
 
     override fun matches(networkKey: NetworkKey) = networkKey.networkId.contentEquals(networkId) ||
             networkKey.oldNetworkId.contentEquals(networkId)
@@ -54,7 +54,9 @@ data class PublicNetworkIdentity(val networkId: ByteArray) : NetworkIdentity {
  * @param hash    Function of the included random number and identity information.
  * @param random  64-bit random number.
  */
-data class PrivateNetworkIdentity(val hash: ByteArray, val random: ByteArray) : NetworkIdentity {
+data class PrivateNetworkIdentity internal constructor(
+    val hash: ByteArray, val random: ByteArray
+) : NetworkIdentity {
 
     override fun matches(networkKey: NetworkKey): Boolean {
         val data = networkKey.networkId + random
@@ -85,4 +87,23 @@ data class PrivateNetworkIdentity(val hash: ByteArray, val random: ByteArray) : 
         result = 31 * result + random.contentHashCode()
         return result
     }
+}
+
+/**
+ * Creates the Network Identity from the given advertisement data.
+ *
+ * @receiver ByteArray Advertisement data.
+ * @return NetworkIdentity if the data is valid, null otherwise.
+ */
+fun ByteArray.networkId() = when {
+    size == 9 && get(0) == 0x00.toByte() -> PublicNetworkIdentity(
+        networkId = sliceArray(1 until 9)
+    )
+
+    size == 9 && get(0) == 0x02.toByte() -> PrivateNetworkIdentity(
+        hash = sliceArray(1 until 9),
+        random = sliceArray(9 until 17)
+    )
+
+    else -> null
 }
