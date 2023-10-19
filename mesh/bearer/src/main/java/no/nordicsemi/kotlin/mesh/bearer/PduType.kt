@@ -53,10 +53,10 @@ sealed class PduTypes(val value: UByte) {
 
     constructor(value: Int) : this(value.toUByte())
 
-    object NetworkPdu : PduTypes(1 shl 0)
-    object MeshBeacon : PduTypes(1 shl 1)
-    object ProxyConfiguration : PduTypes(1 shl 2)
-    object ProvisioningPdu : PduTypes(1 shl 3)
+    data object NetworkPdu : PduTypes(1 shl 0)
+    data object MeshBeacon : PduTypes(1 shl 1)
+    data object ProxyConfiguration : PduTypes(1 shl 2)
+    data object ProvisioningPdu : PduTypes(1 shl 3)
 
     companion object {
 
