@@ -10,9 +10,9 @@ import kotlin.experimental.and
  *
  * @property rawValue Raw value of the SAR type.
  */
-private enum class SAR(val rawValue: UByte) {
-    COMPLETE_MESSAGE(rawValue = 0b0u),
-    FIRST_SEGMENT(rawValue = 0b1u),
+private enum class SAR(private val rawValue: UByte) {
+    COMPLETE_MESSAGE(rawValue = 0b00u),
+    FIRST_SEGMENT(rawValue = 0b01u),
     CONTINUATION(rawValue = 0b10u),
     LAST_SEGMENT(rawValue = 0b11u);
 
