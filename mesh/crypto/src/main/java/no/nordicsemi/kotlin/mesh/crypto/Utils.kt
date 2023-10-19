@@ -13,7 +13,7 @@ object Utils {
      * @param prefixOx Whether to prefix the hex string with 0x.
      * @return Hex string representation of the byte array.
      */
-    fun ByteArray.encodeHex(prefixOx: Boolean = false) = (if(prefixOx) "0x" else "") + toHexString()
+    fun ByteArray.encodeHex(prefixOx: Boolean = false) = (if(prefixOx) "0x" else "") + toHexString().uppercase()
 
     /**
      * Converts a byte array to a hex string.
