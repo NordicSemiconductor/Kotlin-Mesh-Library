@@ -79,10 +79,10 @@ class ProxyProtocolHandler {
         arrayOf(singlePacket)
     } else {
         var packets: Array<ByteArray> = arrayOf()
-        for (i in data.indices step mtu - 1) {
+            for (i in data.indices step mtu - 1) {
             val sar = when {
                 i == 0 -> SAR.FIRST_SEGMENT
-                i + mtu - 1 >= data.size -> SAR.LAST_SEGMENT
+                i + mtu - 1 > data.size -> SAR.LAST_SEGMENT
                 else -> SAR.CONTINUATION
             }
             var singlePacket = byteArrayOf((sar.value or type.value).toByte())
