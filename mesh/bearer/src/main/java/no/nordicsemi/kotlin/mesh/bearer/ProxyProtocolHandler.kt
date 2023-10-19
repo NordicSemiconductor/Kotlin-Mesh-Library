@@ -76,10 +76,10 @@ class ProxyProtocolHandler {
     fun segment(data: ByteArray, type: PduType, mtu: Int) = if (data.size <= mtu - 1) {
         var singlePacket = byteArrayOf((SAR.COMPLETE_MESSAGE.value or type.value).toByte())
         singlePacket += data
-        arrayOf(singlePacket)
+        listOf(singlePacket)
     } else {
-        var packets: Array<ByteArray> = arrayOf()
-            for (i in data.indices step mtu - 1) {
+        val packets = mutableListOf<ByteArray>()
+        for (i in data.indices step mtu - 1) {
             val sar = when {
                 i == 0 -> SAR.FIRST_SEGMENT
                 i + mtu - 1 > data.size -> SAR.LAST_SEGMENT
@@ -89,7 +89,7 @@ class ProxyProtocolHandler {
             singlePacket += data.sliceArray(i until minOf(data.size, i + mtu - 1))
             packets += singlePacket
         }
-        packets
+        packets.toList()
     }
 
     /**
@@ -104,19 +104,14 @@ class ProxyProtocolHandler {
      * @return The message and its type, or `null`, if more data are expected.
      */
     fun reassemble(data: ByteArray): Pdu? {
-        require(data.isNotEmpty()) {
-            // Disregard invalid packet.
-            return null
-        }
+        // Disregard invalid packet.
+        require(data.isNotEmpty()) { return null }
 
-        val sar = SAR.from(data) ?: run {
-            // Disregard invalid packet.
-            return null
-        }
-        val messageType = PduType.from(data[0].toUByte()) ?: run {
-            // Disregard invalid packet.
-            return null
-        }
+        // Disregard invalid packet.
+        val sar = requireNotNull(SAR.from(data)) { return null }
+
+        // Disregard invalid packet.
+        val messageType = requireNotNull(PduType.from(data)) { return null }
 
         // Ensure, that only complete message or the first segment may be processed if the buffer is
         // empty.
@@ -145,7 +140,7 @@ class ProxyProtocolHandler {
 
         // Save the message type and append newly received data.
         bufferType = messageType
-        if (sar == SAR.COMPLETE_MESSAGE || sar == SAR.LAST_SEGMENT) {
+        if (sar == SAR.COMPLETE_MESSAGE || sar == SAR.FIRST_SEGMENT) {
             buffer = byteArrayOf()
         }
         buffer = buffer!! + data.sliceArray(1 until data.size)
