@@ -214,9 +214,7 @@ class ProvisioningManager(
 
                     is AuthAction.ProvideStaticKey,
                     is AuthAction.ProvideNumeric,
-                    is AuthAction.ProvideAlphaNumeric -> {
-                        mutex.lock()
-                    }
+                    is AuthAction.ProvideAlphaNumeric -> mutex.lock()
                 }
             }
 
