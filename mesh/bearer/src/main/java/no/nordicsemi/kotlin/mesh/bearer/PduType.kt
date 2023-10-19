@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.bearer
 
 import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
+import kotlin.experimental.and
 
 
 /**
@@ -23,7 +24,7 @@ enum class PduType(val value: UByte) {
     PROVISIONING_PDU(0x03u);
 
     val nonceId: UByte
-        get() = when(this){
+        get() = when (this) {
             NETWORK_PDU -> 0x00u
             PROXY_CONFIGURATION -> 0x03u
             else -> throw PduTypeNotSupported
@@ -32,19 +33,21 @@ enum class PduType(val value: UByte) {
     companion object {
 
         /**
-         * Returns the PDU type from the given value.
+         * Returns the PDU type from the given pdu.
          *
-         * @param value The value of the PDU type.
+         * @param data PDU data.
          * @return PduType or throws an exception if the value is invalid.
          * @throws PduTypeNotSupported if the value is invalid.
          */
-        @Throws(PduTypeNotSupported::class)
-        fun from(value: UByte): PduType? = when (value) {
-            0x00.toUByte() -> NETWORK_PDU
-            0x01.toUByte() -> MESH_BEACON
-            0x02.toUByte() -> PROXY_CONFIGURATION
-            0x03.toUByte() -> PROVISIONING_PDU
-            else -> null
+        fun from(data: ByteArray): PduType? {
+            require(data.isNotEmpty()) { return null }
+            return when ((data.first() and 0b00111111).toInt()) {
+                0 -> NETWORK_PDU
+                1 -> MESH_BEACON
+                2 -> PROXY_CONFIGURATION
+                3 -> PROVISIONING_PDU
+                else -> null
+            }
         }
     }
 }
