@@ -44,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
@@ -116,40 +115,33 @@ private fun ProvisionerScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
+    var openDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
-    val capabilitiesSheet = rememberModalBottomSheetState()
+    val capabilitiesSheetState = rememberModalBottomSheetState()
     var showAuthenticationDialog by remember { mutableStateOf(false) }
-
+    
     ScannerSection(
         onDeviceFound = {
             beginProvisioning(context, it)
-            scope.launch {
-                capabilitiesSheet.expand()
-                showDeviceCapabilitiesSheet = true
-            }
+            openDeviceCapabilitiesSheet = true
         }
     )
-    if (showDeviceCapabilitiesSheet) {
+    if (openDeviceCapabilitiesSheet) {
         val windowInsets = if (edgeToEdgeEnabled)
             WindowInsets(0) else BottomSheetDefaults.windowInsets
         ModalBottomSheet(
             onDismissRequest = {
                 disconnect()
-                showDeviceCapabilitiesSheet = false
+                openDeviceCapabilitiesSheet = false
             },
-            sheetState = capabilitiesSheet,
+            sheetState = capabilitiesSheetState,
             windowInsets = windowInsets
         ) {
             BottomSheetTopAppBar(
                 navigationIcon = Icons.Rounded.Close,
                 onNavigationIconClick = {
-                    scope.launch {
-                        capabilitiesSheet.hide()
-                        delay(1000)
-                        disconnect()
-                        showDeviceCapabilitiesSheet = false
-                    }
+                    scope.launch { capabilitiesSheetState.hide() }
+                    disconnect()
                 },
                 title = stringResource(R.string.label_device_information),
                 titleStyle = MaterialTheme.typography.titleLarge,
@@ -190,11 +182,13 @@ private fun ProvisionerScreen(
                 onNetworkKeyClick = onNetworkKeyClick,
                 startProvisioning = startProvisioning,
                 authenticate = authenticate,
-                onProvisioningComplete = {
-                    showDeviceCapabilitiesSheet = false
-                    onProvisioningComplete()
-                },
-                onProvisioningFailed = onProvisioningFailed
+                onProvisioningComplete = onProvisioningComplete,
+                onProvisioningFailed = onProvisioningFailed,
+                dismissCapabilitiesSheet = {
+                    scope.launch {
+                        capabilitiesSheetState.hide()
+                    }
+                }
             )
         }
     }
@@ -241,6 +235,7 @@ private fun ProvisioningContent(
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
+    dismissCapabilitiesSheet: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -281,10 +276,12 @@ private fun ProvisioningContent(
             onProvisioningComplete = onProvisioningComplete,
             onProvisioningFailed = onProvisioningFailed,
             onInputComplete = { scope.launch { sheetState.hide() } },
-            startProvisioning = startProvisioning
+            startProvisioning = startProvisioning,
+            dismissCapabilitiesSheet = dismissCapabilitiesSheet
         )
 
         is Error -> {
+            dismissCapabilitiesSheet()
             var showAlertDialog by remember { mutableStateOf(true) }
             if (showAlertDialog) {
                 MeshAlertDialog(
@@ -341,8 +338,10 @@ private fun ProvisioningStateInfo(
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit
+    startProvisioning: (AuthenticationMethod) -> Unit,
+    dismissCapabilitiesSheet: () -> Unit
 ) {
+    var showAlertDialog by remember { mutableStateOf(false) }
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
             text = stringResource(id = R.string.label_provisioning_requesting_capabilities)
@@ -384,16 +383,15 @@ private fun ProvisioningStateInfo(
         }
 
         is ProvisioningState.Failed -> {
-            var showProvisioningFailed by remember { mutableStateOf(true) }
-            if (showProvisioningFailed) {
+            if (showAlertDialog) {
                 MeshAlertDialog(
                     onDismissRequest = {
-                        showProvisioningFailed = !showProvisioningFailed
+                        showAlertDialog = !showAlertDialog
                         onProvisioningFailed()
                     },
                     confirmButtonText = stringResource(id = R.string.label_ok),
                     onConfirmClick = {
-                        showProvisioningFailed = !showProvisioningFailed
+                        showAlertDialog = !showAlertDialog
                         onProvisioningFailed()
                     },
                     dismissButtonText = null,
@@ -402,20 +400,21 @@ private fun ProvisioningStateInfo(
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_failed, state.error)
                 )
+            } else {
+                dismissCapabilitiesSheet()
             }
         }
 
         is ProvisioningState.Complete -> {
-            var showProvisioningComplete by remember { mutableStateOf(true) }
-            if (showProvisioningComplete) {
+            if (showAlertDialog) {
                 MeshAlertDialog(
                     onDismissRequest = {
-                        showProvisioningComplete = !showProvisioningComplete
+                        showAlertDialog = !showAlertDialog
                         onProvisioningComplete()
                     },
                     confirmButtonText = stringResource(id = R.string.label_ok),
                     onConfirmClick = {
-                        showProvisioningComplete = !showProvisioningComplete
+                        showAlertDialog = !showAlertDialog
                         onProvisioningComplete()
                     },
                     dismissButtonText = null,
@@ -424,6 +423,8 @@ private fun ProvisioningStateInfo(
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_completed)
                 )
+            } else {
+                dismissCapabilitiesSheet()
             }
         }
     }

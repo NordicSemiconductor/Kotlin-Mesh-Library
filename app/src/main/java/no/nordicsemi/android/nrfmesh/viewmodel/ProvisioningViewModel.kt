@@ -148,6 +148,7 @@ class ProvisioningViewModel @Inject constructor(
     internal fun disconnect() {
         viewModelScope.launch {
             repository.disconnect()
+            _uiState.value = ProvisioningScreenUiState(provisionerState = Scanning)
         }
     }
 
@@ -282,7 +283,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningFailed() {
         disconnect()
-        navigateUp() // Navigates back to the scanner screen
+        navigateUp() // Navigates back to the list of nodes
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
