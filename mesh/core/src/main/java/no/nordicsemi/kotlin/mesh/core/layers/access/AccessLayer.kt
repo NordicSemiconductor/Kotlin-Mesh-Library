@@ -316,7 +316,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         createReliableContext(
             pdu = pdu,
             element = localElement,
-            initialTtl = initialTtl!!,
+            initialTtl = initialTtl,
             keySet = keySet
         )
 
@@ -576,7 +576,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     private suspend fun createReliableContext(
         pdu: AccessPdu,
         element: Element,
-        initialTtl: UByte,
+        initialTtl: UByte?,
         keySet: KeySet
     ) {
         val request = pdu.message as? AcknowledgedMeshMessage ?: return
