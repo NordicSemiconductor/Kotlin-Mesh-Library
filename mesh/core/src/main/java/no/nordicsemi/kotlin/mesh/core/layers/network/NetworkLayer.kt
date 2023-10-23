@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
@@ -23,6 +24,7 @@ import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
 import no.nordicsemi.kotlin.mesh.core.next
 import no.nordicsemi.kotlin.mesh.core.reset
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
 
 /**
@@ -34,8 +36,10 @@ import kotlin.concurrent.timer
  */
 internal class NetworkLayer(private val networkManager: NetworkManager) {
 
-    private val meshNetwork = networkManager.meshNetwork
-    private val logger = networkManager.logger
+    private val meshNetwork: MeshNetwork
+        get() = networkManager.meshNetwork
+    private val logger: Logger?
+        get() = networkManager.logger
     private var proxyNetworkKey: NetworkKey? = null
     private val networkMessageCache = mutableMapOf<ByteArray, Any?>()
 
@@ -134,9 +138,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 require(ttl == 1.toUByte()) { return }
                 try {
                     bearer.send(pdu = networkPdu.pdu, type = type)
-                    networkManager.awaitBearerPdu().let {
-                        handle(it.data, type)
-                    }
+                    handle(networkManager.awaitBearerPdu().data, type)
                 } catch (exception: Exception) {
                     if (exception is BearerError.Closed) {
                         proxyNetworkKey = null
