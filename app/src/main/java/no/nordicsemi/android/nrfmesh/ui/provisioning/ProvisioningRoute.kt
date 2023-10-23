@@ -119,7 +119,7 @@ private fun ProvisionerScreen(
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val capabilitiesSheetState = rememberModalBottomSheetState()
     var showAuthenticationDialog by remember { mutableStateOf(false) }
-    
+
     ScannerSection(
         onDeviceFound = {
             beginProvisioning(context, it)
@@ -150,16 +150,15 @@ private fun ProvisionerScreen(
                     TextButton(
                         enabled = uiState.provisionerState is Provisioning,
                         onClick = {
-                            runCatching {
-                                showAuthenticationDialog = true
-                            }.onFailure {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = it.message
-                                            ?: context.getString(R.string.label_unknown_error)
-                                    )
-                                }
-                            }//.onSuccess {}
+                            runCatching { showAuthenticationDialog = true }
+                                .onFailure {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = it.message
+                                                ?: context.getString(R.string.label_unknown_error)
+                                        )
+                                    }
+                                }//.onSuccess {}
                         }) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -184,11 +183,7 @@ private fun ProvisionerScreen(
                 authenticate = authenticate,
                 onProvisioningComplete = onProvisioningComplete,
                 onProvisioningFailed = onProvisioningFailed,
-                dismissCapabilitiesSheet = {
-                    scope.launch {
-                        capabilitiesSheetState.hide()
-                    }
-                }
+                dismissCapabilitiesSheet = { scope.launch { capabilitiesSheetState.hide() } }
             )
         }
     }
