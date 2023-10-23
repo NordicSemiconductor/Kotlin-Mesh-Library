@@ -69,7 +69,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         get() = manager.network!!
 
     var networkParameters = NetworkParameters()
-    private val mutex = Mutex(locked = true)
+    private val mutex = Mutex()
 
     private var outgoingMessages = mutableSetOf<MeshAddress>()
 
@@ -80,7 +80,6 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     override fun emitNetworkManagerEvent(event: NetworkManagerEvent) {
         _networkManagerEventFlow.tryEmit(event)
     }
-
 
     /**
      * Handles the received PDU of a given type.
@@ -351,6 +350,18 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @return PDU.
      */
     internal suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
-        it.type == PduType.PROVISIONING_PDU
+        it.type != PduType.PROVISIONING_PDU
     } ?: throw BearerError.Closed
+
+
+    /**
+     * Awaits and returns the mesh pdu received by the bearer.
+     *
+     * @return PDU.
+     */
+    private suspend fun awaitBearerPdus() {
+        bearer?.pdus?.collect {
+            handle(incomingPdu = it.data, type = it.type)
+        }
+    }
 }
