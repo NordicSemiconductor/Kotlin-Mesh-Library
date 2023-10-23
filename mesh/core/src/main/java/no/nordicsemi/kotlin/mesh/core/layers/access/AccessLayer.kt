@@ -134,7 +134,7 @@ private class AcknowledgmentContext(
  */
 internal class AccessLayer(private val networkManager: NetworkManager) {
 
-    val mutex = Mutex(locked = true)
+    val mutex = Mutex()
     val network = networkManager.meshNetwork
     val scope = networkManager.scope
     val logger = networkManager.logger
