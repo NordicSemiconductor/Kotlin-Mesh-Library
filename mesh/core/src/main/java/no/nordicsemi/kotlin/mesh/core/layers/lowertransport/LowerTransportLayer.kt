@@ -59,7 +59,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private val discardTimers = mutableMapOf<UInt, Timer>()
     private val acknowledgementTimers = mutableMapOf<UInt, Timer>()
     private val outgoingSegments =
-        mutableMapOf<UShort, Pair<MeshAddress, MutableList<SegmentedMessage?>>>()
+        mutableMapOf<UShort, OutgoingSegment>()
     private val unicastRetransmissionsTimers = mutableMapOf<UShort, Timer>()
     private val remainingNumberOfUnicastRetransmissions =
         mutableMapOf<UShort, RemainingNumberOfUnicastRetransmissions>()
@@ -199,9 +199,12 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         val count = (pdu.transportPdu.size + 11) / 12
 
         // Create all segments to be sent.
-        outgoingSegments[sequenceZero] = Pair(pdu.destination, mutableListOf())
+        outgoingSegments[sequenceZero] = OutgoingSegment(
+            destination = pdu.destination,
+            segments = MutableList(size = count, init = { null })
+        )
         for (index in 0 until count) {
-            outgoingSegments[sequenceZero]!!.second[index] = SegmentedAccessMessage.init(
+            outgoingSegments[sequenceZero]!!.segments[index] = SegmentedAccessMessage.init(
                 pdu = pdu, networkKey = networkKey, offset = index.toUByte()
             )
         }
@@ -565,15 +568,17 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         // Clear all the acknowledged segments
         for (index in segments.indices) {
             if (ack.isSegmentReceived(index)) {
-                if (outgoingSegments[ack.sequenceZero]?.second?.get(index) != null) {
+                outgoingSegments[ack.sequenceZero]?.segments?.takeIf {
+                    it[index] != null
+                }?.let {
                     progress = true
-                    outgoingSegments[ack.sequenceZero]?.second?.set(index, null)
+                    it[index] = null
                 }
             }
         }
 
         // If all the segments were acknowledged, notify the manager.
-        if (outgoingSegments[ack.sequenceZero]?.second?.hasMore() == false) {
+        if (outgoingSegments[ack.sequenceZero]?.segments?.hasMore() == false) {
             cancelTransmissionOfSegments(ack.sequenceZero, null)
         } else {
             // Check if the SAR Unicast Retransmission timer is running.
@@ -652,9 +657,9 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      */
     private suspend fun sendSegments(sequenceZero: UShort) {
         outgoingSegments[sequenceZero]?.takeIf {
-            it.second.isNotEmpty()
+            it.segments.isNotEmpty()
         }?.let {
-            val (destination, segments) = it.first to it.second
+            val (destination, segments) = it.destination to it.segments
             // The list of segments to be sent.
             //
             // The list contains only unacknowledged segments. Acknowledge segments are set to null
@@ -898,4 +903,16 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 internal data class RemainingNumberOfUnicastRetransmissions(
     val total: UByte,
     val withoutProgress: UByte
+)
+
+/**
+ * Class that defines an outgoing segment
+ *
+ * @property destination Destination address.
+ * @property segments    Segments to be sent.
+ * @constructor creates an OutgoingSegment object.
+ */
+internal data class OutgoingSegment(
+    val destination: MeshAddress,
+    val segments: MutableList<SegmentedMessage?>
 )
