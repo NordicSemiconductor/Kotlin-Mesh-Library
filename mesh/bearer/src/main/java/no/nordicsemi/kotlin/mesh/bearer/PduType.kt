@@ -23,6 +23,9 @@ enum class PduType(val value: UByte) {
     PROXY_CONFIGURATION(0x02u),
     PROVISIONING_PDU(0x03u);
 
+    internal val mask : UByte
+        get() = (1 shl value.toInt()).toUByte()
+
     val nonceId: UByte
         get() = when (this) {
             NETWORK_PDU -> 0x00u
