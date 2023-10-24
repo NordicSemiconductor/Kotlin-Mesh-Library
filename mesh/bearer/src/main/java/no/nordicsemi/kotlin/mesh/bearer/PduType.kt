@@ -23,7 +23,7 @@ enum class PduType(val value: UByte) {
     PROXY_CONFIGURATION(0x02u),
     PROVISIONING_PDU(0x03u);
 
-    internal val mask : UByte
+    internal val mask: UByte
         get() = (1 shl value.toInt()).toUByte()
 
     val nonceId: UByte
@@ -75,10 +75,10 @@ sealed class PduTypes(val value: UByte) {
          */
         @Throws(PduTypeNotSupported::class)
         fun from(value: UByte): PduTypes = when (value) {
-            0x01.toUByte() -> NetworkPdu
-            0x02.toUByte() -> MeshBeacon
-            0x03.toUByte() -> ProxyConfiguration
-            0x04.toUByte() -> ProvisioningPdu
+            NetworkPdu.value -> NetworkPdu
+            MeshBeacon.value -> MeshBeacon
+            ProxyConfiguration.value -> ProxyConfiguration
+            ProvisioningPdu.value -> ProvisioningPdu
             else -> throw PduTypeNotSupported
         }
     }
