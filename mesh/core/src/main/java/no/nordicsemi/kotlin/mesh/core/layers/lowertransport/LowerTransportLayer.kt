@@ -496,10 +496,14 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                     if (count > 0u &&
                                         segment.lastSegmentNumber >= networkManager.networkParameters.sarSegmentsThreshold
                                     ) {
-                                        val interval = networkManager.networkParameters.segmentReceptionInterval
+                                        val interval =
+                                            networkManager.networkParameters.segmentReceptionInterval
                                         acknowledgementTimers[key] = Timer().also {
-                                            if(count > 1u) {
-                                                it.schedule(delay = 0L, period = interval.inWholeMilliseconds) {
+                                            if (count > 1u) {
+                                                it.schedule(
+                                                    delay = 0L,
+                                                    period = interval.inWholeMilliseconds
+                                                ) {
                                                     scope.launch {
                                                         logger?.d(LogCategory.LOWER_TRANSPORT) {
                                                             "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
@@ -507,14 +511,14 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                                         sendAck(segments, ttl)
                                                         // Decrement the counter.
                                                         count = (count - 1u).toUByte()
-                                                        if(count == 0.toUByte()){
+                                                        if (count == 0.toUByte()) {
                                                             it.cancel()
                                                             it.purge()
                                                         }
                                                     }
                                                 }
                                             } else {
-                                                it.schedule(delay = interval.inWholeMilliseconds){
+                                                it.schedule(delay = interval.inWholeMilliseconds) {
                                                     scope.launch {
                                                         logger?.d(LogCategory.LOWER_TRANSPORT) {
                                                             "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
@@ -522,7 +526,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                                         sendAck(segments, ttl)
                                                         // Decrement the counter.
                                                         count = (count - 1u).toUByte()
-                                                        if(count == 0.toUByte()){
+                                                        if (count == 0.toUByte()) {
                                                             it.cancel()
                                                             it.purge()
                                                         }
