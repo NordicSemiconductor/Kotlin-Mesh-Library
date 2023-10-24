@@ -46,7 +46,7 @@ interface Bearer : Transmitter, Receiver {
 
     val supportedTypes: Array<PduTypes>
 
-    val isGatt:Boolean
+    val isGatt: Boolean
 
     val isOpen: Boolean
 
@@ -66,10 +66,11 @@ interface Bearer : Transmitter, Receiver {
      * @param type PDU type.
      * @return True if the bearer supports the given message type, false otherwise.
      */
-    fun supports(type: PduType): Boolean = runCatching {
-        // TODO: Check against [supportedTypes]
-        PduTypes.from(type.value)
-    }.isSuccess
+    fun supports(type: PduType): Boolean = try {
+        supportedTypes.contains(PduTypes.from(type.mask))
+    } catch (e: PduTypeNotSupported) {
+        false
+    }
 }
 
 interface MeshBearer : Bearer
