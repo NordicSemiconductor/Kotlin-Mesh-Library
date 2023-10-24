@@ -20,6 +20,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
  * UpperTransportPdu defines the credentials used to encrypt a message.
+ *
  * @property source           Source address of the message.
  * @property destination      Destination address of the message.
  * @property aid              6-bit Application key identifier, or 'nil' if a Device Key was used.
@@ -201,7 +202,7 @@ internal data class UpperTransportPdu(
                     data = pdu.accessPdu,
                     key = keySet.accessKey,
                     nonce = nonce,
-                    additionalData = (pdu.destination as VirtualAddress).uuid.toByteArray(),
+                    additionalData = (pdu.destination as? VirtualAddress)?.uuid?.toByteArray(),
                     micSize = if (aszmic == 0.toUByte()) 4 else 8
                 ),
                 accessPdu = pdu.accessPdu,
