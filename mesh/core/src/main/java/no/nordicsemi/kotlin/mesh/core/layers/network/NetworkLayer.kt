@@ -104,17 +104,19 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * address. If the local Provisioner does not exist, or does not have Unicast Address assigned,
      * this method does nothing.
      *
-     * @param lowerTransportPdu  Lower Transport PDU to be sent.
-     * @param type               PDU type.
-     * @param ttl                Initial TTL (Time To Live) value of the message.
+     * @param pdu       Lower Transport PDU to be sent.
+     * @param type      PDU type.
+     * @param ttl       Initial TTL (Time To Live) value of the message.
      * @throws BearerError.Closed when the bearer is closed.
      */
     @Throws(BearerError.Closed::class)
-    suspend fun send(lowerTransportPdu: LowerTransportPdu, type: PduType, ttl: UByte) {
+    suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
         networkManager.bearer?.let { bearer ->
-            val sequence = (lowerTransportPdu as AccessMessage).sequence
+            val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
+                address = pdu.source as UnicastAddress
+            )
             val networkPdu = NetworkPduDecoder.encode(
-                lowerTransportPdu = lowerTransportPdu,
+                lowerTransportPdu = pdu,
                 pduType = type,
                 sequence = sequence,
                 ttl = ttl
@@ -135,7 +137,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 bearer.send(pdu = networkPdu.pdu, type = type)
             } else {
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return }
+                require(ttl != 1.toUByte()) { return }
                 try {
                     bearer.send(pdu = networkPdu.pdu, type = type)
                     handle(networkManager.awaitBearerPdu().data, type)
@@ -187,7 +189,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             logger?.i(LogCategory.NETWORK) { "Sending $pdu" }
 
             try {
-                send(lowerTransportPdu = pdu, type = PduType.PROXY_CONFIGURATION, ttl = pdu.ttl)
+                send(pdu = pdu, type = PduType.PROXY_CONFIGURATION, ttl = pdu.ttl)
                 networkManager.proxy.onManagerDidDeliverMessage(message)
             } catch (exception: Exception) {
                 if (exception is BearerError.Closed) {

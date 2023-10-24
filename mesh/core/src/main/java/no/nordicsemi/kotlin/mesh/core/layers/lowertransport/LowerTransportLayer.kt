@@ -169,7 +169,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             try {
                 logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
                 return networkManager.networkLayer.send(
-                    lowerTransportPdu = message,
+                    pdu = message,
                     type = PduType.NETWORK_PDU,
                     ttl = ttl
                 )
@@ -236,7 +236,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         try {
             logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
             networkManager.networkLayer.send(
-                lowerTransportPdu = message,
+                pdu = message,
                 type = PduType.NETWORK_PDU,
                 ttl = heartbeat.initialTtl
             )
@@ -642,7 +642,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         logger?.d(LogCategory.LOWER_TRANSPORT) { "Sending $ack" }
         try {
             networkManager.networkLayer.send(
-                lowerTransportPdu = ack,
+                pdu = ack,
                 type = PduType.NETWORK_PDU,
                 ttl = ttl
             )
@@ -710,7 +710,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             try {
                 logger?.d(LogCategory.LOWER_TRANSPORT) { "Sending $segment" }
                 networkManager.networkLayer.send(
-                    lowerTransportPdu = segment,
+                    pdu = segment,
                     type = PduType.NETWORK_PDU,
                     ttl = ttl
                 )
