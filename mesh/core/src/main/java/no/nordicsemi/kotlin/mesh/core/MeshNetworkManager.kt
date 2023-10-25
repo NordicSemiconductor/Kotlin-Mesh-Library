@@ -38,6 +38,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.addresses
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
@@ -100,9 +101,14 @@ class MeshNetworkManager(
      */
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
-        networkProperties.load(uuid = meshNetwork.uuid)
+        networkProperties.load(
+            scope = scope,
+            uuid = meshNetwork.uuid,
+            addresses = meshNetwork.nodes.addresses()
+        )
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
+        networkManager = NetworkManager(this)
         true
     } ?: false
 
