@@ -569,3 +569,11 @@ data class Node internal constructor(
         return result
     }
 }
+
+/**
+ * Returns the list of elements of a list of nodes.
+ *
+ * @receiver List of nodes.
+ * @return List of elements.
+ */
+fun List<Node>.elements() = flatMap { it.elements }
