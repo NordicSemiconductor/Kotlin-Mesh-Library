@@ -146,7 +146,7 @@ internal object NetworkPduDecoder {
 
                 // First validation: Control messages have a NetMIC of size 64 bits.
                 val ctl = (deobfuscastedData[0].toInt() shr 7).toUByte()
-                if (ctl.toInt() != 0 || pdu.size < 18) {
+                if (ctl.toInt() != 0 && pdu.size < 18) {
                     continue
                 }
 
