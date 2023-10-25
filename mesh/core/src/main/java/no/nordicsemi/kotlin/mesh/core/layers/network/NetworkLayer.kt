@@ -21,8 +21,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.boundTo
 import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
-import no.nordicsemi.kotlin.mesh.core.next
-import no.nordicsemi.kotlin.mesh.core.reset
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
@@ -40,6 +38,8 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         get() = networkManager.meshNetwork
     private val logger: Logger?
         get() = networkManager.logger
+    private val networkPropertiesStorage
+        get() = networkManager.networkPropertiesStorage
     private var proxyNetworkKey: NetworkKey? = null
     private val networkMessageCache = mutableMapOf<ByteArray, Any?>()
 
@@ -207,7 +207,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param address Local source address.
      */
     suspend fun nextSequenceNumber(address: UnicastAddress): UInt =
-        networkManager.networkPropertiesStorage.next(meshNetwork.uuid, address)
+        networkPropertiesStorage.nextSequenceNumber(meshNetwork.uuid, address)
 
     /**
      * This method handles the Unprovisioned Device beacon. The current implementation does nothing,
@@ -242,9 +242,9 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
         }
 
-        val lastIvIndex = networkManager.networkPropertiesStorage.ivIndex
-        val lastTransitionDate = networkManager.networkPropertiesStorage.lastTransitionDate
-        val isIvRecoveryActive = networkManager.networkPropertiesStorage.isIvRecoveryActive
+        val lastIvIndex = networkPropertiesStorage.ivIndex
+        val lastTransitionDate = networkPropertiesStorage.lastTransitionDate
+        val isIvRecoveryActive = networkPropertiesStorage.isIvRecoveryActive
 
         val isIvTestModeActive = networkManager.networkParameters.ivUpdateTestMode
         val flag = networkManager.networkParameters.allowIvIndexRecoveryOver42
@@ -268,18 +268,18 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     it.ivIndex.transmitIvIndex > lastIvIndex.transmitIvIndex
                 ) {
                     logger?.i(LogCategory.NETWORK) { "Resetting local sequence numbers to 0" }
-                    networkManager.networkPropertiesStorage.reset(
+                    networkPropertiesStorage.resetSequenceNumber(
                         uuid = meshNetwork.uuid, node = it.localProvisioner!!.node!!
                     )
                 }
             }
             // Store the last IV Index
-            networkManager.networkPropertiesStorage.ivIndex = meshNetwork.ivIndex
+            networkPropertiesStorage.ivIndex = meshNetwork.ivIndex
             if (lastIvIndex != meshNetwork.ivIndex) {
-                networkManager.networkPropertiesStorage.lastTransitionDate = Clock.System.now()
+                networkPropertiesStorage.lastTransitionDate = Clock.System.now()
                 val ivRecovery = meshNetwork.ivIndex.index > lastIvIndex.index + 1u &&
                         !networkBeacon.ivIndex.isIvUpdateActive
-                networkManager.networkPropertiesStorage.isIvRecoveryActive = ivRecovery
+                networkPropertiesStorage.isIvRecoveryActive = ivRecovery
             }
 
             // If the Key Refresh procedure is in progress, and the new Network Key has already been

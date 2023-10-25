@@ -18,6 +18,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
@@ -44,7 +45,7 @@ class MeshNetworkPropertiesStorage @Inject constructor(
     override lateinit var lastTransitionDate: Instant
     override var isIvRecoveryActive: Boolean = false
 
-    override suspend fun load(uuid: UUID) {
+    override suspend fun load(scope: CoroutineScope, uuid: UUID, addresses: List<UnicastAddress>) {
         if (this.uuid != uuid) {
             this.uuid = uuid
             dataStore = PreferenceDataStoreFactory.create(
@@ -57,13 +58,17 @@ class MeshNetworkPropertiesStorage @Inject constructor(
         }
         dataStore.data.map {
             val index = it[intPreferencesKey(IV_INDEX)]?.toUInt() ?: 0u
-            val isIvUpdateActive = it[stringPreferencesKey(IV_UPDATE_ACTIVE)]?.toBoolean() ?: false
+            val isIvUpdateActive =
+                it[stringPreferencesKey(IV_UPDATE_ACTIVE)]?.toBoolean() ?: false
             ivIndex = IvIndex(index, isIvUpdateActive)
             val timestamp = it[longPreferencesKey(IV_TIMESTAMP)] ?: 0L
             lastTransitionDate = Instant.fromEpochMilliseconds(timestamp)
             isIvRecoveryActive = it[booleanPreferencesKey(IV_RECOVERY)] ?: false
-            // TODO clarify how to load sequence numbers.
-        }
+            addresses.forEach { address ->
+                sequenceNumbers[address] =
+                    it[intPreferencesKey(address.address.toHex())]?.toUInt() ?: 0u
+            }
+        }.launchIn(scope)
     }
 
     override fun lastSeqAuthValue(source: Address) = dataStore.data.map { preferences ->
@@ -109,11 +114,9 @@ class MeshNetworkPropertiesStorage @Inject constructor(
             preferences[stringPreferencesKey(IV_UPDATE_ACTIVE)] =
                 ivIndex.isIvUpdateActive.toString()
             preferences[longPreferencesKey(IV_TIMESTAMP)] = lastTransitionDate.toEpochMilliseconds()
-            // TODO clarify how to save sequence numbers.
-            /*val seq = sequenceNumbers.entries.joinToString {
-                    "${it.key.address.toHex()}=${it.value}"
-                }*/
-
+            sequenceNumbers.forEach { (unicastAddress, sequence) ->
+                preferences[intPreferencesKey(unicastAddress.address.toHex())] = sequence.toInt()
+            }
         }
     }
 
