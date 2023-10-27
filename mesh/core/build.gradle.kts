@@ -5,6 +5,7 @@ plugins {
 }
 dependencies {
     api(project(":mesh:crypto"))
+    api(project(":mesh:logger"))
     implementation(project(":mesh:bearer"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
