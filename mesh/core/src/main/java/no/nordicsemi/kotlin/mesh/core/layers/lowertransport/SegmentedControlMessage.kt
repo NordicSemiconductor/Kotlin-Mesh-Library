@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
-import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Element

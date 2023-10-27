@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.access.AccessPdu
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
-import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPduType
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress

@@ -1,6 +1,5 @@
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
-import no.nordicsemi.kotlin.mesh.core.layers.network.LowerTransportPduType
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
@@ -24,4 +23,29 @@ internal interface LowerTransportPdu {
     val type: LowerTransportPduType
     val transportPdu: ByteArray
     val upperTransportPdu: ByteArray
+}
+
+/**
+ * Defines the Lower Transport PDU types.
+ */
+internal enum class LowerTransportPduType(val rawValue: UByte) {
+    ACCESS_MESSAGE(rawValue = 0u),
+    CONTROL_MESSAGE(rawValue = 1u);
+
+    val netMicSize: Int
+        get() = when (this) {
+            ACCESS_MESSAGE -> 4  // 32 bits
+            CONTROL_MESSAGE -> 8 // 64 bits
+        }
+
+    companion object {
+
+        /**
+         * Initializes the Lower Transport pdu type from the given value.
+         *
+         * @param type Type of the Lower Transport PDU.
+         * @return LowerTransportPduType or null if the values don't match.
+         */
+        fun from(type: UByte) = values().firstOrNull { it.rawValue == type }
+    }
 }
