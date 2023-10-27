@@ -357,11 +357,10 @@ object Crypto {
         // PECB = e (PrivacyKey, Privacy Plaintext)
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
-        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00) +
+        val privacyPlaintext = ByteArray(5) { 0x00 } +
                 ivIndex.toBigEndian() + privacyRandom
         val pecb = calculateECB(privacyPlaintext, privacyKey)
-        val obfuscatedData = data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
-        return obfuscatedData
+        return data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
     }
 
     fun deObfuscate() {
@@ -461,7 +460,7 @@ object Crypto {
      * @param identityKey  Identity key.
      * @return Function of the included random number and identity information.
      */
-    fun calculateHash(data : ByteArray, identityKey : ByteArray) =
+    fun calculateHash(data: ByteArray, identityKey: ByteArray) =
         calculateECB(data, identityKey).drop(8).toByteArray()
 
     /**
