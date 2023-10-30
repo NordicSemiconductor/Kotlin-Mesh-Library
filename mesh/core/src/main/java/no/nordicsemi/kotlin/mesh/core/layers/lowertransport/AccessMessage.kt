@@ -31,10 +31,12 @@ internal data class AccessMessage(
     override val type = LowerTransportPduType.ACCESS_MESSAGE
     override val transportPdu: ByteArray
         get() {
-            val octet0: UByte = aid?.let { aid ->
-                0.toUByte() or 0b01000000.toUByte() or aid
-            } ?: 0.toUByte()
-            return ByteArray(octet0.toInt()) + upperTransportPdu
+            var octet0 = 0.toUByte()
+            aid?.let {
+                octet0 = octet0 or 0b01000000.toUByte()
+                octet0 = octet0 or it
+            }
+            return byteArrayOf(octet0.toByte()) + upperTransportPdu
         }
 
     /**
