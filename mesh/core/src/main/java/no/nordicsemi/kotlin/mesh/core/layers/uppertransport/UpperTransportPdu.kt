@@ -106,8 +106,8 @@ internal data class UpperTransportPdu(
         fun init(message: AccessMessage, key: ByteArray, virtualGroup: Group?): UpperTransportPdu? {
             val micSize = message.transportMicSize.toInt()
             val encryptedDataSize = message.transportPdu.size - micSize
-            val encryptedData = message.transportPdu.sliceArray(
-                0 until encryptedDataSize
+            val encryptedData = message.transportPdu.copyOfRange(
+                fromIndex = 0, toIndex = encryptedDataSize
             )
             /*val mic = accessMessage.upperTransportPdu.sliceArray(
                 encryptedDataSize until encryptedDataSize + micSize
@@ -118,44 +118,38 @@ internal data class UpperTransportPdu(
             val type = message.aid?.let { 0x01 } ?: 0x02
             // ASZMIC is set to 1 for messages sent with high security(64-bit TransMIC). This is
             // allowed only for Segmented Access Messages.
-            val aszmic = (if (micSize == 4) 0 else 1).toUByte()
-            val seq = message.sequence.toByteArray().run {
-                sliceArray(1 until size)
+            val aszmic = if (micSize == 4) 0 else 1
+            val seq = message.sequence.toByteArray().let {
+                it.copyOfRange(toIndex = 1, fromIndex = it.size)
             }
 
-            val nonce = byteArrayOf(type.toByte(), ((aszmic.toInt() shl 7).toByte())) +
-                    seq +
+            val nonce = byteArrayOf(type.toByte(), ((aszmic shl 7).toByte())) + seq +
+                    message.source.address.toByteArray() +
                     message.destination.address.toByteArray() +
                     message.ivIndex.toByteArray()
-            message.source.address.toByteArray() +
-                    message.destination.address.toByteArray() +
-                    message.ivIndex.toByteArray()
-            val decryptedData = requireNotNull(
-                Crypto.decrypt(
-                    data = encryptedData,
-                    key = key,
-                    nonce = nonce,
-                    additionalData = null,
-                    micSize = micSize
+
+            return Crypto.decrypt(
+                data = encryptedData,
+                key = key,
+                nonce = nonce,
+                additionalData = null,
+                micSize = micSize
+            )?.let {
+                UpperTransportPdu(
+                    source = message.source.address,
+                    destination = virtualGroup?.address?.address?.let {
+                        MeshAddress.create(it)
+                    } ?: message.destination,
+                    aid = message.aid,
+                    transportMicSize = message.transportMicSize,
+                    transportPdu = message.transportPdu,
+                    accessPdu = it,
+                    sequence = message.sequence,
+                    ivIndex = message.ivIndex,
+                    message = null,
+                    userInitiated = false
                 )
-            ) {
-                return null
             }
-            return UpperTransportPdu(
-                source = message.source.address,
-                destination = virtualGroup?.address?.address?.let {
-                    MeshAddress.create(it)
-                } ?: message.destination,
-                aid = message.aid,
-                transportMicSize = message.transportMicSize,
-                transportPdu = message.transportPdu,
-                accessPdu = decryptedData,
-                sequence = message.sequence,
-                ivIndex = message.ivIndex,
-                message = null,
-                userInitiated = false
-            )
-
         }
 
         /**
