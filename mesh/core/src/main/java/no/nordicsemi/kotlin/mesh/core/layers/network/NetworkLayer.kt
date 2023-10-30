@@ -50,67 +50,67 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param type         PDU type.
      */
     suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        // Discard provisioning pdus as they are handled by the provisioning manager
-        if (type == PduType.PROVISIONING_PDU) return
+            // Discard provisioning pdus as they are handled by the provisioning manager
+            if (type == PduType.PROVISIONING_PDU) return
 
-        // Secure Network Beacons can repeat whenever the device connects to a new Proxy.
-        if (type != PduType.MESH_BEACON) {
-            // Ensure the PDU has not been handled already.
-            require(networkMessageCache[incomingPdu] == null) {
-                logger?.d(LogCategory.NETWORK) { "PDU already handled." }
-                return
+            // Secure Network Beacons can repeat whenever the device connects to a new Proxy.
+            if (type != PduType.MESH_BEACON) {
+                // Ensure the PDU has not been handled already.
+                require(networkMessageCache[incomingPdu] == null) {
+                    logger?.d(LogCategory.NETWORK) { "PDU already handled." }
+                    return
+                }
+                networkMessageCache[incomingPdu] = null
             }
-            networkMessageCache[incomingPdu] = null
+
+            // Try decoding the pdu.
+            when (type) {
+                PduType.NETWORK_PDU -> {
+                    NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { networkPdu ->
+                        logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
+                        networkManager.lowerTransportLayer.handle(networkPdu)
+                    } ?: logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
+                }
+
+                PduType.MESH_BEACON -> {
+                    NetworkBeaconPduDecoder.decode(incomingPdu, meshNetwork)?.let { networkBeaconPdu ->
+                        logger?.i(LogCategory.NETWORK) { "$networkBeaconPdu received" }
+                        handle(networkBeaconPdu)
+                        return
+                    }
+                    UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let { unprovisionedBeacon ->
+                        logger?.i(LogCategory.NETWORK) { "$unprovisionedBeacon received." }
+                        handle(unprovisionedBeacon)
+                        return
+                    }
+                    logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
+                }
+
+                PduType.PROXY_CONFIGURATION -> {
+                    NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { proxyPdu ->
+                        logger?.i(LogCategory.NETWORK) { "$proxyPdu received." }
+                        handle(proxyPdu)
+                        return
+                    }
+                    logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
+                }
+
+                else -> return
+            }
         }
 
-        // Try decoding the pdu.
-        when (type) {
-            PduType.NETWORK_PDU -> {
-                NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { networkPdu ->
-                    logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
-                    networkManager.lowerTransportLayer.handle(networkPdu)
-                } ?: logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-            }
-
-            PduType.MESH_BEACON -> {
-                NetworkBeaconPduDecoder.decode(incomingPdu, meshNetwork)?.let { networkBeaconPdu ->
-                    logger?.i(LogCategory.NETWORK) { "$networkBeaconPdu received" }
-                    handle(networkBeaconPdu)
-                    return
-                }
-                UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let { unprovisionedBeacon ->
-                    logger?.i(LogCategory.NETWORK) { "$unprovisionedBeacon received." }
-                    handle(unprovisionedBeacon)
-                    return
-                }
-                logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
-            }
-
-            PduType.PROXY_CONFIGURATION -> {
-                NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { proxyPdu ->
-                    logger?.i(LogCategory.NETWORK) { "$proxyPdu received." }
-                    handle(proxyPdu)
-                    return
-                }
-                logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-            }
-
-            else -> return
-        }
-    }
-
-    /**
-     * This method tries to send the Lower Transport Message of given type to the given destination
-     * address. If the local Provisioner does not exist, or does not have Unicast Address assigned,
-     * this method does nothing.
-     *
-     * @param pdu       Lower Transport PDU to be sent.
-     * @param type      PDU type.
-     * @param ttl       Initial TTL (Time To Live) value of the message.
-     * @throws BearerError.Closed when the bearer is closed.
-     */
-    @Throws(BearerError.Closed::class)
-    suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
+        /**
+         * This method tries to send the Lower Transport Message of given type to the given destination
+         * address. If the local Provisioner does not exist, or does not have Unicast Address assigned,
+         * this method does nothing.
+         *
+         * @param pdu       Lower Transport PDU to be sent.
+         * @param type      PDU type.
+         * @param ttl       Initial TTL (Time To Live) value of the message.
+         * @throws BearerError.Closed when the bearer is closed.
+         */
+        @Throws(BearerError.Closed::class)
+        suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
         networkManager.bearer?.let { bearer ->
             val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
                 address = pdu.source as UnicastAddress
