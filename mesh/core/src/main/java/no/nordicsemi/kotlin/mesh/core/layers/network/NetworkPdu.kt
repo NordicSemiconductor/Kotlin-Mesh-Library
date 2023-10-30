@@ -36,6 +36,8 @@ internal data class NetworkPdu internal constructor(
     val pdu: ByteArray,
     val key: NetworkKey,
     val ivIndex: UInt,
+    val ivi : UByte,
+    val nid : UByte,
     val type: LowerTransportPduType,
     val ttl: UByte,
     val sequence: UInt,
@@ -43,8 +45,6 @@ internal data class NetworkPdu internal constructor(
     val destination: MeshAddress,
     val transportPdu: ByteArray
 ) {
-    val ivi: UByte = (pdu[0].toInt() shr 7).toUByte()
-    val nid: UByte = (pdu[0].toInt() and 0x7F).toUByte()
 
     val isSegmented: Boolean
         get() = transportPdu[0] and 0x80.toByte() > 1
@@ -175,7 +175,7 @@ internal object NetworkPduDecoder {
             if (ctl.toInt() != 1 && pdu.size < 18) continue
 
             val type = LowerTransportPduType.from(ctl)!!
-            val ttl = (deobfuscatedData[0].toUByte().toInt()) and 0x7F
+            val ttl = (deobfuscatedData[0].toUByte().toInt() and 0x7F).toUByte()
 
             // Multiple octet values use Big Endian.
             val sequence = (((deobfuscatedData[1].toUByte().toInt()) shl 16) or
@@ -209,8 +209,10 @@ internal object NetworkPduDecoder {
                     pdu = pdu,
                     key = networkKey,
                     ivIndex = currentIvIndex,
+                    ivi = nid,
+                    nid = nid,
                     type = type,
-                    ttl = ttl.toUByte(),
+                    ttl = ttl,
                     sequence = sequence,
                     source = MeshAddress.create(address = src.toUShort()),
                     destination = MeshAddress.create(
@@ -251,20 +253,18 @@ internal object NetworkPduDecoder {
         val networkKey = lowerTransportPdu.networkKey
         val keys = networkKey.transmitKeys
         val ivIndex = lowerTransportPdu.ivIndex
-        val ivi = ivIndex and 0x1u
+        val ivi = (ivIndex and 0x1u).toUByte()
         val nid = keys.nid
         val type = lowerTransportPdu.type
         val source = lowerTransportPdu.source.address
         val destination = lowerTransportPdu.destination.address
         val transportPdu = lowerTransportPdu.transportPdu
 
-        val iviNid = (ivi.toInt() shl 7) or (nid.toInt() and 0x7F)
-        val ctlTtl = (type.rawValue.toInt() shl 7) or (ttl.toInt() and 0x7F)
+        val iviNid = ((ivi.toInt() shl 7) or (nid.toInt() and 0x7F)).toByte()
+        val ctlTtl = ((type.rawValue.toInt() shl 7) or (ttl.toInt() and 0x7F)).toByte()
 
-        val seq = sequence.toByteArray().let {
-            it.sliceArray(1 until it.size)
-        }
-        val deobfuscatedData = byteArrayOf(ctlTtl.toByte()) + seq + source.toByteArray()
+        val seq = sequence.toByteArray().let { it.copyOfRange(fromIndex = 1, toIndex = it.size) }
+        val deobfuscatedData = byteArrayOf(ctlTtl) + seq + source.toByteArray()
         val decryptedData = destination.toByteArray() + transportPdu
 
         val nonce = byteArrayOf(pduType.nonceId.toByte()) +
@@ -286,11 +286,13 @@ internal object NetworkPduDecoder {
             ivIndex = ivIndex,
             privacyKey = keys.privacyKey
         )
-        val pdu = byteArrayOf(iviNid.toByte()) + obfuscatedData + encryptedData
+        val pdu = byteArrayOf(iviNid) + obfuscatedData + encryptedData
         return NetworkPdu(
             pdu = pdu,
             key = networkKey,
             ivIndex = ivIndex,
+            ivi = ivi,
+            nid = nid,
             type = type,
             ttl = ttl,
             sequence = sequence,
