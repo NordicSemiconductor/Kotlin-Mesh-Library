@@ -49,7 +49,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private val logger = networkManager.logger
     private val storage = networkManager.networkPropertiesStorage
     val scope = networkManager.scope
-    private val mutex = Mutex(locked = true)
+    private val mutex = Mutex()
     private val networkParameters: NetworkParameters
         get() = networkManager.networkParameters
 
