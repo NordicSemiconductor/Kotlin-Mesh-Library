@@ -101,7 +101,7 @@ internal data class UpperTransportPdu(
          * @param message       AccessMessage to be decode from.
          * @param key           Key to be used for decryption.
          * @param virtualGroup  Virtual group address if the message is a virtual group message.
-         * @return              an UpperTransportPdu or null if the pdu could not be decoded.
+         * @return an UpperTransportPdu or null if the pdu could not be decoded.
          */
         fun init(message: AccessMessage, key: ByteArray, virtualGroup: Group?): UpperTransportPdu? {
             val micSize = message.transportMicSize.toInt()
