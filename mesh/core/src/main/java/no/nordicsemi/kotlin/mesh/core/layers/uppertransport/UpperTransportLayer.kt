@@ -96,14 +96,13 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             sequence = sequence,
             ivIndex = meshNetwork.ivIndex
         )
-        logger?.i(LogCategory.UPPER_TRANSPORT) {
-            "Sending $pdu encrypted using key: $keySet"
-        }
+        logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet" }
+
         if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
             enqueue(pdu, ttl, keySet.networkKey)
         } else {
-            networkManager.lowerTransportLayer.send(
+            networkManager.lowerTransportLayer.sendUnsegmentedUpperTransportPdu(
                 pdu = pdu,
                 initialTtl = ttl,
                 networkKey = keySet.networkKey
@@ -256,10 +255,10 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             return
         }
         // If another PDU has been enqueued, send it.
-        networkManager.lowerTransportLayer.sendSegmentedPdu(
+        networkManager.lowerTransportLayer.sendSegmentedUpperTransportPdu(
             pdu = messageData.pdu,
             initialTtl = messageData.ttl,
-            key = messageData.networkKey
+            networkKey = messageData.networkKey
         )
     }
 
@@ -284,7 +283,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             "Sending $heartbeat to ${heartbeat.destination.toHex(prefix0x = true)}" + "encrypted " +
                     "using key: $networkKey"
         }
-        networkManager.lowerTransportLayer.sendSegmentedPdu(heartbeat = heartbeat, networkKey = networkKey)
+        networkManager.lowerTransportLayer.send(heartbeat = heartbeat, networkKey = networkKey)
     }
 }
 

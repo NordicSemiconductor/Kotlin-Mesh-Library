@@ -115,8 +115,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     }
 
                     LowerTransportPduType.CONTROL_MESSAGE -> {
-                        val opCode = networkPdu.transportPdu[0].toUByte() and 0x7Fu
-                        if (opCode == 0x00.toUByte()) {
+                        val opCode = (networkPdu.transportPdu[0].toUByte().toInt() and 0x7F)
+                        if (opCode == 0x00) {
                             SegmentAcknowledgementMessage.init(networkPdu)?.let { ack ->
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
                                     "$ack received (decrypted using key: ${ack.networkKey})"
@@ -159,12 +159,16 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      *
      * @param pdu             Upper Transport PDU to be sent.
      * @param initialTtl      TTL to be used to send the message.
-     * @param key             Network key to be used to encrypt the message.
+     * @param networkKey      Network key to be used to encrypt the message.
      */
-    suspend fun sendSegmentedPdu(pdu: UpperTransportPdu, initialTtl: UByte?, key: NetworkKey) {
+    suspend fun sendUnsegmentedUpperTransportPdu(
+        pdu: UpperTransportPdu,
+        initialTtl: UByte?,
+        networkKey: NetworkKey
+    ) {
         network.localProvisioner?.node?.let { node ->
             val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
-            val message = AccessMessage(pdu = pdu, networkKey = key)
+            val message = AccessMessage(pdu = pdu, networkKey = networkKey)
             try {
                 logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
                 return networkManager.networkLayer.send(
@@ -190,7 +194,11 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param initialTtl   TTL to be used to send the message.
      * @param networkKey   Network key to be used to encrypt the message.
      */
-    suspend fun send(pdu: UpperTransportPdu, initialTtl: UByte?, networkKey: NetworkKey) {
+    suspend fun sendSegmentedUpperTransportPdu(
+        pdu: UpperTransportPdu,
+        initialTtl: UByte?,
+        networkKey: NetworkKey
+    ) {
         val provisionerNode = network.localProvisioner?.node ?: return
         // Last 13 bits of the sequence number are known as seqZero.
         val sequenceZero = (pdu.sequence and 0x1FFFu).toUShort()
@@ -230,7 +238,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param heartbeat   Heartbeat message to be sent.
      * @param networkKey         Network key to be used to encrypt the message.
      */
-    suspend fun sendSegmentedPdu(heartbeat: HeartbeatMessage, networkKey: NetworkKey) {
+    suspend fun send(heartbeat: HeartbeatMessage, networkKey: NetworkKey) {
         val message = ControlMessage(heartbeatMessage = heartbeat, networkKey = networkKey)
         try {
             logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
