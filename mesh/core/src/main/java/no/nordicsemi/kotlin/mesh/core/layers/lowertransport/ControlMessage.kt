@@ -90,7 +90,7 @@ internal data class ControlMessage(
          * @return ControlMessage or null if the pdu could not be decoded.
          */
         fun init(networkPdu: NetworkPdu) = networkPdu.takeIf {
-            it.transportPdu.isNotEmpty() && it.transportPdu[0] and 0x80.toByte() == 0x00.toByte()
+            it.transportPdu.isNotEmpty() && (it.transportPdu[0].toUByte().toInt() and 0x80) == 0x00
         }?.let {
             ControlMessage(
                 opCode = (it.transportPdu[0] and 0x7F.toByte()).toUByte(),
