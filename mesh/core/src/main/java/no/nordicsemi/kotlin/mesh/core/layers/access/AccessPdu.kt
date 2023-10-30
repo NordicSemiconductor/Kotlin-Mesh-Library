@@ -33,12 +33,7 @@ internal data class AccessPdu(
     val accessPdu: ByteArray
 ) {
     val isSegmented: Boolean
-        get() {
-            val message = requireNotNull(message) {
-                return false
-            }
-            return accessPdu.size > 11 || message.isSegmented
-        }
+        get() = message?.let { accessPdu.size > 11 || it.isSegmented } ?: false
 
     val segmentsCount: Int
         get() = message?.let { msg ->
