@@ -176,34 +176,34 @@ internal data class UpperTransportPdu(
             val security = pdu.message!!.security
             // The nonce type is 0x01 for messages signed with Application Key and 0x02 for messages
             // signed using Device Key (Configuration Messages).
-            val type: UByte = if (keySet.aid != null) 0x01u else 0x02u
+            val type = if (keySet.aid != null) 0x01 else 0x02
             // ASZMIC is set to 1 for messages that shall be sent with high security
             // (64-bit TransMIC). This is possible only for Segmented Access Messages.
-            val aszmic: UByte = if ((security == MeshMessageSecurity.High) &&
+            val aszmic = if ((security == MeshMessageSecurity.High) &&
                 (pdu.accessPdu.size > 11 || pdu.isSegmented)
-            ) {
-                0x01u
-            } else 0x00u
-            val seq = sequence.toByteArray().run {
-                sliceArray(1 until size)
+            ) 1 else 0
+
+            val seq = sequence.toByteArray().let {
+                it.copyOfRange(fromIndex = 1, toIndex = it.size)
             }
 
-            val nonce = byteArrayOf(type.toByte(), ((aszmic.toInt() shl 7).toByte())) +
-                    seq +
+            val nonce = byteArrayOf(type.toByte(), ((aszmic shl 7).toByte())) + seq +
+                    pdu.source.toByteArray() +
                     pdu.destination.address.toByteArray() +
                     ivIndex.index.toByteArray()
+            val transportMicSize = if (aszmic == 0) 4 else 8
 
             return UpperTransportPdu(
                 source = pdu.source,
                 destination = pdu.destination,
                 aid = keySet.aid,
-                transportMicSize = if (aszmic == 0.toUByte()) 4u else 8u,
+                transportMicSize = transportMicSize.toUByte(),
                 transportPdu = Crypto.encrypt(
                     data = pdu.accessPdu,
                     key = keySet.accessKey,
                     nonce = nonce,
                     additionalData = (pdu.destination as? VirtualAddress)?.uuid?.toByteArray(),
-                    micSize = if (aszmic == 0.toUByte()) 4 else 8
+                    micSize = transportMicSize
                 ),
                 accessPdu = pdu.accessPdu,
                 sequence = sequence,
@@ -258,7 +258,11 @@ internal data class UpperTransportPdu(
                         val oldAid = requireNotNull(applicationKey.oldAid) { return null }
                         require(aid == oldAid) { return null }
                         val key = requireNotNull(applicationKey.oldKey) { return null }
-                        return init(message = message, key = key, virtualGroup = group)?.let { pdu ->
+                        return init(
+                            message = message,
+                            key = key,
+                            virtualGroup = group
+                        )?.let { pdu ->
                             Pair(pdu, AccessKeySet(applicationKey = applicationKey))
                         }
                     }
