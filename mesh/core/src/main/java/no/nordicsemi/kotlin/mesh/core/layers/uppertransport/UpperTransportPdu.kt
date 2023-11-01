@@ -105,9 +105,8 @@ internal data class UpperTransportPdu(
          */
         fun init(message: AccessMessage, key: ByteArray, virtualGroup: Group?): UpperTransportPdu? {
             val micSize = message.transportMicSize.toInt()
-            val encryptedDataSize = message.transportPdu.size - micSize
-            val encryptedData = message.transportPdu.copyOfRange(
-                fromIndex = 0, toIndex = encryptedDataSize
+            val encryptedData = message.upperTransportPdu.copyOfRange(
+                fromIndex = 0, toIndex = message.upperTransportPdu.size
             )
             /*val mic = accessMessage.upperTransportPdu.sliceArray(
                 encryptedDataSize until encryptedDataSize + micSize
@@ -120,7 +119,7 @@ internal data class UpperTransportPdu(
             // allowed only for Segmented Access Messages.
             val aszmic = if (micSize == 4) 0 else 1
             val seq = message.sequence.toByteArray().let {
-                it.copyOfRange(toIndex = 1, fromIndex = it.size)
+                it.copyOfRange(fromIndex = 1, toIndex = it.size)
             }
 
             val nonce = byteArrayOf(type.toByte(), ((aszmic shl 7).toByte())) + seq +
@@ -134,16 +133,16 @@ internal data class UpperTransportPdu(
                 nonce = nonce,
                 additionalData = null,
                 micSize = micSize
-            )?.let {
+            )?.let { decryptedData ->
                 UpperTransportPdu(
                     source = message.source.address,
-                    destination = virtualGroup?.address?.address?.let {
-                        MeshAddress.create(it)
+                    destination = virtualGroup?.address?.address?.let { address ->
+                        MeshAddress.create(address)
                     } ?: message.destination,
                     aid = message.aid,
                     transportMicSize = message.transportMicSize,
-                    transportPdu = message.transportPdu,
-                    accessPdu = it,
+                    transportPdu = message.upperTransportPdu,
+                    accessPdu = decryptedData,
                     sequence = message.sequence,
                     ivIndex = message.ivIndex,
                     message = null,
@@ -265,9 +264,9 @@ internal data class UpperTransportPdu(
 
                 // Try decoding using source's Node Device Key. This should work if a status message was
                 // sent as a response to a Config Message sent by this Provisioner.
+                val node = network.node(message.source) ?: network.node(message.destination)
                 // On the other hand, if another Provisioner is sending a Config Messages, they will be
                 // signed using the target node Device Key instead.
-                val node = network.node(message.source) ?: network.node(message.destination)
 
                 return node?.deviceKey?.let { deviceKey ->
                     init(message = message, key = deviceKey, virtualGroup = null)?.let {
