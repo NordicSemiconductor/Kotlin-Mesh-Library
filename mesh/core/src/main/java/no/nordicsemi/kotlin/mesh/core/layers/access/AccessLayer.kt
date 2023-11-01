@@ -475,11 +475,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         } else {
             // .. otherwise, the Device Key was used.
             val models = localNode.elements
-                .flatMap { element ->
-                    element.models.filter { model ->
-                        model.supportsApplicationKeyBinding
-                    }
-                }
+                .flatMap { it.models }
+                .filter { it.supportsDeviceKey }
 
             for (model in models) {
                 val eventHandler = model.eventHandler ?: continue
@@ -489,8 +486,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     // Is this message targeting the local Node?
                     if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                         logger?.i(LogCategory.FOUNDATION_MODEL) {
-                            "$message received from " +
-                                    accessPdu.source.toHex(prefix0x = true)
+                            "$message received from  ${accessPdu.source.toHex(prefix0x = true)}"
                         }
                         val response = eventHandler.onMeshMessageReceived(
                             model = model,
@@ -599,9 +595,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             delay = initialDelay,
             repeatBlock = {
                 networkManager.takeIf {
-                    it.upperTransportLayer.isReceivingResponse(
-                        address = pdu.destination.address
-                    )
+                    it.upperTransportLayer.isReceivingResponse(address = pdu.destination.address)
                 }?.let {
                     scope.launch {
                         it.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
@@ -616,16 +610,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                 else LogCategory.MODEL
                 logger?.w(category) {
                     "$request send from ${pdu.source.toHex(prefix0x = true)} to ${
-                        pdu.source.toHex(
-                            prefix0x = true
-                        )
+                        pdu.source.toHex(prefix0x = true)
                     } timed out."
                 }
-                scope.launch {
-                    mutex.withLock {
-                        reliableMessageContexts.clear()
-                    }
-                }
+                scope.launch { mutex.withLock { reliableMessageContexts.clear() } }
             }
         )
         mutex.withLock {
