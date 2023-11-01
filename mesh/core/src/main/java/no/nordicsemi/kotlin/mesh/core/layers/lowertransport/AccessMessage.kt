@@ -6,7 +6,6 @@ import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import kotlin.experimental.and
 
 /**
  * Data class defining an Access message.
@@ -96,27 +95,27 @@ internal data class AccessMessage(
     internal companion object {
 
         /**
-         * Creates an Access Message from the given Network PDU
+         * Creates an Access Message from the given Network PDU.
          *
          * @param pdu Network PDU containing the access message.
          * @return an AccessMessage or null if the pdu is invalid.
          */
         fun init(pdu: NetworkPdu) = pdu.takeIf {
-            it.transportPdu.size >= 6 &&
-                    it.transportPdu[0] and 0x80.toByte() == 0.toByte()
-        }?.let {
-            val akf = it.transportPdu[0] and 0b01000000.toByte() != 0.toByte()
+            it.transportPdu.size >= 6 && (it.transportPdu[0].toUByte().toInt() and 0x80) == 0
+        }?.run {
+            val akf = (transportPdu[0].toUByte().toInt() and 0b01000000) != 0
             val aid = if (akf) {
-                it.transportPdu[0].toUByte() and 0x3Fu
+                (transportPdu[0].toUByte().toInt() and 0x3F).toUByte()
             } else null
             AccessMessage(
-                source = it.source,
-                destination = it.destination,
-                networkKey = it.key,
-                ivIndex = it.ivIndex,
-                upperTransportPdu = it.transportPdu.copyOfRange(1, it.transportPdu.size),
-                transportMicSize = (it.transportPdu[1].toInt() shr 7).toUByte(),
-                sequence = it.sequence,
+                source = source,
+                destination = destination,
+                networkKey = key,
+                ivIndex = ivIndex,
+                upperTransportPdu = transportPdu.copyOfRange(1, transportPdu.size),
+                // TransMIC is always 32-bits for unsegmented messages.
+                transportMicSize = 4.toUByte(),
+                sequence = sequence,
                 aid = aid
             )
         }
