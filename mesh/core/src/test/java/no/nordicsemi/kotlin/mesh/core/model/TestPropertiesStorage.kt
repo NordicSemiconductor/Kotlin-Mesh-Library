@@ -1,5 +1,8 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.NetworkPropertiesStorage
@@ -21,7 +24,7 @@ internal class TestPropertiesStorage : NetworkPropertiesStorage {
         get() = TODO("Not yet implemented")
         set(value) {}
 
-    override suspend fun load(uuid: UUID) {
+    override suspend fun load(scope: CoroutineScope, uuid: UUID, addresses: List<UnicastAddress>) {
         TODO("Not yet implemented")
     }
 
