@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
+import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
@@ -92,20 +93,22 @@ internal data class AccessPdu(
             require(octet0 != 0b01111111.toUByte()) { return null }
 
             // 1-octet Opcodes.
-            if (octet0 and 0x80u == 0.toUByte()) {
+            if ((octet0 and 0x80u) == 0.toUByte()) {
                 return AccessPdu(
                     message = null,
                     userInitiated = false,
                     source = pdu.source,
                     destination = pdu.destination,
                     opCode = octet0.toUInt(),
-                    parameters = pdu.accessPdu.sliceArray(1 until pdu.accessPdu.size),
+                    parameters = pdu.accessPdu.copyOfRange(
+                        fromIndex = 1, toIndex = pdu.accessPdu.size
+                    ),
                     accessPdu = pdu.accessPdu
                 )
             }
 
             // 2-Octet Opcodes.
-            if (octet0 and 0x40u == 0.toUByte()) {
+            if ((octet0 and 0x40u) == 0.toUByte()) {
                 // At least 2 octets are required.
                 require(pdu.accessPdu.size >= 2) { return null }
                 val octet1 = pdu.accessPdu[1].toUByte()
@@ -114,8 +117,10 @@ internal data class AccessPdu(
                     userInitiated = false,
                     source = pdu.source,
                     destination = pdu.destination,
-                    opCode = octet0.toUInt() shl 8 or octet1.toUInt(),
-                    parameters = pdu.accessPdu.sliceArray(2 until pdu.accessPdu.size),
+                    opCode = ((octet0.toInt() shl 8) or octet1.toInt()).toUInt(),
+                    parameters = pdu.accessPdu.copyOfRange(
+                        fromIndex = 2, toIndex = pdu.accessPdu.size
+                    ),
                     accessPdu = pdu.accessPdu
                 )
             }
@@ -133,7 +138,7 @@ internal data class AccessPdu(
                 source = pdu.source,
                 destination = pdu.destination,
                 opCode = octet0.toUInt() shl 16 or octet1.toUInt() shl 8 or octet2.toUInt(),
-                parameters = pdu.accessPdu.sliceArray(3 until pdu.accessPdu.size),
+                parameters = pdu.accessPdu.copyOfRange(fromIndex = 3, toIndex = pdu.accessPdu.size),
                 accessPdu = byteArrayOf()
             )
         }
@@ -185,4 +190,13 @@ internal data class AccessPdu(
             )
         }
     }
+}
+
+fun main(){
+    val a = "C8E051EB1D0D8616".decodeHex()
+    val octet0 = a[0].toUByte()
+    val octet1 = a[1].toUByte()
+    val opCOde = (octet0.toUInt() shl 8) or octet1.toUInt()
+    println("opCOde: ${opCOde.toInt()}")
+
 }
