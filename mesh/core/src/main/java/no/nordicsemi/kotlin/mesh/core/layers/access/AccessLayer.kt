@@ -86,19 +86,20 @@ private class AcknowledgmentContext(
     val request: AcknowledgedMeshMessage,
     val source: Address,
     val destination: Address,
-    val delay: Duration,
+    val delay: Duration, // Duration in seconds
     val repeatBlock: () -> Unit,
-    val timeout: Duration,
+    val timeout: Duration, // Duration in seconds
     val timeoutBlock: () -> Unit
 ) {
 
     var timeoutTimer = Timer()
-    private var timeoutTask = timeoutTimer.schedule(delay = timeout.inWholeSeconds) {
+    private var timeoutTask = timeoutTimer.schedule(delay = timeout.inWholeMilliseconds) {
+        invalidate()
         timeoutBlock()
     }
 
     var retryTimer = Timer()
-    private var retryTimerTask = retryTimer.schedule(delay = delay.inWholeSeconds) {
+    private var retryTimerTask = retryTimer.schedule(delay = delay.inWholeMilliseconds) {
         repeatBlock()
     }
 
@@ -120,9 +121,10 @@ private class AcknowledgmentContext(
         retryTimerTask.cancel()
         retryTimer.cancel()
         retryTimer.purge()
+        retryTimer = Timer()
         retryTimerTask = retryTimer.schedule(delay = delay.inWholeSeconds) {
-            this.cancel()
             callback()
+            initializeRetryTimer(delay = delay * 2, callback = callback)
         }
     }
 }
