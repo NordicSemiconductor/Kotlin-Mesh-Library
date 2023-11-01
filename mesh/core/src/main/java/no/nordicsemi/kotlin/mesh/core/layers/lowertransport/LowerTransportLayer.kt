@@ -25,7 +25,7 @@ import kotlin.concurrent.schedule
 import kotlin.math.min
 import kotlin.time.Duration
 
-private sealed class Message() {
+private sealed class Message {
 
     data class LowerTransportLayerPdu(val message: LowerTransportPdu) : Message()
 
@@ -82,22 +82,22 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             if (segmented) {
                 when (networkPdu.type) {
                     LowerTransportPduType.ACCESS_MESSAGE -> {
-                        SegmentedAccessMessage.init(networkPdu)?.let { segment ->
+                        SegmentedAccessMessage.init(networkPdu)?.let {
                             logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                "$segment received (decrypted using key: ${segment.networkKey})"
+                                "$it received (decrypted using key: ${it.networkKey})"
                             }
-                            assemble(segment, networkPdu)?.let { pdu ->
+                            assemble(it, networkPdu)?.let { pdu ->
                                 Message.LowerTransportLayerPdu(pdu)
                             }
                         }
                     }
 
                     LowerTransportPduType.CONTROL_MESSAGE -> {
-                        SegmentedControlMessage.init(networkPdu)?.let { segment ->
+                        SegmentedControlMessage.init(networkPdu)?.let {
                             logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                "$segment received (decrypted using key: ${segment.networkKey})"
+                                "$it received (decrypted using key: ${it.networkKey})"
                             }
-                            assemble(segment, networkPdu)?.let { pdu ->
+                            assemble(it, networkPdu)?.let { pdu ->
                                 Message.LowerTransportLayerPdu(pdu)
                             }
                         }
@@ -105,30 +105,28 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 }
             } else {
                 when (networkPdu.type) {
-                    LowerTransportPduType.ACCESS_MESSAGE -> {
-                        AccessMessage.init(networkPdu)?.let { message ->
-                            logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                "$message received (decrypted using key: ${message.networkKey})"
-                            }
-                            Message.LowerTransportLayerPdu(message)
+                    LowerTransportPduType.ACCESS_MESSAGE -> AccessMessage.init(networkPdu)?.let {
+                        logger?.d(LogCategory.LOWER_TRANSPORT) {
+                            "$it received (decrypted using key: ${it.networkKey})"
                         }
+                        Message.LowerTransportLayerPdu(it)
                     }
 
                     LowerTransportPduType.CONTROL_MESSAGE -> {
                         val opCode = (networkPdu.transportPdu[0].toUByte().toInt() and 0x7F)
                         if (opCode == 0x00) {
-                            SegmentAcknowledgementMessage.init(networkPdu)?.let { ack ->
+                            SegmentAcknowledgementMessage.init(networkPdu)?.let {
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                    "$ack received (decrypted using key: ${ack.networkKey})"
+                                    "$it received (decrypted using key: ${it.networkKey})"
                                 }
-                                Message.Acknowledgement(ack)
+                                Message.Acknowledgement(it)
                             }
                         } else {
-                            ControlMessage.init(networkPdu)?.let { message ->
+                            ControlMessage.init(networkPdu)?.let {
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                    "$message received (decrypted using key: ${message.networkKey})"
+                                    "$it received (decrypted using key: ${it.networkKey})"
                                 }
-                                Message.LowerTransportLayerPdu(message)
+                                Message.LowerTransportLayerPdu(it)
                             }
                         }
                     }
@@ -632,7 +630,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param segments Segmented message to be acknowledged.
      * @param ttl      TTL to be used to send the ACK.
      */
-    suspend fun sendAck(segments: List<SegmentedMessage?>, ttl: UByte) {
+    private suspend fun sendAck(segments: List<SegmentedMessage?>, ttl: UByte) {
         val ack = SegmentAcknowledgementMessage.init(segments)
         if (segments.isComplete()) acknowledgements[ack.destination.address] = ack
         sendAck(ack, ttl)
