@@ -108,33 +108,29 @@ internal data class SegmentAcknowledgementMessage(
          * @param networkPdu The network pdu containing the segment acknowledgement message.
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
-        fun init(networkPdu: NetworkPdu): SegmentAcknowledgementMessage? {
-            networkPdu.run {
-                require(
-                    transportPdu.size == 7 &&
-                            transportPdu[0].toUByte() and 0x80.toUByte() == 0x00.toUByte()
-                ) { return null }
-
-                val opCode = transportPdu[0].toUByte() and 0x7F.toUByte()
-                require(opCode == 0x00.toUByte()) { return null }
-                val isOnBehalfOfLowePowerNode = opCode and 0x80.toUByte() == 0x80.toUByte()
-                val sequenceZero = ((transportPdu[1].toUByte() and 0x3F.toUByte()).toInt() shl 6) or
-                        ((transportPdu[2].toUByte() and 0xFC.toUByte()).toInt() shr 2)
-                val blockAck = ((transportPdu[2].toUByte() and 0x03.toUByte()).toInt() shl 8) or
-                        transportPdu[3].toUByte().toInt()
-                val upperTransportPdu = transportPdu.copyOfRange(4, transportPdu.size)
-                return SegmentAcknowledgementMessage(
-                    opCode = opCode,
-                    source = source,
-                    destination = destination,
-                    networkKey = key,
-                    ivIndex = networkPdu.ivIndex,
-                    upperTransportPdu = upperTransportPdu,
-                    isOnBehalfOfLowePowerNode = isOnBehalfOfLowePowerNode,
-                    sequenceZero = sequenceZero.toUShort(),
-                    ackedSegments = blockAck.toUInt()
-                )
-            }
+        fun init(networkPdu: NetworkPdu) = networkPdu.takeIf {
+            it.transportPdu.size == 7 &&
+                    it.transportPdu[0].toUByte().toInt() and 0x80 == 0x00
+        }?.run {
+            val opCode = (transportPdu[0].toUByte().toInt() and 0x7F).toUByte()
+            require(opCode == 0x00.toUByte()) { return null }
+            val isOnBehalfOfLowePowerNode = opCode and 0x80.toUByte() == 0x80.toUByte()
+            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x3F) shl 6) or
+                    ((transportPdu[2].toUByte().toInt() and 0xFC) shr 2)
+            val blockAck = ((transportPdu[2].toUByte().toInt() and 0x03) shl 8) or
+                    transportPdu[3].toUByte().toInt()
+            val upperTransportPdu = transportPdu.copyOfRange(4, transportPdu.size)
+            SegmentAcknowledgementMessage(
+                opCode = opCode,
+                source = source,
+                destination = destination,
+                networkKey = key,
+                ivIndex = networkPdu.ivIndex,
+                upperTransportPdu = upperTransportPdu,
+                isOnBehalfOfLowePowerNode = isOnBehalfOfLowePowerNode,
+                sequenceZero = sequenceZero.toUShort(),
+                ackedSegments = blockAck.toUInt()
+            )
         }
 
         /**
