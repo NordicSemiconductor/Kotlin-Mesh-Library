@@ -11,6 +11,7 @@ sealed class AccessError : Exception() {
         InvalidDestination -> "Destination address unknown."
         ModelNotBoundToAppKey -> "No Application Key bound to the given Model."
         NoDeviceKey -> "Unknown Device Key."
+        NoNetworkKey -> "No Network Key."
         CannotDelete -> "Cannot delete the last Network Key."
         Busy -> "Unable to send a message to specified address. Another transfer in progress."
         Timeout -> "Request timed out."
@@ -48,9 +49,14 @@ data object InvalidDestination : AccessError()
 data object ModelNotBoundToAppKey : AccessError()
 
 /**
- * Thrown when trying to send a config message to a Node of which the Device Key is not known.
+ * Thrown if no Device Key was found, when trying to send a config message to a Node.
  */
 data object NoDeviceKey : AccessError()
+
+/**
+ * Thrown if no network key is found, when trying to send a mesh message.
+ */
+data object NoNetworkKey : AccessError()
 
 /**
  * Thrown when trying to send a message to an address to which another message is already being
