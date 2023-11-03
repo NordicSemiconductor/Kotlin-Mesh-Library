@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
@@ -58,6 +59,31 @@ data class Element internal constructor(
 
     val isPrimary: Boolean
         get() = index == 0
+
+    internal val composition: ByteArray
+        get() {
+            var data = location.value.toByteArray()
+            val sigModels = mutableListOf<Model>()
+            val vendorModels = mutableListOf<Model>()
+            for (model in _models) {
+                if (model.isBluetoothSigAssigned) {
+                    sigModels.add(model)
+                } else {
+                    vendorModels.add(model)
+                }
+            }
+            data += sigModels.size.toByte()
+            data += vendorModels.size.toByte()
+            for (model in sigModels) {
+                data += (model.modelId as SigModelId).modelIdentifier.toByteArray()
+            }
+            for (model in vendorModels) {
+                val modelId = model.modelId as VendorModelId
+                data += modelId.companyIdentifier.toByteArray()
+                data += modelId.modelIdentifier.toByteArray()
+            }
+            return byteArrayOf()
+        }
 
     init {
         require(index in LOWER_BOUND..HIGHER_BOUND) {
@@ -125,4 +151,18 @@ data class Element internal constructor(
         const val LOWER_BOUND = 0
         const val HIGHER_BOUND = 255
     }
+}
+
+/**
+ * Constructs the composition returned by the Composition Data Page 0 fir a given list of elements.
+ *
+ * @receiver List of elements.
+ * @return Byte array containing the composition of a list of elements.
+ */
+internal fun List<Element>.composition(): ByteArray {
+    var data = byteArrayOf()
+    for (element in this) {
+        data += element.composition
+    }
+    return data
 }
