@@ -47,7 +47,7 @@ internal data class NetworkPdu internal constructor(
 ) {
 
     val isSegmented: Boolean
-        get() = transportPdu[0] and 0x80.toByte() > 1
+        get() = (transportPdu[0].toUByte().toInt() and 0x80) > 1
 
     val messageSequence: UInt
         get() = if (isSegmented) {
@@ -216,7 +216,8 @@ internal object NetworkPduDecoder {
                     sequence = sequence,
                     source = MeshAddress.create(address = src.toUShort()),
                     destination = MeshAddress.create(
-                        address = decryptedData[0].toInt() shl 8 or decryptedData[1].toInt()
+                        address = decryptedData[0].toUByte().toInt() shl 8 or
+                                decryptedData[1].toUByte().toInt()
                     ),
                     decryptedData.copyOfRange(fromIndex = 2, toIndex = decryptedData.size)
                 )
