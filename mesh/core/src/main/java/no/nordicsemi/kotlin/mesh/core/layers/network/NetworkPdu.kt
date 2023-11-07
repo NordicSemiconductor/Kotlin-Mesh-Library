@@ -12,7 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKeyDerivatives
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import kotlin.experimental.and
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
  * Defines a Network PDU received/sent by a node.
@@ -51,9 +51,9 @@ internal data class NetworkPdu internal constructor(
 
     val messageSequence: UInt
         get() = if (isSegmented) {
-            val sequenceZero = ((transportPdu[1] and 0x7F).toInt() shl 6).toUShort() or
-                    (transportPdu[2].toUInt() shr 2).toUShort()
-            if (sequence and 0x1FFFFu < sequenceZero) {
+            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x7F) shl 6).toUShort() or
+                    (transportPdu[2].toUByte().toInt() shr 2).toUShort()
+            if ((sequence and 0x1FFFFu) < sequenceZero) {
                 (sequence and 0xFFE000u) + sequenceZero.toUInt() - (0x1FFF + 1).toUInt()
             } else {
                 (sequence and 0xFFE000u) + sequenceZero.toUInt()
@@ -95,6 +95,8 @@ internal data class NetworkPdu internal constructor(
         result = 31 * result + nid.hashCode()
         return result
     }
+
+    override fun toString() = "NetworkPdu( pdu = ${pdu.encodeHex(prefixOx = true)})"
 }
 
 /**
