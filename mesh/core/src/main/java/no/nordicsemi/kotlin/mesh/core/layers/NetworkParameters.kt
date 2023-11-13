@@ -5,8 +5,11 @@ package no.nordicsemi.kotlin.mesh.core.layers
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+
+// TODO fix documentation
 
 /**
  * A set of network parameters that can be applied to the ``MeshNetworkManager``.
@@ -95,8 +98,8 @@ data class NetworkParameters(
     private var _sarUnicastRetransmissionsIntervalIncrement: UByte = 0b0001u,         // (n+1)*25 ms = 50 ms
     private var _sarMulticastRetransmissionsCount: UByte = 0b0010u,                  // 3
     private var _sarMulticastRetransmissionsIntervalStep: UByte = 0b1001u,           // (n+1)*25 ms = 250 ms
-    private var _acknowledgementMessageTimeout: Duration = 30.toDuration(DurationUnit.SECONDS),
-    private var _acknowledgementMessageInterval: Duration = 2.toDuration(DurationUnit.SECONDS)
+    private var _acknowledgementMessageTimeout: Duration = 30.seconds,
+    private var _acknowledgementMessageInterval: Duration = 2.seconds
 ) {
 
     var defaultTtl: UByte
@@ -106,7 +109,7 @@ data class NetworkParameters(
         }
 
     var discardTimeout: Duration
-        get() = ((_sarDiscardTimeout + 1u).toInt() * 5).toDuration(DurationUnit.SECONDS)
+        get() = ((_sarDiscardTimeout + 1u).toInt() * 5).seconds
         set(value) {
             _sarDiscardTimeout =
                 (min(5, value.toInt(DurationUnit.SECONDS) / 5).toUByte() - 1u).toUByte()
@@ -154,7 +157,7 @@ data class NetworkParameters(
         }
 
     var segmentReceptionInterval: Duration
-        get() = ((_sarReceiverSegmentIntervalStep + 1u).toInt() * 10).toDuration(DurationUnit.MILLISECONDS)
+        get() = ((_sarReceiverSegmentIntervalStep + 1u).toInt() * 10).milliseconds
         set(value) {
             val min1 = min(
                 a = 0.16,
@@ -167,13 +170,13 @@ data class NetworkParameters(
     internal fun acknowledgementTimerInterval(segN: UByte): Duration {
         val min = min(segN.toDouble() + 0.5, acknowledgementDelayIncrement)
         val duration = min * segmentReceptionInterval.toDouble(DurationUnit.SECONDS)
-        return duration.toDuration(DurationUnit.SECONDS)
+        return duration.seconds
     }
 
     internal val completeAcknowledgementTimerInterval: Duration
         get() = (acknowledgementDelayIncrement * (segmentReceptionInterval
             .toDouble(unit = DurationUnit.SECONDS)))
-            .toDuration(DurationUnit.SECONDS)
+            .seconds
 
 
     fun retransmitSegmentAcknowledgementMessages(count: UByte, threshold: UByte) {
@@ -200,7 +203,7 @@ data class NetworkParameters(
         }
 
     var segmentTransmissionInterval: Duration
-        get() = ((_sarSegmentIntervalStep + 1u).toInt() * 0.01).toDuration(DurationUnit.SECONDS)
+        get() = ((_sarSegmentIntervalStep + 1u).toInt() * 0.01).seconds
         set(value) {
             val max = max(value.toDouble(DurationUnit.MILLISECONDS), 0.01)
             val min = min(0.16, max)
@@ -226,9 +229,7 @@ data class NetworkParameters(
         }
 
     var unicastRetransmissionsIntervalStep: Duration
-        get() = ((_sarUnicastRetransmissionsIntervalStep + 1u).toInt() * 0.025).toDuration(
-            DurationUnit.SECONDS
-        )
+        get() = ((_sarUnicastRetransmissionsIntervalStep + 1u).toInt() * 0.025).seconds
         set(value) {
             val max = max(value.toDouble(DurationUnit.MILLISECONDS), 0.025)
             val min = min(max, 0.4)
@@ -242,9 +243,7 @@ data class NetworkParameters(
         }
 
     var unicastRetransmissionsIntervalIncrement: Duration
-        get() = ((_sarUnicastRetransmissionsIntervalIncrement + 1u).toInt() * 0.025).toDuration(
-            DurationUnit.SECONDS
-        )
+        get() = ((_sarUnicastRetransmissionsIntervalIncrement + 1u).toInt() * 0.025).seconds
         set(value) {
             val max = max(value.toDouble(DurationUnit.MILLISECONDS), 0.025)
             val min = min(0.4, max)
@@ -269,9 +268,7 @@ data class NetworkParameters(
         }
 
     var multicastRetransmissionsInterval : Duration
-        get() = ((_sarMulticastRetransmissionsIntervalStep + 1u).toInt() * 0.025).toDuration(
-            DurationUnit.SECONDS
-        )
+        get() = ((_sarMulticastRetransmissionsIntervalStep + 1u).toInt() * 0.025).seconds
         set(value) {
             val max = max(value.toDouble(DurationUnit.MILLISECONDS), 0.025)
             val min = min(max, 0.4)
@@ -281,21 +278,20 @@ data class NetworkParameters(
     var acknowledgementMessageTimeout: Duration
         get() = _acknowledgementMessageTimeout
         set(value) {
-            _acknowledgementMessageTimeout = max(30.0, value.toDouble(DurationUnit.SECONDS))
-                .toDuration(DurationUnit.SECONDS)
+            _acknowledgementMessageTimeout = max(30, value.inWholeSeconds).seconds
         }
 
     var acknowledgementMessageTimeInterval: Duration
         get() = _acknowledgementMessageInterval
         set(value) {
             _acknowledgementMessageInterval = max(2.0, value.toDouble(DurationUnit.SECONDS))
-                .toDuration(DurationUnit.SECONDS)
+                .seconds
         }
 
     internal fun acknowledgementMessageInterval(ttl: UByte, segmentCount: Int) =
         _acknowledgementMessageInterval +
                 ((ttl.toDouble() * 0.050) + (segmentCount.toDouble() * 0.050))
-                    .toDuration(DurationUnit.SECONDS)
+                    .seconds
 
     /**
      * According to Bluetooth Mesh Profile 1.0.1, section 3.10.5, if the IV Index of the mesh
