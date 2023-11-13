@@ -11,35 +11,37 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
-import java.util.UUID
 
 @Composable
-internal fun NodesRoute(viewModel: NodesViewModel) {
-    val uiState: NodesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+internal fun NodesRoute(
+    uiState: NodesScreenUiState,
+    navigateToNode: (Node) -> Unit,
+    onSwiped: (Node) -> Unit,
+    onUndoClicked: (Node) -> Unit,
+    remove: (Node) -> Unit
+) {
     NodesScreen(
         uiState = uiState,
-        navigateToNode = { },
-        onSwiped = { },
-        onUndoClicked = { },
-        remove = { }
+        navigateToNode = navigateToNode,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
     )
 }
 
 @Composable
 private fun NodesScreen(
     uiState: NodesScreenUiState,
-    navigateToNode: (UUID) -> Unit,
+    navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit
@@ -70,7 +72,7 @@ private fun Nodes(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     nodes: List<Node>,
-    navigateToNode: (UUID) -> Unit,
+    navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit
@@ -93,7 +95,7 @@ private fun Nodes(
 @Composable
 private fun NodeItem(
     node: Node,
-    navigateToNode: (UUID) -> Unit,
+    navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit,
@@ -108,7 +110,6 @@ private fun NodeItem(
         } ?: "Unknown",
         elements = node.elementsCount,
         models = node.elements.flatMap { it.models }.size,
-    ) {
-
-    }
+        onClick = { navigateToNode(node) },
+    )
 }

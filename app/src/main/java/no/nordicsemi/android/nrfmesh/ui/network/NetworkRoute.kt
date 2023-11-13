@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.ui.network
 
@@ -91,11 +91,11 @@ import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 @Composable
 fun NetworkRoute(viewModel: NetworkViewModel = hiltViewModel()) {
     if (viewModel.isNetworkLoaded)
-        NetworkScreen1(viewModel)
+        NetworkScreen(viewModel)
 }
 
 @Composable
-fun NetworkScreen1(viewModel: NetworkViewModel) {
+fun NetworkScreen(viewModel: NetworkViewModel) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -148,9 +148,7 @@ fun NetworkScreen1(viewModel: NetworkViewModel) {
             )
         },
         floatingActionButton = {
-            if (currentDestination == nodes ||
-                currentDestination == groups
-            ) {
+            if (currentDestination == nodes || currentDestination == groups) {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                     onClick = { viewModel.navigateTo(provisioning) }
