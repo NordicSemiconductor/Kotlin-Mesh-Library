@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.core.data
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.ParcelUuid
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -18,19 +19,25 @@ import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
 import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
+import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
+import no.nordicsemi.kotlin.mesh.logger.LogCategory
+import no.nordicsemi.kotlin.mesh.logger.LogLevel
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import javax.inject.Inject
 
 class CoreDataRepository @Inject constructor(
@@ -38,7 +45,7 @@ class CoreDataRepository @Inject constructor(
     private val meshNetworkManager: MeshNetworkManager,
     private val scanner: BleScanner,
     @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
-) {
+) : Logger {
 
     private val proxyScanner = CoroutineScope(Dispatchers.Main + SupervisorJob())
     val network = meshNetworkManager.meshNetwork
@@ -46,6 +53,10 @@ class CoreDataRepository @Inject constructor(
     private var bearer: Bearer? = null
     var autoConnectProxy = true
         private set
+
+    init {
+        meshNetworkManager.logger = this
+    }
 
     suspend fun load() = withContext(ioDispatcher) {
         if (!meshNetworkManager.load()) {
@@ -80,8 +91,9 @@ class CoreDataRepository @Inject constructor(
         withContext(ioDispatcher) {
             if (bearer is PbGattBearer) bearer?.close()
             GattBearer(context = context, device = device).also {
-                it.open()
+                meshNetworkManager.meshBearer = it
                 bearer = it
+                it.open()
             }
         }
 
@@ -154,4 +166,26 @@ class CoreDataRepository @Inject constructor(
         else stopProxyScanner()
     }
 
+    /**
+     * Sends an acknowledged config messages to the given node.
+     *
+     * @param node    Destination node.
+     * @param message Message to be sent.
+     */
+    suspend fun sendMessage(node: Node, message: AcknowledgedConfigMessage) = withContext(
+        context = ioDispatcher
+    ) {
+        val response = meshNetworkManager.send(
+            message = message, node = node, initialTtl = null
+        )
+        log(
+            message = response?.toString() ?: "",
+            category = LogCategory.ACCESS,
+            level = LogLevel.INFO
+        )
+    }
+
+    override fun log(message: String, category: LogCategory, level: LogLevel) {
+        Log.println(level.toAndroidLogLevel(), category.category, message)
+    }
 }
