@@ -8,7 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
@@ -190,13 +189,4 @@ internal data class AccessPdu(
             )
         }
     }
-}
-
-fun main(){
-    val a = "C8E051EB1D0D8616".decodeHex()
-    val octet0 = a[0].toUByte()
-    val octet1 = a[1].toUByte()
-    val opCOde = (octet0.toUInt() shl 8) or octet1.toUInt()
-    println("opCOde: ${opCOde.toInt()}")
-
 }
