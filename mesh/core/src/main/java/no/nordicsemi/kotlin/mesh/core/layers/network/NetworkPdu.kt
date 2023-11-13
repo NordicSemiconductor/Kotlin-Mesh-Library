@@ -1,4 +1,5 @@
 @file:Suppress("unused")
+@file:OptIn(ExperimentalStdlibApi::class)
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
@@ -36,8 +37,8 @@ internal data class NetworkPdu internal constructor(
     val pdu: ByteArray,
     val key: NetworkKey,
     val ivIndex: UInt,
-    val ivi : UByte,
-    val nid : UByte,
+    val ivi: UByte,
+    val nid: UByte,
     val type: LowerTransportPduType,
     val ttl: UByte,
     val sequence: UInt,
@@ -96,7 +97,16 @@ internal data class NetworkPdu internal constructor(
         return result
     }
 
-    override fun toString() = "NetworkPdu( pdu = ${pdu.encodeHex(prefixOx = true)})"
+    override fun toString() =
+        "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
+                "ttl: $ttl, seq: $sequence, src: ${source.toHex(prefix0x = true)}, " +
+                "dst: ${destination.toHex(prefix0x = true)}, " +
+                "transportPdu: ${
+                    pdu.copyOfRange(0, pdu.size - type.netMicSize).encodeHex(prefixOx = true)
+                }, " +
+                "netMic: ${
+                    pdu.copyOfRange(pdu.size - type.netMicSize, pdu.size).encodeHex(prefixOx = true)
+                })"
 }
 
 /**
