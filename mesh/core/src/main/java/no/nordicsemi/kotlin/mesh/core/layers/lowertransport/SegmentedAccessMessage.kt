@@ -1,4 +1,5 @@
 @file:Suppress("unused")
+@file:OptIn(ExperimentalStdlibApi::class)
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
@@ -7,7 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.math.min
 
@@ -101,30 +101,28 @@ internal data class SegmentedAccessMessage(
         @Suppress("MoveVariableDeclarationIntoWhen")
         fun init(networkPdu: NetworkPdu): SegmentedAccessMessage? = networkPdu.run {
             require(
-                transportPdu.size >= 5 && transportPdu[0] and
-                        0x80.toByte() != 0x00.toByte()
+                transportPdu.size >= 5
+                        && transportPdu[0].toUByte().toInt() and 0x80 != 0x00
             ) { return null }
 
-            val akf = transportPdu[0] and 0x0b01000000.toByte() != 0x00.toByte()
+            val akf = transportPdu[0].toUByte().toInt() and 0b01000000 != 0x00
             val aid: UByte? = when (akf) {
-                true -> (transportPdu[0] and 0x3F.toByte()).toUByte()
+                true -> (transportPdu[0].toUByte().toInt() and 0x3F).toUByte()
                 false -> null
             }
-            val szmic = (transportPdu[1].toInt() shr 7).toUByte()
+            val szmic = (transportPdu[1].toUByte().toInt() shr 7).toUByte()
             val transportMicSize = when (szmic == 0x00.toUByte()) {
                 true -> 4
                 false -> 8
             }.toUByte()
 
-            val sequenceZero = ((transportPdu[1] and 0x7F.toByte()).toInt() shl 6).toUShort() or
-                    (transportPdu[2].toInt() shr 2).toUShort()
-            val segmentOffset = ((transportPdu[2] and 0x03.toByte()).toInt() shl 3 or
-                    ((transportPdu[3] and 0xE0.toByte()).toInt() shr 5)).toUByte()
-            val lastSegmentNumber = (transportPdu[3] and 0x1F.toByte()).toUByte()
+            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x7F) shl 6).toUShort() or
+                    (transportPdu[2].toUByte().toInt() shr 2).toUShort()
+            val segmentOffset = (((transportPdu[2].toUByte().toInt() and 0x03) shl 3) or
+                    ((transportPdu[3].toUByte().toInt() and 0xE0) shr 5)).toUByte()
+            val lastSegmentNumber = (transportPdu[3].toUByte().toInt() and 0x1F).toUByte()
 
-            require(segmentOffset <= lastSegmentNumber) {
-                return null
-            }
+            require(segmentOffset <= lastSegmentNumber) { return null }
 
             val upperTransportPdu = transportPdu.drop(4).toByteArray()
             val sequence = (this.sequence and 0xFFE000u) or sequenceZero.toUInt()
