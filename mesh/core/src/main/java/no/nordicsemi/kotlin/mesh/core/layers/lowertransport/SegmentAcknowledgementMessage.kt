@@ -6,6 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toInt
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
@@ -114,12 +115,11 @@ internal data class SegmentAcknowledgementMessage(
         }?.run {
             val opCode = (transportPdu[0].toUByte().toInt() and 0x7F).toUByte()
             require(opCode == 0x00.toUByte()) { return null }
-            val isOnBehalfOfLowePowerNode = opCode and 0x80.toUByte() == 0x80.toUByte()
-            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x3F) shl 6) or
-                    ((transportPdu[2].toUByte().toInt() and 0xFC) shr 2)
-            val blockAck = ((transportPdu[2].toUByte().toInt() and 0x03) shl 8) or
-                    transportPdu[3].toUByte().toInt()
-            val upperTransportPdu = transportPdu.copyOfRange(4, transportPdu.size)
+            val isOnBehalfOfLowePowerNode = (transportPdu[1].toUByte().toInt() and 0x80) != 0
+            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x7F) shl 6) or
+                    (transportPdu[2].toUByte().toInt() shr 2)
+            val ackedSegments = transportPdu.toInt(offset = 3).toUInt()
+            val upperTransportPdu = ackedSegments.toByteArray()
             SegmentAcknowledgementMessage(
                 opCode = opCode,
                 source = source,
@@ -129,7 +129,7 @@ internal data class SegmentAcknowledgementMessage(
                 upperTransportPdu = upperTransportPdu,
                 isOnBehalfOfLowePowerNode = isOnBehalfOfLowePowerNode,
                 sequenceZero = sequenceZero.toUShort(),
-                ackedSegments = blockAck.toUInt()
+                ackedSegments = ackedSegments
             )
         }
 
@@ -146,17 +146,17 @@ internal data class SegmentAcknowledgementMessage(
 
             segments.forEach {
                 it?.let {
-                    ack = ack or ((1 shl it.segmentOffset.toInt()).toUInt())
+                    ack = ack or ((1 shl it.segmentOffset.toInt())).toUInt()
                 }
             }
 
             return SegmentAcknowledgementMessage(
                 opCode = 0x00u,
-                source = segment.source,
-                destination = segment.destination,
+                source = segment.destination,
+                destination = segment.source,
                 networkKey = segment.networkKey,
                 ivIndex = segment.ivIndex,
-                upperTransportPdu = segment.upperTransportPdu,
+                upperTransportPdu = ack.toByteArray(),
                 sequenceZero = segment.sequenceZero,
                 ackedSegments = ack
             )
