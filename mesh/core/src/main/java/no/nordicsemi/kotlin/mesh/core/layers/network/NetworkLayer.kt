@@ -2,14 +2,18 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Clock
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.ReceivedMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
@@ -38,6 +42,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         get() = networkManager.meshNetwork
     private val logger: Logger?
         get() = networkManager.logger
+    private val mutex = Mutex()
     private val networkPropertiesStorage
         get() = networkManager.networkPropertiesStorage
     private var proxyNetworkKey: NetworkKey? = null
@@ -49,68 +54,84 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param incomingPdu  Data received.
      * @param type         PDU type.
      */
-    suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-            // Discard provisioning pdus as they are handled by the provisioning manager
-            if (type == PduType.PROVISIONING_PDU) return
+    suspend fun handle(incomingPdu: ByteArray, type: PduType): ReceivedMessage? {
+        // Discard provisioning pdus as they are handled by the provisioning manager
+        if (type == PduType.PROVISIONING_PDU) return null
 
-            // Secure Network Beacons can repeat whenever the device connects to a new Proxy.
-            if (type != PduType.MESH_BEACON) {
-                // Ensure the PDU has not been handled already.
-                require(networkMessageCache[incomingPdu] == null) {
-                    logger?.d(LogCategory.NETWORK) { "PDU already handled." }
-                    return
-                }
-                networkMessageCache[incomingPdu] = null
+        // Secure Network Beacons can repeat whenever the device connects to a new Proxy.
+        if (type != PduType.MESH_BEACON) {
+            // Ensure the PDU has not been handled already.
+            require(networkMessageCache[incomingPdu] == null) {
+                logger?.d(LogCategory.NETWORK) { "PDU already handled." }
+                return null
             }
-
-            // Try decoding the pdu.
-            when (type) {
-                PduType.NETWORK_PDU -> {
-                    NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { networkPdu ->
-                        logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
-                        networkManager.lowerTransportLayer.handle(networkPdu)
-                    } ?: logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-                }
-
-                PduType.MESH_BEACON -> {
-                    NetworkBeaconPduDecoder.decode(incomingPdu, meshNetwork)?.let { networkBeaconPdu ->
-                        logger?.i(LogCategory.NETWORK) { "$networkBeaconPdu received" }
-                        handle(networkBeaconPdu)
-                        return
-                    }
-                    UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let { unprovisionedBeacon ->
-                        logger?.i(LogCategory.NETWORK) { "$unprovisionedBeacon received." }
-                        handle(unprovisionedBeacon)
-                        return
-                    }
-                    logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
-                }
-
-                PduType.PROXY_CONFIGURATION -> {
-                    NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let { proxyPdu ->
-                        logger?.i(LogCategory.NETWORK) { "$proxyPdu received." }
-                        handle(proxyPdu)
-                        return
-                    }
-                    logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-                }
-
-                else -> return
-            }
+            networkMessageCache[incomingPdu] = null
         }
 
-        /**
-         * This method tries to send the Lower Transport Message of given type to the given destination
-         * address. If the local Provisioner does not exist, or does not have Unicast Address assigned,
-         * this method does nothing.
-         *
-         * @param pdu       Lower Transport PDU to be sent.
-         * @param type      PDU type.
-         * @param ttl       Initial TTL (Time To Live) value of the message.
-         * @throws BearerError.Closed when the bearer is closed.
-         */
-        @Throws(BearerError.Closed::class)
-        suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
+        // Try decoding the pdu.
+        when (type) {
+            PduType.NETWORK_PDU -> {
+                val networkPdu = NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)
+                return if (networkPdu != null) {
+                    logger?.i(LogCategory.NETWORK) { "$networkPdu received?." }
+                    networkManager.lowerTransportLayer.handle(networkPdu)?.let {
+                        ReceivedMessage(
+                            address = networkPdu.source,
+                            message = it
+                        )
+                    }
+                } else {
+                    logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
+                    null
+                }
+            }
+
+            PduType.MESH_BEACON -> {
+                NetworkBeaconPduDecoder.decode(incomingPdu, meshNetwork)?.let {
+                    logger?.i(LogCategory.NETWORK) { "$it received" }
+                    // TODO possible late init property initialization error
+                    try {
+                        handle(it)
+                    } catch (e: Exception) {
+                        logger?.e(LogCategory.NETWORK) { "Failed to handle beacon" }
+                    }
+                    return null
+                }
+                UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let {
+                    logger?.i(LogCategory.NETWORK) { "$it received." }
+                    handle(it)
+                    return null
+                }
+                logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
+                return null
+            }
+
+            PduType.PROXY_CONFIGURATION -> {
+                NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let {
+                    logger?.i(LogCategory.NETWORK) { "$it received." }
+                    handle(it)
+                    return null
+                }
+                logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
+                return null
+            }
+
+            else -> return null
+        }
+    }
+
+    /**
+     * This method tries to send the Lower Transport Message of given type to the given destination
+     * address. If the local Provisioner does not exist, or does not have Unicast Address assigned,
+     * this method does nothing.
+     *
+     * @param pdu       Lower Transport PDU to be sent.
+     * @param type      PDU type.
+     * @param ttl       Initial TTL (Time To Live) value of the message.
+     * @throws BearerError.Closed when the bearer is closed.
+     */
+    @Throws(BearerError.Closed::class)
+    suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte): MeshMessage? {
         networkManager.bearer?.let { bearer ->
             val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
                 address = pdu.source as UnicastAddress
@@ -128,19 +149,21 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             if (shouldLoopback(networkPdu = networkPdu)) {
                 handle(incomingPdu = networkPdu.pdu, type = type)
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return }
+                require(ttl == 1.toUByte()) { return null }
                 if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) {
                     // No need to send messages targeting local Unicast Addresses.
-                    return
+                    return null
                 }
                 // If the message was sent locally, don't report Bearer closed error.
                 bearer.send(pdu = networkPdu.pdu, type = type)
             } else {
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl != 1.toUByte()) { return }
+                require(ttl != 1.toUByte()) { return null }
                 try {
                     bearer.send(pdu = networkPdu.pdu, type = type)
-                    handle(networkManager.awaitBearerPdu().data, type)
+                    return networkManager.incomingMessages.first {
+                        it.address == networkPdu.destination
+                    }.message
                 } catch (exception: Exception) {
                     if (exception is BearerError.Closed) {
                         proxyNetworkKey = null
@@ -162,6 +185,47 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                         if (count == 0)
                             cancel()
                     }
+                }
+            }
+        } ?: throw BearerError.Closed
+        return null
+    }
+
+    internal suspend fun sendAck(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
+        networkManager.bearer?.let { bearer ->
+            val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
+                address = pdu.source as UnicastAddress
+            )
+            val networkPdu = NetworkPduDecoder.encode(
+                lowerTransportPdu = pdu,
+                pduType = type,
+                sequence = sequence,
+                ttl = ttl
+            )
+            logger?.i(LogCategory.NETWORK) {
+                "Sending $networkPdu encrypted using ${networkPdu.key}"
+            }
+            // Loopback interface
+            if (shouldLoopback(networkPdu = networkPdu)) {
+                handle(incomingPdu = networkPdu.pdu, type = type)
+                // Messages sent with TTL = 1 will only be sent locally.
+                require(ttl == 1.toUByte()) { return }
+
+                // No need to send messages targeting local Unicast Addresses.
+                if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) return
+
+                // If the message was sent locally, don't report Bearer closed error.
+                bearer.send(pdu = networkPdu.pdu, type = type)
+            } else {
+                // Messages sent with TTL = 1 will only be sent locally.
+                require(ttl != 1.toUByte()) { return }
+                try {
+                    bearer.send(pdu = networkPdu.pdu, type = type)
+                } catch (exception: Exception) {
+                    if (exception is BearerError.Closed) {
+                        proxyNetworkKey = null
+                    }
+                    throw exception
                 }
             }
         } ?: throw BearerError.Closed
@@ -259,9 +323,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         ) {
             meshNetwork.ivIndex = networkBeacon.ivIndex
             if (meshNetwork.ivIndex.index > lastIvIndex.index) {
-                logger?.i(LogCategory.NETWORK) {
-                    "Applying ${meshNetwork.ivIndex}"
-                }
+                logger?.i(LogCategory.NETWORK) { "Applying ${meshNetwork.ivIndex}" }
             }
             meshNetwork.let {
                 if (it.localProvisioner?.node != null &&

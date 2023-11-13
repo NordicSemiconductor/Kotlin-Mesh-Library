@@ -14,11 +14,13 @@ import no.nordicsemi.kotlin.mesh.core.layers.NetworkParameters
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.schedule
@@ -46,11 +48,12 @@ private sealed class SecurityError : Exception() {
 
 internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private val network = networkManager.meshNetwork
-    private val logger = networkManager.logger
+    private val logger: Logger?
+        get() = networkManager.logger
     private val storage = networkManager.networkPropertiesStorage
     val scope = networkManager.scope
     private val mutex = Mutex()
-    private val networkParameters: NetworkParameters
+    private val networkParams: NetworkParameters
         get() = networkManager.networkParameters
 
     private val incompleteSegments = mutableMapOf<UInt, MutableList<SegmentedMessage?>>()
@@ -73,13 +76,13 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      *
      * @param networkPdu Network PDU received.
      */
-    suspend fun handle(networkPdu: NetworkPdu) {
-        require(networkPdu.transportPdu.size > 1) { return }
+    suspend fun handle(networkPdu: NetworkPdu): MeshMessage? {
+        require(networkPdu.transportPdu.size > 1) { return null }
 
-        val message = mutex.withLock {
+        mutex.withLock {
             require(checkAgainstReplayAttack(networkPdu)) { throw SecurityError.ReplayAttack }
             val segmented = networkPdu.isSegmented
-            if (segmented) {
+            val msg = if (segmented) {
                 when (networkPdu.type) {
                     LowerTransportPduType.ACCESS_MESSAGE -> {
                         SegmentedAccessMessage.init(networkPdu)?.let {
@@ -132,23 +135,28 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     }
                 }
             }
-        }
-        try {
-            message?.let {
-                when (it) {
-                    is Message.LowerTransportLayerPdu -> {
-                        networkManager.upperTransportLayer.handle(it.message)
-                    }
+            return try {
+                msg?.let {
+                    when (it) {
+                        is Message.LowerTransportLayerPdu -> {
+                            networkManager.upperTransportLayer.handle(it.message)
+                        }
 
-                    is Message.Acknowledgement -> handle(ack = it.ack)
+                        is Message.Acknowledgement -> {
+                            handle(ack = it.ack)
+                            null
+                        }
 
-                    is Message.None -> {
-                        // Ignore
+                        is Message.None -> {
+                            // Ignore
+                            null
+                        }
                     }
                 }
+            } catch (ex: Exception) {
+                // TODO
+                null
             }
-        } catch (ex: Exception) {
-            // TODO
         }
     }
 
@@ -163,25 +171,24 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         pdu: UpperTransportPdu,
         initialTtl: UByte?,
         networkKey: NetworkKey
-    ) {
-        network.localProvisioner?.node?.let { node ->
-            val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
-            val message = AccessMessage(pdu = pdu, networkKey = networkKey)
-            try {
-                logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
-                return networkManager.networkLayer.send(
-                    pdu = message,
-                    type = PduType.NETWORK_PDU,
-                    ttl = ttl
-                )
-            } catch (ex: Exception) {
-                logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
-                pdu.takeIf {
-                    it.message != null && it.message.isAcknowledged
-                }?.let {
-                    // TODO
-                }
+    ): MeshMessage? = network.localProvisioner?.node?.let { node ->
+        val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
+        val message = AccessMessage(pdu = pdu, networkKey = networkKey)
+        try {
+            logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
+            networkManager.networkLayer.send(
+                pdu = message,
+                type = PduType.NETWORK_PDU,
+                ttl = ttl
+            )
+        } catch (ex: Exception) {
+            logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+            pdu.takeIf {
+                it.message != null && it.message.isAcknowledged
+            }?.let {
+                // TODO
             }
+            null
         }
     }
 
@@ -272,7 +279,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         ) { return true }
 
         val sequence = networkPdu.messageSequence
-        val receivedSeqAuth = networkPdu.ivIndex.toULong() shl 24 or sequence.toULong()
+        val receivedSeqAuth = (networkPdu.ivIndex.toULong() shl 24) or sequence.toULong()
         storage.lastSeqAuthValue(networkPdu.source.address).firstOrNull()?.let { localSeqAuth ->
             // In general, the SeqAuth of the received message must be greater than SeqAuth of any
             // previously received message from the same source. However, for SAR (Segmentation and
@@ -286,8 +293,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 val sequenceZero = (sequence and 0x1FFFu).toUShort()
                 val key = (networkPdu.source.address.toUInt() shl 16) or
                         (sequenceZero and 0x1FFFu).toUInt()
-                reassemblyInProgress = incompleteSegments[key] != null ||
-                        acknowledgements[networkPdu.source.address]?.sequenceZero == sequenceZero
+                reassemblyInProgress = (incompleteSegments[key] != null) ||
+                        (acknowledgements[networkPdu.source.address]?.sequenceZero == sequenceZero)
             }
 
             // As the messages are processed in a concurrent queue, it may happen that two messages
@@ -298,17 +305,14 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             var missed = false
             storage.previousSeqAuthValue(networkPdu.source.address).firstOrNull()
                 ?.let { previousSeqAuth ->
-                    missed = receivedSeqAuth < localSeqAuth && receivedSeqAuth > previousSeqAuth
+                    missed = (receivedSeqAuth < localSeqAuth) && (receivedSeqAuth > previousSeqAuth)
                 }
 
             // Validate
-            require(
-                receivedSeqAuth > localSeqAuth || missed ||
-                        (reassemblyInProgress && receivedSeqAuth == localSeqAuth)
-            ) {
+            require((receivedSeqAuth > localSeqAuth) || missed || reassemblyInProgress) {
                 // Ignore that message.
                 logger?.w(LogCategory.LOWER_TRANSPORT) {
-                    "Discarding packet (seqAuth: $receivedSeqAuth, expected > $localSeqAuth."
+                    "Discarding packet(seqAuth: $receivedSeqAuth, expected > $localSeqAuth)."
                 }
                 return false
             }
@@ -338,7 +342,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             lastAck.sequenceZero == segment.sequenceZero
         }?.let { lastAck ->
             network.localProvisioner?.node?.let { provisionerNode ->
-                require(acknowledgementTimers[key] != null) {
+                require(acknowledgementTimers[key] == null) {
                     logger?.d(LogCategory.LOWER_TRANSPORT) {
                         "Message already acknowledged, ACK sent recently."
                     }
@@ -347,7 +351,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 val timer = Timer()
                 acknowledgementTimers[key] = timer
                 timer.schedule(
-                    delay = networkParameters.completeAcknowledgementTimerInterval.inWholeMilliseconds
+                    delay = networkParams.completeAcknowledgementTimerInterval.inWholeMilliseconds
                 ) {
                     acknowledgementTimers.remove(key)?.let {
                         it.cancel()
@@ -388,7 +392,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             // If a message is composed of multiple segments, they all need to be received before it
             // can be processed.
             if (incompleteSegments[key] == null) {
-                incompleteSegments[key] = MutableList<SegmentedMessage?>(segment.count) { null }
+                incompleteSegments[key] = MutableList(segment.count) { null }
             }
 
             require(incompleteSegments[key]!!.size > segment.index) {
@@ -398,7 +402,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             }
             incompleteSegments[key]!![segment.index] = segment
 
-            // If all segments were recieved, send ACK and send the PDU to Upper Transport Layer for
+            // If all segments were received, send ACK and send the PDU to Upper Transport Layer for
             // processing.
             if (incompleteSegments[key]!!.isComplete()) {
                 val allSegments = incompleteSegments.remove(key)!!
@@ -437,104 +441,106 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         it.cancel()
                         it.purge()
                     }
-                    discardTimers[key] = Timer().also { discardTimer ->
-                        discardTimer.schedule(delay = networkManager.networkParameters.discardTimeout.inWholeMilliseconds) {
-                            incompleteSegments.remove(key)?.let { segments ->
-                                var marks = 0
-                                segments.forEach { segment ->
-                                    segment?.let {
-                                        marks = marks or 1 shl it.segmentOffset.toInt()
-                                    }
-                                }
-                                logger?.w(LogCategory.LOWER_TRANSPORT) {
-                                    "Discard timeout expired, cancelling message (src " +
-                                            "${
-                                                MeshAddress.create((key shr 16).toUShort())
-                                                    .toHex(prefix0x = true)
-                                            }, " +
-                                            "seqZero ${key and 0x1FFFu}, received segments: " +
-                                            marks.toHexString()
+                    val discardTimer = Timer().also {
+                        discardTimers[key] = it
+                    }
+
+                    discardTimer.schedule(delay = networkParams.discardTimeout.inWholeMilliseconds) {
+                        incompleteSegments.remove(key)?.let { segments ->
+                            var marks = 0
+                            segments.forEach { segment ->
+                                segment?.let {
+                                    marks = marks or 1 shl it.segmentOffset.toInt()
                                 }
                             }
-                            discardTimers.remove(key)?.also { it ->
-                                it.cancel()
-                                it.purge()
-                            }
-                            acknowledgementTimers.remove(key)?.also { it ->
-                                it.cancel()
-                                it.purge()
+                            logger?.w(LogCategory.LOWER_TRANSPORT) {
+                                "Discard timeout expired, cancelling message (src " +
+                                        "${
+                                            MeshAddress.create((key shr 16).toUShort())
+                                                .toHex(prefix0x = true)
+                                        }, " +
+                                        "seqZero ${key and 0x1FFFu}, received segments: " +
+                                        marks.toHexString()
                             }
                         }
-                        // When a segment is received the SAR Acknowledgement timer shall be
-                        // (re)started.
-                        acknowledgementTimers[key]?.let {
+                        discardTimers.remove(key)?.also { it ->
                             it.cancel()
                             it.purge()
                         }
+                        acknowledgementTimers.remove(key)?.also { it ->
+                            it.cancel()
+                            it.purge()
+                        }
+                    }
+                    // When a segment is received the SAR Acknowledgement timer shall be
+                    // (re)started.
+                    acknowledgementTimers[key]?.let {
+                        it.cancel()
+                        it.purge()
+                    }
 
-                        val defaultTtl = provisionerNode.defaultTTL
-                            ?: networkManager.networkParameters.defaultTtl
-                        val ackTimerInterval =
-                            networkManager.networkParameters.acknowledgementTimerInterval(segment.lastSegmentNumber)
-                        acknowledgementTimers[key] = Timer().also { ackTimer ->
-                            ackTimer.schedule(delay = ackTimerInterval.inWholeMilliseconds) {
-                                val segments = requireNotNull(incompleteSegments[key]) {
-                                    acknowledgementTimers.remove(key)
-                                    return@schedule
+                    val defaultTtl = provisionerNode.defaultTTL
+                        ?: networkManager.networkParameters.defaultTtl
+                    val ackTimerInterval = networkManager.networkParameters
+                        .acknowledgementTimerInterval(segment.lastSegmentNumber)
+                    acknowledgementTimers[key] = Timer().also { ackTimer ->
+                        ackTimer.schedule(delay = ackTimerInterval.inWholeMilliseconds) {
+                            val segments = requireNotNull(incompleteSegments[key]) {
+                                acknowledgementTimers.remove(key)
+                                return@schedule
+                            }
+                            scope.launch {
+                                // When the SAR Acknowledgement timer expires, the lower transport
+                                // layer shall send a Segment Acknowledgement Message.
+                                val ttl = if (networkPdu.ttl > 0u) defaultTtl else 0u
+                                logger?.d(LogCategory.LOWER_TRANSPORT) {
+                                    "SAR Acknowledgement timer expired, sending ACK"
                                 }
-                                scope.launch {
-                                    // When the SAR Acknowledgement timer expires, the lower transport
-                                    // layer shall send a Segment Acknowledgement Message.
-                                    val ttl = if (networkPdu.ttl > 0u) defaultTtl else 0u
-                                    logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                        "SAR Acknowledgement timer expired, sending ACK"
-                                    }
-                                    sendAck(segments, ttl)
+                                sendAck(segments, ttl)
 
-                                    // If Segment Acknowledgment retransmission is enabled and the
-                                    // number of segments of the segmented message is longer than
-                                    // the SAR Segments Threshold, the lower transport layer should
-                                    // retransmit the acknowledgment specified number of times.
-                                    val initialCount =
-                                        networkManager.networkParameters.sarAcknowledgementRetransmissionCount
-                                    var count = initialCount
-                                    if (count > 0u &&
-                                        segment.lastSegmentNumber >= networkManager.networkParameters.sarSegmentsThreshold
-                                    ) {
-                                        val interval =
-                                            networkManager.networkParameters.segmentReceptionInterval
-                                        acknowledgementTimers[key] = Timer().also {
-                                            if (count > 1u) {
-                                                it.schedule(
-                                                    delay = 0L,
-                                                    period = interval.inWholeMilliseconds
-                                                ) {
-                                                    scope.launch {
-                                                        logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                                            "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
-                                                        }
-                                                        sendAck(segments, ttl)
-                                                        // Decrement the counter.
-                                                        count = (count - 1u).toUByte()
-                                                        if (count == 0.toUByte()) {
-                                                            it.cancel()
-                                                            it.purge()
-                                                        }
+                                // If Segment Acknowledgment retransmission is enabled and the
+                                // number of segments of the segmented message is longer than
+                                // the SAR Segments Threshold, the lower transport layer should
+                                // retransmit the acknowledgment specified number of times.
+                                val initialCount =
+                                    networkManager.networkParameters.sarAcknowledgementRetransmissionCount
+                                var count = initialCount
+                                if (count > 0u &&
+                                    segment.lastSegmentNumber >= networkManager.networkParameters.sarSegmentsThreshold
+                                ) {
+                                    val interval =
+                                        networkManager.networkParameters.segmentReceptionInterval
+                                    acknowledgementTimers[key] = Timer().also {
+                                        if (count > 1u) {
+                                            it.schedule(
+                                                delay = 0L,
+                                                period = interval.inWholeMilliseconds
+                                            ) {
+                                                scope.launch {
+                                                    logger?.d(LogCategory.LOWER_TRANSPORT) {
+                                                        "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
+                                                    }
+                                                    sendAck(segments, ttl)
+                                                    // Decrement the counter.
+                                                    count = (count - 1u).toUByte()
+                                                    if (count == 0.toUByte()) {
+                                                        it.cancel()
+                                                        it.purge()
                                                     }
                                                 }
-                                            } else {
-                                                it.schedule(delay = interval.inWholeMilliseconds) {
-                                                    scope.launch {
-                                                        logger?.d(LogCategory.LOWER_TRANSPORT) {
-                                                            "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
-                                                        }
-                                                        sendAck(segments, ttl)
-                                                        // Decrement the counter.
-                                                        count = (count - 1u).toUByte()
-                                                        if (count == 0.toUByte()) {
-                                                            it.cancel()
-                                                            it.purge()
-                                                        }
+                                            }
+                                        } else {
+                                            it.schedule(delay = interval.inWholeMilliseconds) {
+                                                scope.launch {
+                                                    logger?.d(LogCategory.LOWER_TRANSPORT) {
+                                                        "Retransmitting ACK(${1u + initialCount - count}/$initialCount)"
+                                                    }
+                                                    sendAck(segments, ttl)
+                                                    // Decrement the counter.
+                                                    count = (count - 1u).toUByte()
+                                                    if (count == 0.toUByte()) {
+                                                        it.cancel()
+                                                        it.purge()
                                                     }
                                                 }
                                             }
@@ -643,14 +649,9 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param ttl TTL to be used to send the ACK.
      */
     private suspend fun sendAck(ack: SegmentAcknowledgementMessage, ttl: UByte) {
-        acknowledgements[ack.destination.address] = ack
         logger?.d(LogCategory.LOWER_TRANSPORT) { "Sending $ack" }
         try {
-            networkManager.networkLayer.send(
-                pdu = ack,
-                type = PduType.NETWORK_PDU,
-                ttl = ttl
-            )
+            networkManager.networkLayer.sendAck(pdu = ack, type = PduType.NETWORK_PDU, ttl = ttl)
         } catch (ex: Exception) {
             logger?.w(LogCategory.LOWER_TRANSPORT) { "$ex" }
         }

@@ -41,6 +41,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
+import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.schedule
@@ -139,7 +140,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     val mutex = Mutex()
     val network = networkManager.meshNetwork
     val scope = networkManager.scope
-    val logger = networkManager.logger
+    val logger: Logger?
+        get() = networkManager.logger
 
     private var transactions = mutableMapOf<Int, Transaction>()
     private var reliableMessageContexts = mutableListOf<AcknowledgmentContext>()
@@ -232,8 +234,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         ttl: UByte?,
         applicationKey: ApplicationKey,
         retransmit: Boolean
-    ) {
-        var m = message
+    ): MeshMessage? {
+        var msg = message
         val transactionMessage = message as? TransactionMessage
 
         transactionMessage?.takeIf {
@@ -249,12 +251,12 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     it.tid = transactions[k]!!.nextTid
                 }
             }
-            m = it
+            msg = it
         }
 
-        logger?.i(LogCategory.ACCESS) { "Sending $m to ${destination.toHex(prefix0x = true)})" }
+        logger?.i(LogCategory.ACCESS) { "Sending $msg to ${destination.toHex(prefix0x = true)})" }
         val pdu = AccessPdu.init(
-            message = m,
+            message = msg,
             source = element.unicastAddress.address,
             destination = destination,
             userInitiated = true
@@ -270,7 +272,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
         }
 
-        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
+        return networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
     }
 
     /**
@@ -289,9 +291,9 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         localElement: Element,
         destination: Address,
         initialTtl: UByte?
-    ) {
-        val node = network.node(destination) ?: return
-        var networkKey = node.networkKeys.firstOrNull() ?: return
+    ): MeshMessage? {
+        val node = network.node(destination) ?: throw InvalidDestination
+        var networkKey = node.networkKeys.firstOrNull() ?: throw NoNetworkKey
 
         // ConfigNetKeyDelete must be signed using the key that is being deleted.
         val netKeyDelete = message as? ConfigNetKeyDelete
@@ -302,7 +304,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         }
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node
-        ) ?: return
+        ) ?: return null
 
         logger?.i(LogCategory.ACCESS) {
             "Sending $message to ${destination.toHex(prefix0x = true)})"
@@ -322,7 +324,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             keySet = keySet
         )
 
-        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
+        return networkManager.upperTransportLayer.send(
+            accessPdu = pdu,
+            ttl = initialTtl,
+            keySet = keySet
+        )
     }
 
     /**
@@ -418,9 +424,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                         // If another model's delegate decoded the same message to a different type,
                         // log this with a warning. This other type will be delivered to the
                         // delegate, but not to the global network delegate.
-                        logger?.w(LogCategory.MODEL) {
-                            "$message already decoded as $newMessage."
-                        }
+                        logger?.w(LogCategory.MODEL) { "$message already decoded as $newMessage." }
+
                         // Deliver the message to the Model if it was signed with an Application Key
                         // bound to this Model and the message is targeting this Element, or the
                         // Model is subscribed to the destination address.
@@ -508,9 +513,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             // Some Config Messages require special handling.
                             handle(message)
                         }
-                        networkManager.emitNetworkManagerEvent(
-                            NetworkManagerEvent.NetworkDidChange
-                        )
+                        networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
                     } else {
                         logger?.i(LogCategory.FOUNDATION_MODEL) {
                             "$message received from: ${accessPdu.source.toHex(prefix0x = true)}," +
@@ -611,8 +614,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     LogCategory.FOUNDATION_MODEL
                 else LogCategory.MODEL
                 logger?.w(category) {
-                    "$request send from ${pdu.source.toHex(prefix0x = true)} to ${
-                        pdu.source.toHex(prefix0x = true)
+                    "$request sent from ${pdu.source.toHex(prefix0x = true)} to ${
+                        pdu.destination.toHex(prefix0x = true)
                     } timed out."
                 }
                 scope.launch { mutex.withLock { reliableMessageContexts.clear() } }
