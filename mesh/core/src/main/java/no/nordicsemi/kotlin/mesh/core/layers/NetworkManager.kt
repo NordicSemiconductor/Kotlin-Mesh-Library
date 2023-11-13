@@ -2,7 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
@@ -35,6 +38,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.get
+import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
 import kotlin.time.Duration
@@ -52,7 +56,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     internal val scope: CoroutineScope = manager.scope
     lateinit var proxy: ProxyFilterEventHandler
 
-    var logger: Logger? = null
+    val logger: Logger?
+        get() = manager.logger
+
     val networkPropertiesStorage = manager.networkProperties
     internal var networkLayer = NetworkLayer(this)
         private set
@@ -63,7 +69,11 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     internal var accessLayer = AccessLayer(this)
         private set
 
-    var bearer: MeshBearer? = manager.meshBearer
+    var bearer: MeshBearer? = null
+        set(value) {
+            field = value
+            awaitBearerPdus()
+        }
 
     val meshNetwork: MeshNetwork
         get() = manager.network!!
@@ -73,10 +83,44 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
 
     private var outgoingMessages = mutableSetOf<MeshAddress>()
 
+    private val _incomingMessages = MutableSharedFlow<ReceivedMessage>()
+    internal val incomingMessages
+        get() = _incomingMessages.asSharedFlow()
+
     private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>()
     override val networkManagerEventFlow
         get() = _networkManagerEventFlow.asSharedFlow()
 
+    private val handlerScope = CoroutineScope(Dispatchers.Default + Job())
+
+    /**
+     * Awaits and returns the mesh pdu received by the bearer.
+     *
+     * @return PDU.
+     */
+    internal suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
+        it.type != PduType.PROVISIONING_PDU
+    } ?: throw BearerError.Closed
+
+
+    /**
+     * Awaits and returns the mesh pdu received by the bearer.
+     */
+    private fun awaitBearerPdus() {
+        handlerScope.launch(CoroutineExceptionHandler { _, throwable ->
+            logger?.e(LogCategory.BEARER) { "Bearer error : $throwable" }
+        }) {
+            bearer?.pdus?.collect {
+                handle(incomingPdu = it.data, type = it.type)
+            }
+        }
+    }
+
+    /**
+     * Emits the network manager event.
+     *
+     * @param event Network manager event.
+     */
     override fun emitNetworkManagerEvent(event: NetworkManagerEvent) {
         _networkManagerEventFlow.tryEmit(event)
     }
@@ -88,7 +132,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param type        PDU type.
      */
     suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        networkLayer.handle(incomingPdu = incomingPdu, type = type)
+        networkLayer.handle(incomingPdu = incomingPdu, type = type)?.let {
+            _incomingMessages.emit(it)
+        }
     }
 
     /**
@@ -186,18 +232,16 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         destination: MeshAddress,
         initialTtl: UByte?,
         applicationKey: ApplicationKey
-    ) {
-        require(!ensureNotBusy(destination = destination)) { return }
-        accessLayer.send(
-            message = message,
-            element = element,
-            destination = destination,
-            ttl = initialTtl,
-            applicationKey = applicationKey,
-            retransmit = false
-        )
+    ): MeshMessage? = if (ensureNotBusy(destination = destination)) accessLayer.send(
+        message = message,
+        element = element,
+        destination = destination,
+        ttl = initialTtl,
+        applicationKey = applicationKey,
+        retransmit = false
+    )?.also {
         mutex.withLock { outgoingMessages.remove(destination) }
-    }
+    } else null
 
     /**
      * Encrypts the message with the Application Key and a Network Key bound to it, and sends to the
@@ -234,8 +278,9 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
             ttl = initialTtl,
             applicationKey = applicationKey,
             retransmit = true
-        )
-        mutex.withLock { outgoingMessages.remove(meshAddress) }
+        ).also {
+            mutex.withLock { outgoingMessages.remove(meshAddress) }
+        }
     }
 
     /**
@@ -260,16 +305,17 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         element: Element,
         destination: Address,
         initialTtl: UByte?
-    ) {
+    ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return }
-        accessLayer.send(
+        require(!ensureNotBusy(destination = meshAddress)) { return null }
+        return accessLayer.send(
             message = configMessage,
             localElement = element,
             destination = destination,
             initialTtl = initialTtl
-        )
-        mutex.withLock { outgoingMessages.remove(meshAddress) }
+        )?.also {
+            mutex.withLock { outgoingMessages.remove(meshAddress) }
+        }
     }
 
     /**
@@ -296,16 +342,17 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         element: Element,
         destination: Address,
         initialTtl: UByte?
-    ) {
+    ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return }
-        accessLayer.send(
+        require(!ensureNotBusy(destination = meshAddress)) { return null }
+        return accessLayer.send(
             message = configMessage,
             localElement = element,
             destination = destination,
             initialTtl = initialTtl
-        )
-        mutex.withLock { outgoingMessages.remove(meshAddress) }
+        )?.also {
+            mutex.withLock { outgoingMessages.remove(meshAddress) }
+        }
     }
 
     /**
@@ -324,8 +371,6 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * @param origin      Destination address of the message that the reply is for.
      * @param message     Response message to be sent.
      * @param element     Source Element.
-     *
-     *
      */
     suspend fun reply(
         origin: Address,
@@ -342,26 +387,6 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
             keySet = keySet
         )
     }
-
-
-    /**
-     * Awaits and returns the mesh pdu received by the bearer.
-     *
-     * @return PDU.
-     */
-    internal suspend fun awaitBearerPdu(): Pdu = bearer?.pdus?.first {
-        it.type != PduType.PROVISIONING_PDU
-    } ?: throw BearerError.Closed
-
-
-    /**
-     * Awaits and returns the mesh pdu received by the bearer.
-     *
-     * @return PDU.
-     */
-    private suspend fun awaitBearerPdus() {
-        bearer?.pdus?.collect {
-            handle(incomingPdu = it.data, type = it.type)
-        }
-    }
 }
+
+internal data class ReceivedMessage(val address: MeshAddress, val message: MeshMessage)
