@@ -47,7 +47,6 @@ import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.*
-import kotlin.properties.Delegates
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
@@ -73,12 +72,13 @@ class MeshNetworkManager(
     internal var networkManager: NetworkManager? = null
         private set
 
-    var logger: Logger? by Delegates.observable(null) { _, _, newValue ->
-        networkManager?.logger = newValue
-    }
-    var meshBearer: MeshBearer? by Delegates.observable(null) { _, _, newValue ->
-        networkManager?.bearer = newValue
-    }
+    var logger: Logger? = null
+
+    var meshBearer:MeshBearer? = null
+        set(value) {
+            field = value
+            networkManager?.bearer = value
+        }
 
     internal var proxyFilter: ProxyFilter
 
@@ -479,7 +479,7 @@ class MeshNetworkManager(
         localElement: Element?,
         model: Model,
         initialTtl: UByte?,
-    ) {
+    ): MeshMessage? {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
             throw NoNetwork
@@ -516,7 +516,7 @@ class MeshNetworkManager(
             throw InvalidTtl
         }
 
-        networkManager.send(
+        return networkManager.send(
             message = message,
             element = source,
             destination = destination,
@@ -559,12 +559,11 @@ class MeshNetworkManager(
         localModel: Model,
         model: Model,
         initialTtl: UByte?,
-    ) {
-        val localElement = requireNotNull(localModel.parentElement) {
-            println("Error: Source Model does not belong to an Element.")
-            throw InvalidSource
-        }
-        send(message = message, localElement = localElement, model = model, initialTtl = initialTtl)
+    ): MeshMessage = localModel.parentElement?.let {
+        send(message = message, localElement = it, model = model, initialTtl = initialTtl)
+    } ?: run {
+        println("Error: Source Model does not belong to an Element.")
+        throw InvalidSource
     }
 
     /**
@@ -667,13 +666,11 @@ class MeshNetworkManager(
         InvalidSource::class,
         InvalidTtl::class
     )
-    suspend fun send(message: UnacknowledgedConfigMessage, node: Node, initialTtl: UByte?) {
-        send(
-            message = message,
-            destination = node.primaryUnicastAddress.address,
-            initialTtl = initialTtl
-        )
-    }
+    suspend fun send(message: UnacknowledgedConfigMessage, node: Node, initialTtl: UByte?) = send(
+        message = message,
+        destination = node.primaryUnicastAddress.address,
+        initialTtl = initialTtl
+    )
 
     /**
      * Sends Configuration Message to the Node with given destination Address.
@@ -707,7 +704,7 @@ class MeshNetworkManager(
         message: AcknowledgedConfigMessage,
         destination: Address,
         initialTtl: UByte? = null
-    ) {
+    ): MeshMessage? {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
             throw NoNetwork
@@ -747,7 +744,7 @@ class MeshNetworkManager(
             println("Error: TTL value $initialTtl is invalid.")
             throw InvalidTtl
         }
-        networkManager.send(
+        return networkManager.send(
             configMessage = message,
             element = element,
             destination = destination,
@@ -775,20 +772,18 @@ class MeshNetworkManager(
      *                            unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
-    suspend fun send(message: AcknowledgedConfigMessage, node: Node, initialTtl: UByte?) {
-        send(
-            message = message,
-            destination = node.primaryUnicastAddress.address,
-            initialTtl = initialTtl
-        )
-    }
+    suspend fun send(message: AcknowledgedConfigMessage, node: Node, initialTtl: UByte?) = send(
+        message = message,
+        destination = node.primaryUnicastAddress.address,
+        initialTtl = initialTtl
+    )
 
     /**
      * Sends the Configuration Message to the primary Element of the local [Node] and returns the
      * received response.
      *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will also be called when
-     * the message has been sent successfully or a problem occurred.
+     * An appropriate callback of the ``MeshNetworkDelegate`` will also be called when the message
+     * has been sent successfully or a problem occurred.
      *
      * @param message The acknowledged configuration message to be sent.
      * @return The response associated with the message.
@@ -796,7 +791,7 @@ class MeshNetworkManager(
      * @throws InvalidSource when the local Node does not have configuration capabilities.
      */
     @Throws(NoNetwork::class, InvalidSource::class)
-    suspend fun sendToLocalNode(message: AcknowledgedConfigMessage) {
+    suspend fun sendToLocalNode(message: AcknowledgedConfigMessage): MeshMessage? {
         val network = requireNotNull(network) {
             println("Error: Mesh Network not created.")
             throw NoNetwork
@@ -808,7 +803,7 @@ class MeshNetworkManager(
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        send(message = message, destination = destination.address, initialTtl = 1u)
+        return send(message = message, destination = destination.address, initialTtl = 1u)
     }
 
     /**
