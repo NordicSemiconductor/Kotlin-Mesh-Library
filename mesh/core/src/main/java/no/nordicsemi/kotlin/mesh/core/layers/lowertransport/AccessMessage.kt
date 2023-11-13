@@ -1,4 +1,5 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
+@file:OptIn(ExperimentalStdlibApi::class)
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
@@ -6,6 +7,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
  * Data class defining an Access message.
@@ -91,6 +93,11 @@ internal data class AccessMessage(
         result = 31 * result + type.hashCode()
         return result
     }
+
+    override fun toString() = "$type (akf: ${if (aid != null) "1, " +
+            "aid: ${aid.toHexString()}" else "0"}, " +
+            "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
+            "data: ${upperTransportPdu.encodeHex()}"
 
     internal companion object {
 
