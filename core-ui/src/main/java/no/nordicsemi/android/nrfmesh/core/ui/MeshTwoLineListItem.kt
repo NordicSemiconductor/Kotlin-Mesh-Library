@@ -27,7 +27,7 @@ fun MeshTwoLineListItem(
 ) {
     Row(
         modifier = modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 16.dp, horizontal = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -35,7 +35,6 @@ fun MeshTwoLineListItem(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(end = 16.dp)
         ) {
             Text(
                 text = title,
@@ -46,7 +45,7 @@ fun MeshTwoLineListItem(
             if (subtitle.isNotEmpty())
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = subtitleMaxLines,
                     overflow = subtitleTextOverflow
                 )
