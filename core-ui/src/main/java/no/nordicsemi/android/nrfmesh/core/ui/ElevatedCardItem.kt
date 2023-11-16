@@ -32,7 +32,7 @@ fun ElevatedCardItem(
         MeshTwoLineListItem(
             leadingComposable = {
                 Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(end = 16.dp),
                     imageVector = imageVector,
                     contentDescription = null,
                     tint = LocalContentColor.current.copy(alpha = 0.6f)
