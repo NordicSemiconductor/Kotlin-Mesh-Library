@@ -17,18 +17,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ElevatedCardItem(
+    modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String,
-    supportingText: String,
-    actions: @Composable RowScope.() -> Unit = {},
+    subtitle: String = "",
+    supportingText: String? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .padding(top = 8.dp)
-    ) {
+    ElevatedCard(modifier = modifier) {
         MeshTwoLineListItem(
             leadingComposable = {
                 Icon(
@@ -42,18 +39,22 @@ fun ElevatedCardItem(
             subtitle = subtitle,
             trailingComposable = titleAction
         )
-        Text(
-            modifier = Modifier.padding(start = 58.dp, end = 16.dp),
-            text = supportingText,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            actions()
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
+            }
         }
     }
 }
