@@ -72,7 +72,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        client = ClientBleGatt.connect(context = context, device = device).takeIf {
+        client = ClientBleGatt.connect(context = context, device = device, scope = scope).takeIf {
             it.isConnected
         }?.let { client ->
             observeConnectionState(client)
