@@ -128,6 +128,7 @@ data class Page0(
             val features = Features(compositionData.toUShort(offset = 9))
             val elements = mutableListOf<Element>()
             var offset = 11
+            var elementNo = 0
             while (offset < compositionData.size) {
                 require(compositionData.size >= offset + 4) {
                     return null
@@ -137,8 +138,10 @@ data class Page0(
                 val sigModelsByteCount = compositionData[offset + 2].toUByte().toInt() * 2
                 val vendorModelsByteCount = compositionData[offset + 3].toUByte().toInt() * 4
 
-                require(compositionData.size >=
-                        (offset + 3 + sigModelsByteCount + vendorModelsByteCount)) {
+                require(
+                    compositionData.size >=
+                            (offset + 3 + sigModelsByteCount + vendorModelsByteCount)
+                ) {
                     return null
                 }
 
@@ -152,6 +155,7 @@ data class Page0(
                 // Read models.
                 val element = Element(location = location).apply {
                     this.index = index
+                    this.name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
                     val sigModelId = compositionData.toUShort(i)
