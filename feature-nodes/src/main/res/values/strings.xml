@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="no_nodes_currently_added">No nodes currently added.</string>
+    <string name="label_name">Name</string>
+    <string name="label_placeholder_node_name">nRF Mesh Node</string>
+    <string name="label_network_keys">Network Keys</string>
+    <string name="label_application_keys">Application Keys</string>
+    <string name="title_keys">Keys</string>
+    <string name="title_elements">Elements</string>
+    <string name="title_time_to_live">Time to Live (TTL)</string>
+    <string name="label_default_time_to_live">Default TTL</string>
+    <string name="title_proxy_state">Proxy State</string>
+    <string name="label_get_ttl">Get TTL</string>
+    <string name="label_default_time_to_live_description">TTL limits the number of times a message
+        can be relayed. Max TTL value is 127.</string>
+    <string name="label_set_ttl">Set TTL</string>
+    <string name="label_gatt_proxy_state">GATT Proxy State</string>
+    <string name="label_get_state">Get State</string>
+    <string name="label_off">Off</string>
+    <string name="label_proxy_state_rationale">"Turning off the proxy feature will set this node to a non-connectable state and disable the proxy server."</string>
+    <string name="title_exclusions">Exclusions</string>
+    <string name="label_default_ttl_rationale">TTL limits the number of times a message can be
+        relayed. Max value of TTL is 127.</string>
+    <string name="label_exclude_node">Exclude Node</string>
+    <string name="label_exclusion_rationale">"If checked, the node will be excluded from the key exchange process. When the key refresh procedure is complete, this node will no longer be able to receive or send messages to the mesh network."</string>
+    <string name="label_reset">Reset</string>
+    <string name="label_reset_node">Reset Node</string>
+    <string name="label_reset_node_rationale">Resetting this node will change its provisioned state
+        back to an un-provisioned state. Node</string>
 </resources>

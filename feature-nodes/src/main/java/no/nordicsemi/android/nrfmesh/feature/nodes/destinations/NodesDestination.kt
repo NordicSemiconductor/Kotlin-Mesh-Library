@@ -16,7 +16,7 @@ val nodesDestination = defineDestination(nodes) {
     val uiState: NodesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NodesRoute(
         uiState = uiState,
-        navigateToNode = viewModel::send,
+        navigateToNode = viewModel::navigate,
         onSwiped = {},
         onUndoClicked = {},
         remove = {}
