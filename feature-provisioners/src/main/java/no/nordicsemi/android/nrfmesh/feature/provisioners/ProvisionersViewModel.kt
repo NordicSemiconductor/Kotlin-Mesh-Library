@@ -91,8 +91,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
         if (!provisionersToBeRemoved.contains(provisioner))
             provisionersToBeRemoved.add(provisioner)
         if (provisionersToBeRemoved.size == network.provisioners.size)
-            _uiState.value =
-                ProvisionersScreenUiState(provisioners = filterProvisionersTobeRemoved())
+            _uiState.value = _uiState.value.copy(provisioners = filterProvisionersTobeRemoved())
     }
 
     /**
@@ -104,8 +103,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun onUndoSwipe(provisioner: Provisioner) {
         provisionersToBeRemoved.remove(provisioner)
         if (provisionersToBeRemoved.isEmpty()) {
-            _uiState.value =
-                ProvisionersScreenUiState(provisioners = filterProvisionersTobeRemoved())
+            _uiState.value = _uiState.value.copy(provisioners = filterProvisionersTobeRemoved())
         }
     }
 

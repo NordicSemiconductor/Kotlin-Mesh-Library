@@ -46,6 +46,10 @@ import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
  *                                 based on the key refresh phase.
  * @property isPrimary             Returns true if the network key is the primary network key.
  * @property network               Returns the network object this network key belongs to.
+ * @property isInUse               Returns whether the network key is added to any nodes in the
+ *                                 network. A key that is in use cannot be removed until it has been
+ *                                 removed from all the nodes and is no longer bound to any
+ *                                 application keys.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -152,6 +156,20 @@ data class NetworkKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
+    val isInUse: Boolean
+        get() = network?.run {
+            // A network key is in use if at least one application key is bound to it.
+            // OR
+            // The network key is known by any of the nodes in the network.
+            _applicationKeys.any { applicationKey ->
+                applicationKey.boundNetKeyIndex == index
+            } || _nodes.any { node ->
+                node.netKeys.any { nodeKey ->
+                    nodeKey.index == index
+                }
+            }
+        } ?: false
+
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
         regenerateKeyDerivatives()
@@ -162,31 +180,13 @@ data class NetworkKey internal constructor(
     }
 
     /**
-     * Returns whether the network key is added to any nodes in the network.
-     * A key that is in use cannot be removed until it has been removed from all the nodes and is no
-     * longer bound to any application keys.
-     */
-    fun isInUse(): Boolean = network?.run {
-        // A network key is in use if at least one application key is bound to it.
-        // OR
-        // The network key is known by any of the nodes in the network.
-        _applicationKeys.any { applicationKey ->
-            applicationKey.boundNetKeyIndex == index
-        } || _nodes.any { node ->
-            node.netKeys.any { nodeKey ->
-                nodeKey.index == index
-            }
-        }
-    } ?: false
-
-    /**
      * Updates the existing key with the given key, if it is not in use.
      *
      * @param key New key.
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse()) { throw KeyInUse }
+        require(!isInUse) { throw KeyInUse }
         require(key.size == 16) { throw InvalidKeyLength }
         _key = key
     }

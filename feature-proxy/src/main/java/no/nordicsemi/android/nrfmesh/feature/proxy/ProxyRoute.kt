@@ -15,19 +15,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.Switch
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.BluetoothSearching
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.BluetoothSearching
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Switch
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -178,7 +178,7 @@ private fun ProxyRow(
         subtitle = proxyState.describe(),
         trailingComposable = {
             Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(1.dp)
@@ -186,7 +186,7 @@ private fun ProxyRow(
                 Spacer(modifier = Modifier.size(16.dp))
                 IconButton(enabled = !autoConnect, onClick = onProxyRowClicked) {
                     Icon(
-                        imageVector = Icons.Outlined.BluetoothSearching,
+                        imageVector = Icons.AutoMirrored.Outlined.BluetoothSearching,
                         contentDescription = null,
                         tint = LocalContentColor.current.copy(alpha = 0.6f)
                     )

@@ -80,6 +80,15 @@ data class ApplicationKey internal constructor(
 
     internal var oldAid: UByte? = null
 
+    val isInUse :Boolean
+        get() = network?.run {
+            // The application key in used when it is known by any of the nodes in the network.
+            _nodes.any { node ->
+                node.appKeys.any { nodeKey ->
+                    nodeKey.index == index
+                }
+            }
+        } ?: false
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
@@ -90,14 +99,14 @@ data class ApplicationKey internal constructor(
      * Returns whether the application key is added to any nodes in the network.
      * A key that is in use cannot be removed until it has been removed from all the nodes.
      */
-    fun isInUse(): Boolean = network?.run {
+    /*fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
         _nodes.any { node ->
             node.appKeys.any { nodeKey ->
                 nodeKey.index == index
             }
         }
-    } ?: false
+    } ?: false*/
 
     /**
      * Updates the existing key with the given key, if it is not in use.
@@ -106,7 +115,7 @@ data class ApplicationKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse()) { throw KeyInUse }
+        require(!isInUse) { throw KeyInUse }
         require(key.size == 16) { throw InvalidKeyLength }
         _key = key
     }
@@ -121,7 +130,7 @@ data class ApplicationKey internal constructor(
     @Throws(KeyInUse::class)
     fun bind(networkKey: NetworkKey) {
         network?.let {
-            require(!isInUse()) { throw KeyInUse }
+            require(!isInUse) { throw KeyInUse }
             boundNetKeyIndex = networkKey.index
         }
     }

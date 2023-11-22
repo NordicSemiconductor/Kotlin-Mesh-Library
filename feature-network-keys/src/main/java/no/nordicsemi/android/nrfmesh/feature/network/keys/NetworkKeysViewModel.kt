@@ -66,12 +66,13 @@ internal class NetworkKeysViewModel @Inject internal constructor(
      *
      * @param key Network key to be deleted.
      */
-    fun onSwiped(key: NetworkKey) {
+    fun onSwiped(key: NetworkKey): Boolean = if (!key.isInUse) {
         if (!keysToBeRemoved.contains(key))
             keysToBeRemoved.add(key)
         if (keysToBeRemoved.size == network.networkKeys.size)
-            _uiState.value = NetworkKeysScreenUiState(keys = filterKeysToBeRemoved())
-    }
+            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
+        true
+    } else false
 
     /**
      * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed

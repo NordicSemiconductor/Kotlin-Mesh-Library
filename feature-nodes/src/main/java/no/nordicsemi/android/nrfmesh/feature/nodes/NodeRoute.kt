@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -22,12 +23,16 @@ import androidx.compose.material.icons.outlined.LockReset
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,8 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
@@ -71,6 +78,7 @@ fun NodeRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NodeScreen(
     nodeState: NodeState,
@@ -83,35 +91,50 @@ private fun NodeScreen(
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit
 ) {
-    LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
-        when (nodeState) {
-            NodeState.Loading -> {}
+    val state = rememberPullToRefreshState()
+    if (state.isRefreshing) {
+        LaunchedEffect(true) {
+            // fetch something
+            delay(1500)
+            state.endRefresh()
+        }
+    }
+    Box(modifier = Modifier.nestedScroll(connection = state.nestedScrollConnection)) {
+        LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
+            when (nodeState) {
+                NodeState.Loading -> {}
 
-            is NodeState.Success -> {
-                nodeInfo(
-                    node = nodeState.node,
-                    onNameChanged = onNameChanged,
-                    onNetworkKeysClicked = onNetworkKeysClicked,
-                    onApplicationKeysClicked = onApplicationKeysClicked,
-                    onElementsClicked = onElementsClicked,
-                    onGetTtlClicked = onGetTtlClicked,
-                    onGetProxyStateClicked = onGetProxyStateClicked,
-                    onExcluded = onExcluded,
-                    onResetClicked = onResetClicked
-                )
-            }
-
-            is NodeState.Error -> {
-                item {
-                    MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.ErrorOutline,
-                        title = nodeState.throwable.message ?: "Unknown error"
+                is NodeState.Success -> {
+                    nodeInfo(
+                        node = nodeState.node,
+                        onNameChanged = onNameChanged,
+                        onNetworkKeysClicked = onNetworkKeysClicked,
+                        onApplicationKeysClicked = onApplicationKeysClicked,
+                        onElementsClicked = onElementsClicked,
+                        onGetTtlClicked = onGetTtlClicked,
+                        onGetProxyStateClicked = onGetProxyStateClicked,
+                        onExcluded = onExcluded,
+                        onResetClicked = onResetClicked
                     )
+                }
+
+                is NodeState.Error -> {
+                    item {
+                        MeshNoItemsAvailable(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            title = nodeState.throwable.message ?: "Unknown error"
+                        )
+                    }
                 }
             }
         }
+        PullToRefreshContainer(
+            modifier = Modifier.align(Alignment.TopCenter),
+            state = state
+        )
     }
 }
+
 
 private fun LazyListScope.nodeInfo(
     node: Node,
@@ -140,7 +163,7 @@ private fun LazyListScope.nodeInfo(
     node.elements.forEachIndexed { index, element ->
         item {
             ElementRow(element = element, onElementsClicked = onElementsClicked)
-            if(index != node.elements.size - 1)
+            if (index != node.elements.size - 1)
                 Spacer(modifier = Modifier.size(8.dp))
         }
     }

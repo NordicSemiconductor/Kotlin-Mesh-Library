@@ -68,12 +68,13 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      *
      * @param key Application key to be deleted.
      */
-    fun onSwiped(key: ApplicationKey) {
+    fun onSwiped(key: ApplicationKey): Boolean = if (!key.isInUse) {
         if (!keysToBeRemoved.contains(key))
             keysToBeRemoved.add(key)
         if (keysToBeRemoved.size == network.applicationKeys.size)
-            _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
-    }
+            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
+        true
+    } else false
 
     /**
      * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
@@ -83,8 +84,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      */
     fun onUndoSwipe(key: ApplicationKey) {
         keysToBeRemoved.remove(key)
-        if (keysToBeRemoved.isEmpty())
-            _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
+        if (keysToBeRemoved.isNotEmpty())
+            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
     }
 
     /**
@@ -94,9 +95,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      */
     internal fun remove(key: ApplicationKey) {
         network.apply {
-            applicationKeys.find { it == key }?.let {
-                remove(it)
-            }
+            applicationKeys.find { it == key }?.let { remove(it) }
         }
         keysToBeRemoved.remove(key)
     }

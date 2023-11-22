@@ -99,7 +99,7 @@ sealed interface ApplicationKeyState {
     ) : ApplicationKeyState
 
     data class Error(val throwable: Throwable) : ApplicationKeyState
-    object Loading : ApplicationKeyState
+    data object Loading : ApplicationKeyState
 }
 
 data class ApplicationKeyScreenUiState internal constructor(

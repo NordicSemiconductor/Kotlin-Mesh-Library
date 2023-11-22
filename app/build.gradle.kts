@@ -31,8 +31,6 @@ dependencies {
 
     implementation(libs.timber)
 
-    implementation(libs.kotlin.junit)
-
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
     implementation(project(":core-data"))
@@ -51,4 +49,14 @@ dependencies {
     implementation(project(":mesh:provisioning"))
 
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.11")
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.junit)
+    testImplementation(libs.androidx.test.ext)
+    testImplementation(libs.androidx.test.rules)
+
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.kotlin.junit)
+    androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.test.rules)
 }
