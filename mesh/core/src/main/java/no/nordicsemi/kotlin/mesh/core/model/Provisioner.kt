@@ -249,7 +249,9 @@ data class Provisioner internal constructor(
      * @param newRange new unicast range.
      */
     fun update(range: UnicastRange, newRange: UnicastRange) {
-        _allocatedUnicastRanges.map { if (it == range) newRange else it }
+        _allocatedUnicastRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedUnicastRanges[it] = newRange
+        }
     }
 
     /**
@@ -259,7 +261,9 @@ data class Provisioner internal constructor(
      * @param newRange new group range.
      */
     fun update(range: GroupRange, newRange: GroupRange) {
-        _allocatedGroupRanges.map { if (it == range) newRange else it }
+        _allocatedGroupRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedGroupRanges[it] = newRange
+        }
     }
 
     /**
@@ -269,7 +273,9 @@ data class Provisioner internal constructor(
      * @param newRange new scene range.
      */
     fun update(range: SceneRange, newRange: SceneRange) {
-        _allocatedSceneRanges.map { if (it == range) newRange else it }
+        _allocatedSceneRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedSceneRanges[it] = newRange
+        }
     }
 
     /**
