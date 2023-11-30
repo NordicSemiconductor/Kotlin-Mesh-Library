@@ -64,10 +64,12 @@ class MeshNetworkManager(
     internal val networkProperties: NetworkPropertiesStorage,
     internal val scope: CoroutineScope
 ) {
+    private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
     internal var network: MeshNetwork? = null
         private set
+
 
     internal var networkManager: NetworkManager? = null
         private set
@@ -116,7 +118,7 @@ class MeshNetworkManager(
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        Mutex().withLock {
+        mutex.withLock {
             export()?.also {
                 storage.save(it)
                 this@MeshNetworkManager.network?.let { network ->
