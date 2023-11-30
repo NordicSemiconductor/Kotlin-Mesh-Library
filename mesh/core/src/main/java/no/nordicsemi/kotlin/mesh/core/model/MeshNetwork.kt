@@ -285,14 +285,7 @@ class MeshNetwork internal constructor(
                 provisioner = provisioner,
                 deviceKey = Crypto.generateRandomKey(),
                 unicastAddress = unicastAddress,
-                elements = listOf(
-                    Element(
-                        location = Location.UNKNOWN,
-                        _models = mutableListOf(
-                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID))
-                        )
-                    )
-                ),
+                elements = localElements,
                 netKeys = _networkKeys,
                 appKeys = _applicationKeys
             ).apply {
@@ -302,9 +295,10 @@ class MeshNetwork internal constructor(
             }
             add(node)
         }
+        // And finally, add the Provisioner.
         provisioner.network = this
         _provisioners.add(provisioner).also { updateTimestamp() }
-        // TODO Needs to save the network
+
     }
 
     /**
@@ -331,9 +325,12 @@ class MeshNetwork internal constructor(
                 appKeys = _applicationKeys.map { NodeKey(it) }
                 companyIdentifier = 0x00E0u
                 replayProtectionCount = maxUnicastAddress
+                // The Element adding has to be done this way. Some Elements may get cut
+                // by the property observer when Element addresses overlap other Node's
+                // addresses.
+                val elements = localElements
+                _localElements = elements.toMutableList()
             }
-
-            // TODO Save the local provisioner
         }
         updateTimestamp()
         return provisioner
@@ -426,7 +423,9 @@ class MeshNetwork internal constructor(
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
     fun add(
-        name: String, key: ByteArray = Crypto.generateRandomKey(), index: KeyIndex? = null
+        name: String,
+        key: ByteArray = Crypto.generateRandomKey(),
+        index: KeyIndex? = null
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
@@ -1308,7 +1307,7 @@ class MeshNetwork internal constructor(
      * @param networkId Network ID.
      * @return true if matches or false otherwise.
      */
-    fun matches(networkId : NetworkIdentity) = networkKeys.any {
+    fun matches(networkId: NetworkIdentity) = networkKeys.any {
         networkId.matches(it)
     }
 
@@ -1318,7 +1317,7 @@ class MeshNetwork internal constructor(
      * @param networkId Network ID.
      * @return true if matches or false otherwise.
      */
-    fun matches(networkId : ByteArray) = networkKeys.any {
+    fun matches(networkId: ByteArray) = networkKeys.any {
         it.networkId.contentEquals(networkId) || it.oldNetworkId.contentEquals(networkId)
     }
 
