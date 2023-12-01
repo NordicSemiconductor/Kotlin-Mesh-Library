@@ -82,15 +82,15 @@ internal abstract class RangesViewModel(
     /**
      * Adds a range to the network.
      *
-     * @param start start address of the range.
-     * @param end end address of the range.
+     * @param start Start address of the range.
+     * @param end   End address of the range.
      */
     internal abstract fun addRange(start: UInt, end: UInt)
 
     /**
      * Checks if the given bound is valid.
      *
-     * @param bound bound to be checked.
+     * @param bound Bound to be checked.
      * @return true if valid, false otherwise.
      */
     internal abstract fun isValidBound(bound: UShort): Boolean
@@ -98,17 +98,17 @@ internal abstract class RangesViewModel(
     /**
      * Invoked when the user updates a given range
      *
-     * @param range range to be updated.
-     * @param low low address of the new range.
-     * @param high high address of the new range.
+     * @param range Range to be updated.
+     * @param low   Low address of the new range.
+     * @param high  High address of the new range.
      */
     internal abstract fun onRangeUpdated(range: Range, low: UShort, high: UShort)
 
     /**
      * Updates the given range with the given new range.
      *
-     * @param range range to be updated.
-     * @param newRange new range to be updated with.
+     * @param range    Range to be updated.
+     * @param newRange New range to be updated with.
      */
     protected fun updateRange(range: Range, newRange: Range) {
         _uiState.value = with(_uiState.value) {
@@ -150,7 +150,7 @@ internal abstract class RangesViewModel(
      * Invoked when a range is swiped to be deleted. The given range is added to a list
      * of ranges to be deleted.
      *
-     * @param range Provisioner to be deleted.
+     * @param range Range to be deleted.
      */
     internal fun onSwiped(range: Range) {
         if (!rangesToBeRemoved.contains(range))
@@ -181,7 +181,7 @@ internal abstract class RangesViewModel(
     /**
      * Remove a given range from the provisioner.
      *
-     * @param range range to be removed.
+     * @param range Range to be removed.
      */
     internal fun remove(range: Range) {
         rangesToBeRemoved.find { it == range }?.let {
