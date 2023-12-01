@@ -168,7 +168,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     /**
      * Initialize periodic publishing from local Models.
      */
-    private fun reinitializePublishers() {
+    internal fun reinitializePublishers() {
         network.localElements
             .flatMap { it.models }
             .forEach { refreshPeriodicPublisher(it) }
@@ -486,6 +486,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                 .filter { it.supportsDeviceKey }
 
             for (model in models) {
+                println("access layer model: $model")
                 val eventHandler = model.eventHandler ?: continue
                 val message = eventHandler.decode(accessPdu = accessPdu)
                 if (message != null) {

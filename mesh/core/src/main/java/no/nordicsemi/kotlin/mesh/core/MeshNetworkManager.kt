@@ -88,7 +88,7 @@ class MeshNetworkManager(
         get() = network?.localElements ?: emptyList()
         set(value) {
             network?._localElements = value.toMutableList()
-            // TODO networkManager?.accessLayer?.reinitializePublishers()
+            networkManager?.accessLayer?.reinitializePublishers()
         }
 
     init {
