@@ -94,6 +94,8 @@ sealed class ModelEvent {
  */
 abstract class ModelEventHandler {
 
+    abstract val meshNetwork: MeshNetwork
+
     abstract val messageTypes: Map<UInt, HasInitializer>
 
     abstract val isSubscriptionSupported: Boolean
