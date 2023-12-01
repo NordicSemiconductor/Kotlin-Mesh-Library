@@ -5,6 +5,10 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.PrivateBeaconHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 
@@ -115,21 +119,42 @@ data class Element internal constructor(
     /**
      * Adds the natively supported Models to the Element.
      *
-     * Note: This is only to be called for the primary elemen of the Local Node.
+     * Note: This is only to be called for the primary element of the Local Node.
      *
      * @param meshNetwork Mesh network.
      */
-
-    // TODO ModelDelegates?
-    @Suppress("UNUSED_PARAMETER")
     internal fun addPrimaryElementModels(meshNetwork: MeshNetwork) {
         require(isPrimary) { return }
-        insert(Model(modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)), 0)
-        insert(Model(modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID)), 1)
-        insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), 2)
-        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_ID)), 3)
-        insert(Model(modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID)), 4)
-        insert(Model(modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID)), 5)
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID),
+                handler = ConfigurationServerHandler(meshNetwork = meshNetwork)
+            ),
+            index = 0
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID),
+                handler = ConfigurationClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 1
+        )
+        insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), index = 2)
+        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_ID)), index = 3)
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID),
+                handler = PrivateBeaconHandler(meshNetwork = meshNetwork)
+            ),
+            index = 4
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
+                handler = SceneClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 5
+        )
     }
 
     /**
