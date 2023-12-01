@@ -125,15 +125,57 @@ abstract class ModelEventHandler {
     }
 }
 
+/**
+ * This event handler should be used when defining Scene Server model. In addition to handling
+ * messages, the Scene Server delegate should also clear the current whenever
+ * [StoredWithSceneModelDelegate.store] and
+ * [StoredWithSceneModelDelegate.recall] are called.
+ *
+ * Whenever the state changes due toa ny other reason than receiving a Scene Recall message, the
+ * delegate should call [StoredWithSceneModelDelegate.networkDidExitStoredWithSceneState] to clear
+ * the current scene.
+ */
 abstract class SceneServerModelEventHandler : ModelEventHandler() {
 
+    /**
+     * This method should be called whenever the State of the model changes for any reason other
+     * than receiving Scene Recall message.
+     *
+     * The invocation of this method should eb consumed by the Scene Server model, which should
+     * clear the Current Scene.
+     */
     abstract fun networkDidExitStoredWithSceneState()
 }
 
 abstract class StoredWithSceneModelDelegate : ModelEventHandler() {
+
+    /**
+     * This method should store the current States of the Model and associate them with the given
+     * Scene number.
+     *
+     * @param scene Scene number.
+     */
     abstract fun store(scene: SceneNumber)
 
+    /**
+     * This method should recall the States of the Model that were stored with the given Scene
+     * number.
+     *
+     * @param scene          Scene number.
+     * @param transitionTime Identifies that an element will take to transition to the target state
+     *                       from the present state.
+     * @param delay          Message execution delay in 5 millisecond steps.
+     */
     abstract fun recall(scene: SceneNumber, transitionTime: TransitionTime?, delay: UByte)
+
+    /**
+     * This method should be called whenever the State of a local model changes due to a different
+     * action than recalling a scene.
+     *
+     * This method will invalidate the current scene state in Scene Server model.
+     *
+     * @param network Mesh network to which the model belongs to.
+     */
     fun networkDidExitStoredWithSceneState(network: MeshNetwork) {
         network.localElements
             .flatMap { it.models }
