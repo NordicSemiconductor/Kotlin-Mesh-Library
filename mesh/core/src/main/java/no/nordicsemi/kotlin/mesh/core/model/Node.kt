@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -6,6 +6,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
@@ -97,26 +99,31 @@ data class Node internal constructor(
             network?.updateTimestamp()
             field = value
         }
+
     var netKeys: List<NodeKey>
         get() = _netKeys
         internal set(value) {
             _netKeys = value.toMutableList()
             network?.updateTimestamp()
         }
+
     var appKeys: List<NodeKey>
         get() = _appKeys
         internal set(value) {
             _appKeys = value.toMutableList()
             network?.updateTimestamp()
         }
+
     var elements: List<Element>
         get() = _elements
         internal set(value) {
             _elements = value.toMutableList()
             network?.updateTimestamp()
         }
+
     var security: Security = Insecure
         internal set
+
     var configComplete: Boolean = false
         internal set(value) {
             field = value
@@ -125,6 +132,7 @@ data class Node internal constructor(
 
     val networkKeys: List<NetworkKey>
         get() = network?.networkKeys?.knownTo(this) ?: emptyList()
+
     val applicationKeys: List<ApplicationKey>
         get() = network?.applicationKeys?.knownTo(this) ?: emptyList()
 
@@ -147,25 +155,31 @@ data class Node internal constructor(
     @SerialName(value = "crpl")
     var replayProtectionCount: UShort? = null
         internal set
+
     var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
         internal set
+
     var secureNetworkBeacon: Boolean? = null
         internal set
+
     var networkTransmit: NetworkTransmit? = null
         internal set(value) {
             field = value
             network?.updateTimestamp()
         }
+
     var relayRetransmit: RelayRetransmit? = null
         internal set(value) {
             field = value
             network?.updateTimestamp()
         }
+
     var defaultTTL: UByte? = 127u
         internal set(value) {
             field = value
             network?.updateTimestamp()
         }
+
     var excluded: Boolean = false
         internal set(value) {
             field = value
@@ -317,38 +331,6 @@ data class Node internal constructor(
     internal var network: MeshNetwork? = null
 
     /**
-     * Sets the given list of Elements to the Node.
-     *
-     * Apart from simply replacing the Elements, this method copies properties of matching models
-     * from the old model to the new one. If at least one Model in the new Element was found in the
-     * new Element, the name of the Element is also copied.
-     *
-     * @param elements List of Elements to set.
-     */
-    fun set(elements: List<Element>) {
-        for (e in 0 until minOf(this.elements.size, elements.size)) {
-            val oldElement = this.elements[e]
-            val newElement = elements[e]
-            for (m in 0 until minOf(oldElement.models.size, newElement.models.size)) {
-                val oldModel = oldElement.models[m]
-                val newModel = newElement.models[m]
-                if (oldModel.modelId.id == newModel.modelId.id) {
-                    newModel.copyProperties(oldModel)
-                    // If at least one Model matches, assume the Element didn't change much and copy
-                    // the name of it.
-                    oldElement.name?.let { newElement.name = it }
-                }
-            }
-        }
-        this._elements.forEach { element ->
-            element.parentNode = null
-            element.index = 0
-        }
-        this._elements.clear()
-        this._elements.addAll(elements)
-    }
-
-    /**
      * Adds a network key to a node.
      *
      * @param key     Network key to be added.
@@ -394,6 +376,61 @@ data class Node internal constructor(
             _elements.add(element)
             true
         }
+    }
+
+    /**
+     * Applies the result of Composition Data Status message to the Node.
+     *
+     * This method does nothing if the Node already was configured or the Composition Data Status
+     * does not have Page 0.
+     *
+     * @param compositionData The result of Config Composition Data get with Page 0.
+     */
+    internal fun apply(compositionData: ConfigCompositionDataStatus) {
+        val page0 = requireNotNull(compositionData.page as? Page0)
+        companyIdentifier = page0.companyIdentifier
+        productIdentifier = page0.productIdentifier
+        versionIdentifier = page0.versionIdentifier
+        replayProtectionCount = page0.minimumNumberOfReplayProtectionList
+        // Don't override features if they already were known.
+        // Accurate features states could have been acquired by reading each feature state, while
+        // the Page 0 of the Composition Data contains only Supported/Not supported
+
+        // And set the Elements received.
+        set(elements)
+        network?.updateTimestamp()
+    }
+
+    /**
+     * Sets the given list of Elements to the Node.
+     *
+     * Apart from simply replacing the Elements, this method copies properties of matching models
+     * from the old model to the new one. If at least one Model in the new Element was found in the
+     * new Element, the name of the Element is also copied.
+     *
+     * @param elements List of Elements to set.
+     */
+    internal fun set(elements: List<Element>) {
+        for (e in 0 until minOf(this.elements.size, elements.size)) {
+            val oldElement = this.elements[e]
+            val newElement = elements[e]
+            for (m in 0 until minOf(oldElement.models.size, newElement.models.size)) {
+                val oldModel = oldElement.models[m]
+                val newModel = newElement.models[m]
+                if (oldModel.modelId.id == newModel.modelId.id) {
+                    newModel.copyProperties(oldModel)
+                    // If at least one Model matches, assume the Element didn't change much and copy
+                    // the name of it.
+                    oldElement.name?.let { newElement.name = it }
+                }
+            }
+        }
+        this._elements.forEach { element ->
+            element.parentNode = null
+            element.index = 0
+        }
+        this._elements.clear()
+        this._elements.addAll(elements)
     }
 
     /**
