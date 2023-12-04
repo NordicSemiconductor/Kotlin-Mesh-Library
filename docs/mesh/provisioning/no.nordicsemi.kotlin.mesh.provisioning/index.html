@@ -1,9 +1,11 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>no.nordicsemi.kotlin.mesh.provisioning</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
     if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
@@ -16,12 +18,13 @@
         }
     }
     </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
-<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
@@ -29,26 +32,32 @@
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../../index.html">
-<span>Kotlin-nRF Mesh-Library</span>            </a>    </div>
-    <div>
-    </div>
-    <div class="pull-right d-flex">
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            Kotlin-nRF Mesh-Library
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":mesh:provisioning:dokkaHtmlPartial/main">jvm</button>
         </div>
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
     </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
     </div>
-    <div id="main">
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
 <div class="main-content" data-page-type="package" id="content" pageids="provisioning::no.nordicsemi.kotlin.mesh.provisioning////PointingToDeclaration//-521982144">
   <div class="breadcrumbs"><a href="../index.html">provisioning</a><span class="delimiter">/</span><span class="current">no.nordicsemi.kotlin.mesh.provisioning</span></div>
   <div class="cover ">
@@ -69,7 +78,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-address-not-specified/index.html">AddressNotSpecified</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Throws when the Unicast Address has not been set.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-address-not-specified/index.html">AddressNotSpecified</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Throws when the Unicast Address has not been set.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -114,7 +123,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-confirmation-failed/index.html">ConfirmationFailed</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when confirmation value received from the device does not match calculated value. Authentication failed.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-confirmation-failed/index.html">ConfirmationFailed</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when confirmation value received from the device does not match calculated value. Authentication failed.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -159,7 +168,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-address/index.html">InvalidAddress</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the unicast address is invalid.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-address/index.html">InvalidAddress</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the unicast address is invalid.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -174,7 +183,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-oob-value-format/index.html">InvalidOobValueFormat</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the provided alphanumeric value could not be converted into bytes using ASCII encoding.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-oob-value-format/index.html">InvalidOobValueFormat</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the provided alphanumeric value could not be converted into bytes using ASCII encoding.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -189,7 +198,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-pdu/index.html">InvalidPdu</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">The received PDU is invalid.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-pdu/index.html">InvalidPdu</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">The received PDU is invalid.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -204,7 +213,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-public-key/index.html">InvalidPublicKey</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">The received Public Key is invalid or not equal to Provisioner's Public Key.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-public-key/index.html">InvalidPublicKey</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">The received Public Key is invalid or not equal to Provisioner's Public Key.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -219,7 +228,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-state/index.html">InvalidState</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the ProvisioningManager is in an invalid state.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-state/index.html">InvalidState</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the ProvisioningManager is in an invalid state.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -249,7 +258,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-network-key-not-specified/index.html">NetworkKeyNotSpecified</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Throws when the Network Key has not been set.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-network-key-not-specified/index.html">NetworkKeyNotSpecified</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Throws when the Network Key has not been set.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -264,22 +273,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-address-available/index.html">NoAddressAvailable</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when no available Unicast Address was found in the Provisioner's range that could be allocated for the device.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-838681729%2FClasslikes%2F-521982144" anchor-label="OobInformation" id="-838681729%2FClasslikes%2F-521982144" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:provisioning:dokkaHtmlPartial/main" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="-oob-information/index.html"><span>Oob</span><wbr><span><span>Information</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-838681729%2FClasslikes%2F-521982144"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-oob-information/index.html">OobInformation</a></div><div class="brief "><p class="paragraph">Information that points to the out-of-band information that the device can provide. This si needed for provisioning.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-address-available/index.html">NoAddressAvailable</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when no available Unicast Address was found in the Provisioner's range that could be allocated for the device.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -344,21 +338,6 @@
               </div>
             </div>
           </div>
-<a data-name="1104902384%2FClasslikes%2F-521982144" anchor-label="ProvisioningConfiguration" id="1104902384%2FClasslikes%2F-521982144" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:provisioning:dokkaHtmlPartial/main" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="-provisioning-configuration/index.html"><span>Provisioning</span><wbr><span><span>Configuration</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1104902384%2FClasslikes%2F-521982144"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-provisioning-configuration/index.html">ProvisioningConfiguration</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">meshNetwork<span class="token operator">: </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model/-mesh-network/index.html">MeshNetwork</a><span class="token punctuation">, </span></span><span class="parameter ">capabilities<span class="token operator">: </span><a href="-provisioning-capabilities/index.html">ProvisioningCapabilities</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Configuration class that contains all the necessary information to provision a device.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
 <a data-name="177297694%2FClasslikes%2F-521982144" anchor-label="ProvisioningError" id="177297694%2FClasslikes%2F-521982144" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:provisioning:dokkaHtmlPartial/main" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -384,7 +363,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-provisioning-manager/index.html">ProvisioningManager</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unprovisionedDevice<span class="token operator">: </span><a href="-unprovisioned-device/index.html">UnprovisionedDevice</a><span class="token punctuation">, </span></span><span class="parameter ">meshNetwork<span class="token operator">: </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model/-mesh-network/index.html">MeshNetwork</a><span class="token punctuation">, </span></span><span class="parameter ">bearer<span class="token operator">: </span><a href="../../../mesh/bearer-provisioning/no.nordicsemi.kotlin.mesh.bearer.provisioning/-mesh-provisioning-bearer/index.html">MeshProvisioningBearer</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Provisioning manager is responsible for provisioning new devices to a mesh network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-provisioning-manager/index.html">ProvisioningManager</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unprovisionedDevice<span class="token operator">: </span><a href="-unprovisioned-device/index.html">UnprovisionedDevice</a><span class="token punctuation">, </span></span><span class="parameter ">meshNetwork<span class="token operator">: </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model/-mesh-network/index.html">MeshNetwork</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>bearer<span class="token operator">: </span><a href="../../../mesh/bearer-provisioning/no.nordicsemi.kotlin.mesh.bearer.provisioning/-mesh-provisioning-bearer/index.html">MeshProvisioningBearer</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Provisioning manager is responsible for provisioning new devices to a mesh network.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2109021006%2FClasslikes%2F-521982144" anchor-label="ProvisioningParameters" id="-2109021006%2FClasslikes%2F-521982144" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:provisioning:dokkaHtmlPartial/main" data-filterable-set=":mesh:provisioning:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-provisioning-parameters/index.html"><span>Provisioning</span><wbr><span><span>Parameters</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2109021006%2FClasslikes%2F-521982144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-provisioning-parameters/index.html">ProvisioningParameters</a></div><div class="brief "><p class="paragraph">Configuration class that contains all the necessary information to provision a device.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -519,7 +513,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-unprovisioned-device/index.html">UnprovisionedDevice</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>oobInformation<span class="token operator">: </span><a href="-oob-information/index.html">OobInformation</a><span class="token operator"> = </span>OobInformation.None</span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-unprovisioned-device/index.html">UnprovisionedDevice</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>oobInformation<span class="token operator">: </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.oob/-oob-information/index.html">OobInformation</a><span class="token operator"> = </span>OobInformation.None</span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -534,7 +528,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-unsupported-device/index.html">UnsupportedDevice</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the Unprovisioned Device is not supported by the manager.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:provisioning:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-unsupported-device/index.html">UnsupportedDevice</a> : <a href="-provisioning-error/index.html">ProvisioningError</a></div><div class="brief "><p class="paragraph">Thrown when the Unprovisioned Device is not supported by the manager.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -547,8 +541,9 @@
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>
+            </div>
+        </div>
     </div>
-</div>
 </body>
 </html>
 

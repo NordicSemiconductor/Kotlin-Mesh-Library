@@ -1,9 +1,11 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>Provisioner</title>
-<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
     if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
@@ -16,12 +18,13 @@
         }
     }
     </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../../styles/style.css" rel="Stylesheet">
-<link href="../../../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../../../styles/main.css" rel="Stylesheet">
 <link href="../../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
@@ -29,26 +32,32 @@
 <script type="text/javascript" src="../../../../scripts/prism.js" async></script>
 <script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../../../index.html">
-<span>Kotlin-nRF Mesh-Library</span>            </a>    </div>
-    <div>
-    </div>
-    <div class="pull-right d-flex">
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../../index.html">
+                            Kotlin-nRF Mesh-Library
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":mesh:core:dokkaHtmlPartial/main">jvm</button>
         </div>
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
     </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
     </div>
-    <div id="main">
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
 <div class="main-content" data-page-type="classlike" id="content" pageids="core::no.nordicsemi.kotlin.mesh.core.model/Provisioner///PointingToDeclaration//1143283918">
   <div class="breadcrumbs"><a href="../../index.html">core</a><span class="delimiter">/</span><a href="../index.html">no.nordicsemi.kotlin.mesh.core.model</a><span class="delimiter">/</span><span class="current">Provisioner</span></div>
   <div class="cover ">
@@ -60,17 +69,17 @@
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="1200374760%2FConstructors%2F1143283918" anchor-label="Provisioner" id="1200374760%2FConstructors%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+        <div class="table"><a data-name="1063331580%2FConstructors%2F1143283918" anchor-label="Provisioner" id="1063331580%2FConstructors%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-provisioner.html"><span><span>Provisioner</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1200374760%2FConstructors%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1063331580%2FConstructors%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token operator"> = </span>UUID.randomUUID()</span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token operator"> = </span>UUID.randomUUID()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a Provisioner with the given UUID.</p></div><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token operator"> = </span>UUID.randomUUID()<span class="token punctuation">, </span></span><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a Provisioner with the given UUID and name.</p></div><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a Provisioner with the given name.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -124,6 +133,36 @@
               </div>
             </div>
           </div>
+<a data-name="-79964829%2FProperties%2F1143283918" anchor-label="hasConfigurationCapabilities" id="-79964829%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-configuration-capabilities.html"><span>has</span><wbr><span>Configuration</span><wbr><span><span>Capabilities</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-79964829%2FProperties%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="has-configuration-capabilities.html">hasConfigurationCapabilities</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if the provisioner has configuration     capabilities.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-689652796%2FProperties%2F1143283918" anchor-label="isLocal" id="-689652796%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-local.html"><span>is</span><wbr><span><span>Local</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-689652796%2FProperties%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="is-local.html">isLocal</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if the Provisioner is set as the local     Provisioner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-242275510%2FProperties%2F1143283918" anchor-label="name" id="-242275510%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -149,7 +188,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="node.html">node</a><span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="node.html">node</a><span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Node of the provisioner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-27630210%2FProperties%2F1143283918" anchor-label="primaryUnicastAddress" id="-27630210%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="primary-unicast-address.html"><span>primary</span><wbr><span>Unicast</span><wbr><span><span>Address</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-27630210%2FProperties%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="primary-unicast-address.html">primaryUnicastAddress</a><span class="token operator">: </span><a href="../-unicast-address/index.html">UnicastAddress</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Primary unicast address of the provisioner.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -361,8 +415,9 @@
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>
+            </div>
+        </div>
     </div>
-</div>
 </body>
 </html>
 

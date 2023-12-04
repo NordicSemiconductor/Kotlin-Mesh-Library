@@ -1,9 +1,11 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>no.nordicsemi.kotlin.mesh.core.exception</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
     if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
@@ -16,12 +18,13 @@
         }
     }
     </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
-<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
@@ -29,26 +32,32 @@
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../../index.html">
-<span>Kotlin-nRF Mesh-Library</span>            </a>    </div>
-    <div>
-    </div>
-    <div class="pull-right d-flex">
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            Kotlin-nRF Mesh-Library
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":mesh:core:dokkaHtmlPartial/main">jvm</button>
         </div>
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
     </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
     </div>
-    <div id="main">
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
 <div class="main-content" data-page-type="package" id="content" pageids="core::no.nordicsemi.kotlin.mesh.core.exception////PointingToDeclaration//1143283918">
   <div class="breadcrumbs"><a href="../index.html">core</a><span class="delimiter">/</span><span class="current">no.nordicsemi.kotlin.mesh.core.exception</span></div>
   <div class="cover ">
@@ -69,7 +78,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-address-already-in-use/index.html">AddressAlreadyInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given address is in use by a node or it's elements.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-address-already-in-use/index.html">AddressAlreadyInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given address is in use by a node or it's elements.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -84,7 +93,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-address-not-in-allocated-ranges/index.html">AddressNotInAllocatedRanges</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given address does not belong to an allocated range.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-address-not-in-allocated-ranges/index.html">AddressNotInAllocatedRanges</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given address does not belong to an allocated range.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -99,7 +108,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-at-least-one-network-key-must-be-selected/index.html">AtLeastOneNetworkKeyMustBeSelected</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when at least one network key is not selected when exporting a partial network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-at-least-one-network-key-must-be-selected/index.html">AtLeastOneNetworkKeyMustBeSelected</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when at least one network key is not selected when exporting a partial network.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -114,7 +123,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-at-least-one-provisioner-must-be-selected/index.html">AtLeastOneProvisionerMustBeSelected</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when at least one provisioner is not selected when exporting a partial network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-at-least-one-provisioner-must-be-selected/index.html">AtLeastOneProvisionerMustBeSelected</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when at least one provisioner is not selected when exporting a partial network.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -129,7 +138,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-cannot-remove/index.html">CannotRemove</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when an object cannot be removed.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-cannot-remove/index.html">CannotRemove</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a Network property cannot be removed.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -144,7 +153,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-does-not-belong-to-network/index.html">DoesNotBelongToNetwork</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when an object does not belong to the current network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-does-not-belong-to-network/index.html">DoesNotBelongToNetwork</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a network property does not belong to the current network.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -159,7 +168,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-duplicate-key-index/index.html">DuplicateKeyIndex</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key index is already in use.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-duplicate-key-index/index.html">DuplicateKeyIndex</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key index is already in use.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -174,7 +183,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-group-already-exists/index.html">GroupAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given group already exists.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-group-already-exists/index.html">GroupAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given group already exists.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -189,7 +198,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-group-in-use/index.html">GroupInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given group is in use.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-group-in-use/index.html">GroupInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given group is in use.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -219,7 +228,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-key-length/index.html">InvalidKeyLength</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when the length of a key is not 16-bytes</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-key-length/index.html">InvalidKeyLength</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when the length of a key is not 16-bytes</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -234,7 +243,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-invalid-pdu-type/index.html">InvalidPduType</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when an invalid pdu type is received</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-invalid-pdu-type/index.html">InvalidPduType</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when an invalid pdu type is received</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -249,7 +258,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-key-index-out-of-range/index.html">KeyIndexOutOfRange</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key index is out of range. A valid key index must range from 0 to 4095.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-key-index-out-of-range/index.html">KeyIndexOutOfRange</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key index is out of range. A valid key index must range from 0 to 4095.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -264,7 +273,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-key-in-use/index.html">KeyInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key is in use.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-key-in-use/index.html">KeyInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given key is in use.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -294,7 +303,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-addresses-available/index.html">NoAddressesAvailable</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast addresses available to be allocated.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-addresses-available/index.html">NoAddressesAvailable</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast addresses available to be allocated.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -309,7 +318,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-node-already-exists/index.html">NodeAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a node already exists.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-node-already-exists/index.html">NodeAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a node already exists.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -324,7 +333,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-group-range-allocated/index.html">NoGroupRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no group range is allocated to a provisioner.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-group-range-allocated/index.html">NoGroupRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no group range is allocated to a provisioner.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -339,7 +348,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-local-provisioner/index.html">NoLocalProvisioner</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no provisioner is available in the mesh network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-local-provisioner/index.html">NoLocalProvisioner</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no provisioner is available in the mesh network.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1177074457%2FClasslikes%2F1143283918" anchor-label="NoNetwork" id="1177074457%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-no-network/index.html"><span>No</span><wbr><span><span>Network</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1177074457%2FClasslikes%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-network/index.html">NoNetwork</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no network is initialised</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -354,7 +378,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-network-keys-added/index.html">NoNetworkKeysAdded</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a network and a node does not contain any network key.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-network-keys-added/index.html">NoNetworkKeysAdded</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a network and a node does not contain any network key.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -369,7 +393,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-scene-range-allocated/index.html">NoSceneRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no scene range is allocated to a provisioner.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-scene-range-allocated/index.html">NoSceneRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no scene range is allocated to a provisioner.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -384,7 +408,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-no-unicast-range-allocated/index.html">NoUnicastRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast address range is allocated to a provisioner.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-no-unicast-range-allocated/index.html">NoUnicastRangeAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast address range is allocated to a provisioner.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -399,7 +423,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-overlapping-provisioner-ranges/index.html">OverlappingProvisionerRanges</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when any allocated range of a new provisioner overlaps with an existing one.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-overlapping-provisioner-ranges/index.html">OverlappingProvisionerRanges</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when any allocated range of a new provisioner overlaps with an existing one.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -414,7 +438,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-provisioner-already-exists/index.html">ProvisionerAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast address range is allocated to a provisioner.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-provisioner-already-exists/index.html">ProvisionerAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when no unicast address range is allocated to a provisioner.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -429,7 +453,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-range-already-allocated/index.html">RangeAlreadyAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when any allocated range of a provisioner is already allocated.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-range-already-allocated/index.html">RangeAlreadyAllocated</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when any allocated range of a provisioner is already allocated.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -444,7 +468,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-scene-already-exists/index.html">SceneAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given scene already exists.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-scene-already-exists/index.html">SceneAlreadyExists</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given scene already exists.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -459,7 +483,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-scene-in-use/index.html">SceneInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given scene is in use.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-scene-in-use/index.html">SceneInUse</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Thrown when a given scene is in use.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -474,7 +498,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-security-exception/index.html">SecurityException</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Security exception thrown when level of security of the network key doesn't match with the security used when provisioning a node.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-security-exception/index.html">SecurityException</a> : <a href="-mesh-network-exception/index.html">MeshNetworkException</a></div><div class="brief "><p class="paragraph">Security exception thrown when level of security of the network key doesn't match with the security used when provisioning a node.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -487,8 +511,9 @@
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>
+            </div>
+        </div>
     </div>
-</div>
 </body>
 </html>
 
