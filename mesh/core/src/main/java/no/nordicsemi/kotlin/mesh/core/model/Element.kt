@@ -27,7 +27,7 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
  * @constructor Creates an Element object.
  */
 @Serializable
-data class Element internal constructor(
+data class Element constructor(
     @Serializable(with = LocationAsStringSerializer::class)
     val location: Location,
     @SerialName(value = "models")
@@ -140,7 +140,7 @@ data class Element internal constructor(
             index = 1
         )
         insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), index = 2)
-        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_ID)), index = 3)
+        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID)), index = 3)
         insert(
             model = Model(
                 modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID),
@@ -172,9 +172,27 @@ data class Element internal constructor(
         }
     }
 
-    companion object {
+    internal companion object {
         const val LOWER_BOUND = 0
         const val HIGHER_BOUND = 255
+
+        /**
+         * Primary Element for the Provisioner's Node.
+         *
+         * The Element will contain all mandatory Models (Configuration Server and Health Server)
+         * and supported client models (Configuration Client, Health Client and Scene Client).
+         */
+        var primaryElement = Element(location = Location.UNKNOWN).apply {
+            name = "Primary Element"
+            // Configuration Server is required for all nodes.
+            add(Model(modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
+            // Configuration Client is added because this is a Provisioner's Node.
+            add(Model(modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID)))
+            // Configuration Server is required for all nodes.
+            add(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)))
+            // Health Client is added because this is a Provisioner's Node.
+            add(Model(modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID)))
+        }
     }
 }
 
