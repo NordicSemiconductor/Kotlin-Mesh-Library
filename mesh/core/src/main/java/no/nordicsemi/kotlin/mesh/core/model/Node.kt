@@ -87,7 +87,7 @@ data class Node internal constructor(
     @SerialName(value = "netKeys")
     private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: MutableList<NodeKey>,
+    private var _appKeys: MutableList<NodeKey>
 ) {
 
     val primaryUnicastAddress: UnicastAddress
@@ -224,16 +224,34 @@ data class Node internal constructor(
      * Convenience constructor to initialize a node of a provisioner.
      *
      * @param provisioner               Provisioner.
-     * @param deviceKey                 Device key.
      * @param unicastAddress            Unicast address that was assigned during provisioning.
+     */
+    internal constructor(
+        provisioner: Provisioner,
+        unicastAddress: UnicastAddress
+    ) : this(
+        uuid = provisioner.uuid,
+        deviceKey = Crypto.generateRandomKey(),
+        _primaryUnicastAddress = unicastAddress,
+        _elements = mutableListOf(),
+        _netKeys = mutableListOf(),
+        _appKeys = mutableListOf(),
+    )
+
+    /**
+     * Convenience constructor to initialize a node of a provisioner.
+     *
+     * @param provisioner               Provisioner.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param deviceKey                 Device key.
      * @param elements                  List of elements belonging to this node.
      * @param netKeys                   List of network keys known to this node.
      * @param appKeys                   List of application keys known to this node.
      */
     internal constructor(
         provisioner: Provisioner,
-        deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
+        deviceKey: ByteArray = Crypto.generateRandomKey(),
         elements: List<Element> = listOf(
             Element(
                 location = Location.UNKNOWN,
@@ -348,6 +366,33 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Network Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Network Keys to set.
+     */
+    internal fun set(keys: List<NetworkKey>) {
+        setNetKeys(keys.map { it.index })
+    }
+
+
+    /**
+     * Sets the given list of Network Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Network Keys to set.
+     */
+    internal fun setNetKeys(keys: List<KeyIndex>) {
+        _netKeys = keys.map { NodeKey(it, false) }.toMutableList()
+        // If an insecure Node received a Network Key, all network keys of the node should be
+        // downgraded to lower security.
+        if (security is Insecure) {
+            networkKeys.forEach { it.lowerSecurity() }
+        }
+        network?.updateTimestamp()
+    }
+
+    /**
      * Adds an application key to a node.
      *
      * @param key     Application key to be added.
@@ -365,40 +410,55 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Application Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Application Keys to set.
+     */
+    internal fun set(keys: List<ApplicationKey>) {
+        setAppKeys(keys.map { it.index })
+    }
+
+
+    /**
+     * Sets the given list of Application Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Application Keys to set.
+     */
+    internal fun setAppKeys(keys: List<KeyIndex>) {
+        _appKeys = keys.map { NodeKey(it, false) }
+            .toMutableList()
+            .apply { sortBy { it.index } }
+        network?.updateTimestamp()
+    }
+
+
+    /**
      * Adds an Element to a node.
      *
      * @param element     Element to be added.
-     * @return            True if success or false if the element already exists.
+     * @return True if success or false if the element already exists.
      */
-    internal fun add(element: Element): Boolean = when {
-        _elements.contains(element) -> false
-        else -> {
-            _elements.add(element)
-            true
-        }
+    internal fun add(element: Element) {
+        val index = elements.size
+        _elements.add(element)
+        element.parentNode = this
+        element.index = index
+        /*        _elements.contains(element) -> false
+                else -> {
+                    _elements.add(element)
+                    true
+                }*/
     }
 
     /**
-     * Applies the result of Composition Data Status message to the Node.
+     * Adds given list of Elements to the Node.
      *
-     * This method does nothing if the Node already was configured or the Composition Data Status
-     * does not have Page 0.
-     *
-     * @param compositionData The result of Config Composition Data get with Page 0.
+     * @param elements List of Elements to add.
      */
-    internal fun apply(compositionData: ConfigCompositionDataStatus) {
-        val page0 = requireNotNull(compositionData.page as? Page0)
-        companyIdentifier = page0.companyIdentifier
-        productIdentifier = page0.productIdentifier
-        versionIdentifier = page0.versionIdentifier
-        replayProtectionCount = page0.minimumNumberOfReplayProtectionList
-        // Don't override features if they already were known.
-        // Accurate features states could have been acquired by reading each feature state, while
-        // the Page 0 of the Composition Data contains only Supported/Not supported
-
-        // And set the Elements received.
-        set(elements)
-        network?.updateTimestamp()
+    internal fun add(elements: List<Element>) {
+        elements.forEach(::add)
     }
 
     /**
@@ -431,6 +491,29 @@ data class Node internal constructor(
         }
         this._elements.clear()
         this._elements.addAll(elements)
+    }
+
+    /**
+     * Applies the result of Composition Data Status message to the Node.
+     *
+     * This method does nothing if the Node already was configured or the Composition Data Status
+     * does not have Page 0.
+     *
+     * @param compositionData The result of Config Composition Data get with Page 0.
+     */
+    internal fun apply(compositionData: ConfigCompositionDataStatus) {
+        val page0 = requireNotNull(compositionData.page as? Page0)
+        companyIdentifier = page0.companyIdentifier
+        productIdentifier = page0.productIdentifier
+        versionIdentifier = page0.versionIdentifier
+        replayProtectionCount = page0.minimumNumberOfReplayProtectionList
+        // Don't override features if they already were known.
+        // Accurate features states could have been acquired by reading each feature state, while
+        // the Page 0 of the Composition Data contains only Supported/Not supported
+
+        // And set the Elements received.
+        set(elements)
+        network?.updateTimestamp()
     }
 
     /**
