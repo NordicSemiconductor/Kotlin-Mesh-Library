@@ -206,6 +206,13 @@ data class NetworkKey internal constructor(
         }
     }
 
+    /**
+     * Sets the security level to secure.
+     */
+    fun lowerSecurity() {
+        _security = Insecure
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
