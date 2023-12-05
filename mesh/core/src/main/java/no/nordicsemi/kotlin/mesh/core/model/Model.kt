@@ -116,7 +116,7 @@ data class Model internal constructor(
     val isHealthServer: Boolean
         get() = modelId.id == HEALTH_SERVER_MODEL_ID.toUInt()
     val isHealthClient: Boolean
-        get() = modelId.id == HEALTH_CLIENT_ID.toUInt()
+        get() = modelId.id == HEALTH_CLIENT_MODEL_ID.toUInt()
     val isSceneClient: Boolean
         get() = modelId.id == SCENE_CLIENT_MODEL_ID.toUInt()
     val isRemoteProvisioningServer: Boolean
@@ -170,7 +170,7 @@ data class Model internal constructor(
      * @param modelId Model ID.
      * @param handler Model event handler.
      */
-    internal constructor(modelId: ModelId, handler: ModelEventHandler? = null) : this(
+    constructor(modelId: ModelId, handler: ModelEventHandler? = null) : this(
         modelId = modelId,
         _bind = mutableListOf(),
         _subscribe = mutableListOf(),
@@ -242,12 +242,12 @@ data class Model internal constructor(
      */
     fun isSubscribedTo(address: PrimaryGroupAddress) = subscribe.any { it == address }
 
-    internal companion object {
+    companion object {
 
         internal const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
         internal const val CONFIGURATION_CLIENT_MODEL_ID: UShort = 0x0001u
         internal const val HEALTH_SERVER_MODEL_ID: UShort = 0x0002u
-        internal const val HEALTH_CLIENT_ID: UShort = 0x0002u
+        internal const val HEALTH_CLIENT_MODEL_ID: UShort = 0x0002u
 
         // Configuration models added in Mesh Protocol 1.1
         internal const val REMOTE_PROVISIONING_SERVER_MODEL_ID: UShort = 0x0004u
@@ -345,7 +345,7 @@ data class Model internal constructor(
          * @return name of the model
          */
         private fun nameOf(modelId: ModelId): String =
-            if (modelId.isBluetoothSigAssigned) "Vendor Model"
+            if (!modelId.isBluetoothSigAssigned) "Vendor Model"
             else when (modelId.id) {
                 // Foundation
                 0x0000.toUInt() -> "Configuration Server"
