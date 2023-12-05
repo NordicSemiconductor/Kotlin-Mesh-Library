@@ -28,4 +28,6 @@ dependencies {
     androidTestImplementation(libs.kotlin.junit)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
+
+    api("androidx.compose.material3:material3-android:1.2.0-alpha12")
 }
