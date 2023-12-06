@@ -87,10 +87,11 @@ sealed class ModelEvent {
  * Application Key used to encrypt the message, one of the following events can be observed using
  * the [modelEventFlow] depending on the type of the message.
  *
- * @property messageTypes   Map of supported message types.
- * @property isSubscriptionSupported Defines the model supports subscription.
- * @property publicationMessageComposer A lambda function that returns a [MeshMessage] to be published
- * @property modelEventFlow A flow of model events.
+ * @property messageTypes                 Map of supported message types.
+ * @property isSubscriptionSupported      Defines the model supports subscription.
+ * @property publicationMessageComposer   Lambda function that returns a [MeshMessage] to be
+ *                                        published.
+ * @property modelEventFlow               Flow of model events.
  */
 abstract class ModelEventHandler {
 
