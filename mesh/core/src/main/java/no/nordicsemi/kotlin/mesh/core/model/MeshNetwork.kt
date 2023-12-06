@@ -283,11 +283,14 @@ class MeshNetwork internal constructor(
         address?.let { unicastAddress ->
             val node = Node(
                 provisioner = provisioner,
-                deviceKey = Crypto.generateRandomKey(),
                 unicastAddress = unicastAddress,
-                elements = localElements,
-                netKeys = _networkKeys,
-                appKeys = _applicationKeys
+                elements = if (provisioners.isEmpty()) {
+                    localElements
+                } else {
+                    listOf(Element.primaryElement)
+                },
+                netKeys = networkKeys,
+                appKeys = applicationKeys
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
@@ -321,8 +324,8 @@ class MeshNetwork internal constructor(
         // it needs the properties to be updated.
         if (localProvisionerRemoved) {
             _provisioners.first().node?.apply {
-                netKeys = _networkKeys.map { NodeKey(it) }
-                appKeys = _applicationKeys.map { NodeKey(it) }
+                assignNetKeys(networkKeys)
+                assignAppKeys(applicationKeys)
                 companyIdentifier = 0x00E0u
                 replayProtectionCount = maxUnicastAddress
                 // The Element adding has to be done this way. Some Elements may get cut
@@ -1276,7 +1279,7 @@ class MeshNetwork internal constructor(
      */
     private fun filterUnselectedApplicationKeys() {
         _nodes.forEach { node ->
-            node._elements.forEach { element ->
+            node.elements.forEach { element ->
                 element.models.forEach { model ->
                     model.bind.filter { keyIndex ->
                         keyIndex !in _applicationKeys.map { key ->
