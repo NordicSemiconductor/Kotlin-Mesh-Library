@@ -125,7 +125,7 @@ data class Page0(
             val productIdentifier = compositionData.toUShort(offset = 3)
             val versionIdentifier = compositionData.toUShort(offset = 5)
             val minimumNumberOfReplayProtectionList = compositionData.toUShort(offset = 7)
-            val features = Features(compositionData.toUShort(offset = 9))
+            val features = Features.init(compositionData.toUShort(offset = 9))
             val elements = mutableListOf<Element>()
             var offset = 11
             var elementNo = 0
