@@ -29,21 +29,17 @@ internal class ConfigurationClientHandler(
     override val meshNetwork: MeshNetwork
 ) : ModelEventHandler() {
 
-    val types = listOf<BaseMeshMessageInitializer>(
-        ConfigCompositionDataStatus.Initializer,
-        ConfigNetKeyStatus.Initializer,
-        ConfigGattProxyStatus.Initializer,
-        ConfigHeartbeatPublicationStatus.Initializer,
-        ConfigModelPublicationStatus.Initializer,
-        ConfigNodeResetStatus.Initializer
-    )
-
     override val messageTypes: Map<UInt, HasInitializer>
-        get() = TODO("Not yet implemented")
-    override val isSubscriptionSupported: Boolean
-        get() = TODO("Not yet implemented")
-    override val publicationMessageComposer: MessageComposer
-        get() = TODO("Not yet implemented")
+        get() = mapOf(
+            ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
+            ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
+            ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
+            ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
+            ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
+            ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
+        )
+    override val isSubscriptionSupported: Boolean = false
+    override val publicationMessageComposer: MessageComposer? = null
 
     init {
         observeEvents()
