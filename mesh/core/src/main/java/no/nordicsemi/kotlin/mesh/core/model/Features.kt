@@ -57,6 +57,35 @@ data class Features internal constructor(
         friend ?: Friend(FeatureState.Unsupported),
         lowPower ?: LowPower(FeatureState.Unsupported)
     )
+
+    internal companion object {
+
+        /**
+         * Constructs a Features object from the given mask.
+         *
+         * Note: The state of the following features is unknown until the corresponding Config...Get
+         * message is sent to the node. However if the Low Power state is enabled it cannot be
+         * disabled.
+         *
+         * @param mask  Raw value of the features.
+         */
+        fun init(mask: UShort) = Features(
+            relay = if (mask.toInt() and 0x01 == 0)
+                Relay(state = FeatureState.Unsupported)
+            else null,
+            proxy = if (mask.toInt() and 0x02 == 0)
+                Proxy(state = FeatureState.Unsupported)
+            else null,
+            friend = if (mask.toInt() and 0x04 == 0)
+                Friend(state = FeatureState.Unsupported)
+            else null,
+            lowPower = LowPower(
+                state = if (mask.toInt() and 0x08 == 0)
+                    FeatureState.Unsupported
+                else FeatureState.Enabled
+            )
+        )
+    }
 }
 
 /**
