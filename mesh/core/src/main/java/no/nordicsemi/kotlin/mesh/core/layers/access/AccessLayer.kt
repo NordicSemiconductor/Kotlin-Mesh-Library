@@ -486,7 +486,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                 .filter { it.supportsDeviceKey }
 
             for (model in models) {
-                println("access layer model: $model")
                 val eventHandler = model.eventHandler ?: continue
                 val message = eventHandler.decode(accessPdu = accessPdu)
                 if (message != null) {
