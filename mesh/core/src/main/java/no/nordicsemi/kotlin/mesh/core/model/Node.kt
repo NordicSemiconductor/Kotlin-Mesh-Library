@@ -83,7 +83,7 @@ data class Node internal constructor(
     @SerialName(value = "unicastAddress")
     internal var _primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
-    internal var _elements: MutableList<Element>,
+    private var _elements: MutableList<Element>,
     @SerialName(value = "netKeys")
     private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
@@ -100,26 +100,14 @@ data class Node internal constructor(
             field = value
         }
 
-    var netKeys: List<NodeKey>
+    val netKeys: List<NodeKey>
         get() = _netKeys
-        internal set(value) {
-            _netKeys = value.toMutableList()
-            network?.updateTimestamp()
-        }
 
-    var appKeys: List<NodeKey>
+    val appKeys: List<NodeKey>
         get() = _appKeys
-        internal set(value) {
-            _appKeys = value.toMutableList()
-            network?.updateTimestamp()
-        }
 
-    var elements: List<Element>
+    val elements: List<Element>
         get() = _elements
-        internal set(value) {
-            _elements = value.toMutableList()
-            network?.updateTimestamp()
-        }
 
     var security: Security = Insecure
         internal set
@@ -252,15 +240,7 @@ data class Node internal constructor(
         provisioner: Provisioner,
         unicastAddress: UnicastAddress,
         deviceKey: ByteArray = Crypto.generateRandomKey(),
-        elements: List<Element> = listOf(
-            Element(
-                location = Location.UNKNOWN,
-                _models = mutableListOf(
-                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                )
-            )
-        ),
+        elements: List<Element>,
         netKeys: List<NetworkKey>,
         appKeys: List<ApplicationKey>
     ) : this(
@@ -268,8 +248,8 @@ data class Node internal constructor(
         deviceKey = deviceKey,
         _primaryUnicastAddress = unicastAddress,
         _elements = elements.toMutableList(),
-        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
-        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
+        _netKeys = netKeys.map { NodeKey(it.index, false) }.toMutableList(),
+        _appKeys = appKeys.map { NodeKey(it.index, false) }.toMutableList()
     )
 
     /**
@@ -332,16 +312,15 @@ data class Node internal constructor(
     }
 
     init {
-        require(elements.isNotEmpty()) {
+        // TODO is this really needed.
+        /*require(elements.isNotEmpty()) {
             throw IllegalArgumentException("At least one element is mandatory!")
-        }
-        elements.let {
-            it.forEachIndexed { index, element ->
-                // Assigns the index based on position in the list of elements.
-                element.index = index
-                // Assigns the current node as the parent node of the element.
-                element.parentNode = this
-            }
+        }*/
+        elements.forEachIndexed { index, element ->
+            // Assigns the index based on position in the list of elements.
+            element.index = index
+            // Assigns the current node as the parent node of the element.
+            element.parentNode = this
         }
     }
 
@@ -371,10 +350,10 @@ data class Node internal constructor(
      * Note: This is overwrite any existing keys.
      * @param keys List of Network Keys to set.
      */
-    internal fun set(keys: List<NetworkKey>) {
-        setNetKeys(keys.map { it.index })
+    internal fun assignNetKeys(keys: List<NetworkKey>) {
+        _netKeys = keys.map { NodeKey(it.index, false) }.toMutableList()
+        network?.updateTimestamp()
     }
-
 
     /**
      * Sets the given list of Network Keys to the Node.
@@ -382,7 +361,7 @@ data class Node internal constructor(
      * Note: This is overwrite any existing keys.
      * @param keys List of Network Keys to set.
      */
-    internal fun setNetKeys(keys: List<KeyIndex>) {
+    internal fun assignNetKeyIndexes(keys: List<KeyIndex>) {
         _netKeys = keys.map { NodeKey(it, false) }.toMutableList()
         // If an insecure Node received a Network Key, all network keys of the node should be
         // downgraded to lower security.
@@ -415,8 +394,8 @@ data class Node internal constructor(
      * Note: This is overwrite any existing keys.
      * @param keys List of Application Keys to set.
      */
-    internal fun set(keys: List<ApplicationKey>) {
-        setAppKeys(keys.map { it.index })
+    internal fun assignAppKeys(keys: List<ApplicationKey>) {
+        assignAppKeyIndexes(keys.map { it.index }.toMutableList())
     }
 
 
@@ -426,7 +405,7 @@ data class Node internal constructor(
      * Note: This is overwrite any existing keys.
      * @param keys List of Application Keys to set.
      */
-    internal fun setAppKeys(keys: List<KeyIndex>) {
+    internal fun assignAppKeyIndexes(keys: List<KeyIndex>) {
         _appKeys = keys.map { NodeKey(it, false) }
             .toMutableList()
             .apply { sortBy { it.index } }
@@ -438,28 +417,20 @@ data class Node internal constructor(
      * Adds an Element to a node.
      *
      * @param element     Element to be added.
-     * @return True if success or false if the element already exists.
      */
     internal fun add(element: Element) {
         val index = elements.size
         _elements.add(element)
         element.parentNode = this
         element.index = index
-        /*        _elements.contains(element) -> false
-                else -> {
-                    _elements.add(element)
-                    true
-                }*/
     }
 
     /**
      * Adds given list of Elements to the Node.
      *
-     * @param elements List of Elements to add.
+     * @param elements List of Elements to be added.
      */
-    internal fun add(elements: List<Element>) {
-        elements.forEach(::add)
-    }
+    internal fun add(elements: List<Element>) { elements.forEach(::add) }
 
     /**
      * Sets the given list of Elements to the Node.
@@ -512,7 +483,7 @@ data class Node internal constructor(
         // the Page 0 of the Composition Data contains only Supported/Not supported
 
         // And set the Elements received.
-        set(elements)
+        set(page0.elements)
         network?.updateTimestamp()
     }
 
