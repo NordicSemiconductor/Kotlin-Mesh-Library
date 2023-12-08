@@ -61,10 +61,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
         val provisioner = Provisioner().apply {
-            name = Build.MODEL.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.ROOT)
-                else it.toString()
-            }
+            name = repository.createProvisionerName()
         }
         network.run {
             nextAvailableUnicastAddressRange(rangeSize = 0x199A)?.let { range ->

@@ -336,7 +336,6 @@ private fun ProvisioningStateInfo(
     startProvisioning: (AuthenticationMethod) -> Unit,
     dismissCapabilitiesSheet: () -> Unit
 ) {
-    var showAlertDialog by remember { mutableStateOf(false) }
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
             text = stringResource(id = R.string.label_provisioning_requesting_capabilities)
@@ -378,7 +377,9 @@ private fun ProvisioningStateInfo(
         }
 
         is ProvisioningState.Failed -> {
+            var showAlertDialog by remember { mutableStateOf(true) }
             if (showAlertDialog) {
+                dismissCapabilitiesSheet()
                 MeshAlertDialog(
                     onDismissRequest = {
                         showAlertDialog = !showAlertDialog
@@ -395,13 +396,13 @@ private fun ProvisioningStateInfo(
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_failed, state.error)
                 )
-            } else {
-                dismissCapabilitiesSheet()
             }
         }
 
         is ProvisioningState.Complete -> {
+            var showAlertDialog by remember { mutableStateOf(true) }
             if (showAlertDialog) {
+                dismissCapabilitiesSheet()
                 MeshAlertDialog(
                     onDismissRequest = {
                         showAlertDialog = !showAlertDialog
@@ -418,8 +419,6 @@ private fun ProvisioningStateInfo(
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_completed)
                 )
-            } else {
-                dismissCapabilitiesSheet()
             }
         }
     }
