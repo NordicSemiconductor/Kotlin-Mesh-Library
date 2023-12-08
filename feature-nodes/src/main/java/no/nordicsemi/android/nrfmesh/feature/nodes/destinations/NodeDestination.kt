@@ -16,6 +16,7 @@ val nodeDestination = defineDestination(node) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     NodeRoute(
         uiState = uiState,
+        onRefresh = viewModel::onRefresh,
         onNameChanged = viewModel::onNameChanged,
         onNetworkKeysClicked = {},
         onApplicationKeysClicked = {},
@@ -23,6 +24,6 @@ val nodeDestination = defineDestination(node) {
         onGetTtlClicked = {},
         onGetProxyStateClicked = {},
         onExcluded = {},
-        onResetClicked = {},
+        onResetClicked = viewModel::onResetClicked,
     )
 }

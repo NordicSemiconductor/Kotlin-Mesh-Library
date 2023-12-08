@@ -19,7 +19,7 @@ import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Hub
-import androidx.compose.material.icons.outlined.LockReset
+import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ElevatedCard
@@ -45,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -56,6 +57,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 @Composable
 fun NodeRoute(
     uiState: NodeScreenUiState,
+    onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
@@ -67,6 +69,7 @@ fun NodeRoute(
 ) {
     NodeScreen(
         nodeState = uiState.nodeState,
+        onRefresh = onRefresh,
         onNameChanged = onNameChanged,
         onNetworkKeysClicked = onNetworkKeysClicked,
         onApplicationKeysClicked = onApplicationKeysClicked,
@@ -82,6 +85,7 @@ fun NodeRoute(
 @Composable
 private fun NodeScreen(
     nodeState: NodeState,
+    onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
@@ -95,6 +99,7 @@ private fun NodeScreen(
     if (state.isRefreshing) {
         LaunchedEffect(true) {
             // fetch something
+            onRefresh()
             delay(1500)
             state.endRefresh()
         }
@@ -337,17 +342,31 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
 
 @Composable
 private fun ResetRow(onResetClicked: () -> Unit) {
+    var showResetDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.LockReset,
+        imageVector = Icons.Outlined.Recycling,
         title = stringResource(R.string.label_reset_node),
         supportingText = stringResource(R.string.label_reset_node_rationale)
     ) {
         OutlinedButton(
-            onClick = onResetClicked,
+            onClick = { showResetDialog = !showResetDialog },
             border = BorderStroke(width = 1.dp, color = Color.Red)
         ) {
             Text(text = stringResource(R.string.label_reset), color = Color.Red)
+        }
+        if (showResetDialog) {
+            MeshAlertDialog(
+                onDismissRequest = { showResetDialog = !showResetDialog },
+                icon = Icons.Outlined.Recycling,
+                title = stringResource(R.string.label_reset_node),
+                text = stringResource(R.string.label_are_you_sure_rationale),
+                iconColor = Color.Red,
+                onConfirmClick = {
+                    showResetDialog = !showResetDialog
+                    onResetClicked()
+                }
+            )
         }
     }
 }

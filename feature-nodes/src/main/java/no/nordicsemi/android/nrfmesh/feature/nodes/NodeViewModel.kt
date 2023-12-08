@@ -14,6 +14,7 @@ import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewMod
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import java.util.UUID
@@ -44,13 +45,14 @@ internal class NodeViewModel @Inject internal constructor(
         NodeScreenUiState()
     )
 
-    internal fun send(node: Node) {
+    private fun send(node: Node) {
         viewModelScope.launch {
-            repository.sendMessage(
-                node = node,
-                message = ConfigCompositionDataGet(page = 0x00u)
-            )
+            repository.send(node = node, message = ConfigCompositionDataGet(page = 0x00u))
         }
+    }
+
+    internal fun onRefresh() {
+        send(selectedNode)
     }
 
     internal fun onNameChanged(name: String) {
@@ -66,6 +68,14 @@ internal class NodeViewModel @Inject internal constructor(
 
     internal fun navigateTo(destination: DestinationId<Unit, Unit>) {
 
+    }
+
+    fun onResetClicked() {
+        viewModelScope.launch {
+            repository.send(selectedNode, ConfigNodeReset())?.let {
+                navigateUp()
+            }
+        }
     }
 }
 

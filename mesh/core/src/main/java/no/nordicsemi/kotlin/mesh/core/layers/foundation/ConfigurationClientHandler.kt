@@ -48,12 +48,8 @@ internal class ConfigurationClientHandler(
     private fun observeEvents() {
         modelEventFlow.onEach {
             when (it) {
-                is ModelEvent.AcknowledgedMessageReceived -> { /* Ignore */
-                }
-
-                is ModelEvent.UnacknowledgedMessageReceived -> { /* Ignore */
-                }
-
+                is ModelEvent.AcknowledgedMessageReceived -> { /* Ignore */ }
+                is ModelEvent.UnacknowledgedMessageReceived -> { /* Ignore */ }
                 is ModelEvent.ResponseReceived -> {
                     handleResponses(
                         model = it.model,
@@ -80,7 +76,7 @@ internal class ConfigurationClientHandler(
         response: MeshResponse,
         request: AcknowledgedMeshMessage,
         source: Address
-    ) {
+    ) = meshNetwork.run {
         when (response) {
             // Composition Data
             is ConfigCompositionDataStatus -> {
@@ -124,10 +120,13 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNodeResetStatus -> {
-                // TODO
+                meshNetwork.apply {
+                    node(address = source)?.let { remove(it) }
+                }
             }
 
             else -> {}
         }
+        Unit
     }
 }
