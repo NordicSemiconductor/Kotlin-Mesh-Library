@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
-import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
 /**
@@ -423,24 +422,14 @@ data class Provisioner internal constructor(
             require(has(this@Provisioner))
             var isNewNode = false
             val node = node(this@Provisioner) ?: Node(
-                this@Provisioner,
-                Crypto.generateRandomKey(),
-                address,
-                listOf(
-                    Element(
-                        location = Location.UNKNOWN,
-                        _models = mutableListOf(
-                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                            Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                        )
-                    )
-                ),
-                _networkKeys,
-                _applicationKeys
+                provisioner = this@Provisioner,
+                unicastAddress = address
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
                 name = this@Provisioner.name
+                assignNetKeys(networkKeys)
+                assignAppKeys(applicationKeys)
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?
