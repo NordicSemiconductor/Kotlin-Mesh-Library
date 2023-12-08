@@ -48,7 +48,7 @@ class NetworkViewModel @Inject constructor(
         viewModelScope.launch {
             isNetworkLoaded = repository.load()
             meshNetwork = repository.network.first()
-            repository.startAutomaticConnectivity(meshNetwork)
+            // repository.startAutomaticConnectivity(meshNetwork)
         }
     }
 

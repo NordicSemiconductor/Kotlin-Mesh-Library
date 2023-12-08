@@ -261,13 +261,11 @@ internal data class UpperTransportPdu(
                     }
                 }
             } ?: run {
-
-                // Try decoding using source's Node Device Key. This should work if a status message was
-                // sent as a response to a Config Message sent by this Provisioner.
+                // Try decoding using source's Node Device Key. This should work if a status message
+                // was sent as a response to a Config Message sent by this Provisioner.
                 val node = network.node(message.source) ?: network.node(message.destination)
-                // On the other hand, if another Provisioner is sending a Config Messages, they will be
-                // signed using the target node Device Key instead.
-
+                // On the other hand, if another Provisioner is sending a Config Messages, they will
+                // be signed using the target node Device Key instead.
                 return node?.deviceKey?.let { deviceKey ->
                     init(message = message, key = deviceKey, virtualGroup = null)?.let {
                         Pair(it, DeviceKeySet.init(networkKey = message.networkKey, node = node)!!)
