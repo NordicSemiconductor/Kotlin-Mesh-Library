@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.core.data
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -12,6 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
@@ -22,14 +24,22 @@ import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
+import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.SceneServerHandler
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.Element
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.GroupRange
+import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.SceneRange
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
@@ -38,6 +48,7 @@ import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import java.util.Locale
 import javax.inject.Inject
 
 class CoreDataRepository @Inject constructor(
@@ -58,15 +69,41 @@ class CoreDataRepository @Inject constructor(
         meshNetworkManager.logger = this
     }
 
+    /**
+     * Loads an existing mesh network or creates a new one.
+     */
     suspend fun load() = withContext(ioDispatcher) {
-        if (!meshNetworkManager.load()) {
-            val provisioner = Provisioner(name = "Mesh Provisioner")
-            provisioner.allocate(UnicastRange(UnicastAddress(1), UnicastAddress(0x7FFF)))
-            meshNetworkManager.create(provisioner = provisioner)
+        val meshNetwork = if (!meshNetworkManager.load()) {
+            createNewMeshNetwork()
+        } else {
+            meshNetworkManager.meshNetwork.first()
         }
+        onMeshNetworkChanged(meshNetwork)
         true
     }
 
+    /**
+     * Invoked when the mesh network has changed. This will setup the local elements and
+     * reinitialise the connection to the proxy node. This will ensure that the user is connected to
+     * the correct network.
+     */
+    private fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
+        // TODO Implement scene model event handler related stuff
+        val sceneServerHandler = SceneServerHandler(meshNetwork)
+        val element0 = Element(
+            location = Location.FIRST, _models = mutableListOf(
+                Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID))
+            )
+        ).apply {
+            name = "Primary Element"
+        }
+        meshNetworkManager.localElements = listOf(element0)
+        startAutomaticConnectivity(meshNetwork)
+    }
+
+    /**
+     * Imports a mesh network.
+     */
     suspend fun importMeshNetwork(data: ByteArray) {
         meshNetworkManager.import(data)
     }
@@ -77,6 +114,28 @@ class CoreDataRepository @Inject constructor(
     suspend fun save() = withContext(ioDispatcher) {
         meshNetworkManager.save()
     }
+
+    /**
+     * Creates a new mesh network.
+     * @return MeshNetwork
+     */
+    private suspend fun createNewMeshNetwork() = meshNetworkManager.create(
+        provisioner = Provisioner(name = createProvisionerName()).apply {
+            allocate(
+                range = UnicastRange(
+                    lowAddress = UnicastAddress(address = 0x0001),
+                    highAddress = UnicastAddress(address = 0x199B)
+                )
+            )
+            allocate(
+                range = GroupRange(
+                    lowAddress = GroupAddress(address = 0xC000),
+                    highAddress = GroupAddress(address = 0xCC9A)
+                )
+            )
+            allocate(range = SceneRange(firstScene = 0x0001u, lastScene = 0x3333u))
+        }
+    ).also { meshNetworkManager.save() }
 
     suspend fun connectOverPbGattBearer(context: Context, device: ServerDevice) =
         withContext(ioDispatcher) {
@@ -134,8 +193,7 @@ class CoreDataRepository @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     suspend fun scanForProxy(meshNetwork: MeshNetwork?): ServerDevice = scanner.scan().first {
-        val data = it.data?.scanRecord?.serviceData
-            ?.get(ParcelUuid(MeshProxyService.uuid))
+        val data = it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
         meshNetwork?.takeIf {
             data != null
         }?.let { meshNetwork ->
@@ -172,20 +230,29 @@ class CoreDataRepository @Inject constructor(
      * @param node    Destination node.
      * @param message Message to be sent.
      */
-    suspend fun sendMessage(node: Node, message: AcknowledgedConfigMessage) = withContext(
+    suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
         context = ioDispatcher
     ) {
-        val response = meshNetworkManager.send(
+        meshNetworkManager.send(
             message = message, node = node, initialTtl = null
-        )
-        log(
-            message = response?.toString() ?: "",
-            category = LogCategory.ACCESS,
-            level = LogLevel.INFO
-        )
+        ).also {
+            log(
+                message = it?.toString() ?: "",
+                category = LogCategory.ACCESS,
+                level = LogLevel.INFO
+            )
+        }
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)
+    }
+
+    /**
+     * Creates provisioner name based on the provisioner device model.
+     */
+    fun createProvisionerName(): String = Build.MODEL.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.ROOT)
+        else it.toString()
     }
 }
