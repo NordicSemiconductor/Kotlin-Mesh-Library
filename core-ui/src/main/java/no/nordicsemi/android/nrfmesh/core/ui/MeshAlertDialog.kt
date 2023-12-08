@@ -149,7 +149,7 @@ fun MeshAlertDialog(
     text: String? = null,
     content: @Composable () -> Unit
 ) {
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = Modifier.fillMaxWidth(0.85f),
         properties = DialogProperties(usePlatformDefaultWidth = false),
