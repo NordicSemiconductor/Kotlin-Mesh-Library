@@ -12,5 +12,6 @@ android {
 dependencies {
 
     implementation(libs.nordic.navigation)
+    implementation(project(":mesh:core"))
     implementation(project(":mesh:logger"))
 }

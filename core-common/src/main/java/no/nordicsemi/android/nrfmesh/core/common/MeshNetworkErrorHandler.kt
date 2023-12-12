@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.core.ui
+package no.nordicsemi.android.nrfmesh.core.common
 
 import android.content.Context
 import no.nordicsemi.kotlin.mesh.core.exception.*

@@ -12,12 +12,10 @@ dependencies {
     api(libs.nordic.theme)
     api(libs.androidx.compose.material.iconsExtended)
     implementation(libs.nordic.uilogger)
-    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.navigation)
-    implementation(libs.nordic.permissions.ble)
     implementation(libs.nordic.log.timber)
 
-    implementation(project(":mesh:core"))
+    implementation(project(":core-common"))
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
