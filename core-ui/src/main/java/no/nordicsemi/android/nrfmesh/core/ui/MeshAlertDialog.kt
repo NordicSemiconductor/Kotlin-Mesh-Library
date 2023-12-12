@@ -61,14 +61,14 @@ fun MeshAlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
-            Button(
+            TextButton(
                 enabled = !error,
                 onClick = { onConfirmClick() }
             ) { Text(text = confirmButtonText) }
         },
         dismissButton = {
             dismissButtonText?.let {
-                Button(onClick = { onDismissClick() }) { Text(text = it) }
+                TextButton(onClick = { onDismissClick() }) { Text(text = it) }
             }
         },
         icon = {
@@ -117,11 +117,11 @@ fun MeshAlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
-            Button(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
+            TextButton(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
         },
         dismissButton = {
             dismissButtonText?.let {
-                Button(onClick = { onDismissClick() }) { Text(text = it) }
+                TextButton(onClick = { onDismissClick() }) { Text(text = it) }
             }
         },
         icon = {
