@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.10.3")
+            from("no.nordicsemi.android.gradle:version-catalog:1.10.4")
         }
     }
 }
