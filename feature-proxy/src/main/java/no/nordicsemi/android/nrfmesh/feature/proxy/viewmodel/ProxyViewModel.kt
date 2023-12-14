@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
@@ -54,8 +53,7 @@ internal class ProxyViewModel @Inject internal constructor(
     internal fun connect(context: Context, results: BleScanResults) {
         viewModelScope.launch {
             repository.disconnect()
-            val device = results.device
-            val gattBearer = repository.connectOverGattBearer(
+            repository.connectOverGattBearer(
                 context = context,
                 device = results.device
             )

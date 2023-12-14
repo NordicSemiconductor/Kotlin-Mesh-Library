@@ -86,7 +86,7 @@ class CoreDataRepository @Inject constructor(
      * reinitialise the connection to the proxy node. This will ensure that the user is connected to
      * the correct network.
      */
-    private suspend fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
+    private fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
         // TODO Implement scene model event handler related stuff
         val sceneServerHandler = SceneServerHandler(meshNetwork)
         val element0 = Element(
@@ -186,11 +186,13 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun disconnect() = withContext(ioDispatcher) {
         bearer?.let { bearer ->
-            bearer.close()
-            bearer.state.first { it is BearerEvent.Closed }
-            _proxyStateFlow.value = _proxyStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Disconnected
-            )
+            if (bearer.isOpen) {
+                bearer.close()
+                bearer.state.first { it is BearerEvent.Closed }
+                _proxyStateFlow.value = _proxyStateFlow.value.copy(
+                    connectionState = NetworkConnectionState.Disconnected
+                )
+            }
         }
     }
 
