@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.ui.network
 
@@ -183,7 +183,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                 )
             }
         }
-    ) {
+    ) { paddingValues ->
         NavigationView(
             destinations = listOf(
                 topLevelTabs with ((nodesTab with nodesDestinations) +
@@ -194,7 +194,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                         netKeySelectorDestination +
                         exportDestinations
             ),
-            modifier = Modifier.padding(it)
+            modifier = Modifier.padding(paddingValues)
         )
         SettingsDropDown(
             navigate = {
