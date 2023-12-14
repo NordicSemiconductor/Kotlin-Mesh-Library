@@ -47,7 +47,7 @@ import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.convertToString
+import no.nordicsemi.android.nrfmesh.core.common.convertToString
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
