@@ -15,7 +15,10 @@ val proxyDestination = defineDestination(proxy) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProxyRoute(
         uiState = uiState,
+        onBluetoothEnabled = viewModel::onBluetoothEnabled,
+        onLocationEnabled = viewModel::onLocationEnabled,
         onAutoConnectChecked = viewModel::onAutomaticConnectionChanged,
+        onDisconnectClicked = viewModel::disconnect,
         onDeviceFound = viewModel::connect
     )
 }
