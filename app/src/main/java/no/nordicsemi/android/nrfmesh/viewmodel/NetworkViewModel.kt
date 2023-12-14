@@ -36,7 +36,7 @@ class NetworkViewModel @Inject constructor(
     override fun navigateUp() {
         super.navigateUp()
         viewModelScope.launch {
-            repository.stopProxyScanner()
+            // repository.stopProxyScanner()
             repository.disconnect()
         }
     }
