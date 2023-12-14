@@ -171,7 +171,7 @@ private fun ProvisionerInfo(
                 )
             }
             item {
-                Divider(modifier = Modifier.padding(vertical = 20.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
                 AddressRangeLegendsForProvisioner()
                 Spacer(modifier = Modifier.size(16.dp))
             }
@@ -191,7 +191,7 @@ fun Name(
         mutableStateOf(TextFieldValue(text = name, selection = TextRange(name.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "Name") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -290,7 +290,7 @@ private fun UnicastAddress(
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
     var supportingErrorText by rememberSaveable { mutableStateOf("") }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "Address") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -444,7 +444,7 @@ private fun Ttl(
     var error by rememberSaveable { mutableStateOf(false) }
     var value by rememberSaveable { mutableStateOf(ttl?.toString() ?: "") }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "TTL") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
