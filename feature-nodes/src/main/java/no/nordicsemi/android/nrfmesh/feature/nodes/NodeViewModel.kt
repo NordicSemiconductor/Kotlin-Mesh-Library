@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.DestinationId
@@ -14,6 +15,8 @@ import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewMod
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -30,8 +33,9 @@ internal class NodeViewModel @Inject internal constructor(
     private lateinit var selectedNode: Node
     private val nodeUuid: UUID = parameterOf(node)
 
-    val uiState: StateFlow<NodeScreenUiState> = repository.network.map {
+    val uiState: StateFlow<NodeScreenUiState> = repository.network.onEach {
         meshNetwork = it
+    }.map {
         it.node(nodeUuid)?.let { node ->
             this@NodeViewModel.selectedNode = node
             NodeState.Success(node)
@@ -40,9 +44,9 @@ internal class NodeViewModel @Inject internal constructor(
             nodeState = NodeState.Success(selectedNode)
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        NodeScreenUiState()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = NodeScreenUiState()
     )
 
     private fun send(node: Node) {
@@ -56,7 +60,7 @@ internal class NodeViewModel @Inject internal constructor(
     }
 
     internal fun onNameChanged(name: String) {
-        if(selectedNode.name != name) {
+        if (selectedNode.name != name) {
             if (name.isNotEmpty())
                 selectedNode.name = name
             else throw IllegalArgumentException("Name cannot be empty")
@@ -66,8 +70,16 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
-    internal fun navigateTo(destination: DestinationId<Unit, Unit>) {
+    internal fun onProxyStateToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.send(selectedNode, ConfigGattProxySet(enabled))
+        }
+    }
 
+    internal fun onGetProxyStateClicked() {
+        viewModelScope.launch {
+            repository.send(selectedNode, ConfigGattProxyGet())
+        }
     }
 
     fun onResetClicked() {
@@ -76,6 +88,10 @@ internal class NodeViewModel @Inject internal constructor(
                 navigateUp()
             }
         }
+    }
+
+    internal fun navigateTo(destination: DestinationId<Unit, Unit>) {
+
     }
 }
 

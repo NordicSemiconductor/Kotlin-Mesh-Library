@@ -22,7 +22,8 @@ val nodeDestination = defineDestination(node) {
         onApplicationKeysClicked = {},
         onElementsClicked = {},
         onGetTtlClicked = {},
-        onGetProxyStateClicked = {},
+        onProxyStateToggled = viewModel::onProxyStateToggled,
+        onGetProxyStateClicked = viewModel::onGetProxyStateClicked,
         onExcluded = {},
         onResetClicked = viewModel::onResetClicked,
     )

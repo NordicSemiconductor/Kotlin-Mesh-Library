@@ -52,7 +52,9 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.kotlin.mesh.core.model.Element
+import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import no.nordicsemi.kotlin.mesh.core.model.Proxy
 
 @Composable
 fun NodeRoute(
@@ -63,6 +65,7 @@ fun NodeRoute(
     onApplicationKeysClicked: () -> Unit,
     onElementsClicked: () -> Unit,
     onGetTtlClicked: () -> Unit,
+    onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit
@@ -75,6 +78,7 @@ fun NodeRoute(
         onApplicationKeysClicked = onApplicationKeysClicked,
         onElementsClicked = onElementsClicked,
         onGetTtlClicked = onGetTtlClicked,
+        onProxyStateToggled = onProxyStateToggled,
         onGetProxyStateClicked = onGetProxyStateClicked,
         onExcluded = onExcluded,
         onResetClicked = onResetClicked
@@ -91,6 +95,7 @@ private fun NodeScreen(
     onApplicationKeysClicked: () -> Unit,
     onElementsClicked: () -> Unit,
     onGetTtlClicked: () -> Unit,
+    onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit
@@ -117,6 +122,7 @@ private fun NodeScreen(
                         onApplicationKeysClicked = onApplicationKeysClicked,
                         onElementsClicked = onElementsClicked,
                         onGetTtlClicked = onGetTtlClicked,
+                        onProxyStateToggled = onProxyStateToggled,
                         onGetProxyStateClicked = onGetProxyStateClicked,
                         onExcluded = onExcluded,
                         onResetClicked = onResetClicked
@@ -148,6 +154,7 @@ private fun LazyListScope.nodeInfo(
     onApplicationKeysClicked: () -> Unit,
     onElementsClicked: () -> Unit,
     onGetTtlClicked: () -> Unit,
+    onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit
@@ -177,7 +184,13 @@ private fun LazyListScope.nodeInfo(
     }
     item { DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked) }
     item { SectionTitle(title = stringResource(id = R.string.title_proxy_state)) }
-    item { ProxyStateRow(isEnabled = false, onGetProxyStateClicked = onGetProxyStateClicked) }
+    item {
+        ProxyStateRow(
+            proxy = node.features.proxy,
+            onProxyStateToggled = onProxyStateToggled,
+            onGetProxyStateClicked = onGetProxyStateClicked
+        )
+    }
     item { SectionTitle(title = stringResource(id = R.string.title_exclusions)) }
     item { ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded) }
     item { SectionTitle(title = stringResource(id = R.string.label_reset_node)) }
@@ -311,13 +324,27 @@ private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
 }
 
 @Composable
-private fun ProxyStateRow(isEnabled: Boolean, onGetProxyStateClicked: () -> Unit) {
-    var enabled by rememberSaveable { mutableStateOf(isEnabled) }
+private fun ProxyStateRow(
+    proxy: Proxy?,
+    onProxyStateToggled: (Boolean) -> Unit,
+    onGetProxyStateClicked: () -> Unit
+) {
+    var enabled by rememberSaveable {
+        mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
+    }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
-        titleAction = { SwitchWithIcon(isChecked = enabled, onCheckedChange = { enabled = it }) },
+        titleAction = {
+            SwitchWithIcon(
+                isChecked = enabled,
+                onCheckedChange = {
+                    enabled = it
+                    onProxyStateToggled(it)
+                }
+            )
+        },
         subtitle = "Proxy state is ${if (enabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
