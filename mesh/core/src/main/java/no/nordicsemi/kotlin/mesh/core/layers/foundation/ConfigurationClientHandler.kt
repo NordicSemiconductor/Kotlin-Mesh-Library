@@ -8,7 +8,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
@@ -18,8 +17,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
@@ -108,7 +109,12 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigGattProxyStatus -> {
-                // TODO
+                meshNetwork.apply {
+                    node(address = source)?.also { node ->
+                        node.features._proxy = Proxy(state = response.state)
+                    }
+                    updateTimestamp()
+                }
             }
 
             is ConfigHeartbeatPublicationStatus -> {
