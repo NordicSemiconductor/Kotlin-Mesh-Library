@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
@@ -87,7 +88,10 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     internal val incomingMessages
         get() = _incomingMessages.asSharedFlow()
 
-    private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>()
+    private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val networkManagerEventFlow
         get() = _networkManagerEventFlow.asSharedFlow()
 
