@@ -1,7 +1,8 @@
-@file:Suppress("unused", "SERIALIZER_TYPE_INCOMPATIBLE")
+@file:Suppress("unused", "SERIALIZER_TYPE_INCOMPATIBLE", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
 import kotlin.jvm.Throws
@@ -25,11 +26,23 @@ import kotlin.jvm.Throws
  */
 @Serializable(with = FeaturesSerializer::class)
 data class Features internal constructor(
-    val relay: Relay? = null,
-    val proxy: Proxy? = null,
-    val friend: Friend? = null,
-    val lowPower: LowPower? = null
+    @SerialName(value = "relay")
+    internal var _relay: Relay? = null,
+    @SerialName(value = "proxy")
+    internal var _proxy: Proxy? = null,
+    @SerialName(value = "friend")
+    internal var _friend: Friend? = null,
+    @SerialName(value = "lowPower")
+    internal var _lowPower: LowPower? = null
 ) {
+    val relay: Relay?
+        get() = _relay
+    val proxy: Proxy?
+        get() = _proxy
+    val friend: Friend?
+        get() = _friend
+    val lowPower: LowPower?
+        get() = _lowPower
 
     val rawValue = ((relay?.state?.value ?: 2) shr 0 or
             (proxy?.state?.value ?: 2) shr 1 or
@@ -42,10 +55,10 @@ data class Features internal constructor(
      * @param rawValue  Raw value of the features.
      */
     internal constructor(rawValue: UShort) : this(
-        relay = Relay(FeatureState.from(rawValue.toInt() shl 0)),
-        proxy = Proxy(FeatureState.from(rawValue.toInt() shl 1)),
-        friend = Friend(FeatureState.from(rawValue.toInt() shl 2)),
-        lowPower = LowPower(FeatureState.from(rawValue.toInt() shl 3))
+        _relay = Relay(FeatureState.from(rawValue.toInt() shl 0)),
+        _proxy = Proxy(FeatureState.from(rawValue.toInt() shl 1)),
+        _friend = Friend(FeatureState.from(rawValue.toInt() shl 2)),
+        _lowPower = LowPower(FeatureState.from(rawValue.toInt() shl 3))
     )
 
     /**
@@ -70,16 +83,16 @@ data class Features internal constructor(
          * @param mask  Raw value of the features.
          */
         fun init(mask: UShort) = Features(
-            relay = if (mask.toInt() and 0x01 == 0)
+            _relay = if (mask.toInt() and 0x01 == 0)
                 Relay(state = FeatureState.Unsupported)
             else null,
-            proxy = if (mask.toInt() and 0x02 == 0)
+            _proxy = if (mask.toInt() and 0x02 == 0)
                 Proxy(state = FeatureState.Unsupported)
             else null,
-            friend = if (mask.toInt() and 0x04 == 0)
+            _friend = if (mask.toInt() and 0x04 == 0)
                 Friend(state = FeatureState.Unsupported)
             else null,
-            lowPower = LowPower(
+            _lowPower = LowPower(
                 state = if (mask.toInt() and 0x08 == 0)
                     FeatureState.Unsupported
                 else FeatureState.Enabled
@@ -118,7 +131,7 @@ data class Relay internal constructor(override val state: FeatureState) : Featur
  * @property state State of the proxy feature.
  */
 @Serializable
-data class Proxy internal constructor(override val state: FeatureState) : Feature() {
+data class Proxy internal constructor(override var state: FeatureState) : Feature() {
     override val rawValue: UShort = (state.value shr 1).toUShort()
 }
 
@@ -203,8 +216,8 @@ fun Array<Feature>.toUShort(): UShort {
  * Converts an array of Features to a [Features] object.
  */
 fun Array<Feature>.toFeatures() = Features(
-    relay = this[0] as Relay,
-    proxy = this[1] as Proxy,
-    friend = this[2] as Friend,
-    lowPower = this[3] as LowPower
+    _relay = this[0] as Relay,
+    _proxy = this[1] as Proxy,
+    _friend = this[2] as Friend,
+    _lowPower = this[3] as LowPower
 )

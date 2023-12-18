@@ -144,7 +144,12 @@ data class Node internal constructor(
     var replayProtectionCount: UShort? = null
         internal set
 
-    var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
+    var features: Features = Features(
+        _relay = null,
+        _proxy = null,
+        _friend = null,
+        _lowPower = null
+    )
         internal set
 
     var secureNetworkBeacon: Boolean? = null

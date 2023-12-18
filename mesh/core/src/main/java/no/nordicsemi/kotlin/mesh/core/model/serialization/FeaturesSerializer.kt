@@ -21,10 +21,10 @@ internal object FeaturesSerializer : KSerializer<Features> {
     override fun deserialize(decoder: Decoder): Features = runCatching {
         (decoder as JsonDecoder).decodeJsonElement().jsonObject.let { features ->
             return Features(
-                relay = parse(features = features, key = "relay") as Relay?,
-                proxy = parse(features = features, key = "proxy") as Proxy?,
-                friend = parse(features = features, key = "friend") as Friend?,
-                lowPower = parse(features = features, key = "lowPower") as LowPower?
+                _relay = parse(features = features, key = "relay") as Relay?,
+                _proxy = parse(features = features, key = "proxy") as Proxy?,
+                _friend = parse(features = features, key = "friend") as Friend?,
+                _lowPower = parse(features = features, key = "lowPower") as LowPower?
             )
         }
     }.getOrElse {
