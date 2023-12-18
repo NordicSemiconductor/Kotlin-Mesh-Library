@@ -72,7 +72,12 @@ class MeshNetworkManager(
 
 
     internal var networkManager: NetworkManager? = null
-        private set
+        private set(value) {
+            field = value
+            value?.let {
+                observeNetworkManagerEvents()
+            }
+        }
 
     var logger: Logger? = null
 
@@ -93,7 +98,7 @@ class MeshNetworkManager(
 
     init {
         proxyFilter = ProxyFilter(scope = scope).also { it.use(this) }
-        observeNetworkManagerEvents()
+        // observeNetworkManagerEvents()
     }
 
     /**
@@ -829,23 +834,21 @@ class MeshNetworkManager(
      * Observes network manager events.
      */
     private fun observeNetworkManagerEvents() {
-        scope.launch {
-            networkManager?.networkManagerEventFlow?.onEach {
-                when (it) {
-                    is NetworkManagerEvent.MessageReceived -> TODO()
-                    is NetworkManagerEvent.MessageSendingFailed -> TODO()
-                    is NetworkManagerEvent.MessageSent -> TODO()
-                    NetworkManagerEvent.NetworkDidChange -> save()
-                    NetworkManagerEvent.NetworkDidReset -> {
-                        network?.localProvisioner?.let { provisioner ->
-                            val localElements = this@MeshNetworkManager.localElements
-                            provisioner.network = null
-                            create()
-                            this@MeshNetworkManager.localElements = localElements
-                        }
+        networkManager?.networkManagerEventFlow?.onEach {
+            when (it) {
+                is NetworkManagerEvent.MessageReceived -> TODO()
+                is NetworkManagerEvent.MessageSendingFailed -> TODO()
+                is NetworkManagerEvent.MessageSent -> TODO()
+                NetworkManagerEvent.NetworkDidChange -> save()
+                NetworkManagerEvent.NetworkDidReset -> {
+                    network?.localProvisioner?.let { provisioner ->
+                        val localElements = this@MeshNetworkManager.localElements
+                        provisioner.network = null
+                        create()
+                        this@MeshNetworkManager.localElements = localElements
                     }
                 }
             }
-        }
+        }?.launchIn(scope)
     }
 }
