@@ -1,10 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
-import no.nordicsemi.kotlin.mesh.core.model.Proxy
 
 /**
  * Defines message sent to set the Current GATT Proxy state of the Node. [ConfigGattProxyStatus]
