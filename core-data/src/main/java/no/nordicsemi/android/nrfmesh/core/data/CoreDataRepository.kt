@@ -32,7 +32,6 @@ import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
-import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.SceneServerHandler
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
@@ -105,7 +104,7 @@ class CoreDataRepository @Inject constructor(
         } else {
             meshNetworkManager.meshNetwork.first()
         }
-        onMeshNetworkChanged(meshNetwork)
+        onMeshNetworkChanged()
         meshNetwork
     }
 
@@ -114,9 +113,8 @@ class CoreDataRepository @Inject constructor(
      * reinitialise the connection to the proxy node. This will ensure that the user is connected to
      * the correct network.
      */
-    private fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
+    private fun onMeshNetworkChanged() {
         // TODO Implement scene model event handler related stuff
-        val sceneServerHandler = SceneServerHandler(meshNetwork)
         val element0 = Element(
             location = Location.FIRST, _models = mutableListOf(
                 Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID))
