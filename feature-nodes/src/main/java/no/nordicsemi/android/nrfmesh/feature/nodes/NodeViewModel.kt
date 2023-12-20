@@ -49,16 +49,20 @@ internal class NodeViewModel @Inject internal constructor(
         initialValue = NodeScreenUiState()
     )
 
-    private fun send(node: Node) {
+    /**
+     * Called when the user pulls down to refresh the node details.
+     */
+    internal fun onRefresh() {
         viewModelScope.launch {
-            repository.send(node = node, message = ConfigCompositionDataGet(page = 0x00u))
+            repository.send(selectedNode, ConfigCompositionDataGet(page = 0x00u))
         }
     }
 
-    internal fun onRefresh() {
-        send(selectedNode)
-    }
-
+    /**
+     * Called when the user changes the name of the node.
+     *
+     * @param name New name of the node.
+     */
     internal fun onNameChanged(name: String) {
         if (selectedNode.name != name) {
             if (name.isNotEmpty())
@@ -70,18 +74,29 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
+    /**
+     * Called when the user toggles the proxy state of the node.
+     *
+     * @param enabled True if proxy is to be enabled or false otherwise.
+     */
     internal fun onProxyStateToggled(enabled: Boolean) {
         viewModelScope.launch {
             repository.send(selectedNode, ConfigGattProxySet(enabled))
         }
     }
 
+    /**
+     * Called when the user requests the current proxy state of the node.
+     */
     internal fun onGetProxyStateClicked() {
         viewModelScope.launch {
             repository.send(selectedNode, ConfigGattProxyGet())
         }
     }
 
+    /**
+     * Called when the user clicks on the reset node button.
+     */
     fun onResetClicked() {
         viewModelScope.launch {
             repository.send(selectedNode, ConfigNodeReset())?.let {
@@ -90,6 +105,9 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
+    /**
+     * Navigates to the given destination.
+     */
     internal fun navigateTo(destination: DestinationId<Unit, Unit>) {
 
     }
