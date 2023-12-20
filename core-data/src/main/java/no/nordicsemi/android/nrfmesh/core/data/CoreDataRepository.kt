@@ -9,19 +9,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
 import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
@@ -118,7 +114,7 @@ class CoreDataRepository @Inject constructor(
      * reinitialise the connection to the proxy node. This will ensure that the user is connected to
      * the correct network.
      */
-    private suspend fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
+    private fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
         // TODO Implement scene model event handler related stuff
         val sceneServerHandler = SceneServerHandler(meshNetwork)
         val element0 = Element(
