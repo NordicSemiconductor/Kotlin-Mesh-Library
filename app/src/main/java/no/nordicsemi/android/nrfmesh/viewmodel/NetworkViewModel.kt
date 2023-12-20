@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -36,7 +35,6 @@ class NetworkViewModel @Inject constructor(
     override fun navigateUp() {
         super.navigateUp()
         viewModelScope.launch {
-            // repository.stopProxyScanner()
             repository.disconnect()
         }
     }
@@ -46,9 +44,9 @@ class NetworkViewModel @Inject constructor(
      */
     private fun loadNetwork() {
         viewModelScope.launch {
-            isNetworkLoaded = repository.load()
-            meshNetwork = repository.network.first()
-            // repository.startAutomaticConnectivity(meshNetwork)
+            meshNetwork = repository.load()
+            isNetworkLoaded = true
+            repository.startAutomaticConnectivity(meshNetwork)
         }
     }
 

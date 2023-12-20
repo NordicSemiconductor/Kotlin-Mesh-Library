@@ -72,6 +72,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
+import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.groupRanges
@@ -255,6 +256,7 @@ fun BottomNavigationBar(
 fun DestinationId<*, *>.title(): String {
     return when (this) {
         nodes, groups, proxy, settings -> "Network"
+        node -> "Node"
         provisioning -> "Provision Device"
         netKeySelector -> "Select Network Key"
         provisioners -> "Provisioners"
