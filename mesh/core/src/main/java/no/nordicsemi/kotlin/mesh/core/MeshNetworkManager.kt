@@ -726,11 +726,11 @@ class MeshNetworkManager(
         }
         val dst = MeshAddress.create(address = destination)
         require(dst is UnicastAddress) {
-            println("Error: Address ${destination.toHex(prefix0x = true)} is not a Unicast Address.")
+            println("Error: ${destination.toHex(prefix0x = true)} is not a Unicast Address.")
             throw InvalidDestination
         }
         val node = requireNotNull(network.node(dst)) {
-            println("Error: Unknown destination Node.")
+            println("Error: Unknown destination Node ${destination.toHex(prefix0x = true)}.")
             throw InvalidDestination
         }
         require(node.netKeys.isNotEmpty()) {
