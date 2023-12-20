@@ -1,9 +1,11 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>ApplicationKey</title>
-<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
     if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
@@ -16,12 +18,13 @@
         }
     }
     </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../../styles/style.css" rel="Stylesheet">
-<link href="../../../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../../../styles/main.css" rel="Stylesheet">
 <link href="../../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
@@ -29,26 +32,32 @@
 <script type="text/javascript" src="../../../../scripts/prism.js" async></script>
 <script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../../../index.html">
-<span>Kotlin-nRF Mesh-Library</span>            </a>    </div>
-    <div>
-    </div>
-    <div class="pull-right d-flex">
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../../index.html">
+                            Kotlin-nRF Mesh-Library
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":mesh:core:dokkaHtmlPartial/main">jvm</button>
         </div>
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
     </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
     </div>
-    <div id="main">
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
 <div class="main-content" data-page-type="classlike" id="content" pageids="core::no.nordicsemi.kotlin.mesh.core.model/ApplicationKey///PointingToDeclaration//1143283918">
   <div class="breadcrumbs"><a href="../../index.html">core</a><span class="delimiter">/</span><a href="../index.html">no.nordicsemi.kotlin.mesh.core.model</a><span class="delimiter">/</span><span class="current">ApplicationKey</span></div>
   <div class="cover ">
@@ -70,7 +79,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="bound-net-key-index.html">boundNetKeyIndex</a><span class="token operator">: </span><a href="../index.html#-1808751197%2FClasslikes%2F1143283918">KeyIndex</a></div><div class="brief "><p class="paragraph">The boundNetKey property contains a corresponding Network Key index     of the network key in the mesh network.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="bound-net-key-index.html">boundNetKeyIndex</a><span class="token operator">: </span><a href="../-key-index/index.html">KeyIndex</a></div><div class="brief "><p class="paragraph">The boundNetKey property contains a corresponding Network Key index     of the network key in the mesh network.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1584292947%2FProperties%2F1143283918" anchor-label="boundNetworkKey" id="1584292947%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bound-network-key.html"><span>bound</span><wbr><span>Network</span><wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1584292947%2FProperties%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="bound-network-key.html">boundNetworkKey</a><span class="token operator">: </span><a href="../-network-key/index.html">NetworkKey</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Network key to which this application key is bound to.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -85,7 +109,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="--index--.html">index</a><span class="token operator">: </span><a href="../index.html#-1808751197%2FClasslikes%2F1143283918">KeyIndex</a></div><div class="brief "><p class="paragraph">The index property contains an integer from 0 to 4095 that     represents the NetKey index for this network key.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="--index--.html">index</a><span class="token operator">: </span><a href="../-key-index/index.html">KeyIndex</a></div><div class="brief "><p class="paragraph">The index property contains an integer from 0 to 4095 that     represents the NetKey index for this network key.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-352649270%2FProperties%2F1143283918" anchor-label="isInUse" id="-352649270%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-in-use.html"><span>is</span><wbr><span>In</span><wbr><span><span>Use</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-352649270%2FProperties%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="is-in-use.html">isInUse</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -120,21 +159,6 @@
               </div>
             </div>
           </div>
-<a data-name="974034358%2FProperties%2F1143283918" anchor-label="netKey" id="974034358%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="net-key.html"><span>net</span><wbr><span><span>Key</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="974034358%2FProperties%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="net-key.html">netKey</a><span class="token operator">: </span><a href="../-network-key/index.html">NetworkKey</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Network key to which this application key is bound to.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
 <a data-name="-1095645376%2FProperties%2F1143283918" anchor-label="oldKey" id="-1095645376%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -154,7 +178,22 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-1044196791%2FFunctions%2F1143283918" anchor-label="equals" id="-1044196791%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+        <div class="table"><a data-name="1325593596%2FFunctions%2F1143283918" anchor-label="bind" id="1325593596%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bind.html"><span><span>bind</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1325593596%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="bind.html"><span class="token function">bind</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">networkKey<span class="token operator">: </span><a href="../-network-key/index.html">NetworkKey</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Binds the application key to a given network key. The application key must not be in use. If any of the network Nodes already knows this key, this method throws an error</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1044196791%2FFunctions%2F1143283918" anchor-label="equals" id="-1044196791%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
@@ -184,17 +223,17 @@
               </div>
             </div>
           </div>
-<a data-name="-352649270%2FFunctions%2F1143283918" anchor-label="isInUse" id="-352649270%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+<a data-name="273633670%2FFunctions%2F1143283918" anchor-label="isBoundTo" id="273633670%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="is-in-use.html"><span>is</span><wbr><span>In</span><wbr><span><span>Use</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-352649270%2FFunctions%2F1143283918"></span>
+                  <div><a href="is-bound-to.html"><span>is</span><wbr><span>Bound</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="273633670%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="is-in-use.html"><span class="token function">isInUse</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns whether the application key is added to any nodes in the network. A key that is in use cannot be removed until it has been removed from all the nodes.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="is-bound-to.html"><span class="token function">isBoundTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">networkKeys<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-network-key/index.html">NetworkKey</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the application key is bound to any of the given list of network keys.</p></div><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="is-bound-to.html"><span class="token function">isBoundTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">networkKey<span class="token operator">: </span><a href="../-network-key/index.html">NetworkKey</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the application key is bound to a given network key.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -222,8 +261,9 @@
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>
+            </div>
+        </div>
     </div>
-</div>
 </body>
 </html>
 

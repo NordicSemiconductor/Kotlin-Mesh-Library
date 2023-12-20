@@ -1,9 +1,11 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>no.nordicsemi.kotlin.mesh.core.model</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
     if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
@@ -16,12 +18,13 @@
         }
     }
     </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
-<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
@@ -29,26 +32,32 @@
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../../index.html">
-<span>Kotlin-nRF Mesh-Library</span>            </a>    </div>
-    <div>
-    </div>
-    <div class="pull-right d-flex">
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            Kotlin-nRF Mesh-Library
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":mesh:core:dokkaHtmlPartial/main">jvm</button>
         </div>
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
     </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
     </div>
-    <div id="main">
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
 <div class="main-content" data-page-type="package" id="content" pageids="core::no.nordicsemi.kotlin.mesh.core.model////PointingToDeclaration//1143283918">
   <div class="breadcrumbs"><a href="../index.html">core</a><span class="delimiter">/</span><span class="current">no.nordicsemi.kotlin.mesh.core.model</span></div>
   <div class="cover ">
@@ -63,13 +72,13 @@
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#457095768%2FClasslikes%2F1143283918"><span><span>Address</span></span></a></div>
+                  <div><a href="-address/index.html"><span><span>Address</span></span></a></div>
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="457095768%2FClasslikes%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div><div class="brief "><p class="paragraph">Type alias for an unsigned 16-bit address.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-address/index.html">Address</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div><div class="brief "><p class="paragraph">Type alias for an unsigned 16-bit address.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -114,7 +123,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-all-nodes/index.html">AllNodes</a> : <a href="-fixed-group-address/index.html">FixedGroupAddress</a></div><div class="brief "><p class="paragraph">A message sent to the all-nodes address shall be processed by the primary element of all nodes.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-all-nodes/index.html">AllNodes</a> : <a href="-fixed-group-address/index.html">FixedGroupAddress</a></div><div class="brief "><p class="paragraph">A message sent to the all-nodes address shall be processed by the primary element of all nodes.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -189,7 +198,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-element/index.html">Element</a></div><div class="brief "><p class="paragraph">Element represents a mesh element that is defined as an addressable entity within a mesh node.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-element/index.html">Element</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>location<span class="token operator">: </span><a href="-location/index.html">Location</a><span class="token punctuation">, </span></span><span class="parameter ">_models<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-model/index.html">Model</a><span class="token operator">&gt;</span><span class="token operator"> = </span>mutableListOf()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Element represents a mesh element that is defined as an addressable entity within a mesh node.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -249,7 +258,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-fixed-group-address/index.html">FixedGroupAddress</a> : <a href="-mesh-address/index.html">MeshAddress</a></div><div class="brief "><p class="paragraph">There are two types of group address; those that can be assigned dynamically and those that are fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-fixed-group-address/index.html">FixedGroupAddress</a> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-proxy-filter-address/index.html">ProxyFilterAddress</a></div><div class="brief "><p class="paragraph">There are two types of group address; those that can be assigned dynamically and those that are fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -279,7 +288,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-credentials-serializer/index.html">CredentialsSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">object </span><a href="-friendship-security/index.html">FriendshipSecurity</a> : <a href="-credentials/index.html">Credentials</a></div><div class="brief "><p class="paragraph">Friendship security material is used for Publishing.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-credentials-serializer/index.html">CredentialsSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">object </span><a href="-friendship-security/index.html">FriendshipSecurity</a> : <a href="-credentials/index.html">Credentials</a></div><div class="brief "><p class="paragraph">Friendship security material is used for Publishing.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -309,7 +318,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-group-address/index.html">GroupAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-primary-group-address/index.html">PrimaryGroupAddress</a>, <a href="-parent-group-address/index.html">ParentGroupAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-subscription-address/index.html">SubscriptionAddress</a>, <a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a>, <a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a></div><div class="brief "><p class="paragraph">A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are reserved for <a href="-fixed-group-address/index.html">FixedGroupAddress</a>, and addresses in the range 0xC000 through 0xFEFF are generally available for other usage.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-group-address/index.html">GroupAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="-address/index.html">Address</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-primary-group-address/index.html">PrimaryGroupAddress</a>, <a href="-parent-group-address/index.html">ParentGroupAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-subscription-address/index.html">SubscriptionAddress</a>, <a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a>, <a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a>, <a href="-proxy-filter-address/index.html">ProxyFilterAddress</a></div><div class="brief "><p class="paragraph">A group address is an address that is programmed into zero or more elements. A group address has bit 15 set to 1 and bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are reserved for <a href="-fixed-group-address/index.html">FixedGroupAddress</a>, and addresses in the range 0xC000 through 0xFEFF are generally available for other usage.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -344,6 +353,21 @@
               </div>
             </div>
           </div>
+<a data-name="-722828476%2FClasslikes%2F1143283918" anchor-label="HeartbeatDestination" id="-722828476%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-heartbeat-destination/index.html"><span>Heartbeat</span><wbr><span><span>Destination</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-722828476%2FClasslikes%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-heartbeat-destination/index.html">HeartbeatDestination</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">An address that is used as a destination address by a Heartbeat Publication or a Heartbeat Subscription message. This represents a <a href="-unicast-address/index.html">UnicastAddress</a>, <a href="-group-address/index.html">GroupAddress</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-778919194%2FClasslikes%2F1143283918" anchor-label="HeartbeatPublication" id="-778919194%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -369,7 +393,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">Heartbeat publication destination address for heartbeat messages. This represents a <a href="-unicast-address/index.html">UnicastAddress</a> or a <a href="-group-address/index.html">GroupAddress</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a> : <a href="-heartbeat-destination/index.html">HeartbeatDestination</a></div><div class="brief "><p class="paragraph">Heartbeat publication destination address for heartbeat messages. This represents a <a href="-unicast-address/index.html">UnicastAddress</a>, <a href="-group-address/index.html">GroupAddress</a> or an <a href="-unassigned-address/index.html">UnassignedAddress</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -399,7 +423,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">Heartbeat subscription destination address for heartbeat messages. This represents a <a href="-unicast-address/index.html">UnicastAddress</a> or a <a href="-group-address/index.html">GroupAddress</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a> : <a href="-heartbeat-destination/index.html">HeartbeatDestination</a></div><div class="brief "><p class="paragraph">Heartbeat subscription destination address for heartbeat messages. This represents a <a href="-unicast-address/index.html">UnicastAddress</a> or a <a href="-group-address/index.html">GroupAddress</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -429,7 +453,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-insecure/index.html">Insecure</a> : <a href="-security/index.html">Security</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-insecure/index.html">Insecure</a> : <a href="-security/index.html">Security</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -444,7 +468,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-iv-index/index.html">IvIndex</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-int/index.html">UInt</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>isIvUpdateActive<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>transitionDate<span class="token operator">: </span><span data-unresolved-link="kotlinx.datetime/Instant///PointingToDeclaration/">Instant</span><span class="token operator"> = </span>Instant.fromEpochMilliseconds(System.currentTimeMillis())</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The IV Index received with the last Secure Network Beacon and its current state.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-iv-index/index.html">IvIndex</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-int/index.html">UInt</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>isIvUpdateActive<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>transitionDate<span class="token operator">: </span><span data-unresolved-link="kotlinx.datetime/Instant///PointingToDeclaration/">Instant</span><span class="token operator"> = </span>Clock.System.now()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The IV Index received with the last Secure Network Beacon and its current state.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -468,13 +492,13 @@
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-1808751197%2FClasslikes%2F1143283918"><span>Key</span><wbr><span><span>Index</span></span></a></div>
+                  <div><a href="-key-index/index.html"><span>Key</span><wbr><span><span>Index</span></span></a></div>
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1808751197%2FClasslikes%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="index.html#-1808751197%2FClasslikes%2F1143283918">KeyIndex</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div><div class="brief "><p class="paragraph">A Key Index is 12-bit long Unsigned Integer. This property returns <code class="lang-kotlin">true</code> if the value is in range 0...4095.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-key-index/index.html">KeyIndex</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div><div class="brief "><p class="paragraph">A Key Index is 12-bit long Unsigned Integer. This property returns <code class="lang-kotlin">true</code> if the value is in range 0...4095.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -534,7 +558,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-credentials-serializer/index.html">CredentialsSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">object </span><a href="-master-security/index.html">MasterSecurity</a> : <a href="-credentials/index.html">Credentials</a></div><div class="brief "><p class="paragraph">Master security material is used for Publishing.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-credentials-serializer/index.html">CredentialsSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">object </span><a href="-master-security/index.html">MasterSecurity</a> : <a href="-credentials/index.html">Credentials</a></div><div class="brief "><p class="paragraph">Master security material is used for Publishing.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -549,7 +573,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-mesh-address/index.html">MeshAddress</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">Wrapper class for <a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-mesh-address/index.html">MeshAddress</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">Wrapper class for <a href="-address/index.html">Address</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -734,6 +758,21 @@
               </div>
             </div>
           </div>
+<a data-name="132633576%2FClasslikes%2F1143283918" anchor-label="ProxyFilterAddress" id="132633576%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-proxy-filter-address/index.html"><span>Proxy</span><wbr><span>Filter</span><wbr><span><span>Address</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="132633576%2FClasslikes%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">interface </span><a href="-proxy-filter-address/index.html">ProxyFilterAddress</a> : <a href="-has-address/index.html">HasAddress</a></div><div class="brief "><p class="paragraph">An address type that can be added to a Proxy Filter List. This represents a <a href="-unicast-address/index.html">UnicastAddress</a>, <a href="-group-address/index.html">GroupAddress</a>, <a href="-virtual-address/index.html">VirtualAddress</a> or a <a href="-fixed-group-address/index.html">FixedGroupAddress</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="1612965518%2FClasslikes%2F1143283918" anchor-label="PublicationAddress" id="1612965518%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -759,7 +798,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-publish/index.html">Publish</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="-publication-address/index.html">PublicationAddress</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ttl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>period<span class="token operator">: </span><a href="-publish-period/index.html">PublishPeriod</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>credentials<span class="token operator">: </span><a href="-credentials/index.html">Credentials</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>retransmit<span class="token operator">: </span><a href="-retransmit/index.html">Retransmit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The publish object represents parameters that define how the messages are published by a mesh model.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-publish/index.html">Publish</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="-publication-address/index.html">PublicationAddress</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>index<span class="token operator">: </span><a href="-key-index/index.html">KeyIndex</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ttl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-byte/index.html">UByte</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>period<span class="token operator">: </span><a href="-publish-period/index.html">PublishPeriod</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>credentials<span class="token operator">: </span><a href="-credentials/index.html">Credentials</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>retransmit<span class="token operator">: </span><a href="-retransmit/index.html">Retransmit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The publish object represents parameters that define how the messages are published by a mesh model.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -858,13 +897,13 @@
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#309099767%2FClasslikes%2F1143283918"><span>Scene</span><wbr><span><span>Number</span></span></a></div>
+                  <div><a href="-scene-number/index.html"><span>Scene</span><wbr><span><span>Number</span></span></a></div>
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="309099767%2FClasslikes%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="index.html#309099767%2FClasslikes%2F1143283918">SceneNumber</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-scene-number/index.html">SceneNumber</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -879,7 +918,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-scene-range/index.html">SceneRange</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>firstScene<span class="token operator">: </span><a href="index.html#309099767%2FClasslikes%2F1143283918">SceneNumber</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>lastScene<span class="token operator">: </span><a href="index.html#309099767%2FClasslikes%2F1143283918">SceneNumber</a></span></span><span class="token punctuation">)</span> : <a href="-range/index.html">Range</a></div><div class="brief "><p class="paragraph">The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to register new scenes in the mesh network, without needing to coordinate the allocated scene numbers with other Provisioners. The firstScene and lastScene represents values from 0x0001 to 0xFFFF. The value of the firstScene property shall be less than or equal to the value of the lastScene property.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-scene-range/index.html">SceneRange</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>firstScene<span class="token operator">: </span><a href="-scene-number/index.html">SceneNumber</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>lastScene<span class="token operator">: </span><a href="-scene-number/index.html">SceneNumber</a></span></span><span class="token punctuation">)</span> : <a href="-range/index.html">Range</a></div><div class="brief "><p class="paragraph">The AllocatedSceneRange represents the range of scene numbers that the Provisioner can use to register new scenes in the mesh network, without needing to coordinate the allocated scene numbers with other Provisioners. The firstScene and lastScene represents values from 0x0001 to 0xFFFF. The value of the firstScene property shall be less than or equal to the value of the lastScene property.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -894,7 +933,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-secure/index.html">Secure</a> : <a href="-security/index.html">Security</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-secure/index.html">Secure</a> : <a href="-security/index.html">Security</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -959,6 +998,21 @@
               </div>
             </div>
           </div>
+<a data-name="1143085236%2FClasslikes%2F1143283918" anchor-label="TransitionTime" id="1143085236%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-transition-time/index.html"><span>Transition</span><wbr><span><span>Time</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1143085236%2FClasslikes%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-transition-time/index.html">TransitionTime</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>steps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-byte/index.html">UByte</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>stepResolution<span class="token operator">: </span><a href="-step-resolution/index.html">StepResolution</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">This structure represents a time needed to transition from one state to another, for example dimming a light.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-312356833%2FClasslikes%2F1143283918" anchor-label="UnassignedAddress" id="-312356833%2FClasslikes%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -984,7 +1038,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-unicast-address/index.html">UnicastAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a>, <a href="-heartbeat-subscription-source/index.html">HeartbeatSubscriptionSource</a>, <a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a></div><div class="brief "><p class="paragraph">A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-unicast-address/index.html">UnicastAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>address<span class="token operator">: </span><a href="-address/index.html">Address</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-heartbeat-publication-destination/index.html">HeartbeatPublicationDestination</a>, <a href="-heartbeat-subscription-source/index.html">HeartbeatSubscriptionSource</a>, <a href="-heartbeat-subscription-destination/index.html">HeartbeatSubscriptionDestination</a>, <a href="-proxy-filter-address/index.html">ProxyFilterAddress</a></div><div class="brief "><p class="paragraph">A unicast address is a unique address allocated to each element. A unicast address has bit 15 set to 0. The unicast address shall not have the value 0x0000, and therefore can have any value from 0x0001 to 0x7FFF inclusive.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1044,7 +1098,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-virtual-address/index.html">VirtualAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-primary-group-address/index.html">PrimaryGroupAddress</a>, <a href="-parent-group-address/index.html">ParentGroupAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-subscription-address/index.html">SubscriptionAddress</a></div><div class="brief "><p class="paragraph">A virtual address represents a set of destination addresses. Each virtual address logically represents a Label UUID, which is a 128-bit value that does not have to be managed centrally. One or more elements may be programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall be used as the Additional Data field of the message integrity check value in the upper transport layer.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span><span class="token punctuation">(</span><span>with<span class="token operator"> = </span><a href="../../../mesh/core/no.nordicsemi.kotlin.mesh.core.model.serialization/-mesh-address-serializer/index.html">MeshAddressSerializer::class</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-virtual-address/index.html">VirtualAddress</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a></span></span><span class="token punctuation">)</span> : <a href="-mesh-address/index.html">MeshAddress</a>, <a href="-primary-group-address/index.html">PrimaryGroupAddress</a>, <a href="-parent-group-address/index.html">ParentGroupAddress</a>, <a href="-publication-address/index.html">PublicationAddress</a>, <a href="-subscription-address/index.html">SubscriptionAddress</a>, <a href="-proxy-filter-address/index.html">ProxyFilterAddress</a></div><div class="brief "><p class="paragraph">A virtual address represents a set of destination addresses. Each virtual address logically represents a Label UUID, which is a 128-bit value that does not have to be managed centrally. One or more elements may be programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall be used as the Additional Data field of the message integrity check value in the upper transport layer.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1063,7 +1117,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-group-address.html">maxGroupAddress</a><span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-group-address.html">maxGroupAddress</a><span class="token operator">: </span><a href="-address/index.html">Address</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1078,7 +1132,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-scene-number.html">maxSceneNumber</a><span class="token operator">: </span><a href="index.html#309099767%2FClasslikes%2F1143283918">SceneNumber</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-scene-number.html">maxSceneNumber</a><span class="token operator">: </span><a href="-scene-number/index.html">SceneNumber</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1093,7 +1147,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-unicast-address.html">maxUnicastAddress</a><span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="max-unicast-address.html">maxUnicastAddress</a><span class="token operator">: </span><a href="-address/index.html">Address</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1108,7 +1162,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-group-address.html">minGroupAddress</a><span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-group-address.html">minGroupAddress</a><span class="token operator">: </span><a href="-address/index.html">Address</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1123,7 +1177,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-scene-number.html">minSceneNumber</a><span class="token operator">: </span><a href="index.html#309099767%2FClasslikes%2F1143283918">SceneNumber</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-scene-number.html">minSceneNumber</a><span class="token operator">: </span><a href="-scene-number/index.html">SceneNumber</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1138,7 +1192,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-unicast-address.html">minUnicastAddress</a><span class="token operator">: </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="min-unicast-address.html">minUnicastAddress</a><span class="token operator">: </span><a href="-address/index.html">Address</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -1147,17 +1201,77 @@
       </div>
       <div data-togglable="EXTENSION_FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-829440294%2FFunctions%2F1143283918" anchor-label="contains" id="-829440294%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+        <div class="table"><a data-name="-186499641%2FFunctions%2F1143283918" anchor-label="addresses" id="-186499641%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="contains.html"><span><span>contains</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-829440294%2FFunctions%2F1143283918"></span>
+                  <div><a href="addresses.html"><span><span>addresses</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-186499641%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-range/index.html">Range</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">range<span class="token operator">: </span><a href="-range/index.html">Range</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if an element in the list of ranges contains the given range.</p></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/-u-int-range/index.html">UIntRange</a><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/-u-int-range/index.html">UIntRange</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the given range is within the range.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-node/index.html">Node</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="addresses.html"><span class="token function">addresses</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-unicast-address/index.html">UnicastAddress</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the list of addresses from a list of nodes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1632433332%2FFunctions%2F1143283918" anchor-label="boundTo" id="1632433332%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bound-to.html"><span>bound</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1632433332%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="bound-to.html"><span class="token function">boundTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">networkKey<span class="token operator">: </span><a href="-network-key/index.html">NetworkKey</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of application keys bound to a given network key.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1157449284%2FFunctions%2F1143283918" anchor-label="contains" id="1157449284%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contains.html"><span><span>contains</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1157449284%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">networkKey<span class="token operator">: </span><a href="-network-key/index.html">NetworkKey</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks whether any of the Application keys in the List is bound to the given network Key. The key comparison is based on Key Index property.</p></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-range/index.html">Range</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">range<span class="token operator">: </span><a href="-range/index.html">Range</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if an element in the list of ranges contains the given range.</p></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/-u-int-range/index.html">UIntRange</a><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/-u-int-range/index.html">UIntRange</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the given range is within the range.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1503006890%2FFunctions%2F1143283918" anchor-label="elements" id="1503006890%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="elements.html"><span><span>elements</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1503006890%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-node/index.html">Node</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="elements.html"><span class="token function">elements</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-element/index.html">Element</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the list of elements from a list of nodes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1637338898%2FFunctions%2F1143283918" anchor-label="get" id="-1637338898%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1637338898%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="-key-index/index.html">KeyIndex</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns an Application Key with the given KeyIndex</p></div><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-network-key/index.html">NetworkKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="-key-index/index.html">KeyIndex</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-network-key/index.html">NetworkKey</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns an Network Key with the given KeyIndex.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1172,7 +1286,22 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="index.html#-1808751197%2FClasslikes%2F1143283918">KeyIndex</a><span class="token punctuation">.</span><a href="is-valid-key-index.html"><span class="token function">isValidKeyIndex</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the Key index is of the given valid range.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="-key-index/index.html">KeyIndex</a><span class="token punctuation">.</span><a href="is-valid-key-index.html"><span class="token function">isValidKeyIndex</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the Key index is of the given valid range.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-564303378%2FFunctions%2F1143283918" anchor-label="knownTo" id="-564303378%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="known-to.html"><span>known</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-564303378%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="known-to.html"><span class="token function">knownTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">node<span class="token operator">: </span><a href="-node/index.html">Node</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Filters the list of Application keys to only those that are known to the given node.</p></div><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-network-key/index.html">NetworkKey</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="known-to.html"><span class="token function">knownTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">node<span class="token operator">: </span><a href="-node/index.html">Node</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-network-key/index.html">NetworkKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Filters the list of Network Keys to only those that are known to the given node.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1218,6 +1347,21 @@
               <div>
                 <div class="title">
                   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-range/index.html">Range</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="minus-assign.html"><span class="token function">minusAssign</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-range/index.html">Range</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-range/index.html">Range</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="minus-assign.html"><span class="token function">minusAssign</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="-range/index.html">Range</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-467617122%2FFunctions%2F1143283918" anchor-label="model" id="-467617122%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="model.html"><span><span>model</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-467617122%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-model/index.html">Model</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="model.html"><span class="token function">model</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">modelId<span class="token operator">: </span><a href="-model-id/index.html">ModelId</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-model/index.html">Model</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the model with the given model id.</p></div><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-model/index.html">Model</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="model.html"><span class="token function">model</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">companyIdentifier<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">modelIdentifier<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-model/index.html">Model</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the model for a given company and model identifier.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1282,6 +1426,21 @@
               </div>
             </div>
           </div>
+<a data-name="1276576227%2FFunctions%2F1143283918" anchor-label="toFeatures" id="1276576227%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-features.html"><span>to</span><wbr><span><span>Features</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1276576227%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-feature/index.html">Feature</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="to-features.html"><span class="token function">toFeatures</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-features/index.html">Features</a></div><div class="brief "><p class="paragraph">Converts an array of Features to a <a href="-features/index.html">Features</a> object.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="1054193028%2FFunctions%2F1143283918" anchor-label="toHex" id="1054193028%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
@@ -1292,7 +1451,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="index.html#457095768%2FClasslikes%2F1143283918">Address</a><span class="token punctuation">.</span><a href="to-hex.html"><span class="token function">toHex</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">prefix0x<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Represents a hex representation of an Address in String,</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="-address/index.html">Address</a><span class="token punctuation">.</span><a href="to-hex.html"><span class="token function">toHex</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">prefix0x<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Represents a hex representation of an Address in String,</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -1312,6 +1471,21 @@
               </div>
             </div>
           </div>
+<a data-name="653971737%2FFunctions%2F1143283918" anchor-label="toUShort" id="653971737%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-u-short.html"><span>to</span><wbr><span><span>UShort</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="653971737%2FFunctions%2F1143283918"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-feature/index.html">Feature</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="to-u-short.html"><span class="token function">toUShort</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-short/index.html">UShort</a></div><div class="brief "><p class="paragraph">Converts an array of <a href="-feature/index.html">Feature</a>s to a raw value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1320,8 +1494,9 @@
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>
+            </div>
+        </div>
     </div>
-</div>
 </body>
 </html>
 

@@ -38,7 +38,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
-    private val bearer: MeshProvisioningBearer
+    val bearer: MeshProvisioningBearer
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var configuration: ProvisioningParameters
@@ -214,9 +214,7 @@ class ProvisioningManager(
 
                     is AuthAction.ProvideStaticKey,
                     is AuthAction.ProvideNumeric,
-                    is AuthAction.ProvideAlphaNumeric -> {
-                        mutex.lock()
-                    }
+                    is AuthAction.ProvideAlphaNumeric -> mutex.lock()
                 }
             }
 

@@ -21,7 +21,8 @@
     <string name="label_output_oob_actions">Output Oob Actions</string>
     <string name="label_input_oob_size">Input Oob Size</string>
     <string name="label_input_oob_actions">Input Oob Actions</string>
-    <string name="label_connecting">Connecting to %s…</string>
+    <string name="label_connecting">Connecting…</string>
+    <string name="label_connecting_to">Connecting to %s…</string>
     <string name="label_connected">Connected to %s</string>
     <string name="label_identifying">Identifying %s…</string>
     <string name="label_disconnected">%s disconnected</string>
@@ -54,4 +55,6 @@
     <string name="label_provide_numeric_rationale">Enter the number displayed on the device.</string>
     <string name="label_provide_alpha_numeric_rationale">Enter the text displayed on the device.</string>
     <string name="label_provide_static_key_rationale">Enter the %d character text displayed on the device.</string>
+    <string name="action_connect">Connect</string>
+    <string name="label_device_information">Device Information</string>
 </resources>

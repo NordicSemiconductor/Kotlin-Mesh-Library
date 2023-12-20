@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -24,7 +24,7 @@ import javax.inject.Inject
 class NetKeySelectorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle), Logger {
 
     private lateinit var meshNetwork: MeshNetwork

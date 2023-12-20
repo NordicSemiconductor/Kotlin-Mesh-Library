@@ -10,9 +10,9 @@ import kotlin.experimental.and
  *
  * @property rawValue Raw value of the SAR type.
  */
-private enum class SAR(val rawValue: UByte) {
-    COMPLETE_MESSAGE(rawValue = 0b0u),
-    FIRST_SEGMENT(rawValue = 0b1u),
+private enum class SAR(private val rawValue: UByte) {
+    COMPLETE_MESSAGE(rawValue = 0b00u),
+    FIRST_SEGMENT(rawValue = 0b01u),
     CONTINUATION(rawValue = 0b10u),
     LAST_SEGMENT(rawValue = 0b11u);
 
@@ -27,11 +27,11 @@ private enum class SAR(val rawValue: UByte) {
          *  @param data PDU data
          *  @return SAR type or null if the data is invalid.
          */
-        internal fun from(data: ByteArray): SAR? = when ((data.first().toInt() shr 6).toUByte()) {
-            COMPLETE_MESSAGE.value -> COMPLETE_MESSAGE
-            FIRST_SEGMENT.value -> FIRST_SEGMENT
-            CONTINUATION.value -> CONTINUATION
-            LAST_SEGMENT.value -> LAST_SEGMENT
+        internal fun from(data: ByteArray) = when ((data[0].toUByte().toInt() shr 6).toUByte()) {
+            COMPLETE_MESSAGE.rawValue -> COMPLETE_MESSAGE
+            FIRST_SEGMENT.rawValue -> FIRST_SEGMENT
+            CONTINUATION.rawValue -> CONTINUATION
+            LAST_SEGMENT.rawValue -> LAST_SEGMENT
             else -> null
         }
     }
@@ -76,20 +76,20 @@ class ProxyProtocolHandler {
     fun segment(data: ByteArray, type: PduType, mtu: Int) = if (data.size <= mtu - 1) {
         var singlePacket = byteArrayOf((SAR.COMPLETE_MESSAGE.value or type.value).toByte())
         singlePacket += data
-        arrayOf(singlePacket)
+        listOf(singlePacket)
     } else {
-        var packets: Array<ByteArray> = arrayOf()
+        val packets = mutableListOf<ByteArray>()
         for (i in data.indices step mtu - 1) {
             val sar = when {
                 i == 0 -> SAR.FIRST_SEGMENT
-                i + mtu - 1 >= data.size -> SAR.LAST_SEGMENT
+                i + mtu - 1 > data.size -> SAR.LAST_SEGMENT
                 else -> SAR.CONTINUATION
             }
             var singlePacket = byteArrayOf((sar.value or type.value).toByte())
             singlePacket += data.sliceArray(i until minOf(data.size, i + mtu - 1))
             packets += singlePacket
         }
-        packets
+        packets.toList()
     }
 
     /**
@@ -104,19 +104,14 @@ class ProxyProtocolHandler {
      * @return The message and its type, or `null`, if more data are expected.
      */
     fun reassemble(data: ByteArray): Pdu? {
-        require(data.isNotEmpty()) {
-            // Disregard invalid packet.
-            return null
-        }
+        // Disregard invalid packet.
+        require(data.isNotEmpty()) { return null }
 
-        val sar = SAR.from(data) ?: run {
-            // Disregard invalid packet.
-            return null
-        }
-        val messageType = PduType.from(data[0].toUByte()) ?: run {
-            // Disregard invalid packet.
-            return null
-        }
+        // Disregard invalid packet.
+        val sar = requireNotNull(SAR.from(data)) { return null }
+
+        // Disregard invalid packet.
+        val messageType = requireNotNull(PduType.from(data)) { return null }
 
         // Ensure, that only complete message or the first segment may be processed if the buffer is
         // empty.
@@ -145,7 +140,7 @@ class ProxyProtocolHandler {
 
         // Save the message type and append newly received data.
         bufferType = messageType
-        if (sar == SAR.COMPLETE_MESSAGE || sar == SAR.LAST_SEGMENT) {
+        if (sar == SAR.COMPLETE_MESSAGE || sar == SAR.FIRST_SEGMENT) {
             buffer = byteArrayOf()
         }
         buffer = buffer!! + data.sliceArray(1 until data.size)

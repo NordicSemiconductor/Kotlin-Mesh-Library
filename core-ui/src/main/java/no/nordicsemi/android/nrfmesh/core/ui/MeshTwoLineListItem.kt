@@ -17,6 +17,46 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
+    leadingComposable: @Composable () -> Unit = {},
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    subtitle: String = "",
+    trailingComposable: @Composable () -> Unit = {},
+    subtitleMaxLines: Int = 1,
+    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
+) {
+    Row(
+        modifier = modifier
+            .padding(vertical = 16.dp, horizontal = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leadingComposable()
+        Column(
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = titleTextOverflow
+            )
+            if (subtitle.isNotEmpty())
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = subtitleMaxLines,
+                    overflow = subtitleTextOverflow
+                )
+        }
+        trailingComposable()
+    }
+}
+
+@Composable
+fun MeshTwoLineListItem(
+    modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
     subtitle: String = "",
@@ -48,47 +88,6 @@ fun MeshTwoLineListItem(
                     overflow = subtitleTextOverflow
                 )
         }
-    }
-}
-
-@Composable
-fun MeshTwoLineListItem(
-    modifier: Modifier = Modifier,
-    leadingComposable: @Composable () -> Unit = {},
-    title: String,
-    titleTextOverflow: TextOverflow = TextOverflow.Clip,
-    subtitle: String = "",
-    trailingComposable: @Composable () -> Unit = {},
-    subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
-) {
-    Row(
-        modifier = modifier
-            .padding(vertical = 16.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        leadingComposable()
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
-                overflow = titleTextOverflow
-            )
-            if (subtitle.isNotEmpty())
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = subtitleMaxLines,
-                    overflow = subtitleTextOverflow
-                )
-        }
-        trailingComposable()
     }
 }
 

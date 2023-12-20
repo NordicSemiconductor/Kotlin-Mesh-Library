@@ -27,11 +27,11 @@ sealed class Credentials(val credential: Int) {
 
 /** Master security material is used for Publishing. */
 @Serializable(with = CredentialsSerializer::class)
-object MasterSecurity : Credentials(credential = MASTER_SECURITY)
+data object MasterSecurity : Credentials(credential = MASTER_SECURITY)
 
 /** Friendship security material is used for Publishing. */
 @Serializable(with = CredentialsSerializer::class)
-object FriendshipSecurity : Credentials(credential = FRIENDSHIP_SECURITY)
+data object FriendshipSecurity : Credentials(credential = FRIENDSHIP_SECURITY)
 
 private const val MASTER_SECURITY = 0
 private const val FRIENDSHIP_SECURITY = 1

@@ -228,7 +228,8 @@ class CryptoTest {
             key = encryptionKey,
             nonce = nonce,
             micSize = mic
-        ).encodeHex()
+        )?.encodeHex()
+        Assert.assertNotNull(actual)
         Assert.assertEquals(expected, actual)
     }
 

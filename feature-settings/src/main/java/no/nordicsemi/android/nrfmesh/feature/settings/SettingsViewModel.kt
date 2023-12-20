@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
 import javax.inject.Inject
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     val uiState: StateFlow<SettingsScreenUiState> =
         repository.network.map { network ->

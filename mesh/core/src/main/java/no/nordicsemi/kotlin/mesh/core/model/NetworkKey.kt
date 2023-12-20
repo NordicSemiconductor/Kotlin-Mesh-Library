@@ -10,32 +10,46 @@ import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
  * communication at the network layer.
  *
- * @property index         The index property contains an integer from 0 to 4095 that represents the
- *                         NetKey index for this network key.
- * @property key           128-bit key.
- * @property security      Security property contains a string with a value of either “insecure” or
- *                         “secure”, which describes a minimum security level for a subnet
- *                         associated with this network key. If all the nodes on the subnet
- *                         associated with this network key have been provisioned using the Secure
- *                         Provisioning procedure, then the value of minSecurity property for the
- *                         subnet is set to “secure”; otherwise, the value of the minSecurity is set
- *                         to “insecure”.
- * @property name          Human-readable name for the the mesh subnet associated with this network
- *                         key.
- * @property phase         The phase property represents the [KeyRefreshPhase] for the subnet
- *                         associated with this network key.
- * @property oldKey        The oldKey property contains a 32-character hexadecimal string that
- *                         represents the 128-bit network key, and shall be present when the phase
- *                         property has a non-zero value, such as when the Key Refresh procedure is
- *                         in progress. The value of the oldKey property contains the previous
- *                         network key.
- * @property timestamp     The timestamp property contains a string that represents the last time
- *                         the value of the phase property has been updated.
+ * @property index                 The index property contains an integer from 0 to 4095 that
+ *                                 represents the NetKey index for this network key.
+ * @property key                   128-bit key.
+ * @property security              Security property contains a string with a value of either
+ *                                 “insecure” or “secure”, which describes a minimum security level
+ *                                 for a subnet associated with this network key. If all the nodes
+ *                                 on the subnet associated with this network key have been
+ *                                 provisioned using the Secure Provisioning procedure, then the
+ *                                 value of minSecurity property for the subnet is set to “secure”;
+ *                                 otherwise, the value of the minSecurity is set to “insecure”.
+ * @property name                  Human-readable name for the the mesh subnet associated with this
+ *                                 network key.
+ * @property phase                 The phase property represents the [KeyRefreshPhase] for the
+ *                                 subnet associated with this network key.
+ * @property oldKey                The oldKey property contains a 32-character hexadecimal string
+ *                                 that represents the 128-bit network key, and shall be present
+ *                                 when the phase property has a non-zero value, such as when the
+ *                                 Key Refresh procedure is in progress. The value of the oldKey
+ *                                 property contains the previous network key.
+ * @property timestamp             The timestamp property contains a string that represents the last
+ *                                 time the value of the phase property has been updated.
+ * @property networkId             Network ID is derived from a network key and is used to identify
+ *                                 the network
+ * @property oldNetworkId          Old Network ID is derived from the old network key.
+ * @property derivatives           Network key derivatives.
+ * @property oldDerivatives        Old network key derivatives.
+ * @property transmitKeys          Defines the keys used when sending and receiving mesh messages
+ *                                 based on the key refresh phase.
+ * @property isPrimary             Returns true if the network key is the primary network key.
+ * @property network               Returns the network object this network key belongs to.
+ * @property isInUse               Returns whether the network key is added to any nodes in the
+ *                                 network. A key that is in use cannot be removed until it has been
+ *                                 removed from all the nodes and is no longer bound to any
+ *                                 application keys.
  */
 @Serializable
 data class NetworkKey internal constructor(
@@ -50,20 +64,13 @@ data class NetworkKey internal constructor(
     @SerialName(value = "phase")
     private var _phase: KeyRefreshPhase = NormalOperation,
 ) {
-
     /**
      * Convenience constructor for creating a new network key for tests
      *
-     * @property index         The index property contains an integer from 0 to 4095 that represents
-     *                         the NetKey index for this network key.
-     * @property key           128-bit key.
-     * @property security      Security property contains a string with a value of either “insecure”
-     *                         or “secure”, which describes a minimum security level for a subnet
-     *                         associated with this network key. If all the nodes on the subnet
-     *                         associated with this network key have been provisioned using the
-     *                         Secure Provisioning procedure, then the value of minSecurity property
-     *                         for the subnet is set to “secure”; otherwise, the value of the
-     *                         minSecurity is set to “insecure”.
+     * @param index   The index property contains an integer from 0 to 4095 that represents the
+     *                NetKey index for this network key.
+     * @param key     128-bit key.
+     * @param name    Human readable name for the the mesh subnet associated with this network key.
      */
     internal constructor(
         name: String = "Primary Network Key",
@@ -78,6 +85,7 @@ data class NetworkKey internal constructor(
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
+
     var security: Security
         get() = _security
         internal set(value) {
@@ -95,45 +103,81 @@ data class NetworkKey internal constructor(
         get() = _key
         internal set(value) {
             require(value = value.size == 16) { throw InvalidKeyLength }
+            MeshNetwork.onChange(oldValue = _key, newValue = value) {
+                oldKey = _key
+            }
             _key = value
+            _phase = KeyDistribution
+            regenerateKeyDerivatives()
         }
 
     @Serializable(with = KeySerializer::class)
     @SerialName(value = "oldKey")
     var oldKey: ByteArray? = null
-        internal set
+        internal set(value) {
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
+                if (value == null) {
+                    oldDerivatives = null
+                    oldNetworkId = null
+                    _phase = NormalOperation
+                }
+                field = value
+            }
+        }
 
     var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         internal set
 
     @Transient
+    lateinit var networkId: ByteArray
+        private set
+
+    @Transient
+    var oldNetworkId: ByteArray? = null
+        private set
+
+    @Transient
+    internal var derivatives: NetworkKeyDerivatives = Crypto.calculateKeyDerivatives(key)
+        .toNetworkKeyDerivatives()
+        private set
+
+    @Transient
+    internal var oldDerivatives: NetworkKeyDerivatives? = null
+        private set
+
+    internal val transmitKeys: NetworkKeyDerivatives
+        get() = when (phase) {
+            KeyDistribution -> oldDerivatives!!
+            else -> derivatives
+        }
+
+    val isPrimary: Boolean by lazy { index == 0.toUShort() }
+
+    @Transient
     internal var network: MeshNetwork? = null
+
+    val isInUse: Boolean
+        get() = network?.run {
+            // A network key is in use if at least one application key is bound to it.
+            // OR
+            // The network key is known by any of the nodes in the network.
+            _applicationKeys.any { applicationKey ->
+                applicationKey.boundNetKeyIndex == index
+            } || _nodes.any { node ->
+                node.netKeys.any { nodeKey ->
+                    nodeKey.index == index
+                }
+            }
+        } ?: false
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+        regenerateKeyDerivatives()
     }
 
     private fun updateTimeStamp() {
         timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
-
-    /**
-     * Returns whether the network key is added to any nodes in the network.
-     * A key that is in use cannot be removed until it has been removed from all the nodes and is no
-     * longer bound to any application keys.
-     */
-    fun isInUse(): Boolean = network?.run {
-        // A network key is in use if at least one application key is bound to it.
-        // OR
-        // The network key is known by any of the nodes in the network.
-        _applicationKeys.any { applicationKey ->
-            applicationKey.boundNetKeyIndex == index
-        } || _nodes.any { node ->
-            node.netKeys.any { nodeKey ->
-                nodeKey.index == index
-            }
-        }
-    } ?: false
 
     /**
      * Updates the existing key with the given key, if it is not in use.
@@ -142,9 +186,31 @@ data class NetworkKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse()) { throw KeyInUse }
+        require(!isInUse) { throw KeyInUse }
         require(key.size == 16) { throw InvalidKeyLength }
         _key = key
+    }
+
+    private fun regenerateKeyDerivatives() {
+        // Calculate Network ID.
+        networkId = Crypto.calculateNetworkId(key)
+        // Calculate key derivatives.
+        derivatives = Crypto.calculateKeyDerivatives(key).toNetworkKeyDerivatives()
+
+        // When the Network Key is imported from JSON, old key derivatives must be calculated.
+        oldKey?.let { oldKey ->
+            // Calculate old Network ID.
+            oldNetworkId = Crypto.calculateNetworkId(oldKey)
+            // Calculate old key derivatives.
+            oldDerivatives = Crypto.calculateKeyDerivatives(oldKey).toNetworkKeyDerivatives()
+        }
+    }
+
+    /**
+     * Sets the security level to secure.
+     */
+    fun lowerSecurity() {
+        _security = Insecure
     }
 
     override fun equals(other: Any?): Boolean {
@@ -182,4 +248,76 @@ data class NetworkKey internal constructor(
         private const val MIN_KEY_INDEX = 0
         private const val MAX_KEY_INDEX = 4095
     }
+
 }
+
+internal fun KeyDerivatives.toNetworkKeyDerivatives() = NetworkKeyDerivatives(
+    identityKey = identityKey,
+    beaconKey = beaconKey,
+    privateBeaconKey = privateBeaconKey,
+    encryptionKey = encryptionKey,
+    privacyKey = privacyKey,
+    nid = nid
+)
+
+
+/**
+ * Network Key derivatives
+ *
+ * @property identityKey         Identity key.
+ * @property beaconKey           Beacon key.
+ * @property privateBeaconKey    Private beacon key.
+ * @property encryptionKey       Encryption key.
+ * @property privacyKey          Privacy key.
+ * @property nid                 Network identifier.
+ */
+internal data class NetworkKeyDerivatives(
+    val identityKey: ByteArray,
+    val beaconKey: ByteArray,
+    val privateBeaconKey: ByteArray,
+    val encryptionKey: ByteArray,
+    val privacyKey: ByteArray,
+    val nid: UByte
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NetworkKeyDerivatives
+
+        if (!identityKey.contentEquals(other.identityKey)) return false
+        if (!beaconKey.contentEquals(other.beaconKey)) return false
+        if (!privateBeaconKey.contentEquals(other.privateBeaconKey)) return false
+        if (!encryptionKey.contentEquals(other.encryptionKey)) return false
+        if (!privacyKey.contentEquals(other.privacyKey)) return false
+        if (nid != other.nid) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = identityKey.contentHashCode()
+        result = 31 * result + beaconKey.contentHashCode()
+        result = 31 * result + privateBeaconKey.contentHashCode()
+        result = 31 * result + encryptionKey.contentHashCode()
+        result = 31 * result + privacyKey.contentHashCode()
+        result = 31 * result + nid.hashCode()
+        return result
+    }
+}
+
+/**
+ * Filters the list of Network Keys to only those that are known to the given node.
+ *
+ * @param node Node to check.
+ * @return List of network keys known to the node.
+ */
+fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter { node.knows(it) }
+
+/**
+ * Returns an Network Key with the given KeyIndex.
+ *
+ * @param index Application Key Index.
+ * @return Network key that an application key may be bound to.
+ */
+infix fun List<NetworkKey>.get(index: KeyIndex): NetworkKey? = find { it.index == index }

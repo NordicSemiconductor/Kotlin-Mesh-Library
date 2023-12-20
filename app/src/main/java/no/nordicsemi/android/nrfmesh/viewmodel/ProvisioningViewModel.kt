@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -19,12 +18,12 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.NavigationResult
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.kotlin.ble.core.RealServerDevice
+import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
-import no.nordicsemi.android.nrfmesh.destinations.provisioning
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.*
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -35,45 +34,30 @@ import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 import javax.inject.Inject
 
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
-    @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
     navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
 
-    private val bleScanResults = parameterOf(provisioning)
-    private val pbGattBearer = PbGattBearer(
-        context = context,
-        device = bleScanResults.device as RealServerDevice
-    ).apply { logger = this@ProvisioningViewModel }
+    private var unprovisionedDevice: UnprovisionedDevice? = null
 
-    private var unprovisionedDevice: UnprovisionedDevice = UnprovisionedDevice.from(
-        advertisementData = bleScanResults.lastScanResult!!.scanRecord!!.bytes
-    )
-
-    private var _uiState = MutableStateFlow(
-        ProvisioningScreenUiState(
-            unprovisionedDevice = unprovisionedDevice,
-            provisionerState = ProvisionerState.Connecting
-        )
-    )
+    private val _uiState = MutableStateFlow(ProvisioningScreenUiState(provisionerState = Scanning))
     internal val uiState = _uiState.asStateFlow()
 
     init {
         observeNetwork()
         observeNetKeySelector()
-        beginProvisioning()
     }
 
     /**
@@ -85,30 +69,38 @@ class ProvisioningViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun beginProvisioning() {
-        connect()
-    }
-
     /**
-     * Connect to the device.
+     * Connect to the device and begin provisioning.
+     *
+     * @param context     Context.
+     * @param scanResults Scan results.
      */
-    private fun connect() {
+    internal fun beginProvisioning(context: Context, scanResults: BleScanResults) {
         viewModelScope.launch {
-            pbGattBearer.open()
+            val device = UnprovisionedDevice.from(
+                advertisementData = scanResults.lastScanResult!!.scanRecord!!.bytes!!.value
+            ).also {
+                this@ProvisioningViewModel.unprovisionedDevice = it
+            }
+            _uiState.value = ProvisioningScreenUiState(
+                provisionerState = Connecting(unprovisionedDevice = device)
+            )
+            val pbGattBearer = repository.connectOverPbGattBearer(
+                context = context,
+                device = scanResults.device
+            )
             pbGattBearer.state.takeWhile {
                 it !is BearerEvent.Closed
             }.onEach {
                 if (it is BearerEvent.Opened) {
                     _uiState.value = ProvisioningScreenUiState(
-                        unprovisionedDevice = unprovisionedDevice,
-                        provisionerState = ProvisionerState.Connected
+                        provisionerState = Connected(device)
                     )
-                    identifyNode()
+                    identifyNode(device, pbGattBearer)
                 }
             }.onCompletion {
                 _uiState.value = ProvisioningScreenUiState(
-                    unprovisionedDevice = unprovisionedDevice,
-                    provisionerState = ProvisionerState.Disconnected
+                    provisionerState = Disconnected(device)
                 )
 
             }.launchIn(this)
@@ -118,7 +110,7 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Identify the node by sending a provisioning invite.
      */
-    private fun identifyNode() {
+    private fun identifyNode(unprovisionedDevice: UnprovisionedDevice, pbGattBearer: PbGattBearer) {
         provisioningManager = ProvisioningManager(
             unprovisionedDevice = unprovisionedDevice,
             meshNetwork = meshNetwork,
@@ -127,8 +119,7 @@ class ProvisioningViewModel @Inject constructor(
 
         provisioningManager.provision(10u).onEach { state ->
             _uiState.value = ProvisioningScreenUiState(
-                unprovisionedDevice = unprovisionedDevice,
-                provisionerState = ProvisionerState.Provisioning(state)
+                provisionerState = Provisioning(unprovisionedDevice, state)
             )
         }.catch { throwable ->
             log(
@@ -137,12 +128,11 @@ class ProvisioningViewModel @Inject constructor(
                 level = LogLevel.ERROR
             )
             _uiState.value = ProvisioningScreenUiState(
-                unprovisionedDevice = unprovisionedDevice,
-                provisionerState = ProvisionerState.Error(throwable)
+                provisionerState = Error(unprovisionedDevice, throwable)
             )
         }.onCompletion { throwable ->
             _uiState.value.provisionerState.let { provisionerState ->
-                if (provisionerState is ProvisionerState.Provisioning) {
+                if (provisionerState is Provisioning) {
                     // Save when the provisioning completes.
                     if (throwable == null && provisionerState.state is ProvisioningState.Complete) {
                         repository.save()
@@ -157,7 +147,8 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun disconnect() {
         viewModelScope.launch {
-            pbGattBearer.close()
+            repository.disconnect()
+            _uiState.value = ProvisioningScreenUiState(provisionerState = Scanning)
         }
     }
 
@@ -173,7 +164,7 @@ class ProvisioningViewModel @Inject constructor(
             .onEach { keyIndex ->
                 //savedStateHandle[KEY_INDEX] = it
                 uiState.value.provisionerState.let { provisionerState ->
-                    if (provisionerState is ProvisionerState.Provisioning) {
+                    if (provisionerState is Provisioning) {
                         if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
                             meshNetwork.networkKeys.find { key ->
                                 keyIndex == key.index.toInt()
@@ -194,8 +185,8 @@ class ProvisioningViewModel @Inject constructor(
      * @param name New name to be assigned to the device.
      */
     internal fun onNameChanged(name: String) {
-        unprovisionedDevice.name = name
-        _uiState.value = _uiState.value.copy(unprovisionedDevice = unprovisionedDevice)
+        unprovisionedDevice?.name = name
+        //_uiState.value = _uiState.value.copy(unprovisionedDevice = unprovisionedDevice)
     }
 
     /**
@@ -217,7 +208,7 @@ class ProvisioningViewModel @Inject constructor(
         ).also {
             configuration.unicastAddress = UnicastAddress(address.toUShort())
             val provisionerState =
-                _uiState.value.provisionerState as ProvisionerState.Provisioning
+                _uiState.value.provisionerState as Provisioning
             val state = provisionerState.state as ProvisioningState.CapabilitiesReceived
             state.parameters.unicastAddress = unicastAddress
             _uiState.value = _uiState.value.copy(provisionerState = provisionerState)
@@ -250,7 +241,7 @@ class ProvisioningViewModel @Inject constructor(
         val state = uiState.value
         viewModelScope.launch {
             state.provisionerState.let {
-                if (it is ProvisionerState.Provisioning) {
+                if (it is Provisioning) {
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
                             parameters.authMethod = authMethod
@@ -284,7 +275,6 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningComplete() {
         disconnect()
-        navigateUp() // Navigates back to the scanner screen
         navigateUp() // Navigates back to the list of nodes
     }
 
@@ -293,7 +283,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningFailed() {
         disconnect()
-        navigateUp() // Navigates back to the scanner screen
+        navigateUp() // Navigates back to the list of nodes
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
@@ -305,19 +295,21 @@ class ProvisioningViewModel @Inject constructor(
  * ProvisionerState represents the state of the provisioning process for the UI.
  */
 sealed class ProvisionerState {
-    object Connecting : ProvisionerState()
-    object Connected : ProvisionerState()
-    object Identifying : ProvisionerState()
+    data object Scanning : ProvisionerState()
+    data class Connecting(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
+    data class Connected(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
+    data class Identifying(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
     data class Provisioning(
+        val unprovisionedDevice: UnprovisionedDevice,
         val state: ProvisioningState
     ) : ProvisionerState()
 
-    data class Error(val throwable: Throwable) : ProvisionerState()
+    data class Error(val unprovisionedDevice: UnprovisionedDevice, val throwable: Throwable) :
+            ProvisionerState()
 
-    object Disconnected : ProvisionerState()
+    data class Disconnected(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
 }
 
 internal data class ProvisioningScreenUiState internal constructor(
-    val unprovisionedDevice: UnprovisionedDevice,
     val provisionerState: ProvisionerState
 )

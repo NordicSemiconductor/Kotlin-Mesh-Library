@@ -213,13 +213,18 @@ object Crypto {
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
      * PrivateBeaconKey for a given NetworkKey
      *
-     * @param N 128-bit NetworkKey.
-     * @param P additional data to be used when calculating the Key Derivatives. E.g. the friendship credentials.
-     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed message using the
-     *          directed security credentials.
+     * @param N           128-bit NetworkKey.
+     * @param P           Additional data to be used when calculating the Key Derivatives. E.g. the
+     *                    friendship credentials.
+     * @param isDirected  Boolean value representing whether these Key Derivatives are for a
+     *                    directed message using the directed security credentials.
      * @return Key Derivatives.
      */
-    private fun calculateKeyDerivatives(N: ByteArray, P: ByteArray? = null, isDirected: Boolean = false): KeyDerivatives {
+    private fun calculateKeyDerivatives(
+        N: ByteArray,
+        P: ByteArray? = null,
+        isDirected: Boolean = false
+    ): KeyDerivatives {
         val defaultP = if (!isDirected) byteArrayOf(0x00) else byteArrayOf(0x02)
         val k2 = k2(N = N, P = P ?: defaultP)
         return KeyDerivatives(
@@ -237,24 +242,27 @@ object Crypto {
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
      * PrivateBeaconKey for a given NetworkKey
      *
-     * @param N 128-bit NetworkKey.
-     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed message using the
-     *          directed security credentials.
+     * @param N          128-bit NetworkKey.
+     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed
+     *                   message using the directed security credentials.
      * @return Key Derivatives.
      */
-    fun calculateKeyDerivatives(N:ByteArray, isDirected: Boolean = false) = calculateKeyDerivatives(N, null, isDirected)
+    fun calculateKeyDerivatives(N: ByteArray, isDirected: Boolean = false) =
+        calculateKeyDerivatives(N, null, isDirected)
 
     /**
      * /**
-     * Calculates the Friendship Credentials NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
-     * PrivateBeaconKey for a given NetworkKey
+     * Calculates the Friendship Credentials NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey,
+     * BeaconKey, PrivateBeaconKey for a given NetworkKey
      *
      * @param N 128-bit NetworkKey.
-     * @param P additional data to be used when calculating the Key Derivatives for Friendship Credentials
+     * @param P additional data to be used when calculating the Key Derivatives for Friendship
+     *          Credentials
      * @return Friendship Credentials Key Derivatives.
     */
      */
-    fun calculateKeyDerivatives(N:ByteArray, P: ByteArray) = calculateKeyDerivatives(N, P, false)
+    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray) =
+        calculateKeyDerivatives(N, P, false)
 
     /**
      * Calculates the AID for a given ApplicationKey.
@@ -295,14 +303,16 @@ object Crypto {
     )
 
     /**
-     * Decrypts the [data] with the EncryptionKey , Nonce and authenticates the generated MIC(Message Integrity Check).
+     * Decrypts the given data with the EncryptionKey, Nonce and authenticates the generated
+     * MIC(Message Integrity Check).
      *
      * @param data                  Data to be decrypted.
      * @param key                   128-bit key.
      * @param nonce                 104-bit nonce.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param additionalData        Additional data to be authenticated.
-     * @returns Encrypted data concatenated with MIC of given size.
+     * @throws Error if the decryption failed.
+     * @returns Encrypted data concatenated with MIC of given size or null if the decryption failed.
      */
     fun decrypt(
         data: ByteArray,
@@ -310,14 +320,20 @@ object Crypto {
         nonce: ByteArray,
         additionalData: ByteArray? = null,
         micSize: Int
-    ) = calculateCCM(
-        data = data,
-        key = key,
-        nonce = nonce,
-        additionalData = additionalData,
-        micSize = micSize,
-        mode = false
-    )
+    ) = try {
+        calculateCCM(
+            data = data,
+            key = key,
+            nonce = nonce,
+            additionalData = additionalData,
+            micSize = micSize,
+            mode = false
+        )
+    } catch (e: InvalidCipherTextException) {
+        null
+    } catch (e: Exception) {
+        throw Error("CCM decryption failed: ${e.message}")
+    }
 
     /**
      *  Obfuscates or De+obfuscates given data by XORing it with PECB, which is
@@ -341,11 +357,10 @@ object Crypto {
         // PECB = e (PrivacyKey, Privacy Plaintext)
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
-        val privacyPlaintext = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00) +
+        val privacyPlaintext = ByteArray(5) { 0x00 } +
                 ivIndex.toBigEndian() + privacyRandom
         val pecb = calculateECB(privacyPlaintext, privacyKey)
-        val obfuscatedData = data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
-        return obfuscatedData
+        return data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
     }
 
     fun deObfuscate() {
@@ -353,20 +368,22 @@ object Crypto {
     }
 
     /**
-     * Authenticates the received Secure Network beacon using the given Beacon Key/
+     * Authenticates the received Secure Network beacon using the given Beacon Key.
      *
-     * @param pdu           The received Secure Network beacon.
-     * @param beaconKey     The beacon key generated from a network key.
+     * @param pdu           Received Secure Network beacon.
+     * @param beaconKey     Beacon key generated from a network key.
      *
      * @returns true if the beacon is valid, false otherwise.
      */
-    fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean {
+    fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean = try {
         // byte 0 is the beacon type 0x01
         val flagsNetIdAndIvIndex = pdu.sliceArray(1 until 14)
         val authenticationValue = pdu.sliceArray(14 until 22)
         val hash = calculateCmac(input = flagsNetIdAndIvIndex, key = beaconKey)
             .sliceArray(0 until 8)
-        return hash.contentEquals(authenticationValue)
+        hash.contentEquals(authenticationValue)
+    } catch (e: Exception) {
+        false
     }
 
     /**
@@ -434,6 +451,17 @@ object Crypto {
      * @return 64-bit Network ID.
      */
     fun calculateNetworkId(N: ByteArray): ByteArray = k3(N = N)
+
+    /**
+     * Generates Node Identity Hash using the given Identity Key
+     *
+     * @param data         48-bits of padding of 0s, 65-bit random value and the unicast Address of
+     *                     the node.
+     * @param identityKey  Identity key.
+     * @return Function of the included random number and identity information.
+     */
+    fun calculateHash(data: ByteArray, identityKey: ByteArray) =
+        calculateECB(data, identityKey).drop(8).toByteArray()
 
     /**
      * Calculates the 128-bit IdentityKey.
@@ -643,9 +671,12 @@ object Crypto {
      * @param additionalData        Additional data to be authenticated.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param mode                  True to encrypt or false to decrypt
+     * @throws InvalidCipherTextException if the cipher text is invalid.
+     * @throws IllegalStateException if the cipher is not initialized.
      * @returns if [mode] was set to true, returns the encrypted data with the MIC concatenated
      *          otherwise returns the decrypted data.
      */
+    @Throws(InvalidCipherTextException::class, IllegalStateException::class)
     private fun calculateCCM(
         data: ByteArray,
         key: ByteArray,

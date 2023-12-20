@@ -13,15 +13,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
-import no.nordicsemi.android.kotlin.ble.client.main.callback.BleGattClient
-import no.nordicsemi.android.kotlin.ble.client.main.connect
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattCharacteristic
-import no.nordicsemi.android.kotlin.ble.client.main.service.BleGattServices
+import no.nordicsemi.android.common.core.DataByteArray
+import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattCharacteristic
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
@@ -59,27 +58,29 @@ abstract class BaseGattProxyBearer<MeshService>(
     private var mtu: Int = DEFAULT_MTU
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
+    override val isGatt: Boolean = true
     private var isOpened = false
     private lateinit var queue: Array<ByteArray>
-    protected lateinit var dataInCharacteristic: BleGattCharacteristic
-    protected lateinit var dataOutCharacteristic: BleGattCharacteristic
+    protected lateinit var dataInCharacteristic: ClientBleGattCharacteristic
+    protected lateinit var dataOutCharacteristic: ClientBleGattCharacteristic
 
-    private var client: BleGattClient? = null
+    private var client: ClientBleGatt? = null
 
     var logger: Logger? = null
 
-    abstract suspend fun configureGatt(services: BleGattServices)
+    abstract suspend fun configureGatt(services: ClientBleGattServices)
 
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        client = device.connect(context)
-        client?.let { client ->
+        client = ClientBleGatt.connect(context = context, device = device, scope = scope).takeIf {
+            it.isConnected
+        }?.let { client ->
             observeConnectionState(client)
-            client.discoverServices()
-                .filterNotNull()
-                .onEach { configureGatt(it) }
-                .launchIn(scope = scope)
+            // Discover services on the Bluetooth LE Device.
+            val services = client.discoverServices()
+            configureGatt(services)
             mtu = client.requestMtu(517) - 3
+            client
         }
     }
 
@@ -92,7 +93,7 @@ abstract class BaseGattProxyBearer<MeshService>(
      *
      * @param client the GATT client.
      */
-    private fun observeConnectionState(client: BleGattClient) {
+    private fun observeConnectionState(client: ClientBleGatt) {
         client.connectionState.takeWhile {
             it != GattConnectionState.STATE_DISCONNECTED
         }.onEach { state ->
@@ -130,13 +131,13 @@ abstract class BaseGattProxyBearer<MeshService>(
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
         require(isOpen) { throw BearerError.Closed }
         proxyProtocolHandler.segment(pdu, type, mtu).forEach {
-            dataInCharacteristic.write(it, BleWriteType.NO_RESPONSE)
+            dataInCharacteristic.write(DataByteArray(it), BleWriteType.NO_RESPONSE)
         }
     }
 
     protected suspend fun awaitNotifications() {
         dataOutCharacteristic.getNotifications().onEach { data ->
-            proxyProtocolHandler.reassemble(data)?.let { reassembledPdu ->
+            proxyProtocolHandler.reassemble(data.value)?.let { reassembledPdu ->
                 _pdus.emit(reassembledPdu)
             }
         }.launchIn(scope)

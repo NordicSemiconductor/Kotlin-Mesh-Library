@@ -9,6 +9,8 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
+import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
 import java.util.*
@@ -53,9 +55,9 @@ class MeshNetwork internal constructor(
     /**
      * Convenience constructor to create a network for tests
      *
-     * @param _name The name of the network
+     * @param name The name of the network
      */
-    internal constructor(_name: String) : this(UUID.randomUUID(), _name) {
+    internal constructor(name: String) : this(UUID.randomUUID(), name) {
         add(name = "Primary Network Key", index = 0u)
     }
 
@@ -117,6 +119,9 @@ class MeshNetwork internal constructor(
     val localProvisioner: Provisioner?
         get() = _provisioners.firstOrNull()
 
+    val primaryNetworkKey: NetworkKey?
+        get() = _networkKeys.find { it.isPrimary }
+
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
@@ -141,6 +146,48 @@ class MeshNetwork internal constructor(
             if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
             return null
         }
+
+    internal var _localElements = mutableListOf<Element>()
+        set(value) {
+            var elements = value
+            elements.forEach {
+                it.removePrimaryElementModels()
+            }
+            elements = elements.filter { it.models.isEmpty() }.toMutableList()
+            if (elements.isEmpty()) {
+                elements.add(Element(Location.UNKNOWN))
+            }
+            elements.first().addPrimaryElementModels(this)
+
+            // Ensures the indexes are correct
+            elements.forEachIndexed { index, element ->
+                element.index = index
+                element.parentNode = localProvisioner?.node
+            }
+            field = elements
+
+            // Ensure there is enough address space for all the Elements that are nto taken by other
+            // Nodes and are in the local Provisioner's address range. If required,
+            // cut the element array.
+            localProvisioner?.let { provisioner ->
+                provisioner.node?.let { node ->
+                    var availableElements = elements
+                    val availableElementsCount = provisioner.maxElementCount(
+                        address = node.primaryUnicastAddress
+                    )
+                    if (availableElementsCount < elements.size) {
+                        availableElements = elements.dropLast(
+                            n = elements.size - availableElementsCount
+                        ).toMutableList()
+                    }
+                    // Assign the Elements to the Provisioner's node
+                    node.set(elements = availableElements)
+                }
+            }
+        }
+
+    internal val localElements: List<Element>
+        get() = _localElements
 
     /**
      * Updates timestamp to the current time in milliseconds.
@@ -236,16 +283,14 @@ class MeshNetwork internal constructor(
         address?.let { unicastAddress ->
             val node = Node(
                 provisioner = provisioner,
-                deviceKey = Crypto.generateRandomKey(),
                 unicastAddress = unicastAddress,
-                elements = listOf(
-                    Element(
-                        location = Location.UNKNOWN,
-                        models = listOf(Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)))
-                    )
-                ),
-                netKeys = _networkKeys,
-                appKeys = _applicationKeys
+                elements = if (provisioners.isEmpty()) {
+                    localElements
+                } else {
+                    listOf(Element.primaryElement)
+                },
+                netKeys = networkKeys,
+                appKeys = applicationKeys
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
@@ -253,9 +298,10 @@ class MeshNetwork internal constructor(
             }
             add(node)
         }
+        // And finally, add the Provisioner.
         provisioner.network = this
         _provisioners.add(provisioner).also { updateTimestamp() }
-        // TODO Needs to save the network
+
     }
 
     /**
@@ -278,13 +324,16 @@ class MeshNetwork internal constructor(
         // it needs the properties to be updated.
         if (localProvisionerRemoved) {
             _provisioners.first().node?.apply {
-                netKeys = _networkKeys.map { NodeKey(it) }
-                appKeys = _applicationKeys.map { NodeKey(it) }
+                assignNetKeys(networkKeys)
+                assignAppKeys(applicationKeys)
                 companyIdentifier = 0x00E0u
                 replayProtectionCount = maxUnicastAddress
+                // The Element adding has to be done this way. Some Elements may get cut
+                // by the property observer when Element addresses overlap other Node's
+                // addresses.
+                val elements = localElements
+                _localElements = elements.toMutableList()
             }
-
-            // TODO Save the local provisioner
         }
         updateTimestamp()
         return provisioner
@@ -377,7 +426,9 @@ class MeshNetwork internal constructor(
      */
     @Throws(KeyIndexOutOfRange::class, DuplicateKeyIndex::class)
     fun add(
-        name: String, key: ByteArray = Crypto.generateRandomKey(), index: KeyIndex? = null
+        name: String,
+        key: ByteArray = Crypto.generateRandomKey(),
+        index: KeyIndex? = null
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
@@ -409,7 +460,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: NetworkKey) {
         require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse()) { throw KeyInUse }
+        require(!key.isInUse) { throw KeyInUse }
         _networkKeys.remove(key).also { updateTimestamp() }
     }
 
@@ -474,7 +525,7 @@ class MeshNetwork internal constructor(
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun remove(key: ApplicationKey) {
         require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse()) { throw KeyInUse }
+        require(!key.isInUse) { throw KeyInUse }
         _applicationKeys.remove(key).also { updateTimestamp() }
     }
 
@@ -506,12 +557,44 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns the provisioned node containing an element with the given address.
+     *
+     * @param address Address of the element.
+     * @return Node if an element with the given address was found, null otherwise.
+     */
+    fun node(address: Address) = try {
+        node(MeshAddress.create(address))
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    /**
+     * Returns the provisioned node containing an element with the given mesh address.
+     *
+     * @param address Mesh Address of the element.
+     * @return Node if an element with the given address was found, null otherwise.
+     */
+    fun node(address: MeshAddress) = address.takeIf { it is UnicastAddress }?.let { addr ->
+        nodes.firstOrNull { it.containsElementWithAddress(addr as UnicastAddress) }
+    }
+
+    /**
      * Returns the node with the given uuid.
      *
      * @param uuid matching UUID.
      * @return Node
      */
     fun node(uuid: UUID) = nodes.find { it.uuid == uuid }
+
+    /**
+     * Returns the node with the given node identity.
+     *
+     * @param nodeIdentity Node identity.
+     * @return Node or null otherwise.
+     */
+    fun node(nodeIdentity: NodeIdentity): Node? {
+        return nodes.firstOrNull { nodeIdentity.matches(it) }
+    }
 
     /**
      * Adds a given [Node] to the list of nodes in the mesh network.
@@ -533,7 +616,12 @@ class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.
-        require(isAddressAvailable(node.primaryUnicastAddress, node)) { throw NoAddressesAvailable }
+        require(
+            isAddressAvailable(
+                node.primaryUnicastAddress,
+                node
+            )
+        ) { throw NoAddressesAvailable }
         // Ensure the Network Key exists.
         require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
         // Make sure the network contains a Network Key with he same Key Index.
@@ -677,9 +765,10 @@ class MeshNetwork internal constructor(
      * @return true if the address is available to be assigned to a node with given number of
      *         elements or false otherwise.
      */
-    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) = isAddressRangeAvailable(
-        UnicastRange(address, elementCount)
-    )
+    fun isAddressAvailable(address: UnicastAddress, elementCount: Int) =
+        isAddressRangeAvailable(
+            UnicastRange(address, elementCount)
+        )
 
     /**
      * Checks if the address is available to be assigned to a node with the given number of
@@ -1045,7 +1134,7 @@ class MeshNetwork internal constructor(
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
             _applicationKeys = _applicationKeys.filter { applicationKey ->
-                applicationKey.netKey?.let {
+                applicationKey.boundNetworkKey?.let {
                     it in networkKeys
                 } ?: false
             }.toMutableList()
@@ -1142,9 +1231,10 @@ class MeshNetwork internal constructor(
                     node.elements.forEach { element ->
                         element.models.forEach { model ->
                             if (model.publish?.address is GroupAddress) {
-                                model.publish = null
+                                model._publish = null
                             }
-                            model.subscribe = model.subscribe.filterIsInstance<GroupAddress>()
+                            model._subscribe =
+                                model.subscribe.filterIsInstance<GroupAddress>().toMutableList()
                         }
                     }
                 }
@@ -1189,20 +1279,49 @@ class MeshNetwork internal constructor(
      */
     private fun filterUnselectedApplicationKeys() {
         _nodes.forEach { node ->
-            node._elements.forEach { element ->
+            node.elements.forEach { element ->
                 element.models.forEach { model ->
                     model.bind.filter { keyIndex ->
                         keyIndex !in _applicationKeys.map { key ->
                             key.index
                         }
                     }.forEach { keyIndex ->
-                        if (model.publish?.index == keyIndex.toInt()) {
-                            model.publish = null
+                        if (model.publish?.index == keyIndex) {
+                            model._publish = null
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * This method may be used to match the Node Identity or Private Node Identity beacons.
+     *
+     * @param nodeIdentity Node identity.
+     * @return Node matching the given node identity or null otherwise.
+     */
+    fun matches(nodeIdentity: NodeIdentity) = node(nodeIdentity) != null
+
+    /**
+     * Checks if the given Network Identity beacon matches with any of the network keys in the
+     * network.
+     *
+     * @param networkId Network ID.
+     * @return true if matches or false otherwise.
+     */
+    fun matches(networkId: NetworkIdentity) = networkKeys.any {
+        networkId.matches(it)
+    }
+
+    /**
+     * Checks if the given Network ID matches with any of the network keys in the network.
+     *
+     * @param networkId Network ID.
+     * @return true if matches or false otherwise.
+     */
+    fun matches(networkId: ByteArray) = networkKeys.any {
+        it.networkId.contentEquals(networkId) || it.oldNetworkId.contentEquals(networkId)
     }
 
     companion object {

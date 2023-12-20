@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
@@ -22,7 +22,7 @@ import javax.inject.Inject
 internal class ProvisionerViewModel @Inject internal constructor(
     navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedProvisioner: Provisioner
@@ -110,10 +110,9 @@ sealed interface ProvisionerState {
     ) : ProvisionerState
 
     data class Error(val throwable: Throwable) : ProvisionerState
-    object Loading : ProvisionerState
+    data object Loading : ProvisionerState
 }
 
-@Suppress("ArrayInDataClass")
 data class ProvisionerScreenUiState internal constructor(
     val provisionerState: ProvisionerState = ProvisionerState.Loading
 )

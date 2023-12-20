@@ -22,6 +22,6 @@ data class NodeKey internal constructor(
 
     internal constructor(key: ApplicationKey) : this(
         index = key.index,
-        updated = key.netKey?.phase != NormalOperation
+        updated = key.boundNetworkKey?.phase != NormalOperation
     )
 }

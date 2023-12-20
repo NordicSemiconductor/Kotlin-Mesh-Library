@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
+import java.nio.ByteBuffer
 import java.util.*
 
 object Utils {
@@ -82,7 +83,7 @@ object Utils {
         ByteArray(size) { i -> (data.toLong() shr (i * 8)).toByte() }
 
     /**
-     * Converts an Int to a byte array.
+     * Converts an Int to a byte array using the Big Endian representation.
      */
     fun UInt.toByteArray() = ByteArray(4) {
         (this shr (24 - it * 8)).toByte()
@@ -122,4 +123,25 @@ object Utils {
             insert(23, "-")
         }.toString()
     } ?: uuid))
+
+    /**
+     * Converts a UUID to a byte array.
+     */
+    @Suppress("HasPlatformType")
+    fun UUID.toByteArray() = ByteBuffer.wrap(ByteArray(16)).apply {
+        putLong(mostSignificantBits)
+        putLong(leastSignificantBits)
+    }.array()
+
+    /**
+     * Converts a byte array to a UUID.
+     * @return UUID
+     * @throws IllegalArgumentException If the byte array is not 16 bytes long.
+     */
+    fun ByteArray.toUuid(): UUID {
+        require(size == 16) { "Byte array must be 16 bytes long" }
+        val buffer = ByteBuffer.wrap(this)
+        return UUID(buffer.long, buffer.long)
+    }
 }
+

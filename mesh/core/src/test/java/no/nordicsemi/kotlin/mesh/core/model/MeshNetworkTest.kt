@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import java.util.UUID
@@ -13,7 +14,11 @@ import kotlin.test.assertTrue
 
 class MeshNetworkTest {
 
-    private val networkManager = MeshNetworkManager(storage = TestStorage())
+    private val networkManager = MeshNetworkManager(
+        storage = TestStorage(),
+        networkProperties = TestPropertiesStorage(),
+        scope = TestScope()
+    )
     private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))
     private val scene = Scene("Test Scene", 0x000Au)
@@ -28,7 +33,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressEmptyNetwork() {
-        val meshNetwork = MeshNetwork(_name = "Test Network")
+        val meshNetwork = MeshNetwork(name = "Test Network")
         val provisioner = Provisioner(uuid = UUID.randomUUID()).apply {
             this.network = meshNetwork
             this.name = "Test Provisioner"
@@ -47,7 +52,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressBasicNetwork() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
@@ -68,7 +73,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressWithOffset() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
@@ -102,7 +107,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressComplexNetwork() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 10, elements = 9)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 20, elements = 9)) }
@@ -167,7 +172,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressAdvancedNetwork() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }
@@ -194,7 +199,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressOne() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }
@@ -220,7 +225,7 @@ class MeshNetworkTest {
 
     @Test
     fun testNextAvailableUnicastAddressNone() {
-        val meshNetwork = MeshNetwork(_name = "Test Network").apply {
+        val meshNetwork = MeshNetwork(name = "Test Network").apply {
             assertDoesNotThrow { add(node = Node(name = "Node 0", address = 1, elements = 10)) }
             assertDoesNotThrow { add(node = Node(name = "Node 1", address = 12, elements = 18)) }
             assertDoesNotThrow { add(node = Node(name = "Node 2", address = 30, elements = 11)) }

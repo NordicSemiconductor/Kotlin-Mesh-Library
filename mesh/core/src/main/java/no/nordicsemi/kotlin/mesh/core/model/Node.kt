@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -6,6 +6,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
@@ -65,6 +67,10 @@ import kotlin.jvm.Throws
  * @property addresses                  List of addresses used by this node.
  * @property unicastRange               Address range used by this node.
  * @property lastUnicastAddress         Address of the last element in the node.
+ * @property primaryUnicastAddress      Address of the primary element in the node.
+ * @property configComplete             True if the node is configured.
+ * @property networkKeys                List of network keys known to this node.
+ * @property applicationKeys            List of application keys known to this node.
  * @constructor                         Creates a mesh node.
  */
 @Serializable
@@ -77,36 +83,169 @@ data class Node internal constructor(
     @SerialName(value = "unicastAddress")
     internal var _primaryUnicastAddress: UnicastAddress,
     @SerialName(value = "elements")
-    internal var _elements: MutableList<Element>,
+    private var _elements: MutableList<Element>,
     @SerialName(value = "netKeys")
     private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: MutableList<NodeKey>,
+    private var _appKeys: MutableList<NodeKey>
 ) {
+
+    val primaryUnicastAddress: UnicastAddress
+        get() = _primaryUnicastAddress
+
+    var name: String = "nRF Mesh Node"
+        set(value) {
+            require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            network?.updateTimestamp()
+            field = value
+        }
+
+    val netKeys: List<NodeKey>
+        get() = _netKeys
+
+    val appKeys: List<NodeKey>
+        get() = _appKeys
+
+    val elements: List<Element>
+        get() = _elements
+
+    var security: Security = Insecure
+        internal set
+
+    var configComplete: Boolean = false
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    val networkKeys: List<NetworkKey>
+        get() = network?.networkKeys?.knownTo(this) ?: emptyList()
+
+    val applicationKeys: List<ApplicationKey>
+        get() = network?.applicationKeys?.knownTo(this) ?: emptyList()
+
+    @Serializable(UShortAsStringSerializer::class)
+    @SerialName(value = "cid")
+    var companyIdentifier: UShort? = null
+        internal set
+
+    @Serializable(UShortAsStringSerializer::class)
+    @SerialName(value = "pid")
+    var productIdentifier: UShort? = null
+        internal set
+
+    @Serializable(UShortAsStringSerializer::class)
+    @SerialName(value = "vid")
+    var versionIdentifier: UShort? = null
+        internal set
+
+    @Serializable(UShortAsStringSerializer::class)
+    @SerialName(value = "crpl")
+    var replayProtectionCount: UShort? = null
+        internal set
+
+    var features: Features = Features(
+        _relay = null,
+        _proxy = null,
+        _friend = null,
+        _lowPower = null
+    )
+        internal set
+
+    var secureNetworkBeacon: Boolean? = null
+        internal set
+
+    var networkTransmit: NetworkTransmit? = null
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    var relayRetransmit: RelayRetransmit? = null
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    var defaultTTL: UByte? = 127u
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    var excluded: Boolean = false
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    @SerialName(value = "heartbeatPub")
+    var heartbeatPublication: HeartbeatPublication? = null
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    @SerialName(value = "heartbeatSub")
+    var heartbeatSubscription: HeartbeatSubscription? = null
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
+
+    val primaryElement: Element?
+        get() = companyIdentifier?.let {
+            elements.firstOrNull()
+        }
+
+    val elementsCount: Int
+        get() = elements.size
+
+    val addresses: List<UnicastAddress>
+        get() = List(elementsCount) { index -> _primaryUnicastAddress + index }
+
+    val unicastRange: UnicastRange
+        get() = UnicastRange(_primaryUnicastAddress, elementsCount)
+
+    val lastUnicastAddress: UnicastAddress
+        get() = _primaryUnicastAddress + when (elementsCount > 0) {
+            true -> elementsCount
+            false -> 1 // TODO should we throw here?
+        } - 1
 
     /**
      * Convenience constructor to initialize a node of a provisioner.
      *
      * @param provisioner               Provisioner.
-     * @param deviceKey                 Device key.
      * @param unicastAddress            Unicast address that was assigned during provisioning.
+     */
+    internal constructor(
+        provisioner: Provisioner,
+        unicastAddress: UnicastAddress
+    ) : this(
+        uuid = provisioner.uuid,
+        deviceKey = Crypto.generateRandomKey(),
+        _primaryUnicastAddress = unicastAddress,
+        _elements = mutableListOf(),
+        _netKeys = mutableListOf(),
+        _appKeys = mutableListOf(),
+    )
+
+    /**
+     * Convenience constructor to initialize a node of a provisioner.
+     *
+     * @param provisioner               Provisioner.
+     * @param unicastAddress            Unicast address that was assigned during provisioning.
+     * @param deviceKey                 Device key.
      * @param elements                  List of elements belonging to this node.
      * @param netKeys                   List of network keys known to this node.
      * @param appKeys                   List of application keys known to this node.
      */
     internal constructor(
         provisioner: Provisioner,
-        deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
-        elements: List<Element> = listOf(
-            Element(
-                Location.UNKNOWN,
-                listOf(
-                    Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                    Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                )
-            )
-        ),
+        deviceKey: ByteArray = Crypto.generateRandomKey(),
+        elements: List<Element>,
         netKeys: List<NetworkKey>,
         appKeys: List<ApplicationKey>
     ) : this(
@@ -114,8 +253,8 @@ data class Node internal constructor(
         deviceKey = deviceKey,
         _primaryUnicastAddress = unicastAddress,
         _elements = elements.toMutableList(),
-        _netKeys = MutableList(size = netKeys.size) { index -> NodeKey(netKeys[index]) },
-        _appKeys = MutableList(size = appKeys.size) { index -> NodeKey(appKeys[index]) },
+        _netKeys = netKeys.map { NodeKey(it.index, false) }.toMutableList(),
+        _appKeys = appKeys.map { NodeKey(it.index, false) }.toMutableList()
     )
 
     /**
@@ -131,12 +270,7 @@ data class Node internal constructor(
         uuid = UUID.randomUUID(),
         deviceKey = Crypto.generateRandomKey(),
         _primaryUnicastAddress = UnicastAddress(address),
-        _elements = MutableList(elements) {
-            Element(
-                location = Location.UNKNOWN,
-                models = listOf()
-            )
-        },
+        _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
         _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
         _appKeys = mutableListOf()
     ) {
@@ -169,8 +303,7 @@ data class Node internal constructor(
         _primaryUnicastAddress = unicastAddress,
         _elements = MutableList(elementCount) {
             Element(
-                location = Location.UNKNOWN,
-                models = listOf()
+                location = Location.UNKNOWN
             )
         },
         _netKeys = mutableListOf(NodeKey(assignedNetworkKey)),
@@ -183,125 +316,16 @@ data class Node internal constructor(
         this.security = security
     }
 
-    val primaryUnicastAddress: UnicastAddress
-        get() = _primaryUnicastAddress
-
-    var name: String = "nRF Mesh Node"
-        set(value) {
-            require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            network?.updateTimestamp()
-            field = value
-        }
-    var netKeys: List<NodeKey>
-        get() = _netKeys
-        internal set(value) {
-            _netKeys = value.toMutableList()
-            network?.updateTimestamp()
-        }
-    var appKeys: List<NodeKey>
-        get() = _appKeys
-        internal set(value) {
-            _appKeys = value.toMutableList()
-            network?.updateTimestamp()
-        }
-    var elements: List<Element>
-        get() = _elements
-        internal set(value) {
-            _elements = value.toMutableList()
-            network?.updateTimestamp()
-        }
-    var security: Security = Insecure
-        internal set
-    var configComplete: Boolean = false
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-
-    @Serializable(UShortAsStringSerializer::class)
-    @SerialName(value = "cid")
-    var companyIdentifier: UShort? = null
-        internal set
-
-    @Serializable(UShortAsStringSerializer::class)
-    @SerialName(value = "pid")
-    var productIdentifier: UShort? = null
-        internal set
-
-    @Serializable(UShortAsStringSerializer::class)
-    @SerialName(value = "vid")
-    var versionIdentifier: UShort? = null
-        internal set
-
-    @Serializable(UShortAsStringSerializer::class)
-    @SerialName(value = "crpl")
-    var replayProtectionCount: UShort? = null
-        internal set
-    var features: Features = Features(relay = null, proxy = null, friend = null, lowPower = null)
-        internal set
-    var secureNetworkBeacon: Boolean? = null
-        internal set
-    var networkTransmit: NetworkTransmit? = null
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-    var relayRetransmit: RelayRetransmit? = null
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-    var defaultTTL: Int = 127
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-    var excluded: Boolean = false
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-
-    @SerialName(value = "heartbeatPub")
-    var heartbeatPublication: HeartbeatPublication? = null
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-
-    @SerialName(value = "heartbeatSub")
-    var heartbeatSubscription: HeartbeatSubscription? = null
-        internal set(value) {
-            field = value
-            network?.updateTimestamp()
-        }
-
-    val elementsCount: Int
-        get() = elements.size
-
-    val addresses: List<UnicastAddress>
-        get() = List(elementsCount) { index -> _primaryUnicastAddress + index }
-
-    val unicastRange: UnicastRange
-        get() = UnicastRange(_primaryUnicastAddress, elementsCount)
-
-    val lastUnicastAddress: UnicastAddress
-        get() = _primaryUnicastAddress + when (elementsCount > 0) {
-            true -> elementsCount
-            false -> 1 // TODO should we throw here?
-        } - 1
-
     init {
-        require(elements.isNotEmpty()) {
+        // TODO is this really needed.
+        /*require(elements.isNotEmpty()) {
             throw IllegalArgumentException("At least one element is mandatory!")
-        }
-        elements.let {
-            it.forEachIndexed { index, element ->
-                // Assigns the index based on position in the list of elements.
-                element.index = index
-                // Assigns the current node as the parent node of the element.
-                element.parentNode = this
-            }
+        }*/
+        elements.forEachIndexed { index, element ->
+            // Assigns the index based on position in the list of elements.
+            element.index = index
+            // Assigns the current node as the parent node of the element.
+            element.parentNode = this
         }
     }
 
@@ -326,6 +350,33 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Network Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Network Keys to set.
+     */
+    internal fun assignNetKeys(keys: List<NetworkKey>) {
+        _netKeys = keys.map { NodeKey(it.index, false) }.toMutableList()
+        network?.updateTimestamp()
+    }
+
+    /**
+     * Sets the given list of Network Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Network Keys to set.
+     */
+    internal fun assignNetKeyIndexes(keys: List<KeyIndex>) {
+        _netKeys = keys.map { NodeKey(it, false) }.toMutableList()
+        // If an insecure Node received a Network Key, all network keys of the node should be
+        // downgraded to lower security.
+        if (security is Insecure) {
+            networkKeys.forEach { it.lowerSecurity() }
+        }
+        network?.updateTimestamp()
+    }
+
+    /**
      * Adds an application key to a node.
      *
      * @param key     Application key to be added.
@@ -343,17 +394,104 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Application Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Application Keys to set.
+     */
+    internal fun assignAppKeys(keys: List<ApplicationKey>) {
+        assignAppKeyIndexes(keys.map { it.index }.toMutableList())
+    }
+
+
+    /**
+     * Sets the given list of Application Keys to the Node.
+     *
+     * Note: This is overwrite any existing keys.
+     * @param keys List of Application Keys to set.
+     */
+    internal fun assignAppKeyIndexes(keys: List<KeyIndex>) {
+        _appKeys = keys.map { NodeKey(it, false) }
+            .toMutableList()
+            .apply { sortBy { it.index } }
+        network?.updateTimestamp()
+    }
+
+
+    /**
      * Adds an Element to a node.
      *
-     * @param element     Element to be added.
-     * @return            True if success or false if the element already exists.
+     * @param element Element to be added.
      */
-    internal fun add(element: Element): Boolean = when {
-        _elements.contains(element) -> false
-        else -> {
-            _elements.add(element)
-            true
+    internal fun add(element: Element) {
+        val index = elements.size
+        _elements.add(element)
+        element.parentNode = this
+        element.index = index
+    }
+
+    /**
+     * Adds given list of Elements to the Node.
+     *
+     * @param elements List of Elements to be added.
+     */
+    internal fun add(elements: List<Element>) {
+        elements.forEach(::add)
+    }
+
+    /**
+     * Sets the given list of Elements to the Node.
+     *
+     * Apart from simply replacing the Elements, this method copies properties of matching models
+     * from the old model to the new one. If at least one Model in the new Element was found in the
+     * new Element, the name of the Element is also copied.
+     *
+     * @param elements List of Elements to set.
+     */
+    internal fun set(elements: List<Element>) {
+        for (e in 0 until minOf(this.elements.size, elements.size)) {
+            val oldElement = this.elements[e]
+            val newElement = elements[e]
+            for (m in 0 until minOf(oldElement.models.size, newElement.models.size)) {
+                val oldModel = oldElement.models[m]
+                val newModel = newElement.models[m]
+                if (oldModel.modelId.id == newModel.modelId.id) {
+                    newModel.copyProperties(oldModel)
+                    // If at least one Model matches, assume the Element didn't change much and copy
+                    // the name of it.
+                    oldElement.name?.let { newElement.name = it }
+                }
+            }
         }
+        _elements.forEach { element ->
+            element.parentNode = null
+            element.index = 0
+        }
+        _elements.clear()
+        add(elements)
+    }
+
+    /**
+     * Applies the result of Composition Data Status message to the Node.
+     *
+     * This method does nothing if the Node already was configured or the Composition Data Status
+     * does not have Page 0.
+     *
+     * @param compositionData The result of Config Composition Data get with Page 0.
+     */
+    internal fun apply(compositionData: ConfigCompositionDataStatus) {
+        val page0 = requireNotNull(compositionData.page as? Page0)
+        companyIdentifier = page0.companyIdentifier
+        productIdentifier = page0.productIdentifier
+        versionIdentifier = page0.versionIdentifier
+        replayProtectionCount = page0.minimumNumberOfReplayProtectionList
+        // Don't override features if they already were known.
+        // Accurate features states could have been acquired by reading each feature state, while
+        // the Page 0 of the Composition Data contains only Supported/Not supported
+
+        // And set the Elements received.
+        set(page0.elements)
+        network?.updateTimestamp()
     }
 
     /**
@@ -377,6 +515,27 @@ data class Node internal constructor(
      * @param address Unicast address.
      * @return true if the given address is in use by any of the elements
      */
+    fun containsElementWithAddress(address: Address) = elements.any {
+        it.unicastAddress.address == address
+    }
+
+    /**
+     * Checks if an element in the node uses this address.
+     *
+     * @param address Unicast address.
+     * @return true if the given address is in use by any of the elements or false if the address is
+     *         not a unicast address or the address is not in use by any of the elements.
+     */
+    fun containsElementWithAddress(address: MeshAddress) = if (address is UnicastAddress)
+        containsElementWithAddress(address)
+    else false
+
+    /**
+     * Checks if an element in the node uses this address.
+     *
+     * @param address Unicast address.
+     * @return true if the given address is in use by any of the elements
+     */
     fun containsElementWithAddress(address: UnicastAddress) = elements.any {
         it.unicastAddress == address
     }
@@ -388,6 +547,69 @@ data class Node internal constructor(
      * @return true if given range overlaps with the node's address range.
      */
     fun containsElementsWithAddress(range: UnicastRange) = unicastRange.overlaps(range)
+
+    /**
+     * Returns the element with the given address.
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     * @throws IllegalArgumentException If the address is invalid.
+     */
+    fun element(address: UShort) = elements.firstOrNull { it.unicastAddress.address == address }
+
+    /**
+     * Returns the element with the given address
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     */
+    fun element(address: UnicastAddress) = element(address.address)
+
+    /**
+     * Returns the element with the given address
+     *
+     * @param address Address of the element.
+     * @return Element or null if not found.
+     */
+    fun element(address: MeshAddress) = if (address is UnicastAddress)
+        element(address.address)
+    else null
+
+    /**
+     * Checks if the given Application Key known by the node.
+     *
+     * Note: This is based on the key index.
+     *
+     * @param applicationKey Application Key.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knows(applicationKey: ApplicationKey) = knowsApplicationKeyIndex(applicationKey.index)
+
+    /**
+     * Checks if the given Application Key index known by the node.
+     *
+     * @param index Application Key index.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knowsApplicationKeyIndex(index: KeyIndex) = appKeys.any { it.index == index }
+
+    /**
+     * Checks if the given Network Key known by the node.
+     *
+     * Note: This is based on the key index.
+     *
+     * @param networkKey Network Key.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(networkKey.index)
+
+    /**
+     * Checks if the given Network Key index known by the node.
+     *
+     * @param index Network Key index.
+     * @return true if the key is known by the node or false otherwise.
+     */
+    fun knowsNetworkKeyIndex(index: KeyIndex) = netKeys.any { it.index == index }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -438,10 +660,26 @@ data class Node internal constructor(
         result = 31 * result + (secureNetworkBeacon?.hashCode() ?: 0)
         result = 31 * result + (networkTransmit?.hashCode() ?: 0)
         result = 31 * result + (relayRetransmit?.hashCode() ?: 0)
-        result = 31 * result + defaultTTL
+        result = 31 * result + defaultTTL.hashCode()
         result = 31 * result + excluded.hashCode()
         result = 31 * result + (heartbeatPublication?.hashCode() ?: 0)
         result = 31 * result + (heartbeatSubscription?.hashCode() ?: 0)
         return result
     }
 }
+
+/**
+ * Returns the list of elements from a list of nodes.
+ *
+ * @receiver List of nodes.
+ * @return List of elements.
+ */
+fun List<Node>.elements() = flatMap { it.elements }
+
+/**
+ * Returns the list of addresses from a list of nodes.
+ *
+ * @receiver List of nodes.
+ * @return List of addresses.
+ */
+fun List<Node>.addresses() = flatMap { it.addresses }

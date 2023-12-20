@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,8 +48,11 @@ internal fun AuthSelectionBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState
     ) {
-        Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 32.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 32.dp)) {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(R.string.label_select_oob_type_to_use),
                 style = MaterialTheme.typography.titleLarge
             )
@@ -121,10 +125,12 @@ private fun RadioButtonRow(text: String, selectedIndex: Int, index: Int, onClick
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(height = 56.dp)
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
+            modifier = Modifier.padding(start = 16.dp),
             selected = selectedIndex == index,
             onClick = onClick
         )
@@ -134,21 +140,13 @@ private fun RadioButtonRow(text: String, selectedIndex: Int, index: Int, onClick
 
 @Composable
 private fun AuthenticationMethod.description(): String = when (this) {
-    is AuthenticationMethod.NoOob -> stringResource(
-        id = R.string.label_no_oob
-    )
+    is AuthenticationMethod.NoOob -> stringResource(id = R.string.label_no_oob)
 
-    is AuthenticationMethod.StaticOob -> stringResource(
-        id = R.string.label_static_oob
-    )
+    is AuthenticationMethod.StaticOob -> stringResource(id = R.string.label_static_oob)
 
-    is AuthenticationMethod.OutputOob -> stringResource(
-        id = R.string.label_output_oob
-    )
+    is AuthenticationMethod.OutputOob -> stringResource(id = R.string.label_output_oob)
 
-    is AuthenticationMethod.InputOob -> stringResource(
-        id = R.string.label_input_oob
-    )
+    is AuthenticationMethod.InputOob -> stringResource(id = R.string.label_input_oob)
 }
 
 private fun isEnabled(
@@ -158,7 +156,6 @@ private fun isEnabled(
 ): Boolean = if (selectedIndex != -1) {
     when (capabilities.supportedAuthMethods[selectedIndex]) {
         is AuthenticationMethod.NoOob, AuthenticationMethod.StaticOob -> true
-
         is AuthenticationMethod.OutputOob,
         is AuthenticationMethod.InputOob -> selectedActionIndex != -1
     }
@@ -169,27 +166,17 @@ private fun selectedOob(
     selectedIndex: Int,
     selectedActionIndex: Int
 ): AuthenticationMethod = when (capabilities.supportedAuthMethods[selectedIndex]) {
-    is AuthenticationMethod.StaticOob -> {
-        AuthenticationMethod.StaticOob
-    }
+    is AuthenticationMethod.StaticOob -> AuthenticationMethod.StaticOob
 
-    is AuthenticationMethod.OutputOob -> {
-        AuthenticationMethod.OutputOob(
-            action = capabilities.outputOobActions
-                .toOutputActions()[selectedActionIndex],
-            length = capabilities.outputOobSize
-        )
-    }
+    is AuthenticationMethod.OutputOob -> AuthenticationMethod.OutputOob(
+        action = capabilities.outputOobActions.toOutputActions()[selectedActionIndex],
+        length = capabilities.outputOobSize
+    )
 
-    is AuthenticationMethod.InputOob -> {
-        AuthenticationMethod.InputOob(
-            action = capabilities.inputOobActions
-                .toInputActions()[selectedActionIndex],
-            length = capabilities.inputOobSize
-        )
-    }
+    is AuthenticationMethod.InputOob -> AuthenticationMethod.InputOob(
+        action = capabilities.inputOobActions.toInputActions()[selectedActionIndex],
+        length = capabilities.inputOobSize
+    )
 
-    is AuthenticationMethod.NoOob -> {
-        AuthenticationMethod.NoOob
-    }
+    is AuthenticationMethod.NoOob -> AuthenticationMethod.NoOob
 }

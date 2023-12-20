@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex

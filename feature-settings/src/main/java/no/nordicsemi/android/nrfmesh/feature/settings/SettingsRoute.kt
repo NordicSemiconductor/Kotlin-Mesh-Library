@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
@@ -59,7 +57,7 @@ import java.util.Date
 
 @Composable
 fun SettingsRoute(
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel,
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
@@ -102,7 +100,6 @@ fun SettingsScreen(
         when (networkState) {
             is MeshNetworkState.Success -> {
                 settingsInfo(
-                    context = context,
                     network = networkState.network,
                     onNameChanged = onNameChanged,
                     onProvisionersClicked = onProvisionersClicked,
@@ -130,7 +127,7 @@ fun SettingsScreen(
 }
 
 private fun LazyListScope.settingsInfo(
-    context: Context, network: MeshNetwork,
+    network: MeshNetwork,
     onNameChanged: (String) -> Unit,
     onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,

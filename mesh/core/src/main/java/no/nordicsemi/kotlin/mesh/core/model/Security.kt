@@ -42,5 +42,12 @@ sealed class Security {
     override fun toString() = toString(this)
 }
 
-object Insecure : Security()
-object Secure : Security()
+/**
+ * Describes an insecure security level.
+ */
+data object Insecure : Security()
+
+/**
+ * Describes a secure security level.
+ */
+data object Secure : Security()

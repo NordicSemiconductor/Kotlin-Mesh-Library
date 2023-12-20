@@ -31,7 +31,7 @@ sealed class ApplicationKeysConfig {
         internal fun excludeAppKeysBoundToExcludedNetKeys(
             keys: List<NetworkKey>
         ) = applicationKeys.filter { applicationKey ->
-            applicationKey.netKey?.let {
+            applicationKey.boundNetworkKey?.let {
                 it in keys
             } ?: false
         }

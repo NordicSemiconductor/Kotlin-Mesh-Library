@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.util.Locale
@@ -23,7 +23,7 @@ import javax.inject.Inject
 internal class ProvisionersViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val navigator: Navigator,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val _uiState = MutableStateFlow(ProvisionersScreenUiState(listOf()))
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.stateIn(
@@ -61,10 +61,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun addProvisioner(): Provisioner {
         removeProvisioners()
         val provisioner = Provisioner().apply {
-            name = Build.MODEL.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.ROOT)
-                else it.toString()
-            }
+            name = repository.createProvisionerName()
         }
         network.run {
             nextAvailableUnicastAddressRange(rangeSize = 0x199A)?.let { range ->
@@ -91,8 +88,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
         if (!provisionersToBeRemoved.contains(provisioner))
             provisionersToBeRemoved.add(provisioner)
         if (provisionersToBeRemoved.size == network.provisioners.size)
-            _uiState.value =
-                ProvisionersScreenUiState(provisioners = filterProvisionersTobeRemoved())
+            _uiState.value = _uiState.value.copy(provisioners = filterProvisionersTobeRemoved())
     }
 
     /**
@@ -104,8 +100,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     internal fun onUndoSwipe(provisioner: Provisioner) {
         provisionersToBeRemoved.remove(provisioner)
         if (provisionersToBeRemoved.isEmpty()) {
-            _uiState.value =
-                ProvisionersScreenUiState(provisioners = filterProvisionersTobeRemoved())
+            _uiState.value = _uiState.value.copy(provisioners = filterProvisionersTobeRemoved())
         }
     }
 

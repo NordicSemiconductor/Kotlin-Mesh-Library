@@ -1,13 +1,18 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class GroupTest {
 
-    private val networkManager = MeshNetworkManager(storage = TestStorage())
+    private val networkManager = MeshNetworkManager(
+        storage = TestStorage(),
+        networkProperties = TestPropertiesStorage(),
+        scope = TestScope()
+    )
     private lateinit var meshNetwork: MeshNetwork
 
     private fun setup() {

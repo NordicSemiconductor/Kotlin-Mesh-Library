@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.core.model
 
@@ -24,7 +24,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              of the network key in the mesh network.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
- * @property netKey             Network key to which this application key is bound to.
+ * @property boundNetworkKey             Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
 @Serializable
@@ -51,37 +51,62 @@ data class ApplicationKey internal constructor(
         get() = _key
         internal set(value) {
             require(value.size == 16) { "Key must be 16-bytes long!" }
-            _key = value
+            onChange(oldValue = _key, newValue = value) {
+                oldKey = _key
+                oldAid = aid
+                _key = value
+                regenerateKeyDerivatives()
+            }
         }
 
     @Serializable(with = KeySerializer::class)
     var oldKey: ByteArray? = null
-        internal set
+        internal set(value) {
+            onChange(oldValue = field, newValue = value) {
+                field = value
+                if (field == null) {
+                    oldAid = null
+                }
+            }
+        }
 
     @Transient
     internal var network: MeshNetwork? = null
 
-    val netKey: NetworkKey?
-        get() = network?._networkKeys?.find { networkKey ->
-            networkKey.index == boundNetKeyIndex
-        }
+    val boundNetworkKey: NetworkKey?
+        get() = network!!.networkKeys.get(boundNetKeyIndex)
+
+    internal var aid: UByte = Crypto.calculateAid(N = key)
+
+    internal var oldAid: UByte? = null
+
+    val isInUse :Boolean
+        get() = network?.run {
+            // The application key in used when it is known by any of the nodes in the network.
+            _nodes.any { node ->
+                node.appKeys.any { nodeKey ->
+                    nodeKey.index == index
+                }
+            }
+        } ?: false
 
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+        regenerateKeyDerivatives()
     }
 
     /**
      * Returns whether the application key is added to any nodes in the network.
      * A key that is in use cannot be removed until it has been removed from all the nodes.
      */
-    fun isInUse(): Boolean = network?.run {
+    /*fun isInUse(): Boolean = network?.run {
         // The application key in used when it is known by any of the nodes in the network.
         _nodes.any { node ->
             node.appKeys.any { nodeKey ->
                 nodeKey.index == index
             }
         }
-    } ?: false
+    } ?: false*/
 
     /**
      * Updates the existing key with the given key, if it is not in use.
@@ -90,9 +115,51 @@ data class ApplicationKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse()) { throw KeyInUse }
+        require(!isInUse) { throw KeyInUse }
         require(key.size == 16) { throw InvalidKeyLength }
         _key = key
+    }
+
+    /**
+     * Binds the application key to a given network key. The application key must not be in use.
+     * If any of the network Nodes already knows this key, this method throws an error
+     *
+     * @param networkKey Network key to which the application key is bound to.
+     * @throws KeyInUse If the key is already in use.
+     */
+    @Throws(KeyInUse::class)
+    fun bind(networkKey: NetworkKey) {
+        network?.let {
+            require(!isInUse) { throw KeyInUse }
+            boundNetKeyIndex = networkKey.index
+        }
+    }
+
+    /**
+     * Checks if the application key is bound to a given network key.
+     *
+     * @param networkKey Network key to which the application key is bound to.
+     * @return true if the application key is bound to the given network key, false otherwise.
+     */
+    fun isBoundTo(networkKey: NetworkKey) = boundNetKeyIndex == networkKey.index
+
+    /**
+     * Checks if the application key is bound to any of the given list of network keys.
+     *
+     * @param networkKeys Network key to which the application key is bound to.
+     * @return true if the application key is bound to the given network key, false otherwise.
+     */
+    fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
+
+    private fun regenerateKeyDerivatives() {
+        aid = Crypto.calculateAid(N = key)
+
+        // When the Application Key is imported from JSOn, old key derivatives must be calculated.
+        oldKey?.let { oldKey ->
+            if (oldAid == null) {
+                oldAid = Crypto.calculateAid(N = oldKey)
+            }
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -108,7 +175,7 @@ data class ApplicationKey internal constructor(
             if (other.oldKey == null) return false
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
-        if (netKey != other.netKey) return false
+        if (boundNetworkKey != other.boundNetworkKey) return false
 
         return true
     }
@@ -118,8 +185,43 @@ data class ApplicationKey internal constructor(
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
-        result = 31 * result + (netKey?.hashCode() ?: 0)
+        result = 31 * result + (boundNetworkKey?.hashCode() ?: 0)
         return result
     }
-
 }
+
+/**
+ * Checks whether any of the Application keys in the List is bound to the given network Key. The key
+ * comparison is based on Key Index property.
+ *
+ * @param networkKey Network key to which the application keys are bound to.
+ * @return True if any of the application keys in the list is bound to the given network key,
+ *         false otherwise.
+ */
+infix fun List<ApplicationKey>.contains(networkKey: NetworkKey) = any { it.isBoundTo(networkKey) }
+
+/**
+ * Returns a list of application keys bound to a given network key.
+ *
+ * @param networkKey Network key to which the application keys are bound to.
+ * @return List<ApplicationKey> List of application keys bound to the given network key.
+ */
+infix fun List<ApplicationKey>.boundTo(networkKey: NetworkKey): List<ApplicationKey> = filter {
+    it.isBoundTo(networkKey)
+}
+
+/**
+ * Filters the list of Application keys to only those that are known to the given node.
+ *
+ * @param node Node to check.
+ * @return List of Application Keys known to the node.
+ */
+infix fun List<ApplicationKey>.knownTo(node: Node): List<ApplicationKey> = filter { node.knows(it) }
+
+/**
+ * Returns an Application Key with the given KeyIndex
+ *
+ * @param index Key index of the application key.
+ * @return Application key with the given key index or null if not found.
+ */
+infix fun List<ApplicationKey>.get(index: KeyIndex): ApplicationKey? = find { it.index == index }

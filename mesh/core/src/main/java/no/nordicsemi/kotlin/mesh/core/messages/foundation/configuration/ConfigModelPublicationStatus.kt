@@ -1,0 +1,151 @@
+package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
+
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
+import no.nordicsemi.kotlin.mesh.core.model.Credentials
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.PublicationAddress
+import no.nordicsemi.kotlin.mesh.core.model.Publish
+import no.nordicsemi.kotlin.mesh.core.model.PublishPeriod
+import no.nordicsemi.kotlin.mesh.core.model.Retransmit
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
+import no.nordicsemi.kotlin.mesh.core.model.StepResolution
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
+import kotlin.experimental.and
+import kotlin.experimental.or
+
+/**
+ * This message is used to set the publication state of a model.
+ *
+ * @property publish               Contains the publication state.
+ */
+data class ConfigModelPublicationStatus(
+    val publish: Publish,
+    override val elementAddress: UnicastAddress,
+    override val modelIdentifier: UShort,
+    override val companyIdentifier: UShort?,
+    override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS
+) : ConfigResponse, ConfigStatusMessage, ConfigAnyModelMessage {
+    override val opCode: UInt = Initializer.opCode
+
+    override val parameters: ByteArray
+        get() {
+            var data = elementAddress.address.toByteArray() +
+                    publish.address.address.toByteArray()
+            data += (publish.index and 0xFFu).toByte()
+            data += (publish.index.toInt() shr 8).toByte() or
+                    (publish.credentials.credential shl 4).toByte()
+            data += publish.ttl.toByte()
+            data += (publish.period.steps and 0x3Fu).toByte() or
+                    (publish.period.resolution.value.toInt() shl 6).toByte()
+            data += (publish.retransmit.count.toInt() shl 3).toByte() or
+                    (publish.retransmit.steps.toInt() shl 3).toByte()
+            data += companyIdentifier?.let {
+                it.toByteArray() + modelIdentifier.toByteArray()
+            } ?: modelIdentifier.toByteArray()
+            return data
+        }
+
+    companion object Initializer : ConfigMessageInitializer {
+        override val opCode: UInt = 0x8019u
+        fun init(publish: Publish, model: Model): ConfigModelPublicationStatus? {
+            require(publish.address !is VirtualAddress) { return null }
+            val elementAddress = model.parentElement?.unicastAddress ?: return null
+            val modelId = model.modelId
+            return ConfigModelPublicationStatus(
+                publish = publish,
+                companyIdentifier = when (modelId) {
+                    is VendorModelId -> modelId.companyIdentifier
+                    else -> null
+                },
+                modelIdentifier = when (modelId) {
+                    is SigModelId -> modelId.modelIdentifier
+                    is VendorModelId -> modelId.modelIdentifier
+                },
+                elementAddress = elementAddress
+            )
+        }
+
+        /**
+         * Constructs the ConfigModelPublicationSet message using the given model.
+         *
+         * @param model The model to set the publication for.
+         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
+         */
+        fun init(model: Model): ConfigModelPublicationStatus? = model.takeIf {
+            it.parentElement?.unicastAddress != null
+        }?.let {
+            val modelId = model.modelId
+            ConfigModelPublicationStatus(
+                publish = Publish(),
+                companyIdentifier = when (modelId) {
+                    is VendorModelId -> modelId.companyIdentifier
+                    else -> null
+                },
+                modelIdentifier = when (modelId) {
+                    is SigModelId -> modelId.modelIdentifier
+                    is VendorModelId -> modelId.modelIdentifier
+                },
+                elementAddress = it.parentElement!!.unicastAddress
+            )
+        }
+
+        /**
+         * Constructs the ConfigModelPublicationSet message using the given parameters.
+         *
+         * @param parameters The message parameters.
+         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
+         */
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            (it.size == 12 || it.size == 14)
+        }?.let { params ->
+            ConfigMessageStatus.from(params[0].toUByte())?.let {
+                val elementAddress = params.toUShort(offset = 1)
+                val address = MeshAddress.create(params.toUShort(2))
+                val index = params.toUShort(4) and 0x0FFFu
+                val flag = (params.toUShort(5) and 0x10u).toInt() shr 4
+                val ttl = params[6].toUByte()
+                val periodSteps = (params.toUShort(7) and 0x3Fu).toUByte()
+                val periodResolution = StepResolution.from((params[7].toInt() shr 6))
+                val period = PublishPeriod(periodSteps, periodResolution)
+                val count = (params[8] and 0x07).toUByte()
+                val intervalSteps = (params[8].toInt() shr 3).toUByte()
+
+                val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
+                val publish = Publish(
+                    address = address as PublicationAddress,
+                    index = index,
+                    credentials = Credentials.from(flag),
+                    ttl = ttl,
+                    period = period,
+                    retransmit = retransmit
+                )
+                if (params.size == 14) {
+                    ConfigModelPublicationStatus(
+                        publish = publish,
+                        companyIdentifier = params.toUShort(9),
+                        modelIdentifier = params.toUShort(11),
+                        elementAddress = UnicastAddress(elementAddress),
+                        status = it
+                    )
+                } else {
+                    ConfigModelPublicationStatus(
+                        publish = publish,
+                        companyIdentifier = null,
+                        modelIdentifier = params.toUShort(9),
+                        elementAddress = UnicastAddress(elementAddress),
+                        status = it
+                    )
+                }
+            }
+        }
+    }
+}

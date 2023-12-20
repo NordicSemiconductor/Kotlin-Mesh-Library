@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
+import no.nordicsemi.kotlin.mesh.core.util.Utils.toUuid
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -46,6 +47,14 @@ internal const val allNodes: Address = 0xFFFFu
  */
 sealed interface HasAddress {
     val address: Address
+
+    /**
+     * Converts a mesh address to a hex string.
+     *
+     * @param prefix0x If true, the hex string will be prefixed with 0x.
+     * @return The hex string representation of the address.
+     */
+    fun toHex(prefix0x: Boolean = false): String
 }
 
 /**
@@ -54,6 +63,8 @@ sealed interface HasAddress {
 @Serializable(with = MeshAddressSerializer::class)
 sealed class MeshAddress : HasAddress {
     abstract override val address: Address
+
+    override fun toHex(prefix0x: Boolean): String = address.toHex(prefix0x = prefix0x)
 
     companion object {
 
@@ -73,6 +84,16 @@ sealed class MeshAddress : HasAddress {
                 "Unable to create an Address for the given address value!"
             )
         }
+
+        /**
+         * Creates a Mesh address of type Unassigned, Unicast or Group address using the given
+         * address value.
+         *
+         * @param address Address value.
+         * @throws IllegalArgumentException If the given address value is not a valid Unassigned,
+         *                                  Unicast or a Group address.
+         */
+        fun create(address: Int): MeshAddress = create(address.toUShort())
 
         /**
          * Creates a virtual address using the given UUID Label.
@@ -104,6 +125,7 @@ object UnassignedAddress : MeshAddress(),
  * 0x0001 to 0x7FFF inclusive.
  *
  * @property address  16-bit address of the unicast address.
+ * @throws IllegalArgumentException If the given address value is not a valid Unicast address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
@@ -112,7 +134,8 @@ data class UnicastAddress(
         PublicationAddress,
         HeartbeatPublicationDestination,
         HeartbeatSubscriptionSource,
-        HeartbeatSubscriptionDestination {
+        HeartbeatSubscriptionDestination,
+        ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -124,7 +147,11 @@ data class UnicastAddress(
 
     operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
 
+    operator fun plus(other: UnicastAddress) = UnicastAddress((address + other.address).toInt())
+
     operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
+
+    operator fun minus(other: UnicastAddress) = UnicastAddress((address - other.address).toInt())
 
     operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
 
@@ -152,8 +179,17 @@ data class VirtualAddress(
         PrimaryGroupAddress,
         ParentGroupAddress,
         PublicationAddress,
-        SubscriptionAddress {
+        SubscriptionAddress,
+        ProxyFilterAddress {
+
     override val address: Address = Crypto.createVirtualAddress(uuid)
+
+    /**
+     * Creates a virtual address using the given byte array.
+     * @param label Byte array containing the UUID label.
+     * @throws IllegalArgumentException If the byte array containing the label is not 16 bytes long.
+     */
+    constructor(label: ByteArray) : this(uuid = label.toUuid())
 
     operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }
@@ -163,6 +199,9 @@ data class VirtualAddress(
  * bit 15 set to 1 and bit 14 set to 1. Group addresses in the range 0xFF00 through 0xFFFF are
  * reserved for [FixedGroupAddress], and addresses in the range 0xC000 through 0xFEFF are generally
  * available for other usage.
+ *
+ * @constructor Creates a Group Address object.
+ * @throws IllegalArgumentException If the given address value is not a valid Group address.
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
@@ -173,7 +212,8 @@ data class GroupAddress(
         PublicationAddress,
         SubscriptionAddress,
         HeartbeatPublicationDestination,
-        HeartbeatSubscriptionDestination {
+        HeartbeatSubscriptionDestination,
+        ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -205,7 +245,7 @@ data class GroupAddress(
  * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
-sealed class FixedGroupAddress(override val address: Address) : MeshAddress()
+sealed class FixedGroupAddress(override val address: Address) : MeshAddress(), ProxyFilterAddress
 
 /**
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes
@@ -230,13 +270,27 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
  *
  * Note: AllNodes cannot be used as subscription address.
  */
-object AllNodes : FixedGroupAddress(address = allNodes)
+data object AllNodes : FixedGroupAddress(address = allNodes)
+
+/**
+ * An address that is used as a destination address by a Heartbeat Publication or a Heartbeat
+ * Subscription message. This represents a [UnicastAddress], [GroupAddress].
+ */
+sealed interface HeartbeatDestination : HasAddress
 
 /**
  * Heartbeat publication destination address for heartbeat messages. This represents a
- * [UnicastAddress] or a [GroupAddress].
+ * [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
  */
-sealed interface HeartbeatPublicationDestination : HasAddress
+sealed interface HeartbeatPublicationDestination : HeartbeatDestination {
+
+    companion object {
+        fun isValid(address: Address) =
+            UnicastAddress.isValid(address = address) ||
+                    GroupAddress.isValid(address = address) ||
+                    UnassignedAddress.isValid(address = address)
+    }
+}
 
 /**
  * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
@@ -247,7 +301,7 @@ sealed interface HeartbeatSubscriptionSource : HasAddress
  * Heartbeat subscription destination address for heartbeat messages. This represents a
  * [UnicastAddress] or a [GroupAddress].
  */
-sealed interface HeartbeatSubscriptionDestination : HasAddress
+sealed interface HeartbeatSubscriptionDestination : HeartbeatDestination
 
 /**
  * An address a model may publish to. This represents a [UnicastAddress], [GroupAddress]
@@ -278,3 +332,10 @@ sealed interface PrimaryGroupAddress : HasAddress
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ParentGroupAddress : HasAddress
+
+/**
+ * An address type that can be added to a Proxy Filter List. This represents a [UnicastAddress],
+ * [GroupAddress], [VirtualAddress] or a [FixedGroupAddress].
+ */
+@Serializable(with = MeshAddressSerializer::class)
+sealed interface ProxyFilterAddress : HasAddress

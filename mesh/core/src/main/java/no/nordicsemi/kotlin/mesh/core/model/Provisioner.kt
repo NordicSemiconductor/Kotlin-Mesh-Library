@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
-import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
 /**
@@ -17,11 +16,18 @@ import java.util.*
  * configuring nodes in the mesh network. Otherwise, a provisioner can only provision nodes to a
  * mesh network.
  *
- * @property name                      Provisioner name.
- * @property uuid                      UUID of the provisioner.
- * @property allocatedUnicastRanges    List of allocated unicast ranges for a given provisioner.
- * @property allocatedGroupRanges      List of allocated group ranges for a given provisioner.
- * @property allocatedSceneRanges      List of allocated scene ranges for a given provisioner.
+ * @property name                          Provisioner name.
+ * @property uuid                          UUID of the provisioner.
+ * @property allocatedUnicastRanges        List of allocated unicast ranges for a given provisioner.
+ * @property allocatedGroupRanges          List of allocated group ranges for a given provisioner.
+ * @property allocatedSceneRanges          List of allocated scene ranges for a given provisioner.
+ * @property node                          Node of the provisioner.
+ * @property primaryUnicastAddress         Primary unicast address of the provisioner.
+ * @property hasConfigurationCapabilities  Returns true if the provisioner has configuration
+ *                                         capabilities.
+ * @property isLocal                       Returns true if the Provisioner is set as the local
+ *                                         Provisioner.
+ *
  * @constructor Creates a Provisioner object.
  */
 @Suppress("unused")
@@ -37,6 +43,78 @@ data class Provisioner internal constructor(
     @SerialName(value = "allocatedSceneRange")
     internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
 ) {
+    @SerialName(value = "provisionerName")
+    var name: String = "nRF Mesh Provisioner"
+        set(value) {
+            require(value = value.isNotBlank()) { "Name cannot be empty!" }
+            MeshNetwork.onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
+            field = value
+        }
+
+    val allocatedUnicastRanges: List<UnicastRange>
+        get() = _allocatedUnicastRanges
+
+    val allocatedGroupRanges: List<GroupRange>
+        get() = _allocatedGroupRanges
+
+    val allocatedSceneRanges: List<SceneRange>
+        get() = _allocatedSceneRanges
+
+    val node: Node?
+        get() = network?._nodes?.find { it.uuid == uuid }
+
+    val primaryUnicastAddress: UnicastAddress?
+        get() = node?.primaryUnicastAddress
+
+    val hasConfigurationCapabilities: Boolean
+        get() = node != null
+
+    val isLocal: Boolean
+        get() = network?.provisioners?.firstOrNull { it.uuid == uuid } != null
+
+    @Transient
+    internal var network: MeshNetwork? = null
+
+    /**
+     * Creates a Provisioner with the given UUID.
+     *
+     * @param uuid Provisioner UUID.
+     */
+    constructor(uuid: UUID = UUID.randomUUID()) : this(
+        uuid = uuid,
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    )
+
+    /**
+     * Creates a Provisioner with the given UUID and name.
+     *
+     * @param uuid Provisioner UUID.
+     * @param name Provisioner name.
+     */
+    constructor(uuid: UUID = UUID.randomUUID(), name: String) : this(
+        uuid = uuid,
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    ) {
+        this.name = name
+    }
+
+    /**
+     * Creates a Provisioner with the given name.
+     *
+     * @param name Provisioner name.
+     */
+    constructor(name: String) : this(
+        uuid = UUID.randomUUID(),
+        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
+        _allocatedGroupRanges = mutableListOf<GroupRange>(),
+        _allocatedSceneRanges = mutableListOf<SceneRange>()
+    ) {
+        this.name = name
+    }
 
     /**
      * Convenience constructor for tests
@@ -60,36 +138,6 @@ data class Provisioner internal constructor(
     ) {
         this.name = name
     }
-
-    constructor(uuid: UUID = UUID.randomUUID()) : this(
-        uuid,
-        mutableListOf<UnicastRange>(),
-        mutableListOf<GroupRange>(),
-        mutableListOf<SceneRange>()
-    )
-
-    @SerialName(value = "provisionerName")
-    var name: String = "nRF Mesh Provisioner"
-        set(value) {
-            require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            MeshNetwork.onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
-            field = value
-        }
-
-    val allocatedUnicastRanges: List<UnicastRange>
-        get() = _allocatedUnicastRanges
-
-    val allocatedGroupRanges: List<GroupRange>
-        get() = _allocatedGroupRanges
-
-    val allocatedSceneRanges: List<SceneRange>
-        get() = _allocatedSceneRanges
-
-    val node: Node?
-        get() = network?._nodes?.find { it.uuid == uuid }
-
-    @Transient
-    internal var network: MeshNetwork? = null
 
     /**
      * Allocates the given range to a provisioner.
@@ -200,7 +248,9 @@ data class Provisioner internal constructor(
      * @param newRange new unicast range.
      */
     fun update(range: UnicastRange, newRange: UnicastRange) {
-        _allocatedUnicastRanges.map { if (it == range) newRange else it }
+        _allocatedUnicastRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedUnicastRanges[it] = newRange
+        }
     }
 
     /**
@@ -210,7 +260,9 @@ data class Provisioner internal constructor(
      * @param newRange new group range.
      */
     fun update(range: GroupRange, newRange: GroupRange) {
-        _allocatedGroupRanges.map { if (it == range) newRange else it }
+        _allocatedGroupRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedGroupRanges[it] = newRange
+        }
     }
 
     /**
@@ -220,7 +272,9 @@ data class Provisioner internal constructor(
      * @param newRange new scene range.
      */
     fun update(range: SceneRange, newRange: SceneRange) {
-        _allocatedSceneRanges.map { if (it == range) newRange else it }
+        _allocatedSceneRanges.indexOf(range).takeIf { it != -1 }?.let {
+            _allocatedSceneRanges[it] = newRange
+        }
     }
 
     /**
@@ -257,6 +311,43 @@ data class Provisioner internal constructor(
      */
     fun remove(range: GroupRange) {
         _allocatedGroupRanges.remove(range).also { network?.updateTimestamp() }
+    }
+
+    /**
+     * Returns the maximum number of elements that can be assigned to a Node witht he given Unicast
+     * address.
+     *
+     * This method ensures that the addresses are ina single Unicast Address range allocated to the
+     * Provisioner and are not already assigned to any other Node.
+     *
+     * @param address Node address to check
+     * @return Maximum number of elements that the Node can have before the addresses go out of
+     *         Provisioner's range, or will overlap an existing node.
+     */
+    internal fun maxElementCount(address: UnicastAddress): Int {
+        var count = 0
+
+        // CHeck the maximum number of elements that fits inside a single range.
+        for (range in _allocatedUnicastRanges) {
+            if (range.contains(address.address)) {
+                count = minOf(
+                    a = ((range.highAddress - address) + 1).address.toInt(),
+                    b = UByte.MAX_VALUE.toInt()
+                )
+                break
+            }
+        }
+        // The requested address is not in Provisioner's range
+        require(count > 0) { return 0 }
+        // If the Provisioner is not in Provisioner's range
+        val otherNodes = network?.nodes?.filter { it.primaryUnicastAddress != address }
+        val range = UnicastRange(address, count)
+        otherNodes?.forEach { node ->
+            if (node.containsElementsWithAddress(range)) {
+                count = (node._primaryUnicastAddress - address).address.toInt()
+            }
+        }
+        return count
     }
 
     /**
@@ -331,24 +422,14 @@ data class Provisioner internal constructor(
             require(has(this@Provisioner))
             var isNewNode = false
             val node = node(this@Provisioner) ?: Node(
-                this@Provisioner,
-                Crypto.generateRandomKey(),
-                address,
-                listOf(
-                    Element(
-                        Location.UNKNOWN,
-                        listOf(
-                            Model(SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID)),
-                            Model(SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID))
-                        )
-                    )
-                ),
-                _networkKeys,
-                _applicationKeys
+                provisioner = this@Provisioner,
+                unicastAddress = address
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
                 name = this@Provisioner.name
+                assignNetKeys(networkKeys)
+                assignAppKeys(applicationKeys)
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?

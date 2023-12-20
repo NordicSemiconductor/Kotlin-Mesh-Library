@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.nrfmesh.core.data.DataStoreRepository
+import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
@@ -20,7 +20,7 @@ import javax.inject.Inject
 internal class SceneViewModel @Inject internal constructor(
     navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-    private val repository: DataStoreRepository
+    private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var selectedScene: Scene
     private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
@@ -64,10 +64,11 @@ internal class SceneViewModel @Inject internal constructor(
 sealed interface SceneState {
     data class Success(val scene: Scene) : SceneState
     data class Error(val throwable: Throwable) : SceneState
-    object Loading : SceneState
+    data object Loading : SceneState
 }
 
-@Suppress("ArrayInDataClass")
 data class SceneScreenUiState internal constructor(
     val sceneState: SceneState = SceneState.Loading
-)
+){
+
+}

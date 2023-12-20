@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
@@ -93,27 +91,17 @@ private fun LazyListScope.networkKeyInfo(
         Key(
             snackbarHostState = snackbarHostState,
             networkKey = networkKey.key,
-            isInUse = networkKey.isInUse(),
+            isInUse = networkKey.isInUse,
             onKeyChanged = onKeyChanged,
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = onEditableStateChanged
         )
     }
-    item {
-        OldKey(oldKey = networkKey.oldKey)
-    }
-    item {
-        KeyIndex(index = networkKey.index)
-    }
-    item {
-        KeyRefreshPhase(phase = networkKey.phase)
-    }
-    item {
-        Security(security = networkKey.security)
-    }
-    item {
-        LastModified(networkKey.timestamp)
-    }
+    item { OldKey(oldKey = networkKey.oldKey) }
+    item { KeyIndex(index = networkKey.index) }
+    item { KeyRefreshPhase(phase = networkKey.phase) }
+    item { Security(security = networkKey.security) }
+    item { LastModified(networkKey.timestamp) }
 }
 
 @Composable
@@ -125,7 +113,7 @@ fun Name(
 ) {
     var value by rememberSaveable { mutableStateOf(name) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "name") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -211,7 +199,7 @@ fun Key(
     val coroutineScope = rememberCoroutineScope()
     var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "name") { state ->
         when (state) {
             true ->
                 MeshOutlinedTextField(
@@ -382,6 +370,7 @@ fun LastModified(timestamp: Instant) {
     )
 }
 
+@Suppress("unused")
 @Composable
 fun KeyRefreshPhase.description(): String = when (this) {
     NormalOperation -> stringResource(id = R.string.label_normal_operation)

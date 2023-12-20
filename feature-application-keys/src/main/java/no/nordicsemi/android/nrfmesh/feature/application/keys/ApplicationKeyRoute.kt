@@ -57,7 +57,7 @@ private fun ApplicationKeyScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-    var boundNetKeyIndex by rememberSaveable { mutableStateOf(0) }
+    var boundNetKeyIndex by rememberSaveable { mutableIntStateOf(0) }
 
     LazyColumn(
         modifier = Modifier
@@ -80,7 +80,7 @@ private fun ApplicationKeyScreen(
                     context = context,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    isInUse = applicationKeyState.applicationKey.isInUse(),
+                    isInUse = applicationKeyState.applicationKey.isInUse,
                     boundNetKeyIndex = boundNetKeyIndex,
                     networkKeys = applicationKeyState.networkKeys,
                     onBoundNetworkKeyChanged = {
@@ -117,7 +117,7 @@ private fun LazyListScope.applicationKeyInfo(
         Key(
             snackbarHostState = snackbarHostState,
             networkKey = applicationKey.key,
-            isInUse = applicationKey.isInUse(),
+            isInUse = applicationKey.isInUse,
             onKeyChanged = onKeyChanged,
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = onEditableStateChanged
@@ -140,7 +140,7 @@ fun Name(
 ) {
     var value by rememberSaveable { mutableStateOf(name) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "name") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -226,7 +226,7 @@ fun Key(
     val coroutineScope = rememberCoroutineScope()
     var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "key") { state ->
         when (state) {
             true ->
                 MeshOutlinedTextField(

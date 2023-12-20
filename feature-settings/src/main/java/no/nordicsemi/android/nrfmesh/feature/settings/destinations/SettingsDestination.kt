@@ -20,6 +20,7 @@ val settingsDestination = defineDestination(settings) {
     val viewModel: SettingsViewModel = hiltViewModel()
 
     SettingsRoute(
+        viewModel = viewModel,
         navigateToProvisioners = { viewModel.navigateTo(provisioners) },
         navigateToNetworkKeys = { viewModel.navigateTo(networkKeys) },
         navigateToApplicationKeys = { viewModel.navigateTo(applicationKeys) },

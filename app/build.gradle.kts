@@ -16,10 +16,11 @@ dependencies {
 
     implementation(libs.nordic.theme)
     implementation(libs.nordic.navigation)
+    implementation(libs.nordic.blek.core)
+    implementation(libs.nordic.blek.client)
+    implementation(libs.nordic.blek.scanner)
     implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
-    // Workaround to get access to the scanner compat api
-    implementation(libs.nordic.scanner)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -33,10 +34,9 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
     implementation(project(":core-data"))
-    implementation(project(":core-data-storage"))
     implementation(project(":feature-nodes"))
     implementation(project(":feature-groups"))
-    implementation(project(":feature-proxy-filter"))
+    implementation(project(":feature-proxy"))
     implementation(project(":feature-settings"))
     implementation(project(":feature-network-keys"))
     implementation(project(":feature-application-keys"))
@@ -48,9 +48,15 @@ dependencies {
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
 
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
-    implementation(libs.nordic.blek.scanner)
-
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.11")
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.junit)
+    testImplementation(libs.androidx.test.ext)
+    testImplementation(libs.androidx.test.rules)
+
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.kotlin.junit)
+    androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.test.rules)
 }
