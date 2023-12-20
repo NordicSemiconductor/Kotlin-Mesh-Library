@@ -421,7 +421,7 @@ data class Node internal constructor(
     /**
      * Adds an Element to a node.
      *
-     * @param element     Element to be added.
+     * @param element Element to be added.
      */
     internal fun add(element: Element) {
         val index = elements.size
@@ -435,7 +435,9 @@ data class Node internal constructor(
      *
      * @param elements List of Elements to be added.
      */
-    internal fun add(elements: List<Element>) { elements.forEach(::add) }
+    internal fun add(elements: List<Element>) {
+        elements.forEach(::add)
+    }
 
     /**
      * Sets the given list of Elements to the Node.
@@ -461,12 +463,12 @@ data class Node internal constructor(
                 }
             }
         }
-        this._elements.forEach { element ->
+        _elements.forEach { element ->
             element.parentNode = null
             element.index = 0
         }
-        this._elements.clear()
-        this._elements.addAll(elements)
+        _elements.clear()
+        add(elements)
     }
 
     /**
