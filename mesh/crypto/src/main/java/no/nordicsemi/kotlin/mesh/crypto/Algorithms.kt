@@ -31,12 +31,14 @@ enum class Algorithm {
      */
     BTM_ECDH_P256_HMAC_SHA256_AES_CCM;
 
+    @Suppress("DEPRECATION")
     val length: Int
         get() = when (this) {
             FIPS_P256_ELLIPTIC_CURVE, BTM_ECDH_P256_CMAC_AES128_AES_CCM -> 128
             BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> 256
         }
 
+    @Suppress("DEPRECATION")
     val value: UByte
         get() = when (this) {
             FIPS_P256_ELLIPTIC_CURVE, BTM_ECDH_P256_CMAC_AES128_AES_CCM -> 0x00u
