@@ -26,6 +26,7 @@
     <string name="label_reset">Reset</string>
     <string name="label_reset_node">Reset Node</string>
     <string name="label_reset_node_rationale">Resetting this node will change its provisioned state
-        back to an un-provisioned state. Node</string>
+        back to an un-provisioned state.</string>
+    <string name="label_disable_proxy_feature">Disable Proxy</string>
     <string name="label_are_you_sure_rationale">Are you sure you want to continue?</string>
 </resources>

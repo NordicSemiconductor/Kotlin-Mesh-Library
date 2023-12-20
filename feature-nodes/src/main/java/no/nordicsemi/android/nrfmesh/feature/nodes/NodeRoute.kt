@@ -332,6 +332,7 @@ private fun ProxyStateRow(
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
     }
+    var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Hub,
@@ -341,7 +342,11 @@ private fun ProxyStateRow(
                 isChecked = enabled,
                 onCheckedChange = {
                     enabled = it
-                    onProxyStateToggled(it)
+                    if (!it) {
+                        showProxyStateDialog = !showProxyStateDialog
+                    } else {
+                        onProxyStateToggled(true)
+                    }
                 }
             )
         },
@@ -351,6 +356,27 @@ private fun ProxyStateRow(
         OutlinedButton(onClick = onGetProxyStateClicked) {
             Text(text = stringResource(R.string.label_get_state))
         }
+    }
+    if (showProxyStateDialog) {
+        MeshAlertDialog(
+            onDismissRequest = {
+                showProxyStateDialog = !showProxyStateDialog
+                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+            },
+            icon = Icons.Outlined.Hub,
+            title = stringResource(R.string.label_disable_proxy_feature),
+            text = stringResource(R.string.label_are_you_sure_rationale),
+            iconColor = Color.Red,
+            onConfirmClick = {
+                enabled = false
+                onProxyStateToggled(false)
+                showProxyStateDialog = !showProxyStateDialog
+            },
+            onDismissClick = {
+                showProxyStateDialog = !showProxyStateDialog
+                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+            }
+        )
     }
 }
 
@@ -382,18 +408,18 @@ private fun ResetRow(onResetClicked: () -> Unit) {
         ) {
             Text(text = stringResource(R.string.label_reset), color = Color.Red)
         }
-        if (showResetDialog) {
-            MeshAlertDialog(
-                onDismissRequest = { showResetDialog = !showResetDialog },
-                icon = Icons.Outlined.Recycling,
-                title = stringResource(R.string.label_reset_node),
-                text = stringResource(R.string.label_are_you_sure_rationale),
-                iconColor = Color.Red,
-                onConfirmClick = {
-                    showResetDialog = !showResetDialog
-                    onResetClicked()
-                }
-            )
-        }
+    }
+    if (showResetDialog) {
+        MeshAlertDialog(
+            onDismissRequest = { showResetDialog = !showResetDialog },
+            icon = Icons.Outlined.Recycling,
+            title = stringResource(R.string.label_reset_node),
+            text = stringResource(R.string.label_are_you_sure_rationale),
+            iconColor = Color.Red,
+            onConfirmClick = {
+                showResetDialog = !showResetDialog
+                onResetClicked()
+            }
+        )
     }
 }
