@@ -24,9 +24,9 @@ internal class NodesViewModel @Inject internal constructor(
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val _uiState = MutableStateFlow(NodesScreenUiState(listOf()))
     val uiState: StateFlow<NodesScreenUiState> = _uiState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        NodesScreenUiState()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = NodesScreenUiState()
     )
 
     private lateinit var network: MeshNetwork
