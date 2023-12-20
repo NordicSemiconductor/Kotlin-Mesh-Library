@@ -5,13 +5,27 @@ import android.content.Context
 import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
+import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
+import no.nordicsemi.android.common.permissions.ble.util.BlePermissionState
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanFilter
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
@@ -49,13 +63,19 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Locale
 import javax.inject.Inject
 
+private object PreferenceKeys {
+    val PROXY_AUTO_CONNECT = booleanPreferencesKey("proxy_auto_connect")
+}
+
 class CoreDataRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    bluetoothStateManager: BluetoothStateManager,
+    locationStateManager: LocationStateManager,
+    private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     private val scanner: BleScanner,
     @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
 ) : Logger {
-
     private var _proxyStateFlow = MutableStateFlow(ProxyState())
     val proxyStateFlow = _proxyStateFlow.asStateFlow()
 
@@ -66,6 +86,18 @@ class CoreDataRepository @Inject constructor(
 
     init {
         meshNetworkManager.logger = this
+        preferences.data.onEach {
+            _proxyStateFlow.value = _proxyStateFlow.value.copy(
+                autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] ?: false
+            )
+        }.launchIn(CoroutineScope(ioDispatcher))
+
+        bluetoothStateManager.bluetoothState().onEach {
+            isBluetoothEnabled = it is BlePermissionState.Available
+        }.launchIn(CoroutineScope(ioDispatcher))
+        locationStateManager.locationState().onEach {
+            isLocationEnabled = it is BlePermissionState.Available
+        }.launchIn(CoroutineScope(ioDispatcher))
     }
 
     /**
@@ -78,7 +110,7 @@ class CoreDataRepository @Inject constructor(
             meshNetworkManager.meshNetwork.first()
         }
         onMeshNetworkChanged(meshNetwork)
-        true
+        meshNetwork
     }
 
     /**
@@ -86,7 +118,7 @@ class CoreDataRepository @Inject constructor(
      * reinitialise the connection to the proxy node. This will ensure that the user is connected to
      * the correct network.
      */
-    private fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
+    private suspend fun onMeshNetworkChanged(meshNetwork: MeshNetwork) {
         // TODO Implement scene model event handler related stuff
         val sceneServerHandler = SceneServerHandler(meshNetwork)
         val element0 = Element(
@@ -95,7 +127,6 @@ class CoreDataRepository @Inject constructor(
             )
         ).apply { name = "Primary Element" }
         meshNetworkManager.localElements = listOf(element0)
-        // startAutomaticConnectivity(meshNetwork)
     }
 
     /**
@@ -277,6 +308,9 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun enableAutoConnectProxy(meshNetwork: MeshNetwork?, enabled: Boolean) {
         _proxyStateFlow.value = _proxyStateFlow.value.copy(autoConnect = enabled)
+        preferences.edit { preferences ->
+            preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
+        }
         if (enabled) startAutomaticConnectivity(meshNetwork)
     }
 

@@ -17,7 +17,7 @@ val proxyDestination = defineDestination(proxy) {
         uiState = uiState,
         onBluetoothEnabled = viewModel::onBluetoothEnabled,
         onLocationEnabled = viewModel::onLocationEnabled,
-        onAutoConnectChecked = viewModel::onAutomaticConnectionChanged,
+        onAutoConnectToggled = viewModel::onAutoConnectToggled,
         onDisconnectClicked = viewModel::disconnect,
         onDeviceFound = viewModel::connect
     )

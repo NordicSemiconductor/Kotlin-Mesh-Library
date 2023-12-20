@@ -22,7 +22,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -49,7 +48,7 @@ internal fun ProxyRoute(
     uiState: ProxyScreenUiState,
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
-    onAutoConnectChecked: (Boolean) -> Unit,
+    onAutoConnectToggled: (Boolean) -> Unit,
     onDeviceFound: (Context, BleScanResults) -> Unit,
     onDisconnectClicked: () -> Unit,
 ) {
@@ -57,7 +56,7 @@ internal fun ProxyRoute(
         onBluetoothEnabled = onBluetoothEnabled,
         onLocationEnabled = onLocationEnabled,
         proxyState = uiState.proxyState,
-        onAutoConnectChecked = onAutoConnectChecked,
+        onAutoConnectToggled = onAutoConnectToggled,
         onDisconnectClicked = onDisconnectClicked,
         onDeviceFound = onDeviceFound
     )
@@ -68,7 +67,7 @@ private fun ProxyFilterScreen(
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     proxyState: ProxyState,
-    onAutoConnectChecked: (Boolean) -> Unit,
+    onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
     onDeviceFound: (Context, BleScanResults) -> Unit
 ) {
@@ -80,7 +79,7 @@ private fun ProxyFilterScreen(
             LazyColumn {
                 proxyFilterInfo(
                     proxyState = proxyState,
-                    onAutoConnectChecked = onAutoConnectChecked,
+                    onAutoConnectToggled = onAutoConnectToggled,
                     onConnectClicked = { showProxyScannerSheet = true },
                     onDisconnectClicked = onDisconnectClicked
                 )
@@ -115,14 +114,14 @@ private fun ProxyFilterScreen(
 
 private fun LazyListScope.proxyFilterInfo(
     proxyState: ProxyState,
-    onAutoConnectChecked: (Boolean) -> Unit,
+    onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
 ) {
     item {
         AutomaticConnectionRow(
             proxyState = proxyState,
-            onAutoConnectChecked = onAutoConnectChecked,
+            onAutoConnectToggled = onAutoConnectToggled,
             onConnectClicked = onConnectClicked,
             onDisconnectClicked = onDisconnectClicked
         )
@@ -132,11 +131,10 @@ private fun LazyListScope.proxyFilterInfo(
 @Composable
 private fun AutomaticConnectionRow(
     proxyState: ProxyState,
-    onAutoConnectChecked: (Boolean) -> Unit,
+    onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
 ) {
-    var checked by remember { mutableStateOf(proxyState.autoConnect) }
     ElevatedCardItem(
         modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
         imageVector = Icons.Outlined.AutoAwesome,
@@ -144,23 +142,21 @@ private fun AutomaticConnectionRow(
         titleAction = {
             Switch(
                 modifier = Modifier.padding(start = 16.dp),
-                checked = checked,
+                checked = proxyState.autoConnect,
                 onCheckedChange = {
-                    checked = it
-                    onAutoConnectChecked(it)
+                    onAutoConnectToggled(it)
                 }
             )
         },
         subtitle = proxyState.connectionState.describe(),
         supportingText = stringResource(R.string.label_automatic_connection_rationale),
         actions = {
-            OutlinedButton(onClick = onConnectClicked, enabled = !checked) {
+            OutlinedButton(onClick = onConnectClicked, enabled = !proxyState.autoConnect) {
                 Text(text = "Connect")
             }
             Spacer(modifier = Modifier.size(16.dp))
             OutlinedButton(onClick = {
-                checked = false
-                onAutoConnectChecked(false)
+                onAutoConnectToggled(false)
                 onDisconnectClicked()
             }) {
                 Text(text = "Disconnect")

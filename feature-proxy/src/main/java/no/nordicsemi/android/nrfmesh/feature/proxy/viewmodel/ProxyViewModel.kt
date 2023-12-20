@@ -44,7 +44,7 @@ internal class ProxyViewModel @Inject internal constructor(
         }.launchIn(viewModelScope)
     }
 
-    internal fun onAutomaticConnectionChanged(enabled: Boolean) {
+    internal fun onAutoConnectToggled(enabled: Boolean) {
         viewModelScope.launch {
             repository.enableAutoConnectProxy(meshNetwork = meshNetwork, enabled = enabled)
         }
