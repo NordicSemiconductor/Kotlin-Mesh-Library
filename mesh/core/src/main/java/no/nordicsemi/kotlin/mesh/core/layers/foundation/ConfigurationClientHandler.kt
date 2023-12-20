@@ -80,16 +80,15 @@ internal class ConfigurationClientHandler(
         when (response) {
             // Composition Data
             is ConfigCompositionDataStatus -> {
-                meshNetwork.localProvisioner?.primaryUnicastAddress?.takeIf {
-                    it.address != source
-                }?.let {
-                    meshNetwork.node(it)?.apply(response)
+                require(localProvisioner?.primaryUnicastAddress?.address != source) {
+                    return
                 }
+                node(source)?.apply(response)
             }
             // Network Keys Management
             is ConfigNetKeyStatus -> {
                 if (response.isSuccess) {
-                    meshNetwork.node(address = source)?.let { node ->
+                    node(address = source)?.let { node ->
                         // TODO implement missing messages
                         /*when(request) {
                             is ConfigNetKeyAdd -> {
@@ -108,12 +107,10 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigGattProxyStatus -> {
-                meshNetwork.apply {
-                    node(address = source)?.also { node ->
-                        node.features._proxy = Proxy(state = response.state)
-                    }
-                    updateTimestamp()
+                node(address = source)?.also { node ->
+                    node.features._proxy = Proxy(state = response.state)
                 }
+                updateTimestamp()
             }
 
             is ConfigHeartbeatPublicationStatus -> {
@@ -125,9 +122,7 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNodeResetStatus -> {
-                meshNetwork.apply {
-                    node(address = source)?.let { remove(it) }
-                }
+                node(address = source)?.let { remove(it) }
             }
 
             else -> {}
