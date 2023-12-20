@@ -57,13 +57,12 @@ class MeshNetworkPropertiesStorage @Inject constructor(
             )
         }
         dataStore.data.map {
-            val index = it[intPreferencesKey(IV_INDEX)]?.toUInt() ?: 0u
-            val isIvUpdateActive =
-                it[stringPreferencesKey(IV_UPDATE_ACTIVE)]?.toBoolean() ?: false
+            val index = it[PreferenceKeys.IV_INDEX]?.toUInt() ?: 0u
+            val isIvUpdateActive = it[PreferenceKeys.IV_UPDATE_ACTIVE] ?: false
             ivIndex = IvIndex(index, isIvUpdateActive)
-            val timestamp = it[longPreferencesKey(IV_TIMESTAMP)] ?: 0L
+            val timestamp = it[PreferenceKeys.IV_TIMESTAMP] ?: 0L
             lastTransitionDate = Instant.fromEpochMilliseconds(timestamp)
-            isIvRecoveryActive = it[booleanPreferencesKey(IV_RECOVERY)] ?: false
+            isIvRecoveryActive = it[PreferenceKeys.IV_RECOVERY] ?: false
             addresses.forEach { address ->
                 sequenceNumbers[address] =
                     it[intPreferencesKey(address.address.toHex())]?.toUInt() ?: 0u
@@ -110,21 +109,20 @@ class MeshNetworkPropertiesStorage @Inject constructor(
 
     override suspend fun save(uuid: UUID) {
         dataStore.edit { preferences ->
-            preferences[intPreferencesKey(IV_INDEX)] = ivIndex.index.toInt()
-            preferences[stringPreferencesKey(IV_UPDATE_ACTIVE)] =
-                ivIndex.isIvUpdateActive.toString()
-            preferences[longPreferencesKey(IV_TIMESTAMP)] = lastTransitionDate.toEpochMilliseconds()
+            preferences[PreferenceKeys.IV_INDEX] = ivIndex.index.toInt()
+            preferences[PreferenceKeys.IV_UPDATE_ACTIVE] = ivIndex.isIvUpdateActive
+            preferences[PreferenceKeys.IV_TIMESTAMP] = lastTransitionDate.toEpochMilliseconds()
             sequenceNumbers.forEach { (unicastAddress, sequence) ->
                 preferences[intPreferencesKey(unicastAddress.address.toHex())] = sequence.toInt()
             }
         }
     }
 
-    companion object {
-        private const val SEQUENCE_NUMBER = "SEQUENCE_NUMBER"
-        private const val IV_TIMESTAMP = "IV_TIMESTAMP"
-        private const val IV_INDEX = "IV_INDEX"
-        private const val IV_UPDATE_ACTIVE = "IV_UPDATE_ACTIVE"
-        private const val IV_RECOVERY = "IV_RECOVERY"
+    private object PreferenceKeys {
+        //private const val SEQUENCE_NUMBER = "SEQUENCE_NUMBER"
+        val IV_TIMESTAMP = longPreferencesKey("IV_TIMESTAMP")
+        val IV_INDEX = intPreferencesKey("IV_INDEX")
+        val IV_UPDATE_ACTIVE = booleanPreferencesKey("IV_UPDATE_ACTIVE")
+        val IV_RECOVERY = booleanPreferencesKey("IV_RECOVERY")
     }
 }
