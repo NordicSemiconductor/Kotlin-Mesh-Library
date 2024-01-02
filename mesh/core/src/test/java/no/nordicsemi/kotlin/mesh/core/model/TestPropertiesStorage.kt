@@ -10,17 +10,23 @@ import java.util.UUID
  * Mocked for tests.
  */
 internal class TestPropertiesStorage : SecurePropertiesStorage {
-    override var ivIndex: IvIndex
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override var lastTransitionDate: Instant
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override var isIvRecoveryActive: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override suspend fun ivIndex(uuid: UUID): IvIndex {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun storeIvIndex(uuid: UUID, ivIndex: IvIndex) {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun nextSequenceNumber(uuid: UUID, address: UnicastAddress): UInt {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun storeNextSequenceNumber(
+        uuid: UUID,
+        address: UnicastAddress,
+        sequenceNumber: UInt
+    ) {
         TODO("Not yet implemented")
     }
 
