@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.nordic.kotlin) apply false
     alias(libs.plugins.nordic.hilt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.wire) apply false
     id("org.jetbrains.dokka")
 }
 
