@@ -6,7 +6,6 @@ import android.content.Context
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.protobuf.InvalidProtocolBufferException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,12 +23,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
-
-private val Context.securePropertiesDataStore: DataStore<ProtoSecurePropertiesMap> by dataStore(
-    fileName = "SecureProperties",
-    serializer = SecurePropertiesSerializer
-)
-
 
 class MeshSecurePropertiesStorage @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -101,7 +94,9 @@ class MeshSecurePropertiesStorage @Inject constructor(
 
     override suspend fun previousSeqAuthValue(uuid: UUID, source: UnicastAddress) =
         securePropertiesStore.data.map {
-            it.properties[uuid.toString()]?.seqAuths?.get(source.address.toInt())?.previous?.toULong()
+            it.properties[uuid.toString()]?.seqAuths?.get(
+                source.address.toInt()
+            )?.previous?.toULong()
         }.first() ?: 0uL
 
     override suspend fun storePreviousSeqAuthValue(
