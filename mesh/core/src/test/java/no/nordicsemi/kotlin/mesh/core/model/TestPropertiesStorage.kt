@@ -1,8 +1,5 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.SecurePropertiesStorage
 import java.util.UUID
 
