@@ -2,18 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
-import no.nordicsemi.kotlin.mesh.core.NetworkPropertiesStorage
+import no.nordicsemi.kotlin.mesh.core.SecurePropertiesStorage
 import java.util.UUID
 
 /**
  * Mocked for tests.
  */
-internal class TestPropertiesStorage : NetworkPropertiesStorage {
-    override val sequenceNumbers: MutableMap<UnicastAddress, UInt>
-        get() = TODO("Not yet implemented")
+internal class TestPropertiesStorage : SecurePropertiesStorage {
     override var ivIndex: IvIndex
         get() = TODO("Not yet implemented")
         set(value) {}
@@ -24,35 +20,35 @@ internal class TestPropertiesStorage : NetworkPropertiesStorage {
         get() = TODO("Not yet implemented")
         set(value) {}
 
-    override suspend fun load(scope: CoroutineScope, uuid: UUID, addresses: List<UnicastAddress>) {
+    override suspend fun nextSequenceNumber(uuid: UUID, address: UnicastAddress): UInt {
         TODO("Not yet implemented")
     }
 
-    override suspend fun save(uuid: UUID) {
+    override suspend fun resetSequenceNumber(uuid: UUID, address: UnicastAddress) {
         TODO("Not yet implemented")
     }
 
-    override fun lastSeqAuthValue(source: Address): Flow<ULong?> {
+    override suspend fun lastSeqAuthValue(uuid: UUID, source: UnicastAddress): ULong? {
         TODO("Not yet implemented")
     }
 
-    override suspend fun storeLastSeqAuthValue(lastSeqAuth: ULong, source: Address) {
+    override suspend fun storeLastSeqAuthValue(
+        uuid: UUID,
+        source: UnicastAddress,
+        lastSeqAuth: ULong
+    ) {
         TODO("Not yet implemented")
     }
 
-    override fun previousSeqAuthValue(source: Address): Flow<ULong?> {
+    override suspend fun previousSeqAuthValue(uuid: UUID, source: UnicastAddress): ULong? {
         TODO("Not yet implemented")
     }
 
-    override suspend fun storePreviousSeqAuthValue(seqAuth: ULong, source: Address) {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun removeSeqAuthValues(node: Node) {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun removeSeqAuthValues(source: Address) {
+    override suspend fun storePreviousSeqAuthValue(
+        uuid: UUID,
+        source: UnicastAddress,
+        seqAuth: ULong
+    ) {
         TODO("Not yet implemented")
     }
 }

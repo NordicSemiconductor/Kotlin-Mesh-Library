@@ -10,7 +10,7 @@ class GroupTest {
 
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
-        networkProperties = TestPropertiesStorage(),
+        secureProperties = TestPropertiesStorage(),
         scope = TestScope()
     )
     private lateinit var meshNetwork: MeshNetwork

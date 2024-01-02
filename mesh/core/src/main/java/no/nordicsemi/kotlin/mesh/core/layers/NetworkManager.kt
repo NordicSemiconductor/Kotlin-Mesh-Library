@@ -60,7 +60,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     val logger: Logger?
         get() = manager.logger
 
-    val networkPropertiesStorage = manager.networkProperties
+    val securePropertiesStorage = manager.secureProperties
     internal var networkLayer = NetworkLayer(this)
         private set
     internal var lowerTransportLayer = LowerTransportLayer(this)

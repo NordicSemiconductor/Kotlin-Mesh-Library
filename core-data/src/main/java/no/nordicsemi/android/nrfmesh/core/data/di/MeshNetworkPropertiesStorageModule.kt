@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
-import no.nordicsemi.android.nrfmesh.core.data.storage.MeshNetworkPropertiesStorage
+import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -21,5 +21,5 @@ object MeshNetworkPropertiesStorageModule {
     fun provideMeshNetworkPropertiesStorage(
         @ApplicationContext context: Context,
         @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
-    ) = MeshNetworkPropertiesStorage(context = context, ioDispatcher = ioDispatcher)
+    ) = MeshSecurePropertiesStorage(context = context, ioDispatcher = ioDispatcher)
 }
