@@ -1,11 +1,16 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.wire)
 }
 
 
 android {
     namespace = "no.nordicsemi.android.nrfmesh.core.data"
+}
+
+wire {
+    kotlin {}
 }
 
 dependencies {

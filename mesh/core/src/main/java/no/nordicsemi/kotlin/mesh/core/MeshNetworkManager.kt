@@ -38,7 +38,6 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.addresses
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
@@ -53,7 +52,7 @@ import java.util.*
  *
  * @param storage               Custom storage option allowing users to save the mesh network to a
  *                              custom location.
- * @param networkProperties     Custom storage option allowing users to save the sequence number.
+ * @param secureProperties     Custom storage option allowing users to save the sequence number.
  * @param scope                 The scope in which the mesh network will be created.
  * @property meshBearer         Mesh bearer is responsible for sending and receiving mesh messages.
  * @property logger             The logger is responsible for logging mesh messages.
@@ -61,7 +60,7 @@ import java.util.*
  */
 class MeshNetworkManager(
     private val storage: Storage,
-    internal val networkProperties: NetworkPropertiesStorage,
+    internal val secureProperties: SecurePropertiesStorage,
     internal val scope: CoroutineScope
 ) {
     private val mutex by lazy { Mutex() }
@@ -98,7 +97,6 @@ class MeshNetworkManager(
 
     init {
         proxyFilter = ProxyFilter(scope = scope).also { it.use(this) }
-        // observeNetworkManagerEvents()
     }
 
     /**
@@ -108,11 +106,6 @@ class MeshNetworkManager(
      */
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
-        networkProperties.load(
-            scope = scope,
-            uuid = meshNetwork.uuid,
-            addresses = meshNetwork.nodes.addresses()
-        )
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)

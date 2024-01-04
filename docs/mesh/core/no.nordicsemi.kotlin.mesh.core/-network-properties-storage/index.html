@@ -62,7 +62,7 @@
   <div class="breadcrumbs"><a href="../../index.html">core</a><span class="delimiter">/</span><a href="../index.html">no.nordicsemi.kotlin.mesh.core</a><span class="delimiter">/</span><span class="current">NetworkPropertiesStorage</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Network</span><wbr><span>Properties</span><wbr><span><span>Storage</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">NetworkPropertiesStorage</a></div><p class="paragraph">Storage class used to load and store generate sequence numbers for each unicast address.</p><p class="paragraph">This is further extended with helper methods for handling Sequence Numbers of outgoing messages from the local Node. Each message must contain a unique 24-bit Sequence Number, which together with 32-bit IV Index ensure that replay attacks are not possible.</p><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="next-sequence-number.html"><span>Network</span><wbr><span>Properties</span><wbr><span>Storage.</span><wbr><span>next</span><wbr><span>Sequence</span><wbr><span><span>Number</span></span></a></div></span></div><div><div class="title"><p class="paragraph">, <a href="reset-sequence-number.html">NetworkPropertiesStorage.resetSequenceNumber</a>, <a href="remove-sequence-number.html">NetworkPropertiesStorage.removeSequenceNumber</a></p></div></div></div></div></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">NetworkPropertiesStorage</a></div><p class="paragraph">Storage class used to load and store generate sequence numbers for each Unicast Address.</p><p class="paragraph">This is further extended with helper methods for handling Sequence Numbers of outgoing messages from the local Node. Each message must contain a unique 24-bit Sequence Number, which together with 32-bit IV Index ensure that replay attacks are not possible.</p><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="next-sequence-number.html"><span>Network</span><wbr><span>Properties</span><wbr><span>Storage.</span><wbr><span>next</span><wbr><span>Sequence</span><wbr><span><span>Number</span></span></a></div></span></div><div><div class="title"><p class="paragraph">, <a href="reset-sequence-number.html">NetworkPropertiesStorage.resetSequenceNumber</a></p></div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -114,51 +114,21 @@
               </div>
             </div>
           </div>
-<a data-name="-1847867053%2FProperties%2F1143283918" anchor-label="sequenceNumbers" id="-1847867053%2FProperties%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="sequence-numbers.html"><span>sequence</span><wbr><span><span>Numbers</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1847867053%2FProperties%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="sequence-numbers.html">sequenceNumbers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-map/index.html">MutableMap</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-int/index.html">UInt</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Contains the sequence number for each unicast address.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-856700432%2FFunctions%2F1143283918" anchor-label="lastSeqAuthValue" id="-856700432%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+        <div class="table"><a data-name="1256345415%2FFunctions%2F1143283918" anchor-label="lastSeqAuthValue" id="1256345415%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="last-seq-auth-value.html"><span>last</span><wbr><span>Seq</span><wbr><span>Auth</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-856700432%2FFunctions%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1256345415%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="last-seq-auth-value.html"><span class="token function">lastSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-address/index.html">Address</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the last received SeqAuth value for the given source address or null if no message has ever been received from the given source address.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="301071960%2FFunctions%2F1143283918" anchor-label="load" id="301071960%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="load.html"><span><span>load</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="301071960%2FFunctions%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="load.html"><span class="token function">load</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scope<span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span><span class="token punctuation">, </span></span><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">addresses<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Loads Network Properties for a given <a href="load.html">uuid</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="last-seq-auth-value.html"><span class="token function">lastSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the last received SeqAuth value for the given source address or null if no message has ever been received from the given source address.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -173,112 +143,67 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="next-sequence-number.html"><span class="token function">nextSequenceNumber</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">address<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-int/index.html">UInt</a></div><div class="brief "><p class="paragraph">Returns the next SEQ number to be used to send a message from the given Unicast Address. Each time this method is called returned value is incremented by 1. Size of SEQ is 24 bits.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="next-sequence-number.html"><span class="token function">nextSequenceNumber</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">address<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-int/index.html">UInt</a></div><div class="brief "><p class="paragraph">Returns the next SEQ number to be used to send a message from the given Unicast Address. Each time this method is called returned value is incremented by 1. Size of SEQ is 24 bits.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1558044817%2FFunctions%2F1143283918" anchor-label="previousSeqAuthValue" id="1558044817%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+<a data-name="-1679779002%2FFunctions%2F1143283918" anchor-label="previousSeqAuthValue" id="-1679779002%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="previous-seq-auth-value.html"><span>previous</span><wbr><span>Seq</span><wbr><span>Auth</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1558044817%2FFunctions%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1679779002%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="previous-seq-auth-value.html"><span class="token function">previousSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-address/index.html">Address</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the previous SeqAuth value for the given source address.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="previous-seq-auth-value.html"><span class="token function">previousSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the previous SeqAuth value for the given source address.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="215768644%2FFunctions%2F1143283918" anchor-label="removeSeqAuthValues" id="215768644%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="remove-seq-auth-values.html"><span>remove</span><wbr><span>Seq</span><wbr><span>Auth</span><wbr><span><span>Values</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="215768644%2FFunctions%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove-seq-auth-values.html"><span class="token function">removeSeqAuthValues</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-address/index.html">Address</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes all known SeqAuth values associated with any of the Elements of the given remote Node.</p></div><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove-seq-auth-values.html"><span class="token function">removeSeqAuthValues</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">node<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-node/index.html">Node</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes all SeqAuth values associated with any of the elements of a given node.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1779871417%2FFunctions%2F1143283918" anchor-label="removeSequenceNumber" id="1779871417%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="remove-sequence-number.html"><span>remove</span><wbr><span>Sequence</span><wbr><span><span>Number</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1779871417%2FFunctions%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove-sequence-number.html"><span class="token function">removeSequenceNumber</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">address<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes the sequence number associated with the given unicast address.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1638380657%2FFunctions%2F1143283918" anchor-label="resetSequenceNumber" id="-1638380657%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+<a data-name="29799788%2FFunctions%2F1143283918" anchor-label="resetSequenceNumber" id="29799788%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-sequence-number.html"><span>reset</span><wbr><span>Sequence</span><wbr><span><span>Number</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1638380657%2FFunctions%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="29799788%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="reset-sequence-number.html"><span class="token function">resetSequenceNumber</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">node<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-node/index.html">Node</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Resets the SEQ associated with all Elements of the given Node to 0. This method should be called when the IV Index is incremented and SEQ number should be reset.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="reset-sequence-number.html"><span class="token function">resetSequenceNumber</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">address<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Resets the SEQ associated with all Elements of the given Node to 0.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1749592518%2FFunctions%2F1143283918" anchor-label="save" id="1749592518%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="save.html"><span><span>save</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1749592518%2FFunctions%2F1143283918"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="save.html"><span class="token function">save</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stores the network properties for the given <a href="save.html">uuid</a>.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-975217978%2FFunctions%2F1143283918" anchor-label="storeLastSeqAuthValue" id="-975217978%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+<a data-name="1961568183%2FFunctions%2F1143283918" anchor-label="storeLastSeqAuthValue" id="1961568183%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="store-last-seq-auth-value.html"><span>store</span><wbr><span>Last</span><wbr><span>Seq</span><wbr><span>Auth</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-975217978%2FFunctions%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1961568183%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-last-seq-auth-value.html"><span class="token function">storeLastSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">lastSeqAuth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-address/index.html">Address</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stores the last received SeqAuth value for the given source address.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-last-seq-auth-value.html"><span class="token function">storeLastSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a><span class="token punctuation">, </span></span><span class="parameter ">lastSeqAuth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stores the last received SeqAuth value for the given source address.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1309250747%2FFunctions%2F1143283918" anchor-label="storePreviousSeqAuthValue" id="-1309250747%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
+<a data-name="348252312%2FFunctions%2F1143283918" anchor-label="storePreviousSeqAuthValue" id="348252312%2FFunctions%2F1143283918" data-filterable-set=":mesh:core:dokkaHtmlPartial/main"></a>
           <div class="table-row" data-filterable-current=":mesh:core:dokkaHtmlPartial/main" data-filterable-set=":mesh:core:dokkaHtmlPartial/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="store-previous-seq-auth-value.html"><span>store</span><wbr><span>Previous</span><wbr><span>Seq</span><wbr><span>Auth</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1309250747%2FFunctions%2F1143283918"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="348252312%2FFunctions%2F1143283918"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-previous-seq-auth-value.html"><span class="token function">storePreviousSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">seqAuth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-address/index.html">Address</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stores the previously received SeqAuth value for the given source address, or nil if no more than 1 message has ever been received from the given source address.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-previous-seq-auth-value.html"><span class="token function">storePreviousSeqAuthValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uuid<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html">UUID</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core.model/-unicast-address/index.html">UnicastAddress</a><span class="token punctuation">, </span></span><span class="parameter ">seqAuth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stores the previously received SeqAuth value for the given source address.</p></div></div></div>
                 </div>
               </div>
             </div>

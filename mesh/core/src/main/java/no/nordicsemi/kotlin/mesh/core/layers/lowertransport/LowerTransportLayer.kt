@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -50,7 +49,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private val network = networkManager.meshNetwork
     private val logger: Logger?
         get() = networkManager.logger
-    private val storage = networkManager.networkPropertiesStorage
+    private val storage = networkManager.securePropertiesStorage
     val scope = networkManager.scope
     private val mutex = Mutex()
     private val networkParams: NetworkParameters
@@ -280,7 +279,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
         val sequence = networkPdu.messageSequence
         val receivedSeqAuth = (networkPdu.ivIndex.toULong() shl 24) or sequence.toULong()
-        storage.lastSeqAuthValue(networkPdu.source.address).firstOrNull()?.let { localSeqAuth ->
+        val source = networkPdu.source as UnicastAddress
+        storage.lastSeqAuthValue(network.uuid, source)?.let { localSeqAuth ->
             // In general, the SeqAuth of the received message must be greater than SeqAuth of any
             // previously received message from the same source. However, for SAR (Segmentation and
             // Reassembly) sessions, the SeqAuth of the message must be checked not the SeqAuth of
@@ -303,7 +303,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             // message has SeqAuth less than the last one, but greater thant he previous one, it
             // could not be used to reply attack, as no message with that SeqAuth was ever reached.
             var missed = false
-            storage.previousSeqAuthValue(networkPdu.source.address).firstOrNull()
+            storage.previousSeqAuthValue(network.uuid, source)
                 ?.let { previousSeqAuth ->
                     missed = (receivedSeqAuth < localSeqAuth) && (receivedSeqAuth > previousSeqAuth)
                 }
@@ -319,13 +319,21 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
             // The message is valid. Remember the previous SeqAuth.
             val newPreviousSeqAuth = min(receivedSeqAuth, localSeqAuth)
-            storage.storePreviousSeqAuthValue(newPreviousSeqAuth, networkPdu.source.address)
+            storage.storePreviousSeqAuthValue(
+                uuid = network.uuid,
+                source = networkPdu.source,
+                seqAuth = newPreviousSeqAuth
+            )
 
             // If the message was processed after its successor, don;t overwrite the last SeqAuth
             if (missed) return true
         }
 
-        storage.storeLastSeqAuthValue(receivedSeqAuth, networkPdu.source.address)
+        storage.storeLastSeqAuthValue(
+            uuid = network.uuid,
+            source = source,
+            lastSeqAuth = receivedSeqAuth
+        )
         return true
     }
 

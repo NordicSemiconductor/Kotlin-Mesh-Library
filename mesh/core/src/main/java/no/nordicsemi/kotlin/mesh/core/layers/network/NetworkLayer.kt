@@ -43,8 +43,8 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
     private val logger: Logger?
         get() = networkManager.logger
     private val mutex = Mutex()
-    private val networkPropertiesStorage
-        get() = networkManager.networkPropertiesStorage
+    private val secureProperties
+        get() = networkManager.securePropertiesStorage
     private var proxyNetworkKey: NetworkKey? = null
     private val networkMessageCache = mutableMapOf<ByteArray, Any?>()
 
@@ -270,8 +270,8 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      *
      * @param address Local source address.
      */
-    suspend fun nextSequenceNumber(address: UnicastAddress): UInt =
-        networkPropertiesStorage.nextSequenceNumber(meshNetwork.uuid, address)
+    suspend fun nextSequenceNumber(address: UnicastAddress) =
+        secureProperties.nextSequenceNumber(meshNetwork.uuid, address)
 
     /**
      * This method handles the Unprovisioned Device beacon. The current implementation does nothing,
@@ -306,9 +306,9 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
         }
 
-        val lastIvIndex = networkPropertiesStorage.ivIndex
-        val lastTransitionDate = networkPropertiesStorage.lastTransitionDate
-        val isIvRecoveryActive = networkPropertiesStorage.isIvRecoveryActive
+        val lastIvIndex = secureProperties.ivIndex(uuid = meshNetwork.uuid)
+        val lastTransitionDate = lastIvIndex.transitionDate
+        val isIvRecoveryActive = lastIvIndex.isIvUpdateActive
 
         val isIvTestModeActive = networkManager.networkParameters.ivUpdateTestMode
         val flag = networkManager.networkParameters.allowIvIndexRecoveryOver42
@@ -330,28 +330,33 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     it.ivIndex.transmitIvIndex > lastIvIndex.transmitIvIndex
                 ) {
                     logger?.i(LogCategory.NETWORK) { "Resetting local sequence numbers to 0" }
-                    networkPropertiesStorage.resetSequenceNumber(
-                        uuid = meshNetwork.uuid, node = it.localProvisioner!!.node!!
+                    secureProperties.resetSequenceNumber(
+                        uuid = meshNetwork.uuid,
+                        address = it.localProvisioner!!.node!!._primaryUnicastAddress
                     )
                 }
             }
-            // Store the last IV Index
-            networkPropertiesStorage.ivIndex = meshNetwork.ivIndex
+
+            // iOS Lib stores iv index, transition date and the recovery flag separately.
+            // According to the sample app implementation the whole iv index is stored after the
+            // if statement below.
             if (lastIvIndex != meshNetwork.ivIndex) {
-                networkPropertiesStorage.lastTransitionDate = Clock.System.now()
-                val ivRecovery = meshNetwork.ivIndex.index > lastIvIndex.index + 1u &&
-                        !networkBeacon.ivIndex.isIvUpdateActive
-                networkPropertiesStorage.isIvRecoveryActive = ivRecovery
+                meshNetwork.ivIndex = meshNetwork.ivIndex.copy(transitionDate = Clock.System.now())
+                    .apply {
+                        ivRecoveryFlag =
+                            (index > (lastIvIndex.index + 1u)) &&
+                                    !networkBeacon.ivIndex.isIvUpdateActive
+                    }
             }
+            // Store the last IV Index
+            secureProperties.storeIvIndex(uuid = meshNetwork.uuid, ivIndex = meshNetwork.ivIndex)
 
             // If the Key Refresh procedure is in progress, and the new Network Key has already been
             // set, the key refresh flag indicates switching to phase 2
             if (networkKey.phase is KeyDistribution &&
                 networkBeacon.validForKeyRefreshProcedure &&
                 !networkBeacon.keyRefreshFlag
-            ) {
-                networkKey.phase = UsingNewKeys
-            }
+            ) networkKey.phase = UsingNewKeys
 
             // if the Key Refresh Procedure is in Phase 2, and the key refresh flag is set to false.
             if (networkKey.phase is UsingNewKeys &&
@@ -362,7 +367,6 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 networkKey.oldKey = null // This will set the phase to NormalOperation
                 // ...and old application keys bound to it
                 meshNetwork._applicationKeys.boundTo(networkKey).forEach { it.oldKey = null }
-
             }
 
         } else if (networkBeacon.ivIndex != lastIvIndex.previous) {
