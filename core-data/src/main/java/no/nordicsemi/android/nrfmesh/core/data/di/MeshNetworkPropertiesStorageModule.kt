@@ -13,7 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
 import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
-import no.nordicsemi.android.nrfmesh.core.data.storage.SecurePropertiesSerializer
+import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoSecurePropertiesMapSerializer
 import javax.inject.Singleton
 
 private const val DATA_STORE_FILE_NAME = "secure_properties.pb"
@@ -28,7 +28,7 @@ object MeshNetworkPropertiesStorageModule {
         @ApplicationContext context: Context,
         @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
     ) = DataStoreFactory.create(
-        serializer = SecurePropertiesSerializer,
+        serializer = ProtoSecurePropertiesMapSerializer,
         produceFile = { context.dataStoreFile(DATA_STORE_FILE_NAME) },
         corruptionHandler = null,
         scope = CoroutineScope(ioDispatcher + SupervisorJob())
