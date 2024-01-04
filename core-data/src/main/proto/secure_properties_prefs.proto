@@ -5,20 +5,20 @@ option java_multiple_files = true;
 message ProtoSecurePropertiesMap {
   map<string, ProtoSecureProperties> properties = 1;
 }
+
 message ProtoSecureProperties {
   ProtoIvIndex ivIndex = 1;
-  bool isIvRecoveryActive = 2;
-  map<uint32, uint32> sequenceNumbers = 3;
-  map<uint32, ProtoSeqAuth> seqAuths = 4;
-}
-
-message ProtoSeqAuth {
-  uint64 last = 1;
-  uint64 previous = 2;
+  map<uint32, uint32> sequenceNumbers = 2;
+  map<uint32, ProtoSeqAuth> seqAuths = 3;
 }
 
 message ProtoIvIndex {
   uint32 index = 1;
   bool updateActive = 2;
   uint64 transitionDate = 3;
+}
+
+message ProtoSeqAuth {
+  uint64 last = 1;
+  uint64 previous = 2;
 }
