@@ -4,14 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
@@ -23,27 +24,28 @@ internal class NetworkKeysViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
 
-    private val _uiState = MutableStateFlow(NetworkKeysScreenUiState(listOf()))
-    val uiState: StateFlow<NetworkKeysScreenUiState> = _uiState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        NetworkKeysScreenUiState()
-    )
-
     private lateinit var network: MeshNetwork
-    private var keysToBeRemoved = mutableListOf<NetworkKey>()
+
+    private val _uiState = MutableStateFlow(NetworkKeysScreenUiState(listOf()))
+    val uiState: StateFlow<NetworkKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@NetworkKeysViewModel.network = network
-                _uiState.value = NetworkKeysScreenUiState(keys = filterKeysToBeRemoved())
+                _uiState.update { state ->
+                    val keys = network.networkKeys.toList()
+                    state.copy(
+                        keys = keys,
+                        keysToBeRemoved = keys.filter { it in state.keysToBeRemoved }
+                    )
+                }
             }
         }
     }
 
     override fun onCleared() {
-        removeKeys()
+        removeAllKeys()
         super.onCleared()
     }
 
@@ -54,11 +56,7 @@ internal class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Adds a network key to the network.
      */
-    internal fun addNetworkKey(): NetworkKey {
-        // Let's delete any keys that are queued for deletion before adding a new.
-        removeKeys()
-        return network.add(name = "nRF Network Key")
-    }
+    internal fun addNetworkKey(): NetworkKey = network.add(name = "nRF Network Key")
 
     /**
      * Invoked when a key is swiped to be deleted. The given key is added to a list of keys that
@@ -66,13 +64,14 @@ internal class NetworkKeysViewModel @Inject internal constructor(
      *
      * @param key Network key to be deleted.
      */
-    fun onSwiped(key: NetworkKey): Boolean = if (!key.isInUse) {
-        if (!keysToBeRemoved.contains(key))
-            keysToBeRemoved.add(key)
-        if (keysToBeRemoved.size == network.networkKeys.size)
-            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
-        true
-    } else false
+
+    fun onSwiped(key: NetworkKey) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(keysToBeRemoved = it.keysToBeRemoved + key)
+            }
+        }
+    }
 
     /**
      * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
@@ -80,10 +79,11 @@ internal class NetworkKeysViewModel @Inject internal constructor(
      *
      * @param key Network key to be reverted.
      */
+
     fun onUndoSwipe(key: NetworkKey) {
-        keysToBeRemoved.remove(key)
-        if (keysToBeRemoved.isEmpty())
-            _uiState.value = NetworkKeysScreenUiState(keys = filterKeysToBeRemoved())
+        _uiState.update {
+            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
+        }
     }
 
     /**
@@ -92,32 +92,21 @@ internal class NetworkKeysViewModel @Inject internal constructor(
      * @param key Key to be removed.
      */
     internal fun remove(key: NetworkKey) {
-        network.apply {
-            networkKeys.find { it == key }?.let {
-                remove(it)
-            }
+        _uiState.update {
+            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
         }
-        keysToBeRemoved.remove(key)
-    }
-
-    /**
-     * Removes the keys from a network.
-     */
-    private fun removeKeys() {
-        remove()
+        network.remove(key)
         save()
     }
 
     /**
-     * Removes the keys from the network.
+     * Removes all keys that are queued for deletion.
      */
-    private fun remove() {
-        network.networkKeys.filter {
-            it in keysToBeRemoved
-        }.forEach {
+    private fun removeAllKeys() {
+        _uiState.value.keysToBeRemoved.forEach {
             network.remove(it)
         }
-        keysToBeRemoved.clear()
+        save()
     }
 
     /**
@@ -128,12 +117,9 @@ internal class NetworkKeysViewModel @Inject internal constructor(
             repository.save()
         }
     }
-
-    private fun filterKeysToBeRemoved() = network.networkKeys.filter {
-        it !in keysToBeRemoved
-    }
 }
 
 data class NetworkKeysScreenUiState internal constructor(
-    val keys: List<NetworkKey> = listOf()
+    val keys: List<NetworkKey> = listOf(),
+    val keysToBeRemoved: List<NetworkKey> = listOf()
 )

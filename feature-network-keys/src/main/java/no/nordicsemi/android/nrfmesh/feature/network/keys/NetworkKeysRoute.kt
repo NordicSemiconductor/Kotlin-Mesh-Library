@@ -50,7 +50,7 @@ private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
@@ -98,7 +98,7 @@ private fun NetworkKeys(
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
     navigateToKey: (KeyIndex) -> Unit,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
@@ -129,12 +129,20 @@ private fun SwipeToDismissKey(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     navigateToNetworkKey: (KeyIndex) -> Unit,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberDismissState()
+    var shouldNotDismiss by remember {
+        mutableStateOf(false)
+    }
+    val dismissState = rememberSwipeToDismissState(
+        confirmValueChange = {
+            shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
+            !shouldNotDismiss
+        }
+    )
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
@@ -157,31 +165,39 @@ private fun SwipeToDismissKey(
             }
         }
     )
-    if (dismissState.currentValue != DismissValue.Default) {
-        if (onSwiped(key)) {
+
+    if (shouldNotDismiss) {
+        LaunchedEffect(snackbarHostState) {
             showSnackbar(
                 scope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                message = stringResource(R.string.label_network_key_deleted),
-                actionLabel = stringResource(R.string.action_undo),
-                onDismissed = { remove(key) },
-                onActionPerformed = {
-                    coroutineScope.launch {
+                message = context.getString(
+                    if (key.index.toUInt() == 0.toUInt())
+                        R.string.error_cannot_delete_primary_network_key
+                    else
+                        R.string.error_cannot_delete_key_in_use
+                ),
+                duration = SnackbarDuration.Short,
+                onDismissed = { shouldNotDismiss = false }
+            )
+        }
+    }
+    if (dismissState.isDismissed()) {
+        LaunchedEffect(snackbarHostState) {
+            onSwiped(key)
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.label_network_key_deleted),
+                actionLabel = context.getString(R.string.action_undo),
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            ).also {
+                when (it) {
+                    SnackbarResult.Dismissed -> remove(key)
+                    SnackbarResult.ActionPerformed -> {
                         dismissState.reset()
                         onUndoClicked(key)
                     }
-                },
-                withDismissAction = true
-            )
-        } else {
-            LaunchedEffect(key1 = dismissState) {
-                dismissState.reset()
-                showSnackbar(
-                    scope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    message = context.getString(R.string.error_cannot_delete_key_in_use),
-                    withDismissAction = true
-                )
+                }
             }
         }
     }
