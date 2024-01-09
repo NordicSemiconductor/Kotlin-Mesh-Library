@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.10.4")
+            from("no.nordicsemi.android.gradle:version-catalog:1.11.2")
         }
     }
 }
@@ -55,8 +55,6 @@ include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
 
-/*
-if (file("../Kotlin-BLE-Library").exists()) {
-    includeBuild("../Kotlin-BLE-Library")
-}
-*/
+/*if (file("../Android-Gradle-Plugins").exists()) {
+    includeBuild("../Android-Gradle-Plugins")
+}*/
