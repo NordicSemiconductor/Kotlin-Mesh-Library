@@ -44,8 +44,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeAllKeys()
+        super.onCleared()
     }
 
     internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
