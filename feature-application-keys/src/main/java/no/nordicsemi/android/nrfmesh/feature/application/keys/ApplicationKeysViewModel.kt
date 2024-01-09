@@ -55,13 +55,10 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     /**
      * Adds an application key to the network.
      */
-    internal fun addApplicationKey(): ApplicationKey {
-        // Let's delete any keys that are queued for deletion before adding a new.
-        return network.add(
-            name = "nRF Application Key",
-            boundNetworkKey = network.networkKeys.first()
-        )
-    }
+    internal fun addApplicationKey(): ApplicationKey = network.add(
+        name = "nRF Application Key",
+        boundNetworkKey = network.networkKeys.first()
+    )
 
     fun onSwiped(key: ApplicationKey) {
         viewModelScope.launch {
