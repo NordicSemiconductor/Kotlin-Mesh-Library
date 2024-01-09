@@ -43,6 +43,10 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
         ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
     )
 
+    init {
+        save()
+    }
+
     override fun onCleared() {
         super.onCleared()
         save()
