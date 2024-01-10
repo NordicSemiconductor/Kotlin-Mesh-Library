@@ -36,9 +36,9 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
             )
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
     )
 
     init {
