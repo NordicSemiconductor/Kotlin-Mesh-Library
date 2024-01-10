@@ -32,9 +32,7 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
         ApplicationKeyScreenUiState(
             applicationKeyState = ApplicationKeyState.Success(
                 applicationKey = key,
-                networkKeys = mutableListOf<NetworkKey>().apply {
-                    addAll(network.networkKeys)
-                }.toList()
+                networkKeys = network.networkKeys.toList()
             )
         )
     }.stateIn(
@@ -44,11 +42,6 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     )
 
     init {
-        save()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
         save()
     }
 
