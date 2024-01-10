@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,12 +16,11 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
@@ -52,7 +52,7 @@ private fun ProvisionersScreen(
     onUndoClicked: (Provisioner) -> Unit,
     remove: (Provisioner) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -76,7 +76,7 @@ private fun ProvisionersScreen(
             )
 
             false -> Provisioners(
-                coroutineScope = coroutineScope,
+                context = context,
                 snackbarHostState = snackbarHostState,
                 provisioners = uiState.provisioners,
                 navigateToProvisioner = navigateToProvisioner,
@@ -90,7 +90,7 @@ private fun ProvisionersScreen(
 
 @Composable
 private fun Provisioners(
-    coroutineScope: CoroutineScope,
+    context: Context,
     snackbarHostState: SnackbarHostState,
     provisioners: List<Provisioner>,
     navigateToProvisioner: (UUID) -> Unit,
@@ -103,7 +103,7 @@ private fun Provisioners(
         items(items = provisioners, key = { it.uuid }) { provisioner ->
             SwipeToDismissProvisioner(
                 provisioner = provisioner,
-                coroutineScope = coroutineScope,
+                context = context,
                 snackbarHostState = snackbarHostState,
                 navigateToProvisioner = navigateToProvisioner,
                 onSwiped = onSwiped,
@@ -117,7 +117,7 @@ private fun Provisioners(
 @Composable
 private fun SwipeToDismissProvisioner(
     provisioner: Provisioner,
-    coroutineScope: CoroutineScope,
+    context: Context,
     snackbarHostState: SnackbarHostState,
     navigateToProvisioner: (UUID) -> Unit,
     onSwiped: (Provisioner) -> Unit,
@@ -125,7 +125,7 @@ private fun SwipeToDismissProvisioner(
     remove: (Provisioner) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberDismissState()
+    val dismissState = rememberSwipeToDismissState()
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
@@ -148,21 +148,23 @@ private fun SwipeToDismissProvisioner(
             }
         }
     )
-    if (dismissState.currentValue != DismissValue.Default) {
-        onSwiped(provisioner)
-        showSnackbar(
-            scope = coroutineScope,
-            snackbarHostState = snackbarHostState,
-            message = stringResource(R.string.label_provisioner_deleted),
-            actionLabel = stringResource(R.string.action_undo),
-            onDismissed = { remove(provisioner) },
-            onActionPerformed = {
-                coroutineScope.launch {
-                    dismissState.reset()
-                    onUndoClicked(provisioner)
+    if (dismissState.isDismissed()) {
+        LaunchedEffect(snackbarHostState) {
+            onSwiped(provisioner)
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.label_provisioner_deleted),
+                actionLabel = context.getString(R.string.action_undo),
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            ).also {
+                when (it) {
+                    SnackbarResult.Dismissed -> remove(provisioner)
+                    SnackbarResult.ActionPerformed -> {
+                        dismissState.reset()
+                        onUndoClicked(provisioner)
+                    }
                 }
-            },
-            withDismissAction = true
-        )
+            }
+        }
     }
 }
