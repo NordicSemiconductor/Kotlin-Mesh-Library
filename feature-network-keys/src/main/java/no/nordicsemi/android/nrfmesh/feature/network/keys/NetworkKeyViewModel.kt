@@ -3,12 +3,9 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
@@ -28,11 +25,8 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     private lateinit var key: NetworkKey
     private val netKeyIndexArg: KeyIndex = parameterOf(networkKey).toUShort()
 
-
-    private val _uiState = MutableStateFlow(NetworkKeyScreenUiState(NetworkKeyState.Loading))
     val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
-        this@NetworkKeyViewModel.key =
-            network.networkKey(netKeyIndexArg)
+        this@NetworkKeyViewModel.key = network.networkKey(netKeyIndexArg)
         NetworkKeyScreenUiState(
             networkKeyState = NetworkKeyState.Success(
                 networkKey = key
@@ -80,7 +74,7 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     /**
      * Saves the network.
      */
-    internal fun save() {
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }
