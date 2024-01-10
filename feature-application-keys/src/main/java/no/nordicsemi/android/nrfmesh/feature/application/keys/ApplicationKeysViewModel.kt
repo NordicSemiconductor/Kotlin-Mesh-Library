@@ -44,7 +44,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     }
 
     override fun onCleared() {
-        removeAllKeys()
+        removeKeys()
         super.onCleared()
     }
 
@@ -90,7 +90,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     /**
      * Removes all keys that are queued for deletion.
      */
-    private fun removeAllKeys() {
+    private fun removeKeys() {
         _uiState.value.keysToBeRemoved.forEach {
             network.remove(it)
         }
