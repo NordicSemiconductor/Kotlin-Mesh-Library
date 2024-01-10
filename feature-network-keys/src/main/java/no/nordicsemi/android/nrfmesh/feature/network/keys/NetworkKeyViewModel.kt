@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,19 +30,22 @@ internal class NetworkKeyViewModel @Inject internal constructor(
 
 
     private val _uiState = MutableStateFlow(NetworkKeyScreenUiState(NetworkKeyState.Loading))
-    val uiState: StateFlow<NetworkKeyScreenUiState> = _uiState.stateIn(
+    val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
+        this@NetworkKeyViewModel.key =
+            network.networkKey(netKeyIndexArg)
+        NetworkKeyScreenUiState(
+            networkKeyState = NetworkKeyState.Success(
+                networkKey = key
+            )
+        )
+    }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
         NetworkKeyScreenUiState(NetworkKeyState.Loading)
     )
 
     init {
-        repository.network.onEach { network ->
-            this@NetworkKeyViewModel.key = network.networkKey(netKeyIndexArg)
-            _uiState.value = NetworkKeyScreenUiState(
-                networkKeyState = NetworkKeyState.Success(networkKey = key)
-            )
-        }.launchIn(viewModelScope)
+        save()
     }
 
     override fun onCleared() {
