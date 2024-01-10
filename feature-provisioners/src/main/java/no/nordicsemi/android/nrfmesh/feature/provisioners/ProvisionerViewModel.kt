@@ -44,13 +44,12 @@ internal class ProvisionerViewModel @Inject internal constructor(
             )
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        ProvisionerScreenUiState(ProvisionerState.Loading)
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ProvisionerScreenUiState(ProvisionerState.Loading)
     )
 
-    override fun onCleared() {
-        super.onCleared()
+    init {
         save()
     }
 
