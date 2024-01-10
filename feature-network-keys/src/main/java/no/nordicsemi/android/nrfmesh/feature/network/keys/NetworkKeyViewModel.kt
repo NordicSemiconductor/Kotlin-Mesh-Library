@@ -42,11 +42,6 @@ internal class NetworkKeyViewModel @Inject internal constructor(
         save()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        save()
-    }
-
     /**
      * Invoked when the name of the network key is changed.
      *
@@ -82,7 +77,7 @@ internal class NetworkKeyViewModel @Inject internal constructor(
 sealed interface NetworkKeyState {
     data class Success(val networkKey: NetworkKey) : NetworkKeyState
     data class Error(val throwable: Throwable) : NetworkKeyState
-    object Loading : NetworkKeyState
+    data object Loading : NetworkKeyState
 }
 
 data class NetworkKeyScreenUiState internal constructor(
