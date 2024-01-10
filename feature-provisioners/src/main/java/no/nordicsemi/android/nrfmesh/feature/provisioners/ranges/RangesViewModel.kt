@@ -23,8 +23,6 @@ internal abstract class RangesViewModel(
 
     private val uuid: UUID by lazy { parameterOf(getDestinationId()) }
 
-    private var rangesToBeRemoved = mutableListOf<Range>()
-
     protected val _uiState = MutableStateFlow(RangesScreenUiState(listOf()))
     val uiState: StateFlow<RangesScreenUiState> = _uiState.stateIn(
         scope = viewModelScope,
@@ -36,15 +34,18 @@ internal abstract class RangesViewModel(
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@RangesViewModel.network = network
-                val ranges1 = network.provisioner(uuid)?.let { provisioner ->
+                val ranges = network.provisioner(uuid)?.let { provisioner ->
                     this@RangesViewModel.provisioner = provisioner
                     getAllocatedRanges()
                 } ?: emptyList()
 
-                _uiState.value = RangesScreenUiState(
-                    ranges = ranges1,
-                    otherRanges = getOtherRanges()
-                )
+                _uiState.update { state ->
+                    state.copy(
+                        ranges = ranges,
+                        otherRanges = getOtherRanges(),
+                        rangesToBeRemoved = ranges.filter { it in state.rangesToBeRemoved }
+                    )
+                }
             }
         }
     }
@@ -52,12 +53,7 @@ internal abstract class RangesViewModel(
     override fun onCleared() {
         super.onCleared()
         // Remove the ranges that were swiped for removal.
-        remove()
-        // Resolve any conflicts if they are not resolved already.
-        resolve()
-        // Allocate the newly added ranges to the provisioner.
-        allocate()
-        save()
+        removeRanges()
     }
 
     /**
@@ -111,8 +107,8 @@ internal abstract class RangesViewModel(
      * @param newRange New range to be updated with.
      */
     protected fun updateRange(range: Range, newRange: Range) {
-        _uiState.value = with(_uiState.value) {
-            copy(ranges = ranges.map {
+        _uiState.update { state ->
+            state.copy(ranges = state.ranges.map {
                 if (it == range) newRange else it
             })
         }
@@ -131,8 +127,8 @@ internal abstract class RangesViewModel(
      * Resolves any conflicting ranges with the other ranges.
      */
     internal fun resolve() {
-        _uiState.value = with(_uiState.value) {
-            copy(ranges = ranges - otherRanges)
+        _uiState.update {
+            it.copy(ranges = it.ranges - it.otherRanges)
         }
     }
 
@@ -153,10 +149,11 @@ internal abstract class RangesViewModel(
      * @param range Range to be deleted.
      */
     internal fun onSwiped(range: Range) {
-        if (!rangesToBeRemoved.contains(range))
-            rangesToBeRemoved.add(range)
-        if (rangesToBeRemoved.size == getAllocatedRanges().size)
-            _uiState.value = _uiState.value.copy(ranges = filterRangesToBeRemoved())
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(rangesToBeRemoved = it.rangesToBeRemoved + range)
+            }
+        }
     }
 
     /**
@@ -166,16 +163,11 @@ internal abstract class RangesViewModel(
      * @param range Scene to be reverted.
      */
     internal fun onUndoSwipe(range: Range) {
-        rangesToBeRemoved.remove(range)
-        if (rangesToBeRemoved.isEmpty())
-            _uiState.value = _uiState.value.copy(ranges = filterRangesToBeRemoved())
-    }
-
-    /**
-     * Filters the ranges to be removed from the list of ranges.
-     */
-    private fun filterRangesToBeRemoved() = _uiState.value.ranges.filter {
-        it !in rangesToBeRemoved
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(rangesToBeRemoved = it.rangesToBeRemoved - range)
+            }
+        }
     }
 
     /**
@@ -184,27 +176,31 @@ internal abstract class RangesViewModel(
      * @param range Range to be removed.
      */
     internal fun remove(range: Range) {
-        rangesToBeRemoved.find { it == range }?.let {
-            rangesToBeRemoved.add(it)
+        _uiState.update {
+            it.copy(rangesToBeRemoved = it.rangesToBeRemoved - range)
         }
+        provisioner.remove(range)
+        save()
     }
 
     /**
-     * Removes the selected ranges from the network.
+     * Removes the ranges that are queued for deletion.
      */
-    private fun remove() {
-        getAllocatedRanges().filter {
-            it in rangesToBeRemoved
-        }.forEach {
+    private fun removeRanges() {
+        _uiState.value.rangesToBeRemoved.forEach {
             provisioner.remove(it)
         }
-        rangesToBeRemoved.clear()
+        // Resolve any conflicts if they are not resolved already.
+        resolve()
+        // Allocate the newly added ranges to the provisioner.
+        allocate()
+        save()
     }
 
     /**
      * Saves the network.
      */
-    private fun save() {
+    protected fun save() {
         viewModelScope.launch { repository.save() }
     }
 
@@ -220,7 +216,8 @@ internal abstract class RangesViewModel(
 
 data class RangesScreenUiState internal constructor(
     val ranges: List<Range> = listOf(),
-    val otherRanges: List<Range> = listOf()
+    val otherRanges: List<Range> = listOf(),
+    val rangesToBeRemoved: List<Range> = listOf()
 ) {
     val conflicts: Boolean
         get() = ranges.overlaps(otherRanges)
