@@ -77,9 +77,9 @@ private fun ApplicationsKeysScreen(
     ) {
         when (uiState.keys.isEmpty()) {
             true -> MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = stringResource(R.string.label_no_keys_added)
-                    )
+                imageVector = Icons.Outlined.VpnKey,
+                title = stringResource(R.string.label_no_keys_added)
+            )
 
             false -> ApplicationKeys(
                 context = context,
@@ -92,7 +92,6 @@ private fun ApplicationsKeysScreen(
                 onUndoClicked = onUndoClicked,
                 remove = remove
             )
-
         }
     }
 }
