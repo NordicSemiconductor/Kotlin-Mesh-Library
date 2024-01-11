@@ -20,4 +20,5 @@
         1. Add a provisioner. "\n"
         2. Allocate a scene range to the provisioner. "\n"
         3. Add a scene.</string>
+    <string name="error_scene_in_use">Scene in use.</string>
 </resources>
