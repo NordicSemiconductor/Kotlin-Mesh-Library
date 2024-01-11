@@ -20,8 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.feature.application.keys.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -30,23 +28,6 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 internal fun ApplicationKeysRoute(
-    viewModel: ApplicationKeysViewModel = hiltViewModel(),
-    navigateToApplicationKey: (KeyIndex) -> Unit
-) {
-    val uiState: ApplicationKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ApplicationsKeysScreen(
-        uiState = uiState,
-        navigateToApplicationKey = navigateToApplicationKey,
-        onAddKeyClicked = viewModel::addApplicationKey,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
-    )
-}
-
-@Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-private fun ApplicationsKeysScreen(
     uiState: ApplicationKeysScreenUiState,
     navigateToApplicationKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> ApplicationKey,
@@ -55,6 +36,28 @@ private fun ApplicationsKeysScreen(
     remove: (ApplicationKey) -> Unit
 ) {
     val context = LocalContext.current
+    ApplicationsKeysScreen(
+        context = context,
+        uiState = uiState,
+        navigateToApplicationKey = navigateToApplicationKey,
+        onAddKeyClicked = onAddKeyClicked,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
+    )
+}
+
+@Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+private fun ApplicationsKeysScreen(
+    context: Context,
+    uiState: ApplicationKeysScreenUiState,
+    navigateToApplicationKey: (KeyIndex) -> Unit,
+    onAddKeyClicked: () -> ApplicationKey,
+    onSwiped: (ApplicationKey) -> Unit,
+    onUndoClicked: (ApplicationKey) -> Unit,
+    remove: (ApplicationKey) -> Unit
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
 

@@ -8,11 +8,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
@@ -48,8 +49,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         super.onCleared()
     }
 
-    internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
-        navigator.navigateTo(destinationId, keyIndex)
+    internal fun navigateToApplicationKey(keyIndex: KeyIndex) {
+        navigator.navigateTo(applicationKey, keyIndex.toInt())
     }
 
     /**
@@ -58,7 +59,9 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     internal fun addApplicationKey(): ApplicationKey = network.add(
         name = "nRF Application Key",
         boundNetworkKey = network.networkKeys.first()
-    )
+    ).also {
+        save()
+    }
 
     fun onSwiped(key: ApplicationKey) {
         viewModelScope.launch {
@@ -101,9 +104,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Saves the network.
      */
     private fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
+        viewModelScope.launch { repository.save() }
     }
 }
 
