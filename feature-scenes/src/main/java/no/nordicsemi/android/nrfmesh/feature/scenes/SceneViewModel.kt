@@ -41,7 +41,6 @@ internal class SceneViewModel @Inject internal constructor(
                             scene = scene
                         )
                     )
-
                     is SceneState.Success -> state.copy(sceneState = sceneState.copy(scene = scene))
                     else -> state
                 }
