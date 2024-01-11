@@ -36,8 +36,7 @@ internal class SceneViewModel @Inject internal constructor(
         SceneScreenUiState(SceneState.Loading)
     )
 
-    override fun onCleared() {
-        super.onCleared()
+    init {
         save()
     }
 
@@ -69,6 +68,4 @@ sealed interface SceneState {
 
 data class SceneScreenUiState internal constructor(
     val sceneState: SceneState = SceneState.Loading
-){
-
-}
+)
