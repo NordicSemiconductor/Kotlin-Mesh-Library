@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.application.keys.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -83,7 +82,6 @@ private fun ApplicationsKeysScreen(
 
             false -> ApplicationKeys(
                 context = context,
-                coroutineScope = rememberCoroutineScope(),
                 listState = listState,
                 snackbarHostState = snackbarHostState,
                 keys = uiState.keys,
@@ -99,7 +97,6 @@ private fun ApplicationsKeysScreen(
 @Composable
 private fun ApplicationKeys(
     context: Context,
-    coroutineScope: CoroutineScope,
     listState: LazyListState,
     snackbarHostState: SnackbarHostState,
     keys: List<ApplicationKey>,
@@ -116,7 +113,6 @@ private fun ApplicationKeys(
             SwipeToDismissKey(
                 key = key,
                 context = context,
-                coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 navigateToApplicationKey = navigateToApplicationKey,
                 onSwiped = onSwiped,
@@ -127,12 +123,10 @@ private fun ApplicationKeys(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     key: ApplicationKey,
     context: Context,
-    coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     navigateToApplicationKey: (KeyIndex) -> Unit,
     onSwiped: (ApplicationKey) -> Unit,
@@ -174,14 +168,10 @@ private fun SwipeToDismissKey(
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
-            showSnackbar(
-                scope = coroutineScope,
-                snackbarHostState = snackbarHostState,
+            snackbarHostState.showSnackbar(
                 message = context.getString(R.string.error_cannot_delete_key_in_use),
+                withDismissAction = true,
                 duration = SnackbarDuration.Short,
-                onDismissed = {
-                    shouldNotDismiss = false
-                }
             )
         }
     }
