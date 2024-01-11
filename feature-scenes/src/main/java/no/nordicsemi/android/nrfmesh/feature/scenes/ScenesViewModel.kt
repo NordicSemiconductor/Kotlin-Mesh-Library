@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -29,16 +30,19 @@ internal class ScenesViewModel @Inject internal constructor(
     )
 
     private lateinit var network: MeshNetwork
-    private var scenesToBeRemoved = mutableListOf<Scene>()
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@ScenesViewModel.network = network
-                _uiState.value = ScenesScreenUiState(
-                    scenes = filterScenesTobeRemoved(),
-                    hasProvisioners = network.provisioners.isNotEmpty()
-                )
+                val scenes = network.scenes.toList()
+                _uiState.update { state ->
+                    state.copy(
+                        scenes = scenes,
+                        hasProvisioners = network.provisioners.isNotEmpty(),
+                        scenesToBeRemoved = scenes.filter { it in state.scenesToBeRemoved }
+                    )
+                }
             }
         }
     }
@@ -51,11 +55,8 @@ internal class ScenesViewModel @Inject internal constructor(
     /**
      * Adds a scene to the network.
      */
-    internal fun addScene(): Scene? {
-        removeScenes()
-        return network.nextAvailableScene()?.let {
-            network.add(name = "nRF Scene", number = it)
-        }
+    internal fun addScene() = network.nextAvailableScene()?.let {
+        network.add(name = "nRF Scene", number = it)
     }
 
     /**
@@ -65,10 +66,11 @@ internal class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be deleted.
      */
     internal fun onSwiped(scene: Scene) {
-        if (!scenesToBeRemoved.contains(scene))
-            scenesToBeRemoved.add(scene)
-        if (scenesToBeRemoved.size == network.scenes.size)
-            _uiState.value = ScenesScreenUiState(scenes = filterScenesTobeRemoved())
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(scenesToBeRemoved = it.scenes + scene)
+            }
+        }
     }
 
     /**
@@ -78,9 +80,8 @@ internal class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be reverted.
      */
     internal fun onUndoSwipe(scene: Scene) {
-        scenesToBeRemoved.remove(scene)
-        if (scenesToBeRemoved.isEmpty()) {
-            _uiState.value = ScenesScreenUiState(scenes = filterScenesTobeRemoved())
+        _uiState.update {
+            it.copy(scenesToBeRemoved = it.scenesToBeRemoved - scene)
         }
     }
 
@@ -90,32 +91,21 @@ internal class ScenesViewModel @Inject internal constructor(
      * @param scene Scene to be removed.
      */
     internal fun remove(scene: Scene) {
-        network.apply {
-            scenes.find { it == scene }?.let {
-                remove(it)
-            }
+        _uiState.update {
+            it.copy(scenesToBeRemoved = it.scenesToBeRemoved - scene)
         }
-        scenesToBeRemoved.remove(scene)
+        network.remove(scene)
+        save()
     }
 
     /**
      * Removes the scene from a network.
      */
     private fun removeScenes() {
-        remove()
-        save()
-    }
-
-    /**
-     * Removes the scenes from the network.
-     */
-    private fun remove() {
-        network.scenes.filter {
-            it in scenesToBeRemoved
-        }.forEach {
+        _uiState.value.scenesToBeRemoved.forEach {
             network.remove(it)
         }
-        scenesToBeRemoved.clear()
+        save()
     }
 
     /**
@@ -124,13 +114,10 @@ internal class ScenesViewModel @Inject internal constructor(
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
-
-    private fun filterScenesTobeRemoved() = network.scenes.filter {
-        it !in scenesToBeRemoved
-    }
 }
 
 data class ScenesScreenUiState internal constructor(
     val scenes: List<Scene> = listOf(),
-    val hasProvisioners: Boolean = false
+    val hasProvisioners: Boolean = false,
+    val scenesToBeRemoved: List<Scene> = listOf()
 )
