@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.compose.animation.Crossfade
@@ -8,10 +6,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -56,7 +64,7 @@ private fun LazyListScope.sceneInfo(scene: Scene, onNameChanged: (String) -> Uni
 fun Name(name: String, onNameChanged: (String) -> Unit) {
     var value by rememberSaveable { mutableStateOf(name) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick) { state ->
+    Crossfade(targetState = onEditClick, label = "name") { state ->
         when (state) {
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
