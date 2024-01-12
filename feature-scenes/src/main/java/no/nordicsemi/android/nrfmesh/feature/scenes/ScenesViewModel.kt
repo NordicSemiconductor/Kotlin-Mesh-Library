@@ -4,9 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
@@ -22,24 +21,20 @@ internal class ScenesViewModel @Inject internal constructor(
     navigator: Navigator,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private val _uiState = MutableStateFlow(ScenesScreenUiState(listOf()))
-    val uiState: StateFlow<ScenesScreenUiState> = _uiState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        ScenesScreenUiState()
-    )
 
     private lateinit var network: MeshNetwork
+
+    private val _uiState = MutableStateFlow(ScenesScreenUiState())
+    val uiState: StateFlow<ScenesScreenUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@ScenesViewModel.network = network
-                val scenes = network.scenes.toList()
                 _uiState.update { state ->
+                    val scenes = network.scenes.toList()
                     state.copy(
                         scenes = scenes,
-                        hasProvisioners = network.provisioners.isNotEmpty(),
                         scenesToBeRemoved = scenes.filter { it in state.scenesToBeRemoved }
                     )
                 }
@@ -48,15 +43,17 @@ internal class ScenesViewModel @Inject internal constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeScenes()
+        super.onCleared()
     }
 
     /**
      * Adds a scene to the network.
      */
     internal fun addScene() = network.nextAvailableScene()?.let {
-        network.add(name = "nRF Scene", number = it)
+        network.add(name = "nRF Scene", number = it).also {
+            save()
+        }
     }
 
     /**
@@ -68,7 +65,7 @@ internal class ScenesViewModel @Inject internal constructor(
     internal fun onSwiped(scene: Scene) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(scenesToBeRemoved = it.scenes + scene)
+                it.copy(scenesToBeRemoved = it.scenesToBeRemoved + scene)
             }
         }
     }
@@ -118,6 +115,5 @@ internal class ScenesViewModel @Inject internal constructor(
 
 data class ScenesScreenUiState internal constructor(
     val scenes: List<Scene> = listOf(),
-    val hasProvisioners: Boolean = false,
     val scenesToBeRemoved: List<Scene> = listOf()
 )

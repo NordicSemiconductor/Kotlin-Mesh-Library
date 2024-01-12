@@ -13,8 +13,26 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -23,7 +41,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.scenes.R
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
@@ -119,7 +141,7 @@ private fun Scenes(
         modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
-        items(items = scenes, key = { it.number.toInt() }) { scene ->
+        items(items = scenes, key = { it.hashCode() }) { scene ->
             SwipeToDismissScene(
                 scene = scene,
                 context = context,
@@ -145,12 +167,12 @@ private fun SwipeToDismissScene(
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var shouldNotDismiss by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     val dismissState = rememberSwipeToDismissState(
         confirmValueChange = {
-            shouldNotDismiss = scene.isInUse
-            !shouldNotDismiss
+            shouldNotDismiss = !scene.isInUse
+            shouldNotDismiss
         },
         positionalThreshold = { it * 0.5f }
     )
@@ -176,7 +198,7 @@ private fun SwipeToDismissScene(
             }
         }
     )
-    if (shouldNotDismiss) {
+    if (!shouldNotDismiss) {
         LaunchedEffect(key1 = snackbarHostState) {
             snackbarHostState.showSnackbar(
                 message = context.getString(R.string.error_scene_in_use),
@@ -191,7 +213,8 @@ private fun SwipeToDismissScene(
             snackbarHostState.showSnackbar(
                 message = context.getString(R.string.label_scene_deleted),
                 actionLabel = context.getString(R.string.action_undo),
-                withDismissAction = true
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
             ).also {
                 when (it) {
                     SnackbarResult.Dismissed -> remove(scene)
