@@ -3,10 +3,12 @@ package no.nordicsemi.android.nrfmesh.feature.application.keys
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -23,26 +25,32 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private lateinit var key: ApplicationKey
     private val appKeyIndexArg: KeyIndex = parameterOf(applicationKey).toUShort()
+    private lateinit var key: ApplicationKey
 
-    val uiState: StateFlow<ApplicationKeyScreenUiState> = repository.network.map { network ->
-        this@ApplicationKeyViewModel.key =
-            network.applicationKey(appKeyIndexArg)
-        ApplicationKeyScreenUiState(
-            applicationKeyState = ApplicationKeyState.Success(
-                applicationKey = key,
-                networkKeys = network.networkKeys.toList()
-            )
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ApplicationKeyScreenUiState(ApplicationKeyState.Loading)
-    )
+
+    val _uiState = MutableStateFlow(ApplicationKeyScreenUiState(ApplicationKeyState.Loading))
+    val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState.asStateFlow()
 
     init {
-        save()
+
+        repository.network.onEach { meshNetwork ->
+            _uiState.update { state ->
+                val key = meshNetwork.applicationKey(appKeyIndexArg)
+                when (val keyState = state.applicationKeyState) {
+                    is ApplicationKeyState.Loading -> ApplicationKeyScreenUiState(
+                        applicationKeyState = ApplicationKeyState.Success(
+                            applicationKey = key,
+                            networkKeys = meshNetwork.networkKeys.toList()
+                        )
+                    )
+                    is ApplicationKeyState.Success -> state.copy(applicationKeyState = keyState.copy(
+                        applicationKey = key
+                    ))
+                    else -> state
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     /**

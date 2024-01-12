@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +31,6 @@ internal class SceneViewModel @Inject internal constructor(
 
     init {
         repository.network.onEach { meshNetwork ->
-            Log.d("SceneViewModel", "meshNetwork.scenes: ${meshNetwork.scenes}")
             _uiState.update { state ->
                 val scene = meshNetwork.scene(sceneNumberArg)
                 when (val sceneState = state.sceneState) {
