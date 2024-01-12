@@ -138,12 +138,12 @@ private fun SwipeToDismissKey(
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var shouldNotDismiss by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     val dismissState = rememberSwipeToDismissState(
         confirmValueChange = {
-            shouldNotDismiss = key.isInUse
-            !shouldNotDismiss
+            shouldNotDismiss = !key.isInUse
+            shouldNotDismiss
         }
     )
     SwipeDismissItem(
@@ -169,7 +169,7 @@ private fun SwipeToDismissKey(
         }
     )
 
-    if (shouldNotDismiss) {
+    if (!shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
             snackbarHostState.showSnackbar(
                 message = context.getString(R.string.error_cannot_delete_key_in_use),
