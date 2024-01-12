@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -74,7 +75,8 @@ class CoreDataRepository @Inject constructor(
     private var _proxyStateFlow = MutableStateFlow(ProxyState())
     val proxyStateFlow = _proxyStateFlow.asStateFlow()
 
-    val network = meshNetworkManager.meshNetwork
+    val network: SharedFlow<MeshNetwork>
+        get() = meshNetworkManager.meshNetwork
     private var isBluetoothEnabled = false
     private var isLocationEnabled = false
     private var bearer: Bearer? = null
