@@ -140,7 +140,8 @@ private fun SwipeToDismissKey(
         confirmValueChange = {
             shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
             !shouldNotDismiss
-        }
+        },
+        positionalThreshold = { it * 0.5f }
     )
     SwipeDismissItem(
         dismissState = dismissState,

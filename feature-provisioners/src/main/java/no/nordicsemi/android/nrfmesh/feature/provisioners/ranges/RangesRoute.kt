@@ -139,7 +139,9 @@ private fun Ranges(
             items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val currentItem by rememberUpdatedState(newValue = range)
-                val dismissState = rememberSwipeToDismissState()
+                val dismissState = rememberSwipeToDismissState(
+                    positionalThreshold = { it * 0.5f }
+                )
                 SwipeDismissItem(
                     dismissState = dismissState,
                     content = {

@@ -125,7 +125,9 @@ private fun SwipeToDismissProvisioner(
     remove: (Provisioner) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberSwipeToDismissState()
+    val dismissState = rememberSwipeToDismissState(
+        positionalThreshold = { it * 0.5f }
+    )
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
