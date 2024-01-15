@@ -24,13 +24,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -46,7 +47,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
@@ -55,7 +55,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
@@ -143,7 +142,6 @@ private fun ProvisionerInfo(
     navigateToSceneRanges: (UUID) -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
@@ -159,16 +157,14 @@ private fun ProvisionerInfo(
             item {
                 UnicastAddress(
                     context = context,
-                    scope = scope,
                     snackbarHostState = snackbarHostState,
                     keyboardController = keyboardController,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
                     disableConfigurationCapabilities = disableConfigurationCapabilities,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-                )
+                    isCurrentlyEditable = isCurrentlyEditable
+                ) { isCurrentlyEditable = !isCurrentlyEditable }
             }
             item {
                 Ttl(
@@ -301,7 +297,6 @@ fun Name(
 @Composable
 private fun UnicastAddress(
     context: Context,
-    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address?,
@@ -318,6 +313,7 @@ private fun UnicastAddress(
         )
     }
     var error by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
     var supportingErrorText by rememberSaveable { mutableStateOf("") }
@@ -390,16 +386,7 @@ private fun UnicastAddress(
                                 onEditableStateChanged()
                             }.onFailure { t ->
                                 error = true
-                                showSnackbar(
-                                    scope = scope,
-                                    snackbarHostState = snackbarHostState,
-                                    message = t.convertToString(context = context)
-                                )
-                            }
-                            if (value.text.isNotEmpty()) {
-                            } else {
-                                onEditClick = !onEditClick
-                                onEditableStateChanged()
+                                errorMessage = t.convertToString(context = context)
                             }
                         }
                     ) {
@@ -461,6 +448,15 @@ private fun UnicastAddress(
             title = stringResource(R.string.label_unassign_address),
             text = stringResource(R.string.unassign_address_rationale)
         )
+    }
+
+    if (error && errorMessage.isNotEmpty()) {
+        LaunchedEffect(key1 = snackbarHostState) {
+            snackbarHostState.showSnackbar(
+                message = errorMessage,
+                duration = SnackbarDuration.Short
+            )
+        }
     }
 }
 
