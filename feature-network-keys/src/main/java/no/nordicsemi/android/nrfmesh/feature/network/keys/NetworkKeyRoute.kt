@@ -7,10 +7,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.AssistWalker
+import androidx.compose.material.icons.outlined.AutoMode
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.FormatListNumbered
+import androidx.compose.material.icons.outlined.LocalPolice
+import androidx.compose.material.icons.outlined.Update
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -24,11 +42,19 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.Insecure
+import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.NormalOperation
+import no.nordicsemi.kotlin.mesh.core.model.Secure
+import no.nordicsemi.kotlin.mesh.core.model.Security
+import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.text.DateFormat
-import java.util.*
+import java.util.Date
 
 @Composable
 internal fun NetworkKeyRoute(
@@ -36,7 +62,7 @@ internal fun NetworkKeyRoute(
 ) {
     val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeyScreen(
-        networkKeyState = uiState.networkKeyState,
+        keyState = uiState.keyState,
         onNameChanged = viewModel::onNameChanged,
         onKeyChanged = viewModel::onKeyChanged
     )
@@ -44,7 +70,7 @@ internal fun NetworkKeyRoute(
 
 @Composable
 private fun NetworkKeyScreen(
-    networkKeyState: NetworkKeyState,
+    keyState: KeyState,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
@@ -52,18 +78,18 @@ private fun NetworkKeyScreen(
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        when (networkKeyState) {
-            NetworkKeyState.Loading -> { /* Do nothing */
+        when (keyState) {
+            KeyState.Loading -> { /* Do nothing */
             }
-            is NetworkKeyState.Success -> networkKeyInfo(
+            is KeyState.Success -> networkKeyInfo(
                 snackbarHostState = snackbarHostState,
-                networkKey = networkKeyState.networkKey,
+                networkKey = keyState.key,
                 isCurrentlyEditable = isCurrentlyEditable,
                 onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
                 onNameChanged = onNameChanged,
                 onKeyChanged = onKeyChanged
             )
-            is NetworkKeyState.Error -> when (networkKeyState.throwable) {
+            is KeyState.Error -> when (keyState.throwable) {
                 is KeyInUse -> {}
                 is InvalidKeyLength -> {}
             }

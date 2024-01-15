@@ -1,18 +1,38 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.GppMaybe
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.GroupWork
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -29,10 +49,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
-import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.GroupRange
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.SceneRange
+import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import java.util.*
+import java.util.UUID
 
 @Composable
 internal fun ProvisionerRoute(
@@ -59,9 +90,9 @@ internal fun ProvisionerRoute(
 private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
@@ -103,9 +134,9 @@ private fun ProvisionerInfo(
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
@@ -274,9 +305,9 @@ private fun UnicastAddress(
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address?,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
@@ -308,11 +339,12 @@ private fun UnicastAddress(
                     error = false
                     value = it
                     if (it.text.isNotEmpty()) {
-                        runCatching {
-                            error = !isValidAddress(it.text.toUShort(16))
-                        }.onFailure { throwable ->
-                            supportingErrorText = throwable.message ?: ""
+                        if (isValidAddress(it.text.toUShort(16))) {
+                            error = false
+                            supportingErrorText = ""
+                        } else {
                             error = true
+                            supportingErrorText = "Invalid unicast address"
                         }
                     }
                 },
@@ -349,23 +381,22 @@ private fun UnicastAddress(
                     }
                     IconButton(
                         modifier = Modifier.padding(end = 16.dp),
-                        enabled = value.text.isNotEmpty(),
+                        enabled = value.text.isNotEmpty() && !error,
                         onClick = {
-                            keyboardController?.hide()
-                            if (value.text.isNotEmpty()) {
+                            runCatching {
                                 onAddressChanged(value.text.toInt(radix = 16))
-                                    .onSuccess {
-                                        onEditClick = !onEditClick
-                                        onEditableStateChanged()
-                                    }
-                                    .onFailure {
-                                        error = true
-                                        showSnackbar(
-                                            scope = scope,
-                                            snackbarHostState = snackbarHostState,
-                                            message = it.convertToString(context = context)
-                                        )
-                                    }
+                            }.onSuccess {
+                                onEditClick = !onEditClick
+                                onEditableStateChanged()
+                            }.onFailure { t ->
+                                error = true
+                                showSnackbar(
+                                    scope = scope,
+                                    snackbarHostState = snackbarHostState,
+                                    message = t.convertToString(context = context)
+                                )
+                            }
+                            if (value.text.isNotEmpty()) {
                             } else {
                                 onEditClick = !onEditClick
                                 onEditableStateChanged()

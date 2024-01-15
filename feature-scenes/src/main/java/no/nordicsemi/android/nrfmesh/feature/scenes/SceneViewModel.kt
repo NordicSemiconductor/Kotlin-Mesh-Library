@@ -26,7 +26,7 @@ internal class SceneViewModel @Inject internal constructor(
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
 
-    val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
+    private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
     val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()
 
     init {
@@ -55,9 +55,8 @@ internal class SceneViewModel @Inject internal constructor(
         viewModelScope.launch {
             _uiState.update { state ->
                 val sceneState = state.sceneState as SceneState.Success
-                val scene = sceneState.scene
-                scene.name = name
-                state.copy(sceneState = sceneState.copy(scene = scene))
+                sceneState.scene.name = name
+                state.copy(sceneState = sceneState)
             }
         }
         save()

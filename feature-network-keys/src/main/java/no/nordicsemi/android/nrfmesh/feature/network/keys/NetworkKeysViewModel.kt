@@ -55,7 +55,9 @@ internal class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Adds a network key to the network.
      */
-    internal fun addNetworkKey(): NetworkKey = network.add(name = "nRF Network Key")
+    internal fun addNetworkKey(): NetworkKey = network.add(name = "nRF Network Key").also {
+        save()
+    }
 
     /**
      * Invoked when a key is swiped to be deleted. The given key is added to a list of keys that

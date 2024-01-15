@@ -13,10 +13,29 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.AssistWalker
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.FormatListNumbered
+import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,7 +45,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.application.keys.R
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -39,7 +61,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 internal fun ApplicationKeyRoute(viewModel: ApplicationKeyViewModel = hiltViewModel()) {
     val uiState: ApplicationKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeyScreen(
-        applicationKeyState = uiState.applicationKeyState,
+        keyState = uiState.keyState,
         onNameChanged = viewModel::onNameChanged,
         onKeyChanged = viewModel::onKeyChanged,
         onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged
@@ -48,7 +70,7 @@ internal fun ApplicationKeyRoute(viewModel: ApplicationKeyViewModel = hiltViewMo
 
 @Composable
 private fun ApplicationKeyScreen(
-    applicationKeyState: ApplicationKeyState,
+    keyState: KeyState,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit,
     onBoundNetworkKeyChanged: (NetworkKey) -> Unit
@@ -63,14 +85,14 @@ private fun ApplicationKeyScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        when (applicationKeyState) {
-            ApplicationKeyState.Loading -> { /* Do nothing */
+        when (keyState) {
+            KeyState.Loading -> { /* Do nothing */
             }
-            is ApplicationKeyState.Success -> {
-                boundNetKeyIndex = applicationKeyState.applicationKey.boundNetKeyIndex.toInt()
+            is KeyState.Success -> {
+                boundNetKeyIndex = keyState.key.boundNetKeyIndex.toInt()
                 applicationKeyInfo(
                     snackbarHostState = snackbarHostState,
-                    applicationKey = applicationKeyState.applicationKey,
+                    applicationKey = keyState.key,
                     isCurrentlyEditable = isCurrentlyEditable,
                     onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
                     onNameChanged = onNameChanged,
@@ -80,16 +102,16 @@ private fun ApplicationKeyScreen(
                     context = context,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    isInUse = applicationKeyState.applicationKey.isInUse,
+                    isInUse = keyState.key.isInUse,
                     boundNetKeyIndex = boundNetKeyIndex,
-                    networkKeys = applicationKeyState.networkKeys,
+                    networkKeys = keyState.networkKeys,
                     onBoundNetworkKeyChanged = {
                         boundNetKeyIndex = it.index.toInt()
                         onBoundNetworkKeyChanged(it)
                     }
                 )
             }
-            is ApplicationKeyState.Error -> when (applicationKeyState.throwable) {
+            is KeyState.Error -> when (keyState.throwable) {
                 is KeyInUse -> {}
                 is InvalidKeyLength -> {}
             }

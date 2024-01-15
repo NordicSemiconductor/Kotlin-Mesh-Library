@@ -3,10 +3,12 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -22,24 +24,32 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
-    private lateinit var key: NetworkKey
     private val netKeyIndexArg: KeyIndex = parameterOf(networkKey).toUShort()
 
-    val uiState: StateFlow<NetworkKeyScreenUiState> = repository.network.map { network ->
-        this@NetworkKeyViewModel.key = network.networkKey(netKeyIndexArg)
-        NetworkKeyScreenUiState(
-            networkKeyState = NetworkKeyState.Success(
-                networkKey = key
-            )
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        NetworkKeyScreenUiState(NetworkKeyState.Loading)
-    )
+    private val _uiState = MutableStateFlow(NetworkKeyScreenUiState(KeyState.Loading))
+    val uiState: StateFlow<NetworkKeyScreenUiState> = _uiState.asStateFlow()
 
     init {
-        save()
+        repository.network.onEach { meshNetwork ->
+            _uiState.update { state ->
+                val key = meshNetwork.networkKey(netKeyIndexArg)
+                when (val keyState = state.keyState) {
+                    is KeyState.Loading -> NetworkKeyScreenUiState(
+                        keyState = KeyState.Success(
+                            key = key,
+                        )
+                    )
+
+                    is KeyState.Success -> state.copy(
+                        keyState = keyState.copy(
+                            key = key
+                        )
+                    )
+
+                    else -> state
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     /**
@@ -48,10 +58,16 @@ internal class NetworkKeyViewModel @Inject internal constructor(
      * @param name New network key name.
      */
     internal fun onNameChanged(name: String) {
-        if (key.name != name) {
-            key.name = name
-            save()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val keyState = state.keyState as KeyState.Success
+                val key = keyState.key.apply {
+                    this.name = name
+                }
+                state.copy(keyState = keyState.copy(key = key))
+            }
         }
+        save()
     }
 
     /**
@@ -60,10 +76,12 @@ internal class NetworkKeyViewModel @Inject internal constructor(
      * @param key New network key.
      */
     internal fun onKeyChanged(key: ByteArray) {
-        if (!this.key.key.contentEquals(key)) {
-            this.key.setKey(key = key)
-            save()
+        _uiState.update { state ->
+            val keyState = state.keyState as KeyState.Success
+            keyState.key.apply { setKey(key) }
+            state.copy(keyState = keyState)
         }
+        save()
     }
 
     /**
@@ -74,12 +92,12 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     }
 }
 
-sealed interface NetworkKeyState {
-    data class Success(val networkKey: NetworkKey) : NetworkKeyState
-    data class Error(val throwable: Throwable) : NetworkKeyState
-    data object Loading : NetworkKeyState
+sealed interface KeyState {
+    data class Success(val key: NetworkKey) : KeyState
+    data class Error(val throwable: Throwable) : KeyState
+    data object Loading : KeyState
 }
 
 data class NetworkKeyScreenUiState internal constructor(
-    val networkKeyState: NetworkKeyState = NetworkKeyState.Loading
+    val keyState: KeyState = KeyState.Loading
 )

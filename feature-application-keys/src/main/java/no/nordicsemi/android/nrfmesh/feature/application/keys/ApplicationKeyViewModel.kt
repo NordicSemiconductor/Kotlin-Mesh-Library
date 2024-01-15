@@ -26,27 +26,28 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private val appKeyIndexArg: KeyIndex = parameterOf(applicationKey).toUShort()
-    private lateinit var key: ApplicationKey
 
-
-    val _uiState = MutableStateFlow(ApplicationKeyScreenUiState(ApplicationKeyState.Loading))
+    private val _uiState = MutableStateFlow(ApplicationKeyScreenUiState(KeyState.Loading))
     val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState.asStateFlow()
 
     init {
-
         repository.network.onEach { meshNetwork ->
             _uiState.update { state ->
                 val key = meshNetwork.applicationKey(appKeyIndexArg)
-                when (val keyState = state.applicationKeyState) {
-                    is ApplicationKeyState.Loading -> ApplicationKeyScreenUiState(
-                        applicationKeyState = ApplicationKeyState.Success(
-                            applicationKey = key,
+                when (val keyState = state.keyState) {
+                    is KeyState.Loading -> ApplicationKeyScreenUiState(
+                        keyState = KeyState.Success(
+                            key = key,
                             networkKeys = meshNetwork.networkKeys.toList()
                         )
                     )
-                    is ApplicationKeyState.Success -> state.copy(applicationKeyState = keyState.copy(
-                        applicationKey = key
-                    ))
+
+                    is KeyState.Success -> state.copy(
+                        keyState = keyState.copy(
+                            key = key
+                        )
+                    )
+
                     else -> state
                 }
             }
@@ -59,10 +60,16 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
      * @param name New application key name.
      */
     internal fun onNameChanged(name: String) {
-        if (key.name != name) {
-            key.name = name
-            save()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val keyState = state.keyState as KeyState.Success
+                val key = keyState.key.apply {
+                    this.name = name
+                }
+                state.copy(keyState = keyState.copy(key = key))
+            }
         }
+        save()
     }
 
     /**
@@ -71,10 +78,12 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
      * @param key New application key.
      */
     internal fun onKeyChanged(key: ByteArray) {
-        if (!this.key.key.contentEquals(key)) {
-            this.key.setKey(key = key)
-            save()
+        _uiState.update { state ->
+            val keyState = state.keyState as KeyState.Success
+            keyState.key.apply { setKey(key) }
+            state.copy(keyState = keyState)
         }
+        save()
     }
 
     /**
@@ -83,10 +92,12 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
      * @param key New network key to bind to
      */
     internal fun onBoundNetworkKeyChanged(key: NetworkKey) {
-        if (this.key.boundNetKeyIndex != key.index) {
-            this.key.boundNetKeyIndex = key.index
-            save()
+        _uiState.update { state ->
+            val keyState = state.keyState as KeyState.Success
+            keyState.key.boundNetKeyIndex = key.index
+            state.copy(keyState = keyState)
         }
+        save()
     }
 
     /**
@@ -97,16 +108,16 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     }
 }
 
-sealed interface ApplicationKeyState {
+sealed interface KeyState {
     data class Success(
-        val applicationKey: ApplicationKey,
+        val key: ApplicationKey,
         val networkKeys: List<NetworkKey>
-    ) : ApplicationKeyState
+    ) : KeyState
 
-    data class Error(val throwable: Throwable) : ApplicationKeyState
-    data object Loading : ApplicationKeyState
+    data class Error(val throwable: Throwable) : KeyState
+    data object Loading : KeyState
 }
 
 data class ApplicationKeyScreenUiState internal constructor(
-    val applicationKeyState: ApplicationKeyState = ApplicationKeyState.Loading
+    val keyState: KeyState = KeyState.Loading
 )
