@@ -418,18 +418,18 @@ data class Provisioner internal constructor(
      */
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
-        network?.run {
-            require(has(this@Provisioner))
+        network?.let { network ->
+            require(network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
             var isNewNode = false
-            val node = node(this@Provisioner) ?: Node(
+            val node = network.node(this@Provisioner) ?: Node(
                 provisioner = this@Provisioner,
                 unicastAddress = address
             ).apply {
                 companyIdentifier = 0x00E0u //Google
                 replayProtectionCount = maxUnicastAddress
                 name = this@Provisioner.name
-                assignNetKeys(networkKeys)
-                assignAppKeys(applicationKeys)
+                assignNetKeys(network.networkKeys)
+                assignAppKeys(network.applicationKeys)
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?
@@ -437,13 +437,13 @@ data class Provisioner internal constructor(
             require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges }
 
             // Is there any other node using the address?
-            require(isAddressAvailable(address, node)) { throw AddressAlreadyInUse }
+            require(network.isAddressAvailable(address, node)) { throw AddressAlreadyInUse }
 
             when (isNewNode) {
-                true -> add(node)
+                true -> network.add(node)
                 else -> node._primaryUnicastAddress = address
             }
-            updateTimestamp()
+            network.updateTimestamp()
         }
     }
 
