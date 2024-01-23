@@ -17,7 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 internal interface KeySet {
     val networkKey: NetworkKey
     val accessKey: ByteArray
-    val aid: UByte?
+    val aid: Byte?
 }
 
 /**
@@ -33,7 +33,7 @@ internal data class AccessKeySet(val applicationKey: ApplicationKey) : KeySet {
         get() = if (networkKey.phase == KeyDistribution)
             applicationKey.oldKey ?: applicationKey.key
         else applicationKey.key
-    override val aid: UByte
+    override val aid: Byte
         get() = if (networkKey.phase == KeyDistribution)
             applicationKey.oldAid ?: applicationKey.aid
         else applicationKey.aid
@@ -54,7 +54,7 @@ internal class DeviceKeySet private constructor(
     override val accessKey: ByteArray
 ) : KeySet {
 
-    override val aid: UByte? = null
+    override val aid: Byte? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -79,7 +79,7 @@ internal class DeviceKeySet private constructor(
     }
 
     override fun toString(): String {
-        return "${node.name}'s Device Key."
+        return "${node.name}'s Device Key"
     }
 
     companion object {

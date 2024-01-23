@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import kotlin.experimental.or
 
 /**
  * Data class defining an Access message.
@@ -26,18 +27,18 @@ internal data class AccessMessage(
     override val upperTransportPdu: ByteArray,
     val transportMicSize: UByte,
     val sequence: UInt,
-    val aid: UByte? = null
+    val aid: Byte? = null
 ) : LowerTransportPdu {
 
     override val type = LowerTransportPduType.ACCESS_MESSAGE
     override val transportPdu: ByteArray
         get() {
-            var octet0 = 0.toUByte()
+            var octet0 = 0.toByte()
             aid?.let {
-                octet0 = octet0 or 0b01000000.toUByte()
+                octet0 = octet0 or 0b01000000.toByte()
                 octet0 = octet0 or it
             }
-            return byteArrayOf(octet0.toByte()) + upperTransportPdu
+            return byteArrayOf(octet0) + upperTransportPdu
         }
 
     /**
@@ -112,7 +113,7 @@ internal data class AccessMessage(
         }?.run {
             val akf = (transportPdu[0].toUByte().toInt() and 0b01000000) != 0
             val aid = if (akf) {
-                (transportPdu[0].toUByte().toInt() and 0x3F).toUByte()
+                (transportPdu[0].toUByte().toInt() and 0x3F).toByte()
             } else null
             AccessMessage(
                 source = source,

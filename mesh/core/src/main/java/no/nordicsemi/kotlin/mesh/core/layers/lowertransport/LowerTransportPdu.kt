@@ -28,9 +28,9 @@ internal interface LowerTransportPdu {
 /**
  * Defines the Lower Transport PDU types.
  */
-internal enum class LowerTransportPduType(val rawValue: UByte) {
-    ACCESS_MESSAGE(rawValue = 0u),
-    CONTROL_MESSAGE(rawValue = 1u);
+internal enum class LowerTransportPduType(val rawValue: Byte) {
+    ACCESS_MESSAGE(rawValue = 0),
+    CONTROL_MESSAGE(rawValue = 1);
 
     val netMicSize: Int
         get() = when (this) {
@@ -46,6 +46,6 @@ internal enum class LowerTransportPduType(val rawValue: UByte) {
          * @param type Type of the Lower Transport PDU.
          * @return LowerTransportPduType or null if the values don't match.
          */
-        fun from(type: UByte) = values().firstOrNull { it.rawValue == type }
+        fun from(type: Int) = entries.firstOrNull { it.rawValue == type.toByte() }
     }
 }
