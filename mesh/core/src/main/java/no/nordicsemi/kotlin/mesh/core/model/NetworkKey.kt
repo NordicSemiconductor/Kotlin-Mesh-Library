@@ -11,6 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
+import no.nordicsemi.kotlin.mesh.crypto.SecurityCredentials
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -137,7 +138,8 @@ data class NetworkKey internal constructor(
         private set
 
     @Transient
-    internal var derivatives: NetworkKeyDerivatives = Crypto.calculateKeyDerivatives(key)
+    internal var derivatives: NetworkKeyDerivatives = Crypto
+        .calculateKeyDerivatives(key, SecurityCredentials.ManagedFlooding)
         .toNetworkKeyDerivatives()
         private set
 
@@ -195,14 +197,18 @@ data class NetworkKey internal constructor(
         // Calculate Network ID.
         networkId = Crypto.calculateNetworkId(key)
         // Calculate key derivatives.
-        derivatives = Crypto.calculateKeyDerivatives(key).toNetworkKeyDerivatives()
+        derivatives = Crypto
+            .calculateKeyDerivatives(key, SecurityCredentials.ManagedFlooding)
+            .toNetworkKeyDerivatives()
 
         // When the Network Key is imported from JSON, old key derivatives must be calculated.
         oldKey?.let { oldKey ->
             // Calculate old Network ID.
             oldNetworkId = Crypto.calculateNetworkId(oldKey)
             // Calculate old key derivatives.
-            oldDerivatives = Crypto.calculateKeyDerivatives(oldKey).toNetworkKeyDerivatives()
+            oldDerivatives = Crypto
+                .calculateKeyDerivatives(oldKey, SecurityCredentials.ManagedFlooding)
+                .toNetworkKeyDerivatives()
         }
     }
 
@@ -277,7 +283,7 @@ internal data class NetworkKeyDerivatives(
     val privateBeaconKey: ByteArray,
     val encryptionKey: ByteArray,
     val privacyKey: ByteArray,
-    val nid: UByte
+    val nid: Byte
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

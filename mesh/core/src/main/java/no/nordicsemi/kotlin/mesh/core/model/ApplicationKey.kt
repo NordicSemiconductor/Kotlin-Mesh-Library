@@ -76,9 +76,9 @@ data class ApplicationKey internal constructor(
     val boundNetworkKey: NetworkKey?
         get() = network!!.networkKeys.get(boundNetKeyIndex)
 
-    internal var aid: UByte = Crypto.calculateAid(N = key)
+    internal var aid: Byte = Crypto.calculateAid(N = key)
 
-    internal var oldAid: UByte? = null
+    internal var oldAid: Byte? = null
 
     val isInUse :Boolean
         get() = network?.run {

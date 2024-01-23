@@ -29,7 +29,7 @@ internal data class SegmentedAccessMessage(
     override val sequenceZero: UShort,
     override val segmentOffset: UByte,
     override val lastSegmentNumber: UByte,
-    val aid: UByte? = null,
+    val aid: Byte? = null,
     val sequence: UInt,
     val transportMicSize: UByte,
 ) : SegmentedMessage {
@@ -39,14 +39,14 @@ internal data class SegmentedAccessMessage(
             var octet0 = 0x80.toByte() // SEG = 1
             aid?.let { aid ->
                 octet0 = octet0 or 0b01000000.toByte() // AKF = 1
-                octet0 = octet0 or aid.toByte()
+                octet0 = octet0 or aid
             }
             val octet1 = ((transportMicSize.toInt() shl 3) and 0x80).toByte() or
                     (sequenceZero.toInt() shr 6).toByte()
             val octet2 = ((sequenceZero and 0x3Fu).toInt() shl 2).toByte() or
                     (segmentOffset.toInt() shr 3).toByte()
-            val octet3 = ((segmentOffset and 0x07.toUByte()).toInt() shl 5).toByte() or
-                    (lastSegmentNumber.toInt() and 0x1F).toByte()
+            val octet3 = ((segmentOffset and 0x07u).toInt() shl 5).toByte() or
+                    (lastSegmentNumber and 0x1Fu).toByte()
             return byteArrayOf(octet0, octet1, octet2, octet3) + upperTransportPdu
         }
 
@@ -98,29 +98,28 @@ internal data class SegmentedAccessMessage(
          * @param networkPdu Network pdu to be decoded.
          * @return SegmentedAccessMessage or null otherwise.
          */
-        @Suppress("MoveVariableDeclarationIntoWhen")
         fun init(networkPdu: NetworkPdu): SegmentedAccessMessage? = networkPdu.run {
             require(
                 transportPdu.size >= 5
-                        && transportPdu[0].toUByte().toInt() and 0x80 != 0x00
+                        && transportPdu[0].toInt() and 0x80 != 0x00
             ) { return null }
 
-            val akf = transportPdu[0].toUByte().toInt() and 0b01000000 != 0x00
-            val aid: UByte? = when (akf) {
-                true -> (transportPdu[0].toUByte().toInt() and 0x3F).toUByte()
+            val akf = transportPdu[0].toInt() shr 7 and 1
+            val aid: Byte? = when (akf == 1) {
+                true -> (transportPdu[0].toInt() and 0x3F).toByte()
                 false -> null
             }
-            val szmic = (transportPdu[1].toUByte().toInt() shr 7).toUByte()
-            val transportMicSize = when (szmic == 0x00.toUByte()) {
+            val szmic = transportPdu[1].toInt() shr 7 and 1
+            val transportMicSize = when (szmic == 0) {
                 true -> 4
                 false -> 8
             }.toUByte()
 
-            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x7F) shl 6).toUShort() or
-                    (transportPdu[2].toUByte().toInt() shr 2).toUShort()
-            val segmentOffset = (((transportPdu[2].toUByte().toInt() and 0x03) shl 3) or
-                    ((transportPdu[3].toUByte().toInt() and 0xE0) shr 5)).toUByte()
-            val lastSegmentNumber = (transportPdu[3].toUByte().toInt() and 0x1F).toUByte()
+            val sequenceZero = ((transportPdu[1].toInt() and 0x7F) shl 6).toUShort() or
+                    (transportPdu[2].toInt() ushr 2).toUShort()
+            val segmentOffset = (((transportPdu[2].toInt() and 0x03) shl 3) or
+                    ((transportPdu[3].toInt() and 0xE0) shr 5)).toUByte()
+            val lastSegmentNumber = (transportPdu[3].toInt() and 0x1F).toUByte()
 
             require(segmentOffset <= lastSegmentNumber) { return null }
 

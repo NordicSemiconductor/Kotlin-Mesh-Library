@@ -36,7 +36,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 internal data class UpperTransportPdu(
     val source: Address,
     val destination: MeshAddress,
-    val aid: UByte?,
+    val aid: Byte?,
     val transportMicSize: UByte,
     val transportPdu: ByteArray,
     val accessPdu: ByteArray,

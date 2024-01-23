@@ -40,7 +40,7 @@ import kotlin.math.max
  *                             values in this Secure Network beacon.
  * @property transmitIvIndex   IV index used when transmitting messages.
  * @property next              Next IV Index to be used or null if max value is reached.
- * @property previous          Previous IV Index or null in case of intiial one.
+ * @property previous          Previous IV Index or null in case of initial one.
  */
 data class IvIndex(
     val index: UInt = 0u,
@@ -80,7 +80,7 @@ data class IvIndex(
      * @param ivi   The IV Index received with the message.
      * @return The IV Index that is to be used for decrypting messages.
      */
-    fun index(ivi: UByte) = when {
+    fun index(ivi: Byte) = when {
         ivi.toUInt() == index and 1u -> index
         else -> max(1u, index) - 1u
     }
