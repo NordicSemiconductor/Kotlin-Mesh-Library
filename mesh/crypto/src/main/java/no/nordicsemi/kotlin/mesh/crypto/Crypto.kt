@@ -344,10 +344,6 @@ object Crypto {
         return data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
     }
 
-    fun deObfuscate() {
-        // TODO - identical to obfuscate (can remove)
-    }
-
     /**
      * Authenticates the received Secure Network beacon using the given Beacon Key.
      *
