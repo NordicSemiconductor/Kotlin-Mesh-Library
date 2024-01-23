@@ -26,6 +26,7 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
 import javax.crypto.spec.SecretKeySpec
+import kotlin.experimental.and
 
 object Crypto {
 
@@ -93,16 +94,6 @@ object Crypto {
             keyPairGenerator.initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
             keyPairGenerator.generateKeyPair()
         }
-    }
-
-    /**
-     * Returns the public key encoded as a 64-byte array
-     *
-     * @receiver Public key.
-     */
-    fun PublicKey.toByteArray() = (this as ECPublicKey).q.getEncoded(false).let { key ->
-        // Drop the first byte that contains the encoding.
-        key.sliceArray(1 until key.size)
     }
 
 
@@ -235,9 +226,9 @@ object Crypto {
     fun calculateKeyDerivatives(N: ByteArray, P: ByteArray): KeyDerivatives {
         val k2 = k2(N = N, P = P)
         return KeyDerivatives(
-            nid = k2.first.toUByte(),
-            encryptionKey = k2.second,
-            privacyKey = k2.third,
+            nid = k2.nid,
+            encryptionKey = k2.encryptionKey,
+            privacyKey = k2.privacyKey,
             networkId = calculateNetworkId(N = N),
             identityKey = calculateIdentityKey(N = N),
             beaconKey = calculateBeaconKey(N = N),
@@ -251,9 +242,8 @@ object Crypto {
      * @param N 128-bit ApplicationKey.
      * @return 8-bit Application Key Identifier.
      */
-    fun calculateAid(N: ByteArray): UByte {
-        val k4 = k4(N = N)
-        return k4.toUByte()
+    fun calculateAid(N: ByteArray): Byte {
+        return k4(N = N)
     }
 
     /**
@@ -533,7 +523,7 @@ object Crypto {
      * @param P     1 or more octets.
      * @return a Triple containing the NID, EncryptionKey and PrivacyKey.
      */
-    internal fun k2(N: ByteArray, P: ByteArray): Triple<Int, ByteArray, ByteArray> {
+    internal fun k2(N: ByteArray, P: ByteArray): SecurityMaterial {
         require(N.size == 16) {
             "N must be 128-bits."
         }
@@ -547,8 +537,8 @@ object Crypto {
         val T2 = calculateCmac(input = (T1 + P + byteArrayOf(0x02)), key = T) // EncryptionKey
         val T3 = calculateCmac(input = (T2 + P + byteArrayOf(0x03)), key = T) // PrivacyKey
 
-        val nid = T1.last().toInt() and 0x7F
-        return Triple(nid, T2, T3)
+        val nid = T1.last() and 0x7F
+        return SecurityMaterial(nid, T2, T3)
     }
 
     /**
@@ -574,11 +564,11 @@ object Crypto {
      * @param N 128-bit key.
      * @return 128-bit key T.
      */
-    internal fun k4(N: ByteArray): Int {
+    internal fun k4(N: ByteArray): Byte {
         val s1 = calculateS1(smk4)
         val T = calculateCmac(N, s1)
         val result = calculateCmac(input = (id6 + 0x01), key = T)
-        return result.last().toInt() and 0x3F
+        return result.last() and 0x3F
     }
 
     /**

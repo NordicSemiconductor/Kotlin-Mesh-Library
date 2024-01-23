@@ -12,7 +12,7 @@ package no.nordicsemi.kotlin.mesh.crypto
  * @param privateBeaconKey  Private Beacon key for a given NetworkKey
  */
 data class KeyDerivatives internal constructor(
-    val nid: UByte,
+    val nid: Byte,
     val encryptionKey: ByteArray,
     val privacyKey: ByteArray,
     val networkId: ByteArray,
@@ -32,9 +32,7 @@ data class KeyDerivatives internal constructor(
         if (!networkId.contentEquals(other.networkId)) return false
         if (!identityKey.contentEquals(other.identityKey)) return false
         if (!beaconKey.contentEquals(other.beaconKey)) return false
-        if (!privateBeaconKey.contentEquals(other.privateBeaconKey)) return false
-
-        return true
+        return privateBeaconKey.contentEquals(other.privateBeaconKey)
     }
 
     override fun hashCode(): Int {

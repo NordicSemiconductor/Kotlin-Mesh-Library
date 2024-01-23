@@ -2,7 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import org.bouncycastle.jce.interfaces.ECPublicKey
 import java.nio.charset.StandardCharsets
+import java.security.PublicKey
 import kotlin.experimental.xor
 
 object Utils {
@@ -47,6 +49,16 @@ object Utils {
      */
     fun UShort.toByteArray() = ByteArray(2) {
         (this.toInt() shr (8 - it * 8)).toByte()
+    }
+
+    /**
+     * Returns the public key encoded as a 64-byte array
+     *
+     * @receiver Public key.
+     */
+    fun PublicKey.toByteArray() = (this as ECPublicKey).q.getEncoded(false).let { key ->
+        // Drop the first byte that contains the encoding.
+        key.sliceArray(1 until key.size)
     }
 
     // TODO: Move to Mesh Sniffer or anywhere else
