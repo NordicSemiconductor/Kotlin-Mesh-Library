@@ -4,7 +4,7 @@ package no.nordicsemi.kotlin.mesh.crypto
 
 import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.toBigEndian
+import no.nordicsemi.kotlin.mesh.crypto.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Utils.xor
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
@@ -211,44 +211,15 @@ object Crypto {
 
     /**
      * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
-     * PrivateBeaconKey for a given NetworkKey
+     * PrivateBeaconKey for a given NetworkKey using the given security credentials.
      *
      * @param N           128-bit NetworkKey.
-     * @param P           Additional data to be used when calculating the Key Derivatives. E.g. the
-     *                    friendship credentials.
-     * @param isDirected  Boolean value representing whether these Key Derivatives are for a
-     *                    directed message using the directed security credentials.
+     * @param credentials Security credentials.
      * @return Key Derivatives.
      */
-    private fun calculateKeyDerivatives(
-        N: ByteArray,
-        P: ByteArray? = null,
-        isDirected: Boolean = false
-    ): KeyDerivatives {
-        val defaultP = if (!isDirected) byteArrayOf(0x00) else byteArrayOf(0x02)
-        val k2 = k2(N = N, P = P ?: defaultP)
-        return KeyDerivatives(
-            nid = k2.first.toUByte(),
-            encryptionKey = k2.second,
-            privacyKey = k2.third,
-            networkId = calculateNetworkId(N = N),
-            identityKey = calculateIdentityKey(N = N),
-            beaconKey = calculateBeaconKey(N = N),
-            privateBeaconKey = calculatePrivateBeaconKey(N = N)
-        )
+    fun calculateKeyDerivatives(N: ByteArray, credentials: SecurityCredentials): KeyDerivatives {
+        return calculateKeyDerivatives(N, credentials.P)
     }
-
-    /**
-     * Calculates the NID, EncryptionKey, PrivacyKey, NetworkID, IdentityKey, BeaconKey,
-     * PrivateBeaconKey for a given NetworkKey
-     *
-     * @param N          128-bit NetworkKey.
-     * @param isDirected Boolean value representing whether these Key Derivatives are for a directed
-     *                   message using the directed security credentials.
-     * @return Key Derivatives.
-     */
-    fun calculateKeyDerivatives(N: ByteArray, isDirected: Boolean = false) =
-        calculateKeyDerivatives(N, null, isDirected)
 
     /**
      * /**
@@ -261,8 +232,18 @@ object Crypto {
      * @return Friendship Credentials Key Derivatives.
     */
      */
-    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray) =
-        calculateKeyDerivatives(N, P, false)
+    fun calculateKeyDerivatives(N: ByteArray, P: ByteArray): KeyDerivatives {
+        val k2 = k2(N = N, P = P)
+        return KeyDerivatives(
+            nid = k2.first.toUByte(),
+            encryptionKey = k2.second,
+            privacyKey = k2.third,
+            networkId = calculateNetworkId(N = N),
+            identityKey = calculateIdentityKey(N = N),
+            beaconKey = calculateBeaconKey(N = N),
+            privateBeaconKey = calculatePrivateBeaconKey(N = N)
+        )
+    }
 
     /**
      * Calculates the AID for a given ApplicationKey.
@@ -358,7 +339,7 @@ object Crypto {
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
         val privacyPlaintext = ByteArray(5) { 0x00 } +
-                ivIndex.toBigEndian() + privacyRandom
+                ivIndex.toByteArray() + privacyRandom
         val pecb = calculateECB(privacyPlaintext, privacyKey)
         return data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
     }

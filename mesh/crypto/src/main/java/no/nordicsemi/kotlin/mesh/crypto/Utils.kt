@@ -36,15 +36,20 @@ object Utils {
     }
 
     /**
-     * Function converts an integer to Big Endian representation.
-     *
-     * @return Byte Array - Big endian representation of the integer.
+     * Converts an Int to a byte array using the Big Endian representation.
      */
-    fun UInt.toBigEndian(): ByteArray {
-        val result = byteArrayOf(0, 0, 0, 0)
-        for(i in 0..3) result[i] = (this shr (24 - i*8)).toByte()
-        return result
+    fun UInt.toByteArray() = ByteArray(4) {
+            (this shr (24 - it * 8)).toByte()
+        }
+
+    /**
+     * Converts a UShort to a byte array using the Big Endian representation.
+     */
+    fun UShort.toByteArray() = ByteArray(2) {
+        (this.toInt() shr (8 - it * 8)).toByte()
     }
+
+    // TODO: Move to Mesh Sniffer or anywhere else
 
     /**
      * Function converts a byte array encoded in uint16 to utf8. Each byte is encoded in utf8 as follows:
