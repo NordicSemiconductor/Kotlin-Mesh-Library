@@ -255,7 +255,7 @@ object Crypto {
      * @param nonce                 104-bit nonce.
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param additionalData        Additional data to be authenticated.
-     * @returns Encrypted data concatenated with MIC of given size.
+     * @return Encrypted data concatenated with MIC of given size.
      */
     @kotlin.jvm.Throws(InvalidCipherTextException::class)
     fun encrypt(
@@ -283,7 +283,7 @@ object Crypto {
      * @param micSize               Length of the MIC to be generated, in bytes.
      * @param additionalData        Additional data to be authenticated.
      * @throws Error if the decryption failed.
-     * @returns Encrypted data concatenated with MIC of given size or null if the decryption failed.
+     * @return Encrypted data concatenated with MIC of given size or null if the decryption failed.
      */
     fun decrypt(
         data: ByteArray,
@@ -315,7 +315,7 @@ object Crypto {
      *  @param random       Data used as Privacy Random.
      *  @param ivIndex      The current IV Index value.
      *  @param privacyKey   The 128-bit Privacy Key.
-     *  @returns a byte array containing Obfuscated or De-obfuscated input data.
+     *  @return a byte array containing Obfuscated or De-obfuscated input data.
      */
     fun obfuscate(
         data: ByteArray,
@@ -340,7 +340,7 @@ object Crypto {
      * @param pdu           Received Secure Network beacon.
      * @param beaconKey     Beacon key generated from a network key.
      *
-     * @returns true if the beacon is valid, false otherwise.
+     * @return true if the beacon is valid, false otherwise.
      */
     fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean = try {
         // byte 0 is the beacon type 0x01
@@ -359,8 +359,8 @@ object Crypto {
      * @param pdu                   The received Private Beacon beacon.
      * @param privateBeaconKey      The Private Beacon Key generated from a Network Key.
      *
-     * @returns a Pair containing the network information from the beacon. First value is the Flags
-     *          Byte and the second is the IV Index.
+     * @return a Pair containing the network information from the beacon. First value is the Flags
+     *         Byte and the second is the IV Index.
      * TODO decide whether to keep this as a return type or use a data class PrivateBeaconData
      *  containing the flags and ivIndex. Note that this is specific to the Private Beacon as in
      *  a Secure Network Beacon the Flags and IV Index are separated by the Network ID.
@@ -395,7 +395,7 @@ object Crypto {
      *
      * @param data the input data.
      * @param key the 128-bit key.
-     * @returns the encrypted data.
+     * @return the encrypted data.
      */
     fun calculateECB(data: ByteArray, key: ByteArray): ByteArray {
         try {
@@ -640,7 +640,7 @@ object Crypto {
      * @param mode                  True to encrypt or false to decrypt
      * @throws InvalidCipherTextException if the cipher text is invalid.
      * @throws IllegalStateException if the cipher is not initialized.
-     * @returns if [mode] was set to true, returns the encrypted data with the MIC concatenated
+     * @return if [mode] was set to true, returns the encrypted data with the MIC concatenated
      *          otherwise returns the decrypted data.
      */
     @Throws(InvalidCipherTextException::class, IllegalStateException::class)
