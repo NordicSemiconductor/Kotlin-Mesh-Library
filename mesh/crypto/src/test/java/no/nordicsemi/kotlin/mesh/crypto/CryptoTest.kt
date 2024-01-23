@@ -152,7 +152,7 @@ class CryptoTest {
         val networkId = "3ecaff672f673370".uppercase(Locale.US).decodeHex()
         val identityKey = "84396c435ac48560b5965385253e210c".uppercase(Locale.US).decodeHex()
         val beaconKey = "5423d967da639a99cb02231a83f7d254".uppercase(Locale.US).decodeHex()
-        val keyDerivatives = Crypto.calculateKeyDerivatives(N)
+        val keyDerivatives = Crypto.calculateKeyDerivatives(N, SecurityCredentials.ManagedFlooding)
         Assert.assertTrue("NID do not match!", NID == keyDerivatives.nid)
         Assert.assertTrue(
             "EncryptionKeys do not match!",
@@ -178,7 +178,7 @@ class CryptoTest {
         val directedNID = "0D".toInt(16).toUByte()
         val directedEncryptionKey = "b47a02c6cc9b4ac4cb9b88e765c9ade4".uppercase(Locale.US).decodeHex()
         val directedPrivacyKey = "9bf7ab5a5ad415fbd77e07bb808f4865".uppercase(Locale.US).decodeHex()
-        val directedKeyDerivatives = Crypto.calculateKeyDerivatives(N, isDirected = true)
+        val directedKeyDerivatives = Crypto.calculateKeyDerivatives(N, SecurityCredentials.DirectedFlooding)
         Assert.assertTrue("NID do not match!", directedNID == directedKeyDerivatives.nid)
         Assert.assertTrue("EncryptionKeys do not match!", directedEncryptionKey.contentEquals(directedKeyDerivatives.encryptionKey))
         Assert.assertTrue("PrivacyKeys do not match!", directedPrivacyKey.contentEquals(directedKeyDerivatives.privacyKey))
