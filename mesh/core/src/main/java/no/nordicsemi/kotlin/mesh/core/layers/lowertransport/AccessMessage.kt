@@ -8,6 +8,9 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.isSet
+import no.nordicsemi.kotlin.mesh.crypto.Utils.isZero
+import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
@@ -33,9 +36,9 @@ internal data class AccessMessage(
     override val type = LowerTransportPduType.ACCESS_MESSAGE
     override val transportPdu: ByteArray
         get() {
-            var octet0 = 0.toByte()
+            var octet0 = 0.toByte() // SEG = 0
             aid?.let {
-                octet0 = octet0 or 0b01000000.toByte()
+                octet0 = octet0 or 0b01000000 // AKF = 1
                 octet0 = octet0 or it
             }
             return byteArrayOf(octet0) + upperTransportPdu
@@ -77,9 +80,7 @@ internal data class AccessMessage(
         if (sequence != other.sequence) return false
         if (aid != other.aid) return false
         if (type != other.type) return false
-        if (!transportPdu.contentEquals(other.transportPdu)) return false
-
-        return true
+        return transportPdu.contentEquals(other.transportPdu)
     }
 
     override fun hashCode(): Int {
@@ -109,12 +110,11 @@ internal data class AccessMessage(
          * @return an AccessMessage or null if the pdu is invalid.
          */
         fun init(pdu: NetworkPdu) = pdu.takeIf {
-            it.transportPdu.size >= 6 && (it.transportPdu[0].toUByte().toInt() and 0x80) == 0
+            it.transportPdu.size >= 6 && it.transportPdu[0] isZero 0x80
         }?.run {
-            val akf = (transportPdu[0].toUByte().toInt() and 0b01000000) != 0
-            val aid = if (akf) {
-                (transportPdu[0].toUByte().toInt() and 0x3F).toByte()
-            } else null
+            val akf = transportPdu[0] isSet 0b01000000
+            val aid = if (akf) transportPdu[0] and 0x3F else null
+
             AccessMessage(
                 source = source,
                 destination = destination,
@@ -122,7 +122,7 @@ internal data class AccessMessage(
                 ivIndex = ivIndex,
                 upperTransportPdu = transportPdu.copyOfRange(1, transportPdu.size),
                 // TransMIC is always 32-bits for unsegmented messages.
-                transportMicSize = 4.toUByte(),
+                transportMicSize = 4u,
                 sequence = sequence,
                 aid = aid
             )

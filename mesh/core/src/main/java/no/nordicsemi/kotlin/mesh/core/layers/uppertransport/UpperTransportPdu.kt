@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.boundTo
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
 
 /**
  * UpperTransportPdu defines the credentials used to encrypt a message.
@@ -74,9 +75,7 @@ internal data class UpperTransportPdu(
         if (sequence != other.sequence) return false
         if (ivIndex != other.ivIndex) return false
         if (message != other.message) return false
-        if (userInitiated != other.userInitiated) return false
-
-        return true
+        return userInitiated == other.userInitiated
     }
 
     override fun hashCode(): Int {
@@ -117,12 +116,12 @@ internal data class UpperTransportPdu(
             val type = message.aid?.let { 0x01 } ?: 0x02
             // ASZMIC is set to 1 for messages sent with high security(64-bit TransMIC). This is
             // allowed only for Segmented Access Messages.
-            val aszmic = if (micSize == 4) 0 else 1
+            val aszmic: Byte = if (micSize == 4) 0 else 1
             val seq = message.sequence.toByteArray().let {
                 it.copyOfRange(fromIndex = 1, toIndex = it.size)
             }
 
-            val nonce = byteArrayOf(type.toByte(), ((aszmic shl 7).toByte())) + seq +
+            val nonce = byteArrayOf(type.toByte(), aszmic shl 7) + seq +
                     message.source.address.toByteArray() +
                     message.destination.address.toByteArray() +
                     message.ivIndex.toByteArray()
@@ -169,10 +168,10 @@ internal data class UpperTransportPdu(
             val security = pdu.message!!.security
             // The nonce type is 0x01 for messages signed with Application Key and 0x02 for messages
             // signed using Device Key (Configuration Messages).
-            val type = if (keySet.aid != null) 0x01 else 0x02
+            val type: Byte = if (keySet.aid != null) 0x01 else 0x02
             // ASZMIC is set to 1 for messages that shall be sent with high security
             // (64-bit TransMIC). This is possible only for Segmented Access Messages.
-            val aszmic = if ((security == MeshMessageSecurity.High) &&
+            val aszmic: Byte = if (security == MeshMessageSecurity.High &&
                 (pdu.accessPdu.size > 11 || pdu.isSegmented)
             ) 1 else 0
 
@@ -180,23 +179,23 @@ internal data class UpperTransportPdu(
                 it.copyOfRange(fromIndex = 1, toIndex = it.size)
             }
 
-            val nonce = byteArrayOf(type.toByte(), ((aszmic shl 7).toByte())) + seq +
+            val nonce = byteArrayOf(type, aszmic shl 7) + seq +
                     pdu.source.toByteArray() +
                     pdu.destination.address.toByteArray() +
                     ivIndex.index.toByteArray()
-            val transportMicSize = if (aszmic == 0) 4 else 8
+            val transportMicSize: UByte = if (aszmic > 0) 8u else 4u
 
             return UpperTransportPdu(
                 source = pdu.source,
                 destination = pdu.destination,
                 aid = keySet.aid,
-                transportMicSize = transportMicSize.toUByte(),
+                transportMicSize = transportMicSize,
                 transportPdu = Crypto.encrypt(
                     data = pdu.accessPdu,
                     key = keySet.accessKey,
                     nonce = nonce,
                     additionalData = (pdu.destination as? VirtualAddress)?.uuid?.toByteArray(),
-                    micSize = transportMicSize
+                    micSize = transportMicSize.toInt()
                 ),
                 accessPdu = pdu.accessPdu,
                 sequence = sequence,
