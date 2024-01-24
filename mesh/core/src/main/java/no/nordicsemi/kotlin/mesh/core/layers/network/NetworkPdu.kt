@@ -14,7 +14,11 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKeyDerivatives
 import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.crypto.Utils.isSet
+import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
+import no.nordicsemi.kotlin.mesh.crypto.Utils.ushr
 import kotlin.experimental.and
+import kotlin.experimental.or
 
 /**
  * Defines a Network PDU received/sent by a node.
@@ -49,12 +53,12 @@ internal data class NetworkPdu internal constructor(
 ) {
 
     val isSegmented: Boolean
-        get() = (transportPdu[0].toInt() and 0x80) > 1
+        get() = transportPdu[0] isSet 0x80
 
     val messageSequence: UInt
         get() = if (isSegmented) {
-            val sequenceZero = ((transportPdu[1].toInt() and 0x7F) shl 6).toUShort() or
-                    (transportPdu[2].toInt() shr 2).toUShort()
+            val sequenceZero = (transportPdu[1].toUShort() and 0x7Fu shl 6) or
+                               (transportPdu[2].toUShort() ushr 2)
             if ((sequence and 0x1FFFFu) < sequenceZero) {
                 (sequence and 0xFFE000u) + sequenceZero.toUInt() - (0x1FFF + 1).toUInt()
             } else {
@@ -78,9 +82,7 @@ internal data class NetworkPdu internal constructor(
         if (destination != other.destination) return false
         if (!transportPdu.contentEquals(other.transportPdu)) return false
         if (ivi != other.ivi) return false
-        if (nid != other.nid) return false
-
-        return true
+        return nid == other.nid
     }
 
     override fun hashCode(): Int {
@@ -158,7 +160,7 @@ internal object NetworkPduDecoder {
         ivIndex: IvIndex
     ): NetworkPdu? {
         // The first byte is not obfuscated.
-        val ivi: Byte = (pdu[0].toInt() shr 7).toByte() and 1
+        val ivi: Byte = pdu[0] ushr 7
         val nid: Byte = pdu[0] and 0x7F
         val keySets = mutableListOf<NetworkKeyDerivatives>()
         // The NID must match.
@@ -184,19 +186,19 @@ internal object NetworkPduDecoder {
             )
 
             // First validation: Control messages have a NetMIC of size 64 bits.
-            val ctl = deobfuscatedData[0].toInt() shr 7 and 1
-            if (ctl != 1 && pdu.size < 18) continue
-
+            val ctl = deobfuscatedData[0] ushr 7
             val type = LowerTransportPduType.from(ctl)!!
-            val ttl = (deobfuscatedData[0].toInt() and 0x7F).toUByte()
+            if (type != LowerTransportPduType.CONTROL_MESSAGE && pdu.size < 18) continue
+
+            val ttl = (deobfuscatedData[0] and 0x7F).toUByte()
 
             // Multiple octet values use Big Endian.
-            val sequence = (((deobfuscatedData[1].toInt()) shl 16) or
-                    ((deobfuscatedData[2].toInt()) shl 8) or
-                    deobfuscatedData[3].toInt()).toUInt()
+            val sequence = (deobfuscatedData[1].toUInt() shl 16) or
+                           (deobfuscatedData[2].toUInt() shl 8) or
+                            deobfuscatedData[3].toUInt()
 
-            val src = (((deobfuscatedData[4].toInt()) shl 8) or
-                    deobfuscatedData[5].toInt())
+            val src = (deobfuscatedData[4].toUShort() shl 8) or
+                       deobfuscatedData[5].toUShort()
 
             val micOffset = pdu.size - type.netMicSize
             val destAndTransportPdu = pdu.copyOfRange(fromIndex = 7, toIndex = pdu.size)
@@ -218,6 +220,9 @@ internal object NetworkPduDecoder {
                     micSize = mic.size
                 ) ?: continue
 
+                val dst = (decryptedData[0].toUShort() shl 8) or
+                           decryptedData[1].toUShort()
+
                 return NetworkPdu(
                     pdu = pdu,
                     key = networkKey,
@@ -227,11 +232,8 @@ internal object NetworkPduDecoder {
                     type = type,
                     ttl = ttl,
                     sequence = sequence,
-                    source = MeshAddress.create(address = src.toUShort()),
-                    destination = MeshAddress.create(
-                        address = decryptedData[0].toInt() shl 8 or
-                                decryptedData[1].toInt()
-                    ),
+                    source = MeshAddress.create(address = src),
+                    destination = MeshAddress.create(address = dst),
                     decryptedData.copyOfRange(fromIndex = 2, toIndex = decryptedData.size)
                 )
             } catch (e: Exception) {
@@ -274,8 +276,8 @@ internal object NetworkPduDecoder {
         val destination = lowerTransportPdu.destination.address
         val transportPdu = lowerTransportPdu.transportPdu
 
-        val iviNid = ((ivi.toInt() shl 7) or (nid.toInt() and 0x7F)).toByte()
-        val ctlTtl = ((type.rawValue.toInt() shl 7) or (ttl.toInt() and 0x7F)).toByte()
+        val iviNid = (ivi shl 7) or nid
+        val ctlTtl = (type.rawValue shl 7) or ttl.toByte()
 
         val seq = sequence.toByteArray().let { it.copyOfRange(fromIndex = 1, toIndex = it.size) }
         val deobfuscatedData = byteArrayOf(ctlTtl) + seq + source.toByteArray()

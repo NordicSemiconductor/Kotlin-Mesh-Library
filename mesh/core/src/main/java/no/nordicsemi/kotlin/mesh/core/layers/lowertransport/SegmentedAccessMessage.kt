@@ -8,6 +8,10 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.crypto.Utils.isSet
+import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
+import no.nordicsemi.kotlin.mesh.crypto.Utils.ushr
+import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.math.min
 
@@ -38,15 +42,15 @@ internal data class SegmentedAccessMessage(
         get() {
             var octet0 = 0x80.toByte() // SEG = 1
             aid?.let { aid ->
-                octet0 = octet0 or 0b01000000.toByte() // AKF = 1
+                octet0 = octet0 or 0b01000000 // AKF = 1
                 octet0 = octet0 or aid
             }
-            val octet1 = ((transportMicSize.toInt() shl 3) and 0x80).toByte() or
-                    (sequenceZero.toInt() shr 6).toByte()
-            val octet2 = ((sequenceZero and 0x3Fu).toInt() shl 2).toByte() or
-                    (segmentOffset.toInt() shr 3).toByte()
-            val octet3 = ((segmentOffset and 0x07u).toInt() shl 5).toByte() or
-                    (lastSegmentNumber and 0x1Fu).toByte()
+            val octet1 = (transportMicSize and 0x08u shl 4).toByte() or // 8 -> 0x80, 4 -> 0x00
+                         (sequenceZero ushr 6).toByte()
+            val octet2 = (sequenceZero shl 2).toByte() or
+                         (segmentOffset ushr 3).toByte()
+            val octet3 = (segmentOffset and 0x07u shl 5).toByte() or
+                         (lastSegmentNumber and 0x1Fu).toByte()
             return byteArrayOf(octet0, octet1, octet2, octet3) + upperTransportPdu
         }
 
@@ -69,9 +73,7 @@ internal data class SegmentedAccessMessage(
         if (userInitialized != other.userInitialized) return false
         if (sequenceZero != other.sequenceZero) return false
         if (segmentOffset != other.segmentOffset) return false
-        if (lastSegmentNumber != other.lastSegmentNumber) return false
-
-        return true
+        return lastSegmentNumber == other.lastSegmentNumber
     }
 
     override fun hashCode(): Int {
@@ -101,25 +103,20 @@ internal data class SegmentedAccessMessage(
         fun init(networkPdu: NetworkPdu): SegmentedAccessMessage? = networkPdu.run {
             require(
                 transportPdu.size >= 5
-                        && transportPdu[0].toInt() and 0x80 != 0x00
+                        && transportPdu[0] isSet 0x80
             ) { return null }
 
-            val akf = transportPdu[0].toInt() shr 7 and 1
-            val aid: Byte? = when (akf == 1) {
-                true -> (transportPdu[0].toInt() and 0x3F).toByte()
-                false -> null
-            }
-            val szmic = transportPdu[1].toInt() shr 7 and 1
-            val transportMicSize = when (szmic == 0) {
-                true -> 4
-                false -> 8
-            }.toUByte()
+            val akf = transportPdu[0] isSet 0b01000000
+            val aid: Byte? = if (akf) transportPdu[0] and 0x3F else null
 
-            val sequenceZero = ((transportPdu[1].toInt() and 0x7F) shl 6).toUShort() or
-                    (transportPdu[2].toInt() ushr 2).toUShort()
-            val segmentOffset = (((transportPdu[2].toInt() and 0x03) shl 3) or
-                    ((transportPdu[3].toInt() and 0xE0) shr 5)).toUByte()
-            val lastSegmentNumber = (transportPdu[3].toInt() and 0x1F).toUByte()
+            val szmic = transportPdu[1] isSet 0b10000000
+            val transportMicSize: UByte = if (szmic) 8u else 4u
+
+            val sequenceZero = (transportPdu[1].toUShort() and 0x7Fu shl 6) or
+                               (transportPdu[2].toUShort() ushr 2)
+            val segmentOffset = (transportPdu[2].toUByte() and 0x03u shl 3) or
+                                (transportPdu[3].toUByte() ushr 5)
+            val lastSegmentNumber = transportPdu[3].toUByte() and 0x1Fu
 
             require(segmentOffset <= lastSegmentNumber) { return null }
 
@@ -166,7 +163,7 @@ internal data class SegmentedAccessMessage(
                 sequence = pdu.sequence,
                 sequenceZero = (pdu.sequence and 0x1FFFu).toUShort(),
                 segmentOffset = offset,
-                lastSegmentNumber = (((pdu.transportPdu.size + 11).toUByte() / 12u) - 1u).toUByte(),
+                lastSegmentNumber = (((pdu.transportPdu.size + 11) / 12) - 1).toUByte(),
                 aid = pdu.aid,
                 transportMicSize = pdu.transportMicSize
             )

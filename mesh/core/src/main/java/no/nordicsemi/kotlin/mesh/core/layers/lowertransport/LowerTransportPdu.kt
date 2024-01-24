@@ -46,6 +46,6 @@ internal enum class LowerTransportPduType(val rawValue: Byte) {
          * @param type Type of the Lower Transport PDU.
          * @return LowerTransportPduType or null if the values don't match.
          */
-        fun from(type: Int) = entries.firstOrNull { it.rawValue == type.toByte() }
+        fun from(type: Byte) = entries.firstOrNull { it.rawValue == type }
     }
 }
