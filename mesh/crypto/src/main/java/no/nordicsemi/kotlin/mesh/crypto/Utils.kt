@@ -1,10 +1,9 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package no.nordicsemi.kotlin.mesh.crypto
 
 import org.bouncycastle.jce.interfaces.ECPublicKey
 import java.nio.charset.StandardCharsets
 import java.security.PublicKey
+import kotlin.experimental.and
 import kotlin.experimental.xor
 
 object Utils {
@@ -15,11 +14,13 @@ object Utils {
      * @param prefixOx Whether to prefix the hex string with 0x.
      * @return Hex string representation of the byte array.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     fun ByteArray.encodeHex(prefixOx: Boolean = false) = (if(prefixOx) "0x" else "") + toHexString().uppercase()
 
     /**
      * Converts a byte array to a hex string.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     fun String.decodeHex() = hexToByteArray()
 
     /**
@@ -41,8 +42,8 @@ object Utils {
      * Converts an Int to a byte array using the Big Endian representation.
      */
     fun UInt.toByteArray() = ByteArray(4) {
-            (this shr (24 - it * 8)).toByte()
-        }
+        (this shr (24 - it * 8)).toByte()
+    }
 
     /**
      * Converts a UShort to a byte array using the Big Endian representation.
@@ -50,6 +51,92 @@ object Utils {
     fun UShort.toByteArray() = ByteArray(2) {
         (this.toInt() shr (8 - it * 8)).toByte()
     }
+
+    /**
+     * Returns whether ALL bits that are equal to 1 in the given [bitfield] are also set to 1
+     * in the receiver.
+     *
+     * Example:
+     * - 0b00001111 isSet 0b00000111 == true
+     * - 0b00001111 isSet 0b00001000 == true
+     * - 0b10101010 isSet 0b00000100 == false
+     * - 0b10101000 isSet 0b10101010 == false
+     * - 0b10101010 isSet 0b10000000 == true
+     * @receiver Byte value.
+     */
+    infix fun Byte.isSet(bitfield: Int): Boolean = this and bitfield.toByte() == bitfield.toByte()
+
+    /**
+     * Returns whether ALL bits that are equal to 1 in the given [bitfield] are set to 0
+     * in the receiver.
+     *
+     * Example:
+     * - 0b00001111 isZero 0b00000111 == false
+     * - 0b00001111 isZero 0b00001000 == false
+     * - 0b10101010 isZero 0b00000100 == true
+     * - 0b10101000 isZero 0b10101010 == false
+     * - 0b10101010 isZero 0b10000000 == false
+     * @receiver Byte value.
+     */
+    infix fun Byte.isZero(bitfield: Int): Boolean = this and bitfield.toByte() == 0.toByte()
+
+    /**
+     * Shifts this value left by the [bitCount] number of bits.
+     *
+     * Note that only the three lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..7`.
+     */
+    infix fun Byte.shl(bitCount: Int): Byte = (this.toInt() shl bitCount).toByte()
+
+    /**
+     * Shifts this value right by the [bitCount] number of bits, filling the leftmost bits with
+     * copies of the sign bit.
+     *
+     * Note that only the three lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..7`.
+     */
+    infix fun Byte.shr(bitCount: Int): Byte = (this.toInt() shr bitCount).toByte()
+
+    /**
+     * Shifts this value right by the [bitCount] number of bits, filling the leftmost bits with zeros.
+     *
+     * Note that only the three lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..7`.
+     */
+    infix fun Byte.ushr(bitCount: Int): Byte = (this.toInt() ushr bitCount).toByte()
+
+    /**
+     * Shifts this value left by the [bitCount] number of bits.
+     *
+     * Note that only the three lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..7`.
+     */
+    infix fun UByte.shl(bitCount: Int): UByte = (this.toInt() shl bitCount).toUByte()
+
+    /**
+     * Shifts this value right by the [bitCount] number of bits, filling the leftmost bits with zeros.
+     *
+     * Note that only the three lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..7`.
+     */
+    infix fun UByte.ushr(bitCount: Int): UByte = (this.toInt() ushr bitCount).toUByte()
+
+    /**
+     * Shifts this value left by the [bitCount] number of bits.
+     *
+     * Note that only the four lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..15`.
+     */
+    infix fun UShort.shl(bitCount: Int): UShort = (this.toInt() shl bitCount).toUShort()
+
+    /**
+     * Shifts this value right by the [bitCount] number of bits, filling the leftmost bits with
+     * copies of the sign bit.
+     *
+     * Note that only the four lowest-order bits of the [bitCount] are used as the shift distance.
+     * The shift distance actually used is therefore always in the range `0..15`.
+     */
+    infix fun UShort.ushr(bitCount: Int): UShort = (this.toInt() ushr bitCount).toUShort()
 
     /**
      * Returns the public key encoded as a 64-byte array
