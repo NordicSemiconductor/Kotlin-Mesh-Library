@@ -34,7 +34,7 @@ fun MeshTwoLineListItem(
         modifier = modifier
             .fillMaxWidth()
             .height(72.dp)
-            .padding(horizontal = 16.dp),
+        /*.padding(horizontal = 16.dp)*/,
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
