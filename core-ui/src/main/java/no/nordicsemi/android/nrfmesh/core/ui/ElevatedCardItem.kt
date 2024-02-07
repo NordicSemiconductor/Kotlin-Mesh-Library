@@ -131,7 +131,6 @@ fun ElevatedCardItemTextField(
                         subtitle = value,
                         trailingComposable = {
                             IconButton(
-                                modifier = Modifier.padding(horizontal = 8.dp),
                                 onClick = {
                                     onEditClick = !onEditClick
                                 }

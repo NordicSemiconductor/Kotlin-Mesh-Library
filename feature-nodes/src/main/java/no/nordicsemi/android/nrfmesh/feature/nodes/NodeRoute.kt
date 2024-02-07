@@ -1,10 +1,8 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,20 +11,13 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.DeviceHub
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
@@ -45,10 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.kotlin.mesh.core.model.Element
@@ -199,76 +189,14 @@ private fun LazyListScope.nodeInfo(
 
 @Composable
 private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
-    var value by rememberSaveable { mutableStateOf(name) }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
-    ElevatedCard(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                modifier = Modifier.padding(all = 12.dp),
-                imageVector = Icons.Outlined.Badge,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-            Crossfade(targetState = onEditClick, label = "NodeName") { state ->
-                when (state) {
-                    true -> MeshOutlinedTextField(
-                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
-                        onFocus = onEditClick,
-                        value = value,
-                        onValueChanged = { value = it },
-                        label = { Text(text = stringResource(id = R.string.label_name)) },
-                        placeholder = {
-                            Text(text = stringResource(id = R.string.label_placeholder_node_name))
-                        },
-                        internalTrailingIcon = {
-                            IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
-                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                            }
-                        },
-                        content = {
-                            IconButton(
-                                modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                                enabled = value.isNotBlank(),
-                                onClick = {
-                                    onEditClick = !onEditClick
-                                    value = value.trim()
-                                    onNameChanged(value)
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Check,
-                                    contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                )
-                            }
-                        }
-                    )
-
-                    false -> MeshTwoLineListItem(
-                        title = stringResource(id = R.string.label_name),
-                        subtitle = value,
-                        trailingComposable = {
-                            IconButton(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                onClick = {
-                                    onEditClick = !onEditClick
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-        }
-    }
+    ElevatedCardItemTextField(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(id = R.string.label_name),
+        subtitle = name,
+        placeholder = stringResource(id = R.string.label_placeholder_node_name),
+        onValueChanged = onNameChanged
+    )
 }
 
 

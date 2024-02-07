@@ -144,7 +144,7 @@ fun Name(
             true -> MeshOutlinedTextField(
                 modifier = Modifier.padding(vertical = 8.dp),
                 onFocus = onEditClick,
-                externalLeadingIcon = {
+                leadingComposable = {
                     Icon(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         imageVector = Icons.Outlined.Badge,
@@ -231,7 +231,7 @@ fun Key(
                 MeshOutlinedTextField(
                     modifier = Modifier.padding(vertical = 8.dp),
                     onFocus = onEditClick,
-                    externalLeadingIcon = {
+                    leadingComposable = {
                         Icon(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             imageVector = Icons.Outlined.VpnKey,
