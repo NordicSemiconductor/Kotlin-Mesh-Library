@@ -203,7 +203,9 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
 @Composable
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable(onClick = onNetworkKeysClicked),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} added"
@@ -213,7 +215,9 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 @Composable
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable(onClick = onApplicationKeysClicked),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} added"
@@ -235,7 +239,9 @@ private fun ElementRow(element: Element, onElementsClicked: () -> Unit) {
 @Composable
 private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable(onClick = onGetTtlClicked),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_default_time_to_live),
         subtitle = if (ttl != null) "TTL set to $ttl" else "Unknown",
@@ -262,7 +268,9 @@ private fun ProxyStateRow(
     }
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable(onClick = onGetProxyStateClicked),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
         titleAction = {
@@ -312,7 +320,8 @@ private fun ProxyStateRow(
 private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
     var excluded by rememberSaveable { mutableStateOf(isExcluded) }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
         titleAction = { SwitchWithIcon(isChecked = excluded, onCheckedChange = { excluded = it }) },
