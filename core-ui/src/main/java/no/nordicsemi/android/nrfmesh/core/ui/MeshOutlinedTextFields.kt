@@ -2,7 +2,12 @@
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +29,7 @@ import androidx.compose.ui.unit.dp
 fun MeshOutlinedTextField(
     modifier: Modifier = Modifier,
     onFocus: Boolean = false,
-    externalLeadingIcon: @Composable () -> Unit = {},
+    leadingComposable: @Composable () -> Unit = {},
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     value: String,
@@ -39,13 +44,16 @@ fun MeshOutlinedTextField(
 ) {
     val requester = remember { FocusRequester() }
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height = 72.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        externalLeadingIcon()
+        leadingComposable()
         OutlinedTextField(
             modifier = Modifier
                 .weight(1f)
+                .padding(start = 16.dp)
                 .focusRequester(requester),
             value = value,
             onValueChange = {
