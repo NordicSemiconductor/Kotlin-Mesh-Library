@@ -5,6 +5,8 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -99,7 +101,11 @@ private fun Provisioners(
     remove: (Provisioner) -> Unit
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(state = listState) {
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
         items(items = provisioners, key = { it.uuid }) { provisioner ->
             SwipeToDismissProvisioner(
                 provisioner = provisioner,
@@ -131,23 +137,13 @@ private fun SwipeToDismissProvisioner(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                MeshTwoLineListItem(
-                    modifier = Modifier.clickable {
-                        navigateToProvisioner(provisioner.uuid)
-                    },
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.VpnKey,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = provisioner.name,
-                    subtitle = provisioner.uuid.toString().uppercase(Locale.US)
-                )
-            }
+            /*Swipeable*/ElevatedCardItem(
+                modifier = Modifier
+                    .clickable { navigateToProvisioner(provisioner.uuid) },
+                imageVector = Icons.Outlined.VpnKey,
+                title = provisioner.name,
+                subtitle = provisioner.uuid.toString().uppercase(Locale.US)
+            )
         }
     )
     if (dismissState.isDismissed()) {

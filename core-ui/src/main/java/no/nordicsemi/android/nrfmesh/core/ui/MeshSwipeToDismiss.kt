@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,13 +41,14 @@ fun SwipeDismissItem(
         exit = shrinkVertically()
     ) {
         SwipeToDismissBox(
+            modifier = Modifier.padding(horizontal = 8.dp),
             state = dismissState,
             backgroundContent = {
                 val color by animateColorAsState(targetValue = Color.Red, label = "dismiss")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color)
+                        .background(color = color, shape = CardDefaults.elevatedShape)
                         .padding(horizontal = 20.dp),
                     contentAlignment = if (dismissState.dismissDirection == SwipeToDismissValue.StartToEnd)
                         Alignment.CenterStart
