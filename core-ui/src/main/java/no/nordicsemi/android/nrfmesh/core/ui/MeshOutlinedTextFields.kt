@@ -16,12 +16,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
@@ -40,13 +44,17 @@ fun MeshOutlinedTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value),
+    supportingText: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {},
 ) {
     val requester = remember { FocusRequester() }
+    val textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(height = 72.dp),
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
@@ -55,12 +63,12 @@ fun MeshOutlinedTextField(
                 .weight(1f)
                 .padding(start = 16.dp)
                 .focusRequester(requester),
-            value = value,
+            value = textFieldValue,
             onValueChange = {
                 if (regex == null) {
-                    onValueChanged(it)
-                } else if (regex.matches(it)) {
-                    onValueChanged(value)
+                    onValueChanged(it.text)
+                } else if (regex.matches(it.text)) {
+                    onValueChanged(textFieldValue.text)
                 }
             },
             label = label,
@@ -68,6 +76,7 @@ fun MeshOutlinedTextField(
             trailingIcon = internalTrailingIcon,
             readOnly = readOnly,
             isError = isError,
+            supportingText = supportingText,
             singleLine = true,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions
@@ -101,7 +110,9 @@ fun MeshOutlinedTextField(
 ) {
     val requester = remember { FocusRequester() }
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         externalLeadingIcon()
@@ -130,9 +141,7 @@ fun MeshOutlinedTextField(
         content()
     }
     SideEffect {
-        if (onFocus) {
-            requester.requestFocus()
-        }
+        if (onFocus) requester.requestFocus()
     }
 }
 

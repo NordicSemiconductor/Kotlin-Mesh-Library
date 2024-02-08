@@ -33,8 +33,7 @@ fun MeshTwoLineListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
-        /*.padding(horizontal = 16.dp)*/,
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
@@ -44,7 +43,7 @@ fun MeshTwoLineListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
@@ -70,7 +69,9 @@ fun MeshTwoLineListItem(
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -82,7 +83,7 @@ fun MeshTwoLineListItem(
             tint = LocalContentColor.current.copy(alpha = 0.6f)
         )
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(vertical = 28.dp)
         ) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
