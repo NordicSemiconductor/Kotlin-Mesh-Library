@@ -332,14 +332,20 @@ private fun UnicastAddress(
                                 modifier = Modifier.padding(start = 8.dp),
                                 enabled = !error,
                                 onClick = {
-                                    if (initialValue == value.text) {
-                                        onEditClick = !onEditClick
+                                    if (value.text.isEmpty()) {
+                                        value = TextFieldValue(
+                                            text = initialValue,
+                                            selection = TextRange(index = initialValue.length)
+                                        )
+                                        onEditClick = false
                                         error = false
+                                        onEditableStateChanged()
                                     } else {
                                         runCatching {
                                             onAddressChanged(value.text.toInt(radix = 16))
                                         }.onSuccess {
-                                            onEditClick = !onEditClick
+                                            error = false
+                                            onEditClick = false
                                             onEditableStateChanged()
                                         }.onFailure { t ->
                                             error = true
