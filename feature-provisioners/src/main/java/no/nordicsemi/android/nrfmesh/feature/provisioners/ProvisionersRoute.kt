@@ -60,9 +60,11 @@ private fun ProvisionersScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-                navigateToProvisioner(onAddProvisionerClicked().uuid)
-            }) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    navigateToProvisioner(onAddProvisionerClicked().uuid)
+                }
+            ) {
                 Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
@@ -137,7 +139,7 @@ private fun SwipeToDismissProvisioner(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            /*Swipeable*/ElevatedCardItem(
+            ElevatedCardItem(
                 modifier = Modifier
                     .clickable { navigateToProvisioner(provisioner.uuid) },
                 imageVector = Icons.Outlined.VpnKey,

@@ -134,7 +134,9 @@ private fun Ranges(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.6f, true)
+                .weight(0.6f, true),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
@@ -145,7 +147,7 @@ private fun Ranges(
                 SwipeDismissItem(
                     dismissState = dismissState,
                     content = {
-                        Surface(color = MaterialTheme.colorScheme.background) {
+                        ElevatedCard {
                             AllocatedRange(
                                 imageVector = range.toImageVector(),
                                 title = "${range.low.toHex(true)} - ${range.high.toHex(true)}",
