@@ -108,8 +108,9 @@ fun TwoLineRangeListItem(
 ) {
     Row(
         modifier = modifier
-            .padding(vertical = 16.dp)
-            .fillMaxWidth(),
+            .height(height = 80.dp)
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
@@ -120,7 +121,7 @@ fun TwoLineRangeListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
