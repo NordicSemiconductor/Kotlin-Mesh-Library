@@ -5,6 +5,7 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -103,8 +104,11 @@ private fun NetworkKeys(
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 8.dp),
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         items(items = keys) { key ->
             SwipeToDismissKey(
@@ -146,23 +150,13 @@ private fun SwipeToDismissKey(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                MeshTwoLineListItem(
-                    modifier = Modifier.clickable {
-                        navigateToNetworkKey(key.index)
-                    },
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.VpnKey,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = key.name,
-                    subtitle = key.key.encodeHex()
-                )
-            }
+            ElevatedCardItem(
+                modifier = Modifier
+                    .clickable { navigateToNetworkKey(key.index) },
+                imageVector = Icons.Outlined.VpnKey,
+                title = key.name,
+                subtitle = key.key.encodeHex()
+            )
         }
     )
 
