@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
 @file:Suppress("unused")
 
 package no.nordicsemi.android.nrfmesh.feature.application.keys
@@ -6,6 +5,8 @@ package no.nordicsemi.android.nrfmesh.feature.application.keys
 import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +22,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,6 +47,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.application.keys.R
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -83,11 +87,13 @@ private fun ApplicationKeyScreen(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         when (keyState) {
             KeyState.Loading -> { /* Do nothing */
             }
+
             is KeyState.Success -> {
                 boundNetKeyIndex = keyState.key.boundNetKeyIndex.toInt()
                 applicationKeyInfo(
@@ -111,6 +117,7 @@ private fun ApplicationKeyScreen(
                     }
                 )
             }
+
             is KeyState.Error -> when (keyState.throwable) {
                 is KeyInUse -> {}
                 is InvalidKeyLength -> {}
@@ -160,79 +167,15 @@ fun Name(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    var value by rememberSaveable { mutableStateOf(name) }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick, label = "name") { state ->
-        when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
-                onFocus = onEditClick,
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                value = value,
-                onValueChanged = { value = it },
-                label = { Text(text = stringResource(id = R.string.label_name)) },
-                placeholder = { Text(text = stringResource(id = R.string.label_placeholder_name)) },
-                internalTrailingIcon = {
-                    IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
-                        Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                    }
-                },
-                content = {
-                    IconButton(
-                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                        enabled = value.isNotBlank(),
-                        onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
-                            value = value.trim()
-                            onNameChanged(value)
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                title = stringResource(id = R.string.label_name),
-                subtitle = value,
-                trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        enabled = isCurrentlyEditable,
-                        onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-        }
-    }
+    ElevatedCardItemTextField(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(id = R.string.label_name),
+        subtitle = name,
+        onValueChanged = onNameChanged,
+        isEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged,
+    )
 }
 
 @Composable
@@ -248,103 +191,119 @@ fun Key(
     val coroutineScope = rememberCoroutineScope()
     var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick, label = "key") { state ->
-        when (state) {
-            true ->
-                MeshOutlinedTextField(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    onFocus = onEditClick,
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.VpnKey,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    value = key,
-                    onValueChanged = { key = it },
-                    label = { Text(text = stringResource(id = R.string.label_key)) },
-                    placeholder = {
-                        Text(
-                            text = stringResource(id = R.string.label_placeholder_key),
-                            maxLines = 1
-                        )
-                    },
-                    internalTrailingIcon = {
-                        IconButton(
-                            enabled = key.isNotBlank(),
-                            onClick = { key = "" }
-                        ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
-                    },
-                    regex = Regex("[0-9A-Fa-f]{0,32}"),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Characters,
-                        autoCorrect = false
-                    ),
-                    content = {
-                        IconButton(
-                            modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                            enabled = key.length == 32,
-                            onClick = {
-                                onEditClick = !onEditClick
-                                onKeyChanged(key.decodeHex())
-                                onEditableStateChanged()
+
+    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                imageVector = Icons.Outlined.VpnKey,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+            Crossfade(targetState = onEditClick, label = "key") { state ->
+                when (state) {
+                    true ->
+                        MeshOutlinedTextField(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            onFocus = onEditClick,
+                            leadingComposable = {
+                                Icon(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    imageVector = Icons.Outlined.VpnKey,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                )
+                            },
+                            value = key,
+                            onValueChanged = { key = it },
+                            label = { Text(text = stringResource(id = R.string.label_key)) },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(id = R.string.label_placeholder_key),
+                                    maxLines = 1
+                                )
+                            },
+                            internalTrailingIcon = {
+                                IconButton(
+                                    enabled = key.isNotBlank(),
+                                    onClick = { key = "" }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Clear,
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            regex = Regex("[0-9A-Fa-f]{0,32}"),
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Characters,
+                                autoCorrect = false
+                            ),
+                            content = {
+                                IconButton(
+                                    modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                                    enabled = key.length == 32,
+                                    onClick = {
+                                        onEditClick = !onEditClick
+                                        onKeyChanged(key.decodeHex())
+                                        onEditableStateChanged()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null
+                                    )
+                                }
                             }
-                        ) { Icon(imageVector = Icons.Outlined.Check, contentDescription = null) }
-                    }
-                )
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.VpnKey,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                title = stringResource(id = R.string.label_key),
-                subtitle = key,
-                trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        enabled = isCurrentlyEditable,
-                        onClick = {
-                            if (!isInUse) {
-                                onEditClick = !onEditClick
-                                onEditableStateChanged()
-                            } else {
-                                showSnackbar(
-                                    scope = coroutineScope,
-                                    snackbarHostState = snackbarHostState,
-                                    message = context.getString(R.string.error_cannot_edit_key_in_use)
+                        )
+
+                    false -> MeshTwoLineListItem(
+                        leadingComposable = {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                imageVector = Icons.Outlined.VpnKey,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                            )
+                        },
+                        title = stringResource(id = R.string.label_key),
+                        subtitle = key,
+                        trailingComposable = {
+                            IconButton(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                enabled = isCurrentlyEditable,
+                                onClick = {
+                                    if (!isInUse) {
+                                        onEditClick = !onEditClick
+                                        onEditableStateChanged()
+                                    } else {
+                                        showSnackbar(
+                                            scope = coroutineScope,
+                                            snackbarHostState = snackbarHostState,
+                                            message = context.getString(R.string.error_cannot_edit_key_in_use)
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
                                 )
                             }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
+                    )
                 }
-            )
+            }
         }
     }
 }
 
 @Composable
 fun OldKey(oldKey: ByteArray?) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.AssistWalker,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
         subtitle = oldKey?.encodeHex()
             ?: stringResource(id = R.string.label_na)
@@ -353,15 +312,9 @@ fun OldKey(oldKey: ByteArray?) {
 
 @Composable
 fun KeyIndex(index: KeyIndex) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.FormatListNumbered,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.FormatListNumbered,
         title = stringResource(id = R.string.label_key_index),
         subtitle = index.toString()
     )
@@ -382,8 +335,10 @@ private fun LazyListScope.boundNetworkKeys(
     items(
         items = networkKeys
     ) { key ->
-        MeshTwoLineListItem(
-            modifier = Modifier.clickable {
+        ElevatedCardItem(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .clickable {
                 if (!isInUse) onBoundNetworkKeyChanged(key)
                 else showSnackbar(
                     scope = coroutineScope,
@@ -392,28 +347,20 @@ private fun LazyListScope.boundNetworkKeys(
                     withDismissAction = true
                 )
             },
-            leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Outlined.VpnKey,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            },
+            imageVector = Icons.Outlined.VpnKey,
             title = key.name,
-            subtitle = key.key.encodeHex(),
-            trailingComposable = {
+            titleAction = {
                 if (key.index.toInt() == boundNetKeyIndex) {
                     Icon(
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .padding(end = 16.dp),
+                            .padding(start = 16.dp),
                         imageVector = Icons.Outlined.TaskAlt,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.surfaceTint
                     )
                 }
-            }
+            },
+            subtitle = key.key.encodeHex(),
         )
     }
 }

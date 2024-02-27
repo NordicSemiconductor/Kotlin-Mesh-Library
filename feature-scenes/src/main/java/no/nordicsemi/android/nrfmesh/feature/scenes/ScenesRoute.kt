@@ -4,6 +4,7 @@ package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -41,8 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.scenes.R
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -139,6 +139,7 @@ private fun Scenes(
     LazyColumn(
         contentPadding = padding,
         modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         state = listState
     ) {
         items(items = scenes, key = { it.hashCode() }) { scene ->
@@ -180,20 +181,12 @@ private fun SwipeToDismissScene(
         dismissState = dismissState,
         content = {
             Surface(color = MaterialTheme.colorScheme.background) {
-                MeshTwoLineListItem(
-                    modifier = Modifier.clickable {
-                        navigateToScene(scene.number)
-                    },
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.AutoAwesome,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
+                ElevatedCardItem(
+                    modifier = Modifier
+                        .clickable { navigateToScene(scene.number) },
+                    imageVector = Icons.Outlined.AutoAwesome,
                     title = scene.name,
-                    subtitle = scene.number.toHex(prefix0x = true)
+                    subtitle = scene.number.toHex(true)
                 )
             }
         }

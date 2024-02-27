@@ -5,6 +5,7 @@ package no.nordicsemi.android.nrfmesh.feature.application.keys
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -110,7 +111,8 @@ private fun ApplicationKeys(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        state = listState
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         items(items = keys, key = { it.key.hashCode() }) { key ->
             SwipeToDismissKey(
@@ -137,9 +139,7 @@ private fun SwipeToDismissKey(
     remove: (ApplicationKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    var shouldNotDismiss by remember {
-        mutableStateOf(true)
-    }
+    var shouldNotDismiss by remember { mutableStateOf(true) }
     val dismissState = rememberSwipeToDismissState(
         confirmValueChange = {
             shouldNotDismiss = !key.isInUse
@@ -150,23 +150,13 @@ private fun SwipeToDismissKey(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                MeshTwoLineListItem(
-                    modifier = Modifier.clickable {
-                        navigateToApplicationKey(key.index)
-                    },
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.VpnKey,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = key.name,
-                    subtitle = key.key.encodeHex()
-                )
-            }
+            ElevatedCardItem(
+                modifier = Modifier
+                    .clickable { navigateToApplicationKey(key.index) },
+                imageVector = Icons.Outlined.VpnKey,
+                title = key.name,
+                subtitle = key.key.encodeHex()
+            )
         }
     )
 

@@ -1,16 +1,17 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.feature.scenes.R
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.mesh.core.model.Scene
@@ -40,7 +42,10 @@ internal fun SceneRoute(viewModel: SceneViewModel = hiltViewModel()) {
 
 @Composable
 private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         when (sceneState) {
             SceneState.Loading -> { /* Do nothing */
             }
@@ -136,15 +141,9 @@ fun Name(name: String, onNameChanged: (String) -> Unit) {
 
 @Composable
 fun Number(number: SceneNumber) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_number),
         subtitle = number.toHex(true)
     )
