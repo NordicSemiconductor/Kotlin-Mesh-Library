@@ -5,6 +5,7 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -50,7 +50,7 @@ private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
@@ -98,14 +98,17 @@ private fun NetworkKeys(
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
     navigateToKey: (KeyIndex) -> Unit,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 8.dp),
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         items(items = keys) { key ->
             SwipeToDismissKey(
@@ -129,59 +132,66 @@ private fun SwipeToDismissKey(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     navigateToNetworkKey: (KeyIndex) -> Unit,
-    onSwiped: (NetworkKey) -> Boolean,
+    onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberDismissState()
+    var shouldNotDismiss by remember {
+        mutableStateOf(false)
+    }
+    val dismissState = rememberSwipeToDismissState(
+        confirmValueChange = {
+            shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
+            !shouldNotDismiss
+        },
+        positionalThreshold = { it * 0.5f }
+    )
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                MeshTwoLineListItem(
-                    modifier = Modifier.clickable {
-                        navigateToNetworkKey(key.index)
-                    },
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.VpnKey,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = key.name,
-                    subtitle = key.key.encodeHex()
-                )
-            }
+            ElevatedCardItem(
+                modifier = Modifier
+                    .clickable { navigateToNetworkKey(key.index) },
+                imageVector = Icons.Outlined.VpnKey,
+                title = key.name,
+                subtitle = key.key.encodeHex()
+            )
         }
     )
-    if (dismissState.currentValue != DismissValue.Default) {
-        if (onSwiped(key)) {
+
+    if (shouldNotDismiss) {
+        LaunchedEffect(snackbarHostState) {
             showSnackbar(
                 scope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                message = stringResource(R.string.label_network_key_deleted),
-                actionLabel = stringResource(R.string.action_undo),
-                onDismissed = { remove(key) },
-                onActionPerformed = {
-                    coroutineScope.launch {
+                message = context.getString(
+                    if (key.index.toUInt() == 0.toUInt())
+                        R.string.error_cannot_delete_primary_network_key
+                    else
+                        R.string.error_cannot_delete_key_in_use
+                ),
+                duration = SnackbarDuration.Short,
+                onDismissed = { shouldNotDismiss = false }
+            )
+        }
+    }
+    if (dismissState.isDismissed()) {
+        LaunchedEffect(snackbarHostState) {
+            onSwiped(key)
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.label_network_key_deleted),
+                actionLabel = context.getString(R.string.action_undo),
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            ).also {
+                when (it) {
+                    SnackbarResult.Dismissed -> remove(key)
+                    SnackbarResult.ActionPerformed -> {
                         dismissState.reset()
                         onUndoClicked(key)
                     }
-                },
-                withDismissAction = true
-            )
-        } else {
-            LaunchedEffect(key1 = dismissState) {
-                dismissState.reset()
-                showSnackbar(
-                    scope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    message = context.getString(R.string.error_cannot_delete_key_in_use),
-                    withDismissAction = true
-                )
+                }
             }
         }
     }

@@ -3,10 +3,12 @@ package no.nordicsemi.android.nrfmesh.feature.scenes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -22,23 +24,26 @@ internal class SceneViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private lateinit var selectedScene: Scene
     private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
 
-    val uiState: StateFlow<SceneScreenUiState> = repository.network.map { network ->
-        this@SceneViewModel.selectedScene = network.scene(sceneNumberArg)
-        SceneScreenUiState(
-            sceneState = SceneState.Success(scene = selectedScene)
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        SceneScreenUiState(SceneState.Loading)
-    )
+    private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
+    val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()
 
-    override fun onCleared() {
-        super.onCleared()
-        save()
+    init {
+        repository.network.onEach { meshNetwork ->
+            _uiState.update { state ->
+                val scene = meshNetwork.scene(sceneNumberArg)
+                when (val sceneState = state.sceneState) {
+                    is SceneState.Loading -> SceneScreenUiState(
+                        sceneState = SceneState.Success(
+                            scene = scene
+                        )
+                    )
+                    is SceneState.Success -> state.copy(sceneState = sceneState.copy(scene = scene))
+                    else -> state
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     /**
@@ -47,10 +52,14 @@ internal class SceneViewModel @Inject internal constructor(
      * @param name New application key name.
      */
     internal fun onNameChanged(name: String) {
-        if (selectedScene.name != name) {
-            selectedScene.name = name
-            save()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val sceneState = state.sceneState as SceneState.Success
+                sceneState.scene.name = name
+                state.copy(sceneState = sceneState)
+            }
         }
+        save()
     }
 
     /**
@@ -69,6 +78,4 @@ sealed interface SceneState {
 
 data class SceneScreenUiState internal constructor(
     val sceneState: SceneState = SceneState.Loading
-){
-
-}
+)

@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
@@ -24,11 +25,12 @@ internal class SceneRangesViewModel @Inject internal constructor(
 
     override fun addRange(start: UInt, end: UInt) {
         val range = SceneRange(start.toUShort(), end.toUShort())
-        _uiState.value = with(_uiState.value) {
-            copy(ranges = ranges + range)
+        _uiState.update {
+            it.copy(ranges = it.ranges + range)
         }
         if (!_uiState.value.conflicts) {
             allocate()
+            save()
         }
     }
 

@@ -1,8 +1,10 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,12 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissState
+import androidx.compose.material3.SwipeToDismissValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,24 +32,25 @@ import androidx.compose.ui.unit.dp
 @Composable
 @ExperimentalMaterial3Api
 fun SwipeDismissItem(
-    dismissState: DismissState,
+    dismissState: SwipeToDismissState,
     content: @Composable () -> Unit
 ) {
     AnimatedVisibility(
-        visible = !(dismissState.dismissDirection?.let { dismissState.isDismissed(it) } ?: false),
-        enter = expandVertically(),
+        visible = dismissState.currentValue == SwipeToDismissValue.Settled,
+        enter = expandHorizontally(),
         exit = shrinkVertically()
     ) {
         SwipeToDismissBox(
+            modifier = Modifier.padding(horizontal = 8.dp),
             state = dismissState,
             backgroundContent = {
                 val color by animateColorAsState(targetValue = Color.Red, label = "dismiss")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color)
+                        .background(color = color, shape = CardDefaults.elevatedShape)
                         .padding(horizontal = 20.dp),
-                    contentAlignment = if (dismissState.dismissDirection == DismissDirection.StartToEnd)
+                    contentAlignment = if (dismissState.dismissDirection == SwipeToDismissValue.StartToEnd)
                         Alignment.CenterStart
                     else Alignment.CenterEnd
                 ) {
@@ -59,3 +63,11 @@ fun SwipeDismissItem(
         }
     }
 }
+
+/**
+ * Returns true if the item is dismissed.
+ *
+ * @receiver SwipeToDismissState
+ * @return Boolean if dismissed or false otherwise.
+ */
+fun SwipeToDismissState.isDismissed(): Boolean = currentValue != SwipeToDismissValue.Settled

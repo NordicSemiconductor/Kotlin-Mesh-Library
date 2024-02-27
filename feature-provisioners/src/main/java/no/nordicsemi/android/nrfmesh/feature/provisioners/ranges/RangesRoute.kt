@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.Add
@@ -16,13 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
 import no.nordicsemi.android.nrfmesh.feature.provisioners.AllocatedRange
@@ -58,7 +56,6 @@ private fun RangesScreen(
     resolve: () -> Unit,
     isValidBound: (UShort) -> Boolean
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
 
@@ -88,7 +85,8 @@ private fun RangesScreen(
                     containerColor = Color.Red
                 )
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         when (uiState.ranges.isEmpty()) {
             true -> MeshNoItemsAvailable(
@@ -97,7 +95,6 @@ private fun RangesScreen(
             )
 
             false -> Ranges(
-                coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
                 ranges = uiState.ranges,
                 otherRanges = uiState.otherRanges,
@@ -121,7 +118,6 @@ private fun RangesScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Ranges(
-    coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     ranges: List<Range>,
     otherRanges: List<Range>,
@@ -131,7 +127,7 @@ private fun Ranges(
     isValidBound: (UShort) -> Boolean,
     remove: (Range) -> Unit
 ) {
-    val listState = rememberLazyListState()
+    val context = LocalContext.current
     var showAddRangeDialog by remember { mutableStateOf(false) }
     var rangeToEdit by remember { mutableStateOf<Range?>(null) }
     Column {
@@ -139,15 +135,19 @@ private fun Ranges(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.6f, true),
-            state = listState
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
-                val dismissState = rememberDismissState()
+                val currentItem by rememberUpdatedState(newValue = range)
+                val dismissState = rememberSwipeToDismissState(
+                    positionalThreshold = { it * 0.5f }
+                )
                 SwipeDismissItem(
                     dismissState = dismissState,
                     content = {
-                        Surface(color = MaterialTheme.colorScheme.background) {
+                        ElevatedCard {
                             AllocatedRange(
                                 imageVector = range.toImageVector(),
                                 title = "${range.low.toHex(true)} - ${range.high.toHex(true)}",
@@ -161,22 +161,24 @@ private fun Ranges(
                         }
                     }
                 )
-                if (dismissState.currentValue != DismissValue.Default) {
-                    onSwiped(range)
-                    showSnackbar(
-                        scope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        message = stringResource(R.string.label_range_deleted),
-                        actionLabel = stringResource(R.string.action_undo),
-                        onDismissed = { remove(range) },
-                        onActionPerformed = {
-                            coroutineScope.launch {
-                                dismissState.reset()
-                                onUndoClicked(range)
+                if (dismissState.isDismissed()) {
+                    LaunchedEffect(snackbarHostState) {
+                        onSwiped(currentItem)
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.label_range_deleted),
+                            actionLabel = context.getString(R.string.action_undo),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Long
+                        ).also {
+                            when (it) {
+                                SnackbarResult.Dismissed -> remove(currentItem)
+                                SnackbarResult.ActionPerformed -> {
+                                    dismissState.reset()
+                                    onUndoClicked(currentItem)
+                                }
                             }
-                        },
-                        withDismissAction = true
-                    )
+                        }
+                    }
                 }
             }
         }
@@ -256,7 +258,7 @@ private fun AddRangeDialog(
                         startInFocus = true
                         endInFocus = false
                         start = it
-                        if (start.text.trim().isNotEmpty()){
+                        if (start.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidStart = !isValidBound(start.text.toUShort(radix = 16))
                             }.onFailure { throwable ->
@@ -300,7 +302,7 @@ private fun AddRangeDialog(
                         startInFocus = false
                         endInFocus = true
                         end = it
-                        if (end.text.trim().isNotEmpty()){
+                        if (end.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
                             }.onFailure { throwable ->
@@ -396,7 +398,7 @@ private fun UpdateRangeDialog(
                         startInFocus = true
                         endInFocus = false
                         start = it
-                        if (start.text.trim().isNotEmpty()){
+                        if (start.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidStart = !isValidBound(start.text.toUShort(radix = 16))
                             }.onFailure { throwable ->
@@ -439,7 +441,7 @@ private fun UpdateRangeDialog(
                         startInFocus = false
                         endInFocus = true
                         end = it
-                        if (end.text.trim().isNotEmpty()){
+                        if (end.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
                             }.onFailure { throwable ->
@@ -479,4 +481,5 @@ internal fun Range.toImageVector() = when (this) {
     is UnicastRange -> Icons.Outlined.Lan
     is GroupRange -> Icons.Outlined.GroupWork
     is SceneRange -> Icons.Outlined.AutoAwesome
+    else -> Icons.Outlined.Lan
 }

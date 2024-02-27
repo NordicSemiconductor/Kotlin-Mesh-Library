@@ -5,10 +5,10 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -23,17 +23,33 @@ class SettingsViewModel @Inject constructor(
     navigator: Navigator,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    val uiState: StateFlow<SettingsScreenUiState> =
-        repository.network.map { network ->
-            this@SettingsViewModel.network = network
-            SettingsScreenUiState(networkState = MeshNetworkState.Success(network))
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = SettingsScreenUiState()
-        )
 
-    lateinit var network: MeshNetwork
+    private val _uiState = MutableStateFlow(SettingsScreenUiState())
+    val uiState: StateFlow<SettingsScreenUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.network.collect { network ->
+                _uiState.update { state ->
+                    when (val networkState = state.networkState) {
+                        is MeshNetworkState.Loading -> SettingsScreenUiState(
+                            networkState = MeshNetworkState.Success(
+                                network = network
+                            )
+                        )
+
+                        is MeshNetworkState.Success -> state.copy(
+                            networkState = networkState.copy(
+                                network = network
+                            )
+                        )
+
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Imports a network from a given Uri.
@@ -60,12 +76,21 @@ class SettingsViewModel @Inject constructor(
      * @param name Name of the network.
      */
     internal fun onNameChanged(name: String) {
-        if (name != network.name) {
-            network.name = name
-            viewModelScope.launch {
-                repository.save()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val networkState = state.networkState as MeshNetworkState.Success
+                networkState.network.apply {
+                    this.name = name
+                }
+                state.copy(networkState = networkState)
             }
         }
+        save()
+    }
+
+
+    private fun save() {
+        viewModelScope.launch { repository.save() }
     }
 }
 

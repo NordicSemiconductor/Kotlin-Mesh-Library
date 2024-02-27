@@ -4,22 +4,19 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.DataObject
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material.icons.outlined.Tune
@@ -30,8 +27,6 @@ import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.LockReset
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,9 +41,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -108,6 +103,7 @@ fun SettingsScreen(
                     onScenesClicked = onScenesClicked
                 )
             }
+
             is MeshNetworkState.Loading -> {}
             is MeshNetworkState.Error -> {}
         }
@@ -134,187 +130,127 @@ private fun LazyListScope.settingsInfo(
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
-    item { SectionTitle(title = stringResource(R.string.label_configuration)) }
-    item { NetworkNameRow(name = network.name, onNameChanged = onNameChanged) }
+    item {
+        SectionTitle(title = stringResource(R.string.label_configuration))
+        Spacer(modifier = Modifier.size(8.dp))
+    }
+    item {
+        NetworkNameRow(name = network.name, onNameChanged = onNameChanged)
+        Spacer(modifier = Modifier.size(8.dp))
+    }
     item {
         ProvisionersRow(
             count = network.provisioners.size,
             onProvisionersClicked = onProvisionersClicked
         )
+        Spacer(modifier = Modifier.size(8.dp))
     }
     item {
         NetworkKeysRow(
             count = network.networkKeys.size,
             onNetworkKeysClicked = onNetworkKeysClicked
         )
+        Spacer(modifier = Modifier.size(8.dp))
     }
     item {
         ApplicationKeysRow(
             count = network.applicationKeys.size,
             onApplicationKeysClicked = onApplicationKeysClicked
         )
+        Spacer(modifier = Modifier.size(8.dp))
     }
     item {
         ScenesRow(
             count = network.scenes.size,
             onScenesClicked = onScenesClicked
         )
+        Spacer(modifier = Modifier.size(8.dp))
     }
-    item { IvIndexRow(ivIndex = network.ivIndex) }
-    item { LastModifiedTimeRow(timestamp = network.timestamp) }
+    item {
+        IvIndexRow(ivIndex = network.ivIndex)
+        Spacer(modifier = Modifier.size(8.dp))
+    }
+    item {
+        LastModifiedTimeRow(timestamp = network.timestamp)
+        Spacer(modifier = Modifier.size(8.dp))
+    }
     item { SectionTitle(title = stringResource(R.string.label_about)) }
-    item { VersionNameRow() }
-    item { VersionCodeRow() }
+    item {
+        VersionNameRow()
+        Spacer(modifier = Modifier.size(8.dp))
+    }
+    item {
+        VersionCodeRow()
+        Spacer(modifier = Modifier.size(8.dp))
+    }
 }
 
 @Composable
 private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
-    var value by rememberSaveable { mutableStateOf(name) }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            modifier = Modifier.padding(all = 12.dp),
-            imageVector = Icons.Outlined.Badge,
-            contentDescription = null,
-            tint = LocalContentColor.current.copy(alpha = 0.6f)
-        )
-        Crossfade(targetState = onEditClick) { state ->
-            when (state) {
-                true -> MeshOutlinedTextField(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
-                    onFocus = onEditClick,
-                    value = value,
-                    onValueChanged = { value = it },
-                    label = { Text(text = stringResource(id = R.string.label_name)) },
-                    placeholder = {
-                        Text(text = stringResource(id = R.string.label_placeholder_network_name))
-                    },
-                    internalTrailingIcon = {
-                        IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
-                            Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                        }
-                    },
-                    content = {
-                        IconButton(
-                            modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                            enabled = value.isNotBlank(),
-                            onClick = {
-                                onEditClick = !onEditClick
-                                value = value.trim()
-                                onNameChanged(value)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Check,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                )
-                false -> MeshTwoLineListItem(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    title = stringResource(id = R.string.label_name),
-                    subtitle = value,
-                    trailingComposable = {
-                        IconButton(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            onClick = {
-                                onEditClick = !onEditClick
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                )
-            }
-        }
-    }
+    ElevatedCardItemTextField(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(id = R.string.label_name),
+        subtitle = name,
+        placeholder = stringResource(id = R.string.label_placeholder_network_name),
+        onValueChanged = onNameChanged
+    )
 }
 
 @Composable
 private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { onProvisionersClicked() }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Groups,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable { onProvisionersClicked() },
+        imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
-        subtitle = "$count"
+        subtitle = "$count ${if (count == 1) "provisioner" else "provisioners"} available"
     )
 }
 
 @Composable
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { onNetworkKeysClicked() }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable { onNetworkKeysClicked() },
+        imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
-        subtitle = "$count"
+        subtitle = "$count ${if (count == 1) "key" else "keys"} available"
     )
 }
 
 @Composable
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { onApplicationKeysClicked() }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable { onApplicationKeysClicked() },
+        imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
-        subtitle = "$count"
+        subtitle = "$count ${if (count == 1) "key" else "keys"} available"
     )
 }
 
 @Composable
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { onScenesClicked() }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.AutoAwesome,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clickable { onScenesClicked() },
+        imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
-        subtitle = "$count"
+        subtitle = "$count ${if (count == 1) "scene" else "scenes"} available"
     )
 }
 
 @Composable
 private fun IvIndexRow(ivIndex: IvIndex) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Tune,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Tune,
         title = stringResource(R.string.label_iv_index),
         subtitle = "${ivIndex.index}"
     )
@@ -322,15 +258,10 @@ private fun IvIndexRow(ivIndex: IvIndex) {
 
 @Composable
 private fun LastModifiedTimeRow(timestamp: Instant) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Update,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Update,
         title = stringResource(R.string.label_last_modified),
         subtitle = DateFormat.getDateTimeInstance().format(
             Date(timestamp.toEpochMilliseconds())
@@ -341,16 +272,10 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
 @Composable
 private fun VersionNameRow() {
     // TODO Clarify version naming
-    MeshTwoLineListItem(
-        modifier = Modifier.clickable(onClick = { }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.Subtitles,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Subtitles,
         title = stringResource(R.string.label_version),
         subtitle = BuildConfig.VERSION_NAME
     )
@@ -359,17 +284,10 @@ private fun VersionNameRow() {
 @Composable
 private fun VersionCodeRow() {
     // TODO Clarify version code
-    MeshTwoLineListItem(
+    ElevatedCardItem(
         modifier = Modifier
-            .clickable(onClick = { }),
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.DataObject,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.DataObject,
         title = stringResource(R.string.label_version_code),
         subtitle = BuildConfig.VERSION_CODE
     )

@@ -1,16 +1,29 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -27,6 +40,8 @@ fun ElevatedCardItem(
 ) {
     ElevatedCard(modifier = modifier) {
         MeshTwoLineListItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
             leadingComposable = {
                 Icon(
                     modifier = Modifier.padding(end = 16.dp),
@@ -54,6 +69,92 @@ fun ElevatedCardItem(
                 horizontalArrangement = Arrangement.End
             ) {
                 it()
+            }
+        }
+    }
+}
+
+@Composable
+fun ElevatedCardItemTextField(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    title: String,
+    subtitle: String = "",
+    placeholder: String = "",
+    onValueChanged: (String) -> Unit,
+    isEditable: Boolean = true,
+    onEditableStateChanged: () -> Unit = {},
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    regex: Regex? = null,
+    isError: Boolean = regex != null && !regex.matches(subtitle)
+) {
+    var value by rememberSaveable { mutableStateOf(subtitle) }
+    var onEditClick by rememberSaveable { mutableStateOf(false) }
+    ElevatedCard(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+            Crossfade(targetState = onEditClick, label = "textfield") { state ->
+                when (state) {
+                    true -> MeshOutlinedTextField(
+                        onFocus = onEditClick,
+                        value = value,
+                        onValueChanged = { value = it },
+                        label = { Text(text = title) },
+                        placeholder = { Text(text = placeholder) },
+                        internalTrailingIcon = {
+                            IconButton(enabled = value.isNotBlank(), onClick = { value = "" }) {
+                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
+                            }
+                        },
+                        readOnly = readOnly,
+                        keyboardOptions = keyboardOptions,
+                        keyboardActions = keyboardActions,
+                        regex = regex,
+                        isError = isError,
+                        content = {
+                            IconButton(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                enabled = value.isNotBlank(),
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = value.trim()
+                                    onValueChanged(value)
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    false -> MeshTwoLineListItem(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        title = title,
+                        subtitle = value,
+                        trailingComposable = {
+                            IconButton(
+                                enabled = isEditable,
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
     }

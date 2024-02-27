@@ -211,7 +211,6 @@ class MeshNetwork internal constructor(
      *
      * @param provisioner provisioner to check.
      * @return true if the provisioner exists.
-     * @throws [DoesNotBelongToNetwork] if the provisioner belongs to another network.
      */
     internal fun has(provisioner: Provisioner) = _provisioners.any { it.uuid == provisioner.uuid }
 

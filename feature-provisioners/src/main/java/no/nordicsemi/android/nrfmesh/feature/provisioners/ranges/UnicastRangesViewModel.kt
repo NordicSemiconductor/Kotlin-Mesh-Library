@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -28,11 +29,12 @@ internal class UnicastRangesViewModel @Inject internal constructor(
     override fun addRange(start: UInt, end: UInt) {
         viewModelScope.launch {
             val range = (UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort()))
-            _uiState.value = with(_uiState.value) {
-                copy(ranges = ranges + range)
+            _uiState.update {
+                it.copy(ranges = it.ranges + range)
             }
             if (!_uiState.value.conflicts) {
                 allocate()
+                save()
             }
         }
     }

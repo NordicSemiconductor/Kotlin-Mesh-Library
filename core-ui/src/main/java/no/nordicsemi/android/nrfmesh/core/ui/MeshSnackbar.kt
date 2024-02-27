@@ -58,14 +58,14 @@ fun showSnackbar(
     message: String,
     actionLabel: String? = null,
     withDismissAction: Boolean = false,
-    duration: SnackbarDuration = SnackbarDuration.Short,
+    duration: SnackbarDuration = if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
     onDismissed: () -> (Unit) = {},
     onActionPerformed: () -> (Unit) = {}
 ) {
     scope.launch {
         // Let's dismiss any snackbar that's been shown already.
         // https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary#Snackbar(androidx.compose.ui.Modifier,kotlin.Function0,kotlin.Function0,kotlin.Boolean,androidx.compose.ui.graphics.Shape,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,kotlin.Function0)
-        snackbarHostState.currentSnackbarData?.dismiss()
+        // snackbarHostState.currentSnackbarData?.dismiss()
         when (snackbarHostState.showSnackbar(message, actionLabel, withDismissAction, duration)) {
             SnackbarResult.Dismissed -> onDismissed()
             SnackbarResult.ActionPerformed -> onActionPerformed()
@@ -95,11 +95,18 @@ fun showSnackbar(
     scope.launch {
         // Let's dismiss any snackbar that's been shown already.
         // https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary#Snackbar(androidx.compose.ui.Modifier,kotlin.Function0,kotlin.Function0,kotlin.Boolean,androidx.compose.ui.graphics.Shape,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,kotlin.Function0)
-        snackbarHostState.currentSnackbarData?.dismiss()
+        // snackbarHostState.currentSnackbarData?.dismiss()
         when (snackbarHostState.showSnackbar(message, null, withDismissAction, duration)) {
             SnackbarResult.Dismissed -> onDismissed()
             else -> {}
         }
     }
+}
+
+fun dismissSnackbar(
+    snackbarHostState: SnackbarHostState
+) {
+    // Dismiss any snackbar that's been shown already.
+    snackbarHostState.currentSnackbarData?.dismiss()
 }
 

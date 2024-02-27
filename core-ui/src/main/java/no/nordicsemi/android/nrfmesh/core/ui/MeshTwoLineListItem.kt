@@ -2,7 +2,12 @@
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +32,8 @@ fun MeshTwoLineListItem(
 ) {
     Row(
         modifier = modifier
-            .padding(vertical = 16.dp, horizontal = 16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
@@ -38,14 +43,14 @@ fun MeshTwoLineListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
             if (subtitle.isNotEmpty())
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = subtitleMaxLines,
                     overflow = subtitleTextOverflow
                 )
@@ -64,7 +69,9 @@ fun MeshTwoLineListItem(
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -76,7 +83,7 @@ fun MeshTwoLineListItem(
             tint = LocalContentColor.current.copy(alpha = 0.6f)
         )
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(vertical = 28.dp)
         ) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
@@ -101,8 +108,9 @@ fun TwoLineRangeListItem(
 ) {
     Row(
         modifier = modifier
-            .padding(vertical = 16.dp)
-            .fillMaxWidth(),
+            .height(height = 80.dp)
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
@@ -113,7 +121,7 @@ fun TwoLineRangeListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )

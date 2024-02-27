@@ -1,18 +1,46 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.GppMaybe
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.GroupWork
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -26,13 +54,24 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
-import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.GroupRange
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.SceneRange
+import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import java.util.*
+import java.util.UUID
 
 @Composable
 internal fun ProvisionerRoute(
@@ -59,64 +98,75 @@ internal fun ProvisionerRoute(
 private fun ProvisionerScreen(
     provisionerState: ProvisionerState,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
     navigateToSceneRanges: (UUID) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    when (provisionerState) {
-        ProvisionerState.Loading -> { /* Do nothing */
-        }
 
-        is ProvisionerState.Success -> {
-            ProvisionerInfo(
-                snackbarHostState = snackbarHostState,
-                provisioner = provisionerState.provisioner,
-                otherProvisioners = provisionerState.otherProvisioners,
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                disableConfigurationCapabilities = disableConfigurationCapabilities,
-                onTtlChanged = onTtlChanged,
-                navigateToUnicastRanges = navigateToUnicastRanges,
-                navigateToGroupRanges = navigateToGroupRanges,
-                navigateToSceneRanges = navigateToSceneRanges
-            )
-        }
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) {
 
-        is ProvisionerState.Error -> {
-            MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.Group,
-                title = provisionerState.throwable.message ?: "Unknown error"
-            )
+        when (provisionerState) {
+            ProvisionerState.Loading -> { /* Do nothing */
+            }
+
+            is ProvisionerState.Success -> {
+                ProvisionerInfo(
+                    paddingValues = it,
+                    snackbarHostState = snackbarHostState,
+                    provisioner = provisionerState.provisioner,
+                    otherProvisioners = provisionerState.otherProvisioners,
+                    onNameChanged = onNameChanged,
+                    onAddressChanged = onAddressChanged,
+                    isValidAddress = isValidAddress,
+                    disableConfigurationCapabilities = disableConfigurationCapabilities,
+                    onTtlChanged = onTtlChanged,
+                    navigateToUnicastRanges = navigateToUnicastRanges,
+                    navigateToGroupRanges = navigateToGroupRanges,
+                    navigateToSceneRanges = navigateToSceneRanges
+                )
+            }
+
+            is ProvisionerState.Error -> {
+                MeshNoItemsAvailable(
+                    imageVector = Icons.Outlined.Group,
+                    title = provisionerState.throwable.message ?: "Unknown error"
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun ProvisionerInfo(
+    paddingValues: PaddingValues,
     snackbarHostState: SnackbarHostState,
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     onTtlChanged: (Int) -> Unit,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
     navigateToSceneRanges: (UUID) -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
         provisioner.run {
             item {
                 Name(
@@ -128,16 +178,14 @@ private fun ProvisionerInfo(
             item {
                 UnicastAddress(
                     context = context,
-                    scope = scope,
                     snackbarHostState = snackbarHostState,
                     keyboardController = keyboardController,
                     address = node?.primaryUnicastAddress?.address,
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
                     disableConfigurationCapabilities = disableConfigurationCapabilities,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-                )
+                    isCurrentlyEditable = isCurrentlyEditable
+                ) { isCurrentlyEditable = !isCurrentlyEditable }
             }
             item {
                 Ttl(
@@ -187,230 +235,154 @@ fun Name(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(text = name, selection = TextRange(name.length)))
-    }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick, label = "Name") { state ->
-        when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
-                onFocus = onEditClick,
-                externalLeadingIcon = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                value = value,
-                onValueChanged = { value = it },
-                label = { Text(text = stringResource(id = R.string.label_name)) },
-                placeholder = { Text(text = stringResource(id = R.string.label_placeholder_provisioner_name)) },
-                internalTrailingIcon = {
-                    IconButton(
-                        enabled = value.text.isNotBlank(),
-                        onClick = {
-                            value = TextFieldValue(text = "", selection = TextRange(0))
-                        }
-                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
-                },
-                content = {
-                    IconButton(
-                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                        enabled = value.text.isNotBlank(),
-                        onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
-                            onNameChanged(value.text.trim())
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                title = stringResource(id = R.string.label_name),
-                subtitle = value.text,
-                trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        enabled = isCurrentlyEditable,
-                        onClick = {
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-        }
-    }
+    ElevatedCardItemTextField(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(id = R.string.label_name),
+        subtitle = name,
+        placeholder = stringResource(id = R.string.label_placeholder_provisioner_name),
+        onValueChanged = onNameChanged,
+        isEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged
+    )
 }
 
 @Composable
 private fun UnicastAddress(
     context: Context,
-    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address?,
-    onAddressChanged: (Int) -> Result<Unit>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Result<Unit>,
+    disableConfigurationCapabilities: () -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val tempAddress by remember { mutableStateOf(address?.toHex() ?: "") }
+    val initialValue by remember { mutableStateOf(address?.toHex() ?: "") }
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
-            TextFieldValue(text = tempAddress, selection = TextRange(tempAddress.length))
+            TextFieldValue(text = initialValue, selection = TextRange(initialValue.length))
         )
     }
     var error by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
-    var supportingErrorText by rememberSaveable { mutableStateOf("") }
-    Crossfade(targetState = onEditClick, label = "Address") { state ->
-        when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
-                onFocus = onEditClick,
-                externalLeadingIcon = {
-                    Icon(
+
+    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                imageVector = Icons.Outlined.Lan,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+            Crossfade(targetState = onEditClick, label = "Address") { state ->
+                when (state) {
+                    true -> MeshOutlinedTextField(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                value = value,
-                onValueChanged = {
-                    error = false
-                    value = it
-                    if (it.text.isNotEmpty()) {
-                        runCatching {
-                            error = !isValidAddress(it.text.toUShort(16))
-                        }.onFailure { throwable ->
-                            supportingErrorText = throwable.message ?: ""
-                            error = true
-                        }
-                    }
-                },
-                label = { Text(text = stringResource(id = R.string.label_unicast_address)) },
-                internalTrailingIcon = {
-                    IconButton(
-                        enabled = value.text.isNotBlank(),
-                        onClick = {
-                            value = TextFieldValue("", TextRange(0))
+                        onFocus = onEditClick,
+                        value = value,
+                        onValueChanged = {
                             error = false
-                        }
-                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
-                },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Characters
-                ),
-                regex = Regex("[0-9A-Fa-f]{0,4}"),
-                isError = error,
-                supportingText = {
-                    if (error)
-                        Text(text = supportingErrorText, color = MaterialTheme.colorScheme.error)
-                },
-                content = {
-                    IconButton(
-                        modifier = Modifier.padding(start = 16.dp),
-                        enabled = address != null,
-                        onClick = { onUnassignClick = !onUnassignClick }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.GppMaybe,
-                            contentDescription = null,
-                            tint = Color.Red.copy(alpha = 0.6f)
-                        )
-                    }
-                    IconButton(
-                        modifier = Modifier.padding(end = 16.dp),
-                        enabled = value.text.isNotEmpty(),
-                        onClick = {
-                            keyboardController?.hide()
-                            if (value.text.isNotEmpty()) {
-                                onAddressChanged(value.text.toInt(radix = 16))
-                                    .onSuccess {
-                                        onEditClick = !onEditClick
-                                        onEditableStateChanged()
-                                    }
-                                    .onFailure {
-                                        error = true
-                                        showSnackbar(
-                                            scope = scope,
-                                            snackbarHostState = snackbarHostState,
-                                            message = it.convertToString(context = context)
+                            value = it
+                            if (it.text.isNotEmpty()) {
+                                if (isValidAddress(it.text.toUShort(16))) {
+                                    error = false
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                } else {
+                                    error = true
+                                    errorMessage = "Invalid unicast address"
+                                }
+                            }
+                        },
+                        label = {
+                            Text(text = stringResource(id = R.string.label_unicast_address))
+                        },
+                        internalTrailingIcon = {
+                            IconButton(
+                                enabled = value.text.isNotBlank(),
+                                onClick = {
+                                    value = TextFieldValue("", TextRange(0))
+                                    error = false
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters
+                        ),
+                        regex = Regex("[0-9A-Fa-f]{0,4}"),
+                        isError = error,
+                        content = {
+                            IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = address != null,
+                                onClick = { onUnassignClick = !onUnassignClick }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.GppMaybe,
+                                    contentDescription = null,
+                                    tint = Color.Red.copy(alpha = 0.6f)
+                                )
+                            }
+                            IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = !error,
+                                onClick = {
+                                    if (value.text.isEmpty()) {
+                                        value = TextFieldValue(
+                                            text = initialValue,
+                                            selection = TextRange(index = initialValue.length)
                                         )
+                                        onEditClick = false
+                                        error = false
+                                        onEditableStateChanged()
+                                    } else {
+                                        runCatching {
+                                            onAddressChanged(value.text.toInt(radix = 16))
+                                        }.onSuccess {
+                                            error = false
+                                            onEditClick = false
+                                            onEditableStateChanged()
+                                        }.onFailure { t ->
+                                            error = true
+                                            errorMessage = t.convertToString(context = context)
+                                        }
                                     }
-                            } else {
-                                onEditClick = !onEditClick
-                                onEditableStateChanged()
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
                             }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Lan,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
                     )
-                },
-                title = stringResource(id = R.string.label_unicast_address),
-                subtitle = address?.toHex(prefix0x = true)
-                    ?: stringResource(id = R.string.label_not_assigned),
-                trailingComposable = {
-                    IconButton(
+
+                    false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        enabled = isCurrentlyEditable,
-                        onClick = {
-                            error = false
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
+                        title = stringResource(id = R.string.label_unicast_address),
+                        subtitle = address?.toHex(prefix0x = true)
+                            ?: stringResource(id = R.string.label_not_assigned),
+                        trailingComposable = {
+                            IconButton(
+                                enabled = isCurrentlyEditable,
+                                onClick = {
+                                    error = false
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                )
+                            }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
+                    )
                 }
-            )
+            }
         }
     }
 
@@ -431,6 +403,15 @@ private fun UnicastAddress(
             text = stringResource(R.string.unassign_address_rationale)
         )
     }
+
+    if (error && errorMessage.isNotEmpty()) {
+        LaunchedEffect(key1 = snackbarHostState) {
+            snackbarHostState.showSnackbar(
+                message = errorMessage,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 }
 
 @Composable
@@ -441,111 +422,30 @@ private fun Ttl(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    var error by rememberSaveable { mutableStateOf(false) }
-    var value by rememberSaveable { mutableStateOf(ttl?.toString() ?: "") }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
-    Crossfade(targetState = onEditClick, label = "TTL") { state ->
-        when (state) {
-            true -> MeshOutlinedTextField(
-                modifier = Modifier.padding(vertical = 8.dp),
-                onFocus = onEditClick,
-                externalLeadingIcon = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Badge,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                value = value,
-                onValueChanged = {
-                    error = false
-                    value = it
-                },
-                label = { Text(text = stringResource(id = R.string.label_ttl)) },
-                internalTrailingIcon = {
-                    IconButton(
-                        enabled = value.isNotBlank(),
-                        onClick = {
-                            value = ""
-                            error = false
-                        }
-                    ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
-                },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Characters,
-                    keyboardType = KeyboardType.Number
-                ),
-                regex = Regex("[1-9]{0,3}"),
-                isError = error,
-                content = {
-                    IconButton(
-                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                        onClick = {
-                            keyboardController?.hide()
-                            value = value.trim()
-                            if (value.isNotEmpty()) {
-                                onTtlChanged(value.toInt())
-                            } else {
-                                onEditClick = !onEditClick
-                                onEditableStateChanged()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-
-            false -> MeshTwoLineListItem(
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        imageVector = Icons.Outlined.Lan,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                title = stringResource(id = R.string.label_ttl),
-                subtitle = ttl?.toString()
-                    ?: stringResource(id = R.string.label_not_assigned),
-                trailingComposable = {
-                    IconButton(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        enabled = isCurrentlyEditable,
-                        onClick = {
-                            error = !error
-                            onEditClick = !onEditClick
-                            onEditableStateChanged()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            )
-        }
-    }
+    ElevatedCardItemTextField(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Timer,
+        title = stringResource(id = R.string.label_ttl),
+        subtitle = ttl?.toString() ?: "0",
+        onValueChanged = {
+            keyboardController?.hide()
+            if (it.isNotEmpty()) {
+                onTtlChanged(it.toInt())
+            }
+        },
+        isEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number
+        )
+    )
 }
 
 @Composable
 private fun DeviceKey(key: ByteArray?) {
-    MeshTwoLineListItem(
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
         subtitle = key?.encodeHex() ?: stringResource(R.string.label_not_applicable)
     )
@@ -557,13 +457,15 @@ private fun UnicastRange(
     otherRanges: List<UnicastRange>,
     navigateToRanges: () -> Unit
 ) {
-    AllocatedRanges(
-        imageVector = Icons.Outlined.Lan,
-        title = stringResource(id = R.string.label_unicast_range),
-        ranges = ranges,
-        otherRanges = otherRanges,
-        onClick = navigateToRanges
-    )
+    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+        AllocatedRanges(
+            imageVector = Icons.Outlined.Lan,
+            title = stringResource(id = R.string.label_unicast_range),
+            ranges = ranges,
+            otherRanges = otherRanges,
+            onClick = navigateToRanges
+        )
+    }
 }
 
 @Composable
@@ -572,13 +474,15 @@ private fun GroupRange(
     otherRanges: List<GroupRange>,
     navigateToRanges: () -> Unit
 ) {
-    AllocatedRanges(
-        imageVector = Icons.Outlined.GroupWork,
-        title = stringResource(id = R.string.label_group_range),
-        ranges = ranges,
-        otherRanges = otherRanges,
-        onClick = navigateToRanges
-    )
+    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+        AllocatedRanges(
+            imageVector = Icons.Outlined.GroupWork,
+            title = stringResource(id = R.string.label_group_range),
+            ranges = ranges,
+            otherRanges = otherRanges,
+            onClick = navigateToRanges
+        )
+    }
 }
 
 @Composable
@@ -587,11 +491,13 @@ private fun SceneRange(
     otherRanges: List<SceneRange>,
     navigateToRanges: () -> Unit
 ) {
-    AllocatedRanges(
-        imageVector = Icons.Outlined.AutoAwesome,
-        title = stringResource(id = R.string.label_scene_range),
-        ranges = ranges,
-        otherRanges = otherRanges,
-        onClick = navigateToRanges
-    )
+    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+        AllocatedRanges(
+            imageVector = Icons.Outlined.AutoAwesome,
+            title = stringResource(id = R.string.label_scene_range),
+            ranges = ranges,
+            otherRanges = otherRanges,
+            onClick = navigateToRanges
+        )
+    }
 }

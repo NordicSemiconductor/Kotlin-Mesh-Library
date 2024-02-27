@@ -4,15 +4,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 
@@ -22,70 +23,58 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     private val navigator: Navigator,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle = savedStateHandle) {
-    private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
-    val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        ApplicationKeysScreenUiState()
-    )
 
     private lateinit var network: MeshNetwork
-    private var keysToBeRemoved = mutableListOf<ApplicationKey>()
+
+    private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
+    val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
                 this@ApplicationKeysViewModel.network = network
-                _uiState.value = ApplicationKeysScreenUiState(keys = filterKeysToBeRemoved())
+                _uiState.update { state ->
+                    val keys = network.applicationKeys.toList()
+                    state.copy(
+                        keys = keys,
+                        keysToBeRemoved = keys.filter { it in state.keysToBeRemoved }
+                    )
+                }
             }
         }
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeKeys()
+        super.onCleared()
     }
 
-    internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
-        navigator.navigateTo(destinationId, keyIndex)
+    internal fun navigateToApplicationKey(keyIndex: KeyIndex) {
+        navigator.navigateTo(applicationKey, keyIndex.toInt())
     }
 
     /**
      * Adds an application key to the network.
      */
-    internal fun addApplicationKey(): ApplicationKey {
-        // Let's delete any keys that are queued for deletion before adding a new.
-        removeKeys()
-        return network.add(
-            name = "nRF Application Key",
-            boundNetworkKey = network.networkKeys.first()
-        )
+    internal fun addApplicationKey(): ApplicationKey = network.add(
+        name = "nRF Application Key",
+        boundNetworkKey = network.networkKeys.first()
+    ).also {
+        save()
     }
 
-    /**
-     * Invoked when a key is swiped to be deleted. The given key is added to a list of keys that
-     * is to be deleted.
-     *
-     * @param key Application key to be deleted.
-     */
-    fun onSwiped(key: ApplicationKey): Boolean = if (!key.isInUse) {
-        if (!keysToBeRemoved.contains(key))
-            keysToBeRemoved.add(key)
-        if (keysToBeRemoved.size == network.applicationKeys.size)
-            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
-        true
-    } else false
+    fun onSwiped(key: ApplicationKey) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(keysToBeRemoved = it.keysToBeRemoved + key)
+            }
+        }
+    }
 
-    /**
-     * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
-     * from the list of keys to be deleted.
-     *
-     * @param key Application key to be reverted.
-     */
     fun onUndoSwipe(key: ApplicationKey) {
-        keysToBeRemoved.remove(key)
-        if (keysToBeRemoved.isNotEmpty())
-            _uiState.value = _uiState.value.copy(keys = filterKeysToBeRemoved())
+        _uiState.update {
+            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
+        }
     }
 
     /**
@@ -94,46 +83,32 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * @param key Key to be removed.
      */
     internal fun remove(key: ApplicationKey) {
-        network.apply {
-            applicationKeys.find { it == key }?.let { remove(it) }
+        _uiState.update {
+            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
         }
-        keysToBeRemoved.remove(key)
-    }
-
-    /**
-     * Removes the keys from a network.
-     */
-    private fun removeKeys() {
-        remove()
+        network.remove(key)
         save()
     }
 
     /**
-     * Removes the keys from the network.
+     * Removes all keys that are queued for deletion.
      */
-    private fun remove() {
-        network.applicationKeys.filter {
-            it in keysToBeRemoved
-        }.forEach {
+    private fun removeKeys() {
+        _uiState.value.keysToBeRemoved.forEach {
             network.remove(it)
         }
-        keysToBeRemoved.clear()
+        save()
     }
 
     /**
      * Saves the network.
      */
     private fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
-    }
-
-    private fun filterKeysToBeRemoved() = network.applicationKeys.filter {
-        it !in keysToBeRemoved
+        viewModelScope.launch { repository.save() }
     }
 }
 
 data class ApplicationKeysScreenUiState internal constructor(
-    val keys: List<ApplicationKey> = listOf()
+    val keys: List<ApplicationKey> = listOf(),
+    val keysToBeRemoved: List<ApplicationKey> = listOf()
 )

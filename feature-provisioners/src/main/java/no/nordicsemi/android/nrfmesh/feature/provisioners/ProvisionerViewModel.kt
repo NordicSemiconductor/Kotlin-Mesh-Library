@@ -3,10 +3,10 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
@@ -15,7 +15,7 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provision
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,33 +25,46 @@ internal class ProvisionerViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var meshNetwork: MeshNetwork
-    private lateinit var selectedProvisioner: Provisioner
     private val provisionerUuid: UUID = parameterOf(provisioner)
 
-    val uiState: StateFlow<ProvisionerScreenUiState> = repository.network.map { network ->
-        meshNetwork = network
-        network.provisioner((provisionerUuid))?.let { provisioner ->
-            this@ProvisionerViewModel.selectedProvisioner = provisioner
-            ProvisionerScreenUiState(
-                provisionerState = ProvisionerState.Success(
-                    provisioner = provisioner,
-                    otherProvisioners = network.provisioners.filter { it != provisioner }
-                )
-            )
-        } ?: ProvisionerScreenUiState(
-            provisionerState = ProvisionerState.Error(
-                throwable = Throwable("Provisioner not found")
-            )
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        ProvisionerScreenUiState(ProvisionerState.Loading)
-    )
+    private val _uiState = MutableStateFlow(ProvisionerScreenUiState(ProvisionerState.Loading))
+    val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()
 
-    override fun onCleared() {
-        super.onCleared()
-        save()
+    init {
+        viewModelScope.launch {
+            repository.network.collect { network ->
+                meshNetwork = network
+                _uiState.update { state ->
+                    network.provisioner((provisionerUuid))?.let { provisioner ->
+                        when (val provisionerState = state.provisionerState) {
+                            is ProvisionerState.Loading -> ProvisionerScreenUiState(
+                                provisionerState = ProvisionerState.Success(
+                                    provisioner = provisioner,
+                                    otherProvisioners = network.provisioners.filter {
+                                        it != provisioner
+                                    }
+                                )
+                            )
+
+                            is ProvisionerState.Success -> state.copy(
+                                provisionerState = provisionerState.copy(
+                                    provisioner = provisioner,
+                                    otherProvisioners = network.provisioners.filter {
+                                        it != provisioner
+                                    }
+                                )
+                            )
+
+                            else -> state
+                        }
+                    } ?: ProvisionerScreenUiState(
+                        provisionerState = ProvisionerState.Error(
+                            throwable = Throwable("Provisioner not found")
+                        )
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -60,39 +73,43 @@ internal class ProvisionerViewModel @Inject internal constructor(
      * @param name New provisioner name.
      */
     internal fun onNameChanged(name: String) {
-        if (selectedProvisioner.name != name) {
-            selectedProvisioner.name = name
-            save()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val provisionerState = state.provisionerState as ProvisionerState.Success
+                provisionerState.provisioner.apply { this.name = name }
+                state.copy(provisionerState = provisionerState)
+            }
         }
+        save()
     }
 
     /**
      * Checks if the given address is valid
      */
-    fun isValidAddress(address: UShort): Boolean = when {
-        UnicastAddress.isValid(address = address) -> true
-        else -> throw Throwable("Invalid unicast address")
-    }
+    fun isValidAddress(address: UShort): Boolean = UnicastAddress.isValid(address = address)
 
     /**
      * Invoked when the name of the provisioner is changed.
      *
      * @param address New address of the provisioner.
      */
-    internal fun onAddressChanged(address: Int) = runCatching {
-        val newAddress = UnicastAddress(address = address)
-        selectedProvisioner.assign(address = newAddress)
-    }.onSuccess { save() }
+    internal fun onAddressChanged(address: Int) {
+        val state = _uiState.value.provisionerState as ProvisionerState.Success
+        state.provisioner.assign(address = UnicastAddress(address = address))
+        save()
+    }
 
     /**
      * Disables the configuration capabilities of a provisioner.
      */
-    internal fun disableConfigurationCapabilities(): Result<Unit> = runCatching {
-        meshNetwork.disableConfigurationCapabilities(selectedProvisioner)
-    }.onSuccess { save() }
+    internal fun disableConfigurationCapabilities() {
+        val state = _uiState.value.provisionerState as ProvisionerState.Success
+        state.provisioner.disableConfigurationCapabilities()
+        save()
+    }
 
     internal fun onTtlChanged(ttl: Int) {
-        TODO("Incomplete implementation, this should be configured by sending a message.")
+        // TODO "Incomplete implementation, this should be configured by sending a message."
     }
 
     /**
