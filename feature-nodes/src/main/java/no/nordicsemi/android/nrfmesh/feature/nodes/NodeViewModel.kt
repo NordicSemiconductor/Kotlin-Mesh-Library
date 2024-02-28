@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.netKeys
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NodeViewModel @Inject internal constructor(
-    navigator: Navigator,
+    private val navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
@@ -54,7 +54,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onRefresh() {
         viewModelScope.launch {
-            repository.send(selectedNode, ConfigCompositionDataGet(page = 0x00u))
+            repository.send(node = selectedNode, message = ConfigCompositionDataGet(page = 0x00u))
         }
     }
 
@@ -81,7 +81,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onProxyStateToggled(enabled: Boolean) {
         viewModelScope.launch {
-            repository.send(selectedNode, ConfigGattProxySet(enabled))
+            repository.send(node = selectedNode, message = ConfigGattProxySet(enabled))
         }
     }
 
@@ -90,7 +90,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onGetProxyStateClicked() {
         viewModelScope.launch {
-            repository.send(selectedNode, ConfigGattProxyGet())
+            repository.send(node = selectedNode, message = ConfigGattProxyGet())
         }
     }
 
@@ -99,17 +99,14 @@ internal class NodeViewModel @Inject internal constructor(
      */
     fun onResetClicked() {
         viewModelScope.launch {
-            repository.send(selectedNode, ConfigNodeReset())?.let {
+            repository.send(node = selectedNode, message = ConfigNodeReset())?.let {
                 navigateUp()
             }
         }
     }
 
-    /**
-     * Navigates to the given destination.
-     */
-    internal fun navigateTo(destination: DestinationId<Unit, Unit>) {
-
+    fun onNetworkKeysClicked() {
+        navigator.navigateTo(to = netKeys, args = selectedNode.uuid)
     }
 }
 

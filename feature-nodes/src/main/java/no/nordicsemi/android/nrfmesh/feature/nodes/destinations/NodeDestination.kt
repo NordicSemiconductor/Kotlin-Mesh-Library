@@ -7,7 +7,7 @@ import no.nordicsemi.android.common.navigation.createDestination
 import no.nordicsemi.android.common.navigation.defineDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
-import java.util.*
+import java.util.UUID
 
 val node = createDestination<UUID, Unit>("node")
 
@@ -18,7 +18,7 @@ val nodeDestination = defineDestination(node) {
         uiState = uiState,
         onRefresh = viewModel::onRefresh,
         onNameChanged = viewModel::onNameChanged,
-        onNetworkKeysClicked = {},
+        onNetworkKeysClicked = viewModel::onNetworkKeysClicked,
         onApplicationKeysClicked = {},
         onElementsClicked = {},
         onGetTtlClicked = {},

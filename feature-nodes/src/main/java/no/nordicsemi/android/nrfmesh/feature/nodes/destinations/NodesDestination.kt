@@ -23,5 +23,5 @@ val nodesDestination = defineDestination(nodes) {
     )
 }
 
-val nodesDestinations = nodesDestination + nodeDestination
+val nodesDestinations = nodesDestination + nodeDestination + netKeysDestination + appKeysDestination
 
