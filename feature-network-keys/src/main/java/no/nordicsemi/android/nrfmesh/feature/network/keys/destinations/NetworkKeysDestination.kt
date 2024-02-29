@@ -8,7 +8,7 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysViewModel
 
 val networkKeys = createDestination<Unit, Unit>("network_keys")
 
-val networkKeysDestination = defineDestination(networkKeys) {
+private val networkKeysDestination = defineDestination(networkKeys) {
     val viewModel: NetworkKeysViewModel = hiltViewModel()
     NetworkKeysRoute(
         viewModel = viewModel,

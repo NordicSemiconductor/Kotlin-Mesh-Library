@@ -5,6 +5,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.common.navigation.createSimpleDestination
 import no.nordicsemi.android.common.navigation.defineDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeysDestinations
+import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeysDestinations
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesScreenUiState
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
@@ -23,5 +25,5 @@ val nodesDestination = defineDestination(nodes) {
     )
 }
 
-val nodesDestinations = nodesDestination + nodeDestination + netKeysDestination + appKeysDestination
-
+val nodesDestinations = nodesDestination + nodeDestination + netKeysDestination +
+        appKeysDestination + networkKeysDestinations + applicationKeysDestinations
