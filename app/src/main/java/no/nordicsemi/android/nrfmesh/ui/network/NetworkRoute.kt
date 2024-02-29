@@ -53,6 +53,8 @@ import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.popUpToStartDestination
 import no.nordicsemi.android.common.navigation.with
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
+import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
+import no.nordicsemi.android.feature.config.networkkeys.configNetKeys
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
@@ -72,7 +74,6 @@ import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.netKeys
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
@@ -268,7 +269,7 @@ fun DestinationId<*, *>.title(): String {
         provisioners -> "Provisioners"
         provisioner -> "Edit Provisioner"
         networkKeys -> "Network Keys"
-        netKeys -> "Network Keys 1"
+        configNetKeys -> "Network Key Configuration"
         applicationKeys -> "Application Keys"
         networkKey -> "Edit Key"
         scenes -> "Scenes"

@@ -55,9 +55,10 @@ include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
 
+/*if (file("../Android-Gradle-Plugins").exists()) {
+    includeBuild("../Android-Gradle-Plugins")
+}*/
 if (file("../Kotlin-Util-Library").exists()) {
     includeBuild("../Kotlin-Util-Library")
 }
-//if (file("../Kotlin-Gradle-Plugins").exists()) {
-//    includeBuild("../Kotlin-Gradle-Plugins")
-//}
+include(":feature:config-network-keys")

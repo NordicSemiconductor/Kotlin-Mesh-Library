@@ -29,13 +29,4 @@
         back to an un-provisioned state.</string>
     <string name="label_disable_proxy_feature">Disable Proxy</string>
     <string name="label_are_you_sure_rationale">Are you sure you want to continue?</string>
-    <string name="label_no_keys_added">No network keys ara available to add to this Node./n
-        Go to settings and add a key to the network.</string>
-    <string name="error_cannot_delete_primary_network_key">Cannot delete the primary key.</string>
-    <string name="label_network_key_deleted">Network key deleted.</string>
-    <string name="action_undo">Undo</string>
-    <string name="error_cannot_delete_key_in_use">Error, key in use.</string>
-    <string name="label_add_key">Add Key</string>
-    <string name="label_loading">Loading Keys</string>
-    <string name="action_settings">Settings</string>
 </resources>

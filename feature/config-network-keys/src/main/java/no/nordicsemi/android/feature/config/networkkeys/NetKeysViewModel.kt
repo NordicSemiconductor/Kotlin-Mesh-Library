@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes.netkeys
+package no.nordicsemi.android.feature.config.networkkeys
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -11,10 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeys
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeState
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.netKeys
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -29,7 +26,7 @@ class NetKeysViewModel @Inject constructor(
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
     private lateinit var selectedNode: Node
 
-    private val nodeUuid: UUID = parameterOf(netKeys)
+    private val nodeUuid: UUID = parameterOf(configNetKeys)
     private lateinit var meshNetwork: MeshNetwork
 
     val uiState: StateFlow<NetKeysScreenUiState> = repository.network.onEach { network ->
@@ -37,10 +34,10 @@ class NetKeysViewModel @Inject constructor(
     }.map {
         it.node(nodeUuid)?.let { node ->
             this@NetKeysViewModel.selectedNode = node
-            NodeState.Success(node)
-        } ?: NodeState.Error(Throwable("Node not found"))
+            NetKeysState.Success(netKeys = node.networkKeys)
+        } ?: NetKeysState.Error(Throwable("Node not found"))
         NetKeysScreenUiState(
-            nodeState = NodeState.Success(selectedNode),
+            netKeysState = NetKeysState.Success(netKeys = selectedNode.networkKeys),
             keys = it.networkKeys.filter { networkKey ->
                 networkKey !in selectedNode.networkKeys
             }
@@ -62,14 +59,19 @@ class NetKeysViewModel @Inject constructor(
     internal fun navigateToNetworkKeys() {
         navigateTo(networkKeys)
     }
+}
 
-    internal fun navigateToApplicationKeys() {
-        navigateTo(applicationKeys)
-    }
+sealed interface NetKeysState {
+    data class Success(
+        val netKeys: List<NetworkKey>
+    ) : NetKeysState
+
+    data class Error(val throwable: Throwable) : NetKeysState
+    data object Loading : NetKeysState
 }
 
 data class NetKeysScreenUiState internal constructor(
-    val nodeState: NodeState = NodeState.Loading,
+    val netKeysState: NetKeysState = NetKeysState.Loading,
     val keys: List<NetworkKey> = emptyList()
 )
 
