@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":feature:proxy"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:network-keys"))
+    implementation(project(":feature:config-network-keys"))
     implementation(project(":feature:application-keys"))
     implementation(project(":feature:scenes"))
     implementation(project(":feature:provisioners"))

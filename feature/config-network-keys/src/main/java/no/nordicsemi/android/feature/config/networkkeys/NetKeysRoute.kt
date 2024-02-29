@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.nrfmesh.feature.nodes.netkeys
+package no.nordicsemi.android.feature.config.networkkeys
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -29,8 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.*
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeState
-import no.nordicsemi.android.nrfmesh.feature.nodes.R
+import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
@@ -72,24 +71,24 @@ private fun NetKeysScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        when (uiState.nodeState) {
-            NodeState.Loading -> MeshLoadingItems(
+        when (uiState.netKeysState) {
+            NetKeysState.Loading -> MeshLoadingItems(
                 imageVector = Icons.Outlined.VpnKey,
                 title = stringResource(id = R.string.label_loading)
             )
 
-            is NodeState.Success -> {
+            is NetKeysState.Success -> {
                 NetworkKeys(
                     context = context,
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
-                    keys = uiState.nodeState.node.networkKeys,
+                    keys = uiState.netKeysState.netKeys,
                     navigateToNetworkKeys = navigateToNetworkKeys,
                     onSwiped = onSwiped
                 )
             }
 
-            is NodeState.Error -> {
+            is NetKeysState.Error -> {
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
                     title = stringResource(R.string.label_no_keys_added)

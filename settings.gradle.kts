@@ -9,6 +9,8 @@ pluginManagement {
     plugins {
         id("org.jetbrains.dokka") version "1.9.0"
         id("org.jetbrains.kotlin.jvm") version "1.9.0"
+        id("com.android.library") version "8.2.1"
+        id("org.jetbrains.kotlin.android") version "1.9.21"
     }
 }
 dependencyResolutionManagement {
@@ -58,3 +60,4 @@ include(":mesh:foundation")
 /*if (file("../Android-Gradle-Plugins").exists()) {
     includeBuild("../Android-Gradle-Plugins")
 }*/
+include(":feature:config-network-keys")
