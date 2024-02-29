@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,7 +20,7 @@ fun BottomSheetTopAppBar(
     navigationIcon: ImageVector,
     onNavigationIconClick: () -> Unit,
     title: String,
-    titleStyle: TextStyle,
+    titleStyle: TextStyle = MaterialTheme.typography.titleLarge,
     actions: @Composable () -> Unit = {}
 ) {
     Row(
