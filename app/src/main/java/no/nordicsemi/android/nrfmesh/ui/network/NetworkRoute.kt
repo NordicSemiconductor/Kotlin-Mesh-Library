@@ -72,6 +72,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
 import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
+import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.netKeys
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
@@ -267,6 +268,7 @@ fun DestinationId<*, *>.title(): String {
         provisioners -> "Provisioners"
         provisioner -> "Edit Provisioner"
         networkKeys -> "Network Keys"
+        netKeys -> "Network Keys 1"
         applicationKeys -> "Application Keys"
         networkKey -> "Edit Key"
         scenes -> "Scenes"

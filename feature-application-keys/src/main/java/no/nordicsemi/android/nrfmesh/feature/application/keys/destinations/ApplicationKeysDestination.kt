@@ -13,7 +13,7 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysVie
 
 val applicationKeys = createDestination<Unit, Unit>("application_keys")
 
-val applicationKeysDestination = defineDestination(applicationKeys) {
+private val applicationKeysDestination = defineDestination(applicationKeys) {
     val viewModel: ApplicationKeysViewModel = hiltViewModel()
     val uiState: ApplicationKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeysRoute(

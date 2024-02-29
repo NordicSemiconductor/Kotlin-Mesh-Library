@@ -24,6 +24,8 @@ dependencies {
 
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
+    implementation(project(":feature-network-keys"))
+    implementation(project(":feature-application-keys"))
     implementation(project(":feature-mesh-bearer-android"))
     implementation(project(":mesh:core"))
 }
