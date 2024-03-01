@@ -25,3 +25,11 @@ data class NodeKey internal constructor(
         updated = key.boundNetworkKey?.phase != NormalOperation
     )
 }
+
+/**
+ * Returns an Node Key with the given KeyIndex.
+ *
+ * @param index Key Index.
+ * @return Node key.
+ */
+infix fun List<NodeKey>.get(index: KeyIndex): NodeKey? = find { it.index == index }
