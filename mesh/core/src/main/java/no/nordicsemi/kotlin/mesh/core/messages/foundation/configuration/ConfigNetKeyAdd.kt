@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -39,6 +40,11 @@ data class ConfigNetKeyAdd(
         networkKeyIndex = networkKey.index,
         key = networkKey.key
     )
+
+    init {
+        require(key.size == 16) { throw InvalidKeyLength }
+    }
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8040u
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
