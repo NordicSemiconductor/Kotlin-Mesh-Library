@@ -26,7 +26,7 @@ data class ConfigNetKeyAdd(
     override val opCode: UInt = Initializer.opCode
 
     override val parameters: ByteArray
-        get() = encodeNetKeyIndex()
+        get() = encodeNetKeyIndex() + key
 
     override val responseOpCode = ConfigNetKeyStatus.opCode
 
