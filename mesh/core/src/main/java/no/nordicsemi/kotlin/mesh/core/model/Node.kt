@@ -271,7 +271,7 @@ data class Node internal constructor(
         deviceKey = Crypto.generateRandomKey(),
         _primaryUnicastAddress = UnicastAddress(address),
         _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
-        _netKeys = mutableListOf(NodeKey(index = 0u, updated = false)),
+        _netKeys = mutableListOf(NodeKey(index = 0u, _updated = false)),
         _appKeys = mutableListOf()
     ) {
         this.name = name
@@ -355,13 +355,47 @@ data class Node internal constructor(
      *
      * @param index Network Key index.
      */
-    internal fun add(index: KeyIndex) {
+    internal fun addNetKey(index: KeyIndex) {
         _netKeys.get(index) ?: _netKeys.add(NodeKey(index, false))
         network?.let {
             if (security is Insecure) {
                 it.networkKeys.get(index)?.lowerSecurity()
             }
             it.updateTimestamp()
+        }
+    }
+
+    /**
+     * Marks the given Network Key as updated.
+     *
+     * @param index Network Key index.
+     */
+    internal fun updateNetKey(index: KeyIndex) {
+        _netKeys.get(index)?.apply {
+            update(true)
+        }
+        network?.updateTimestamp()
+    }
+
+    /**
+     * Removes a network key to the node. Invoked only when a [ConfigNetKeyStatus] is received with
+     * a success status.
+     *
+     * Note: When invoked all application keys bound to the network key will be removed as well.
+     *
+     * @param index Network Key index.
+     */
+    internal fun removeNetKey(index: KeyIndex) {
+        _netKeys.get(index)?.let { netKey ->
+            _netKeys.remove(netKey)
+            applicationKeys
+                .filter { it.boundNetKeyIndex == index }
+                .forEach { boundAppKey ->
+                    _appKeys
+                        .get(boundAppKey.index)
+                        ?.let { _appKeys.remove(it) }
+                }
+            network?.updateTimestamp()
         }
     }
 
