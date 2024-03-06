@@ -243,7 +243,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         ttl = initialTtl,
         applicationKey = applicationKey,
         retransmit = false
-    )?.also {
+    ).also {
         mutex.withLock { outgoingMessages.remove(destination) }
     } else null
 
@@ -309,10 +309,10 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         element: Element,
         destination: Address,
         initialTtl: UByte?
-    ): MeshMessage? {
+    ) {
         val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return null }
-        return accessLayer.send(
+        require(!ensureNotBusy(destination = meshAddress)) { throw Busy }
+        accessLayer.send(
             message = configMessage,
             localElement = element,
             destination = destination,

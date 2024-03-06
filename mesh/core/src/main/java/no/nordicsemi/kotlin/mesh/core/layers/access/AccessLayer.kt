@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -234,7 +235,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         ttl: UByte?,
         applicationKey: ApplicationKey,
         retransmit: Boolean
-    ): MeshMessage? {
+    ): MeshMessage {
         var msg = message
         val transactionMessage = message as? TransactionMessage
 
@@ -272,7 +273,9 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
         }
 
-        return networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
+        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
+
+        return awaitResponse(destination = destination)
     }
 
     /**
@@ -324,12 +327,21 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             keySet = keySet
         )
 
-        return networkManager.upperTransportLayer.send(
+        networkManager.upperTransportLayer.send(
             accessPdu = pdu,
             ttl = initialTtl,
             keySet = keySet
         )
+
+        return awaitResponse(destination = destination)
     }
+
+    suspend fun awaitResponse(destination: Address) =
+        awaitResponse(destination = MeshAddress.create(destination))
+
+    suspend fun awaitResponse(destination: MeshAddress) = networkManager.incomingMessages.first {
+        it.address == destination
+    }.message
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given
@@ -391,6 +403,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
     /**
      *
+     *
      * @param accessPdu Access PDU received.
      * @param keySet    Key set used to decrypt the message.
      * @param request   Request message if the message was sent as a response to a request.
@@ -443,31 +456,29 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
                         ) {
                             if (model.isBoundTo(keySet.applicationKey)) {
-                                eventHandler._modelEventFlow.emit(
-                                    ModelEvent.AcknowledgedMessageReceived(
-                                        model = model,
-                                        request = request!!,
-                                        source = accessPdu.source,
-                                        destination = accessPdu.destination,
-                                        reply = { response ->
-                                            if (response != null) {
-                                                networkManager.reply(
-                                                    origin = accessPdu.destination.address,
-                                                    destination = accessPdu.source,
-                                                    message = response,
-                                                    element = element,
-                                                    keySet = keySet
-                                                )
-                                            }
-                                            if (eventHandler is SceneClientHandler) {
-                                                networkManager.emitNetworkManagerEvent(
-                                                    NetworkManagerEvent.NetworkDidChange
-                                                )
-                                            }
-                                            mutex.unlock()
-                                        }
+
+                                eventHandler.onMeshMessageReceived(
+                                    model = model,
+                                    message = message,
+                                    source = accessPdu.source,
+                                    destination = accessPdu.destination.address,
+                                    request = request
+                                )?.let { response ->
+                                    networkManager.reply(
+                                        origin = accessPdu.destination.address,
+                                        destination = accessPdu.source,
+                                        message = response,
+                                        element = element,
+                                        keySet = keySet
                                     )
-                                )
+
+                                    if (eventHandler is SceneClientHandler) {
+                                        networkManager.emitNetworkManagerEvent(
+                                            NetworkManagerEvent.NetworkDidChange
+                                        )
+                                    }
+                                    mutex.unlock()
+                                }
                                 mutex.lock()
                             } else {
                                 logger?.w(LogCategory.MODEL) {
@@ -495,14 +506,13 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                         logger?.i(LogCategory.FOUNDATION_MODEL) {
                             "$message received from  ${accessPdu.source.toHex(prefix0x = true)}"
                         }
-                        val response = eventHandler.onMeshMessageReceived(
+                        eventHandler.onMeshMessageReceived(
                             model = model,
                             message = message,
                             source = accessPdu.source,
                             destination = accessPdu.destination.address,
                             request = request
-                        )
-                        if (response != null) {
+                        )?.let { response ->
                             networkManager.reply(
                                 origin = accessPdu.destination.address,
                                 destination = accessPdu.source,
@@ -510,6 +520,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                                 element = model.parentElement!!,
                                 keySet = keySet
                             )
+
                             // Some Config Messages require special handling.
                             handle(message)
                         }
@@ -658,6 +669,16 @@ private fun ModelEventHandler.decode(accessPdu: AccessPdu): MeshMessage? =
     messageTypes[accessPdu.opCode]?.init(accessPdu.parameters) as MeshMessage?
 
 
+/**
+ * When invoked, the decoded message is processed and is passed to the proper event handler,
+ * depending on its type or in case if it was a response to a previously sent request.
+ *
+ * @param model         Model that received the message.
+ * @param message       Message that was received by the model.
+ * @param source        Address of the Element from which the message was sent.
+ * @param destination   Address to which the message was sent.
+ * @param request       Request that was sent.
+ */
 private suspend fun ModelEventHandler.onMeshMessageReceived(
     model: Model,
     message: MeshMessage,
@@ -668,8 +689,8 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     if (request != null) {
         val response = message as? MeshResponse
         if (response != null) {
-            _modelEventFlow.emit(
-                ModelEvent.ResponseReceived(
+            handle(
+                event = ModelEvent.ResponseReceived(
                     model = model,
                     response = response,
                     request = request,
@@ -685,8 +706,8 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     if (acknowledgedRequest != null) {
         try {
             var response: MeshResponse? = null
-            _modelEventFlow.emit(
-                ModelEvent.AcknowledgedMessageReceived(
+            handle(
+                event = ModelEvent.AcknowledgedMessageReceived(
                     model = model,
                     request = acknowledgedRequest,
                     source = source,
@@ -706,8 +727,8 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
 
     val unacknowledgedMessage = message as? UnacknowledgedMeshMessage
     if (unacknowledgedMessage != null) {
-        _modelEventFlow.emit(
-            ModelEvent.UnacknowledgedMessageReceived(
+        handle(
+            event = ModelEvent.UnacknowledgedMessageReceived(
                 model = model,
                 message = unacknowledgedMessage,
                 source = source,

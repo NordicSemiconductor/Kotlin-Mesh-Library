@@ -170,24 +170,25 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         pdu: UpperTransportPdu,
         initialTtl: UByte?,
         networkKey: NetworkKey
-    ): MeshMessage? = network.localProvisioner?.node?.let { node ->
-        val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
-        val message = AccessMessage(pdu = pdu, networkKey = networkKey)
-        try {
-            logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
-            networkManager.networkLayer.send(
-                pdu = message,
-                type = PduType.NETWORK_PDU,
-                ttl = ttl
-            )
-        } catch (ex: Exception) {
-            logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
-            pdu.takeIf {
-                it.message != null && it.message.isAcknowledged
-            }?.let {
-                // TODO
+    ) {
+        network.localProvisioner?.node?.let { node ->
+            val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
+            val message = AccessMessage(pdu = pdu, networkKey = networkKey)
+            try {
+                logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
+                networkManager.networkLayer.send(
+                    pdu = message,
+                    type = PduType.NETWORK_PDU,
+                    ttl = ttl
+                )
+            } catch (ex: Exception) {
+                logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+                pdu.takeIf {
+                    it.message != null && it.message.isAcknowledged
+                }?.let {
+                    // TODO
+                }
             }
-            null
         }
     }
 
@@ -471,13 +472,13 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                         marks.toHexString()
                             }
                         }
-                        discardTimers.remove(key)?.also { it ->
+                        discardTimers.remove(key)?.also {
                             it.cancel()
                             it.purge()
                         }
-                        acknowledgementTimers.remove(key)?.also { it ->
-                            it.cancel()
-                            it.purge()
+                        acknowledgementTimers.remove(key)?.apply {
+                            cancel()
+                            purge()
                         }
                     }
                     // When a segment is received the SAR Acknowledgement timer shall be
@@ -720,7 +721,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             // The this will turn nil when all segments were acknowledged.
             val ttl = requireNotNull(segmentTtl[segment.sequenceZero]) { return }
 
-            // Send the segment and wait the segment transmission interval.
+            // Send the segment and wait for the segment transmission interval.
             try {
                 logger?.d(LogCategory.LOWER_TRANSPORT) { "Sending $segment" }
                 networkManager.networkLayer.send(
