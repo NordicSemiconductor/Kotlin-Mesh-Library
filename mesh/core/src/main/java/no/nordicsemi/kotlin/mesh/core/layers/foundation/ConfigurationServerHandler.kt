@@ -11,9 +11,15 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 
-class ConfigurationServerHandler(override val meshNetwork: MeshNetwork) : ModelEventHandler() {
+/**
+ * TODO
+ */
+internal class ConfigurationServerHandler(
+    override val meshNetwork: MeshNetwork
+) : ModelEventHandler() {
     override val messageTypes = mapOf(
         ConfigCompositionDataGet.opCode to ConfigCompositionDataGet,
         ConfigNetKeyDelete.opCode to ConfigNetKeyDelete,
@@ -26,4 +32,7 @@ class ConfigurationServerHandler(override val meshNetwork: MeshNetwork) : ModelE
     )
     override val isSubscriptionSupported = false
     override val publicationMessageComposer = null
+    override fun handle(event: ModelEvent) {
+        TODO("Not yet implemented")
+    }
 }
