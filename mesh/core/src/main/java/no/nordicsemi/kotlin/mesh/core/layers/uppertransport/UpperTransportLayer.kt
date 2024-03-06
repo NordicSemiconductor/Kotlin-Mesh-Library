@@ -33,7 +33,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     private val logger: Logger?
         get() = networkManager.logger
     private val queue: MutableMap<Address, MutableList<MessageData>> = mutableMapOf()
-    private val mutex = Mutex(locked = true)
+    private val mutex = Mutex()
     private var heartbeatPublisher: Timer? = null
 
     /**
@@ -92,7 +92,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      * @param ttl        Initial TTL value of the message. If 'null', default Node TTL will be used.
      * @param keySet     Key set to be used to encrypt the message.
      */
-    suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet): MeshMessage? {
+    suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet) {
         // Get the current sequence number for the given source Element's address.
         val sequence = networkManager.networkLayer.nextSequenceNumber(
             address = UnicastAddress(accessPdu.source)
@@ -105,11 +105,9 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         )
         logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet" }
 
-        return if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
+        if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
             enqueue(pdu, ttl, keySet.networkKey)
-            // TODO
-            null
         } else {
             networkManager.lowerTransportLayer.sendUnsegmentedUpperTransportPdu(
                 pdu = pdu,
@@ -237,6 +235,14 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         }
     }
 
+    /**
+     * Enqueue a message to be sent
+     *
+     * @param pdu            PDU to be sent.
+     * @param initialTtl     Initial TTL.
+     * @param networkKey     Network key used to encrypt ht message.
+     */
+
     private suspend fun enqueue(
         pdu: UpperTransportPdu,
         initialTtl: UByte?,
@@ -245,9 +251,12 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         val destination = pdu.destination.address
         var count: Int
         mutex.withLock {
-            queue[destination] = queue[destination] ?: mutableListOf()
-            queue[destination]!!.add(MessageData(pdu, initialTtl, networkKey))
-            count = queue[destination]!!.size
+            val key = (queue[destination] ?: mutableListOf())
+            queue[destination] = key.apply {
+                add(MessageData(pdu, initialTtl, networkKey))
+            }.also {
+                count = it.size
+            }
         }
 
         if (count == 1) sendNext(destination)
@@ -264,7 +273,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             return
         }
         // If another PDU has been enqueued, send it.
-        networkManager.lowerTransportLayer.sendSegmentedUpperTransportPdu(
+        return networkManager.lowerTransportLayer.sendSegmentedUpperTransportPdu(
             pdu = messageData.pdu,
             initialTtl = messageData.ttl,
             networkKey = messageData.networkKey

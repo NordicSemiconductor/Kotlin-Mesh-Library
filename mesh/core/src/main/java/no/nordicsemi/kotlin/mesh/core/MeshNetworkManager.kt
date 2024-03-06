@@ -588,9 +588,9 @@ class MeshNetworkManager(
      * @returns Message handle that can be used to cancel sending.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
-     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination Node,
-     *                            the Node does not have a Network Key,the Node's device key is
-     *                            unknown or Cannot remove last Network Key.
+     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination
+     *                            Node, the Node does not have a Network Key,the Node's device key
+     *                            is unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
     @OptIn(ExperimentalStdlibApi::class)
@@ -655,9 +655,9 @@ class MeshNetworkManager(
      * @returns Message handle that can be used to cancel sending.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
-     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination Node,
-     *                            the Node does not have a Network Key,the Node's device key is
-     *                            unknown or Cannot remove last Network Key.
+     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination
+     *                            Node, the Node does not have a Network Key,the Node's device key
+     *                            is unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
     @Throws(
@@ -689,9 +689,9 @@ class MeshNetworkManager(
      * @returns Response associated with the message.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
-     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination Node,
-     *                            the Node does not have a Network Key,the Node's device key is
-     *                            unknown or Cannot remove last Network Key.
+     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination
+     *                            Node, the Node does not have a Network Key,the Node's device key
+     *                            is unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
     @OptIn(ExperimentalStdlibApi::class)
@@ -768,9 +768,9 @@ class MeshNetworkManager(
      * @returns Response associated with the message.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
-     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination Node,
-     *                            the Node does not have a Network Key,the Node's device key is
-     *                            unknown or Cannot remove last Network Key.
+     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination
+     *                            Node, the Node does not have a Network Key,the Node's device key
+     *                            is unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
     suspend fun send(message: AcknowledgedConfigMessage, node: Node, initialTtl: UByte?) = send(

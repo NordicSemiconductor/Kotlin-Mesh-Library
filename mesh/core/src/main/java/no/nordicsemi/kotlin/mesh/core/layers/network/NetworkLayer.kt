@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Clock
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
@@ -13,7 +12,6 @@ import no.nordicsemi.kotlin.mesh.core.layers.ReceivedMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
-import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
@@ -131,7 +129,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @throws BearerError.Closed when the bearer is closed.
      */
     @Throws(BearerError.Closed::class)
-    suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte): MeshMessage? {
+    suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
         networkManager.bearer?.let { bearer ->
             val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
                 address = pdu.source as UnicastAddress
@@ -149,21 +147,18 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             if (shouldLoopback(networkPdu = networkPdu)) {
                 handle(incomingPdu = networkPdu.pdu, type = type)
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return null }
+                require(ttl == 1.toUByte()) { return }
                 if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) {
                     // No need to send messages targeting local Unicast Addresses.
-                    return null
+                    return
                 }
                 // If the message was sent locally, don't report Bearer closed error.
                 bearer.send(pdu = networkPdu.pdu, type = type)
             } else {
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl != 1.toUByte()) { return null }
+                require(ttl == 1.toUByte()) { return }
                 try {
                     bearer.send(pdu = networkPdu.pdu, type = type)
-                    return networkManager.incomingMessages.first {
-                        it.address == networkPdu.destination
-                    }.message
                 } catch (exception: Exception) {
                     if (exception is BearerError.Closed) {
                         proxyNetworkKey = null
@@ -188,7 +183,6 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 }
             }
         } ?: throw BearerError.Closed
-        return null
     }
 
     internal suspend fun sendAck(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
