@@ -829,9 +829,6 @@ class MeshNetworkManager(
     private fun observeNetworkManagerEvents() {
         networkManager?.networkManagerEventFlow?.onEach {
             when (it) {
-                is NetworkManagerEvent.MessageReceived -> TODO()
-                is NetworkManagerEvent.MessageSendingFailed -> TODO()
-                is NetworkManagerEvent.MessageSent -> TODO()
                 NetworkManagerEvent.NetworkDidChange -> save()
                 NetworkManagerEvent.NetworkDidReset -> {
                     network?.localProvisioner?.let { provisioner ->
