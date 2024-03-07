@@ -516,11 +516,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             networkManager.reply(
                                 origin = accessPdu.destination.address,
                                 destination = accessPdu.source,
-                                message = response,
+                                 message = response,
                                 element = model.parentElement!!,
                                 keySet = keySet
                             )
-
                             // Some Config Messages require special handling.
                             handle(message)
                         }
