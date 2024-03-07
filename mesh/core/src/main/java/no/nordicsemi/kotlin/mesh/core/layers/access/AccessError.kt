@@ -86,6 +86,14 @@ data object Timeout : AccessError()
  */
 data object Cancelled : AccessError()
 
+/**
+ * Thrown when message sending failed.
+ *
+ * @property msg          Message that was being sent.
+ * @property localElement Local element from which the message was being sent.
+ * @property destination  Destination address.
+ * @property error        Exception that caused the failure.
+ */
 data class MessageSendingFailed(
     val msg: MeshMessage,
     val localElement: Element,
