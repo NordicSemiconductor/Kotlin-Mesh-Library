@@ -106,7 +106,6 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         it.type != PduType.PROVISIONING_PDU
     } ?: throw BearerError.Closed
 
-
     /**
      * Awaits and returns the mesh pdu received by the bearer.
      */
@@ -349,13 +348,19 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return null }
-        return accessLayer.send(
-            message = configMessage,
-            localElement = element,
-            destination = destination,
-            initialTtl = initialTtl
-        )?.also {
+        return try {
+            accessLayer.send(
+                message = configMessage,
+                localElement = element,
+                destination = destination,
+                initialTtl = initialTtl
+            )?.also {
+                mutex.withLock { outgoingMessages.remove(meshAddress) }
+            }
+        } catch (e: Busy) {
             mutex.withLock { outgoingMessages.remove(meshAddress) }
+            //TODO clarify
+            throw e
         }
     }
 
@@ -390,6 +395,15 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
             destination = destination,
             keySet = keySet
         )
+    }
+
+    /**
+     * Cancels sending the message.
+     *
+     * @param handle Message handle.
+     */
+    suspend fun cancel(handle: MessageHandle) {
+        accessLayer.cancel(handle)
     }
 }
 
