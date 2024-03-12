@@ -2,9 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
@@ -23,11 +20,11 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
+import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 
 internal class ConfigurationClientHandler(
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob()),
     override val meshNetwork: MeshNetwork
 ) : ModelEventHandler() {
 
@@ -43,8 +40,25 @@ internal class ConfigurationClientHandler(
     override val isSubscriptionSupported: Boolean = false
     override val publicationMessageComposer: MessageComposer? = null
 
+    /**
+     *
+     * @throws ModelError if an acknowledged message is received.
+     */
     override fun handle(event: ModelEvent) {
-        TODO("Not yet implemented")
+        when (event) {
+            is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
+                msg = event.request
+            )
+            is ModelEvent.ResponseReceived -> handleResponses(
+                model = event.model,
+                response = event.response,
+                request = event.request,
+                source = event.source
+            )
+            is ModelEvent.UnacknowledgedMessageReceived ->  {
+                // Ignore do nothing
+            }
+        }
     }
 
     /**
