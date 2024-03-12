@@ -156,7 +156,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 bearer.send(pdu = networkPdu.pdu, type = type)
             } else {
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return }
+                require(ttl != 1.toUByte()) { return }
                 try {
                     bearer.send(pdu = networkPdu.pdu, type = type)
                 } catch (exception: Exception) {
