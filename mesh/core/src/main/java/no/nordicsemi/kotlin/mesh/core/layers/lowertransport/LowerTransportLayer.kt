@@ -235,7 +235,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             remainingNumberOfMulticastRetransmissions[sequenceZero] =
                 networkManager.networkParameters.sarMulticastRetransmissionsCount
         }
-        sendSegments(sequenceZero)
+        sendSegments(sequenceZero = sequenceZero)
     }
 
     /**
@@ -256,6 +256,29 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         } catch (ex: Exception) {
             logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
         }
+    }
+
+    /**
+     * Cancels sending segmented Upper Transport PDU.
+     *
+     * @param segmentedPdu Segmented Upper Transport PDU to be cancelled.
+     */
+    fun cancelSending(segmentedPdu: UpperTransportPdu) {
+        val sequenceZero = (segmentedPdu.sequence and 0x1FFFu).toUShort()
+        logger?.d(LogCategory.LOWER_TRANSPORT) {
+            "Cancelling sending of message with seqZero: $sequenceZero"
+        }
+        outgoingSegments.remove(sequenceZero)
+        unicastRetransmissionsTimers.remove(sequenceZero)?.let {
+            it.cancel()
+            it.purge()
+        }
+        remainingNumberOfUnicastRetransmissions.remove(sequenceZero)
+        multicastRetransmissionsTimers.remove(sequenceZero)?.let {
+            it.cancel()
+            it.purge()
+        }
+        remainingNumberOfMulticastRetransmissions.remove(sequenceZero)
     }
 
     /**
@@ -629,6 +652,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     else (withProgress - 1u).toUByte()
                 )
             // Lastly, send again all packets that were not acknowledged.
+            println("Sending packets that were nto acknowledged.")
             sendSegments(ack.sequenceZero)
         }
     }
@@ -795,7 +819,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     withoutProgress = (remainingNumberOfUnicastRetransmissionsWithoutProgress - 1u)
                         .toUByte()
                 )
-            networkManager.scope.launch {
+            scope.launch {
                 // Send again unacknowledged segments and restart the timer.
                 sendSegments(sequenceZero)
             }
