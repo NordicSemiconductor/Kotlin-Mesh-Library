@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 /**
  * Internal data class defining a Segment Acknowledgement Message.
  *
+ * @property opCode                    Message Op Code.
  * @property isOnBehalfOfLowePowerNode Flag indicating whether the message is on behalf of a low
  *                                     power node.
  * @property sequenceZero              13 least significant bits of SeqAuth.
@@ -77,7 +78,7 @@ internal class SegmentAcknowledgementMessage(
      * @return true if all segments have been received or false otherwise.
      */
     fun areAllSegmentsReceived(lastSegmentNumber: Int) =
-        ackedSegments == ((1 shl lastSegmentNumber) - 1).toUInt()
+        ackedSegments == ((1 shl (lastSegmentNumber + 1)) - 1).toUInt()
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ACK (seqZero: $sequenceZero, acked segments: 0x${ackedSegments.toHexString()})"
