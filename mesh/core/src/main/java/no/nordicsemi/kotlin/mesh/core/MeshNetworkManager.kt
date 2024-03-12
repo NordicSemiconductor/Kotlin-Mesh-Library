@@ -235,18 +235,18 @@ class MeshNetworkManager(
      * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
      * been sent successfully or a problem occurred.
      *
-     * @param message        Message to be sent.
-     * @param localElement   Source Element. If `nil`, the primary Element will be used. The Element
-     *                       must belong to the local Provisioner's Node.
-     * @param destination    Destination address.
-     * @param initialTtl     Initial TTL (Time To Live) value of the message. If `nil`, the default
-     *                       Node TTL will be used.
-     * @param applicationKey            The Application Key to sign the message.
+     * @param message              Message to be sent.
+     * @param localElement         Source Element. If `nil`, the primary Element will be used. The
+     *                             Element must belong to the local Provisioner's Node.
+     * @param destination          Destination address.
+     * @param initialTtl           Initial TTL (Time To Live) value of the message. If `null`, the
+     *                             default Node TTL will be used.
+     * @param applicationKey       Application Key to sign the message.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
-     * @throws InvalidDestination if the Address is not Unicast Address, an Unknown destination Node,
-     *                            the Node does not have a Network Key,the Node's device key is
-     *                            unknown or Cannot remove last Network Key.
+     * @throws InvalidDestination if the Address is not a Unicast Address, an Unknown destination
+     *                            Node, the Node does not have a Network Key,the Node's device key
+     *                            is unknown or Cannot remove last Network Key.
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
