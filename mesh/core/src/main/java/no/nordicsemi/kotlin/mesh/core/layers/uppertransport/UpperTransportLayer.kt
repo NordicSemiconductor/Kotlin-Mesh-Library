@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
+import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.access.AccessPdu
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
@@ -118,6 +119,38 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     }
 
     /**
+     * Cancels sending all segmented messages matching given handle. Unsegmented messages are sent
+     * almost instantaneously and cannot be cancelled.
+     *
+     * @param handle Message handle.
+     */
+    internal suspend fun cancel(handle: MessageHandle) {
+        var shouldSendNext = false
+        // Check if the message that is currently being sent matches the handler data. If so, cancel
+        // it.
+        mutex.withLock {
+            queue[handle.destination.address]?.first()
+        }?.takeIf { first ->
+            first.pdu.message!!.opCode == handle.opCode && first.pdu.source == handle.source.address
+        }?.let {
+            logger?.d(LogCategory.UPPER_TRANSPORT) { "Cancelling message ${it.pdu}" }
+            networkManager.lowerTransportLayer.cancelSending(segmentedPdu = it.pdu)
+            shouldSendNext = true
+        }
+
+        mutex.withLock {
+            queue[handle.destination.address]?.removeAll {
+                it.pdu.message!!.opCode == handle.opCode &&
+                        it.pdu.source == handle.source.address &&
+                        it.pdu.destination == handle.destination
+            }
+        }
+        if (shouldSendNext) {
+            onLowerTransportLayerSent(handle.destination.address)
+        }
+    }
+
+    /**
      * Returns whether the underlying layer is in progress of receiving a message from the given
      * address.
      *
@@ -130,11 +163,17 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         return networkManager.lowerTransportLayer.isReceivingMessage(address)
     }
 
+    /**
+     * Invoked by the lower transport layer when a segmented message has been sent to the
+     * destination or failed.
+     *
+     * This removes the sent PDU from the queue and sends the next one if available.
+     *
+     * @param destination Destination address.
+     */
     suspend fun onLowerTransportLayerSent(destination: Address) {
         mutex.withLock {
-            require(queue[destination] != null) {
-                return
-            }
+            require(queue[destination]?.isEmpty() == false) { return }
             // Remove the PDU that has just been sent.
             queue[destination]?.removeFirst()
         }
@@ -251,12 +290,9 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         val destination = pdu.destination.address
         var count: Int
         mutex.withLock {
-            val key = (queue[destination] ?: mutableListOf())
-            queue[destination] = key.apply {
-                add(MessageData(pdu, initialTtl, networkKey))
-            }.also {
-                count = it.size
-            }
+            queue[destination] = queue[destination] ?: mutableListOf()
+            queue[destination]!!.add(MessageData(pdu, initialTtl, networkKey))
+            count = queue[destination]!!.size
         }
 
         if (count == 1) sendNext(destination)
@@ -273,7 +309,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             return
         }
         // If another PDU has been enqueued, send it.
-        return networkManager.lowerTransportLayer.sendSegmentedUpperTransportPdu(
+        networkManager.lowerTransportLayer.sendSegmentedUpperTransportPdu(
             pdu = messageData.pdu,
             initialTtl = messageData.ttl,
             networkKey = messageData.networkKey
