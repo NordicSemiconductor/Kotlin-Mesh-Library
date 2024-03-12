@@ -59,7 +59,7 @@ internal fun List<SegmentedMessage?>.hasMore() = any { it != null }
  * @receiver List of segmented messages.
  * @return The first segment that isn't acknowledged yet or null if all segments were acknowledged.
  */
-internal fun List<SegmentedMessage?>.firstNotAcknowledged() = first { it != null }
+internal fun List<SegmentedMessage?>.firstNotAcknowledged() = firstOrNull { it != null }
 
 /**
  * Returns a list of unacknowledged segments
