@@ -2,10 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.crypto.Utils.xor
+import no.nordicsemi.kotlin.data.and
+import no.nordicsemi.kotlin.data.shl
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.xor
 import org.bouncycastle.crypto.BlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
 import org.bouncycastle.crypto.digests.SHA256Digest
@@ -26,7 +26,6 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
 import javax.crypto.spec.SecretKeySpec
-import kotlin.experimental.and
 
 object Crypto {
 
@@ -192,12 +191,17 @@ object Crypto {
      * Creates a 16-bit virtual address for a given UUID.
      * @param uuid 128-bit Label UUID.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     fun createVirtualAddress(uuid: UUID): UShort {
-        val uuidHex = uuid.toString().replace("-", "").decodeHex()
+        val uuidHex = uuid.toString().replace("-", "").toByteArray()
         val salt = calculateS1(VTAD)
         val hash = calculateCmac(input = uuidHex, key = salt)
-        return (0x8000 or (hash.copyOfRange(fromIndex = 14, toIndex = hash.count()).encodeHex()
-            .toInt(radix = 16) and 0x3FFF)).toUShort()
+        // The virtual address is a 16-bit value that has bit 15 set to 1, bit 14 set to 0,
+        // and bits 13 to 0 set to the value of a hash.
+        // See: Mesh Profile Specification 1.1: 3.4.2.3 Virtual address.
+        return 0x8000u.toUShort() or
+               (hash[0] and 0x3F shl 8).toUShort() or
+               (hash[1] and 0xFF).toUShort()
     }
 
     /**
@@ -387,7 +391,7 @@ object Crypto {
 
         if (!authenticationTag.contentEquals(calculatedAuthenticationTag)) return null
 
-        return Pair(privateBeaconData[0], privateBeaconData.sliceArray(1 until 5))
+        return Pair(privateBeaconData[0], privateBeaconData.copyOfRange(1, 5))
     }
 
     /**

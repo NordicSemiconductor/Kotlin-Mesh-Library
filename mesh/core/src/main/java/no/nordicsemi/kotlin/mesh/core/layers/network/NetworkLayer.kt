@@ -242,7 +242,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             val source = meshNetwork.localProvisioner?.node?.primaryUnicastAddress
                 ?: UnicastAddress(address = maxUnicastAddress)
             logger?.i(LogCategory.PROXY) {
-                "Sending $message from: ${source.toHex()} to :0000 "
+                "Sending $message from: ${source.toHexString()} to 0000"
             }
             val pdu = ControlMessage.init(
                 message = message,
@@ -417,8 +417,8 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         val payload = proxyPdu.transportPdu
         require(payload.size > 1) { return }
 
-        val controlMessage = ControlMessage.init(proxyPdu) ?: run {
-            logger?.w(LogCategory.NETWORK) { "Failed to decrypt proxy PDU" }
+        val controlMessage = runCatching { ControlMessage.init(proxyPdu) }.getOrElse {
+            logger?.w(LogCategory.NETWORK) { "Failed to decrypt proxy PDU: $it" }
             return
         }
         logger?.i(LogCategory.NETWORK) {
@@ -431,7 +431,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         }?.let { decoder ->
             decoder.init(parameters = controlMessage.upperTransportPdu)?.also { message ->
                 logger?.i(LogCategory.PROXY) {
-                    "$message received from: ${proxyPdu.source.toHex()} to ${proxyPdu.destination.toHex()}"
+                    "$message received from: ${proxyPdu.source.toHexString()}, dest: ${proxyPdu.destination.toHexString()}"
                 }
                 // Look for the proxy Node.
                 val proxyNode = meshNetwork.node(proxyPdu.source as UnicastAddress)

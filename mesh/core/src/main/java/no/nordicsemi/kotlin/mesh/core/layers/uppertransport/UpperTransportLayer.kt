@@ -66,9 +66,9 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                 val message = lowerTransportPdu as ControlMessage
                 when (message.opCode) {
                     HeartbeatMessage.OP_CODE -> {
-                        HeartbeatMessage.init(message = message)?.also { heartbeat ->
+                        HeartbeatMessage.init(message = message).also { heartbeat ->
                             logger?.i(LogCategory.UPPER_TRANSPORT) {
-                                "$heartbeat received from ${message.source.toHex(prefix0x = true)}"
+                                "$heartbeat received from ${message.source.toHexString()}"
                             }
                             handle(heartbeat = heartbeat)
                         }
@@ -289,7 +289,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      */
     private suspend fun send(heartbeat: HeartbeatMessage, networkKey: NetworkKey) {
         logger?.i(LogCategory.UPPER_TRANSPORT) {
-            "Sending $heartbeat to ${heartbeat.destination.toHex(prefix0x = true)}" + "encrypted " +
+            "Sending $heartbeat to ${heartbeat.destination.toHexString()}" + "encrypted " +
                     "using key: $networkKey"
         }
         networkManager.lowerTransportLayer.send(heartbeat = heartbeat, networkKey = networkKey)

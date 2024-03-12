@@ -37,7 +37,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.model
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -254,7 +253,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             msg = it
         }
 
-        logger?.i(LogCategory.ACCESS) { "Sending $msg to ${destination.toHex(prefix0x = true)})" }
+        logger?.i(LogCategory.MODEL) { "Sending $msg to ${destination.toHexString()})" }
         val pdu = AccessPdu.init(
             message = msg,
             source = element.unicastAddress.address,
@@ -286,6 +285,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      *                         be used.
      * @throws IllegalArgumentException if the message is not a ConfigMessage.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun send(
         message: ConfigMessage,
         localElement: Element,
@@ -306,9 +306,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             networkKey = networkKey, node = node
         ) ?: return null
 
-        logger?.i(LogCategory.ACCESS) {
-            "Sending $message to ${destination.toHex(prefix0x = true)})"
-        }
+        logger?.i(LogCategory.FOUNDATION_MODEL) { "Sending $message to ${destination.toHexString()})" }
         val pdu = AccessPdu.init(
             message = message,
             source = localElement.unicastAddress.address,
@@ -341,6 +339,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      * @param destination  Destination address. This must be a Unicast Address.
      * @param keySet       Set of keys that the message was encrypted with.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun reply(
         origin: Address,
         destination: Address,
@@ -351,7 +350,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         val category =
             if (message is ConfigMessage) LogCategory.FOUNDATION_MODEL else LogCategory.MODEL
         logger?.i(category) {
-            "Replying with $message from: $element to ${destination.toHex(prefix0x = true)}"
+            "Replying with $message from: $element to ${destination.toHexString()}"
         }
         val dst = MeshAddress.create(destination)
         val pdu = AccessPdu.init(
@@ -396,6 +395,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      * @param request   Request message if the message was sent as a response to a request.
      * @return MeshMessage if the message was handled, null otherwise.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun handle(
         accessPdu: AccessPdu,
         keySet: KeySet,
@@ -416,8 +416,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     // Save and log only the first decoded message
                     if (newMessage == null) {
                         logger?.i(LogCategory.MODEL) {
-                            "Message received from ${accessPdu.source.toHex(prefix0x = true)}, " +
-                                    "to: ${accessPdu.destination.toHex(prefix0x = true)}"
+                            "Message received from ${accessPdu.source.toHexString()}, " +
+                                    "to: ${accessPdu.destination.toHexString()}"
                         }
                         newMessage = message
                     } else if (message::class != newMessage::class) {
@@ -493,7 +493,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     // Is this message targeting the local Node?
                     if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                         logger?.i(LogCategory.FOUNDATION_MODEL) {
-                            "$message received from  ${accessPdu.source.toHex(prefix0x = true)}"
+                            "$message received from  ${accessPdu.source.toHexString()}"
                         }
                         val response = eventHandler.onMeshMessageReceived(
                             model = model,
@@ -516,8 +516,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                         networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
                     } else {
                         logger?.i(LogCategory.FOUNDATION_MODEL) {
-                            "$message received from: ${accessPdu.source.toHex(prefix0x = true)}," +
-                                    " to: ${accessPdu.destination.toHex(prefix0x = true)}"
+                            "$message received from: ${accessPdu.source.toHexString()}," +
+                                    " to: ${accessPdu.destination.toHexString()}"
                         }
                     }
                     break
@@ -574,6 +574,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      * The context contains timers responsible for resending the message until a status is received,
      * and allows the message to be cancelled.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun createReliableContext(
         pdu: AccessPdu,
         element: Element,
@@ -614,8 +615,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                     LogCategory.FOUNDATION_MODEL
                 else LogCategory.MODEL
                 logger?.w(category) {
-                    "$request sent from ${pdu.source.toHex(prefix0x = true)} to ${
-                        pdu.destination.toHex(prefix0x = true)
+                    "$request sent from ${pdu.source.toHexString()} to ${
+                        pdu.destination.toHexString()
                     } timed out."
                 }
                 scope.launch { mutex.withLock { reliableMessageContexts.clear() } }

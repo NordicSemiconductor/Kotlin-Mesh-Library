@@ -84,7 +84,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             val msg = if (segmented) {
                 when (networkPdu.type) {
                     LowerTransportPduType.ACCESS_MESSAGE -> {
-                        SegmentedAccessMessage.init(networkPdu)?.let {
+                        SegmentedAccessMessage.init(networkPdu).let {
                             logger?.d(LogCategory.LOWER_TRANSPORT) {
                                 "$it received (decrypted using key: ${it.networkKey})"
                             }
@@ -95,7 +95,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     }
 
                     LowerTransportPduType.CONTROL_MESSAGE -> {
-                        SegmentedControlMessage.init(networkPdu)?.let {
+                        SegmentedControlMessage.init(networkPdu).let {
                             logger?.d(LogCategory.LOWER_TRANSPORT) {
                                 "$it received (decrypted using key: ${it.networkKey})"
                             }
@@ -107,7 +107,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 }
             } else {
                 when (networkPdu.type) {
-                    LowerTransportPduType.ACCESS_MESSAGE -> AccessMessage.init(networkPdu)?.let {
+                    LowerTransportPduType.ACCESS_MESSAGE -> AccessMessage.init(networkPdu).let {
                         logger?.d(LogCategory.LOWER_TRANSPORT) {
                             "$it received (decrypted using key: ${it.networkKey})"
                         }
@@ -117,14 +117,14 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     LowerTransportPduType.CONTROL_MESSAGE -> {
                         val opCode = (networkPdu.transportPdu[0].toUByte().toInt() and 0x7F)
                         if (opCode == 0x00) {
-                            SegmentAcknowledgementMessage.init(networkPdu)?.let {
+                            SegmentAcknowledgementMessage.init(networkPdu).let {
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
                                     "$it received (decrypted using key: ${it.networkKey})"
                                 }
                                 Message.Acknowledgement(it)
                             }
                         } else {
-                            ControlMessage.init(networkPdu)?.let {
+                            ControlMessage.init(networkPdu).let {
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
                                     "$it received (decrypted using key: ${it.networkKey})"
                                 }
@@ -455,20 +455,14 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
                     discardTimer.schedule(delay = networkParams.discardTimeout.inWholeMilliseconds) {
                         incompleteSegments.remove(key)?.let { segments ->
-                            var marks = 0
-                            segments.forEach { segment ->
-                                segment?.let {
-                                    marks = marks or 1 shl it.segmentOffset.toInt()
-                                }
+                            val marks = segments.fold(0u) { acc, seg ->
+                                seg?.let { acc or ((1u shl seg.segmentOffset.toInt())) } ?: acc
                             }
                             logger?.w(LogCategory.LOWER_TRANSPORT) {
-                                "Discard timeout expired, cancelling message (src " +
-                                        "${
-                                            MeshAddress.create((key shr 16).toUShort())
-                                                .toHex(prefix0x = true)
-                                        }, " +
-                                        "seqZero ${key and 0x1FFFu}, received segments: " +
-                                        marks.toHexString()
+                                "Discard timeout expired, cancelling message (src: " +
+                                "${MeshAddress.create((key shr 16).toUShort()).toHexString()}, " +
+                                "seqZero: ${key and 0x1FFFu}, received segments: 0x" +
+                                marks.toHexString() + ")"
                             }
                         }
                         discardTimers.remove(key)?.also { it ->

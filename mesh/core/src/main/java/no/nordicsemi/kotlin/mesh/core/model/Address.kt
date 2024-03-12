@@ -3,8 +3,9 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.data.HexString
+import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUuid
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.util.*
 
@@ -12,16 +13,6 @@ import java.util.*
  * Type alias for an unsigned 16-bit address.
  */
 typealias Address = UShort
-
-/**
- * Represents a hex representation of an Address in String,
- */
-fun Address.toHex(prefix0x: Boolean = false) = "%04X".format(this.toShort()).uppercase().run {
-    when {
-        prefix0x -> "0x$this"
-        else -> this
-    }
-}
 
 const val minUnicastAddress: Address = 0x0001u
 const val maxUnicastAddress: Address = 0x7FFFu
@@ -51,10 +42,9 @@ sealed interface HasAddress {
     /**
      * Converts a mesh address to a hex string.
      *
-     * @param prefix0x If true, the hex string will be prefixed with 0x.
      * @return The hex string representation of the address.
      */
-    fun toHex(prefix0x: Boolean = false): String
+    fun toHexString(): HexString
 }
 
 /**
@@ -64,7 +54,12 @@ sealed interface HasAddress {
 sealed class MeshAddress : HasAddress {
     abstract override val address: Address
 
-    override fun toHex(prefix0x: Boolean): String = address.toHex(prefix0x = prefix0x)
+    override fun toString(): String {
+        return toHexString()
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toHexString(): HexString = address.toHexString()
 
     companion object {
 

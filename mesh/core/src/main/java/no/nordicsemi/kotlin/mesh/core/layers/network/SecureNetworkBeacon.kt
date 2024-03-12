@@ -2,16 +2,16 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
+import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toInt
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
 /**
  * Defines Secure Network Beacon transmitted by the mesh network.
  */
-internal data class SecureNetworkBeacon(
+internal class SecureNetworkBeacon(
     override val pdu: ByteArray,
     override val networkKey: NetworkKey,
     override val validForKeyRefreshProcedure: Boolean,
@@ -20,32 +20,6 @@ internal data class SecureNetworkBeacon(
 ) : NetworkBeaconPdu {
 
     override val beaconType: BeaconType = BeaconType.SECURE_NETWORK
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as SecureNetworkBeacon
-
-        if (!pdu.contentEquals(other.pdu)) return false
-        if (networkKey != other.networkKey) return false
-        if (validForKeyRefreshProcedure != other.validForKeyRefreshProcedure) return false
-        if (keyRefreshFlag != other.keyRefreshFlag) return false
-        if (ivIndex != other.ivIndex) return false
-        if (beaconType != other.beaconType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = pdu.contentHashCode()
-        result = 31 * result + networkKey.hashCode()
-        result = 31 * result + validForKeyRefreshProcedure.hashCode()
-        result = 31 * result + keyRefreshFlag.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + beaconType.hashCode()
-        return result
-    }
 }
 
 internal object SecureNetworkBeaconDecoder {
@@ -56,9 +30,9 @@ internal object SecureNetworkBeaconDecoder {
 
         val keyRefreshFlag = pdu[1].toInt() and 0x01 != 0
         val updateActive = pdu[1].toInt() and 0x02 != 0
-        val networkId = pdu.sliceArray(2 until 10)
-        val index = pdu.toInt(offset = 10)
-        val ivIndex = IvIndex(index.toUInt(), updateActive)
+        val networkId = pdu.copyOfRange(2, 10)
+        val index = pdu.getUInt(offset = 10)
+        val ivIndex = IvIndex(index, updateActive)
         val validForKeyRefreshProcedure = networkKey.oldKey != null
 
         when {

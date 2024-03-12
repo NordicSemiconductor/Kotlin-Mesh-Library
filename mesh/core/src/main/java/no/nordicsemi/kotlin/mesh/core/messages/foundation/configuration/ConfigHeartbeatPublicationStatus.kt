@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -16,8 +18,6 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 
 /**
  * This message contains the Heartbeat Publication status of an element. This is sent in response to
@@ -33,9 +33,9 @@ import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
  */
 data class ConfigHeartbeatPublicationStatus(
     val destination: HeartbeatPublicationDestination = UnassignedAddress,
-    val countLog: CountLog = 0x00.toUByte(),
-    val periodLog: UByte = 0x00.toUByte(),
-    val ttl: UByte = 0x00.toUByte(),
+    val countLog: CountLog = 0x00u,
+    val periodLog: UByte = 0x00u,
+    val ttl: UByte = 0x00u,
     val features: Array<Feature> = emptyArray(),
     val networkKeyIndex: KeyIndex = 0u,
     override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS
@@ -95,13 +95,13 @@ data class ConfigHeartbeatPublicationStatus(
             ConfigMessageStatus.from(parameters[0].toUByte())?.let {
                 ConfigHeartbeatPublicationStatus(
                     destination = MeshAddress.create(
-                        parameters.toUShort(1)
+                        parameters.getUShort(1)
                     ) as HeartbeatPublicationDestination,
                     countLog = parameters[3].toUByte(),
                     periodLog = parameters[4].toUByte(),
                     ttl = parameters[5].toUByte(),
-                    features = Features(parameters.toUShort(6)).toArray(),
-                    networkKeyIndex = parameters.toUShort(8),
+                    features = Features(parameters.getUShort(6)).toArray(),
+                    networkKeyIndex = parameters.getUShort(8),
                     status = it
                 )
             }

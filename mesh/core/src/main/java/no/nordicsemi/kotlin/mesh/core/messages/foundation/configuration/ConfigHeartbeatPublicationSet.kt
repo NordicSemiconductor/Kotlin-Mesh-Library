@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -16,8 +18,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import kotlin.math.pow
 
 typealias CountLog = UByte
@@ -99,12 +99,12 @@ class ConfigHeartbeatPublicationSet(
             it.size == 9
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
-                destination = params.toUShort(offset = 0),
+                destination = params.getUShort(offset = 0),
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),
-                features = Features(rawValue = params.toUShort(offset = 5)).toArray(),
-                networkKeyIndex = params.toUShort(offset = 7)
+                features = Features(rawValue = params.getUShort(offset = 5)).toArray(),
+                networkKeyIndex = params.getUShort(offset = 7)
             )
         }
 
@@ -131,10 +131,9 @@ class ConfigHeartbeatPublicationSet(
             networkKey: NetworkKey,
             features: Features
         ): ConfigHeartbeatPublicationSet? {
-
             require(HeartbeatPublicationDestination.isValid(destination)) { return null }
-            require(countLog <= 0x11.toUByte() || countLog == 0xFF.toUByte()) { return null }
-            require(periodLog <= 0x11.toUByte()) { return null }
+            require(countLog <= 0x11u || countLog == 0xFFu.toUByte()) { return null }
+            require(periodLog <= 0x11u) { return null }
             require(ttl <= 0x7F.toUByte()) { return null }
             require(networkKey.index.isValidKeyIndex()) { return null }
 

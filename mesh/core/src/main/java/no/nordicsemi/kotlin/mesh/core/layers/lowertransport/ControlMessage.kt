@@ -2,6 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
+import no.nordicsemi.kotlin.data.hasBitCleared
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -15,17 +18,19 @@ import kotlin.experimental.and
  * Data class defining a Control Message.
  *
  * @property opCode  Message Op Code.
- * @property ttl     TTL value of the message.
  * @constructor Creates a Control Message.
  */
-internal data class ControlMessage(
-    val opCode: UByte,
+internal open class ControlMessage(
+    // Control Message
+    open val opCode: UByte,
+    // Lower Transport PDU
     override val source: MeshAddress,
     override val destination: MeshAddress,
     override val networkKey: NetworkKey,
     override val ivIndex: UInt,
     override val upperTransportPdu: ByteArray,
-    val ttl: UByte
+    // Received TTL, used only for received Heartbeat messages
+    val ttl: UByte = 0u,
 ) : LowerTransportPdu {
 
     override val transportPdu: ByteArray
@@ -44,62 +49,39 @@ internal data class ControlMessage(
         heartbeatMessage: HeartbeatMessage,
         networkKey: NetworkKey
     ) : this(
-        opCode = heartbeatMessage.opCode,
+        opCode = HeartbeatMessage.OP_CODE,
         upperTransportPdu = heartbeatMessage.transportPdu,
         source = heartbeatMessage.source,
-        destination = heartbeatMessage.destination as MeshAddress,
+        destination = heartbeatMessage.destination,
         networkKey = networkKey,
         ivIndex = heartbeatMessage.ivIndex,
-        ttl = heartbeatMessage.initialTtl
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ControlMessage
-
-        if (source != other.source) return false
-        if (destination != other.destination) return false
-        if (networkKey != other.networkKey) return false
-        if (ivIndex != other.ivIndex) return false
-        if (!transportPdu.contentEquals(other.transportPdu)) return false
-        if (!upperTransportPdu.contentEquals(other.upperTransportPdu)) return false
-        if (type != other.type) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = source.hashCode()
-        result = 31 * result + destination.hashCode()
-        result = 31 * result + networkKey.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + transportPdu.contentHashCode()
-        result = 31 * result + upperTransportPdu.contentHashCode()
-        result = 31 * result + type.hashCode()
-        return result
-    }
 
     internal companion object {
 
         /**
          * Creates a Control Message using the given NetworkPdu.
          *
-         * @param networkPdu The network pdu to be decoded.
+         * @param pdu The network pdu to be decoded.
          * @return ControlMessage or null if the pdu could not be decoded.
          */
-        fun init(networkPdu: NetworkPdu) = networkPdu.takeIf {
-            it.transportPdu.isNotEmpty() && (it.transportPdu[0].toUByte().toInt() and 0x80) == 0x00
-        }?.let {
-            ControlMessage(
-                opCode = (it.transportPdu[0] and 0x7F.toByte()).toUByte(),
-                upperTransportPdu = it.transportPdu.drop(1).toByteArray(),
-                source = it.source,
-                destination = it.destination,
-                networkKey = it.key,
-                ivIndex = it.ivIndex,
-                ttl = it.ttl
+        fun init(pdu: NetworkPdu): ControlMessage {
+            // Minimum length of a Control Message is 2 bytes:
+            // * 1 byte for SEG | AKF | AID
+            // * at least one byte of Upper Transport Control PDU
+            require(pdu.transportPdu.size >= 2) { throw InvalidPdu }
+
+            // Make sure the SEG is 0, that is the message is unsegmented.
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+
+            return ControlMessage(
+                opCode = pdu.transportPdu[0].toUByte() and 0x7Fu,
+                upperTransportPdu = pdu.transportPdu.drop(1).toByteArray(),
+                source = pdu.source,
+                destination = pdu.destination,
+                networkKey = pdu.key,
+                ivIndex = pdu.ivIndex,
+                ttl = pdu.ttl,
             )
         }
 
@@ -110,18 +92,17 @@ internal data class ControlMessage(
          * @return a ControlMessage.
          */
         fun init(segments: List<SegmentedControlMessage>): ControlMessage {
-            val upperTransportPdu = segments.fold(byteArrayOf()) { acc, segment ->
-                acc + segment.upperTransportPdu
-            }
+            require(segments.isNotEmpty()) { throw InvalidPdu }
+
+            val pdu = segments.fold(byteArrayOf()) { acc, seg -> acc + seg.upperTransportPdu }
             return segments.first().run {
                 ControlMessage(
                     opCode = opCode,
-                    upperTransportPdu = upperTransportPdu,
+                    upperTransportPdu = pdu,
                     source = source,
                     destination = destination,
                     networkKey = networkKey,
                     ivIndex = ivIndex,
-                    ttl = ttl
                 )
             }
         }
@@ -149,7 +130,6 @@ internal data class ControlMessage(
             destination = UnassignedAddress,
             networkKey = networkKey,
             ivIndex = ivIndex.transmitIvIndex,
-            ttl = 0u
         )
     }
 }

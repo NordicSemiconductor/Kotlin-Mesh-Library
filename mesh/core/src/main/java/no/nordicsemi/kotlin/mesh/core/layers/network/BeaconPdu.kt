@@ -9,7 +9,7 @@ internal enum class BeaconType(val type: UByte) {
     PRIVATE(2u);
 
     companion object {
-        fun from(type: UByte): BeaconType? = values().firstOrNull { it.type == type }
+        fun from(type: UByte): BeaconType? = entries.firstOrNull { it.type == type }
     }
 }
 

@@ -42,7 +42,6 @@ import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.*
@@ -594,6 +593,7 @@ class MeshNetworkManager(
      *                            unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     @Throws(NoNetwork::class, InvalidSource::class, InvalidDestination::class, CannotDelete::class)
     suspend fun send(
         message: UnacknowledgedConfigMessage,
@@ -614,7 +614,7 @@ class MeshNetworkManager(
         }
         val dst = MeshAddress.create(address = destination)
         require(dst is UnicastAddress) {
-            println("Error: Address ${destination.toHex(prefix0x = true)} is not a Unicast Address.")
+            println("Error: Address ${destination.toHexString()} is not a Unicast Address.")
             throw InvalidDestination
         }
         val node = requireNotNull(network.node(dst)) {
@@ -694,6 +694,7 @@ class MeshNetworkManager(
      *                            unknown or Cannot remove last Network Key.
      * @throws InvalidTtl if the TTL value is invalid.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     @Throws(
         NoNetwork::class,
         InvalidDestination::class,
@@ -719,11 +720,11 @@ class MeshNetworkManager(
         }
         val dst = MeshAddress.create(address = destination)
         require(dst is UnicastAddress) {
-            println("Error: ${destination.toHex(prefix0x = true)} is not a Unicast Address.")
+            println("Error: ${destination.toHexString()} is not a Unicast Address.")
             throw InvalidDestination
         }
         val node = requireNotNull(network.node(dst)) {
-            println("Error: Unknown destination Node ${destination.toHex(prefix0x = true)}.")
+            println("Error: Unknown destination Node ${destination.toHexString()}.")
             throw InvalidDestination
         }
         require(node.netKeys.isNotEmpty()) {

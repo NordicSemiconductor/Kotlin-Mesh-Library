@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.crypto
 
-import no.nordicsemi.kotlin.mesh.crypto.Utils.toByteArray
+import no.nordicsemi.kotlin.data.toByteArray
+import java.nio.ByteOrder
 
 sealed class SecurityCredentials {
 
@@ -15,10 +16,10 @@ sealed class SecurityCredentials {
         val friendCounter: UShort,
     ): SecurityCredentials() {
         override val P =  byteArrayOf(0x01) +
-                lpnAddress.toByteArray() +
-                lpnCounter.toByteArray() +
-                friendAddress.toByteArray() +
-                friendCounter.toByteArray()
+                lpnAddress.toByteArray(order = ByteOrder.BIG_ENDIAN) +
+                lpnCounter.toByteArray(order = ByteOrder.BIG_ENDIAN) +
+                friendAddress.toByteArray(order = ByteOrder.BIG_ENDIAN) +
+                friendCounter.toByteArray(order = ByteOrder.BIG_ENDIAN)
     }
 
     data object DirectedFlooding : SecurityCredentials() {

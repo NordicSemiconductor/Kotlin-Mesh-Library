@@ -2,6 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.IntFormat
+import no.nordicsemi.kotlin.data.getInt
+import no.nordicsemi.kotlin.data.getUInt
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.model.Element
@@ -12,9 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toInt
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
+import java.nio.ByteOrder
 
 /**
  * Base interface for a Composition Data Page.
@@ -37,7 +40,7 @@ sealed interface CompositionDataPage {
  * @property page Page containing the composition of a node.
  * @constructor Creates a ConfigCompositionDataStatus message.
  */
-data class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigResponse {
+class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = page.parameters
 
@@ -47,7 +50,7 @@ data class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigRe
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.isNotEmpty()
         }?.let {
-            if (it[0].toUByte().toInt() == 0)
+            if (it[0] == 0.toByte())
                 Page0.init(it)?.let { page0 -> ConfigCompositionDataStatus(page = page0) }
             else null
         }
@@ -121,11 +124,11 @@ data class Page0(
             it.size >= 11 && it[0].toUByte().toInt() == 0
         }?.let { compositionData ->
             val page = 0
-            val companyIdentifier = compositionData.toUShort(offset = 1)
-            val productIdentifier = compositionData.toUShort(offset = 3)
-            val versionIdentifier = compositionData.toUShort(offset = 5)
-            val minimumNumberOfReplayProtectionList = compositionData.toUShort(offset = 7)
-            val features = Features.init(compositionData.toUShort(offset = 9))
+            val companyIdentifier = compositionData.getUShort(offset = 1)
+            val productIdentifier = compositionData.getUShort(offset = 3)
+            val versionIdentifier = compositionData.getUShort(offset = 5)
+            val minimumNumberOfReplayProtectionList = compositionData.getUShort(offset = 7)
+            val features = Features.init(compositionData.getUShort(offset = 9))
             val elements = mutableListOf<Element>()
             var offset = 11
             var elementNo = 0
@@ -133,10 +136,10 @@ data class Page0(
                 require(compositionData.size >= offset + 4) {
                     return null
                 }
-                val rawValue = compositionData.toUShort(offset)
+                val rawValue = compositionData.getUShort(offset)
                 val location = Location.from(rawValue)
-                val sigModelsByteCount = compositionData[offset + 2].toUByte().toInt() * 2
-                val vendorModelsByteCount = compositionData[offset + 3].toUByte().toInt() * 4
+                val sigModelsByteCount = compositionData.getInt(offset + 2, format = IntFormat.UINT8) * 2
+                val vendorModelsByteCount = compositionData.getInt(offset + 3, format = IntFormat.UINT8) * 4
 
                 require(
                     compositionData.size >=
@@ -158,14 +161,14 @@ data class Page0(
                     this.name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
-                    val sigModelId = compositionData.toUShort(i)
+                    val sigModelId = compositionData.getUShort(i)
                     element.add(Model(modelId = SigModelId(sigModelId)))
                 }
                 offset += sigModelsByteCount
 
 
                 for (i in offset until offset + vendorModelsByteCount step 2) {
-                    val vendorModelId = compositionData.toInt(i).toUInt()
+                    val vendorModelId = compositionData.getUInt(i)
                     element.add(Model(modelId = VendorModelId(id = vendorModelId)))
                 }
                 offset += vendorModelsByteCount

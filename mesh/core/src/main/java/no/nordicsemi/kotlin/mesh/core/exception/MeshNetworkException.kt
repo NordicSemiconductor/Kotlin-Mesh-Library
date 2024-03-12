@@ -74,6 +74,9 @@ data object AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
 /** Thrown when an invalid pdu type is received*/
 data object InvalidPduType : MeshNetworkException()
 
+/** Thrown when an invalid pdu is received*/
+data object InvalidPdu : MeshNetworkException()
+
 /**
  * Security exception thrown when level of security of the network key doesn't match with the
  * security used when provisioning a node.

@@ -3,6 +3,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
+import no.nordicsemi.kotlin.data.hasBitSet
+import no.nordicsemi.kotlin.data.shl
+import no.nordicsemi.kotlin.data.shr
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPduType
@@ -11,12 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKeyDerivatives
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.isSet
-import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
-import no.nordicsemi.kotlin.mesh.crypto.Utils.ushr
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -38,7 +38,7 @@ import kotlin.experimental.or
  * @property messageSequence  Message sequence number.
  * @constructor Creates a Network PDU.
  */
-internal data class NetworkPdu internal constructor(
+internal class NetworkPdu internal constructor(
     val pdu: ByteArray,
     val key: NetworkKey,
     val ivIndex: UInt,
@@ -51,14 +51,13 @@ internal data class NetworkPdu internal constructor(
     val destination: MeshAddress,
     val transportPdu: ByteArray
 ) {
-
     val isSegmented: Boolean
-        get() = transportPdu[0] isSet 0x80
+        get() = transportPdu[0] hasBitSet 7
 
     val messageSequence: UInt
         get() = if (isSegmented) {
             val sequenceZero = (transportPdu[1].toUShort() and 0x7Fu shl 6) or
-                               (transportPdu[2].toUShort() ushr 2)
+                               (transportPdu[2].toUShort() shr 2)
             if ((sequence and 0x1FFFFu) < sequenceZero) {
                 (sequence and 0xFFE000u) + sequenceZero.toUInt() - (0x1FFF + 1).toUInt()
             } else {
@@ -66,50 +65,13 @@ internal data class NetworkPdu internal constructor(
             }
         } else sequence
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as NetworkPdu
-
-        if (!pdu.contentEquals(other.pdu)) return false
-        if (key != other.key) return false
-        if (ivIndex != other.ivIndex) return false
-        if (type != other.type) return false
-        if (ttl != other.ttl) return false
-        if (sequence != other.sequence) return false
-        if (source != other.source) return false
-        if (destination != other.destination) return false
-        if (!transportPdu.contentEquals(other.transportPdu)) return false
-        if (ivi != other.ivi) return false
-        return nid == other.nid
-    }
-
-    override fun hashCode(): Int {
-        var result = pdu.contentHashCode()
-        result = 31 * result + key.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + ttl.hashCode()
-        result = 31 * result + sequence.hashCode()
-        result = 31 * result + source.hashCode()
-        result = 31 * result + destination.hashCode()
-        result = 31 * result + transportPdu.contentHashCode()
-        result = 31 * result + ivi.hashCode()
-        result = 31 * result + nid.hashCode()
-        return result
-    }
-
+    @OptIn(ExperimentalStdlibApi::class)
     override fun toString() =
         "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
-                "ttl: $ttl, seq: $sequence, src: ${source.toHex(prefix0x = true)}, " +
-                "dst: ${destination.toHex(prefix0x = true)}, " +
-                "transportPdu: ${
-                    pdu.copyOfRange(0, pdu.size - type.netMicSize).encodeHex(prefixOx = true)
-                }, " +
-                "netMic: ${
-                    pdu.copyOfRange(pdu.size - type.netMicSize, pdu.size).encodeHex(prefixOx = true)
-                })"
+                "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
+                "dst: ${destination.toHexString()}, " +
+                "transportPdu: 0x${pdu.copyOfRange(0, pdu.size - type.netMicSize).toHexString()}, " +
+                "netMic: 0x${pdu.copyOfRange(pdu.size - type.netMicSize, pdu.size).toHexString()})"
 }
 
 /**

@@ -1,5 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.layers.uppertransport
 
+import no.nordicsemi.kotlin.data.shl
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.layers.AccessKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.DeviceKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
@@ -14,10 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.boundTo
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
 
 /**
  * UpperTransportPdu defines the credentials used to encrypt a message.
@@ -34,7 +33,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.shl
  * @property userInitiated    Flag indicating whether the message was user initiated.
  * @constructor Creates an UpperTransportPdu.
  */
-internal data class UpperTransportPdu(
+internal class UpperTransportPdu(
     val source: Address,
     val destination: MeshAddress,
     val aid: Byte?,
@@ -47,6 +46,7 @@ internal data class UpperTransportPdu(
     val userInitiated: Boolean
 ) {
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
         val micSize = transportMicSize.toInt()
         val encryptedDataSize = transportPdu.size - micSize
@@ -56,40 +56,8 @@ internal data class UpperTransportPdu(
         val mic = transportPdu.sliceArray(
             encryptedDataSize until encryptedDataSize + micSize
         )
-        return "Upper transport PDU (encrypted data: ${encryptedData.encodeHex(true)}, " +
-                "transMIC: ${mic.encodeHex(true)}"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as UpperTransportPdu
-
-        if (source != other.source) return false
-        if (destination != other.destination) return false
-        if (aid != other.aid) return false
-        if (transportMicSize != other.transportMicSize) return false
-        if (!transportPdu.contentEquals(other.transportPdu)) return false
-        if (!accessPdu.contentEquals(other.accessPdu)) return false
-        if (sequence != other.sequence) return false
-        if (ivIndex != other.ivIndex) return false
-        if (message != other.message) return false
-        return userInitiated == other.userInitiated
-    }
-
-    override fun hashCode(): Int {
-        var result = source.hashCode()
-        result = 31 * result + destination.hashCode()
-        result = 31 * result + (aid?.hashCode() ?: 0)
-        result = 31 * result + transportMicSize.hashCode()
-        result = 31 * result + transportPdu.contentHashCode()
-        result = 31 * result + accessPdu.contentHashCode()
-        result = 31 * result + sequence.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + (message?.hashCode() ?: 0)
-        result = 31 * result + userInitiated.hashCode()
-        return result
+        return "Upper transport PDU (encrypted data: 0x${encryptedData.toHexString()}, " +
+                "transMIC: 0x${mic.toHexString()})"
     }
 
     internal companion object {
@@ -117,9 +85,7 @@ internal data class UpperTransportPdu(
             // ASZMIC is set to 1 for messages sent with high security(64-bit TransMIC). This is
             // allowed only for Segmented Access Messages.
             val aszmic: Byte = if (micSize == 4) 0 else 1
-            val seq = message.sequence.toByteArray().let {
-                it.copyOfRange(fromIndex = 1, toIndex = it.size)
-            }
+            val seq = message.sequence.toByteArray().drop(1).toByteArray()
 
             val nonce = byteArrayOf(type.toByte(), aszmic shl 7) + seq +
                     message.source.address.toByteArray() +

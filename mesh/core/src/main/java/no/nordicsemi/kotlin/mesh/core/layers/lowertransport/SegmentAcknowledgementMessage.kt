@@ -2,17 +2,23 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
+import no.nordicsemi.kotlin.data.and
+import no.nordicsemi.kotlin.data.getInt
+import no.nordicsemi.kotlin.data.getUInt
+import no.nordicsemi.kotlin.data.hasBitCleared
+import no.nordicsemi.kotlin.data.hasBitSet
+import no.nordicsemi.kotlin.data.shl
+import no.nordicsemi.kotlin.data.shr
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toInt
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import java.nio.ByteOrder
 
 /**
  * Internal data class defining a Segment Acknowledgement Message.
  *
- * @property opCode                    Message Op Code.
  * @property isOnBehalfOfLowePowerNode Flag indicating whether the message is on behalf of a low
  *                                     power node.
  * @property sequenceZero              13 least significant bits of SeqAuth.
@@ -20,57 +26,32 @@ import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
  * @property isBusy                    Flag indicating whether the node is already busy processing a
  *                                     message and should ignore any incoming messages.
  */
-internal data class SegmentAcknowledgementMessage(
-    val opCode: UByte,
+internal class SegmentAcknowledgementMessage(
+    // Control Message
     override val source: MeshAddress,
     override val destination: MeshAddress,
     override val networkKey: NetworkKey,
     override val ivIndex: UInt,
     override val upperTransportPdu: ByteArray,
+    // Additional
     val isOnBehalfOfLowePowerNode: Boolean = false, // Friend feature not supported
     val sequenceZero: UShort,
     val ackedSegments: UInt
-) : LowerTransportPdu {
+) : ControlMessage(OP_CODE, source, destination, networkKey, ivIndex, upperTransportPdu) {
 
     override val type = LowerTransportPduType.CONTROL_MESSAGE
 
     val isBusy: Boolean
         get() = ackedSegments == 0u
+
     override val transportPdu: ByteArray
         get() {
-            val octet0 = opCode and 0x7F.toUByte()
+            val octet0 = opCode.toByte() and 0x7F // Always 0 for SAM
             val octet1 = if (isOnBehalfOfLowePowerNode)
-                0x80.toUByte() else 0x00.toUByte() or (sequenceZero.toInt() shr 6).toUByte()
-            val octet2 = ((sequenceZero.toInt() and 0x3F) shl 2).toUByte()
-            return byteArrayOf(octet0.toByte(), octet1.toByte(), octet2.toByte()) +
-                    upperTransportPdu
+                0x80u.toByte() else (sequenceZero shr 6).toByte()
+            val octet2 = (sequenceZero and 0x3Fu).toByte() shl 2
+            return byteArrayOf(octet0, octet1, octet2) + upperTransportPdu
         }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as SegmentAcknowledgementMessage
-
-        if (source != other.source) return false
-        if (destination != other.destination) return false
-        if (networkKey != other.networkKey) return false
-        if (ivIndex != other.ivIndex) return false
-        if (!upperTransportPdu.contentEquals(other.upperTransportPdu)) return false
-        if (type != other.type) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = source.hashCode()
-        result = 31 * result + destination.hashCode()
-        result = 31 * result + networkKey.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + upperTransportPdu.contentHashCode()
-        result = 31 * result + type.hashCode()
-        return result
-    }
 
     /**
      * Checks if the segment with the given sequence number has been received.
@@ -78,7 +59,7 @@ internal data class SegmentAcknowledgementMessage(
      * @param m Segment number.
      * @return true if the segment has been received or false otherwise.
      */
-    fun isSegmentReceived(m: Int) = ackedSegments and (1 shl m).toUInt() != 0.toUInt()
+    fun isSegmentReceived(m: Int) = ackedSegments hasBitSet m
 
     /**
      * Checks if all segments have been received.
@@ -98,10 +79,11 @@ internal data class SegmentAcknowledgementMessage(
     fun areAllSegmentsReceived(lastSegmentNumber: Int) =
         ackedSegments == ((1 shl lastSegmentNumber) - 1).toUInt()
 
-    override fun toString() = "ACK (seqZero: $sequenceZero, blockAck: " +
-            "${ackedSegments.toByteArray().encodeHex(true)})"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ACK (seqZero: $sequenceZero, acked segments: 0x${ackedSegments.toHexString()})"
 
     internal companion object {
+        val OP_CODE: UByte = 0x00u
 
         /**
          * Creates a segmented acknowledgement message using the given [NetworkPdu].
@@ -109,27 +91,34 @@ internal data class SegmentAcknowledgementMessage(
          * @param networkPdu The network pdu containing the segment acknowledgement message.
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
-        fun init(networkPdu: NetworkPdu) = networkPdu.takeIf {
-            it.transportPdu.size == 7 &&
-                    it.transportPdu[0].toUByte().toInt() and 0x80 == 0x00
-        }?.run {
-            val opCode = (transportPdu[0].toUByte().toInt() and 0x7F).toUByte()
-            require(opCode == 0x00.toUByte()) { return null }
-            val isOnBehalfOfLowePowerNode = (transportPdu[1].toUByte().toInt() and 0x80) != 0
-            val sequenceZero = ((transportPdu[1].toUByte().toInt() and 0x7F) shl 6) or
-                    (transportPdu[2].toUByte().toInt() shr 2)
-            val ackedSegments = transportPdu.toInt(offset = 3).toUInt()
-            val upperTransportPdu = ackedSegments.toByteArray()
-            SegmentAcknowledgementMessage(
-                opCode = opCode,
-                source = source,
-                destination = destination,
-                networkKey = key,
-                ivIndex = networkPdu.ivIndex,
+        fun init(pdu: NetworkPdu): SegmentAcknowledgementMessage {
+            // Length of a Segment Acknowledgment Message is 7 bytes:
+            // * 1 byte for SEG | AKF | AID
+            // * 2 byte for OBO | SeqZero | RFU
+            // * 4 bytes for the block acknowledgment
+            require(pdu.transportPdu.size == 7) { throw InvalidPdu }
+
+            // Make sure the SEG is 0, that is the message is unsegmented.
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+
+            // OpCode for Segment Acknowledgement Message is 0x00.
+            val opCode = (pdu.transportPdu[0] and 0x7F).toUByte()
+            require(opCode == 0x00.toUByte()) { throw InvalidPdu }
+
+            val isOnBehalfOfLowePowerNode = pdu.transportPdu[1] hasBitSet 7
+            val sequenceZero: UShort = ((pdu.transportPdu[1].toUShort() and 0x7Fu) shl 6) or
+                    (pdu.transportPdu[2].toUShort() shr 2)
+            val ackedSegments = pdu.transportPdu.getUInt(offset = 3)
+            val upperTransportPdu = pdu.transportPdu.copyOfRange(3, pdu.transportPdu.size)
+            return SegmentAcknowledgementMessage(
+                source = pdu.source,
+                destination = pdu.destination,
+                networkKey = pdu.key,
+                ivIndex = pdu.ivIndex,
                 upperTransportPdu = upperTransportPdu,
                 isOnBehalfOfLowePowerNode = isOnBehalfOfLowePowerNode,
-                sequenceZero = sequenceZero.toUShort(),
-                ackedSegments = ackedSegments
+                sequenceZero = sequenceZero,
+                ackedSegments = ackedSegments,
             )
         }
 
@@ -141,24 +130,22 @@ internal data class SegmentAcknowledgementMessage(
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
         fun init(segments: List<SegmentedMessage?>): SegmentAcknowledgementMessage {
-            val segment = segments.first { it != null }!!
-            var ack = 0u
+            val segment = segments.firstOrNull { it != null }
+            require(segment != null) { throw InvalidPdu }
 
-            segments.forEach {
-                it?.let {
-                    ack = ack or ((1 shl it.segmentOffset.toInt())).toUInt()
-                }
+            // Create the block acknowledgement
+            val ack = segments.fold(0u) { acc, seg ->
+                seg?.let { acc or ((1u shl seg.segmentOffset.toInt())) } ?: acc
             }
 
             return SegmentAcknowledgementMessage(
-                opCode = 0x00u,
                 source = segment.destination,
                 destination = segment.source,
                 networkKey = segment.networkKey,
                 ivIndex = segment.ivIndex,
                 upperTransportPdu = ack.toByteArray(),
                 sequenceZero = segment.sequenceZero,
-                ackedSegments = ack
+                ackedSegments = ack,
             )
         }
     }

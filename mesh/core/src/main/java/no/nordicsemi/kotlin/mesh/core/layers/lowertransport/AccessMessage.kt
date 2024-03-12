@@ -1,15 +1,14 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
-@file:OptIn(ExperimentalStdlibApi::class)
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
+import no.nordicsemi.kotlin.data.hasBitCleared
+import no.nordicsemi.kotlin.data.hasBitSet
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.isSet
-import no.nordicsemi.kotlin.mesh.crypto.Utils.isZero
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -22,15 +21,17 @@ import kotlin.experimental.or
  * @property transportMicSize  Size of the transport MIC which is 4 or 8 bytes.
  * @constructor Creates an Access Message.
  */
-internal data class AccessMessage(
+internal open class AccessMessage(
+    // Lower Transport PDU
     override val source: MeshAddress,
     override val destination: MeshAddress,
     override val networkKey: NetworkKey,
     override val ivIndex: UInt,
     override val upperTransportPdu: ByteArray,
-    val transportMicSize: UByte,
-    val sequence: UInt,
-    val aid: Byte? = null
+    // Additional
+    open val transportMicSize: UByte,
+    open val sequence: UInt,
+    open val aid: Byte? = null
 ) : LowerTransportPdu {
 
     override val type = LowerTransportPduType.ACCESS_MESSAGE
@@ -65,41 +66,10 @@ internal data class AccessMessage(
         aid = pdu.aid
     )
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as AccessMessage
-
-        if (source != other.source) return false
-        if (destination != other.destination) return false
-        if (networkKey != other.networkKey) return false
-        if (ivIndex != other.ivIndex) return false
-        if (!upperTransportPdu.contentEquals(other.upperTransportPdu)) return false
-        if (transportMicSize != other.transportMicSize) return false
-        if (sequence != other.sequence) return false
-        if (aid != other.aid) return false
-        if (type != other.type) return false
-        return transportPdu.contentEquals(other.transportPdu)
-    }
-
-    override fun hashCode(): Int {
-        var result = source.hashCode()
-        result = 31 * result + destination.hashCode()
-        result = 31 * result + networkKey.hashCode()
-        result = 31 * result + ivIndex.hashCode()
-        result = 31 * result + upperTransportPdu.contentHashCode()
-        result = 31 * result + transportMicSize.hashCode()
-        result = 31 * result + sequence.hashCode()
-        result = 31 * result + (aid?.hashCode() ?: 0)
-        result = 31 * result + type.hashCode()
-        return result
-    }
-
-    override fun toString() = "$type (akf: ${if (aid != null) "1, " +
-            "aid: ${aid.toHexString()}" else "0"}, " +
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "$type (akf: ${aid?.let { "1, aid: 0x${it.toHexString()}" } ?: "0"}, " +
             "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
-            "data: ${upperTransportPdu.encodeHex()}"
+            "data: 0x${upperTransportPdu.toHexString()}"
 
     internal companion object {
 
@@ -109,21 +79,28 @@ internal data class AccessMessage(
          * @param pdu Network PDU containing the access message.
          * @return an AccessMessage or null if the pdu is invalid.
          */
-        fun init(pdu: NetworkPdu) = pdu.takeIf {
-            it.transportPdu.size >= 6 && it.transportPdu[0] isZero 0x80
-        }?.run {
-            val akf = transportPdu[0] isSet 0b01000000
-            val aid = if (akf) transportPdu[0] and 0x3F else null
+        fun init(pdu: NetworkPdu): AccessMessage {
+            // Minimum length of a Access Message is 6 bytes:
+            // * 1 byte for SEG | AKF | AID
+            // * at least one byte of Upper Transport Layer payload
+            // * 4 or 8 bytes of TransMIC
+            require(pdu.transportPdu.size >= 6) { throw InvalidPdu }
 
-            AccessMessage(
-                source = source,
-                destination = destination,
-                networkKey = key,
-                ivIndex = ivIndex,
-                upperTransportPdu = transportPdu.copyOfRange(1, transportPdu.size),
+            // Make sure the SEG is 0, that is the message is unsegmented.
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+
+            val akf = pdu.transportPdu[0] hasBitSet 6
+            val aid = if (akf) pdu.transportPdu[0] and 0x3F else null
+
+            return AccessMessage(
+                source = pdu.source,
+                destination = pdu.destination,
+                networkKey = pdu.key,
+                ivIndex = pdu.ivIndex,
+                upperTransportPdu = pdu.transportPdu.copyOfRange(1, pdu.transportPdu.size),
                 // TransMIC is always 32-bits for unsegmented messages.
                 transportMicSize = 4u,
-                sequence = sequence,
+                sequence = pdu.sequence,
                 aid = aid
             )
         }
@@ -135,19 +112,21 @@ internal data class AccessMessage(
          * @return AccessMessage or null if the segments are invalid.
          */
         fun init(segments: List<SegmentedAccessMessage>): AccessMessage {
-            val segment = segments.first()
-            return AccessMessage(
-                source = segment.source,
-                destination = segment.destination,
-                networkKey = segment.networkKey,
-                ivIndex = segment.ivIndex,
-                upperTransportPdu = segments.reduce { acc, seg ->
-                    acc.copy(upperTransportPdu = acc.upperTransportPdu + seg.upperTransportPdu)
-                }.upperTransportPdu,
-                transportMicSize = segment.transportMicSize,
-                sequence = segment.sequence,
-                aid = segment.aid
-            )
+            require(segments.isNotEmpty()) { throw InvalidPdu }
+
+            val pdu = segments.fold(byteArrayOf()) { acc, sam -> acc + sam.upperTransportPdu }
+            return segments.first().run {
+                AccessMessage(
+                    source = source,
+                    destination = destination,
+                    networkKey = networkKey,
+                    ivIndex = ivIndex,
+                    upperTransportPdu = pdu,
+                    transportMicSize = transportMicSize,
+                    sequence = sequence,
+                    aid = aid
+                )
+            }
         }
     }
 }

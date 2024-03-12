@@ -2,13 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import no.nordicsemi.kotlin.data.hasBitCleared
+import no.nordicsemi.kotlin.data.or
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
  * Defines the Access PDU
@@ -44,8 +45,9 @@ internal data class AccessPdu(
             }
         } ?: 0
 
-    override fun toString() = "Access PDU (opcode: ${opCode.toByteArray().encodeHex()}, " +
-            "parameters: ${parameters.encodeHex()}"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "Access PDU (opcode: 0x${opCode.toHexString()}, " +
+            "parameters: 0x${parameters.toHexString()}"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -86,13 +88,13 @@ internal data class AccessPdu(
         fun init(pdu: UpperTransportPdu): AccessPdu? {
             // At least 1 octet is required.
             require(pdu.accessPdu.isNotEmpty()) { return null }
-            val octet0 = pdu.accessPdu[0].toUByte()
+            val octet0 = pdu.accessPdu[0]
 
             // Opcode 0b01111111 is reserved for future use.
-            require(octet0 != 0b01111111.toUByte()) { return null }
+            require(octet0 != 0b01111111.toByte()) { return null }
 
             // 1-octet Opcodes.
-            if ((octet0 and 0x80u) == 0.toUByte()) {
+            if (octet0 hasBitCleared 7) {
                 return AccessPdu(
                     message = null,
                     userInitiated = false,
@@ -107,16 +109,16 @@ internal data class AccessPdu(
             }
 
             // 2-Octet Opcodes.
-            if ((octet0 and 0x40u) == 0.toUByte()) {
+            if (octet0 hasBitCleared 6) {
                 // At least 2 octets are required.
                 require(pdu.accessPdu.size >= 2) { return null }
-                val octet1 = pdu.accessPdu[1].toUByte()
+                val octet1 = pdu.accessPdu[1]
                 return AccessPdu(
                     message = null,
                     userInitiated = false,
                     source = pdu.source,
                     destination = pdu.destination,
-                    opCode = ((octet0.toInt() shl 8) or octet1.toInt()).toUInt(),
+                    opCode = octet0.toUInt() shl 8 or octet1.toUInt(),
                     parameters = pdu.accessPdu.copyOfRange(
                         fromIndex = 2, toIndex = pdu.accessPdu.size
                     ),
@@ -128,8 +130,8 @@ internal data class AccessPdu(
             // At least 3 octets are required.
             require(pdu.accessPdu.size >= 3) { return null }
 
-            val octet1 = pdu.accessPdu[1].toUByte()
-            val octet2 = pdu.accessPdu[2].toUByte()
+            val octet1 = pdu.accessPdu[1]
+            val octet2 = pdu.accessPdu[2]
 
             return AccessPdu(
                 message = null,
@@ -151,6 +153,7 @@ internal data class AccessPdu(
          * @param userInitiated   Flag to determine if the message was user initiated.
          * @return the decoded AccessPdu
          */
+        @OptIn(ExperimentalStdlibApi::class)
         fun init(
             message: MeshMessage,
             source: Address,
@@ -167,25 +170,32 @@ internal data class AccessPdu(
                 opCode = message.opCode,
                 parameters = message.parameters ?: byteArrayOf(),
                 accessPdu = when {
+                    opCode == 0b01111111u -> {
+                        throw IllegalArgumentException("Opcode reserved for future use")
+                    }
+
                     opCode < 0x80u -> {
-                        byteArrayOf((opCode and 0x80.toUInt()).toByte()) + parameters
+                        byteArrayOf(opCode.toByte())
                     }
 
-                    opCode < 0x4000u || opCode and 0xFFFC00.toUInt() == 0x8000.toUInt() -> {
+                    opCode and 0xFF_C0_00u == 0x00_80_00u -> {
                         byteArrayOf(
-                            ((0x80 or (((opCode shr 8) and 0x3Fu).toInt())).toByte()),
-                            (opCode and 0xFFu).toByte()
-                        ) + parameters
+                            (opCode shr 8).toByte() or 0x80,
+                            opCode.toByte()
+                        )
                     }
 
-                    else -> {
+                    opCode and 0xC0_00_00u == 0xC0_00_00u -> {
                         byteArrayOf(
-                            ((0xC0 or (((opCode shr 16) and 0x3Fu).toInt())).toByte()),
-                            (opCode shr 8 and 0xFFu).toByte(),
-                            (opCode and 0xFFu).toByte()
-                        ) + parameters
+                            (opCode shr 16).toByte() or 0xC0,
+                            (opCode shr 8).toByte(),
+                            opCode.toByte()
+                        )
                     }
-                }
+
+                    else ->
+                        throw IllegalArgumentException("Invalid opcode: 0x${opCode.toHexString()}")
+                } + parameters
             )
         }
     }

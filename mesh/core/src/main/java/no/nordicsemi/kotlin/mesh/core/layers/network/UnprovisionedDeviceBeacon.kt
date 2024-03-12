@@ -1,11 +1,10 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
-import no.nordicsemi.kotlin.mesh.core.util.Utils
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.util.UUID
 
 /**
@@ -17,7 +16,7 @@ import java.util.UUID
  * @property uriHash           URI hash.
  * @property beaconType        Type of beacon.
  */
-internal data class UnprovisionedDeviceBeacon(
+internal class UnprovisionedDeviceBeacon(
     override val pdu: ByteArray,
     val deviceUuid: UUID,
     val oobInformation: OobInformation,
@@ -26,35 +25,9 @@ internal data class UnprovisionedDeviceBeacon(
 
     override val beaconType: BeaconType = BeaconType.UNPROVISIONED_DEVICE
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as UnprovisionedDeviceBeacon
-
-        if (!pdu.contentEquals(other.pdu)) return false
-        if (deviceUuid != other.deviceUuid) return false
-        if (oobInformation != other.oobInformation) return false
-        if (uriHash != null) {
-            if (other.uriHash == null) return false
-            if (!uriHash.contentEquals(other.uriHash)) return false
-        } else if (other.uriHash != null) return false
-        if (beaconType != other.beaconType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = pdu.contentHashCode()
-        result = 31 * result + deviceUuid.hashCode()
-        result = 31 * result + oobInformation.hashCode()
-        result = 31 * result + (uriHash?.contentHashCode() ?: 0)
-        result = 31 * result + beaconType.hashCode()
-        return result
-    }
-
+    @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "Unprovisioned Device beacon (UUID: $deviceUuid \n," +
-            "OOB Information: $oobInformation \n, URI Hash: ${uriHash?.encodeHex()}"
+            "OOB Information: $oobInformation \n, URI Hash: ${uriHash?.toHexString() ?: "null"})"
 }
 
 internal object UnprovisionedDeviceBeaconDecoder {
@@ -68,10 +41,10 @@ internal object UnprovisionedDeviceBeaconDecoder {
     fun decode(pdu: ByteArray): UnprovisionedDeviceBeacon? = when {
         pdu.size > 1 -> when (BeaconType.from(pdu[0].toUByte())) {
             BeaconType.UNPROVISIONED_DEVICE -> {
-                val uuid = Utils.decode(pdu.sliceArray(1 until 17).encodeHex())
-                val oob = OobInformation.from(pdu.toUShort(17))
+                val uuid = pdu.getUuid(1)
+                val oob = OobInformation.from(pdu.getUShort(17))
                 val uriHash = when (pdu.size == 23) {
-                    true -> pdu.sliceArray(19 until pdu.size)
+                    true -> pdu.copyOfRange(19, pdu.size)
                     false -> null
                 }
                 UnprovisionedDeviceBeacon(pdu, uuid, oob, uriHash)
