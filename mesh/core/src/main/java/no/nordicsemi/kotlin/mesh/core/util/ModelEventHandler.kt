@@ -20,6 +20,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 
+sealed class ModelError : Exception() {
+    data class InvalidMessage(val msg: MeshMessage) : ModelError()
+}
+
 typealias MessageComposer = () -> MeshMessage
 
 /**
@@ -102,7 +106,7 @@ abstract class ModelEventHandler {
 
     abstract val publicationMessageComposer: MessageComposer?
 
-    internal val mutex = Mutex(locked = true)
+    internal val mutex = Mutex()
 
     /**
      * Publishes a single message given as a parameter using the Publish information set in the
@@ -132,7 +136,6 @@ abstract class ModelEventHandler {
      * Invoked when a model event is published.
      *
      * @param event Model event.
-     * @throws MeshResponse Exception if the message is not supported by the model.
      */
     abstract fun handle(event: ModelEvent)
 }
@@ -214,7 +217,7 @@ private data class Transaction(
 
 class TransactionHelper {
 
-    private var mutex = Mutex(true)
+    private val mutex = Mutex()
 
     private var lastTransactions = mutableMapOf<Address, Transaction>()
 
