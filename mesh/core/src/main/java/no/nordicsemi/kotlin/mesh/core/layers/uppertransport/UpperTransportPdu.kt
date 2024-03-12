@@ -56,7 +56,7 @@ internal data class UpperTransportPdu(
             encryptedDataSize until encryptedDataSize + micSize
         )
         return "Upper transport PDU (encrypted data: ${encryptedData.encodeHex(true)}, " +
-                "transMIC: ${mic.encodeHex(true)}"
+                "transMIC: ${mic.encodeHex(true)})"
     }
 
     override fun equals(other: Any?): Boolean {
