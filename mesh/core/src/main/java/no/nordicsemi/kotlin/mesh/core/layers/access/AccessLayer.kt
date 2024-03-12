@@ -11,6 +11,7 @@ import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.layers.AccessKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.DeviceKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
+import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
@@ -400,6 +401,25 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         }
     }
 
+    internal suspend fun cancel(handle: MessageHandle) {
+        logger?.i(LogCategory.ACCESS) {
+            "Cancelling messages with op code: ${handle.opCode}, " + "sent from: " +
+                    "${handle.source.toHex(prefix0x = true)} " +
+                    "to: ${handle.destination.toHex(prefix0x = true)}"
+        }
+
+        mutex.withLock {
+            reliableMessageContexts.indexOfFirst {
+                it.source == handle.destination.address &&
+                it.request.responseOpCode == handle.opCode &&
+                it.destination == handle.source.address
+            }.takeIf { it > -1 }?.let {
+                reliableMessageContexts.removeAt(it).invalidate()
+            }
+        }
+        networkManager.upperTransportLayer.cancel(handle)
+    }
+
     /**
      *
      *
@@ -498,40 +518,38 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
             for (model in models) {
                 val eventHandler = model.eventHandler ?: continue
-                val message = eventHandler.decode(accessPdu = accessPdu)
-                if (message != null) {
-                    newMessage = message
-                    // Is this message targeting the local Node?
-                    if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
-                        logger?.i(LogCategory.FOUNDATION_MODEL) {
-                            "$message received from  ${accessPdu.source.toHexString()}"
-                        }
-                        eventHandler.onMeshMessageReceived(
-                            model = model,
-                            message = message,
-                            source = accessPdu.source,
-                            destination = accessPdu.destination.address,
-                            request = request
-                        )?.let { response ->
-                            networkManager.reply(
-                                origin = accessPdu.destination.address,
-                                destination = accessPdu.source,
-                                 message = response,
-                                element = model.parentElement!!,
-                                keySet = keySet
-                            )
-                            // Some Config Messages require special handling.
-                            handle(message)
-                        }
-                        networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
-                    } else {
-                        logger?.i(LogCategory.FOUNDATION_MODEL) {
-                            "$message received from: ${accessPdu.source.toHexString()}," +
-                                    " to: ${accessPdu.destination.toHexString()}"
-                        }
+                val message = eventHandler.decode(accessPdu = accessPdu) ?: continue
+                newMessage = message
+                // Is this message targeting the local Node?
+                if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
+                    logger?.i(LogCategory.FOUNDATION_MODEL) {
+                        "$message received from  ${accessPdu.source.toHexString()}"
                     }
-                    break
+                    eventHandler.onMeshMessageReceived(
+                        model = model,
+                        message = message,
+                        source = accessPdu.source,
+                        destination = accessPdu.destination.address,
+                        request = request
+                    )?.let { response ->
+                        networkManager.reply(
+                            origin = accessPdu.destination.address,
+                            destination = accessPdu.source,
+                            message = response,
+                            element = model.parentElement!!,
+                            keySet = keySet
+                        )
+                        // Some Config Messages require special handling.
+                        handle(message)
+                    }
+                    networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
+                } else {
+                    logger?.i(LogCategory.FOUNDATION_MODEL) {
+                        "$message received from: ${accessPdu.source.toHexString()}," +
+                                " to: ${accessPdu.destination.toHexString()}"
+                    }
                 }
+                break
             }
         }
 
@@ -583,6 +601,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      *
      * The context contains timers responsible for resending the message until a status is received,
      * and allows the message to be cancelled.
+     *
+     * @param pdu           Access PDU received.
+     * @param element       Element to which the message was sent.
+     * @param initialTtl    Initial TTL value of the message.
+     * @param keySet        Key set used to encrypt the message.
      */
     @OptIn(ExperimentalStdlibApi::class)
     private suspend fun createReliableContext(
@@ -629,7 +652,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                         pdu.destination.toHexString()
                     } timed out."
                 }
-                scope.launch { mutex.withLock { reliableMessageContexts.clear() } }
+                scope.launch {
+                    cancel(MessageHandle(request, pdu.source, pdu.destination, networkManager))
+                    mutex.withLock { reliableMessageContexts.clear() }
+                }
             }
         )
         mutex.withLock {
