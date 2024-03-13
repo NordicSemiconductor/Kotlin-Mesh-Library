@@ -18,32 +18,53 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
-internal fun NetKeysRoute(
-    viewModel: NetKeysViewModel = hiltViewModel(),
-    navigateToNetworkKeys: () -> Unit
+internal fun ConfigNetKeysRoute(
+    uiState: NetKeysScreenUiState,
+    navigateToNetworkKeys: () -> Unit,
+    onAddKeyClicked: (NetworkKey) -> Unit,
+    onSwiped: (NetworkKey) -> Unit
 ) {
-    val uiState: NetKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetKeysScreen(
         uiState = uiState,
         navigateToNetworkKeys = navigateToNetworkKeys,
-        onAddKeyClicked = viewModel::addNetworkKey,
-        onSwiped = viewModel::onSwiped
+        onAddKeyClicked = onAddKeyClicked,
+        onSwiped = onSwiped
     )
 }
 
@@ -52,7 +73,7 @@ internal fun NetKeysRoute(
 private fun NetKeysScreen(
     uiState: NetKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
-    onAddKeyClicked: () -> NetworkKey,
+    onAddKeyClicked: (NetworkKey) -> Unit,
     onSwiped: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
@@ -97,15 +118,13 @@ private fun NetKeysScreen(
         }
     }
     if (showBottomSheet) {
-        ModalBottomSheet(onDismissRequest = {
-            showBottomSheet = false
-        }) {
+        ModalBottomSheet(onDismissRequest = { showBottomSheet = false }) {
             BottomSheetTopAppBar(
                 navigationIcon = Icons.Outlined.Close,
                 onNavigationIconClick = { showBottomSheet = !showBottomSheet },
-                title = stringResource(R.string.label_add_key),
+                title = stringResource(R.string.label_add_key)
             )
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
                 if (uiState.keys.isEmpty()) {
                     item {
                         MeshNoItemsAvailable(
@@ -113,7 +132,7 @@ private fun NetKeysScreen(
                             title = stringResource(R.string.label_no_keys_added)
                         )
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
                             OutlinedButton(onClick = {
@@ -130,6 +149,7 @@ private fun NetKeysScreen(
                                 .padding(horizontal = 8.dp)
                                 .clickable {
                                     showBottomSheet = !showBottomSheet
+                                    onAddKeyClicked(key)
                                 },
                             imageVector = Icons.Outlined.VpnKey,
                             title = key.name,
