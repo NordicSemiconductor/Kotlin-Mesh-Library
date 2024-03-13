@@ -178,7 +178,7 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         },
         bottomBar = {
             AnimatedVisibility(
-                visible = currentDestination?.shouldShowTopBottomBars() ?: false,
+                visible = currentDestination?.shouldShowBottomBars() ?: false,
                 enter = enterTransition,
                 exit = exitTransition
             ) {
@@ -226,12 +226,13 @@ fun BottomNavigationBar(
 ) {
     NavigationBar {
         destinations.forEach { destination ->
-            val selected by navigator.isInHierarchy(destination.destinationId)
+            val selected by navigator
+                .isInHierarchy(destination.destinationId)
                 .collectAsStateWithLifecycle()
             NavigationBarItem(
                 icon = {
                     Icon(
-                        if (selected) {
+                        imageVector = if (selected) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon
@@ -260,27 +261,25 @@ fun BottomNavigationBar(
 }
 
 @Composable
-fun DestinationId<*, *>.title(): String {
-    return when (this) {
-        nodes, groups, proxy, settings -> "Network"
-        node -> "Node"
-        provisioning -> "Provision Device"
-        netKeySelector -> "Select Network Key"
-        provisioners -> "Provisioners"
-        provisioner -> "Edit Provisioner"
-        networkKeys -> "Network Keys"
-        configNetKeys -> "Network Key Configuration"
-        applicationKeys -> "Application Keys"
-        networkKey -> "Edit Key"
-        scenes -> "Scenes"
-        scene -> "Edit Scene"
-        unicastRanges, groupRanges, sceneRanges -> "Edit Ranges"
-        export -> "Export"
-        else -> ""
-    }
+fun DestinationId<*, *>.title() = when (this) {
+    nodes, groups, proxy, settings -> "Network"
+    node -> "Node"
+    provisioning -> "Provision Device"
+    netKeySelector -> "Select Network Key"
+    provisioners -> "Provisioners"
+    provisioner -> "Edit Provisioner"
+    networkKeys -> "Network Keys"
+    configNetKeys -> "Network Key Configuration"
+    applicationKeys -> "Application Keys"
+    networkKey -> "Edit Key"
+    scenes -> "Scenes"
+    scene -> "Edit Scene"
+    unicastRanges, groupRanges, sceneRanges -> "Edit Ranges"
+    export -> "Export"
+    else -> ""
 }
 
-private fun DestinationId<*, *>.shouldShowTopBottomBars() = when (this) {
+private fun DestinationId<*, *>.shouldShowBottomBars() = when (this) {
     provisioning -> false
     else -> true
 }

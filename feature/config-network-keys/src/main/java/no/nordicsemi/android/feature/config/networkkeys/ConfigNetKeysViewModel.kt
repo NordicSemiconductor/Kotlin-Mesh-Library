@@ -1,17 +1,22 @@
 package no.nordicsemi.android.feature.config.networkkeys
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
+import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -19,7 +24,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class NetKeysViewModel @Inject constructor(
+class ConfigNetKeysViewModel @Inject constructor(
     private val navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
@@ -33,7 +38,7 @@ class NetKeysViewModel @Inject constructor(
         meshNetwork = network
     }.map {
         it.node(nodeUuid)?.let { node ->
-            this@NetKeysViewModel.selectedNode = node
+            this@ConfigNetKeysViewModel.selectedNode = node
             NetKeysState.Success(netKeys = node.networkKeys)
         } ?: NetKeysState.Error(Throwable("Node not found"))
         NetKeysScreenUiState(
@@ -52,12 +57,24 @@ class NetKeysViewModel @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    fun addNetworkKey(): NetworkKey {
-        TODO("Not yet implemented")
+    fun addNetworkKey(networkKey: NetworkKey) {
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            Log.e("AAAA", "Error when sending message $throwable")
+        }
+        viewModelScope.launch/*(context = handler)*/ {
+            repository.send(selectedNode, ConfigNetKeyAdd(networkKey))
+        }
     }
 
     internal fun navigateToNetworkKeys() {
+        navigateTo(settings)
         navigateTo(networkKeys)
+        /*navigateTo(
+            to = networkKeys,
+            navOptions = navOptions {
+                popUpTo(settings) { inclusive = false }
+            }
+        )*/
     }
 }
 
