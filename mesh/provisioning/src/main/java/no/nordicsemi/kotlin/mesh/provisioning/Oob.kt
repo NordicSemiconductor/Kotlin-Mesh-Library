@@ -67,7 +67,7 @@ sealed class AuthenticationMethod {
             0x00.toByte() -> NoOob
             0x01.toByte() -> StaticOob
             0x02.toByte() ->
-                OutputAction.values()
+                OutputAction.entries
                     .find {
                         it.rawValue == pdu[4].toUByte() && pdu[5].toInt() in 1..8
                     }?.let { outputAction ->
@@ -78,7 +78,7 @@ sealed class AuthenticationMethod {
                     }
 
             0x03.toByte() ->
-                InputAction.values()
+                InputAction.entries
                     .find {
                         it.rawValue == pdu[4].toUByte() && pdu[5].toInt() in 1..8
                     }?.let {
