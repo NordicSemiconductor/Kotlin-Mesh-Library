@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:1.11.4")
+            from("no.nordicsemi.android.gradle:version-catalog:1.11.2")
         }
     }
 }
@@ -57,4 +57,8 @@ include(":mesh:foundation")
 
 if (file("../Kotlin-Util-Library").exists()) {
     includeBuild("../Kotlin-Util-Library")
+}
+
+if (file("../Kotlin-Gradle-Plugins").exists()) {
+    includeBuild("../Kotlin-Gradle-Plugins")
 }
