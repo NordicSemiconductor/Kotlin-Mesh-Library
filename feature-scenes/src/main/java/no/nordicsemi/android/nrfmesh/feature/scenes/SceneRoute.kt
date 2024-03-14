@@ -26,13 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.feature.scenes.R
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 @Composable
 internal fun SceneRoute(viewModel: SceneViewModel = hiltViewModel()) {
@@ -139,12 +137,13 @@ fun Name(name: String, onNameChanged: (String) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun Number(number: SceneNumber) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_number),
-        subtitle = number.toHex(true)
+        subtitle = number.toHexString()
     )
 }

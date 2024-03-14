@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.kotlin.mesh.bearer.android"
+    namespace = "no.nordicsemi.android.nrfmesh.bearer.android"
 }
 
 dependencies {

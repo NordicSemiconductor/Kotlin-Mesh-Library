@@ -9,6 +9,7 @@ android {
 
 dependencies {
     implementation(libs.nordic.navigation)
+    implementation("no.nordicsemi.kotlin:data:0.1.0") // -> libs.nordic.kotlin.data
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)

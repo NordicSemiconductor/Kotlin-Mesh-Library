@@ -4,11 +4,12 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.feature.scenes"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.scenes"
 }
 
 dependencies {
     implementation(libs.nordic.navigation)
+    implementation("no.nordicsemi.kotlin:data:0.1.0") // -> libs.nordic.kotlin.data
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

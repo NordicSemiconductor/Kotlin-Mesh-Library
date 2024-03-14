@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
@@ -89,6 +88,7 @@ private fun Nodes(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun NodeItem(
     node: Node,
@@ -101,7 +101,7 @@ private fun NodeItem(
 ) {
     MeshNodeItem(
         nodeName = node.name,
-        addressHex = node.primaryUnicastAddress.address.toHex(prefix0x = true),
+        addressHex = node.primaryUnicastAddress.address.toHexString(prefix0x = true),
         companyName = node.companyIdentifier?.let {
             CompanyIdentifier.name(it) ?: "Unknown"
         } ?: "Unknown",

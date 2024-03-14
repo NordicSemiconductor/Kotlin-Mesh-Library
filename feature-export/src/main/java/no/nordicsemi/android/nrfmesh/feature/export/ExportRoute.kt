@@ -28,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconToggleButton
 import androidx.compose.material3.SnackbarHostState
@@ -49,12 +50,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneProvisionerMustBeSelected
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.toHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 
 @Composable
@@ -249,6 +249,7 @@ private fun ExportSelection(
         )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ProvisionerRow(
     state: ProvisionerItemState,
@@ -269,15 +270,12 @@ private fun ProvisionerRow(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.Groups,
             title = state.provisioner.name,
-            subtitle = state.provisioner.node?.primaryUnicastAddress?.address?.toHex(
-                prefix0x = true
-            ) ?: ""
+            subtitle = state.provisioner.node?.primaryUnicastAddress?.address?.toString() ?: ""
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 16.dp, vertical = 32.dp)
-                .width(1.dp)
         )
         Checkbox(
             checked = state.isSelected,
@@ -287,6 +285,7 @@ private fun ProvisionerRow(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun NetworkKeyRow(
     state: NetworkKeyItemState,
@@ -307,14 +306,15 @@ private fun NetworkKeyRow(
             modifier = Modifier.weight(1f),
             imageVector = Icons.Outlined.VpnKey,
             title = state.networkKey.name,
-            subtitle = state.networkKey.key.encodeHex(prefixOx = true),
+            subtitle = state.networkKey.key.toHexString(prefixOx = true),
             subtitleTextOverflow = TextOverflow.Ellipsis
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 16.dp, vertical = 32.dp)
-                .width(1.dp)
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 32.dp
+                )
         )
         Checkbox(
             checked = state.isSelected,

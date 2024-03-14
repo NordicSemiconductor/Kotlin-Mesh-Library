@@ -54,7 +54,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -64,13 +63,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import no.nordicsemi.kotlin.mesh.core.model.toHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.util.UUID
 
 @Composable
@@ -247,6 +245,7 @@ fun Name(
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun UnicastAddress(
     context: Context,
@@ -259,7 +258,7 @@ private fun UnicastAddress(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val initialValue by remember { mutableStateOf(address?.toHex() ?: "") }
+    val initialValue by remember { mutableStateOf(address?.toHexString()) }
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(text = initialValue, selection = TextRange(initialValue.length))
@@ -362,7 +361,7 @@ private fun UnicastAddress(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.label_unicast_address),
-                        subtitle = address?.toHex(prefix0x = true)
+                        subtitle = address?.toHexString(prefix0x = true)
                             ?: stringResource(id = R.string.label_not_assigned),
                         trailingComposable = {
                             IconButton(
@@ -441,13 +440,14 @@ private fun Ttl(
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun DeviceKey(key: ByteArray?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
-        subtitle = key?.encodeHex() ?: stringResource(R.string.label_not_applicable)
+        subtitle = key?.toHexString() ?: stringResource(R.string.label_not_applicable)
     )
 }
 
