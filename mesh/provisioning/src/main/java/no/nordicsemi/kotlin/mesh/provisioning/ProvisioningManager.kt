@@ -8,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
@@ -18,7 +19,6 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms
 import no.nordicsemi.kotlin.mesh.logger.LogCategory

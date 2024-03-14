@@ -1,12 +1,13 @@
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import org.junit.Test
 
 class UnprovisionedDeviceTest {
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testFrom() {
         val expectedDevice = UnprovisionedDevice(
@@ -16,7 +17,7 @@ class UnprovisionedDeviceTest {
                     0xA4.toByte(), 0x60, 0x72, 0x16, 0x93.toByte(), 0x2B, 0x4E, 0x0E, 0x9B.toByte(),
                     0x9F.toByte(), 0x8D.toByte(), 0xE9.toByte(), 0x6C, 0xD4.toByte(), 0xE1.toByte(),
                     0xF1.toByte()
-                ).encodeHex()
+                ).toHexString()
             ),
             oobInformation = OobInformation.None
         )
@@ -28,6 +29,5 @@ class UnprovisionedDeviceTest {
         )
         val unprovisionedDevice = UnprovisionedDevice.from(advertisementData)
         assert(expectedDevice == unprovisionedDevice)
-
     }
 }

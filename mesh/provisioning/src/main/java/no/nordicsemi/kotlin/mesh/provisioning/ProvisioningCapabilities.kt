@@ -2,8 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms
 import no.nordicsemi.kotlin.mesh.crypto.Algorithms.Companion.toUShort
 import no.nordicsemi.kotlin.mesh.provisioning.InputAction.Companion.toInputActions
@@ -41,13 +41,13 @@ data class ProvisioningCapabilities(
 ) {
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
-        algorithms = Algorithms.from(data.toUShort(2)),
+        algorithms = Algorithms.from(data.getUShort(2)),
         publicKeyType = PublicKeyType.from(data[4].toUByte()),
         oobTypes = OobType.from(data[5].toUByte()),
         outputOobSize = data[6].toUByte(),
-        outputOobActions = OutputOobActions.from(data.toUShort(7)),
+        outputOobActions = OutputOobActions.from(data.getUShort(7)),
         inputOobSize = data[9].toUByte(),
-        inputOobActions = InputOobActions.from(data.toUShort(10))
+        inputOobActions = InputOobActions.from(data.getUShort(10))
     )
 
     val value: ProvisioningPdu

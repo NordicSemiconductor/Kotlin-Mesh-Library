@@ -5,12 +5,12 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.PrivateBeaconHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.

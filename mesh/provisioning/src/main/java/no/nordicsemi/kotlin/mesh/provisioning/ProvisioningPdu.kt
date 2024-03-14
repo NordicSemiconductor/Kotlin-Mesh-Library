@@ -2,9 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
-import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningPduType.*
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
+import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningPduType.*
 
 internal typealias ProvisioningPdu = ByteArray
 
@@ -179,7 +179,8 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning PublicKey PDU.
      */
     data class PublicKey(val publicKey: ByteArray) : ProvisioningRequest() {
-        override fun toString() = "Provisioning PublicKey (${publicKey.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Provisioning PublicKey (${publicKey.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -191,8 +192,9 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning Confirmation PDU.
      */
     data class Confirmation(val confirmation: ByteArray) : ProvisioningRequest() {
+        @ExperimentalStdlibApi
         override fun toString() = "Provisioning Confirmation " +
-                "(${confirmation.encodeHex(true)})"
+                "(${confirmation.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -203,7 +205,8 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning Random PDU.
      */
     data class Random(val random: ByteArray) : ProvisioningRequest() {
-        override fun toString() = "Provisioning Random (${random.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Provisioning Random (${random.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -213,7 +216,8 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning Data PDU.
      */
     data class Data(val encryptedDataWithMic: ByteArray) : ProvisioningRequest() {
-        override fun toString() = "Provisioning Data (${encryptedDataWithMic.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Provisioning Data (${encryptedDataWithMic.toHexString(prefixOx = true)})"
     }
 
     val pdu: ProvisioningPdu
@@ -295,7 +299,8 @@ sealed class ProvisioningResponse {
      * @property key public key.
      */
     data class PublicKey(val key: ByteArray) : ProvisioningResponse() {
-        override fun toString() = "Device PublicKey (${key.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Device PublicKey (${key.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -306,7 +311,8 @@ sealed class ProvisioningResponse {
      * @property confirmation confirmation value.
      */
     data class Confirmation(val confirmation: ByteArray) : ProvisioningResponse() {
-        override fun toString() = "Device Confirmation (${confirmation.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Device Confirmation (${confirmation.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -316,7 +322,8 @@ sealed class ProvisioningResponse {
      * @property random random value.
      */
     data class Random(val random: ByteArray) : ProvisioningResponse() {
-        override fun toString() = "Device Random (${random.encodeHex(true)})"
+        @OptIn(ExperimentalStdlibApi::class)
+        override fun toString() = "Device Random (${random.toHexString(prefixOx = true)})"
     }
 
     /**
@@ -376,7 +383,7 @@ sealed class ProvisioningResponse {
                 CONFIRMATION -> Confirmation(pdu.copyOfRange(1, pdu.size))
                 RANDOM -> Random(pdu.copyOfRange(1, pdu.size))
                 COMPLETE -> Complete
-                FAILED -> RemoteProvisioningError.values().firstOrNull {
+                FAILED -> RemoteProvisioningError.entries.firstOrNull {
                     it.errorCode == pdu[1].toInt()
                 }?.let { Failed(it) } ?: throw InvalidPdu
 

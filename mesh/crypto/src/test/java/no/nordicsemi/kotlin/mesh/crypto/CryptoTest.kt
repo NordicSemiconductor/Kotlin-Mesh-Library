@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS1
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS2
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.createVirtualAddress
@@ -10,18 +11,16 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto.k2
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k3
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k4
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.k5
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.uint16ToUtf8
-import no.nordicsemi.kotlin.mesh.crypto.Utils.utf8ToUint16
 import org.junit.Assert
 import org.junit.Test
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 
 /**
  * Unit tests for crypto module. All test data used can be found at section 8 "Sample data" in the
  * Bluetooth Mesh Profile specification.
  */
+@OptIn(ExperimentalStdlibApi::class)
 @Suppress("UNUSED_VARIABLE")
 class CryptoTest {
 
@@ -34,7 +33,7 @@ class CryptoTest {
     fun testSalt1() {
         val expected = "b73cefbd641ef2ea598c2b6efb62f79c".uppercase(Locale.US)
         val data = "test".toByteArray(Charsets.UTF_8)
-        Assert.assertEquals(expected, calculateS1(data).encodeHex())
+        Assert.assertEquals(expected, calculateS1(data).toHexString())
     }
 
     /**
@@ -51,7 +50,7 @@ class CryptoTest {
                 "d4eaf8437743715d4ff465e43ff23d3f1b9dc7dfc04da8758184dbc966204796eccf0d6c" +
                 "f5e16500cc0201d048bcbbd899eeefc424164e33c201c2b010ca6b4d43a8a155cad8ecb2" +
                 "79").uppercase(Locale.US)
-        Assert.assertEquals(expected, calculateS2(M.decodeHex()).encodeHex())
+        Assert.assertEquals(expected, calculateS2(M.toByteArray()).toHexString())
     }
 
     /**
@@ -68,7 +67,7 @@ class CryptoTest {
         val k1 = "f6ed15a8934afbe7d83e8dcb57fcf5d7".uppercase(Locale.US)
         Assert.assertEquals(
             k1,
-            k1(N = N.decodeHex(), SALT = SALT.decodeHex(), P = P.decodeHex()).encodeHex()
+            k1(N = N.toByteArray(), SALT = SALT.toByteArray(), P = P.toByteArray()).toHexString()
         )
     }
 
@@ -84,10 +83,10 @@ class CryptoTest {
         val expectedNid = "7f".uppercase(Locale.US).toInt(radix = 16)
         val expectedEncryptionKey = "9f589181a0f50de73c8070c7a6d27f46".uppercase(Locale.US)
         val expectedPrivacyKey = "4c715bd4a64b938f99b453351653124f".uppercase(Locale.US)
-        val (nid, encryptionKey, privacyKey) = k2(N = N.decodeHex(), P = P.decodeHex())
+        val (nid, encryptionKey, privacyKey) = k2(N = N.toByteArray(), P = P.toByteArray())
         Assert.assertEquals(expectedNid, nid)
-        Assert.assertEquals(expectedEncryptionKey, encryptionKey.encodeHex())
-        Assert.assertEquals(expectedPrivacyKey, privacyKey.encodeHex())
+        Assert.assertEquals(expectedEncryptionKey, encryptionKey.toHexString())
+        Assert.assertEquals(expectedPrivacyKey, privacyKey.toHexString())
     }
 
     /**
@@ -99,7 +98,7 @@ class CryptoTest {
     fun testK3() {
         val N = "f7a2a44f8e8a8029064f173ddc1e2b00".uppercase(Locale.US)
         val expectedNetworkId = "ff046958233db014".uppercase(Locale.US)
-        Assert.assertEquals(expectedNetworkId, k3(N = N.decodeHex()).encodeHex())
+        Assert.assertEquals(expectedNetworkId, k3(N = N.toByteArray()).toHexString())
     }
 
     /**
@@ -111,7 +110,7 @@ class CryptoTest {
     fun testK4() {
         val N = "3216d1509884b533248541792b877f98".uppercase(Locale.US)
         val expectedNetworkId = "38".uppercase(Locale.US).toInt(radix = 16)
-        Assert.assertEquals(expectedNetworkId, k4(N = N.decodeHex()))
+        Assert.assertEquals(expectedNetworkId, k4(N = N.toByteArray()))
     }
 
     /**
@@ -133,7 +132,7 @@ class CryptoTest {
             .uppercase(Locale.US)
         Assert.assertEquals(
             k5,
-            k5(N = N.decodeHex(), SALT = SALT.decodeHex(), P = P.decodeHex()).encodeHex()
+            k5(N = N.toByteArray(), SALT = SALT.toByteArray(), P = P.toByteArray()).toHexString()
         )
     }
 
@@ -145,13 +144,13 @@ class CryptoTest {
      */
     @Test
     fun testNetworkKeyDerivatives() {
-        val N = "7dd7364cd842ad18c17c2b820c84c3d6".decodeHex()
-        val NID = "68".toInt(16).toUByte()
-        val encryptionKey = "0953fa93e7caac9638f58820220a398e".uppercase(Locale.US).decodeHex()
-        val privacyKey = "8b84eedec100067d670971dd2aa700cf".uppercase(Locale.US).decodeHex()
-        val networkId = "3ecaff672f673370".uppercase(Locale.US).decodeHex()
-        val identityKey = "84396c435ac48560b5965385253e210c".uppercase(Locale.US).decodeHex()
-        val beaconKey = "5423d967da639a99cb02231a83f7d254".uppercase(Locale.US).decodeHex()
+        val N = "7dd7364cd842ad18c17c2b820c84c3d6".toByteArray()
+        val NID = "68".toInt(16).toByte()
+        val encryptionKey = "0953fa93e7caac9638f58820220a398e".uppercase(Locale.US).toByteArray()
+        val privacyKey = "8b84eedec100067d670971dd2aa700cf".uppercase(Locale.US).toByteArray()
+        val networkId = "3ecaff672f673370".uppercase(Locale.US).toByteArray()
+        val identityKey = "84396c435ac48560b5965385253e210c".uppercase(Locale.US).toByteArray()
+        val beaconKey = "5423d967da639a99cb02231a83f7d254".uppercase(Locale.US).toByteArray()
         val keyDerivatives = Crypto.calculateKeyDerivatives(N, SecurityCredentials.ManagedFlooding)
         Assert.assertTrue("NID do not match!", NID == keyDerivatives.nid)
         Assert.assertTrue(
@@ -175,9 +174,9 @@ class CryptoTest {
             beaconKey.contentEquals(keyDerivatives.beaconKey)
         )
 
-        val directedNID = "0D".toInt(16).toUByte()
-        val directedEncryptionKey = "b47a02c6cc9b4ac4cb9b88e765c9ade4".uppercase(Locale.US).decodeHex()
-        val directedPrivacyKey = "9bf7ab5a5ad415fbd77e07bb808f4865".uppercase(Locale.US).decodeHex()
+        val directedNID = "0D".toInt(16).toByte()
+        val directedEncryptionKey = "b47a02c6cc9b4ac4cb9b88e765c9ade4".uppercase(Locale.US).toByteArray()
+        val directedPrivacyKey = "9bf7ab5a5ad415fbd77e07bb808f4865".uppercase(Locale.US).toByteArray()
         val directedKeyDerivatives = Crypto.calculateKeyDerivatives(N, SecurityCredentials.DirectedFlooding)
         Assert.assertTrue("NID do not match!", directedNID == directedKeyDerivatives.nid)
         Assert.assertTrue("EncryptionKeys do not match!", directedEncryptionKey.contentEquals(directedKeyDerivatives.encryptionKey))
@@ -193,18 +192,18 @@ class CryptoTest {
     @Test
     fun testEncrypt() {
         val expected = "b5e5bfdacbaf6cb7fb6bff871f035444ce83a670df".uppercase(Locale.US)
-        val dst = "fffd".decodeHex()
-        val transportPdu = "034b50057e400000010000".decodeHex()
+        val dst = "fffd".toByteArray()
+        val transportPdu = "034b50057e400000010000".toByteArray()
         val data = dst + transportPdu
-        val encryptionKey = "0953fa93e7caac9638f58820220a398e".decodeHex()
-        val nonce = "00800000011201000012345678".decodeHex()
+        val encryptionKey = "0953fa93e7caac9638f58820220a398e".toByteArray()
+        val nonce = "00800000011201000012345678".toByteArray()
         val mic = 64 / 8
         val actual = Crypto.encrypt(
             data = data,
             key = encryptionKey,
             nonce = nonce,
             micSize = mic
-        ).encodeHex()
+        ).toHexString()
         Assert.assertEquals(expected, actual)
     }
 
@@ -219,16 +218,16 @@ class CryptoTest {
         val dst = "fffd"
         val transportPdu = "034b50057e400000010000"
         val expected = (dst + transportPdu).uppercase(Locale.US)
-        val encryptedTransportPdu = "b5e5bfdacbaf6cb7fb6bff871f035444ce83a670df".decodeHex()
-        val encryptionKey = "0953fa93e7caac9638f58820220a398e".decodeHex()
-        val nonce = "00800000011201000012345678".decodeHex()
+        val encryptedTransportPdu = "b5e5bfdacbaf6cb7fb6bff871f035444ce83a670df".toByteArray()
+        val encryptionKey = "0953fa93e7caac9638f58820220a398e".toByteArray()
+        val nonce = "00800000011201000012345678".toByteArray()
         val mic = 64 / 8
         val actual = Crypto.decrypt(
             data = encryptedTransportPdu,
             key = encryptionKey,
             nonce = nonce,
             micSize = mic
-        )?.encodeHex()
+        )?.toHexString()
         Assert.assertNotNull(actual)
         Assert.assertEquals(expected, actual)
     }
@@ -248,8 +247,8 @@ class CryptoTest {
      */
     @Test
     fun testAuthenticate() {
-        val beaconPDU = "01003ecaff672f673370123456788ea261582f364f6f".decodeHex()
-        val beaconKey = "5423d967da639a99cb02231a83f7d254".decodeHex()
+        val beaconPDU = "01003ecaff672f673370123456788ea261582f364f6f".toByteArray()
+        val beaconKey = "5423d967da639a99cb02231a83f7d254".toByteArray()
         val expected = true
         val actual = Crypto.authenticate(beaconPDU, beaconKey)
         Assert.assertEquals(expected, actual)
@@ -262,9 +261,9 @@ class CryptoTest {
      */
     @Test
     fun testDecodeAndAuthenticate() {
-        val beaconPDU = "02435f18f85cf78a3121f58478a561e488e7cbf3174f022a514741".decodeHex()
-        val beaconKey = "6be76842460b2d3a5850d4698409f1bb".decodeHex()
-        val expected = Pair(0x02.toByte(), "1010abcd".decodeHex())
+        val beaconPDU = "02435f18f85cf78a3121f58478a561e488e7cbf3174f022a514741".toByteArray()
+        val beaconKey = "6be76842460b2d3a5850d4698409f1bb".toByteArray()
+        val expected = Pair(0x02.toByte(), "1010abcd".toByteArray())
         val actual = Crypto.decodeAndAuthenticate(beaconPDU, beaconKey)
         val isEqual = expected.first == actual?.first && expected.second.contentEquals(actual.second)
         Assert.assertEquals(true, isEqual)
@@ -278,11 +277,11 @@ class CryptoTest {
      */
     @Test
     fun testObfuscate() {
-        val data = "e80e5da5af0e".decodeHex()
-        val random = "6b9be7f5a642f2f98680e61c3a8b47f228".decodeHex()
+        val data = "e80e5da5af0e".toByteArray()
+        val random = "6b9be7f5a642f2f98680e61c3a8b47f228".toByteArray()
         val ivIndex = 0x12345678.toUInt()
-        val privacyKey = "8b84eedec100067d670971dd2aa700cf".decodeHex()
-        val expected = "0b0000061201".decodeHex()
+        val privacyKey = "8b84eedec100067d670971dd2aa700cf".toByteArray()
+        val expected = "0b0000061201".toByteArray()
         val actual = Crypto.obfuscate(data, random, ivIndex, privacyKey)
         Assert.assertTrue(expected.contentEquals(actual))
     }
@@ -295,34 +294,34 @@ class CryptoTest {
      */
     @Test
     fun testCalculateECB() {
-        val privacyPlainText = "0000000000123456782a80d381b91f82".decodeHex()
-        val privacyKey = "8b84eedec100067d670971dd2aa700cf".decodeHex()
-        val expectedPECB = "b8bd2c18096e".decodeHex()
+        val privacyPlainText = "0000000000123456782a80d381b91f82".toByteArray()
+        val privacyKey = "8b84eedec100067d670971dd2aa700cf".toByteArray()
+        val expectedPECB = "b8bd2c18096e".toByteArray()
         val actualPECB = Crypto.calculateECB(privacyPlainText, privacyKey).copyOfRange(0, 6)
         Assert.assertTrue(expectedPECB.contentEquals(actualPECB))
     }
 
     /**
-     * Unit test for [Utils.uint16ToUtf8].
+     * Unit test for [uint16ToUtf8].
      *
      * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
      */
     @Test
     fun testUint16ToUTF8() {
-        val expected = "0010C280C480".decodeHex()
-        val actual = "0000001000800100".decodeHex().uint16ToUtf8()
+        val expected = "0010C280C480".toByteArray()
+        val actual = "0000001000800100".toByteArray().uint16ToUtf8()
         Assert.assertTrue(expected.contentEquals(actual))
     }
 
     /**
-     * Unit test for [Utils.utf8ToUint16].
+     * Unit test for [utf8ToUint16].
      *
      * Refer to 4.7 in Mesh Binary Large Object Transfer Model d1.0r04_PRr00 for test data.
      */
     @Test
     fun testUTF8ToUint16() {
-        val expected = "0000001000800100".decodeHex()
-        val actual = "0010C280C480".decodeHex().utf8ToUint16()
+        val expected = "0000001000800100".toByteArray()
+        val actual = "0010C280C480".toByteArray().utf8ToUint16()
         Assert.assertTrue(expected.contentEquals(actual))
     }
 }

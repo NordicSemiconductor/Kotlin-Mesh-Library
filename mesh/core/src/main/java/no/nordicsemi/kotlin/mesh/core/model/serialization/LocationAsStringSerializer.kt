@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.KSerializer
@@ -9,7 +11,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.Location
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 /**
  * Custom JSON serializer/deserializer for all properties formatted as a 4-digit hexadecimal string.
@@ -28,6 +29,6 @@ internal object LocationAsStringSerializer : KSerializer<Location> {
     }
 
     override fun serialize(encoder: Encoder, value: Location) {
-        encoder.encodeString(value = value.value.toHex())
+        encoder.encodeString(value = value.value.toHexString())
     }
 }

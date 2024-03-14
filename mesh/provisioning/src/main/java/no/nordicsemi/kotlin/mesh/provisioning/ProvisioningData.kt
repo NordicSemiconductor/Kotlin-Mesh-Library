@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
@@ -9,10 +10,9 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Secure
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Algorithm
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import no.nordicsemi.kotlin.mesh.crypto.Crypto.toByteArray
+import no.nordicsemi.kotlin.mesh.crypto.toByteArray
 import java.security.PrivateKey
 import java.security.PublicKey
 

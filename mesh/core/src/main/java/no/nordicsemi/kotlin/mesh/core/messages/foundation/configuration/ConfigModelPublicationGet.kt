@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -9,8 +11,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 
 /**
  * This message is used to get the publication state of a model.
@@ -35,14 +35,14 @@ data class ConfigModelPublicationGet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 4 || it.size == 6
         }?.let {
-            val elementAddress = UnicastAddress(parameters.toUShort(0))
+            val elementAddress = UnicastAddress(parameters.getUShort(0))
             var companyIdentifier: UShort? = null
             val modelIdentifier: UShort
             if (parameters.size == 6) {
-                companyIdentifier = parameters.toUShort(2)
-                modelIdentifier = parameters.toUShort(4)
+                companyIdentifier = parameters.getUShort(2)
+                modelIdentifier = parameters.getUShort(4)
             } else {
-                modelIdentifier = parameters.toUShort(2)
+                modelIdentifier = parameters.getUShort(2)
             }
             ConfigModelPublicationGet(
                 elementAddress = elementAddress,

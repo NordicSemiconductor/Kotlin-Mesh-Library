@@ -2,11 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.provisioning
 
+import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
-import java.util.*
+import java.util.UUID
 
 data class UnprovisionedDevice(
     var name: String,
@@ -26,6 +25,7 @@ data class UnprovisionedDevice(
          * @param advertisementData The advertisement data.
          * @return UnprovisionedDevice from the given advertisement data.
          */
+        @OptIn(ExperimentalStdlibApi::class)
         fun from(advertisementData: ByteArray): UnprovisionedDevice {
             var length: Int
             var type: Int
@@ -45,12 +45,12 @@ data class UnprovisionedDevice(
                         val deviceUuidIndex = i + 2
                         val hexUuid = advertisementData
                             .copyOfRange(deviceUuidIndex, deviceUuidIndex + 16)
-                            .encodeHex()
+                            .toHexString()
                         deviceUuid = Utils.decode(hexUuid)
 
                         val oobInformationIndex = deviceUuidIndex + 16
                         oobInformation = OobInformation.from(
-                            advertisementData.toUShort(oobInformationIndex)
+                            advertisementData.getUShort(oobInformationIndex)
                         )
                     }
                     COMPLETE_LOCAL_NAME -> {

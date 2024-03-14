@@ -19,7 +19,7 @@ object Utils {
     /**
      * Formats a UUID string to a standard UUID format.
      */
-    fun decode(uuid: String) = UUID.fromString(uuid
+    fun decode(uuid: String): UUID = UUID.fromString(uuid
         .uppercase()
         .takeIf { HEX_UUID_PATTERN.matches(it) }
         ?.run {

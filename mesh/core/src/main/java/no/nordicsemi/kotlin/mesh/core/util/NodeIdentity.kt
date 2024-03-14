@@ -2,8 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
 /**
@@ -33,7 +33,8 @@ data class PublicNodeIdentity internal constructor(
     val random: ByteArray
 ) : NodeIdentity {
     override fun matches(node: Node): Boolean {
-        val data = ByteArray(6) { 0 } + random + node.primaryUnicastAddress.address.toByteArray()
+        val data = ByteArray(6) { 0 } + random +
+                node.primaryUnicastAddress.address.toByteArray()
         for (key in node.networkKeys) {
             val calculatedHash =
                 Crypto.calculateHash(data = data, identityKey = key.derivatives.identityKey)

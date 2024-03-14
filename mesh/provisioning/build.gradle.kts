@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("no.nordicsemi.kotlin:data:0.1.0") // -> libs.nordic.kotlin.data
     api(project(":mesh:core"))
     implementation(project(":mesh:bearer-provisioning"))
 

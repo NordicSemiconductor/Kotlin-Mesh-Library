@@ -2,6 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -15,9 +18,6 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUuid
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -110,12 +110,12 @@ data class ConfigModelPublicationVirtualAddressSet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 25 || it.size == 27
         }?.let { params ->
-            val elementAddress = params.toUShort(offset = 0)
+            val elementAddress = params.getUShort(offset = 0)
             val label = VirtualAddress(params.sliceArray(2 until 17).toUuid())
-            val index = params.toUShort(18) and 0x0FFFu
-            val flag = (params.toUShort(19) and 0x10u).toInt() shr 4
+            val index = params.getUShort(18) and 0x0FFFu
+            val flag = (params.getUShort(19) and 0x10u).toInt() shr 4
             val ttl = params[20].toUByte()
-            val periodSteps = (params.toUShort(21) and 0x3Fu).toUByte()
+            val periodSteps = (params.getUShort(21) and 0x3Fu).toUByte()
             val periodResolution = StepResolution.from((params[21].toInt() shr 6))
             val count = (params[22] and 0x07).toUByte()
             val intervalSteps = (params[22].toInt() shr 3).toUByte()
@@ -132,15 +132,15 @@ data class ConfigModelPublicationVirtualAddressSet(
             if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = params.toUShort(23),
-                    modelIdentifier = params.toUShort(25),
+                    companyIdentifier = params.getUShort(23),
+                    modelIdentifier = params.getUShort(25),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.toUShort(23),
+                    modelIdentifier = params.getUShort(23),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

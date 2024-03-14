@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.KSerializer
@@ -7,9 +9,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 /**
  * Custom JSON serializer/deserializer for byte arrays.
@@ -19,7 +21,7 @@ internal object KeySerializer : KSerializer<ByteArray> {
         PrimitiveSerialDescriptor(serialName = "Key", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder) = runCatching {
-        decoder.decodeString().decodeHex()
+        decoder.decodeString().toByteArray()
     }.getOrElse {
         throw ImportError(
             "Error while deserializing Key " +
@@ -28,6 +30,6 @@ internal object KeySerializer : KSerializer<ByteArray> {
     }
 
     override fun serialize(encoder: Encoder, value: ByteArray) {
-        encoder.encodeString(value.encodeHex())
+        encoder.encodeString(value.toHexString())
     }
 }

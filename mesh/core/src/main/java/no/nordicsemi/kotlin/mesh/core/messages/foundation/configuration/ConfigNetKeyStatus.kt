@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
@@ -12,7 +13,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
 
 /**
  * Status declaring if the the [ConfigNetKeyMessage] operation succeeded or not.

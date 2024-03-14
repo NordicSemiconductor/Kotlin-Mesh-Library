@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -17,8 +19,6 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -115,12 +115,12 @@ data class ConfigModelPublicationSet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 11 || it.size == 13
         }?.let { params ->
-            val elementAddress = params.toUShort(offset = 0)
-            val address = MeshAddress.create(params.toUShort(2))
-            val index = params.toUShort(4) and 0x0FFFu
-            val flag = (params.toUShort(5) and 0x10u).toInt() shr 4
+            val elementAddress = params.getUShort(offset = 0)
+            val address = MeshAddress.create(params.getUShort(2))
+            val index = params.getUShort(4) and 0x0FFFu
+            val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
             val ttl = params[6].toUByte()
-            val periodSteps = (params.toUShort(7) and 0x3Fu).toUByte()
+            val periodSteps = (params.getUShort(7) and 0x3Fu).toUByte()
             val periodResolution = StepResolution.from((params[7].toInt() shr 6))
             val period = PublishPeriod(periodSteps, periodResolution)
             val count = (params[8] and 0x07).toUByte()
@@ -139,15 +139,15 @@ data class ConfigModelPublicationSet(
             if (params.size == 13) {
                 ConfigModelPublicationSet(
                     publish = publish,
-                    companyIdentifier = params.toUShort(9),
-                    modelIdentifier = params.toUShort(11),
+                    companyIdentifier = params.getUShort(9),
+                    modelIdentifier = params.getUShort(11),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.toUShort(9),
+                    modelIdentifier = params.getUShort(9),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

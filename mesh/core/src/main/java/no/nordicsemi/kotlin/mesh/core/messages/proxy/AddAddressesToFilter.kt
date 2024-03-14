@@ -2,10 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.proxy
 
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toByteArray
-import no.nordicsemi.kotlin.mesh.core.util.Utils.toUShort
 
 /**
  * This is a message sent by a Proxy Client to add destination addresses to the proxy filter list.
@@ -36,7 +36,7 @@ data class AddAddressesToFilter(
             val addresses = mutableListOf<UnicastAddress>()
             var i = 0
             while (i < it.size) {
-                addresses.add(UnicastAddress(it.toUShort(i)))
+                addresses.add(UnicastAddress(it.getUShort(i)))
                 i += 2
             }
             AddAddressesToFilter(addresses)

@@ -7,7 +7,11 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils
 
 /**
@@ -26,11 +30,12 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
         )
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun serialize(encoder: Encoder, value: MeshAddress) {
         encoder.encodeString(
             value = when (value) {
                 is VirtualAddress -> Utils.encode(uuid = value.uuid)
-                else -> value.address.toHex()
+                else -> value.address.toHexString()
             }
         )
     }
