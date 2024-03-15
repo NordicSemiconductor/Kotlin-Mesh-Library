@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package no.nordicsemi.kotlin.mesh.core.model.serialization
 
 import kotlinx.serialization.KSerializer
@@ -28,6 +26,7 @@ internal object UShortAsStringSerializer : KSerializer<UShort> {
     }
 
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun serialize(encoder: Encoder, value: UShort) {
         encoder.encodeString(value = value.toHexString())
     }
