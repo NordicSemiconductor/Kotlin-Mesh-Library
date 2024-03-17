@@ -46,6 +46,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
@@ -57,8 +59,6 @@ import no.nordicsemi.kotlin.mesh.core.model.NormalOperation
 import no.nordicsemi.kotlin.mesh.core.model.Secure
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 import java.text.DateFormat
 import java.util.Date
 
@@ -161,6 +161,7 @@ fun Name(
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun Key(
     snackbarHostState: SnackbarHostState,
@@ -172,7 +173,7 @@ fun Key(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
+    var key by rememberSaveable { mutableStateOf(networkKey.toHexString()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
 
     ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -219,7 +220,7 @@ fun Key(
                                     enabled = key.length == 32,
                                     onClick = {
                                         onEditClick = !onEditClick
-                                        onKeyChanged(key.decodeHex())
+                                        onKeyChanged(key.toByteArray())
                                         onEditableStateChanged()
                                     }
                                 ) {
@@ -265,13 +266,14 @@ fun Key(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun OldKey(oldKey: ByteArray?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
-        subtitle = oldKey?.encodeHex()
+        subtitle = oldKey?.toHexString()
             ?: stringResource(id = R.string.label_na)
     )
 }

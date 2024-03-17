@@ -52,7 +52,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
@@ -264,8 +263,8 @@ private fun Name(
                 },
                 value = value,
                 onValueChanged = { value = it },
-                label = { Text(text = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_name)) },
-                placeholder = { Text(text = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_placeholder_provisioner_name)) },
+                label = { Text(text = stringResource(id = R.string.label_name)) },
+                placeholder = { Text(text = stringResource(id = R.string.label_placeholder_provisioner_name)) },
                 internalTrailingIcon = {
                     IconButton(enabled = value.text.isNotBlank(), onClick = {
                         value = TextFieldValue(text = "", selection = TextRange(0))
@@ -297,7 +296,7 @@ private fun Name(
                         tint = LocalContentColor.current.copy(alpha = 0.6f)
                     )
                 },
-                title = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_name),
+                title = stringResource(id = R.string.label_name),
                 subtitle = value.text,
                 trailingComposable = {
                     IconButton(modifier = Modifier.padding(horizontal = 16.dp),
@@ -317,6 +316,7 @@ private fun Name(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun UnicastAddressRow(
     context: Context,
@@ -329,7 +329,7 @@ private fun UnicastAddressRow(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val tempAddress by remember { mutableStateOf(address.toHex()) }
+    val tempAddress by remember { mutableStateOf(address.toHexString()) }
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(text = tempAddress, selection = TextRange(tempAddress.length))
@@ -432,8 +432,8 @@ private fun UnicastAddressRow(
                     tint = LocalContentColor.current.copy(alpha = 0.6f)
                 )
             },
-                title = stringResource(id = no.nordicsemi.android.feature.provisioners.R.string.label_unicast_address),
-                subtitle = address.toHex(prefix0x = true),
+                title = stringResource(id = R.string.label_unicast_address),
+                subtitle = "0x${address.toHexString()}",
                 trailingComposable = {
                     IconButton(modifier = Modifier.padding(horizontal = 16.dp),
                         enabled = isCurrentlyEditable,

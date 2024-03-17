@@ -101,7 +101,7 @@ private fun NodeItem(
 ) {
     MeshNodeItem(
         nodeName = node.name,
-        addressHex = node.primaryUnicastAddress.address.toHexString(prefix0x = true),
+        addressHex = "0x${node.primaryUnicastAddress.address.toHexString()}",
         companyName = node.companyIdentifier?.let {
             CompanyIdentifier.name(it) ?: "Unknown"
         } ?: "Unknown",

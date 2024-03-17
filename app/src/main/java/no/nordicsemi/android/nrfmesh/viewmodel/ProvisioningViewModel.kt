@@ -28,7 +28,6 @@ import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -263,7 +262,7 @@ class ProvisioningViewModel @Inject constructor(
         when (method) {
             is AuthAction.ProvideAlphaNumeric -> method.authenticate(input)
             is AuthAction.ProvideNumeric -> method.authenticate(input.toUInt())
-            is AuthAction.ProvideStaticKey -> method.authenticate(input.decodeHex())
+            is AuthAction.ProvideStaticKey -> method.authenticate(input.toByteArray())
             is AuthAction.DisplayAlphaNumeric, is AuthAction.DisplayNumber -> {
                 // Do nothing
             }

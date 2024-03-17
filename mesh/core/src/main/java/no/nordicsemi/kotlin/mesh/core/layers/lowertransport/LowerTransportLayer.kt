@@ -35,14 +35,15 @@ private sealed class Message {
     data object None : Message()
 }
 
-private sealed class SecurityError : Exception() {
+sealed class SecurityError : Exception() {
 
     /**
      * Thrown internally when a possible replay attack is detected. This error is not propagated to
      * higher levels. When it is caught, te received packet discarded.
      */
-    data object ReplayAttack : SecurityError()
-
+    data object ReplayAttack : SecurityError() {
+        fun readResolve(): Any = ReplayAttack
+    }
 }
 
 internal class LowerTransportLayer(private val networkManager: NetworkManager) {

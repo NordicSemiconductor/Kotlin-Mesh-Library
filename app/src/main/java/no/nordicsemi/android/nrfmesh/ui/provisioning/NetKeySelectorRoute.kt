@@ -20,7 +20,6 @@ import no.nordicsemi.android.nrfmesh.viewmodel.NetKeySelectorViewModel
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkKeySelectionScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 fun NetKeySelectorRoute(
@@ -50,6 +49,7 @@ private fun NetKeySelectorScreen(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun NetKeyItem(key: NetworkKey, isSelected: Boolean, onKeySelected: (KeyIndex) -> Unit) {
     MeshTwoLineListItem(
@@ -65,7 +65,7 @@ fun NetKeyItem(key: NetworkKey, isSelected: Boolean, onKeySelected: (KeyIndex) -
             )
         },
         title = key.name,
-        subtitle = key.key.encodeHex(),
+        subtitle = key.key.toHexString(),
         trailingComposable = {
             Checkbox(checked = isSelected, onCheckedChange = {
                 if (it) onKeySelected(key.index)

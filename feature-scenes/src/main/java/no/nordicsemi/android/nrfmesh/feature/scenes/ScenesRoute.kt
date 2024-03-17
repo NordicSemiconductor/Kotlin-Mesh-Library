@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import no.nordicsemi.android.feature.scenes.R
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
@@ -49,7 +48,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
-import no.nordicsemi.kotlin.mesh.core.model.toHex
 
 @Composable
 internal fun ScenesRoute(
@@ -156,6 +154,7 @@ private fun Scenes(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissScene(
     scene: Scene,
@@ -186,7 +185,7 @@ private fun SwipeToDismissScene(
                         .clickable { navigateToScene(scene.number) },
                     imageVector = Icons.Outlined.AutoAwesome,
                     title = scene.name,
-                    subtitle = scene.number.toHex(true)
+                    subtitle = "0x${scene.number.toHexString()}"
                 )
             }
         }

@@ -21,11 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.feature.application.keys.R
 import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 internal fun ApplicationKeysRoute(
@@ -128,6 +127,7 @@ private fun ApplicationKeys(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissKey(
     key: ApplicationKey,
@@ -155,7 +155,7 @@ private fun SwipeToDismissKey(
                     .clickable { navigateToApplicationKey(key.index) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
-                subtitle = key.key.encodeHex()
+                subtitle = key.key.toHexString()
             )
         }
     )

@@ -24,9 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.*
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 internal fun NetworkKeysRoute(
@@ -125,6 +125,7 @@ private fun NetworkKeys(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissKey(
     key: NetworkKey,
@@ -155,7 +156,7 @@ private fun SwipeToDismissKey(
                     .clickable { navigateToNetworkKey(key.index) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
-                subtitle = key.key.encodeHex()
+                subtitle = key.key.toHexString()
             )
         }
     )

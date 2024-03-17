@@ -18,22 +18,9 @@ class ConfigHeartbeatPublicationGet : AcknowledgedConfigMessage {
     override val responseOpCode = ConfigHeartbeatPublicationStatus.opCode
     override val parameters: ByteArray? = null
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ConfigHeartbeatPublicationGet
-
-        if (!parameters.contentEquals(other.parameters)) return false
-        if (opCode != other.opCode) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = parameters.contentHashCode()
-        result = 31 * result + opCode.hashCode()
-        return result
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "ConfigHeartbeatPublicationGet opCode ${opCode.toHexString()}"
     }
 
     companion object Initializer : ConfigMessageInitializer {

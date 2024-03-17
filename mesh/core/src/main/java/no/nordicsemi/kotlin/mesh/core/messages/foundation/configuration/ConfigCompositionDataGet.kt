@@ -17,7 +17,7 @@ data class ConfigCompositionDataGet(val page: UByte) : AcknowledgedConfigMessage
 
     override val responseOpCode = ConfigCompositionDataStatus.opCode
     override val parameters = byteArrayOf(page.toByte())
-
+    
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8008u
 

@@ -17,7 +17,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
-import java.nio.ByteOrder
 
 /**
  * Base interface for a Composition Data Page.
@@ -40,6 +39,7 @@ sealed interface CompositionDataPage {
  * @property page Page containing the composition of a node.
  * @constructor Creates a ConfigCompositionDataStatus message.
  */
+
 class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = page.parameters

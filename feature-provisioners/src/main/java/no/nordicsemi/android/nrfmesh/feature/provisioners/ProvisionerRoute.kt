@@ -258,7 +258,7 @@ private fun UnicastAddress(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val initialValue by remember { mutableStateOf(address?.toHexString()) }
+    val initialValue by remember { mutableStateOf(address?.toHexString() ?: "") }
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(text = initialValue, selection = TextRange(initialValue.length))
@@ -361,8 +361,9 @@ private fun UnicastAddress(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.label_unicast_address),
-                        subtitle = address?.toHexString(prefix0x = true)
-                            ?: stringResource(id = R.string.label_not_assigned),
+                        subtitle = address?.let {
+                            "0x${it.toHexString()}"
+                        } ?: stringResource(id = R.string.label_not_assigned),
                         trailingComposable = {
                             IconButton(
                                 enabled = isCurrentlyEditable,

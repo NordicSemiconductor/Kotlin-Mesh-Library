@@ -46,20 +46,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import no.nordicsemi.android.feature.application.keys.R
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.decodeHex
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 internal fun ApplicationKeyRoute(viewModel: ApplicationKeyViewModel = hiltViewModel()) {
@@ -178,6 +177,7 @@ fun Name(
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun Key(
     snackbarHostState: SnackbarHostState,
@@ -189,7 +189,7 @@ fun Key(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var key by rememberSaveable { mutableStateOf(networkKey.encodeHex()) }
+    var key by rememberSaveable { mutableStateOf(networkKey.toHexString()) }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
 
     ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -245,7 +245,7 @@ fun Key(
                                     enabled = key.length == 32,
                                     onClick = {
                                         onEditClick = !onEditClick
-                                        onKeyChanged(key.decodeHex())
+                                        onKeyChanged(key.toByteArray())
                                         onEditableStateChanged()
                                     }
                                 ) {
@@ -299,14 +299,14 @@ fun Key(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun OldKey(oldKey: ByteArray?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
-        subtitle = oldKey?.encodeHex()
-            ?: stringResource(id = R.string.label_na)
+        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na)
     )
 }
 
@@ -320,6 +320,7 @@ fun KeyIndex(index: KeyIndex) {
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 private fun LazyListScope.boundNetworkKeys(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
@@ -360,7 +361,7 @@ private fun LazyListScope.boundNetworkKeys(
                     )
                 }
             },
-            subtitle = key.key.encodeHex(),
+            subtitle = key.key.toHexString(),
         )
     }
 }
