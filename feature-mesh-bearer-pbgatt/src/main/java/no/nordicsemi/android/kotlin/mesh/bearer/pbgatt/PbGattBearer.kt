@@ -4,7 +4,6 @@ package no.nordicsemi.android.kotlin.mesh.bearer.pbgatt
 
 import android.annotation.SuppressLint
 import android.content.Context
-import kotlinx.coroutines.flow.*
 import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
