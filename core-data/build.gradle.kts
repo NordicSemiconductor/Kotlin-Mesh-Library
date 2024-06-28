@@ -20,7 +20,7 @@ dependencies {
     implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
-    implementation(libs.nordic.scanner)
+    // implementation(libs.nordic.scanner)
 
     implementation(libs.androidx.dataStore.core)
     implementation(libs.androidx.dataStore.preferences)

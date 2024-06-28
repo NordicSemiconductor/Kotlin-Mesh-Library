@@ -27,7 +27,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
 
     implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.accompanist.swiperefresh)
 
     implementation(libs.timber)
 

@@ -8,8 +8,8 @@ android {
 }
 
 dependencies {
-
     api(libs.nordic.theme)
+    api(libs.nordic.ui)
     api(libs.androidx.compose.material.iconsExtended)
     implementation(libs.nordic.logger)
     implementation(libs.nordic.navigation)
@@ -27,5 +27,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation("androidx.compose.material3:material3:1.3.0-alpha06")
+    implementation("androidx.compose.material3:material3:1.3.0-beta04")
 }

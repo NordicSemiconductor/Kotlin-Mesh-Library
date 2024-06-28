@@ -34,7 +34,9 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
+import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerScreen
 import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
+import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
@@ -170,8 +172,14 @@ private fun ScannerSection(
     onDeviceFound: (Context, BleScanResults) -> Unit
 ) {
     val context = LocalContext.current
+    val filters = listOf(
+        WithServiceUuid(
+            title = "Unprovisioned",
+            uuid = ParcelUuid(MeshProxyService.uuid)
+        )
+    )
     ScannerView(
-        uuid = ParcelUuid(MeshProxyService.uuid),
+        filters = filters,
         onResult = { onDeviceFound(context, it) },
         deviceItem = {
             DeviceListItem(
@@ -180,7 +188,6 @@ private fun ScannerSection(
                 address = it.device.address
             )
         },
-        showFilter = false
     )
 }
 

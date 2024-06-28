@@ -4,6 +4,7 @@ package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import android.content.Context
 import android.os.ParcelUuid
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,8 +48,10 @@ import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
+import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
+import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -189,8 +192,15 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
     var unprovisionedDevice by remember {
         mutableStateOf<UnprovisionedDevice?>(null)
     }
+    val filters = listOf(
+        WithServiceUuid(
+            title = "Unprovisioned",
+            uuid = ParcelUuid(MeshProvisioningService.uuid),
+            initiallySelected = true
+        )
+    )
     ScannerView(
-        uuid = ParcelUuid(MeshProvisioningService.uuid),
+        filters = filters,
         onResult = { result ->
             result.lastScanResult?.scanRecord?.bytes?.let { bytes ->
                 unprovisionedDevice = UnprovisionedDevice.from(bytes.value)
@@ -207,7 +217,6 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
                 } ?: it.device.address
             )
         },
-        showFilter = false
     )
 }
 

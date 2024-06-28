@@ -52,7 +52,7 @@ import no.nordicsemi.android.common.navigation.NavigationView
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.popUpToStartDestination
 import no.nordicsemi.android.common.navigation.with
-import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
+import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
 import no.nordicsemi.android.nrfmesh.destinations.groupsTab
@@ -128,7 +128,9 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
-                text = currentDestination?.title() ?: "",
+                title = {
+                    Text(text = currentDestination?.title() ?: "")
+                },
                 scrollBehavior = scrollBehavior,
                 backButtonIcon = when (currentDestination) {
                     provisioning -> Icons.Rounded.Close
