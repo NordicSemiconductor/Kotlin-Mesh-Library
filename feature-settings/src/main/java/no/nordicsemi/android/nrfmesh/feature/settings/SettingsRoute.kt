@@ -57,7 +57,6 @@ fun SettingsRoute(
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
-    navigateToExportNetwork: () -> Unit
 ) {
     val uiState: SettingsScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
@@ -69,8 +68,7 @@ fun SettingsRoute(
         onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
-        onScenesClicked = navigateToScenes,
-        onExportClicked = navigateToExportNetwork
+        onScenesClicked = navigateToScenes
     )
 }
 
@@ -82,15 +80,8 @@ fun SettingsScreen(
     onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
-    onScenesClicked: () -> Unit,
-    onExportClicked: () -> Unit
+    onScenesClicked: () -> Unit
 ) {
-    val context = LocalContext.current
-    val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri -> uri?.let { importNetwork(uri, context.contentResolver) } }
-
-    var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
     LazyColumn {
         when (networkState) {
             is MeshNetworkState.Success -> {
@@ -108,18 +99,6 @@ fun SettingsScreen(
             is MeshNetworkState.Error -> {}
         }
     }
-    SettingsDropDown(
-        navigate = {
-            isOptionsMenuExpanded = !isOptionsMenuExpanded
-            onExportClicked()
-        },
-        isOptionsMenuExpanded = isOptionsMenuExpanded,
-        onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
-        importNetwork = {
-            isOptionsMenuExpanded = !isOptionsMenuExpanded
-            fileLauncher.launch("application/json")
-        }
-    )
 }
 
 private fun LazyListScope.settingsInfo(
@@ -298,7 +277,8 @@ fun SettingsDropDown(
     navigate: () -> Unit,
     isOptionsMenuExpanded: Boolean,
     onDismiss: () -> Unit,
-    importNetwork: () -> Unit
+    importNetwork: () -> Unit,
+    resetNetwork: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -318,9 +298,7 @@ fun SettingsDropDown(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                onClick = {
-                    importNetwork()
-                }
+                onClick = importNetwork
             )
             DropdownMenuItem(
                 leadingIcon = {
@@ -332,9 +310,7 @@ fun SettingsDropDown(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                onClick = {
-                    navigate()
-                }
+                onClick = navigate
             )
             //MenuDefaults.Divider()
             DropdownMenuItem(
@@ -347,7 +323,7 @@ fun SettingsDropDown(
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                onClick = { onDismiss() }
+                onClick = resetNetwork
             )
         }
     }

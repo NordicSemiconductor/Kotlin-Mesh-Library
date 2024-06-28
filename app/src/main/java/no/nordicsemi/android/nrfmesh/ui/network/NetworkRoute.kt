@@ -209,6 +209,9 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
             importNetwork = {
                 isOptionsMenuExpanded = !isOptionsMenuExpanded
                 fileLauncher.launch("application/json")
+            },
+            resetNetwork = {
+                viewModel.resetNetwork()
             }
         )
     }

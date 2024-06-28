@@ -25,7 +25,6 @@ val settingsDestination = defineDestination(settings) {
         navigateToNetworkKeys = { viewModel.navigateTo(networkKeys) },
         navigateToApplicationKeys = { viewModel.navigateTo(applicationKeys) },
         navigateToScenes = { viewModel.navigateTo(scenes) },
-        navigateToExportNetwork = {}
     )
 }
 

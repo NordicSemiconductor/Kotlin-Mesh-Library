@@ -72,4 +72,10 @@ class NetworkViewModel @Inject constructor(
             repository.save()
         }
     }
+
+    internal fun resetNetwork(){
+        viewModelScope.launch {
+            repository.resetNetwork()
+        }
+    }
 }

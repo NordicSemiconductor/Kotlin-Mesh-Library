@@ -138,6 +138,8 @@ class CoreDataRepository @Inject constructor(
     suspend fun exportNetwork(configuration: NetworkConfiguration) =
         meshNetworkManager.export(configuration = configuration)
 
+    suspend fun resetNetwork() = createNewMeshNetwork()
+
     /**
      * Saves the mesh network.
      */
