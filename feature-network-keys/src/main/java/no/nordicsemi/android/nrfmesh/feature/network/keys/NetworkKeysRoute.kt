@@ -141,7 +141,7 @@ private fun SwipeToDismissKey(
     var shouldNotDismiss by remember {
         mutableStateOf(false)
     }
-    val dismissState = rememberSwipeToDismissState(
+    val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
             !shouldNotDismiss

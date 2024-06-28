@@ -25,7 +25,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -169,7 +169,7 @@ private fun SwipeToDismissScene(
     var shouldNotDismiss by remember {
         mutableStateOf(true)
     }
-    val dismissState = rememberSwipeToDismissState(
+    val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             shouldNotDismiss = !scene.isInUse
             shouldNotDismiss

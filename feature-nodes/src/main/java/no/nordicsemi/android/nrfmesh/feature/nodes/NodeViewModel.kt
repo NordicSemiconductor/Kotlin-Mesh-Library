@@ -53,6 +53,7 @@ internal class NodeViewModel @Inject internal constructor(
      * Called when the user pulls down to refresh the node details.
      */
     internal fun onRefresh() {
+        // uiState.value.isRefreshing = true
         viewModelScope.launch {
             repository.send(selectedNode, ConfigCompositionDataGet(page = 0x00u))
         }
@@ -115,7 +116,7 @@ internal class NodeViewModel @Inject internal constructor(
 
 sealed interface NodeState {
     data class Success(
-        val node: Node
+        val node: Node,
     ) : NodeState
 
     data class Error(val throwable: Throwable) : NodeState
@@ -124,4 +125,7 @@ sealed interface NodeState {
 
 data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading
-)
+) {
+    var isRefreshing: Boolean = false
+        private set
+}

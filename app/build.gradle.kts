@@ -48,7 +48,7 @@ dependencies {
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
 
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.11")
+     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

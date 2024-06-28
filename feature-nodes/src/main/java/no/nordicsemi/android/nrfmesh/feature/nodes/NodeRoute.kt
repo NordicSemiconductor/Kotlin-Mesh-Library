@@ -2,8 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +20,7 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,10 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -62,6 +60,7 @@ fun NodeRoute(
 ) {
     NodeScreen(
         nodeState = uiState.nodeState,
+        isRefreshing = uiState.isRefreshing,
         onRefresh = onRefresh,
         onNameChanged = onNameChanged,
         onNetworkKeysClicked = onNetworkKeysClicked,
@@ -79,6 +78,7 @@ fun NodeRoute(
 @Composable
 private fun NodeScreen(
     nodeState: NodeState,
+    isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: () -> Unit,
@@ -91,15 +91,20 @@ private fun NodeScreen(
     onResetClicked: () -> Unit
 ) {
     val state = rememberPullToRefreshState()
-    if (state.isRefreshing) {
+    if (state.isAnimating) {
         LaunchedEffect(true) {
             // fetch something
             onRefresh()
             delay(1500)
-            state.endRefresh()
+            state.animateToHidden()
         }
     }
-    Box(modifier = Modifier.nestedScroll(connection = state.nestedScrollConnection)) {
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        state = state,
+        onRefresh = onRefresh,
+        isRefreshing = isRefreshing
+    ) {
         LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
             when (nodeState) {
                 NodeState.Loading -> {}
@@ -129,10 +134,6 @@ private fun NodeScreen(
                 }
             }
         }
-        PullToRefreshContainer(
-            modifier = Modifier.align(Alignment.TopCenter),
-            state = state
-        )
     }
 }
 

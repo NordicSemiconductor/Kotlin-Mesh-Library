@@ -17,8 +17,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissState
-import androidx.compose.material3.SwipeToDismissValue
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 @ExperimentalMaterial3Api
 fun SwipeDismissItem(
-    dismissState: SwipeToDismissState,
+    dismissState: SwipeToDismissBoxState,
     content: @Composable () -> Unit
 ) {
     AnimatedVisibility(
-        visible = dismissState.currentValue == SwipeToDismissValue.Settled,
+        visible = dismissState.currentValue == SwipeToDismissBoxValue.Settled,
         enter = expandHorizontally(),
         exit = shrinkVertically()
     ) {
@@ -50,7 +50,7 @@ fun SwipeDismissItem(
                         .fillMaxSize()
                         .background(color = color, shape = CardDefaults.elevatedShape)
                         .padding(horizontal = 20.dp),
-                    contentAlignment = if (dismissState.dismissDirection == SwipeToDismissValue.StartToEnd)
+                    contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
                         Alignment.CenterStart
                     else Alignment.CenterEnd
                 ) {
@@ -70,4 +70,4 @@ fun SwipeDismissItem(
  * @receiver SwipeToDismissState
  * @return Boolean if dismissed or false otherwise.
  */
-fun SwipeToDismissState.isDismissed(): Boolean = currentValue != SwipeToDismissValue.Settled
+fun SwipeToDismissBoxState.isDismissed(): Boolean = currentValue != SwipeToDismissBoxValue.Settled

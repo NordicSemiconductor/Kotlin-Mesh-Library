@@ -8,7 +8,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -127,15 +125,12 @@ private fun ProvisionerScreen(
         }
     )
     if (openDeviceCapabilitiesSheet) {
-        val windowInsets = if (edgeToEdgeEnabled)
-            WindowInsets(0) else BottomSheetDefaults.windowInsets
         ModalBottomSheet(
             onDismissRequest = {
                 disconnect()
                 openDeviceCapabilitiesSheet = false
             },
-            sheetState = capabilitiesSheetState,
-            windowInsets = windowInsets
+            sheetState = capabilitiesSheetState
         ) {
             BottomSheetTopAppBar(
                 navigationIcon = Icons.Rounded.Close,

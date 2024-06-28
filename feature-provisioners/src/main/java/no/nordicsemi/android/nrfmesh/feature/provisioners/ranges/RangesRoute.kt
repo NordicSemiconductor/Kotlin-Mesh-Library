@@ -34,7 +34,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -178,7 +178,7 @@ private fun Ranges(
             items(items = ranges) { range ->
                 // Hold the current state from the Swipe to Dismiss composable
                 val currentItem by rememberUpdatedState(newValue = range)
-                val dismissState = rememberSwipeToDismissState(
+                val dismissState = rememberSwipeToDismissBoxState(
                     positionalThreshold = { it * 0.5f }
                 )
                 SwipeDismissItem(

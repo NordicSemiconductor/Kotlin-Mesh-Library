@@ -140,7 +140,7 @@ private fun SwipeToDismissKey(
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var shouldNotDismiss by remember { mutableStateOf(true) }
-    val dismissState = rememberSwipeToDismissState(
+    val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             shouldNotDismiss = !key.isInUse
             shouldNotDismiss
