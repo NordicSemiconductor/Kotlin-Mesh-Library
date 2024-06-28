@@ -4,7 +4,6 @@ package no.nordicsemi.android.nrfmesh.ui.provisioning
 
 import android.content.Context
 import android.os.ParcelUuid
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,7 +50,6 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
