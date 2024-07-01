@@ -115,7 +115,6 @@ private fun ProvisionerScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var openDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
-    val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val capabilitiesSheetState = rememberModalBottomSheetState()
     var showAuthenticationDialog by remember { mutableStateOf(false) }
 
@@ -194,7 +193,7 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
         WithServiceUuid(
             title = "Unprovisioned",
             uuid = ParcelUuid(MeshProvisioningService.uuid),
-            initiallySelected = true
+            initiallySelected = false
         )
     )
     ScannerView(
@@ -210,9 +209,9 @@ private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
             DeviceListItem(
                 modifier = Modifier.padding(vertical = 16.dp),
                 name = it.device.name,
-                address = it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
+                address = /*it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
                     UnprovisionedDevice.from(bytes.value).uuid.toString().uppercase()
-                } ?: it.device.address
+                } ?:*/ it.device.address
             )
         },
     )

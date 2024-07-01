@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
-import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerScreen
 import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
@@ -180,7 +179,9 @@ private fun ScannerSection(
     )
     ScannerView(
         filters = filters,
-        onResult = { onDeviceFound(context, it) },
+        onResult = {
+            onDeviceFound(context, it)
+        },
         deviceItem = {
             DeviceListItem(
                 modifier = Modifier.padding(vertical = 16.dp),
