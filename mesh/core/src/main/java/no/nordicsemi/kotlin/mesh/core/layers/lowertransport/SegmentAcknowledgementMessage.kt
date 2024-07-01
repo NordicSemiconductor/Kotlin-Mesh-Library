@@ -68,7 +68,7 @@ internal class SegmentAcknowledgementMessage(
      * @param segments List of segmented messages.
      * @return true if all segments have been received or false otherwise.
      */
-    fun areAllSegmentsReceived(segments: List<SegmentedMessage>): Boolean =
+    fun areAllSegmentsReceived(segments: List<SegmentedMessage?>): Boolean =
         areAllSegmentsReceived(segments.size - 1)
 
     /**

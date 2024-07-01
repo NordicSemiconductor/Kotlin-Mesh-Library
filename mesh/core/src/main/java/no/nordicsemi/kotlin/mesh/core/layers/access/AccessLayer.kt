@@ -235,7 +235,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         ttl: UByte?,
         applicationKey: ApplicationKey,
         retransmit: Boolean
-    ): MeshMessage {
+    ): MeshMessage? {
         var msg = message
         val transactionMessage = message as? TransactionMessage
 
@@ -273,9 +273,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
         }
 
-        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
-
-        return awaitResponse(destination = destination)
+        return networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
     }
 
     /**
@@ -326,21 +324,12 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             keySet = keySet
         )
 
-        networkManager.upperTransportLayer.send(
+        return networkManager.upperTransportLayer.send(
             accessPdu = pdu,
             ttl = initialTtl,
             keySet = keySet
         )
-
-        return awaitResponse(destination = destination)
     }
-
-    suspend fun awaitResponse(destination: Address) =
-        awaitResponse(destination = MeshAddress.create(destination))
-
-    suspend fun awaitResponse(destination: MeshAddress) = networkManager.incomingMessages.first {
-        it.address == destination
-    }.message
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given
@@ -404,8 +393,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     internal suspend fun cancel(handle: MessageHandle) {
         logger?.i(LogCategory.ACCESS) {
             "Cancelling messages with op code: ${handle.opCode}, " + "sent from: " +
-                    "${handle.source.toHex(prefix0x = true)} " +
-                    "to: ${handle.destination.toHex(prefix0x = true)}"
+                    "${handle.source.toHexString()} " +
+                    "to: ${handle.destination.toHexString()}"
         }
 
         mutex.withLock {
@@ -421,7 +410,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     }
 
     /**
-     *
      *
      * @param accessPdu Access PDU received.
      * @param keySet    Key set used to decrypt the message.
@@ -476,7 +464,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
                         ) {
                             if (model.isBoundTo(keySet.applicationKey)) {
-
                                 eventHandler.onMeshMessageReceived(
                                     model = model,
                                     message = message,

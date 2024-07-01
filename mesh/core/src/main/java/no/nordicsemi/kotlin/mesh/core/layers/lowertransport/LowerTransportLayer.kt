@@ -171,25 +171,24 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         pdu: UpperTransportPdu,
         initialTtl: UByte?,
         networkKey: NetworkKey
-    ) {
-        network.localProvisioner?.node?.let { node ->
-            val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
-            val message = AccessMessage(pdu = pdu, networkKey = networkKey)
-            try {
-                logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
-                networkManager.networkLayer.send(
-                    pdu = message,
-                    type = PduType.NETWORK_PDU,
-                    ttl = ttl
-                )
-            } catch (ex: Exception) {
-                logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
-                pdu.takeIf {
-                    it.message != null && it.message.isAcknowledged
-                }?.let {
-                    // TODO
-                }
+    ): MeshMessage? = network.localProvisioner?.node?.let { node ->
+        val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
+        val message = AccessMessage(pdu = pdu, networkKey = networkKey)
+        try {
+            logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
+            networkManager.networkLayer.send(
+                pdu = message,
+                type = PduType.NETWORK_PDU,
+                ttl = ttl
+            )
+        } catch (ex: Exception) {
+            logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+            pdu.takeIf {
+                it.message != null && it.message.isAcknowledged
+            }?.let {
+                // TODO
             }
+            null
         }
     }
 
@@ -494,9 +493,9 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                             it.cancel()
                             it.purge()
                         }
-                        acknowledgementTimers.remove(key)?.apply {
-                            cancel()
-                            purge()
+                        acknowledgementTimers.remove(key)?.also {
+                            it.cancel()
+                            it.purge()
                         }
                     }
                     // When a segment is received the SAR Acknowledgement timer shall be
@@ -600,7 +599,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
         // Is the target Node busy?
         require(!ack.isBusy) {
-            finalize(destination = destination, sequenceZero = ack.sequenceZero)
+            cancelTransmissionOfSegments(ack.sequenceZero, LowerTransportError.Busy)
             return
         }
 
@@ -621,7 +620,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
         // If all the segments were acknowledged, notify the manager.
         if (outgoingSegments[ack.sequenceZero]?.segments?.hasMore() == false) {
-            finalize(destination = destination, sequenceZero = ack.sequenceZero)
+            cancelTransmissionOfSegments(ack.sequenceZero, null)
         } else {
             // Check if the SAR Unicast Retransmission timer is running.
             require(unicastRetransmissionsTimers[ack.sequenceZero] != null) {
@@ -652,7 +651,6 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     else (withProgress - 1u).toUByte()
                 )
             // Lastly, send again all packets that were not acknowledged.
-            println("Sending packets that were nto acknowledged.")
             sendSegments(ack.sequenceZero)
         }
     }
@@ -766,11 +764,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      */
     private suspend fun startUnicastRetransmissionsTimer(sequenceZero: UShort) {
         val remainingNumberOfUnicastRetransmissions =
-            remainingNumberOfUnicastRetransmissions[sequenceZero] ?: return
-        val (destination, segments) = outgoingSegments[sequenceZero] ?: return
-        val segment = segments.firstNotAcknowledged() ?: return
-        if (segment.message == null) return
-        val ttl = segmentTtl[sequenceZero] ?: return
+            requireNotNull(remainingNumberOfUnicastRetransmissions[sequenceZero]) { return }
+        val ttl = requireNotNull(segmentTtl[sequenceZero]) { return }
 
         // Remaining number of retransmissions of segments of an segmented message sent to a Unicast
         // Address. When the number goes to 0 the retransmissions stop.
@@ -806,7 +801,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         remainingNumberOfUnicastRetransmissionsWithoutProgress > 0u
             ) {
                 scope.launch {
-                    finalize(destination = destination, sequenceZero = sequenceZero)
+                    cancelTransmissionOfSegments(sequenceZero, error = null)
                 }
                 return@fixedRateTimer
             }
@@ -819,7 +814,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     withoutProgress = (remainingNumberOfUnicastRetransmissionsWithoutProgress - 1u)
                         .toUByte()
                 )
-            scope.launch {
+            networkManager.scope.launch {
                 // Send again unacknowledged segments and restart the timer.
                 sendSegments(sequenceZero)
             }
@@ -836,9 +831,6 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private suspend fun startMulticastRetransmissionTimer(sequenceZero: UShort) {
         val remainingNumberOfRetransmissions =
             remainingNumberOfMulticastRetransmissions[sequenceZero] ?: return
-        // val (destination, segments) = outgoingSegments[sequenceZero] ?: return
-        // val segment = segments.firstNotAcknowledged() ?: return
-        // if (segment.message == null) return
 
         // The initial value of the SAR Multicast Retransmissions timer.
         val interval = networkManager.networkParameters.multicastRetransmissionsInterval
@@ -876,11 +868,11 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     }
 
     /**
-     * Removes remaining segments and counters associated with the message with the given
-     * [sequenceZero].
+     * Removes all timers and counters associated with the message with given [sequenceZero] and
+     * notifies the network manager about a success or failure.
      *
-     * @param destination   Target address of the message.
-     * @param sequenceZero  The key to get segments from the map.
+     * @param sequenceZero The key to get segments from the map.
+     * @param error        Error that caused the transmission to fail or null if the transmission
      */
     private suspend fun cancelTransmissionOfSegments(
         sequenceZero: UShort,
