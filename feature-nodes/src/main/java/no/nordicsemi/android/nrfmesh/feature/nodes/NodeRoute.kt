@@ -91,14 +91,6 @@ private fun NodeScreen(
     onResetClicked: () -> Unit
 ) {
     val state = rememberPullToRefreshState()
-    if (state.isAnimating) {
-        LaunchedEffect(true) {
-            // fetch something
-            onRefresh()
-            delay(1500)
-            state.animateToHidden()
-        }
-    }
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
         state = state,

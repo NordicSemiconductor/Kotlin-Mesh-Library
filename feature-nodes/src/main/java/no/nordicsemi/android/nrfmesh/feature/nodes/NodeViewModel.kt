@@ -2,9 +2,14 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -33,29 +38,31 @@ internal class NodeViewModel @Inject internal constructor(
     private lateinit var selectedNode: Node
     private val nodeUuid: UUID = parameterOf(node)
 
-    val uiState: StateFlow<NodeScreenUiState> = repository.network.onEach {
-        meshNetwork = it
-    }.map {
-        it.node(nodeUuid)?.let { node ->
-            this@NodeViewModel.selectedNode = node
-            NodeState.Success(node)
-        } ?: NodeState.Error(Throwable("Node not found"))
-        NodeScreenUiState(
-            nodeState = NodeState.Success(selectedNode)
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = NodeScreenUiState()
-    )
+    private val _uiState = MutableStateFlow(NodeScreenUiState())
+
+    val uiState: StateFlow<NodeScreenUiState> = _uiState.asStateFlow()
+
+    init {
+        repository.network.onEach {
+            meshNetwork = it
+            it.node(nodeUuid)?.let { node ->
+                this@NodeViewModel.selectedNode = node
+                NodeState.Success(node)
+            } ?: NodeState.Error(Throwable("Node not found"))
+            _uiState.value = _uiState.value.copy(
+                nodeState = NodeState.Success(selectedNode)
+            )
+        }.launchIn(scope = viewModelScope)
+    }
 
     /**
      * Called when the user pulls down to refresh the node details.
      */
     internal fun onRefresh() {
-        // uiState.value.isRefreshing = true
+        _uiState.value = uiState.value.copy(isRefreshing = true)
         viewModelScope.launch {
             repository.send(selectedNode, ConfigCompositionDataGet(page = 0x00u))
+            _uiState.value = uiState.value.copy(isRefreshing = false)
         }
     }
 
@@ -124,8 +131,6 @@ sealed interface NodeState {
 }
 
 data class NodeScreenUiState internal constructor(
-    val nodeState: NodeState = NodeState.Loading
-) {
-    var isRefreshing: Boolean = false
-        private set
-}
+    val nodeState: NodeState = NodeState.Loading,
+    val isRefreshing: Boolean = false
+)
