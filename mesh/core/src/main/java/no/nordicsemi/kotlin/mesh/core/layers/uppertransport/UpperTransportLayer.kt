@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
+import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.access.AccessPdu
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
@@ -33,7 +34,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     private val logger: Logger?
         get() = networkManager.logger
     private val queue: MutableMap<Address, MutableList<MessageData>> = mutableMapOf()
-    private val mutex = Mutex(locked = true)
+    private val mutex = Mutex()
     private var heartbeatPublisher: Timer? = null
 
     /**
@@ -92,7 +93,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      * @param ttl        Initial TTL value of the message. If 'null', default Node TTL will be used.
      * @param keySet     Key set to be used to encrypt the message.
      */
-    suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet): MeshMessage? {
+    suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet) {
         // Get the current sequence number for the given source Element's address.
         val sequence = networkManager.networkLayer.nextSequenceNumber(
             address = UnicastAddress(accessPdu.source)
@@ -105,17 +106,47 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         )
         logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet" }
 
-        return if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
+        if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
             enqueue(pdu, ttl, keySet.networkKey)
-            // TODO
-            null
         } else {
             networkManager.lowerTransportLayer.sendUnsegmentedUpperTransportPdu(
                 pdu = pdu,
                 initialTtl = ttl,
                 networkKey = keySet.networkKey
             )
+        }
+    }
+
+    /**
+     * Cancels sending all segmented messages matching given handle. Unsegmented messages are sent
+     * almost instantaneously and cannot be cancelled.
+     *
+     * @param handle Message handle.
+     */
+    internal suspend fun cancel(handle: MessageHandle) {
+        var shouldSendNext = false
+        // Check if the message that is currently being sent matches the handler data. If so, cancel
+        // it.
+        mutex.withLock {
+            queue[handle.destination.address]?.first()
+        }?.takeIf { first ->
+            first.pdu.message!!.opCode == handle.opCode && first.pdu.source == handle.source.address
+        }?.let {
+            logger?.d(LogCategory.UPPER_TRANSPORT) { "Cancelling message ${it.pdu}" }
+            networkManager.lowerTransportLayer.cancelSending(segmentedPdu = it.pdu)
+            shouldSendNext = true
+        }
+
+        mutex.withLock {
+            queue[handle.destination.address]?.removeAll {
+                it.pdu.message!!.opCode == handle.opCode &&
+                        it.pdu.source == handle.source.address &&
+                        it.pdu.destination == handle.destination
+            }
+        }
+        if (shouldSendNext) {
+            onLowerTransportLayerSent(handle.destination.address)
         }
     }
 
@@ -132,11 +163,17 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         return networkManager.lowerTransportLayer.isReceivingMessage(address)
     }
 
+    /**
+     * Invoked by the lower transport layer when a segmented message has been sent to the
+     * destination or failed.
+     *
+     * This removes the sent PDU from the queue and sends the next one if available.
+     *
+     * @param destination Destination address.
+     */
     suspend fun onLowerTransportLayerSent(destination: Address) {
         mutex.withLock {
-            require(queue[destination] != null) {
-                return
-            }
+            require(queue[destination]?.isEmpty() == false) { return }
             // Remove the PDU that has just been sent.
             queue[destination]?.removeFirst()
         }
@@ -236,6 +273,14 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             }
         }
     }
+
+    /**
+     * Enqueue a message to be sent
+     *
+     * @param pdu            PDU to be sent.
+     * @param initialTtl     Initial TTL.
+     * @param networkKey     Network key used to encrypt ht message.
+     */
 
     private suspend fun enqueue(
         pdu: UpperTransportPdu,

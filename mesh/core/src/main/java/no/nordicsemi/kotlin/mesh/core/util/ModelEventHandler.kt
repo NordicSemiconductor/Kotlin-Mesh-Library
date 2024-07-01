@@ -2,12 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -20,6 +19,10 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
+
+sealed class ModelError : Exception() {
+    data class InvalidMessage(val msg: MeshMessage) : ModelError()
+}
 
 typealias MessageComposer = () -> MeshMessage
 
@@ -42,7 +45,7 @@ sealed class ModelEvent {
         val request: AcknowledgedMeshMessage,
         val source: Address,
         val destination: MeshAddress,
-        val reply: suspend (MeshResponse?) -> Unit
+        val reply: suspend (MeshResponse) -> Unit
     ) : ModelEvent()
 
     /**
@@ -84,14 +87,14 @@ sealed class ModelEvent {
  *
  * The event handler must declare a map of mesh message type supported by this Model. Whenever a
  * message matching any of the declared op codes is received, and the model is bound to an
- * Application Key used to encrypt the message, one of the following events can be observed using
- * the [modelEventFlow] depending on the type of the message.
+ * Application Key used to encrypt the message. Upon receiving a message, the [handle] with
+ * the [ModelEvent] will be invoked.
+ *
  *
  * @property messageTypes                 Map of supported message types.
  * @property isSubscriptionSupported      Defines the model supports subscription.
  * @property publicationMessageComposer   Lambda function that returns a [MeshMessage] to be
  *                                        published.
- * @property modelEventFlow               Flow of model events.
  */
 abstract class ModelEventHandler {
 
@@ -103,27 +106,38 @@ abstract class ModelEventHandler {
 
     abstract val publicationMessageComposer: MessageComposer?
 
-    internal val _modelEventFlow = MutableSharedFlow<ModelEvent>()
-    val modelEventFlow: SharedFlow<ModelEvent>
-        get() = _modelEventFlow
+    internal val mutex = Mutex()
 
-    internal val mutex = Mutex(locked = true)
+    /**
+     * Publishes a single message given as a parameter using the Publish information set in the
+     * underlying model.
+     *
+     * @param message Message to be published.
+     * @param manager Mesh network manager.
+     * @return a nullable [MessageHandle] that can be used to cancel the message.
+     */
     suspend fun publish(message: MeshMessage, manager: MeshNetworkManager) = manager.localElements
-        .flatMap { element ->
-            element.models
-        }.firstOrNull { model ->
-            model.eventHandler === this
-        }?.let { model ->
-            manager.publish(message, model)
-        }
+        .flatMap { it.models }
+        .firstOrNull { it.eventHandler === this }
+        ?.let { manager.publish(message, it) }
 
+    /**
+     * Publishes a single message created by Model;s message composer using the Publish information
+     * set in the underlying model.
+     *
+     * @param manager Mesh network manager.
+     * @return a nullable [MessageHandle] that can be used to cancel the message.
+     */
     suspend fun publish(manager: MeshNetworkManager) = publicationMessageComposer?.let { composer ->
         publish(message = composer(), manager = manager)
     }
 
-    internal fun onMeshMessageReceived() {
-
-    }
+    /**
+     * Invoked when a model event is published.
+     *
+     * @param event Model event.
+     */
+    abstract fun handle(event: ModelEvent)
 }
 
 /**
@@ -203,7 +217,7 @@ private data class Transaction(
 
 class TransactionHelper {
 
-    private var mutex = Mutex(true)
+    private val mutex = Mutex()
 
     private var lastTransactions = mutableMapOf<Address, Transaction>()
 

@@ -78,7 +78,7 @@ internal data class SegmentAcknowledgementMessage(
      * @param m Segment number.
      * @return true if the segment has been received or false otherwise.
      */
-    fun isSegmentReceived(m: Int) = ackedSegments and (1 shl m).toUInt() != 0.toUInt()
+     fun isSegmentReceived(m: Int) = (ackedSegments and (1 shl m).toUInt()) != 0.toUInt()
 
     /**
      * Checks if all segments have been received.
@@ -86,7 +86,7 @@ internal data class SegmentAcknowledgementMessage(
      * @param segments List of segmented messages.
      * @return true if all segments have been received or false otherwise.
      */
-    fun areAllSegmentsReceived(segments: List<SegmentedMessage>): Boolean =
+    fun areAllSegmentsReceived(segments: List<SegmentedMessage?>): Boolean =
         areAllSegmentsReceived(segments.size - 1)
 
     /**
@@ -96,7 +96,7 @@ internal data class SegmentAcknowledgementMessage(
      * @return true if all segments have been received or false otherwise.
      */
     fun areAllSegmentsReceived(lastSegmentNumber: Int) =
-        ackedSegments == ((1 shl lastSegmentNumber) - 1).toUInt()
+        ackedSegments == ((1 shl (lastSegmentNumber + 1)) - 1).toUInt()
 
     override fun toString() = "ACK (seqZero: $sequenceZero, blockAck: " +
             "${ackedSegments.toByteArray().encodeHex(true)})"

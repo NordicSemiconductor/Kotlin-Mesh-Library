@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.layers
 
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 
@@ -29,6 +30,18 @@ data class MessageHandle internal constructor(
     val opCode: UInt
         get() = message.opCode
 
+    internal constructor(
+        message: MeshMessage,
+        source: Address,
+        destination: MeshAddress,
+        manager: NetworkManager
+    ) : this(
+        message = message,
+        source = UnicastAddress(source),
+        destination = destination,
+        manager = manager
+    )
+
     /**
      * Cancels sending the message.
      *
@@ -36,7 +49,7 @@ data class MessageHandle internal constructor(
      * messages are sent instantaneously (depending on the connection interval and message size) and
      * therefore cannot be cancelled.
      */
-    fun cancel() {
-        // manager.cancel(this)
+    suspend fun cancel() {
+        manager.cancel(this)
     }
 }

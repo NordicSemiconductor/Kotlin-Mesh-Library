@@ -9,6 +9,8 @@ pluginManagement {
     plugins {
         id("org.jetbrains.dokka") version "1.9.0"
         id("org.jetbrains.kotlin.jvm") version "1.9.0"
+        id("com.android.library") version "8.3.0"
+        id("org.jetbrains.kotlin.android") version "1.9.21"
     }
 }
 dependencyResolutionManagement {
@@ -29,20 +31,20 @@ dependencyResolutionManagement {
 rootProject.name = "Kotlin-nRF Mesh-Library"
 include(":app")
 include(":core-ui")
-include(":feature-nodes")
-include(":feature-groups")
-include(":feature-settings")
-include(":feature-proxy")
-include(":core-data")
-include(":feature-export")
-include(":feature-network-keys")
 include(":core-common")
-include(":feature-application-keys")
-include(":feature-scenes")
-include(":feature-provisioners")
-include(":feature-mesh-bearer-android")
-include(":feature-mesh-bearer-gatt")
-include(":feature-mesh-bearer-pbgatt")
+include(":core-data")
+include(":feature:nodes")
+include(":feature:groups")
+include(":feature:settings")
+include(":feature:proxy")
+include(":feature:export")
+include(":feature:network-keys")
+include(":feature:application-keys")
+include(":feature:scenes")
+include(":feature:provisioners")
+include(":feature:mesh-bearer-android")
+include(":feature:mesh-bearer-gatt")
+include(":feature:mesh-bearer-pbgatt")
 
 include(":mesh:core")
 include(":mesh:crypto")
@@ -58,3 +60,4 @@ include(":mesh:foundation")
 /*if (file("../Android-Gradle-Plugins").exists()) {
     includeBuild("../Android-Gradle-Plugins")
 }*/
+include(":feature:config-network-keys")

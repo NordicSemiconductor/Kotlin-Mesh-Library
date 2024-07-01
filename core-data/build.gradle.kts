@@ -37,10 +37,9 @@ dependencies {
 
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
-    // implementation(project(":core-data-storage"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
-    implementation(project(":feature-mesh-bearer-android"))
-    implementation(project(":feature-mesh-bearer-pbgatt"))
-    implementation(project(":feature-mesh-bearer-gatt"))
+    implementation(project(":feature:mesh-bearer-android"))
+    implementation(project(":feature:mesh-bearer-pbgatt"))
+    implementation(project(":feature:mesh-bearer-gatt"))
 }

@@ -1,5 +1,9 @@
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.model.Element
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+
 /**
  * Defines a set of errors originating from the access layer.
  */
@@ -16,7 +20,10 @@ sealed class AccessError : Exception() {
         Busy -> "Unable to send a message to specified address. Another transfer in progress."
         Timeout -> "Request timed out."
         Cancelled -> "Message cancelled."
+        is MessageSendingFailed -> "Message sending failed: ${error.message}"
     }
+
+    protected fun readResolve(): Any = InvalidSource
 }
 
 /**
@@ -78,3 +85,18 @@ data object Timeout : AccessError()
  * Thrown when sending the message was cancelled.
  */
 data object Cancelled : AccessError()
+
+/**
+ * Thrown when message sending failed.
+ *
+ * @property msg          Message that was being sent.
+ * @property localElement Local element from which the message was being sent.
+ * @property destination  Destination address.
+ * @property error        Exception that caused the failure.
+ */
+data class MessageSendingFailed(
+    val msg: MeshMessage,
+    val localElement: Element,
+    val destination: MeshAddress,
+    val error: Exception
+) : AccessError()
