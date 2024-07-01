@@ -7,8 +7,8 @@ pluginManagement {
     }
 
     plugins {
-        id("org.jetbrains.dokka") version "1.9.0"
-        id("org.jetbrains.kotlin.jvm") version "1.9.0"
+        id("org.jetbrains.dokka") version "1.9.20"
+        id("org.jetbrains.kotlin.jvm") version "2.0.0"
     }
 }
 dependencyResolutionManagement {
@@ -58,7 +58,6 @@ include(":mesh:foundation")
 if (file("../Kotlin-Util-Library").exists()) {
     includeBuild("../Kotlin-Util-Library")
 }
-
-if (file("../Kotlin-Gradle-Plugins").exists()) {
-    includeBuild("../Kotlin-Gradle-Plugins")
-}
+//if (file("../Kotlin-Gradle-Plugins").exists()) {
+//    includeBuild("../Kotlin-Gradle-Plugins")
+//}
