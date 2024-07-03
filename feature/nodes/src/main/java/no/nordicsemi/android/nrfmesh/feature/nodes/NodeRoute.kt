@@ -346,6 +346,7 @@ private fun ResetRow(onResetClicked: () -> Unit) {
             title = stringResource(R.string.label_reset_node),
             text = stringResource(R.string.label_are_you_sure_rationale),
             iconColor = Color.Red,
+            onDismissClick = { showResetDialog = !showResetDialog },
             onConfirmClick = {
                 showResetDialog = !showResetDialog
                 onResetClicked()
