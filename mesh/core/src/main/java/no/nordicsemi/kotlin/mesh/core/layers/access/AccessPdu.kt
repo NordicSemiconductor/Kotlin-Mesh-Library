@@ -2,18 +2,15 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
-import no.nordicsemi.kotlin.data.and
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.data.or
 import no.nordicsemi.kotlin.data.shl
-import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import kotlin.experimental.or
 
 /**
  * Defines the Access PDU
@@ -203,13 +200,4 @@ internal data class AccessPdu(
             )
         }
     }
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-fun main(){
-    val pdu = byteArrayOf(-128, 68)
-    val octet0 = pdu[0]
-    val octet1 = pdu[1]
-    val opcode = (octet0.toUInt() shl 8 or octet1.toUInt()) and 0x0000FFFFu
-    println(opcode.toHexString()) // 0x8044
 }

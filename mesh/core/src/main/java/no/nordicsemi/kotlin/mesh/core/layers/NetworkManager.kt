@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers
 
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
