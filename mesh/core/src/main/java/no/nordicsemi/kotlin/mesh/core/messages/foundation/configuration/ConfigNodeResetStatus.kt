@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -12,6 +13,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 class ConfigNodeResetStatus : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = null
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String =
+        "ConfigNodeResetStatus(opCode=${opCode.toHexString()}, parameters=${parameters?.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x804Au
