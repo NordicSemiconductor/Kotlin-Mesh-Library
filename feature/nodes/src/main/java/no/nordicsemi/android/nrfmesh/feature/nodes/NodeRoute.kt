@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -318,7 +316,10 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
         titleAction = { SwitchWithIcon(isChecked = excluded, onCheckedChange = { excluded = it }) },
-        subtitle = "Node is ${if (excluded) "excluded" else "not excluded"} from the network",
+        subtitle = when (excluded) {
+            true -> stringResource(id = R.string.label_node_excluded)
+            false -> stringResource(id = R.string.label_node_not_excluded)
+        },
         supportingText = stringResource(R.string.label_exclusion_rationale)
     )
 }
