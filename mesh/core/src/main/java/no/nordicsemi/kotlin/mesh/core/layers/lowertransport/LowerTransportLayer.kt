@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
+import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkParameters
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
@@ -15,6 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -46,7 +48,8 @@ sealed class SecurityError : Exception() {
 }
 
 internal class LowerTransportLayer(private val networkManager: NetworkManager) {
-    private val network = networkManager.meshNetwork
+    private val network: MeshNetwork
+        get() = networkManager.meshNetwork
     private val logger: Logger?
         get() = networkManager.logger
     private val storage = networkManager.securePropertiesStorage
@@ -171,24 +174,25 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         pdu: UpperTransportPdu,
         initialTtl: UByte?,
         networkKey: NetworkKey
-    ): MeshMessage? = network.localProvisioner?.node?.let { node ->
-        val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
-        val message = AccessMessage(pdu = pdu, networkKey = networkKey)
-        try {
-            logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
-            networkManager.networkLayer.send(
-                pdu = message,
-                type = PduType.NETWORK_PDU,
-                ttl = ttl
-            )
-        } catch (ex: Exception) {
-            logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
-            pdu.takeIf {
-                it.message != null && it.message.isAcknowledged
-            }?.let {
-                // TODO
+    ) {
+        network.localProvisioner?.node?.let { node ->
+            val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
+            val message = AccessMessage(pdu = pdu, networkKey = networkKey)
+            try {
+                logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
+                networkManager.networkLayer.send(
+                    pdu = message,
+                    type = PduType.NETWORK_PDU,
+                    ttl = ttl
+                )
+            } catch (ex: Exception) {
+                logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+                pdu.takeIf {
+                    it.message != null && it.message.isAcknowledged
+                }?.let {
+                    // TODO
+                }
             }
-            null
         }
     }
 
@@ -361,6 +365,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         return true
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun assemble(
         segment: SegmentedMessage,
         networkPdu: NetworkPdu
@@ -484,9 +489,12 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                             }
                             logger?.w(LogCategory.LOWER_TRANSPORT) {
                                 "Discard timeout expired, cancelling message (src: " +
-                                "${MeshAddress.create((key shr 16).toUShort()).toHexString()}, " +
-                                "seqZero: ${key and 0x1FFFu}, received segments: 0x" +
-                                marks.toHexString() + ")"
+                                        "${
+                                            MeshAddress.create((key shr 16).toUShort())
+                                                .toHexString()
+                                        }, " +
+                                        "seqZero: ${key and 0x1FFFu}, received segments: 0x" +
+                                        marks.toHexString() + ")"
                             }
                         }
                         discardTimers.remove(key)?.also {
@@ -899,22 +907,22 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             ) ?: return
 
             error?.let {
-                networkManager.emitNetworkManagerEvent(
-                    NetworkManagerEvent.MessageSendingFailed(
-                        message = message,
-                        localElement = element,
-                        destination = destination,
-                        error = it
-                    )
-                )
+                // networkManager.emitNetworkManagerEvent(
+                //     NetworkManagerEvent.MessageSendingFailed(
+                //         message = message,
+                //         localElement = element,
+                //         destination = destination,
+                //         error = it
+                //     )
+                // )
             } ?: run {
-                networkManager.emitNetworkManagerEvent(
-                    NetworkManagerEvent.MessageSent(
-                        message = message,
-                        localElement = element,
-                        destination = destination
-                    )
-                )
+                //networkManager.emitNetworkManagerEvent(
+                //    NetworkManagerEvent.MessageSent(
+                //        message = message,
+                //        localElement = element,
+                //        destination = destination
+                //    )
+                //)
             }
         }
 

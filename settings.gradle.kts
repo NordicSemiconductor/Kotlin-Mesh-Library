@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.3")
+            from("no.nordicsemi.android.gradle:version-catalog:2.4")
         }
     }
 }
@@ -37,6 +37,7 @@ include(":feature:settings")
 include(":feature:proxy")
 include(":feature:export")
 include(":feature:network-keys")
+include(":feature:config-network-keys")
 include(":feature:application-keys")
 include(":feature:scenes")
 include(":feature:provisioners")
@@ -55,10 +56,9 @@ include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
 
-/*if (file("../Android-Gradle-Plugins").exists()) {
-    includeBuild("../Android-Gradle-Plugins")
-}*/
-if (file("../Kotlin-Util-Library").exists()) {
-    includeBuild("../Kotlin-Util-Library")
-}
-include(":feature:config-network-keys")
+// if (file("../Android-Gradle-Plugins").exists()) {
+//     includeBuild("../Android-Gradle-Plugins")
+// }
+// if (file("../Kotlin-Util-Library").exists()) {
+//     includeBuild("../Kotlin-Util-Library")
+// }

@@ -22,6 +22,8 @@ dependencies {
     // Workaround to get access to the scanner compat api
     // implementation(libs.nordic.scanner)
 
+    implementation(libs.kotlinx.datetime)
+
     implementation(libs.androidx.dataStore.core)
     implementation(libs.androidx.dataStore.preferences)
 

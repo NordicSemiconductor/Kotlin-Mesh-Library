@@ -235,7 +235,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         ttl: UByte?,
         applicationKey: ApplicationKey,
         retransmit: Boolean
-    ): MeshMessage? {
+    ): MeshMessage {
         var msg = message
         val transactionMessage = message as? TransactionMessage
 
@@ -273,7 +273,9 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
         }
 
-        return networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
+        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
+
+        return awaitResponse(destination = destination)
     }
 
     /**
@@ -324,12 +326,21 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             keySet = keySet
         )
 
-        return networkManager.upperTransportLayer.send(
+        networkManager.upperTransportLayer.send(
             accessPdu = pdu,
             ttl = initialTtl,
             keySet = keySet
         )
+
+        return awaitResponse(destination = destination)
     }
+
+    suspend fun awaitResponse(destination: Address) =
+        awaitResponse(destination = MeshAddress.create(destination))
+
+    suspend fun awaitResponse(destination: MeshAddress) = networkManager.incomingMessages.first {
+        it.address == destination
+    }.message
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given

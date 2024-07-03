@@ -53,7 +53,6 @@ import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.popUpToStartDestination
 import no.nordicsemi.android.common.navigation.with
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
-import no.nordicsemi.android.common.theme.view.NordicLargeAppBar
 import no.nordicsemi.android.feature.config.networkkeys.configNetKeys
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.destinations.NavigationItem

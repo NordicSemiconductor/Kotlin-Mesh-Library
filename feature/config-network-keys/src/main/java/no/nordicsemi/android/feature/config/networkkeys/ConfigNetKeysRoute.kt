@@ -28,7 +28,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,8 +50,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.crypto.Utils.encodeHex
 
 @Composable
 internal fun ConfigNetKeysRoute(
@@ -68,6 +68,7 @@ internal fun ConfigNetKeysRoute(
     )
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NetKeysScreen(
@@ -135,9 +136,7 @@ private fun NetKeysScreen(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            OutlinedButton(onClick = {
-                                navigateToNetworkKeys()
-                            }) {
+                            OutlinedButton(onClick = { navigateToNetworkKeys() }) {
                                 Text(text = stringResource(R.string.action_settings))
                             }
                         }
@@ -153,7 +152,7 @@ private fun NetKeysScreen(
                                 },
                             imageVector = Icons.Outlined.VpnKey,
                             title = key.name,
-                            subtitle = key.key.encodeHex()
+                            subtitle = key.key.toHexString()
                         )
                     }
                 }
@@ -192,6 +191,7 @@ private fun NetworkKeys(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissKey(
     key: NetworkKey,
@@ -205,7 +205,7 @@ private fun SwipeToDismissKey(
     var shouldNotDismiss by remember {
         mutableStateOf(false)
     }
-    val dismissState = rememberSwipeToDismissState(
+    val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
             !shouldNotDismiss
@@ -218,7 +218,7 @@ private fun SwipeToDismissKey(
             ElevatedCardItem(
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
-                subtitle = key.key.encodeHex()
+                subtitle = key.key.toHexString()
             )
         }
     )

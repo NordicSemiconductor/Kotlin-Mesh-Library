@@ -63,6 +63,7 @@ internal fun ProxyRoute(
     )
 }
 
+@ExperimentalMaterial3Api
 @Composable
 private fun ProxyFilterScreen(
     onBluetoothEnabled: (Boolean) -> Unit,
@@ -173,7 +174,7 @@ private fun ScannerSection(
     val context = LocalContext.current
     val filters = listOf(
         WithServiceUuid(
-            title = "Unprovisioned",
+            title = "Provisioned",
             uuid = ParcelUuid(MeshProxyService.uuid)
         )
     )

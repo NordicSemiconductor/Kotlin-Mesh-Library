@@ -1,9 +1,8 @@
 plugins {
-    id("kotlin")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
     api(project(":mesh:logger"))
+    implementation(libs.kotlinx.coroutines.core)
 }

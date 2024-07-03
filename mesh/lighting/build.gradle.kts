@@ -1,6 +1,5 @@
 plugins {
-    id("kotlin")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.kotlin.jvm)
 }
 dependencies {
     api(project(":mesh:core"))

@@ -138,7 +138,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
         secureProperties(uuid = uuid)
             ?.seqAuths
             ?.get(source.address.toInt())
-            ?.last?.toULong() ?: 0uL
+            ?.last?.toULong() //?: 0uL
 
     override suspend fun storeLastSeqAuthValue(
         uuid: UUID,

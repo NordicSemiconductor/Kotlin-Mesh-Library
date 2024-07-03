@@ -110,11 +110,15 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
      * Awaits and returns the mesh pdu received by the bearer.
      */
     private fun awaitBearerPdus() {
-        handlerScope.launch(CoroutineExceptionHandler { _, throwable ->
+        handlerScope.launch/*(CoroutineExceptionHandler { _, throwable ->
             logger?.e(LogCategory.BEARER) { "Bearer error : $throwable" }
-        }) {
+        })*/ {
             bearer?.pdus?.collect {
-                handle(incomingPdu = it.data, type = it.type)
+                try {
+                    handle(incomingPdu = it.data, type = it.type)
+                } catch (e: Exception) {
+                    logger?.e(LogCategory.BEARER) { "Bearer error : $e" }
+                }
             }
         }
     }
