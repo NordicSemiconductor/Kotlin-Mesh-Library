@@ -274,7 +274,6 @@ class CoreDataRepository @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     suspend fun scanForProxy(meshNetwork: MeshNetwork?): ServerDevice {
-        println("starting scan for proxy")
         _proxyStateFlow.value = _proxyStateFlow.value.copy(
             connectionState = NetworkConnectionState.Scanning
         )
