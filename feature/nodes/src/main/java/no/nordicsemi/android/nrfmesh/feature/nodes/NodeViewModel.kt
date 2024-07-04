@@ -40,12 +40,12 @@ internal class NodeViewModel @Inject internal constructor(
     init {
         repository.network.onEach {
             meshNetwork = it
-            it.node(nodeUuid)?.let { node ->
+            val state = it.node(nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
                 NodeState.Success(node)
             } ?: NodeState.Error(Throwable("Node not found"))
             _uiState.value = _uiState.value.copy(
-                nodeState = NodeState.Success(selectedNode)
+                nodeState = state
             )
         }.launchIn(scope = viewModelScope)
     }
@@ -98,6 +98,18 @@ internal class NodeViewModel @Inject internal constructor(
     }
 
     /**
+     * Called when the user clicks on the excluded elements.
+     *
+     * @param exclude True to exclude the node, false to not exclude from the network.
+     */
+    internal fun onExcluded(exclude : Boolean) {
+        // println("Excluded: $exclude")
+        selectedNode.excluded = exclude
+        viewModelScope.launch {
+            repository.save()
+        }
+    }
+    /**
      * Called when the user clicks on the reset node button.
      */
     fun onResetClicked() {
@@ -114,12 +126,12 @@ internal class NodeViewModel @Inject internal constructor(
 }
 
 sealed interface NodeState {
-    data class Success(
-        val node: Node,
-    ) : NodeState
+
+    data object Loading : NodeState
+
+    data class Success(val node: Node) : NodeState
 
     data class Error(val throwable: Throwable) : NodeState
-    data object Loading : NodeState
 }
 
 data class NodeScreenUiState internal constructor(

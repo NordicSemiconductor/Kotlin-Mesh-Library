@@ -174,7 +174,7 @@ data class Node internal constructor(
         }
 
     var excluded: Boolean = false
-        internal set(value) {
+        set(value) {
             field = value
             network?.updateTimestamp()
         }
