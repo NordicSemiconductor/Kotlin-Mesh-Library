@@ -23,7 +23,7 @@
         relayed. Max value of TTL is 127.</string>
     <string name="label_exclude_node">Exclude Node</string>
     <string name="label_node_not_excluded">Node is not excluded from the network</string>
-    <string name="label_node_excluded">Node is not excluded from the network</string>
+    <string name="label_node_excluded">Node is excluded from the network</string>
     <string name="label_exclusion_rationale">If checked, the node will be excluded from the key exchange process. When the key refresh procedure is complete, this node will no longer be able to receive or send messages to the mesh network.</string>
     <string name="label_reset">Reset</string>
     <string name="label_reset_node">Reset Node</string>

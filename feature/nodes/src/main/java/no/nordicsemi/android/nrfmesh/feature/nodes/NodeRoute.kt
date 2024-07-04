@@ -315,7 +315,15 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
-        titleAction = { SwitchWithIcon(isChecked = excluded, onCheckedChange = { excluded = it }) },
+        titleAction = {
+            SwitchWithIcon(
+                isChecked = isExcluded,
+                onCheckedChange = {
+                    excluded = it
+                    onExcluded(it)
+                }
+            )
+        },
         subtitle = when (excluded) {
             true -> stringResource(id = R.string.label_node_excluded)
             false -> stringResource(id = R.string.label_node_not_excluded)
