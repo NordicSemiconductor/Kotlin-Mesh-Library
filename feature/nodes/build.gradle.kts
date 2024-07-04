@@ -22,8 +22,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project(":core-ui"))
-    implementation(project(":core-data"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:data"))
     implementation(project(":feature:config-network-keys"))
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":mesh:core"))

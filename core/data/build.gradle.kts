@@ -37,8 +37,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project(":core-ui"))
-    implementation(project(":core-common"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:common"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
     implementation(project(":feature:mesh-bearer-android"))

@@ -22,8 +22,8 @@ dependencies {
 
     implementation(libs.nordic.kotlin.data)
 
-    implementation(project (":core-data"))
-    implementation(project (":core-ui"))
+    implementation(project (":core:data"))
+    implementation(project (":core:ui"))
     implementation(project (":feature:settings"))
     implementation(project (":feature:network-keys"))
     implementation(project(":mesh:core"))

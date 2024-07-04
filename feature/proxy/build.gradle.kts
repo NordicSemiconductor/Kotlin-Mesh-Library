@@ -25,13 +25,13 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project(":core-ui"))
-    implementation(project(":core-data"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:data"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:bearer"))
 
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:mesh-bearer-gatt"))
-    implementation("androidx.test:monitor:1.6.1")
-    implementation("androidx.test.ext:junit-ktx:1.1.5")
+    implementation("androidx.test:monitor:1.7.1")
+    implementation("androidx.test.ext:junit-ktx:1.2.1")
 }

@@ -28,9 +28,9 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Kotlin-nRF Mesh-Library"
 include(":app")
-include(":core-ui")
-include(":core-common")
-include(":core-data")
+include(":core:ui")
+include(":core:common")
+include(":core:data")
 include(":feature:nodes")
 include(":feature:groups")
 include(":feature:settings")
