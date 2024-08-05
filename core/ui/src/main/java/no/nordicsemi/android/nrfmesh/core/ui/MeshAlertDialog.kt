@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -225,5 +227,35 @@ fun MeshAlertDialog(
                 }
             }
         }
+    )
+}
+
+@Composable
+fun MeshMessageStatusDialog(
+    text: String,
+    showDismissButton: Boolean,
+    onDismissRequest: () -> Unit,
+) {
+    AlertDialog(
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        ),
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(text = stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            if (showDismissButton) {
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            }
+        },
+        icon = { Icon(imageVector = Icons.Outlined.Mail, contentDescription = null) },
+        title = { Text(text = stringResource(R.string.title_message_status)) },
+        text = { Text(text = text) }
     )
 }

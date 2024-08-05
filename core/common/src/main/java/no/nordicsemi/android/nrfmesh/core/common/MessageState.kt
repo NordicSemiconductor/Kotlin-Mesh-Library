@@ -7,7 +7,12 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 /**
  * Defines the message state of a mesh message.
  */
-sealed class MessageState
+sealed class MessageState {
+
+    fun MessageState.isInProgress(): Boolean = this is Sending
+
+    fun MessageState.didFail(): Boolean = this is Failed
+}
 
 /**
  * Defines a state where the message sending has not started yet.

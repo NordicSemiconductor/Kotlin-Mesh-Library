@@ -18,7 +18,9 @@ private val configNetKeyDestination = defineDestination(configNetKeys) {
         uiState = uiState,
         navigateToNetworkKeys = viewModel::navigateToNetworkKeys,
         onAddKeyClicked = viewModel::addNetworkKey,
-        onSwiped = viewModel::onSwiped
+        onSwiped = viewModel::onSwiped,
+        resetMessageState = viewModel::resetMessageState,
+        onBackClick = viewModel::navigateUp
     )
 }
 

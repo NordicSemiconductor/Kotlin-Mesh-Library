@@ -20,5 +20,8 @@
     <string name="label_company">Company:</string>
     <string name="label_elements">Elements:</string>
     <string name="label_models">Models:</string>
+    <string name="title_message_status">Message Status</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">Ok</string>
 
 </resources>

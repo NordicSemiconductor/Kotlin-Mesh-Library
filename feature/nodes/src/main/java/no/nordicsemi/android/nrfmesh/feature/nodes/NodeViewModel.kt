@@ -136,5 +136,5 @@ sealed interface NodeState {
 
 data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 )

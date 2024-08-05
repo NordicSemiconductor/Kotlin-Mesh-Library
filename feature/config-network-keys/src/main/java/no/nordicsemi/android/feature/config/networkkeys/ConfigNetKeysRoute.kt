@@ -4,9 +4,11 @@ package no.nordicsemi.android.feature.config.networkkeys
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -42,9 +45,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
+import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
@@ -58,32 +66,47 @@ internal fun ConfigNetKeysRoute(
     uiState: NetKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (NetworkKey) -> Unit,
+    resetMessageState: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     NetKeysScreen(
         uiState = uiState,
         navigateToNetworkKeys = navigateToNetworkKeys,
         onAddKeyClicked = onAddKeyClicked,
-        onSwiped = onSwiped
+        onSwiped = onSwiped,
+        resetMessageState = resetMessageState,
+        onBackClick = onBackClick
     )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NetKeysScreen(
     uiState: NetKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (NetworkKey) -> Unit,
+    resetMessageState: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
+    BackHandler(enabled = uiState.messageState.isInProgress()) {
+        // onBackClick()
+    }
+
     Scaffold(
         floatingActionButton = {
-            AnimatedVisibility(visible = !showBottomSheet) {
+            AnimatedVisibility(
+                visible = when {
+                    showBottomSheet -> false
+                    else -> uiState.messageState is NotStarted
+                }
+            ) {
                 ExtendedFloatingActionButton(
                     text = { Text(stringResource(R.string.label_add_key)) },
                     icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
@@ -93,68 +116,102 @@ private fun NetKeysScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        when (uiState.netKeysState) {
-            NetKeysState.Loading -> MeshLoadingItems(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(id = R.string.label_loading)
-            )
-
-            is NetKeysState.Success -> {
-                NetworkKeys(
-                    context = context,
-                    coroutineScope = rememberCoroutineScope(),
-                    snackbarHostState = snackbarHostState,
-                    keys = uiState.netKeysState.netKeys,
-                    navigateToNetworkKeys = navigateToNetworkKeys,
-                    onSwiped = onSwiped
-                )
+        Column {
+            AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
-
-            is NetKeysState.Error -> {
-                MeshNoItemsAvailable(
+            when (uiState.netKeysState) {
+                NetKeysState.Loading -> MeshLoadingItems(
                     imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_keys_added)
+                    title = stringResource(id = R.string.label_loading)
                 )
+
+                is NetKeysState.Success -> {
+                    NetworkKeys(
+                        context = context,
+                        coroutineScope = rememberCoroutineScope(),
+                        snackbarHostState = snackbarHostState,
+                        keys = uiState.netKeysState.netKeys,
+                        navigateToNetworkKeys = navigateToNetworkKeys,
+                        onSwiped = onSwiped
+                    )
+                }
+
+                is NetKeysState.Error -> {
+                    MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_keys_added)
+                    )
+                }
             }
         }
     }
     if (showBottomSheet) {
-        ModalBottomSheet(onDismissRequest = { showBottomSheet = false }) {
-            BottomSheetTopAppBar(
-                navigationIcon = Icons.Outlined.Close,
-                onNavigationIconClick = { showBottomSheet = !showBottomSheet },
-                title = stringResource(R.string.label_add_key)
-            )
-            LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
-                if (uiState.keys.isEmpty()) {
-                    item {
-                        MeshNoItemsAvailable(
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = stringResource(R.string.label_no_keys_added)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OutlinedButton(onClick = { navigateToNetworkKeys() }) {
-                                Text(text = stringResource(R.string.action_settings))
-                            }
+        BottomSheetKeys(
+            uiState = uiState,
+            onAddKeyClicked = onAddKeyClicked,
+            navigateToNetworkKeys = navigateToNetworkKeys,
+            onDismissClick = { showBottomSheet = !showBottomSheet }
+        )
+    }
+
+    uiState.messageState.takeIf {
+        it is Failed
+    }?.let {
+        val state = it as Failed
+        MeshMessageStatusDialog(
+            text = state.error.message ?: stringResource(R.string.unknown_error),
+            showDismissButton = !uiState.messageState.didFail(),
+            onDismissRequest = resetMessageState,
+        )
+    }
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun BottomSheetKeys(
+    uiState: NetKeysScreenUiState,
+    onAddKeyClicked: (NetworkKey) -> Unit,
+    navigateToNetworkKeys: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+    ModalBottomSheet(onDismissRequest = onDismissClick) {
+        BottomSheetTopAppBar(
+            navigationIcon = Icons.Outlined.Close,
+            onNavigationIconClick = onDismissClick,
+            title = stringResource(R.string.label_add_key)
+        )
+        LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
+            if (uiState.keys.isEmpty()) {
+                item {
+                    MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_keys_added)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        OutlinedButton(onClick = { navigateToNetworkKeys() }) {
+                            Text(text = stringResource(R.string.action_settings))
                         }
                     }
-                } else {
-                    items(items = uiState.keys) { key ->
-                        ElevatedCardItem(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .clickable {
-                                    showBottomSheet = !showBottomSheet
-                                    onAddKeyClicked(key)
-                                },
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = key.name,
-                            subtitle = key.key.toHexString()
-                        )
-                    }
+                }
+            } else {
+                items(items = uiState.keys) { key ->
+                    ElevatedCardItem(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clickable {
+                                onDismissClick()
+                                onAddKeyClicked(key)
+                            },
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = key.name,
+                        subtitle = key.key.toHexString()
+                    )
                 }
             }
         }
