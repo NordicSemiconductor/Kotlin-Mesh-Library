@@ -5,9 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
 import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.plus
@@ -16,11 +14,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class UnicastRangesViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
     repository: CoreDataRepository
-) : RangesViewModel(savedStateHandle, navigator, repository) {
-
-    override fun getDestinationId() = unicastRanges
+) : RangesViewModel(savedStateHandle = savedStateHandle, repository = repository) {
 
     override fun getAllocatedRanges(): List<Range> = provisioner.allocatedUnicastRanges
 

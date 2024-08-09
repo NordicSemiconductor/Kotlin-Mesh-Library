@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,8 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -20,10 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ProvisionerViewModel @Inject internal constructor(
-    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private val provisionerUuid: String =
         checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])

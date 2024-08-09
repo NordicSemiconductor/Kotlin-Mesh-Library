@@ -3,9 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.update
-import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.groupRanges
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.plus
@@ -14,11 +12,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class GroupRangesViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
     repository: CoreDataRepository
-) : RangesViewModel(savedStateHandle, navigator, repository) {
+) : RangesViewModel(savedStateHandle = savedStateHandle, repository = repository) {
 
-    override fun getDestinationId() = groupRanges
     override fun getAllocatedRanges(): List<Range> = provisioner.allocatedGroupRanges
 
     override fun getOtherRanges(): List<Range> = getOtherProvisioners()

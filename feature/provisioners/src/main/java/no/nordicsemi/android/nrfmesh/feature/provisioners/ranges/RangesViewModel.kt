@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -8,10 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.RangesDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.Range
@@ -22,15 +21,16 @@ import java.util.UUID
 
 @Suppress("ConvertArgumentToSet")
 internal abstract class RangesViewModel(
-    savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
 
     protected lateinit var network: MeshNetwork
     protected lateinit var provisioner: Provisioner
 
-    private val uuid: UUID by lazy { parameterOf(getDestinationId()) }
+    private val uuid: UUID = checkNotNull(savedStateHandle[RangesDestination.rangesUuidArg]).let {
+        UUID.fromString(it as String)
+    }
 
     protected val _uiState = MutableStateFlow(RangesScreenUiState(listOf()))
     val uiState: StateFlow<RangesScreenUiState> = _uiState.stateIn(
@@ -64,13 +64,6 @@ internal abstract class RangesViewModel(
         // Remove the ranges that were swiped for removal.
         removeRanges()
     }
-
-    /**
-     * Returns the destination id that is used to retrieve the user arguments from the saved state
-     * handle.
-     * @return destination id.
-     */
-    protected abstract fun getDestinationId(): DestinationId<UUID, Unit>
 
     /**
      * Returns the list of ranges allocated to the provisioner.

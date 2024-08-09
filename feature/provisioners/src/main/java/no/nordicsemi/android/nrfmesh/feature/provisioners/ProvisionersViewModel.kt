@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,9 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
@@ -19,10 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ProvisionersViewModel @Inject internal constructor(
-    savedStateHandle: SavedStateHandle,
-    private val navigator: Navigator,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
 
     private lateinit var network: MeshNetwork
 
@@ -49,10 +44,6 @@ internal class ProvisionersViewModel @Inject internal constructor(
     override fun onCleared() {
         super.onCleared()
         removeProvisioners()
-    }
-
-    internal fun navigate(destinationId: DestinationId<UUID, Unit>, uuid: UUID) {
-        navigator.navigateTo(destinationId, uuid)
     }
 
     /**

@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.nordic.navigation)
+
     implementation(libs.nordic.kotlin.data)
 
     testImplementation(libs.junit4)

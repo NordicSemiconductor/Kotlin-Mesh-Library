@@ -9,7 +9,6 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.navigation)
     implementation(libs.kotlinx.datetime)
 
     implementation(project(":core:ui"))

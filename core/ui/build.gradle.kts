@@ -12,7 +12,6 @@ dependencies {
     api(libs.nordic.ui)
     api(libs.androidx.compose.material.iconsExtended)
     implementation(libs.nordic.logger)
-    implementation(libs.nordic.navigation)
     implementation(libs.nordic.log.timber)
 
     implementation(project(":core:common"))

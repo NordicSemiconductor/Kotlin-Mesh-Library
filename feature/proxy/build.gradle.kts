@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.nordic.navigation)
+
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)
     implementation(libs.nordic.blek.scanner)
