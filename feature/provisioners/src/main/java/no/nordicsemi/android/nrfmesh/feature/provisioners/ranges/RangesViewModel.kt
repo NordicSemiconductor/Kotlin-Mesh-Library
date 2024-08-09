@@ -21,7 +21,7 @@ import java.util.UUID
 
 @Suppress("ConvertArgumentToSet")
 internal abstract class RangesViewModel(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
 

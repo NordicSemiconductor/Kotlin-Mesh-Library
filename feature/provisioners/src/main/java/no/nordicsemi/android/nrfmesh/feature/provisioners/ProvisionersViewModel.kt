@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
