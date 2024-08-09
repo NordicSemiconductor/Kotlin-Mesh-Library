@@ -5,12 +5,10 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
@@ -18,10 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NetworkViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    val navigator: Navigator,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
+) : ViewModel() {
 
     var isNetworkLoaded by mutableStateOf(false)
         private set
@@ -31,8 +27,7 @@ class NetworkViewModel @Inject constructor(
         loadNetwork()
     }
 
-    override fun navigateUp() {
-        super.navigateUp()
+    fun navigateUp() {
         viewModelScope.launch {
             repository.disconnect()
         }
@@ -72,7 +67,7 @@ class NetworkViewModel @Inject constructor(
         }
     }
 
-    internal fun resetNetwork(){
+    internal fun resetNetwork() {
         viewModelScope.launch {
             repository.resetNetwork()
         }

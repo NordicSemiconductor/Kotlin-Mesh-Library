@@ -14,17 +14,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -48,9 +42,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
@@ -71,10 +65,10 @@ fun NetworkRoute(
 
 @Composable
 fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
+    val currentDestination by appState.navController.currentBackStackEntryAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val currentDestination by viewModel.currentDestination().collectAsStateWithLifecycle()
     val fileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
@@ -107,10 +101,10 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
                     Text(text = "Fix me")
                 },
                 scrollBehavior = scrollBehavior,
-                backButtonIcon = when (currentDestination) {
+                /*backButtonIcon = when (currentDestination?.destination?.route) {
                     provisioning -> Icons.Rounded.Close
                     else -> Icons.AutoMirrored.Rounded.ArrowBack
-                },
+                },*/
                 onNavigationButtonClick = viewModel::navigateUp,
                 showBackButton = false,
                 /*actions = {
@@ -184,7 +178,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .safeContentPadding()
+                // .safeContentPadding()
         )
     }
 }

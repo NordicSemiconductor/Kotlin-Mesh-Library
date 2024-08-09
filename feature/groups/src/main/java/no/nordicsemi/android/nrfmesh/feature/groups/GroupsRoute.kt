@@ -5,9 +5,7 @@ import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
-import java.util.UUID
 
 @Composable
 internal fun GroupsRoute(

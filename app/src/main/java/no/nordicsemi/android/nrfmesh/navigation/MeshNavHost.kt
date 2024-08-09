@@ -16,6 +16,7 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeys
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodeGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
@@ -47,7 +48,12 @@ fun MeshNavHost(
                     NodeDestination.createNavigationRoute(node.uuid)
                 )
             },
-            onBackPressed = onBackPressed
+            onBackPressed = onBackPressed,
+            nestedGraphs = {
+                nodeGraph(
+                    onBackPressed = onBackPressed
+                )
+            }
         )
         groupsGraph(
             navigateToGroup = { group ->

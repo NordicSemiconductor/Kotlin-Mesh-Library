@@ -12,8 +12,8 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import java.util.UUID
 
 object NodeDestination : MeshNavigationDestination {
-    const val arg = "arg"
-    override val route: String = "node_route/{$arg}"
+    const val nodeUuidArg = "nodeUuidArg"
+    override val route: String = "node_route/{$nodeUuidArg}"
     override val destination: String = "node_destination"
 
     /**
@@ -26,7 +26,7 @@ object NodeDestination : MeshNavigationDestination {
      * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(arg)!!
+        val encodedId = entry.arguments?.getString(nodeUuidArg)!!
         return Uri.decode(encodedId)
     }
 }
