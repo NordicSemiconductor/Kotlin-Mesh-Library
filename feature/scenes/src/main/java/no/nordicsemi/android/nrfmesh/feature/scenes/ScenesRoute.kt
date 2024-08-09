@@ -51,17 +51,20 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Composable
 internal fun ScenesRoute(
-    viewModel: ScenesViewModel = hiltViewModel(),
-    navigateToScene: (SceneNumber) -> Unit
+    uiState: ScenesScreenUiState,
+    navigateToScene: (SceneNumber) -> Unit,
+    onAddSceneClicked: () -> Scene?,
+    onSwiped: (Scene) -> Unit,
+    onUndoClicked: (Scene) -> Unit,
+    remove: (Scene) -> Unit
 ) {
-    val uiState: ScenesScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ScenesScreen(
         uiState = uiState,
         navigateToScene = navigateToScene,
-        onAddSceneClicked = viewModel::addScene,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
+        onAddSceneClicked = onAddSceneClicked,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
     )
 }
 

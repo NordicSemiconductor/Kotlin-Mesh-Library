@@ -73,19 +73,23 @@ import java.util.UUID
 
 @Composable
 internal fun ProvisionerRoute(
-    viewModel: ProvisionerViewModel = hiltViewModel(),
+    uiState: ProvisionerScreenUiState,
+    onNameChanged: (String) -> Unit,
+    onAddressChanged: (Int) -> Unit,
+    disableConfigurationCapabilities: () -> Unit,
+    onTtlChanged: (Int) -> Unit,
+    isValidAddress: (UShort) -> Boolean,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
     navigateToSceneRanges: (UUID) -> Unit
 ) {
-    val uiState: ProvisionerScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
-        onNameChanged = viewModel::onNameChanged,
-        onAddressChanged = viewModel::onAddressChanged,
-        disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
-        onTtlChanged = viewModel::onTtlChanged,
-        isValidAddress = viewModel::isValidAddress,
+        onNameChanged = onNameChanged,
+        onAddressChanged = onAddressChanged,
+        disableConfigurationCapabilities = disableConfigurationCapabilities,
+        onTtlChanged = onTtlChanged,
+        isValidAddress = isValidAddress,
         navigateToUnicastRanges = navigateToUnicastRanges,
         navigateToGroupRanges = navigateToGroupRanges,
         navigateToSceneRanges = navigateToSceneRanges

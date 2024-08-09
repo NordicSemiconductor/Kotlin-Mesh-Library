@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
@@ -24,7 +24,8 @@ internal class SceneViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
+    private val sceneNumberArg: SceneNumber =
+        checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
 
     private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
     val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()
@@ -39,6 +40,7 @@ internal class SceneViewModel @Inject internal constructor(
                             scene = scene
                         )
                     )
+
                     is SceneState.Success -> state.copy(sceneState = sceneState.copy(scene = scene))
                     else -> state
                 }

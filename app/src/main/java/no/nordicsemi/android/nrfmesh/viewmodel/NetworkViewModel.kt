@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.export.destination.export
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
 import javax.inject.Inject
@@ -51,7 +50,7 @@ class NetworkViewModel @Inject constructor(
     }
 
     fun launchExport() {
-        navigateTo(export, meshNetwork.uuid)
+        // navigateTo(export, meshNetwork.uuid)
     }
 
     /**

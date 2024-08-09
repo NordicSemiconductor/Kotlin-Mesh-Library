@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -25,7 +25,8 @@ internal class ProvisionerViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator, savedStateHandle) {
     private lateinit var meshNetwork: MeshNetwork
-    private val provisionerUuid: UUID = parameterOf(provisioner)
+    private val provisionerUuid: String =
+        checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
 
     private val _uiState = MutableStateFlow(ProvisionerScreenUiState(ProvisionerState.Loading))
     val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()
@@ -35,7 +36,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
             repository.network.collect { network ->
                 meshNetwork = network
                 _uiState.update { state ->
-                    network.provisioner((provisionerUuid))?.let { provisioner ->
+                    network.provisioner((UUID.fromString(provisionerUuid)))?.let { provisioner ->
                         when (val provisionerState = state.provisionerState) {
                             is ProvisionerState.Loading -> ProvisionerScreenUiState(
                                 provisionerState = ProvisionerState.Success(

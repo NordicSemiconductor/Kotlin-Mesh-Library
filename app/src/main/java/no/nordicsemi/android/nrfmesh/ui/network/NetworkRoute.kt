@@ -4,7 +4,6 @@ package no.nordicsemi.android.nrfmesh.ui.network
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.expandVertically
@@ -13,18 +12,21 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -47,57 +49,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import no.nordicsemi.android.common.navigation.DestinationId
-import no.nordicsemi.android.common.navigation.NavigationView
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.popUpToStartDestination
-import no.nordicsemi.android.common.navigation.with
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
-import no.nordicsemi.android.feature.config.networkkeys.configNetKeys
-import no.nordicsemi.android.nrfmesh.R
-import no.nordicsemi.android.nrfmesh.destinations.NavigationItem
-import no.nordicsemi.android.nrfmesh.destinations.groupsTab
-import no.nordicsemi.android.nrfmesh.destinations.navigationItems
-import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
-import no.nordicsemi.android.nrfmesh.destinations.netKeySelectorDestination
-import no.nordicsemi.android.nrfmesh.destinations.nodesTab
 import no.nordicsemi.android.nrfmesh.destinations.provisioning
-import no.nordicsemi.android.nrfmesh.destinations.provisioningDestination
-import no.nordicsemi.android.nrfmesh.destinations.proxyFilterTab
-import no.nordicsemi.android.nrfmesh.destinations.settingsTab
-import no.nordicsemi.android.nrfmesh.destinations.topLevelTabs
-import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKeys
-import no.nordicsemi.android.nrfmesh.feature.export.destination.export
-import no.nordicsemi.android.nrfmesh.feature.export.destination.exportDestinations
-import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groups
-import no.nordicsemi.android.nrfmesh.feature.groups.destinations.groupsDestinations
-import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
-import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodes
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.nodesDestinations
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.groupRanges
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioner
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.provisioners
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.sceneRanges
-import no.nordicsemi.android.nrfmesh.feature.provisioners.destinations.unicastRanges
-import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxy
-import no.nordicsemi.android.nrfmesh.feature.proxy.destination.proxyDestinations
-import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
-import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scenes
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDropDown
-import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
-import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settingsDestinations
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
+import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
+import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.ui.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
-fun NetworkRoute(viewModel: NetworkViewModel = hiltViewModel()) {
+fun NetworkRoute(
+    appState: MeshAppState,
+    viewModel: NetworkViewModel = hiltViewModel()
+) {
     if (viewModel.isNetworkLoaded)
-        NetworkScreen(viewModel)
+        NetworkScreen(appState = appState, viewModel = viewModel)
 }
 
 @Composable
-fun NetworkScreen(viewModel: NetworkViewModel) {
+fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -126,11 +99,12 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
                 title = {
-                    Text(text = currentDestination?.title() ?: "")
+                    Text(text = "Fix me")
                 },
                 scrollBehavior = scrollBehavior,
                 backButtonIcon = when (currentDestination) {
@@ -138,20 +112,17 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     else -> Icons.AutoMirrored.Rounded.ArrowBack
                 },
                 onNavigationButtonClick = viewModel::navigateUp,
-                showBackButton = when (currentDestination) {
-                    nodes, groups, proxy, settings -> false
-                    else -> true
-                },
-                actions = {
+                showBackButton = false,
+                /*actions = {
                     if (currentDestination == settings) {
                         IconButton(onClick = { isOptionsMenuExpanded = !isOptionsMenuExpanded }) {
                             Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
                         }
                     }
-                }
+                }*/
             )
         },
-        floatingActionButton = {
+        /*floatingActionButton = {
             if (currentDestination == nodes || currentDestination == groups) {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
@@ -174,33 +145,22 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     )
                 }
             }
-        },
+        },*/
         bottomBar = {
-            AnimatedVisibility(
+            /*AnimatedVisibility(
                 visible = currentDestination?.shouldShowBottomBars() ?: false,
                 enter = enterTransition,
                 exit = exitTransition
             ) {
-                BottomNavigationBar(
-                    destinations = navigationItems,
-                    navigator = viewModel.navigator
-                )
-            }
+            }*/
+            BottomNavigationBar(
+                destinations = appState.topLevelDestinations,
+                onNavigateToTopLevelDestination = appState::navigate,
+                currentDestination = appState.currentDestination
+            )
         }
     ) { paddingValues ->
-        NavigationView(
-            destinations = listOf(
-                topLevelTabs with ((nodesTab with nodesDestinations) +
-                        (groupsTab with groupsDestinations) +
-                        (proxyFilterTab with proxyDestinations) +
-                        (settingsTab with settingsDestinations)) +
-                        provisioningDestination +
-                        netKeySelectorDestination +
-                        exportDestinations
-            ),
-            modifier = Modifier.padding(paddingValues)
-        )
-        SettingsDropDown(
+        /*SettingsDropDown(
             navigate = {
                 isOptionsMenuExpanded = !isOptionsMenuExpanded
                 viewModel.launchExport()
@@ -215,24 +175,45 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                 isOptionsMenuExpanded = !isOptionsMenuExpanded
                 viewModel.resetNetwork()
             }
+        )*/
+        MeshNavHost(
+            navController = appState.navController,
+            onNavigateToDestination = appState::navigate,
+            onBackPressed = appState::onBackPressed,
+            startDestination = NodesDestination.route,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .safeContentPadding()
         )
     }
 }
 
+
 @Composable
 fun BottomNavigationBar(
-    destinations: List<NavigationItem>,
-    navigator: Navigator
+    destinations: List<TopLevelDestination>,
+    onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
+    currentDestination: NavDestination?
 ) {
-    NavigationBar {
+    NavigationBar(
+        modifier = Modifier.windowInsetsPadding(
+            WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+            )
+        ),
+        tonalElevation = 0.dp
+    ) {
         destinations.forEach { destination ->
-            val selected by navigator
-                .isInHierarchy(destination.destinationId)
-                .collectAsStateWithLifecycle()
+            val selected = currentDestination?.hierarchy?.any {
+                it.route == destination.route
+            } == true
             NavigationBarItem(
+                selected = selected,
+                onClick = { onNavigateToTopLevelDestination(destination) },
                 icon = {
                     Icon(
-                        imageVector = if (selected) {
+                        if (selected) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon
@@ -240,44 +221,12 @@ fun BottomNavigationBar(
                         contentDescription = null
                     )
                 },
-                selected = selected,
-                label = { Text(stringResource(destination.iconTextId)) },
-                onClick = {
-                    // Checking if the tab is not selected here
-                    // is a workaround for an issue with how the navigation
-                    // restores the previous stack when back button was used.
-                    // See: https://issuetracker.google.com/issues/258237571
-                    if (!selected) {
-                        navigator.navigateTo(destination.destinationId) {
-                            popUpToStartDestination { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                }
+                label = { Text(stringResource(destination.iconTextId)) }
             )
         }
     }
 }
 
-@Composable
-fun DestinationId<*, *>.title() = when (this) {
-    nodes, groups, proxy, settings -> "Network"
-    node -> "Node"
-    provisioning -> "Provision Device"
-    netKeySelector -> "Select Network Key"
-    provisioners -> "Provisioners"
-    provisioner -> "Edit Provisioner"
-    networkKeys -> "Network Keys"
-    configNetKeys -> "Network Key Configuration"
-    applicationKeys -> "Application Keys"
-    networkKey -> "Edit Key"
-    scenes -> "Scenes"
-    scene -> "Edit Scene"
-    unicastRanges, groupRanges, sceneRanges -> "Edit Ranges"
-    export -> "Export"
-    else -> ""
-}
 
 private fun DestinationId<*, *>.shouldShowBottomBars() = when (this) {
     provisioning -> false

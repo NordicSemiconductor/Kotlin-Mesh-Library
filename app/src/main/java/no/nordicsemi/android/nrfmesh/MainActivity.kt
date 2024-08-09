@@ -1,22 +1,28 @@
 package no.nordicsemi.android.nrfmesh
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.theme.NordicActivity
 import no.nordicsemi.android.common.theme.NordicTheme
-import no.nordicsemi.android.nrfmesh.ui.network.NetworkRoute
+import no.nordicsemi.android.nrfmesh.ui.MeshApp
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
         setContent {
             NordicTheme {
-                NetworkRoute()
+                MeshApp()
+                // NetworkRoute()
             }
         }
     }

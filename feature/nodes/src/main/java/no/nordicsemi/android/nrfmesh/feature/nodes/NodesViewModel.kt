@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import javax.inject.Inject
@@ -43,7 +42,7 @@ internal class NodesViewModel @Inject internal constructor(
     }
 
     fun navigate(selectedNode: Node) {
-        navigateTo(node, selectedNode.uuid)
+        // navigateTo(node, selectedNode.uuid)
     }
 }
 

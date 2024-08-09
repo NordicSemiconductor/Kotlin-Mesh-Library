@@ -12,14 +12,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKeys
-import no.nordicsemi.android.nrfmesh.feature.settings.destinations.settings
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -36,7 +35,10 @@ class ConfigNetKeysViewModel @Inject constructor(
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
     private lateinit var selectedNode: Node
 
-    private val nodeUuid: UUID = parameterOf(configNetKeys)
+    private val nodeUuid: UUID =
+        checkNotNull(savedStateHandle[ConfigNetworkKeyDestination.arg]).let {
+            UUID.fromString(it as String)
+        }
     private lateinit var meshNetwork: MeshNetwork
 
     private val _uiState = MutableStateFlow(NetKeysScreenUiState())
@@ -85,8 +87,8 @@ class ConfigNetKeysViewModel @Inject constructor(
     }
 
     internal fun navigateToNetworkKeys() {
-        navigateTo(settings)
-        navigateTo(networkKeys)
+        /*navigateTo(settings)
+        navigateTo(networkKeys)*/
     }
 }
 

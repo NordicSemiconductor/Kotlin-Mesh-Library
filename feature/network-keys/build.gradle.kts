@@ -23,6 +23,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.rules)
 
     implementation(project (":core:data"))
+    implementation(project (":core:navigation"))
     implementation(project (":core:ui"))
     implementation(project(":mesh:core"))
 

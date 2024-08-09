@@ -30,17 +30,20 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun NetworkKeysRoute(
-    viewModel: NetworkKeysViewModel = hiltViewModel(),
-    navigateToKey: (KeyIndex) -> Unit
+    uiState: NetworkKeysScreenUiState,
+    navigateToKey: (KeyIndex) -> Unit,
+    onAddKeyClicked: () -> NetworkKey,
+    onSwiped: (NetworkKey) -> Unit,
+    onUndoClicked: (NetworkKey) -> Unit,
+    remove: (NetworkKey) -> Unit
 ) {
-    val uiState: NetworkKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeysScreen(
         uiState = uiState,
         navigateToKey = navigateToKey,
-        onAddKeyClicked = viewModel::addNetworkKey,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
+        onAddKeyClicked = onAddKeyClicked,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
     )
 }
 

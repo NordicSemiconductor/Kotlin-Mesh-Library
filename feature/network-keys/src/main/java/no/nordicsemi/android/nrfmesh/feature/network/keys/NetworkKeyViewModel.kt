@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.navigation.Navigator
 import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.network.keys.destinations.networkKey
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
@@ -24,7 +24,8 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
-    private val netKeyIndexArg: KeyIndex = parameterOf(networkKey).toUShort()
+    private val netKeyIndexArg: KeyIndex =
+        checkNotNull(savedStateHandle[NetworkKeyDestination.netKeyIndexArg])
 
     private val _uiState = MutableStateFlow(NetworkKeyScreenUiState(KeyState.Loading))
     val uiState: StateFlow<NetworkKeyScreenUiState> = _uiState.asStateFlow()
