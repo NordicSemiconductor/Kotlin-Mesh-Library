@@ -27,15 +27,9 @@ fun NavGraphBuilder.provisionersGraph(
         )
     }
     provisionerGraph(
-        onNavigateToUnicastRanges = { destination, provisionerUuid ->
-            onNavigateToDestination(destination, provisionerUuid)
-        },
-        onNavigateToGroupRanges = { destination, provisionerUuid ->
-            onNavigateToDestination(destination, provisionerUuid)
-        },
-        onNavigateToSceneRanges = { destination, provisionerUuid ->
-            onNavigateToDestination(destination, provisionerUuid)
-        },
+        onNavigateToUnicastRanges = onNavigateToDestination,
+        onNavigateToGroupRanges = onNavigateToDestination,
+        onNavigateToSceneRanges = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
 }

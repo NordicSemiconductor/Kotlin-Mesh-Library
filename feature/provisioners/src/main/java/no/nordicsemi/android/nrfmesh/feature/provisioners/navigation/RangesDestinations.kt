@@ -10,8 +10,11 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.ranges.GroupRangesViewModel
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ranges.RangesRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ranges.RangesViewModel
+import no.nordicsemi.android.nrfmesh.feature.provisioners.ranges.SceneRangesViewModel
+import no.nordicsemi.android.nrfmesh.feature.provisioners.ranges.UnicastRangesViewModel
 import java.util.UUID
 
 
@@ -38,7 +41,7 @@ object RangesDestination : MeshNavigationDestination {
 
 fun NavGraphBuilder.unicastRangesGraph(onBackPressed: () -> Unit) {
     composable(route = RangesDestination.route) {
-        val viewModel = hiltViewModel<RangesViewModel>()
+        val viewModel = hiltViewModel<UnicastRangesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         RangesRoute(
             uiState = uiState,
@@ -55,7 +58,7 @@ fun NavGraphBuilder.unicastRangesGraph(onBackPressed: () -> Unit) {
 
 fun NavGraphBuilder.groupRangesGraph(onBackPressed: () -> Unit) {
     composable(route = RangesDestination.route) {
-        val viewModel = hiltViewModel<RangesViewModel>()
+        val viewModel = hiltViewModel<GroupRangesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         RangesRoute(
             uiState = uiState,
@@ -72,7 +75,7 @@ fun NavGraphBuilder.groupRangesGraph(onBackPressed: () -> Unit) {
 
 fun NavGraphBuilder.sceneRangesGraph(onBackPressed: () -> Unit) {
     composable(route = RangesDestination.route) {
-        val viewModel = hiltViewModel<RangesViewModel>()
+        val viewModel = hiltViewModel<SceneRangesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         RangesRoute(
             uiState = uiState,

@@ -13,8 +13,8 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerViewModel
 import java.util.UUID
 
 object ProvisionerDestination : MeshNavigationDestination {
-    const val provisionerUuidArg = "provisionerUuidArg"
-    override val route: String = "provisioner_route/{$provisionerUuidArg}"
+    const val arg = "provisionerUuidArg"
+    override val route: String = "provisioner_route/{$arg}"
     override val destination: String = "provisioner_destination"
 
     /**
@@ -28,7 +28,7 @@ object ProvisionerDestination : MeshNavigationDestination {
      * navigation call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(provisionerUuidArg)!!
+        val encodedId = entry.arguments?.getString(arg)!!
         return Uri.decode(encodedId)
     }
 }
@@ -74,8 +74,8 @@ internal fun NavGraphBuilder.provisionerGraph(
                 )
             },
         )
-        unicastRangesGraph(onBackPressed)
-        groupRangesGraph(onBackPressed)
-        sceneRangesGraph(onBackPressed)
     }
+    unicastRangesGraph(onBackPressed)
+    groupRangesGraph(onBackPressed)
+    sceneRangesGraph(onBackPressed)
 }

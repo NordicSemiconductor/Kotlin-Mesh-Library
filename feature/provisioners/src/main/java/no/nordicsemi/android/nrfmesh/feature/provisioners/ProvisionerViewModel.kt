@@ -24,7 +24,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private val provisionerUuid: String =
-        checkNotNull(savedStateHandle[ProvisionerDestination.provisionerUuidArg])
+        checkNotNull(savedStateHandle[ProvisionerDestination.arg])
 
     private val _uiState = MutableStateFlow(ProvisionerScreenUiState(ProvisionerState.Loading))
     val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()
