@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesRoute
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
-import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 object ScenesDestination : MeshNavigationDestination {
     override val route: String = "scenes_route"
@@ -17,14 +16,21 @@ object ScenesDestination : MeshNavigationDestination {
 
 fun NavGraphBuilder.scenesGraph(
     onBackPressed: () -> Unit,
-    onNavigateToScene: (SceneNumber) -> Unit
+    onNavigateToScene: (MeshNavigationDestination, String) -> Unit
 ) {
     composable(route = ScenesDestination.route) {
         val viewModel = hiltViewModel<ScenesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ScenesRoute(
             uiState = uiState,
-            navigateToScene = onNavigateToScene,
+            navigateToScene = { sceneNumber ->
+                onNavigateToScene(
+                    SceneDestination,
+                    SceneDestination.createNavigationRoute(
+                        sceneNumberArg = sceneNumber
+                    )
+                )
+            },
             onAddSceneClicked = viewModel::addScene,
             onSwiped = viewModel::onSwiped,
             onUndoClicked = viewModel::onUndoSwipe,

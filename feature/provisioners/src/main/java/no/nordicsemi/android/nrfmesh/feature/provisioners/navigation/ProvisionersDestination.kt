@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersRoute
-import java.util.UUID
 
 object ProvisionersDestination : MeshNavigationDestination {
     override val route: String = "provisioners_route"
@@ -15,12 +14,28 @@ object ProvisionersDestination : MeshNavigationDestination {
 
 fun NavGraphBuilder.provisionersGraph(
     onBackPressed: () -> Unit,
-    onNavigateToProvisioner: (UUID) -> Unit
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit
 ) {
     composable(route = ProvisionersDestination.route) {
         ProvisionersRoute(
-            navigateToProvisioner = onNavigateToProvisioner,
+            navigateToProvisioner = { provisionerUuid ->
+                onNavigateToDestination(
+                    ProvisionerDestination,
+                    ProvisionerDestination.createNavigationRoute(provisionerUuid)
+                )
+            }
         )
     }
-    provisionerGraph(onBackPressed = onBackPressed)
+    provisionerGraph(
+        onNavigateToUnicastRanges = { destination, provisionerUuid ->
+            onNavigateToDestination(destination, provisionerUuid)
+        },
+        onNavigateToGroupRanges = { destination, provisionerUuid ->
+            onNavigateToDestination(destination, provisionerUuid)
+        },
+        onNavigateToSceneRanges = { destination, provisionerUuid ->
+            onNavigateToDestination(destination, provisionerUuid)
+        },
+        onBackPressed = onBackPressed
+    )
 }

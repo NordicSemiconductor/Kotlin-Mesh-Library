@@ -2,11 +2,10 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AssistWalker
@@ -82,7 +81,7 @@ private fun NetworkKeyScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = 8.dp),
@@ -92,7 +91,7 @@ private fun NetworkKeyScreen(
             KeyState.Loading -> { /* Do nothing */
             }
 
-            is KeyState.Success -> networkKeyInfo(
+            is KeyState.Success -> NetworkKeyInfo(
                 snackbarHostState = snackbarHostState,
                 networkKey = keyState.key,
                 isCurrentlyEditable = isCurrentlyEditable,
@@ -109,7 +108,8 @@ private fun NetworkKeyScreen(
     }
 }
 
-private fun LazyListScope.networkKeyInfo(
+@Composable
+private fun NetworkKeyInfo(
     snackbarHostState: SnackbarHostState,
     networkKey: NetworkKey,
     isCurrentlyEditable: Boolean,
@@ -117,29 +117,25 @@ private fun LazyListScope.networkKeyInfo(
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
-    item {
-        Name(
-            name = networkKey.name,
-            onNameChanged = onNameChanged,
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = onEditableStateChanged
-        )
-    }
-    item {
-        Key(
-            snackbarHostState = snackbarHostState,
-            networkKey = networkKey.key,
-            isInUse = networkKey.isInUse,
-            onKeyChanged = onKeyChanged,
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = onEditableStateChanged
-        )
-    }
-    item { OldKey(oldKey = networkKey.oldKey) }
-    item { KeyIndex(index = networkKey.index) }
-    item { KeyRefreshPhase(phase = networkKey.phase) }
-    item { Security(security = networkKey.security) }
-    item { LastModified(networkKey.timestamp) }
+    Name(
+        name = networkKey.name,
+        onNameChanged = onNameChanged,
+        isCurrentlyEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged
+    )
+    Key(
+        snackbarHostState = snackbarHostState,
+        networkKey = networkKey.key,
+        isInUse = networkKey.isInUse,
+        onKeyChanged = onKeyChanged,
+        isCurrentlyEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged
+    )
+    OldKey(oldKey = networkKey.oldKey)
+    KeyIndex(index = networkKey.index)
+    KeyRefreshPhase(phase = networkKey.phase)
+    Security(security = networkKey.security)
+    LastModified(networkKey.timestamp)
 }
 
 @Composable

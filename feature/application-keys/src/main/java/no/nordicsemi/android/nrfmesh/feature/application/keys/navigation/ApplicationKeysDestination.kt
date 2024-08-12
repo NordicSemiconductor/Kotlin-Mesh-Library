@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysViewModel
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object ApplicationKeysDestination : MeshNavigationDestination {
     override val route: String = "application_keys_route"
@@ -17,7 +16,7 @@ object ApplicationKeysDestination : MeshNavigationDestination {
 
 fun NavGraphBuilder.applicationKeysGraph(
     onBackPressed: () -> Unit,
-    onNavigateToApplicationKey: (KeyIndex) -> Unit
+    onNavigateToKey: (MeshNavigationDestination, String) -> Unit
 ) {
     composable(route = ApplicationKeysDestination.route) {
         val viewModel = hiltViewModel<ApplicationKeysViewModel>()
@@ -25,7 +24,14 @@ fun NavGraphBuilder.applicationKeysGraph(
 
         ApplicationKeysRoute(
             uiState = uiState,
-            navigateToKey = onNavigateToApplicationKey,
+            navigateToKey = { appKeyIndex ->
+                onNavigateToKey(
+                    ApplicationKeyDestination,
+                    ApplicationKeyDestination.createNavigationRoute(
+                        appKeyIndexArg = appKeyIndex
+                    )
+                )
+            },
             onAddKeyClicked = viewModel::addApplicationKey,
             onSwiped = viewModel::onSwiped,
             onUndoClicked = viewModel::onUndoSwipe,

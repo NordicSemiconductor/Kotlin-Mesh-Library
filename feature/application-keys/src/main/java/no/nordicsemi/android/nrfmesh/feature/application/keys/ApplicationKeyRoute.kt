@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -89,6 +90,7 @@ private fun ApplicationKeyScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         when (keyState) {

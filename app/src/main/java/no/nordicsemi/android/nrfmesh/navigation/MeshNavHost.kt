@@ -5,24 +5,20 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodeGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.provisionersGraph
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyFilterGraph
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
@@ -84,47 +80,19 @@ fun MeshNavHost(
                 exportGraph(onBackPressed = onBackPressed)
                 provisionersGraph(
                     onBackPressed = onBackPressed,
-                    onNavigateToProvisioner = { provisionerUuid ->
-                        onNavigateToDestination(
-                            ProvisionerDestination,
-                            ProvisionerDestination.createNavigationRoute(
-                                provisionerUuid = provisionerUuid
-                            )
-                        )
-                    }
+                    onNavigateToDestination = onNavigateToDestination,
                 )
                 networkKeysGraph(
                     onBackPressed = onBackPressed,
-                    onNavigateToKey = { netKeyIndex ->
-                        onNavigateToDestination(
-                            NetworkKeyDestination,
-                            NetworkKeyDestination.createNavigationRoute(
-                                netKeyIndexArg = netKeyIndex
-                            )
-                        )
-                    }
+                    onNavigateToKey = onNavigateToDestination
                 )
                 applicationKeysGraph(
                     onBackPressed = onBackPressed,
-                    onNavigateToApplicationKey = { appKeyIndex ->
-                        onNavigateToDestination(
-                            ApplicationKeyDestination,
-                            ApplicationKeyDestination.createNavigationRoute(
-                                appKeyIndexArg = appKeyIndex
-                            )
-                        )
-                    }
+                    onNavigateToKey = onNavigateToDestination
                 )
                 scenesGraph(
                     onBackPressed = onBackPressed,
-                    onNavigateToScene = { sceneNumber ->
-                        onNavigateToDestination(
-                            SceneDestination,
-                            SceneDestination.createNavigationRoute(
-                                sceneNumberArg = sceneNumber
-                            )
-                        )
-                    }
+                    onNavigateToScene = onNavigateToDestination
                 )
             }
         )

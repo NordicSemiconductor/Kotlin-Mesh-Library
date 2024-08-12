@@ -22,8 +22,9 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
-    private val netKeyIndexArg: KeyIndex =
-        checkNotNull(savedStateHandle[NetworkKeyDestination.netKeyIndexArg])
+    private val keyIndex: KeyIndex = checkNotNull(savedStateHandle[NetworkKeyDestination.arg])
+        .toString()
+        .toUShort()
 
     private val _uiState = MutableStateFlow(NetworkKeyScreenUiState(KeyState.Loading))
     val uiState: StateFlow<NetworkKeyScreenUiState> = _uiState.asStateFlow()
@@ -31,7 +32,7 @@ internal class NetworkKeyViewModel @Inject internal constructor(
     init {
         repository.network.onEach { meshNetwork ->
             _uiState.update { state ->
-                val key = meshNetwork.networkKey(netKeyIndexArg)
+                val key = meshNetwork.networkKey(keyIndex)
                 when (val keyState = state.keyState) {
                     is KeyState.Loading -> NetworkKeyScreenUiState(
                         keyState = KeyState.Success(

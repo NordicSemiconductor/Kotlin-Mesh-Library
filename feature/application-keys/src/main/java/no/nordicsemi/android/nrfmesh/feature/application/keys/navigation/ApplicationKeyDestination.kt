@@ -1,15 +1,20 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys.navigation
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object ApplicationKeyDestination : MeshNavigationDestination {
-    const val appKeyIndexArg = "appKeyIndexArg"
-    override val route: String = "application_key_route/{$appKeyIndexArg}"
+    const val arg = "appKeyIndexArg"
+    override val route: String = "application_key_route/{$arg}"
     override val destination: String = "application_key_destination"
 
     /**
@@ -23,13 +28,20 @@ object ApplicationKeyDestination : MeshNavigationDestination {
      * navigation call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(appKeyIndexArg)!!
+        val encodedId = entry.arguments?.getString(arg)!!
         return Uri.decode(encodedId)
     }
 }
 
 internal fun NavGraphBuilder.applicationKeyGraph(onBackPressed: () -> Unit) {
     composable(route = ApplicationKeyDestination.route) {
-        // ApplicationKeyRoute(onBackPressed = onBackPressed)
+        val viewmodel = hiltViewModel<ApplicationKeyViewModel>()
+        val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
+        ApplicationKeyRoute(
+            uiState = uiState,
+            onNameChanged = viewmodel::onNameChanged,
+            onKeyChanged = viewmodel::onKeyChanged,
+            onBoundNetworkKeyChanged = viewmodel::onBoundNetworkKeyChanged
+        )
     }
 }

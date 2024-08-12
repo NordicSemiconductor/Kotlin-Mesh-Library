@@ -49,8 +49,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForRanges
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -66,18 +64,24 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 
 @Composable
 internal fun RangesRoute(
-    viewModel: RangesViewModel = hiltViewModel()
+    uiState: RangesScreenUiState,
+    addRange: (start: UInt, end: UInt) -> Unit,
+    onRangeUpdated: (Range, UShort, UShort) -> Unit,
+    onSwiped: (Range) -> Unit,
+    onUndoClicked: (Range) -> Unit,
+    remove: (Range) -> Unit,
+    resolve: () -> Unit,
+    isValidBound: (UShort) -> Boolean
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     RangesScreen(
         uiState = uiState,
-        addRange = viewModel::addRange,
-        onRangeUpdated = viewModel::onRangeUpdated,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove,
-        resolve = viewModel::resolve,
-        isValidBound = viewModel::isValidBound
+        addRange = addRange,
+        onRangeUpdated = onRangeUpdated,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove,
+        resolve = resolve,
+        isValidBound = isValidBound
     )
 }
 

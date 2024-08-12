@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysViewModel
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object NetworkKeysDestination : MeshNavigationDestination {
     override val route: String = "network_keys_route"
@@ -16,7 +15,7 @@ object NetworkKeysDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.networkKeysGraph(
-    onNavigateToKey: (KeyIndex) -> Unit,
+    onNavigateToKey: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit,
 ) {
     composable(route = NetworkKeysDestination.route) {
@@ -24,7 +23,14 @@ fun NavGraphBuilder.networkKeysGraph(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NetworkKeysRoute(
             uiState = uiState,
-            navigateToKey = onNavigateToKey,
+            navigateToKey = { netKeyIndex ->
+                onNavigateToKey(
+                    NetworkKeyDestination,
+                    NetworkKeyDestination.createNavigationRoute(
+                        netKeyIndexArg = netKeyIndex
+                    )
+                )
+            },
             onAddKeyClicked = viewModel::addNetworkKey,
             onSwiped = viewModel::onSwiped,
             onUndoClicked = viewModel::onUndoSwipe,

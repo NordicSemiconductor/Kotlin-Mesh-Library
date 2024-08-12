@@ -23,8 +23,9 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
-    private val appKeyIndexArg: KeyIndex =
-        checkNotNull(savedStateHandle[ApplicationKeyDestination.appKeyIndexArg]) as KeyIndex
+    private val keyIndex: KeyIndex = checkNotNull(savedStateHandle[ApplicationKeyDestination.arg])
+            .toString()
+            .toUShort()
 
     private val _uiState = MutableStateFlow(ApplicationKeyScreenUiState(KeyState.Loading))
     val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState.asStateFlow()
@@ -32,7 +33,7 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     init {
         repository.network.onEach { meshNetwork ->
             _uiState.update { state ->
-                val key = meshNetwork.applicationKey(appKeyIndexArg)
+                val key = meshNetwork.applicationKey(keyIndex)
                 when (val keyState = state.keyState) {
                     is KeyState.Loading -> ApplicationKeyScreenUiState(
                         keyState = KeyState.Success(

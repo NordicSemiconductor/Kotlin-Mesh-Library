@@ -33,7 +33,12 @@ object ProvisionerDestination : MeshNavigationDestination {
     }
 }
 
-internal fun NavGraphBuilder.provisionerGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.provisionerGraph(
+    onNavigateToUnicastRanges: (MeshNavigationDestination, String) -> Unit,
+    onNavigateToGroupRanges: (MeshNavigationDestination, String) -> Unit,
+    onNavigateToSceneRanges: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit
+) {
     composable(route = ProvisionerDestination.route) {
         val viewModel = hiltViewModel<ProvisionerViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,9 +49,33 @@ internal fun NavGraphBuilder.provisionerGraph(onBackPressed: () -> Unit) {
             disableConfigurationCapabilities = { /*TODO*/ },
             onTtlChanged = viewModel::onTtlChanged,
             isValidAddress = viewModel::isValidAddress,
-            navigateToUnicastRanges = { /*TODO*/ },
-            navigateToGroupRanges = { },
-            navigateToSceneRanges = { },
+            navigateToUnicastRanges = {
+                onNavigateToUnicastRanges(
+                    RangesDestination,
+                    RangesDestination.createNavigationRoute(
+                        provisionerUuid = it
+                    )
+                )
+            },
+            navigateToGroupRanges = {
+                onNavigateToGroupRanges(
+                    RangesDestination,
+                    RangesDestination.createNavigationRoute(
+                        provisionerUuid = it
+                    )
+                )
+            },
+            navigateToSceneRanges = {
+                onNavigateToSceneRanges(
+                    RangesDestination,
+                    RangesDestination.createNavigationRoute(
+                        provisionerUuid = it
+                    )
+                )
+            },
         )
+        unicastRangesGraph(onBackPressed)
+        groupRangesGraph(onBackPressed)
+        sceneRangesGraph(onBackPressed)
     }
 }

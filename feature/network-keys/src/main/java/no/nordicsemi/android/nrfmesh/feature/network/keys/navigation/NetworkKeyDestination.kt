@@ -13,8 +13,8 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeyViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object NetworkKeyDestination : MeshNavigationDestination {
-    const val netKeyIndexArg = "netKeyIndexArg"
-    override val route: String = "network_key_route/{$netKeyIndexArg}"
+    const val arg = "netKeyIndexArg"
+    override val route: String = "network_key_route/{$arg}"
     override val destination: String = "network_key_destination"
 
     /**
@@ -27,7 +27,7 @@ object NetworkKeyDestination : MeshNavigationDestination {
      * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(netKeyIndexArg)!!
+        val encodedId = entry.arguments?.getString(arg)!!
         return Uri.decode(encodedId)
     }
 }
