@@ -7,24 +7,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +72,7 @@ private fun ScenesScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
+/*    Scaffold(
         floatingActionButton = {
             // if (uiState.hasProvisioners) Enable this when we have support for adding provisioners
             ExtendedFloatingActionButton(onClick = {
@@ -101,31 +94,29 @@ private fun ScenesScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        when (uiState.scenes.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.AutoAwesome,
-                title = stringResource(R.string.no_scenes_currently_added),
-                rationale = stringResource(R.string.provisioner_rationale_for_scenes)
-            )
 
-            false -> Scenes(
-                padding = padding,
-                context = context,
-                snackbarHostState = snackbarHostState,
-                scenes = uiState.scenes,
-                navigateToScene = navigateToScene,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove
-            )
-        }
+    }*/
+    when (uiState.scenes.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.AutoAwesome,
+            title = stringResource(R.string.no_scenes_currently_added),
+            rationale = stringResource(R.string.provisioner_rationale_for_scenes)
+        )
 
+        false -> Scenes(
+            context = context,
+            snackbarHostState = snackbarHostState,
+            scenes = uiState.scenes,
+            navigateToScene = navigateToScene,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            remove = remove
+        )
     }
 }
 
 @Composable
 private fun Scenes(
-    padding: PaddingValues,
     context: Context,
     snackbarHostState: SnackbarHostState,
     scenes: List<Scene>,
@@ -136,8 +127,8 @@ private fun Scenes(
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
-        contentPadding = padding,
         modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         state = listState
     ) {

@@ -22,8 +22,8 @@ internal class SceneViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
-    private val sceneNumberArg: SceneNumber =
-        checkNotNull(savedStateHandle[SceneDestination.sceneNumberArg])
+    private val sceneNumber: SceneNumber =
+        checkNotNull(savedStateHandle[SceneDestination.arg]).toString().toUShort()
 
     private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
     val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()
@@ -31,7 +31,7 @@ internal class SceneViewModel @Inject internal constructor(
     init {
         repository.network.onEach { meshNetwork ->
             _uiState.update { state ->
-                val scene = meshNetwork.scene(sceneNumberArg)
+                val scene = meshNetwork.scene(sceneNumber)
                 when (val sceneState = state.sceneState) {
                     is SceneState.Loading -> SceneScreenUiState(
                         sceneState = SceneState.Success(

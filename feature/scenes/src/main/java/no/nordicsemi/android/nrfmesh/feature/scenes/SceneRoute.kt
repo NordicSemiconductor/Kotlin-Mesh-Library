@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,8 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -33,26 +32,29 @@ import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Composable
-internal fun SceneRoute(viewModel: SceneViewModel = hiltViewModel()) {
-    val uiState: SceneScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    SceneScreen(sceneState = uiState.sceneState, onNameChanged = viewModel::onNameChanged)
+internal fun SceneRoute(
+    uiState: SceneScreenUiState,
+    onNameChanged: (String) -> Unit
+) {
+    SceneScreen(sceneState = uiState.sceneState, onNameChanged = onNameChanged)
 }
 
 @Composable
 private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         when (sceneState) {
-            SceneState.Loading -> { /* Do nothing */
-            }
+            SceneState.Loading -> { /* Do nothing */ }
             is SceneState.Success -> {
                 sceneInfo(
                     scene = sceneState.scene,
                     onNameChanged = onNameChanged
                 )
             }
+
             is SceneState.Error -> {}
         }
     }
@@ -107,6 +109,7 @@ fun Name(name: String, onNameChanged: (String) -> Unit) {
                     }
                 }
             )
+
             false -> MeshTwoLineListItem(
                 leadingComposable = {
                     Icon(
