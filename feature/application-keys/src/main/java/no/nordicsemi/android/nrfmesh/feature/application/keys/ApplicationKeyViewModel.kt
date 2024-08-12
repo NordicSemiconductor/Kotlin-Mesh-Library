@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,10 +11,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.application.keys.destinations.applicationKey
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -21,11 +20,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ApplicationKeyViewModel @Inject internal constructor(
-    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private val appKeyIndexArg: KeyIndex = parameterOf(applicationKey).toUShort()
+) : ViewModel() {
+    private val appKeyIndexArg: KeyIndex =
+        checkNotNull(savedStateHandle[ApplicationKeyDestination.appKeyIndexArg]) as KeyIndex
 
     private val _uiState = MutableStateFlow(ApplicationKeyScreenUiState(KeyState.Loading))
     val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState.asStateFlow()

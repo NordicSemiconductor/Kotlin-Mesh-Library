@@ -29,7 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 @Composable
 internal fun ApplicationKeysRoute(
     uiState: ApplicationKeysScreenUiState,
-    navigateToApplicationKey: (KeyIndex) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
     onUndoClicked: (ApplicationKey) -> Unit,
@@ -39,7 +39,7 @@ internal fun ApplicationKeysRoute(
     ApplicationsKeysScreen(
         context = context,
         uiState = uiState,
-        navigateToApplicationKey = navigateToApplicationKey,
+        navigateToApplicationKey = navigateToKey,
         onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,

@@ -5,14 +5,12 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -26,10 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExportViewModel @Inject internal constructor(
-    savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
+) : ViewModel() {
 
     var uiState by mutableStateOf(ExportScreenUiState())
         private set
@@ -208,7 +204,7 @@ data class ExportScreenUiState internal constructor(
     val networkKeyItemStates: List<NetworkKeyItemState> = listOf(),
     val exportDeviceKeys: Boolean = true
 ) {
-    val enableExportButton: Boolean
+    val  enableExportButton: Boolean
         get() = when (exportEverything) {
             true -> true
             false -> provisionerItemStates.any { it.isSelected } &&

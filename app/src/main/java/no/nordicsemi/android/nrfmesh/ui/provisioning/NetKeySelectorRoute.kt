@@ -11,38 +11,35 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.viewmodel.NetKeySelectorViewModel
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkKeySelectionScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
-fun NetKeySelectorRoute(
-    viewModel: NetKeySelectorViewModel,
+internal fun NetKeySelectorRoute(
+    uiState: NetworkKeySelectionScreenUiState,
+    onKeySelected: (KeyIndex) -> Unit,
     onBackPressed: (KeyIndex) -> Unit
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
     BackHandler {
-        onBackPressed(state.selectedKeyIndex)
+        onBackPressed(uiState.selectedKeyIndex)
     }
-    NetKeySelectorScreen(state = state, viewModel::onKeySelected)
+    NetKeySelectorScreen(uiState = uiState, onKeySelected = onKeySelected)
 }
 
 @Composable
 private fun NetKeySelectorScreen(
-    state: NetworkKeySelectionScreenUiState,
+    uiState: NetworkKeySelectionScreenUiState,
     onKeySelected: (KeyIndex) -> Unit
 ) {
     LazyColumn {
-        items(items = state.keys, key = { it.index.toInt() }) { key ->
+        items(items = uiState.keys, key = { it.index.toInt() }) { key ->
             NetKeyItem(
                 key = key,
-                isSelected = key.index == state.selectedKeyIndex,
+                isSelected = key.index == uiState.selectedKeyIndex,
                 onKeySelected = onKeySelected
             )
         }

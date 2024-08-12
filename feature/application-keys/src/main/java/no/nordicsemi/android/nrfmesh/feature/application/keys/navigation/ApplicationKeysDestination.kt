@@ -25,7 +25,7 @@ fun NavGraphBuilder.applicationKeysGraph(
 
         ApplicationKeysRoute(
             uiState = uiState,
-            navigateToApplicationKey = onNavigateToApplicationKey,
+            navigateToKey = onNavigateToApplicationKey,
             onAddKeyClicked = viewModel::addApplicationKey,
             onSwiped = viewModel::onSwiped,
             onUndoClicked = viewModel::onUndoSwipe,

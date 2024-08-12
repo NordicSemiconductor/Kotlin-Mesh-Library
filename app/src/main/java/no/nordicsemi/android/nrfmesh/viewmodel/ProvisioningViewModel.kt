@@ -3,27 +3,27 @@ package no.nordicsemi.android.nrfmesh.viewmodel
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.NavigationResult
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.*
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connected
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connecting
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Disconnected
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Error
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Provisioning
+import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Scanning
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -41,10 +41,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle), Logger {
+) : ViewModel(), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
@@ -155,27 +154,27 @@ class ProvisioningViewModel @Inject constructor(
      * Observers the result of the NetKeySelector destination.
      */
     private fun observeNetKeySelector() {
-        resultFrom(netKeySelector)
-            // Filter out results of cancelled navigation.
-            .mapNotNull { it as? NavigationResult.Success }
-            .map { it.value }
-            // Save the result in SavedStateHandle.
-            .onEach { keyIndex ->
-                //savedStateHandle[KEY_INDEX] = it
-                uiState.value.provisionerState.let { provisionerState ->
-                    if (provisionerState is Provisioning) {
-                        if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
-                            meshNetwork.networkKeys.find { key ->
-                                keyIndex == key.index.toInt()
-                            }?.let {
-                                provisionerState.state.parameters.networkKey = it
-                            }
-                        }
-                    }
-                }
-            }
-            // And finally, launch the flow in the ViewModelScope.
-            .launchIn(viewModelScope)
+        // resultFrom(netKeySelector)
+        //     // Filter out results of cancelled navigation.
+        //     .mapNotNull { it as? NavigationResult.Success }
+        //     .map { it.value }
+        //     // Save the result in SavedStateHandle.
+        //     .onEach { keyIndex ->
+        //         //savedStateHandle[KEY_INDEX] = it
+        //         uiState.value.provisionerState.let { provisionerState ->
+        //             if (provisionerState is Provisioning) {
+        //                 if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
+        //                     meshNetwork.networkKeys.find { key ->
+        //                         keyIndex == key.index.toInt()
+        //                     }?.let {
+        //                         provisionerState.state.parameters.networkKey = it
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     // And finally, launch the flow in the ViewModelScope.
+        //     .launchIn(viewModelScope)
     }
 
     /**
@@ -228,7 +227,7 @@ class ProvisioningViewModel @Inject constructor(
      * @param keyIndex Index of the network key.
      */
     internal fun onNetworkKeyClick(keyIndex: KeyIndex) {
-        navigateTo(netKeySelector, keyIndex.toInt())
+        // navigateTo(netKeySelector, keyIndex.toInt())
     }
 
     /**
@@ -274,7 +273,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningComplete() {
         disconnect()
-        navigateUp() // Navigates back to the list of nodes
+        // navigateUp() // Navigates back to the list of nodes
     }
 
     /**
@@ -282,7 +281,7 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningFailed() {
         disconnect()
-        navigateUp() // Navigates back to the list of nodes
+        // navigateUp() // Navigates back to the list of nodes
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
@@ -304,7 +303,7 @@ sealed class ProvisionerState {
     ) : ProvisionerState()
 
     data class Error(val unprovisionedDevice: UnprovisionedDevice, val throwable: Throwable) :
-            ProvisionerState()
+        ProvisionerState()
 
     data class Disconnected(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
 }

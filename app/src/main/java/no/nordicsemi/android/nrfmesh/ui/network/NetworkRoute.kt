@@ -45,9 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
-import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
-import no.nordicsemi.android.nrfmesh.destinations.provisioning
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
@@ -219,10 +217,4 @@ fun BottomNavigationBar(
             )
         }
     }
-}
-
-
-private fun DestinationId<*, *>.shouldShowBottomBars() = when (this) {
-    provisioning -> false
-    else -> true
 }

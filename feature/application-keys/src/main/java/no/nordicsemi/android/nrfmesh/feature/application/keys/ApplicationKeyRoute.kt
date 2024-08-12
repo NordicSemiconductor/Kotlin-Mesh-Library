@@ -43,8 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -61,13 +59,17 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
-internal fun ApplicationKeyRoute(viewModel: ApplicationKeyViewModel = hiltViewModel()) {
-    val uiState: ApplicationKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+internal fun ApplicationKeyRoute(
+    uiState: ApplicationKeyScreenUiState,
+    onNameChanged: (String) -> Unit,
+    onKeyChanged: (ByteArray) -> Unit,
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
+) {
     ApplicationKeyScreen(
         keyState = uiState.keyState,
-        onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged,
-        onBoundNetworkKeyChanged = viewModel::onBoundNetworkKeyChanged
+        onNameChanged = onNameChanged,
+        onKeyChanged = onKeyChanged,
+        onBoundNetworkKeyChanged = onBoundNetworkKeyChanged
     )
 }
 
@@ -237,7 +239,7 @@ fun Key(
                             regex = Regex("[0-9A-Fa-f]{0,32}"),
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Characters,
-                                autoCorrect = false
+                                autoCorrectEnabled = false
                             ),
                             content = {
                                 IconButton(
@@ -340,14 +342,14 @@ private fun LazyListScope.boundNetworkKeys(
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .clickable {
-                if (!isInUse) onBoundNetworkKeyChanged(key)
-                else showSnackbar(
-                    scope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    message = context.getString(R.string.error_cannot_change_bound_net_key),
-                    withDismissAction = true
-                )
-            },
+                    if (!isInUse) onBoundNetworkKeyChanged(key)
+                    else showSnackbar(
+                        scope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        message = context.getString(R.string.error_cannot_change_bound_net_key),
+                        withDismissAction = true
+                    )
+                },
             imageVector = Icons.Outlined.VpnKey,
             title = key.name,
             titleAction = {

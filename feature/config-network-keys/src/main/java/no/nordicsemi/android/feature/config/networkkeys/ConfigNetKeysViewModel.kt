@@ -1,6 +1,7 @@
 package no.nordicsemi.android.feature.config.networkkeys
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -10,8 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
@@ -29,10 +28,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConfigNetKeysViewModel @Inject constructor(
-    private val navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle) {
+) : ViewModel() {
     private lateinit var selectedNode: Node
 
     private val nodeUuid: UUID =
@@ -82,7 +80,7 @@ class ConfigNetKeysViewModel @Inject constructor(
         }
     }
 
-    fun resetMessageState(){
+    fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 

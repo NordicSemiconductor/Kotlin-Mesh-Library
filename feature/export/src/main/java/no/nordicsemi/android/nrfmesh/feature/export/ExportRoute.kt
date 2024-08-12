@@ -2,7 +2,7 @@
 
 package no.nordicsemi.android.nrfmesh.feature.export
 
-import android.content.Context
+import android.content.ContentResolver
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -59,38 +58,43 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 @Composable
 fun ExportRoute(
-    viewModel: ExportViewModel = hiltViewModel()
-) {
-    val context = LocalContext.current
-    ExportScreen(
-        context = context,
-        uiState = viewModel.uiState,
-        onExportEverythingToggled = viewModel::onExportEverythingToggled,
-        onNetworkKeySelected = viewModel::onNetworkKeySelected,
-        onProvisionerSelected = viewModel::onProvisionerSelected,
-        onExportDeviceKeysToggled = viewModel::onExportDeviceKeysToggled,
-        onExportClicked = { uri -> viewModel.export(context.contentResolver, uri) },
-        onExportStateDisplayed = viewModel::onExportStateDisplayed,
-        onBackPressed = viewModel::navigateUp
-    )
-}
-
-@Composable
-private fun ExportScreen(
-    context: Context,
     uiState: ExportScreenUiState,
     onExportEverythingToggled: (Boolean) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
     onProvisionerSelected: (Provisioner, Boolean) -> Unit,
     onExportDeviceKeysToggled: (Boolean) -> Unit,
-    onExportClicked: (Uri) -> Unit,
+    onExportClicked: (ContentResolver, Uri) -> Unit,
     onExportStateDisplayed: () -> Unit,
     onBackPressed: () -> Unit
 ) {
+    ExportScreen(
+        uiState = uiState,
+        onExportEverythingToggled = onExportEverythingToggled,
+        onNetworkKeySelected = onNetworkKeySelected,
+        onProvisionerSelected = onProvisionerSelected,
+        onExportDeviceKeysToggled = onExportDeviceKeysToggled,
+        onExportClicked = onExportClicked,
+        onExportStateDisplayed = onExportStateDisplayed,
+        onBackPressed = onBackPressed
+    )
+}
+
+@Composable
+private fun ExportScreen(
+    uiState: ExportScreenUiState,
+    onExportEverythingToggled: (Boolean) -> Unit,
+    onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
+    onProvisionerSelected: (Provisioner, Boolean) -> Unit,
+    onExportDeviceKeysToggled: (Boolean) -> Unit,
+    onExportClicked: (ContentResolver, Uri) -> Unit,
+    onExportStateDisplayed: () -> Unit,
+    onBackPressed: () -> Unit
+) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
-        onResult = { it?.let { onExportClicked(it) } }
+        onResult = { it?.let { onExportClicked(context.contentResolver, it) } }
     )
     when (uiState.exportState) {
         is ExportState.Success ->
@@ -344,6 +348,7 @@ private fun ExportDeviceKeys(
             subtitle = stringResource(R.string.label_export_device_keys_rationale),
             subtitleMaxLines = Int.MAX_VALUE
         )
+        HorizontalDivider()
         Divider(
             modifier = Modifier
                 .fillMaxHeight()

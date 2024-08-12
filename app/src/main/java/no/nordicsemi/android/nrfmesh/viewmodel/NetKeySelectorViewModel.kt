@@ -2,16 +2,15 @@ package no.nordicsemi.android.nrfmesh.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.destinations.netKeySelector
+import no.nordicsemi.android.nrfmesh.destinations.NetKeySelectorDestination
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -22,14 +21,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NetKeySelectorViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator = navigator, savedStateHandle = savedStateHandle), Logger {
+) : ViewModel(), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
 
-    private val selectedNetKey: KeyIndex = parameterOf(netKeySelector).toUShort()
+    private val selectedNetKey =
+        checkNotNull(savedStateHandle[NetKeySelectorDestination.netKeyIndexArg]) as KeyIndex
 
 
     private var _uiState = MutableStateFlow(NetworkKeySelectionScreenUiState())
@@ -49,6 +48,7 @@ class NetKeySelectorViewModel @Inject constructor(
 
     fun onKeySelected(keyIndex: KeyIndex) {
         _uiState.value = _uiState.value.copy(selectedKeyIndex = keyIndex)
+        savedStateHandle[NetKeySelectorDestination.netKeyIndexArg] = keyIndex
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {

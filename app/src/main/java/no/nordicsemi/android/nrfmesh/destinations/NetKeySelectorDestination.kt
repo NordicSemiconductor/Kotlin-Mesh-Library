@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.network.keys.navigation
+package no.nordicsemi.android.nrfmesh.destinations
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -8,20 +8,20 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeyRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeyViewModel
+import no.nordicsemi.android.nrfmesh.ui.provisioning.NetKeySelectorRoute
+import no.nordicsemi.android.nrfmesh.viewmodel.NetKeySelectorViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
-object NetworkKeyDestination : MeshNavigationDestination {
+object NetKeySelectorDestination : MeshNavigationDestination {
     const val netKeyIndexArg = "netKeyIndexArg"
-    override val route: String = "network_key_route/{$netKeyIndexArg}"
-    override val destination: String = "network_key_destination"
+    override val route: String = "net_key_selector_route/{$netKeyIndexArg}"
+    override val destination: String = "net_key_selector_destination"
 
     /**
-     * Creates destination route for a network key index.
+     * Creates destination route for a application key index.
      */
     fun createNavigationRoute(netKeyIndexArg: KeyIndex): String =
-        "network_key_route/${Uri.encode(netKeyIndexArg.toInt().toString())}"
+        "application_key_route/${Uri.encode(netKeyIndexArg.toInt().toString())}"
 
     /**
      * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
@@ -32,15 +32,14 @@ object NetworkKeyDestination : MeshNavigationDestination {
     }
 }
 
-internal fun NavGraphBuilder.networkKeyGraph(onBackPressed: () -> Unit) {
-    composable(route = NetworkKeyDestination.route) {
-        val viewModel = hiltViewModel<NetworkKeyViewModel>()
+internal fun NavGraphBuilder.netKeySelectorGraph(onBackPressed: (KeyIndex) -> Unit) {
+    composable(route = NetKeySelectorDestination.route) {
+        val viewModel = hiltViewModel<NetKeySelectorViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        NetworkKeyRoute(
+        NetKeySelectorRoute(
             uiState = uiState,
-            onNameChanged = viewModel::onNameChanged,
-            onKeyChanged = viewModel::onKeyChanged,
+            onKeySelected = viewModel::onKeySelected,
+            onBackPressed = onBackPressed
         )
     }
 }
-

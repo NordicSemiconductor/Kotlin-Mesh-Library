@@ -81,7 +81,7 @@ fun MeshNavHost(
                 onNavigateToDestination(ScenesDestination, ScenesDestination.route)
             },
             nestedGraphs = {
-                exportGraph(/*onBackPressed = onBackPressed*/)
+                exportGraph(onBackPressed = onBackPressed)
                 provisionersGraph(
                     onBackPressed = onBackPressed,
                     onNavigateToProvisioner = { provisionerUuid ->

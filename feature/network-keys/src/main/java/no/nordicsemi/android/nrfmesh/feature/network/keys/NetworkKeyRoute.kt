@@ -38,8 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -64,13 +62,14 @@ import java.util.Date
 
 @Composable
 internal fun NetworkKeyRoute(
-    viewModel: NetworkKeyViewModel = hiltViewModel()
+    uiState: NetworkKeyScreenUiState,
+    onNameChanged: (String) -> Unit,
+    onKeyChanged: (ByteArray) -> Unit
 ) {
-    val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeyScreen(
         keyState = uiState.keyState,
-        onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
+        onNameChanged = onNameChanged,
+        onKeyChanged = onKeyChanged
     )
 }
 
@@ -212,7 +211,7 @@ fun Key(
                             regex = Regex("[0-9A-Fa-f]{0,32}"),
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Characters,
-                                autoCorrect = false
+                                autoCorrectEnabled = false
                             ),
                             content = {
                                 IconButton(

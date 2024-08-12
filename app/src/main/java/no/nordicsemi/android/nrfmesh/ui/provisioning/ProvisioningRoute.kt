@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
@@ -61,7 +60,6 @@ import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Error
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Identifying
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Provisioning
 import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningScreenUiState
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -71,8 +69,19 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
 @Composable
-fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+internal fun ProvisioningRoute(
+    uiState: ProvisioningScreenUiState,
+    beginProvisioning: (Context, BleScanResults) -> Unit,
+    onNameChanged: (String) -> Unit,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    isValidAddress: (UShort) -> Boolean,
+    onNetworkKeyClick: (KeyIndex) -> Unit,
+    startProvisioning: (AuthenticationMethod) -> Unit,
+    authenticate: (AuthAction, String) -> Unit,
+    onProvisioningComplete: () -> Unit,
+    onProvisioningFailed: () -> Unit,
+    disconnect: () -> Unit
+) {
     BackHandler(
         enabled = uiState.provisionerState is Connecting ||
                 uiState.provisionerState is Connected ||
@@ -80,20 +89,20 @@ fun ProvisioningRoute(viewModel: ProvisioningViewModel) {
                 uiState.provisionerState is Provisioning ||
                 uiState.provisionerState is Disconnected
     ) {
-        viewModel.disconnect()
+        disconnect()
     }
     ProvisionerScreen(
         uiState = uiState,
-        beginProvisioning = viewModel::beginProvisioning,
-        onNameChanged = viewModel::onNameChanged,
-        onAddressChanged = viewModel::onAddressChanged,
-        isValidAddress = viewModel::isValidAddress,
-        onNetworkKeyClick = viewModel::onNetworkKeyClick,
-        startProvisioning = viewModel::startProvisioning,
-        authenticate = viewModel::authenticate,
-        onProvisioningComplete = viewModel::onProvisioningComplete,
-        onProvisioningFailed = viewModel::onProvisioningFailed,
-        disconnect = viewModel::disconnect
+        beginProvisioning = beginProvisioning,
+        onNameChanged = onNameChanged,
+        onAddressChanged = onAddressChanged,
+        isValidAddress = isValidAddress,
+        onNetworkKeyClick = onNetworkKeyClick,
+        startProvisioning = startProvisioning,
+        authenticate = authenticate,
+        onProvisioningComplete = onProvisioningComplete,
+        onProvisioningFailed = onProvisioningFailed,
+        disconnect = disconnect
     )
 }
 
