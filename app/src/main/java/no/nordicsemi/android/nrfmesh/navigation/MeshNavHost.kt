@@ -38,18 +38,8 @@ fun MeshNavHost(
         startDestination = startDestination
     ) {
         nodesGraph(
-            navigateToNode = { node ->
-                onNavigateToDestination(
-                    NodeDestination,
-                    NodeDestination.createNavigationRoute(node.uuid)
-                )
-            },
+            onNavigateToDestination = onNavigateToDestination,
             onBackPressed = onBackPressed,
-            nestedGraphs = {
-                nodeGraph(
-                    onBackPressed = onBackPressed
-                )
-            }
         )
         groupsGraph(
             navigateToGroup = { group ->

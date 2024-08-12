@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -41,15 +42,16 @@ import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import java.util.UUID
 
 @Composable
 fun NodeRoute(
     uiState: NodeScreenUiState,
     onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onNetworkKeysClicked: () -> Unit,
-    onApplicationKeysClicked: () -> Unit,
-    onElementsClicked: () -> Unit,
+    onNetworkKeysClicked: (UUID) -> Unit,
+    onApplicationKeysClicked: (UUID) -> Unit,
+    onElementsClicked: (UUID) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -79,9 +81,9 @@ private fun NodeScreen(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onNetworkKeysClicked: () -> Unit,
-    onApplicationKeysClicked: () -> Unit,
-    onElementsClicked: () -> Unit,
+    onNetworkKeysClicked: (UUID) -> Unit,
+    onApplicationKeysClicked: (UUID) -> Unit,
+    onElementsClicked: (UUID) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -95,7 +97,10 @@ private fun NodeScreen(
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
-        LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp),
+        ) {
             when (nodeState) {
                 NodeState.Loading -> {}
 
@@ -131,9 +136,9 @@ private fun NodeScreen(
 private fun LazyListScope.nodeInfo(
     node: Node,
     onNameChanged: (String) -> Unit,
-    onNetworkKeysClicked: () -> Unit,
-    onApplicationKeysClicked: () -> Unit,
-    onElementsClicked: () -> Unit,
+    onNetworkKeysClicked: (UUID) -> Unit,
+    onApplicationKeysClicked: (UUID) -> Unit,
+    onElementsClicked: (UUID) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -143,21 +148,26 @@ private fun LazyListScope.nodeInfo(
     item { NodeNameRow(name = node.name, onNameChanged = onNameChanged) }
     item { SectionTitle(title = stringResource(id = R.string.title_keys)) }
     item {
-        NetworkKeysRow(count = node.networkKeys.size, onNetworkKeysClicked = onNetworkKeysClicked)
+        NetworkKeysRow(count = node.networkKeys.size, onNetworkKeysClicked = {
+            onNetworkKeysClicked(node.uuid)
+        })
         Spacer(modifier = Modifier.size(8.dp))
     }
     item {
-        ApplicationKeysRow(
-            count = node.applicationKeys.size,
-            onApplicationKeysClicked = onApplicationKeysClicked
-        )
+        ApplicationKeysRow(count = node.applicationKeys.size, onApplicationKeysClicked = {
+            onApplicationKeysClicked(node.uuid)
+        })
     }
     item { SectionTitle(title = stringResource(id = R.string.title_elements)) }
     node.elements.forEachIndexed { index, element ->
         item {
-            ElementRow(element = element, onElementsClicked = onElementsClicked)
-            if (index != node.elements.size - 1)
-                Spacer(modifier = Modifier.size(8.dp))
+            ElementRow(
+                element = element,
+                onElementsClicked = {
+                    onElementsClicked(node.uuid)
+                }
+            )
+            if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
         }
     }
     item {
@@ -250,9 +260,7 @@ private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
 
 @Composable
 private fun ProxyStateRow(
-    proxy: Proxy?,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit
+    proxy: Proxy?, onProxyStateToggled: (Boolean) -> Unit, onGetProxyStateClicked: () -> Unit
 ) {
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
@@ -265,17 +273,14 @@ private fun ProxyStateRow(
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
         titleAction = {
-            SwitchWithIcon(
-                isChecked = enabled,
-                onCheckedChange = {
-                    enabled = it
-                    if (!it) {
-                        showProxyStateDialog = !showProxyStateDialog
-                    } else {
-                        onProxyStateToggled(true)
-                    }
+            SwitchWithIcon(isChecked = enabled, onCheckedChange = {
+                enabled = it
+                if (!it) {
+                    showProxyStateDialog = !showProxyStateDialog
+                } else {
+                    onProxyStateToggled(true)
                 }
-            )
+            })
         },
         subtitle = "Proxy state is ${if (enabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
@@ -285,11 +290,10 @@ private fun ProxyStateRow(
         }
     }
     if (showProxyStateDialog) {
-        MeshAlertDialog(
-            onDismissRequest = {
-                showProxyStateDialog = !showProxyStateDialog
-                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-            },
+        MeshAlertDialog(onDismissRequest = {
+            showProxyStateDialog = !showProxyStateDialog
+            enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+        },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
@@ -302,8 +306,7 @@ private fun ProxyStateRow(
             onDismissClick = {
                 showProxyStateDialog = !showProxyStateDialog
                 enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-            }
-        )
+            })
     }
 }
 
@@ -311,18 +314,14 @@ private fun ProxyStateRow(
 private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
     var excluded by rememberSaveable { mutableStateOf(isExcluded) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
         titleAction = {
-            SwitchWithIcon(
-                isChecked = isExcluded,
-                onCheckedChange = {
-                    excluded = it
-                    onExcluded(it)
-                }
-            )
+            SwitchWithIcon(isChecked = isExcluded, onCheckedChange = {
+                excluded = it
+                onExcluded(it)
+            })
         },
         subtitle = when (excluded) {
             true -> stringResource(id = R.string.label_node_excluded)
@@ -349,8 +348,7 @@ private fun ResetRow(onResetClicked: () -> Unit) {
         }
     }
     if (showResetDialog) {
-        MeshAlertDialog(
-            onDismissRequest = { showResetDialog = !showResetDialog },
+        MeshAlertDialog(onDismissRequest = { showResetDialog = !showResetDialog },
             icon = Icons.Outlined.Recycling,
             title = stringResource(R.string.label_reset_node),
             text = stringResource(R.string.label_are_you_sure_rationale),
@@ -359,7 +357,6 @@ private fun ResetRow(onResetClicked: () -> Unit) {
             onConfirmClick = {
                 showResetDialog = !showResetDialog
                 onResetClicked()
-            }
-        )
+            })
     }
 }

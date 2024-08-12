@@ -1,9 +1,14 @@
 package no.nordicsemi.android.feature.config.networkkeys.navigation
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysRoute
+import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysViewModel
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import java.util.UUID
 
@@ -29,9 +34,21 @@ object ConfigNetworkKeyDestination : MeshNavigationDestination {
     }
 }
 
-internal fun NavGraphBuilder.configNetworkKeyGraph(onBackPressed: () -> Unit) {
+fun NavGraphBuilder.configNetworkKeysGraph(
+    navigateToNetworkKeys: () -> Unit,
+    onBackPressed: () -> Unit
+) {
     composable(route = ConfigNetworkKeyDestination.route) {
-        // ConfigNetKeyRoute(onBackPressed = onBackPressed)
+        val viewmodel = hiltViewModel<ConfigNetKeysViewModel>()
+        val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
+        ConfigNetKeysRoute(
+            uiState = uiState,
+            navigateToNetworkKeys = navigateToNetworkKeys,
+            onAddKeyClicked = viewmodel::addNetworkKey,
+            onSwiped = viewmodel::onSwiped,
+            resetMessageState = viewmodel::resetMessageState,
+            onBackClick = onBackPressed,
+        )
     }
 }
 

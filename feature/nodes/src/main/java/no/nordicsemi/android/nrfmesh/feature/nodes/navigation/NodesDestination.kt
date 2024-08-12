@@ -16,20 +16,27 @@ object NodesDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.nodesGraph(
-    navigateToNode: (Node) -> Unit,
-    onBackPressed: () -> Unit,
-    nestedGraphs: NavGraphBuilder.() -> Unit
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit
 ) {
     composable(route = NodesDestination.route) {
         val viewModel = hiltViewModel<NodesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NodesRoute(
             uiState = uiState,
-            navigateToNode = navigateToNode,
+            navigateToNode = { node ->
+                onNavigateToDestination(
+                    NodeDestination,
+                    NodeDestination.createNavigationRoute(node.uuid)
+                )
+            },
             onSwiped = { },
             onUndoClicked = { },
             remove = { }
         )
     }
-    nestedGraphs()
+    nodeGraph(
+        onNavigateToDestination = onNavigateToDestination,
+        onBackPressed = onBackPressed
+    )
 }

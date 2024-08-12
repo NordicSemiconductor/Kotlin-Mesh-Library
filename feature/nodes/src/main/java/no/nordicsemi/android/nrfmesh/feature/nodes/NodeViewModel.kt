@@ -28,7 +28,7 @@ internal class NodeViewModel @Inject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val nodeUuid: UUID = checkNotNull(savedStateHandle[NodeDestination.nodeUuidArg]).let {
+    private val nodeUuid: UUID = checkNotNull(savedStateHandle[NodeDestination.arg]).let {
         UUID.fromString(it as String)
     }
 

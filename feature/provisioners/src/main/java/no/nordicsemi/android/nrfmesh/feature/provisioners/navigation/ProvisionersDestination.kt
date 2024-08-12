@@ -13,8 +13,8 @@ object ProvisionersDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.provisionersGraph(
-    onBackPressed: () -> Unit,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit
 ) {
     composable(route = ProvisionersDestination.route) {
         ProvisionersRoute(
