@@ -1,5 +1,6 @@
-package no.nordicsemi.android.nrfmesh.ui
+package no.nordicsemi.android.nrfmesh.navigation
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupWork
 import androidx.compose.material.icons.filled.Hive
@@ -18,31 +19,46 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.R
+import no.nordicsemi.android.nrfmesh.core.navigation.Screen
+import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
-import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 
 @Composable
 fun rememberMeshAppState(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    scope: CoroutineScope
 ): MeshAppState {
     return remember(navController) {
-        MeshAppState(navController)
+        MeshAppState(
+            navController = navController,
+            scope = scope
+        )
     }
 }
 
 @Stable
-class MeshAppState(val navController: NavHostController) {
+class MeshAppState(
+    val navController: NavHostController,
+    private val scope: CoroutineScope
+) : AppState() {
 
     val currentDestination: NavDestination?
         @Composable get() = navController
             .currentBackStackEntryAsState().value?.destination
 
-    val topLevelDestinations = listOf(
+    override val topLevelDestinations = listOf(
         TopLevelDestination(
             route = NodesDestination.route,
             destination = NodesDestination.destination,
@@ -73,7 +89,21 @@ class MeshAppState(val navController: NavHostController) {
         )
     )
 
-    fun navigate(destination: MeshNavigationDestination, route: String? = null) {
+    init {
+        currentScreen()
+    }
+
+    override fun currentScreen() {
+        navController.currentBackStackEntryFlow
+            .distinctUntilChanged()
+            .onEach { backStackEntry ->
+                val route = backStackEntry.destination.route
+                currentScreen = getScreen(route)
+            }
+            .launchIn(scope)
+    }
+
+    override fun navigate(destination: MeshNavigationDestination, route: String?) {
         trace("Navigation: $destination") {
             if (destination is TopLevelDestination) {
                 navController.navigate(route ?: destination.route) {
@@ -95,7 +125,19 @@ class MeshAppState(val navController: NavHostController) {
         }
     }
 
-    fun onBackPressed(){
+    override fun onBackPressed() {
         navController.popBackStack()
+    }
+}
+
+
+fun getScreen(route: String?): Screen? {
+    Log.d("AAA", "getScreen: $route")
+    return when (route) {
+        NodesDestination.route -> NodesScreen(title = "Nodes")
+        GroupsDestination.route -> NodesScreen(title = "Groups")
+        ProxyDestination.route -> NodesScreen(title = "Proxy")
+        SettingsDestination.route -> SettingsScreen(title = "Settings")
+        else -> null
     }
 }

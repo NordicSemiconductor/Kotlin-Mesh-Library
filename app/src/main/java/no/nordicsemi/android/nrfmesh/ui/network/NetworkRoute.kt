@@ -2,8 +2,10 @@
 
 package no.nordicsemi.android.nrfmesh.ui.network
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.expandVertically
@@ -14,13 +16,18 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -48,8 +55,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
-import no.nordicsemi.android.nrfmesh.navigation.TopLevelDestination
-import no.nordicsemi.android.nrfmesh.ui.MeshAppState
+import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
@@ -96,31 +103,34 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
         topBar = {
             NordicLargeAppBar(
                 title = {
-                    Text(text = "Fix me")
+                    Text(text = appState.title)
                 },
                 scrollBehavior = scrollBehavior,
-                /*backButtonIcon = when (currentDestination?.destination?.route) {
-                    provisioning -> Icons.Rounded.Close
-                    else -> Icons.AutoMirrored.Rounded.ArrowBack
-                },*/
-                onNavigationButtonClick = viewModel::navigateUp,
-                showBackButton = false,
-                /*actions = {
-                    if (currentDestination == settings) {
-                        IconButton(onClick = { isOptionsMenuExpanded = !isOptionsMenuExpanded }) {
-                            Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
+                backButtonIcon = appState.navigationIcon ?: Icons.AutoMirrored.Rounded.ArrowBack,
+                showBackButton = appState.onNavigationIconClick != null,
+                onNavigationButtonClick = appState.onNavigationIconClick,
+                actions = {
+                    val items = appState.actions
+                    items.forEach {
+                        IconButton(
+                            onClick = { /*TODO*/ },
+                            enabled = it.enabled
+                        ) {
+                            Icon(imageVector = it.icon, contentDescription = it.contentDescription)
                         }
                     }
-                }*/
+                }
             )
         },
-        /*floatingActionButton = {
-            if (currentDestination == nodes || currentDestination == groups) {
+        floatingActionButton = {
+            if(appState.showTopAppBar) {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    onClick = { viewModel.navigateTo(provisioning) }
+                    onClick = {
+
+                    }
                 ) {
-                    Icon(
+/*                    Icon(
                         imageVector = when (currentDestination) {
                             proxy -> Icons.Rounded.Hub
                             else -> Icons.Rounded.Add
@@ -134,22 +144,23 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
                             proxy -> stringResource(R.string.action_connect)
                             else -> ""
                         }
-                    )
+                    )*/
                 }
             }
-        },*/
+        },
         bottomBar = {
-            /*AnimatedVisibility(
-                visible = currentDestination?.shouldShowBottomBars() ?: false,
+            Log.d("AAA", "${appState.currentScreen?.route}")
+            AnimatedVisibility(
+                visible = appState.showBottomBar,
                 enter = enterTransition,
                 exit = exitTransition
             ) {
-            }*/
-            BottomNavigationBar(
-                destinations = appState.topLevelDestinations,
-                onNavigateToTopLevelDestination = appState::navigate,
-                currentDestination = appState.currentDestination
-            )
+                BottomNavigationBar(
+                    destinations = appState.topLevelDestinations,
+                    onNavigateToTopLevelDestination = appState::navigate,
+                    currentDestination = appState.currentDestination
+                )
+            }
         }
     ) { paddingValues ->
         /*SettingsDropDown(
@@ -169,6 +180,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             }
         )*/
         MeshNavHost(
+            appState = appState,
             navController = appState.navController,
             onNavigateToDestination = appState::navigate,
             onBackPressed = appState::onBackPressed,
@@ -176,7 +188,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                // .safeContentPadding()
+            // .safeContentPadding()
         )
     }
 }

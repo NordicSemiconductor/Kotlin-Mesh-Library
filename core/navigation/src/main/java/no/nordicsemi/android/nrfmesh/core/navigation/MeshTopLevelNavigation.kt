@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package no.nordicsemi.android.nrfmesh.navigation
+package no.nordicsemi.android.nrfmesh.core.navigation
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 
 /**
  * Routes for the different top level destinations in the application. Each of these destinations

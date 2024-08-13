@@ -5,6 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
@@ -16,6 +17,7 @@ object NodesDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.nodesGraph(
+    appState: AppState,
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -23,6 +25,7 @@ fun NavGraphBuilder.nodesGraph(
         val viewModel = hiltViewModel<NodesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NodesRoute(
+            appState = appState,
             uiState = uiState,
             navigateToNode = { node ->
                 onNavigateToDestination(

@@ -2,8 +2,16 @@ package no.nordicsemi.android.nrfmesh.feature.settings.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.provisionersGraph
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.scenesGraph
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsRoute
 
 object SettingsDestination : MeshNavigationDestination {
@@ -12,26 +20,43 @@ object SettingsDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.settingsGraph(
-    navigateToProvisioners: () -> Unit,
-    navigateToNetworkKeys: () -> Unit,
-    navigateToApplicationKeys: () -> Unit,
-    navigateToScenes: () -> Unit,
-    navigateToExportNetwork: () -> Unit,
-    nestedGraphs: NavGraphBuilder.() -> Unit
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
-    navigation(
-        route = SettingsDestination.route,
-        startDestination = SettingsDestination.destination
-    ) {
-        composable(route = SettingsDestination.destination) {
-            SettingsRoute(
-                navigateToProvisioners = navigateToProvisioners,
-                navigateToNetworkKeys = navigateToNetworkKeys,
-                navigateToApplicationKeys = navigateToApplicationKeys,
-                navigateToScenes = navigateToScenes
-            )
-        }
-        nestedGraphs()
+    composable(route = SettingsDestination.route) {
+        SettingsRoute(
+            navigateToProvisioners = {
+                onNavigateToDestination(ProvisionersDestination, ProvisionersDestination.route)
+            },
+            navigateToNetworkKeys = {
+                onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
+            },
+            navigateToApplicationKeys = {
+                onNavigateToDestination(
+                    ApplicationKeysDestination,
+                    ApplicationKeysDestination.route
+                )
+            },
+            navigateToScenes = {
+                onNavigateToDestination(ScenesDestination, ScenesDestination.route)
+            },
+        )
     }
+    exportGraph(onBackPressed = onBackPressed)
+    provisionersGraph(
+        onBackPressed = onBackPressed,
+        onNavigateToDestination = onNavigateToDestination,
+    )
+    networkKeysGraph(
+        onBackPressed = onBackPressed,
+        onNavigateToKey = onNavigateToDestination
+    )
+    applicationKeysGraph(
+        onBackPressed = onBackPressed,
+        onNavigateToKey = onNavigateToDestination
+    )
+    scenesGraph(
+        onBackPressed = onBackPressed,
+        onNavigateToScene = onNavigateToDestination
+    )
 }
-
