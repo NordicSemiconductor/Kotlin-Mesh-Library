@@ -28,7 +28,11 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.R
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.feature.export.ExportScreenUiState
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
@@ -135,9 +139,10 @@ fun getScreen(route: String?): Screen? {
     Log.d("AAA", "getScreen: $route")
     return when (route) {
         NodesDestination.route -> NodesScreen(title = "Nodes")
-        GroupsDestination.route -> NodesScreen(title = "Groups")
+        GroupsDestination.route -> GroupsScreen(title = "Groups")
         ProxyDestination.route -> NodesScreen(title = "Proxy")
         SettingsDestination.route -> SettingsScreen(title = "Settings")
+        ExportDestination.route -> ExportScreen(title = "Settings")
         else -> null
     }
 }

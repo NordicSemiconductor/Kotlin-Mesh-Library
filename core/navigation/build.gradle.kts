@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(project(":core:common"))
-    implementation(project(":core:ui"))
+    // implementation(project(":core:ui"))
 
     implementation("androidx.compose.material3:material3:1.3.0-beta05")
 }

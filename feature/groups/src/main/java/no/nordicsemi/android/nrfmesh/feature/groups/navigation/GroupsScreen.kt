@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
+package no.nordicsemi.android.nrfmesh.feature.groups.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -8,11 +8,11 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class NodesScreen(
-    override val title: String = "Nodes",
+class GroupsScreen(
+    override val title: String = "Groups",
 ) : Screen {
     override val route: String
-        get() = NodesDestination.route
+        get() = GroupsDestination.route
     override val showTopBar: Boolean
         get() = true
     override val navigationIcon: ImageVector?

@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,11 +34,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.text.DateFormat
@@ -45,16 +50,28 @@ import java.util.Date
 
 @Composable
 fun SettingsRoute(
-    viewModel: SettingsViewModel = hiltViewModel(),
+    appState: AppState,
+    uiState: SettingsScreenUiState,
+    onNameChanged: (String) -> Unit,
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
+    navigateToExport: () -> Unit
 ) {
-    val uiState: SettingsScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val screen = appState.currentScreen as? SettingsScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                SettingsScreen.AppBarActions.IMPORT -> navigateToExport()
+                SettingsScreen.AppBarActions.EXPORT -> navigateToExport()
+                SettingsScreen.AppBarActions.RESET -> navigateToExport()
+            }
+        }?.launchIn(this)
+    }
     SettingsScreen(
         networkState = uiState.networkState,
-        onNameChanged = viewModel::onNameChanged,
+        onNameChanged = onNameChanged,
         onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,

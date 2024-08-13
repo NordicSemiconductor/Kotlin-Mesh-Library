@@ -1,7 +1,5 @@
 package no.nordicsemi.android.nrfmesh.core.navigation
 
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 
 
@@ -22,7 +20,8 @@ interface Screen {
     val navigationIcon: ImageVector?
     val onNavigationIconClick: (() -> Unit)?
     val title: String
-    val actions: List<ActionItem>
+    val actions: List<ActionMenuItem>
+    val floatingActionButton: FloatingActionButton?
     val showBottomBar: Boolean
 }
 
@@ -37,3 +36,34 @@ data class ActionItem(
     val enabled : Boolean = true,
     val onClick: () -> Unit
 )
+
+sealed interface ActionMenuItem {
+    val title: String
+    val onClick: () -> Unit
+
+    // 1
+    sealed interface IconMenuItem : ActionMenuItem {
+        val icon: ImageVector
+        val contentDescription: String?
+
+        // 2
+        data class AlwaysShown(
+            override val title: String,
+            override val contentDescription: String?,
+            override val onClick: () -> Unit,
+            override val icon: ImageVector,
+        ) : IconMenuItem
+
+        data class ShownIfRoom(
+            override val title: String,
+            override val contentDescription: String?,
+            override val onClick: () -> Unit,
+            override val icon: ImageVector,
+        ) : IconMenuItem
+    }
+
+    data class NeverShown(
+        override val title: String,
+        override val onClick: () -> Unit,
+    ) : ActionMenuItem
+}

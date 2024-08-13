@@ -1,18 +1,15 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
+package no.nordicsemi.android.nrfmesh.feature.export.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.ui.graphics.vector.ImageVector
-import no.nordicsemi.android.nrfmesh.core.navigation.ActionItem
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class NodesScreen(
-    override val title: String = "Nodes",
+class ExportScreen(
+    override val title: String = "Export",
 ) : Screen {
     override val route: String
-        get() = NodesDestination.route
+        get() = ExportDestination.route
     override val showTopBar: Boolean
         get() = true
     override val navigationIcon: ImageVector?
@@ -22,13 +19,7 @@ class NodesScreen(
     override val actions: List<ActionMenuItem>
         get() = emptyList()
     override val floatingActionButton: FloatingActionButton?
-        get() = FloatingActionButton(
-            icon = Icons.Outlined.Add,
-            contentDescription = "Add node",
-            onClick = {
-
-            }
-        )
+        get() = null
     override val showBottomBar: Boolean
         get() = true
 }

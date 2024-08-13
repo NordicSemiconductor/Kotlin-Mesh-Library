@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 
 @Stable
-abstract class AppState() {
+abstract class AppState {
     abstract val topLevelDestinations: List<TopLevelDestination>
 
     var currentScreen by mutableStateOf<Screen?>(null)
@@ -27,7 +27,7 @@ abstract class AppState() {
     val title: String
         get() = currentScreen?.title.orEmpty()
 
-    val actions: List<ActionItem>
+    val actions: List<ActionMenuItem>
         get() = currentScreen?.actions.orEmpty()
 
     val showBottomBar: Boolean

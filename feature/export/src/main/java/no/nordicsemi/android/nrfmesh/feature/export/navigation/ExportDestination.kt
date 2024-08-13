@@ -13,9 +13,7 @@ object ExportDestination : MeshNavigationDestination {
     override val destination: String = "export_destination"
 }
 
-fun NavGraphBuilder.exportGraph(
-    onBackPressed: () -> Unit
-) {
+fun NavGraphBuilder.exportGraph(onBackPressed: () -> Unit) {
     composable(route = ExportDestination.route) {
         val viewModel = hiltViewModel<ExportViewModel>()
         ExportRoute(

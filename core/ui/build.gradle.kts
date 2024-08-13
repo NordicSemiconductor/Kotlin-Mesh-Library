@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.nordic.log.timber)
 
     implementation(project(":core:common"))
+    implementation(project(":core:navigation"))
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

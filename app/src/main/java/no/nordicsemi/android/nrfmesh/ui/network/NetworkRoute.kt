@@ -56,6 +56,7 @@ import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
@@ -95,7 +96,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
         initialAlpha = 0.3f
     )
     val exitTransition: ExitTransition = slideOutVertically() + shrinkVertically() + fadeOut()
-
+    var menuExpanded by remember { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -106,24 +107,26 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
                     Text(text = appState.title)
                 },
                 scrollBehavior = scrollBehavior,
-                backButtonIcon = appState.navigationIcon ?: Icons.AutoMirrored.Rounded.ArrowBack,
+                backButtonIcon = appState.navigationIcon,
                 showBackButton = appState.onNavigationIconClick != null,
                 onNavigationButtonClick = appState.onNavigationIconClick,
                 actions = {
                     val items = appState.actions
-                    items.forEach {
-                        IconButton(
-                            onClick = { /*TODO*/ },
-                            enabled = it.enabled
-                        ) {
-                            Icon(imageVector = it.icon, contentDescription = it.contentDescription)
-                        }
+                    if (items.isNotEmpty()) {
+                        ActionsMenu(
+                            items = items,
+                            isOpen = menuExpanded,
+                            onToggleOverflow = {
+                                menuExpanded = !menuExpanded
+                            },
+                            maxVisibleItems = 3
+                        )
                     }
                 }
             )
         },
         floatingActionButton = {
-            if(appState.showTopAppBar) {
+            if (appState.showTopAppBar) {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                     onClick = {
