@@ -23,17 +23,23 @@ interface Screen {
     val actions: List<ActionMenuItem>
     val floatingActionButton: FloatingActionButton?
     val showBottomBar: Boolean
+
+    enum class A {
+        BACK
+    }
 }
 
 data class FloatingActionButton(
     val icon: ImageVector,
+    val text: String,
     val contentDescription: String? = null,
     val onClick: () -> Unit
 )
+
 data class ActionItem(
     val icon: ImageVector,
     val contentDescription: String? = null,
-    val enabled : Boolean = true,
+    val enabled: Boolean = true,
     val onClick: () -> Unit
 )
 

@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui.provisioning
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.viewmodel.NetworkKeySelectionScreenUiState
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetworkKeySelectionScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 

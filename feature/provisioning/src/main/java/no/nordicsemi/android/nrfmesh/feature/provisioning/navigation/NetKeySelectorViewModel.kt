@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.viewmodel
+package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.destinations.NetKeySelectorDestination
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -28,7 +27,7 @@ class NetKeySelectorViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
 
     private val selectedNetKey =
-        checkNotNull(savedStateHandle[NetKeySelectorDestination.netKeyIndexArg]) as KeyIndex
+        checkNotNull(savedStateHandle[no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination.netKeyIndexArg]) as KeyIndex
 
 
     private var _uiState = MutableStateFlow(NetworkKeySelectionScreenUiState())
@@ -48,7 +47,7 @@ class NetKeySelectorViewModel @Inject constructor(
 
     fun onKeySelected(keyIndex: KeyIndex) {
         _uiState.value = _uiState.value.copy(selectedKeyIndex = keyIndex)
-        savedStateHandle[NetKeySelectorDestination.netKeyIndexArg] = keyIndex
+        savedStateHandle[no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination.netKeyIndexArg] = keyIndex
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {

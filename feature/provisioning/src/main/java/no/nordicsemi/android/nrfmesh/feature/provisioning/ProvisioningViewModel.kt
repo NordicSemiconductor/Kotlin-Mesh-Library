@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.viewmodel
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import android.content.Context
 import android.util.Log
@@ -18,12 +18,12 @@ import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connected
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connecting
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Disconnected
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Provisioning
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Scanning
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connecting
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Disconnected
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Provisioning
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Scanning
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork

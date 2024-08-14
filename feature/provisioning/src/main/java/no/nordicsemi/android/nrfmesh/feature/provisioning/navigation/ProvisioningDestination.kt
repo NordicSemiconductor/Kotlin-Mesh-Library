@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.destinations
+package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -6,8 +6,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.ui.provisioning.ProvisioningRoute
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningViewModel
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningViewModel
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 
 object ProvisioningDestination : MeshNavigationDestination {
@@ -15,7 +15,7 @@ object ProvisioningDestination : MeshNavigationDestination {
     override val destination: String = "provisioning_destination"
 }
 
-fun NavGraphBuilder.provisioningGraph(navigateToGroup: (PrimaryGroupAddress) -> Unit) {
+fun NavGraphBuilder.provisioningGraph(onBackPressed: () -> Unit) {
     composable(route = ProvisioningDestination.route) {
         val viewModel = hiltViewModel<ProvisioningViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -28,8 +28,14 @@ fun NavGraphBuilder.provisioningGraph(navigateToGroup: (PrimaryGroupAddress) -> 
             onNetworkKeyClick = viewModel::onNetworkKeyClick,
             startProvisioning = viewModel::startProvisioning,
             authenticate = viewModel::authenticate,
-            onProvisioningComplete = viewModel::onProvisioningComplete,
-            onProvisioningFailed = viewModel::onProvisioningFailed,
+            onProvisioningComplete = {
+                viewModel.onProvisioningComplete()
+                onBackPressed()
+            },
+            onProvisioningFailed = {
+                viewModel.onProvisioningFailed()
+                onBackPressed()
+            },
             disconnect = viewModel::disconnect
         )
     }

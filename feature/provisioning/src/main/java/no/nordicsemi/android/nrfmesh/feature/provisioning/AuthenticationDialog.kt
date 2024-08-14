@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.nrfmesh.ui.provisioning
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +37,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -224,7 +223,7 @@ private fun ProvideAlphaNumeric(
         label = { TextFieldValue(text = context.getString(R.string.label_auth_value)) },
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Characters,
-            autoCorrect = false
+            autoCorrectEnabled = false
         ),
         placeholder = { TextFieldValue(text = "e.g. 12E4S6") },
         supportingText = {
@@ -265,7 +264,10 @@ private fun ProvideNumeric(
                 onValueChanged(it)
         },
         label = { Text(text = context.getString(R.string.label_auth_value)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, autoCorrect = false),
+        keyboardOptions = KeyboardOptions(
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Number
+        ),
         placeholder = { Text(text = "e.g. 123456") },
         supportingText = {
             Text(

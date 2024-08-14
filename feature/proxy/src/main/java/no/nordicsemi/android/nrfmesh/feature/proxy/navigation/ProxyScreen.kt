@@ -1,18 +1,18 @@
-package no.nordicsemi.android.nrfmesh.feature.groups.navigation
+package no.nordicsemi.android.nrfmesh.feature.proxy.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.ui.graphics.vector.ImageVector
-import no.nordicsemi.android.nrfmesh.core.navigation.ActionItem
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class GroupsScreen(
-    override val title: String = "Groups",
+class ProxyScreen(
+    override val title: String = "Proxy"
 ) : Screen {
     override val route: String
-        get() = GroupsDestination.route
+        get() = ProxyDestination.route
     override val showTopBar: Boolean
         get() = true
     override val navigationIcon: ImageVector?
@@ -21,15 +21,8 @@ class GroupsScreen(
         get() = null
     override val actions: List<ActionMenuItem>
         get() = emptyList()
-    override val floatingActionButton: FloatingActionButton
-        get() = FloatingActionButton(
-            icon = Icons.Outlined.Add,
-            text = "Add Group",
-            contentDescription = "Add Group",
-            onClick = {
-
-            }
-        )
+    override val floatingActionButton: FloatingActionButton?
+        get() = null
     override val showBottomBar: Boolean
         get() = true
 }

@@ -4,13 +4,17 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.nodes"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.provisioning"
 }
 
 dependencies {
 
     implementation(libs.nordic.kotlin.data)
-    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.nordic.blek.core)
+    implementation(libs.nordic.blek.client)
+    implementation(libs.nordic.blek.scanner)
+    implementation(libs.nordic.blek.uiscanner)
+    implementation(libs.nordic.permissions.ble)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -22,11 +26,13 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project(":core:ui"))
+    implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:config-network-keys"))
-    implementation(project(":feature:provisioning"))
     implementation(project(":feature:mesh-bearer-android"))
+    implementation(project(":feature:mesh-bearer-pbgatt"))
     implementation(project(":mesh:core"))
+    implementation(project(":mesh:provisioning"))
+
 }

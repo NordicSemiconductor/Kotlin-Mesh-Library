@@ -27,13 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
@@ -63,9 +60,9 @@ fun SettingsRoute(
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
             when (button) {
-                SettingsScreen.AppBarActions.IMPORT -> navigateToExport()
-                SettingsScreen.AppBarActions.EXPORT -> navigateToExport()
-                SettingsScreen.AppBarActions.RESET -> navigateToExport()
+                SettingsScreen.Actions.IMPORT -> navigateToExport()
+                SettingsScreen.Actions.EXPORT -> navigateToExport()
+                SettingsScreen.Actions.RESET -> navigateToExport()
             }
         }?.launchIn(this)
     }

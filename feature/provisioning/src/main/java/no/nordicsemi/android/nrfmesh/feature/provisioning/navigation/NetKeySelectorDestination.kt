@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.destinations
+package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -8,8 +8,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.ui.provisioning.NetKeySelectorRoute
-import no.nordicsemi.android.nrfmesh.viewmodel.NetKeySelectorViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object NetKeySelectorDestination : MeshNavigationDestination {
@@ -36,7 +34,7 @@ internal fun NavGraphBuilder.netKeySelectorGraph(onBackPressed: (KeyIndex) -> Un
     composable(route = NetKeySelectorDestination.route) {
         val viewModel = hiltViewModel<NetKeySelectorViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        NetKeySelectorRoute(
+        no.nordicsemi.android.nrfmesh.feature.provisioning.NetKeySelectorRoute(
             uiState = uiState,
             onKeySelected = viewModel::onKeySelected,
             onBackPressed = onBackPressed

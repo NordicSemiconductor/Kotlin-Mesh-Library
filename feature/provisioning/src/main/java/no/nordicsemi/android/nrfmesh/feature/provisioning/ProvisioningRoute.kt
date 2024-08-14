@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.nrfmesh.ui.provisioning
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import android.content.Context
 import android.os.ParcelUuid
@@ -49,17 +49,9 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
-import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connected
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Connecting
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Disconnected
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Identifying
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisionerState.Provisioning
-import no.nordicsemi.android.nrfmesh.viewmodel.ProvisioningScreenUiState
+import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -83,11 +75,11 @@ internal fun ProvisioningRoute(
     disconnect: () -> Unit
 ) {
     BackHandler(
-        enabled = uiState.provisionerState is Connecting ||
-                uiState.provisionerState is Connected ||
-                uiState.provisionerState is Identifying ||
-                uiState.provisionerState is Provisioning ||
-                uiState.provisionerState is Disconnected
+        enabled = uiState.provisionerState is ProvisionerState.Connecting ||
+                uiState.provisionerState is ProvisionerState.Connected ||
+                uiState.provisionerState is ProvisionerState.Identifying ||
+                uiState.provisionerState is ProvisionerState.Provisioning ||
+                uiState.provisionerState is ProvisionerState.Disconnected
     ) {
         disconnect()
     }
@@ -152,7 +144,7 @@ private fun ProvisionerScreen(
                 actions = {
                     Spacer(modifier = Modifier.size(16.dp))
                     TextButton(
-                        enabled = uiState.provisionerState is Provisioning,
+                        enabled = uiState.provisionerState is ProvisionerState.Provisioning,
                         onClick = {
                             runCatching { showAuthenticationDialog = true }
                                 .onFailure {
@@ -246,28 +238,28 @@ private fun ProvisioningContent(
     val sheetState = rememberModalBottomSheetState()
 
     when (provisionerState) {
-        is Connecting -> ProvisionerStateInfo(
+        is ProvisionerState.Connecting -> ProvisionerStateInfo(
             text = stringResource(
                 R.string.label_connecting_to,
                 provisionerState.unprovisionedDevice.name
             )
         )
 
-        is Connected -> ProvisionerStateInfo(
+        is ProvisionerState.Connected -> ProvisionerStateInfo(
             text = stringResource(
                 R.string.label_connected,
                 provisionerState.unprovisionedDevice.name
             )
         )
 
-        is Identifying -> ProvisionerStateInfo(
+        is ProvisionerState.Identifying -> ProvisionerStateInfo(
             text = stringResource(
                 R.string.label_identifying,
                 provisionerState.unprovisionedDevice.name
             )
         )
 
-        is Provisioning -> ProvisioningStateInfo(
+        is ProvisionerState.Provisioning -> ProvisioningStateInfo(
             state = provisionerState.state,
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
@@ -315,7 +307,7 @@ private fun ProvisioningContent(
 
         }
 
-        is Disconnected -> ProvisionerStateInfo(
+        is ProvisionerState.Disconnected -> ProvisionerStateInfo(
             text = stringResource(
                 R.string.label_disconnected,
                 provisionerState.unprovisionedDevice.name

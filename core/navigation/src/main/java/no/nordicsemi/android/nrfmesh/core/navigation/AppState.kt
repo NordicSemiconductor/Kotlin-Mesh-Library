@@ -16,7 +16,7 @@ abstract class AppState {
         protected set
 
     val showTopAppBar: Boolean
-        get() = currentScreen?.showTopBar == true
+        get() = currentScreen?.showTopBar ?: false
 
     val navigationIcon: ImageVector
         get() = currentScreen?.navigationIcon ?: Icons.AutoMirrored.Outlined.ArrowBack
@@ -29,6 +29,9 @@ abstract class AppState {
 
     val actions: List<ActionMenuItem>
         get() = currentScreen?.actions.orEmpty()
+
+    val floatingActionButton: FloatingActionButton?
+        get() = currentScreen?.floatingActionButton
 
     val showBottomBar: Boolean
         get() = currentScreen?.showBottomBar ?: false

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.trace
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -23,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeysScreen
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.R
@@ -33,9 +36,12 @@ import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
+import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 
@@ -134,15 +140,13 @@ class MeshAppState(
     }
 }
 
-
-fun getScreen(route: String?): Screen? {
-    Log.d("AAA", "getScreen: $route")
-    return when (route) {
-        NodesDestination.route -> NodesScreen(title = "Nodes")
-        GroupsDestination.route -> GroupsScreen(title = "Groups")
-        ProxyDestination.route -> NodesScreen(title = "Proxy")
-        SettingsDestination.route -> SettingsScreen(title = "Settings")
-        ExportDestination.route -> ExportScreen(title = "Settings")
-        else -> null
-    }
+private fun getScreen(route: String?) = when (route) {
+    NodesDestination.route -> NodesScreen(title = "Nodes")
+    NodeDestination.route -> NodeScreen(title = "Node")
+    ConfigNetworkKeyDestination.route -> ConfigNetworkKeysScreen()
+    GroupsDestination.route -> GroupsScreen(title = "Groups")
+    ProxyDestination.route -> ProxyScreen(title = "Proxy")
+    SettingsDestination.route -> SettingsScreen(title = "Settings")
+    ExportDestination.route -> ExportScreen(title = "Settings")
+    else -> null
 }

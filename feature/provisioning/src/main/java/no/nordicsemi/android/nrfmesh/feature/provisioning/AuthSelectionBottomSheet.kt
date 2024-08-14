@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.nrfmesh.ui.provisioning
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.InputAction.Companion.toInputActions
 import no.nordicsemi.kotlin.mesh.provisioning.OutputAction.Companion.toOutputActions
@@ -48,9 +47,11 @@ internal fun AuthSelectionBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 32.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 32.dp)
+        ) {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(R.string.label_select_oob_type_to_use),
@@ -113,7 +114,7 @@ internal fun AuthSelectionBottomSheet(
                             )
                         )
                     },
-                    content = { Text(text = stringResource(id = R.string.label_ok)) }
+                    content = { Text(text = stringResource(id = android.R.string.ok)) }
                 )
             }
         }

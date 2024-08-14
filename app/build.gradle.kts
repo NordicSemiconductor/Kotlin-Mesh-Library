@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":feature:nodes"))
     implementation(project(":feature:groups"))
     implementation(project(":feature:proxy"))
+    implementation(project(":feature:provisioning"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:network-keys"))
     implementation(project(":feature:config-network-keys"))

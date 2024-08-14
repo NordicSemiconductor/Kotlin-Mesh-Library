@@ -22,12 +22,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -36,10 +33,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,13 +48,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.currentBackStackEntryAsState
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
-import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
 import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
+import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
@@ -71,7 +71,6 @@ fun NetworkRoute(
 
 @Composable
 fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
-    val currentDestination by appState.navController.currentBackStackEntryAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -83,7 +82,6 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
         }
     }
 
-    var isOptionsMenuExpanded by rememberSaveable { mutableStateOf(false) }
     val density = LocalDensity.current
     val enterTransition: EnterTransition = slideInVertically {
         // Slide in from 40 dp from the top.
@@ -97,15 +95,25 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
     )
     val exitTransition: ExitTransition = slideOutVertically() + shrinkVertically() + fadeOut()
     var menuExpanded by remember { mutableStateOf(false) }
+
+    val screen = appState.currentScreen as? NodesScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                NodesScreen.Actions.ADD_NODE -> appState.navigate(
+                    ProvisioningDestination,
+                    ProvisioningDestination.route
+                )
+            }
+        }?.launchIn(this)
+    }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
-                title = {
-                    Text(text = appState.title)
-                },
+                title = { Text(text = appState.title) },
                 scrollBehavior = scrollBehavior,
                 backButtonIcon = appState.navigationIcon,
                 showBackButton = appState.onNavigationIconClick != null,
@@ -126,29 +134,19 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             )
         },
         floatingActionButton = {
-            if (appState.showTopAppBar) {
+            appState.floatingActionButton?.let {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    onClick = {
-
-                    }
-                ) {
-/*                    Icon(
-                        imageVector = when (currentDestination) {
-                            proxy -> Icons.Rounded.Hub
-                            else -> Icons.Rounded.Add
-                        }, contentDescription = null
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = when (currentDestination) {
-                            nodes -> stringResource(R.string.action_add_node)
-                            groups -> stringResource(R.string.action_add_group)
-                            proxy -> stringResource(R.string.action_connect)
-                            else -> ""
-                        }
-                    )*/
-                }
+                    text = { Text(text = it.text) },
+                    icon = {
+                        Icon(
+                            imageVector = it.icon,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = it.onClick,
+                    expanded = true
+                )
             }
         },
         bottomBar = {
@@ -166,22 +164,6 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             }
         }
     ) { paddingValues ->
-        /*SettingsDropDown(
-            navigate = {
-                isOptionsMenuExpanded = !isOptionsMenuExpanded
-                viewModel.launchExport()
-            },
-            isOptionsMenuExpanded = isOptionsMenuExpanded,
-            onDismiss = { isOptionsMenuExpanded = !isOptionsMenuExpanded },
-            importNetwork = {
-                isOptionsMenuExpanded = !isOptionsMenuExpanded
-                fileLauncher.launch("application/json")
-            },
-            resetNetwork = {
-                isOptionsMenuExpanded = !isOptionsMenuExpanded
-                viewModel.resetNetwork()
-            }
-        )*/
         MeshNavHost(
             appState = appState,
             navController = appState.navController,
@@ -191,7 +173,6 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-            // .safeContentPadding()
         )
     }
 }

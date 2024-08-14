@@ -9,7 +9,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
-import no.nordicsemi.kotlin.mesh.core.model.Node
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningGraph
 
 object NodesDestination : MeshNavigationDestination {
     override val route: String = "nodes_route"
@@ -38,6 +38,9 @@ fun NavGraphBuilder.nodesGraph(
             remove = { }
         )
     }
+    provisioningGraph(
+        onBackPressed = onBackPressed
+    )
     nodeGraph(
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
