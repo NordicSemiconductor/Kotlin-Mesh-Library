@@ -42,6 +42,7 @@ fun NavGraphBuilder.nodesGraph(
         onBackPressed = onBackPressed
     )
     nodeGraph(
+        appState = appState,
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
