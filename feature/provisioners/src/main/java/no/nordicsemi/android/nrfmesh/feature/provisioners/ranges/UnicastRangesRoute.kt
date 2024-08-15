@@ -1,8 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.Range
@@ -21,21 +19,16 @@ internal fun UnicastRangesRoute(
     onBackPressed: () -> Unit
 ) {
     val screen = appState.currentScreen as? UnicastRangesScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { button ->
-            when(button) {
-                UnicastRangesScreen.Actions.BACK -> onBackPressed()
-                UnicastRangesScreen.Actions.RESOLVE -> resolve()
-            }
-        }
-    }
     RangesScreen(
+        screen = screen,
         uiState = uiState,
         addRange = addRange,
         onRangeUpdated = onRangeUpdated,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove,
-        isValidBound = isValidBound
+        isValidBound = isValidBound,
+        resolve = resolve,
+        onBackPressed = onBackPressed
     )
 }

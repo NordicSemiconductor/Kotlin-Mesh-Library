@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForRanges
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -49,6 +50,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.feature.provisioners.AllocatedRange
 import no.nordicsemi.android.nrfmesh.feature.provisioners.R
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.RangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
@@ -58,6 +60,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 internal fun RangesScreen(
+    screen: RangesScreen?,
     uiState: RangesScreenUiState,
     addRange: (start: UInt, end: UInt) -> Unit,
     onRangeUpdated: (Range, UShort, UShort) -> Unit,
@@ -65,6 +68,8 @@ internal fun RangesScreen(
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit,
     isValidBound: (UShort) -> Boolean,
+    resolve: () -> Unit,
+    onBackPressed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
@@ -100,6 +105,15 @@ internal fun RangesScreen(
     ) {
 
     }*/
+
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when(button) {
+                RangesScreen.Actions.BACK -> onBackPressed()
+                RangesScreen.Actions.FAB_ACTION -> resolve()
+            }
+        }
+    }
     when (uiState.ranges.isEmpty()) {
         true -> MeshNoItemsAvailable(
             imageVector = Icons.Outlined.AutoAwesome,
