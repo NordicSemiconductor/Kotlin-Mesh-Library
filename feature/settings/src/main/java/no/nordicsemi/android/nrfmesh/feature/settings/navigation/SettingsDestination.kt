@@ -59,6 +59,7 @@ fun NavGraphBuilder.settingsGraph(
     }
     exportGraph(onBackPressed = onBackPressed)
     provisionersGraph(
+        appState = appState,
         onBackPressed = onBackPressed,
         onNavigateToDestination = onNavigateToDestination,
     )

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.provisioners.ranges
 
 import android.annotation.SuppressLint
@@ -15,22 +13,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -44,7 +37,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -62,45 +54,22 @@ import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 
-@Composable
-internal fun RangesRoute(
-    uiState: RangesScreenUiState,
-    addRange: (start: UInt, end: UInt) -> Unit,
-    onRangeUpdated: (Range, UShort, UShort) -> Unit,
-    onSwiped: (Range) -> Unit,
-    onUndoClicked: (Range) -> Unit,
-    remove: (Range) -> Unit,
-    resolve: () -> Unit,
-    isValidBound: (UShort) -> Boolean
-) {
-    RangesScreen(
-        uiState = uiState,
-        addRange = addRange,
-        onRangeUpdated = onRangeUpdated,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove,
-        resolve = resolve,
-        isValidBound = isValidBound
-    )
-}
 
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-private fun RangesScreen(
+internal fun RangesScreen(
     uiState: RangesScreenUiState,
     addRange: (start: UInt, end: UInt) -> Unit,
     onRangeUpdated: (Range, UShort, UShort) -> Unit,
     onSwiped: (Range) -> Unit,
     onUndoClicked: (Range) -> Unit,
     remove: (Range) -> Unit,
-    resolve: () -> Unit,
-    isValidBound: (UShort) -> Boolean
+    isValidBound: (UShort) -> Boolean,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
+    /*Scaffold(
         floatingActionButton = {
             if (!uiState.conflicts) {
                 ExtendedFloatingActionButton(
@@ -129,30 +98,30 @@ private fun RangesScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        when (uiState.ranges.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.AutoAwesome,
-                title = stringResource(R.string.no_ranges_currently_added)
-            )
 
-            false -> Ranges(
-                snackbarHostState = snackbarHostState,
-                ranges = uiState.ranges,
-                otherRanges = uiState.otherRanges,
-                onRangeUpdated = onRangeUpdated,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                isValidBound = isValidBound,
-                remove = remove
-            )
-        }
-        if (showAddRangeDialog) {
-            AddRangeDialog(
-                isValidBound = isValidBound,
-                onDismissRequest = { showAddRangeDialog = false }
-            ) { start, end -> addRange(start, end) }
-        }
-        // TODO Look into how to handle back button on the top app bar for
+    }*/
+    when (uiState.ranges.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.AutoAwesome,
+            title = stringResource(R.string.no_ranges_currently_added)
+        )
+
+        false -> Ranges(
+            snackbarHostState = snackbarHostState,
+            ranges = uiState.ranges,
+            otherRanges = uiState.otherRanges,
+            onRangeUpdated = onRangeUpdated,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            isValidBound = isValidBound,
+            remove = remove
+        )
+    }
+    if (showAddRangeDialog) {
+        AddRangeDialog(
+            isValidBound = isValidBound,
+            onDismissRequest = { showAddRangeDialog = false }
+        ) { start, end -> addRange(start, end) }
     }
 }
 

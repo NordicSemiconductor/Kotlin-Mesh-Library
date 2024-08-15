@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.RangesDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.Range
@@ -28,7 +28,7 @@ internal abstract class RangesViewModel(
     protected lateinit var network: MeshNetwork
     protected lateinit var provisioner: Provisioner
 
-    private val uuid: UUID = checkNotNull(savedStateHandle[RangesDestination.rangesUuidArg]).let {
+    private val uuid: UUID = checkNotNull(savedStateHandle[UnicastRangesDestination.arg]).let {
         UUID.fromString(it as String)
     }
 

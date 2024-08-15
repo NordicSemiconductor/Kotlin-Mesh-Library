@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerViewModel
@@ -34,6 +35,7 @@ object ProvisionerDestination : MeshNavigationDestination {
 }
 
 internal fun NavGraphBuilder.provisionerGraph(
+    appState: AppState,
     onNavigateToUnicastRanges: (MeshNavigationDestination, String) -> Unit,
     onNavigateToGroupRanges: (MeshNavigationDestination, String) -> Unit,
     onNavigateToSceneRanges: (MeshNavigationDestination, String) -> Unit,
@@ -51,31 +53,40 @@ internal fun NavGraphBuilder.provisionerGraph(
             isValidAddress = viewModel::isValidAddress,
             navigateToUnicastRanges = {
                 onNavigateToUnicastRanges(
-                    RangesDestination,
-                    RangesDestination.createNavigationRoute(
+                    UnicastRangesDestination,
+                    UnicastRangesDestination.createNavigationRoute(
                         provisionerUuid = it
                     )
                 )
             },
             navigateToGroupRanges = {
                 onNavigateToGroupRanges(
-                    RangesDestination,
-                    RangesDestination.createNavigationRoute(
+                    GroupRangesDestination,
+                    GroupRangesDestination.createNavigationRoute(
                         provisionerUuid = it
                     )
                 )
             },
             navigateToSceneRanges = {
                 onNavigateToSceneRanges(
-                    RangesDestination,
-                    RangesDestination.createNavigationRoute(
+                    SceneRangesDestination,
+                    SceneRangesDestination.createNavigationRoute(
                         provisionerUuid = it
                     )
                 )
             },
         )
     }
-    unicastRangesGraph(onBackPressed)
-    groupRangesGraph(onBackPressed)
-    sceneRangesGraph(onBackPressed)
+    unicastRangesGraph(
+        appState = appState,
+        onBackPressed = onBackPressed
+    )
+    groupRangesGraph(
+        appState = appState,
+        onBackPressed = onBackPressed
+    )
+    sceneRangesGraph(
+        appState = appState,
+        onBackPressed = onBackPressed
+    )
 }
