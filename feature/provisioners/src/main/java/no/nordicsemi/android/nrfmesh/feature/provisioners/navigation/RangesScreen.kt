@@ -14,7 +14,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 class UnicastRangesScreen(
     override val title: String = "Unicast Ranges",
 ) : RangesScreen(title = title) {
-    override val route: String = SceneRangesDestination.route
+    override val route: String = UnicastRangesDestination.route
 }
 
 class GroupRangesScreen(
@@ -26,7 +26,7 @@ class GroupRangesScreen(
 class SceneRangesScreen(
     override val title: String = "Scene Ranges",
 ) : RangesScreen(title = title) {
-    override val route: String = SceneRangesDestination.route
+    override val route: String = UnicastRangesDestination.route
 }
 
 abstract class RangesScreen(override val title: String) : Screen {
