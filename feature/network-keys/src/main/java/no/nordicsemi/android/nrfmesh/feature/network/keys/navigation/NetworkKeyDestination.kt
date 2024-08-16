@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeyRoute
@@ -32,14 +33,19 @@ object NetworkKeyDestination : MeshNavigationDestination {
     }
 }
 
-internal fun NavGraphBuilder.networkKeyGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.networkKeyGraph(
+    appState: AppState,
+    onBackPressed: () -> Unit
+) {
     composable(route = NetworkKeyDestination.route) {
         val viewModel = hiltViewModel<NetworkKeyViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NetworkKeyRoute(
+            appState = appState,
             uiState = uiState,
             onNameChanged = viewModel::onNameChanged,
             onKeyChanged = viewModel::onKeyChanged,
+            onBackPressed = onBackPressed
         )
     }
 }

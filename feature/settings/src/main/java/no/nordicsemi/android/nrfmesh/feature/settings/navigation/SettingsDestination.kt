@@ -64,14 +64,17 @@ fun NavGraphBuilder.settingsGraph(
         onNavigateToDestination = onNavigateToDestination,
     )
     networkKeysGraph(
+        appState = appState,
         onBackPressed = onBackPressed,
         onNavigateToKey = onNavigateToDestination
     )
     applicationKeysGraph(
+        appState = appState,
         onBackPressed = onBackPressed,
         onNavigateToKey = onNavigateToDestination
     )
     scenesGraph(
+        appState = appState,
         onBackPressed = onBackPressed,
         onNavigateToScene = onNavigateToDestination
     )

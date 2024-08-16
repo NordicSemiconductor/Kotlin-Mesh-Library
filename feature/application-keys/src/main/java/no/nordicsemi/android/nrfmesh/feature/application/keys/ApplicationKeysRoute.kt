@@ -29,29 +29,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 @Composable
 internal fun ApplicationKeysRoute(
+    appState: AppState,
     uiState: ApplicationKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
     onUndoClicked: (ApplicationKey) -> Unit,
-    remove: (ApplicationKey) -> Unit
+    remove: (ApplicationKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
-    val context = LocalContext.current
+    val screen = appState.currentScreen as? ApplicationKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ApplicationKeysScreen.Actions.ADD_KEY -> navigateToKey(onAddKeyClicked().index)
+                ApplicationKeysScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     ApplicationsKeysScreen(
-        context = context,
         uiState = uiState,
         navigateToApplicationKey = navigateToKey,
-        onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove
@@ -61,14 +73,13 @@ internal fun ApplicationKeysRoute(
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun ApplicationsKeysScreen(
-    context: Context,
     uiState: ApplicationKeysScreenUiState,
     navigateToApplicationKey: (KeyIndex) -> Unit,
-    onAddKeyClicked: () -> ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
     onUndoClicked: (ApplicationKey) -> Unit,
     remove: (ApplicationKey) -> Unit
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     when (uiState.keys.isEmpty()) {

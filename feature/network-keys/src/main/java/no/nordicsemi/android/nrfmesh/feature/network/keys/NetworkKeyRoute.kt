@@ -25,6 +25,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +38,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
@@ -61,10 +66,21 @@ import java.util.Date
 
 @Composable
 internal fun NetworkKeyRoute(
+    appState: AppState,
     uiState: NetworkKeyScreenUiState,
     onNameChanged: (String) -> Unit,
-    onKeyChanged: (ByteArray) -> Unit
+    onKeyChanged: (ByteArray) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
+    val screen = appState.currentScreen as? NetworkKeyScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                NetworkKeyScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
     NetworkKeyScreen(
         keyState = uiState.keyState,
         onNameChanged = onNameChanged,

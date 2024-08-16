@@ -31,28 +31,57 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreen
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Composable
 internal fun ScenesRoute(
+    appState: AppState,
     uiState: ScenesScreenUiState,
     navigateToScene: (SceneNumber) -> Unit,
     onAddSceneClicked: () -> Scene?,
     onSwiped: (Scene) -> Unit,
     onUndoClicked: (Scene) -> Unit,
-    remove: (Scene) -> Unit
+    remove: (Scene) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val screen = appState.currentScreen as? ScenesScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ScenesScreen.Actions.ADD_SCENE -> {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    addScene(
+                        context = context,
+                        scope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        onAddSceneClicked = onAddSceneClicked,
+                        navigateToScene = navigateToScene
+                    )
+                }
+                ScenesScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
     ScenesScreen(
+        context = context,
+        snackbarHostState = snackbarHostState,
         uiState = uiState,
         navigateToScene = navigateToScene,
-        onAddSceneClicked = onAddSceneClicked,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove
@@ -61,41 +90,15 @@ internal fun ScenesRoute(
 
 @Composable
 private fun ScenesScreen(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
     uiState: ScenesScreenUiState,
     navigateToScene: (SceneNumber) -> Unit,
-    onAddSceneClicked: () -> Scene?,
     onSwiped: (Scene) -> Unit,
     onUndoClicked: (Scene) -> Unit,
     remove: (Scene) -> Unit
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
-/*    Scaffold(
-        floatingActionButton = {
-            // if (uiState.hasProvisioners) Enable this when we have support for adding provisioners
-            ExtendedFloatingActionButton(onClick = {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                addScene(
-                    context = context,
-                    scope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    onAddSceneClicked = onAddSceneClicked,
-                    navigateToScene = navigateToScene
-                )
-            }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_scene)
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-
-    }*/
     when (uiState.scenes.isEmpty()) {
         true -> MeshNoItemsAvailable(
             imageVector = Icons.Outlined.AutoAwesome,

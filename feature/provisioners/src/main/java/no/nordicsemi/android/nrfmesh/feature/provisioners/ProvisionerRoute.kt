@@ -50,7 +50,10 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -59,6 +62,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -70,6 +74,7 @@ import java.util.UUID
 
 @Composable
 internal fun ProvisionerRoute(
+    appState: AppState,
     uiState: ProvisionerScreenUiState,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Unit,
@@ -78,8 +83,17 @@ internal fun ProvisionerRoute(
     isValidAddress: (UShort) -> Boolean,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit
+    navigateToSceneRanges: (UUID) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val screen = appState.currentScreen as? ProvisionerScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { buttons ->
+            when(buttons){
+                ProvisionerScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
         onNameChanged = onNameChanged,

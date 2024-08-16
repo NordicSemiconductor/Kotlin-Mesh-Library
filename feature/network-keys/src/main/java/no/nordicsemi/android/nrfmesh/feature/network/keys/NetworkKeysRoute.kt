@@ -36,24 +36,40 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun NetworkKeysRoute(
+    appState: AppState,
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
-    remove: (NetworkKey) -> Unit
+    remove: (NetworkKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val screen = appState.currentScreen as? NetworkKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                NetworkKeysScreen.Actions.ADD_KEY -> navigateToKey(onAddKeyClicked().index)
+                NetworkKeysScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
     NetworkKeysScreen(
         uiState = uiState,
         navigateToKey = navigateToKey,

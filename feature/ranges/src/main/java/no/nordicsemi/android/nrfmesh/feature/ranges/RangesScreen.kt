@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.ranges
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -109,9 +108,9 @@ internal fun RangesScreen(
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
             when (button) {
-                RangesScreen.Actions.BACK -> onBackPressed()
                 RangesScreen.Actions.ADD_RANGE -> showAddRangeDialog = !showAddRangeDialog
                 RangesScreen.Actions.RESOLVE -> resolve()
+                RangesScreen.Actions.BACK -> onBackPressed()
             }
         }?.launchIn(this)
     }
@@ -176,7 +175,7 @@ private fun Ranges(
                     dismissState = dismissState,
                     content = {
                         ElevatedCard {
-                            no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRange(
+                            AllocatedRange(
                                 imageVector = range.toImageVector(),
                                 title = "0x${range.low.toHexString()} - 0x${range.high.toHexString()}",
                                 range = range,

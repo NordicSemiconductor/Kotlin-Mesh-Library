@@ -32,6 +32,10 @@ import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
@@ -158,9 +162,11 @@ private fun getScreen(route: String?) = when (route) {
     SettingsDestination.route -> SettingsScreen(title = "Settings")
     ProvisionersDestination.route -> ProvisionersScreen(title = "Provisioners")
     ProvisionerDestination.route -> ProvisionerScreen(title = "Edit Provisioner")
+    NetworkKeysDestination.route -> NetworkKeysScreen(title = "Network Keys")
+    NetworkKeyDestination.route -> NetworkKeyScreen(title = "Edit Network Key")
     UnicastRangesDestination.route -> UnicastRangesScreen(title = "Unicast Ranges")
     GroupRangesDestination.route -> GroupRangesScreen(title = "Group Ranges")
     SceneRangesDestination.route -> SceneRangesScreen(title = "Scene Ranges")
-    ExportDestination.route -> ExportScreen(title = "Settings")
+    ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

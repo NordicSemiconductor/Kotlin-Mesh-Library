@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,12 +46,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyScreen
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
@@ -61,16 +66,26 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun ApplicationKeyRoute(
+    appState: AppState,
     uiState: ApplicationKeyScreenUiState,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit,
-    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val screen = appState.currentScreen as? ApplicationKeyScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ApplicationKeyScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     ApplicationKeyScreen(
         keyState = uiState.keyState,
         onNameChanged = onNameChanged,
         onKeyChanged = onKeyChanged,
-        onBoundNetworkKeyChanged = onBoundNetworkKeyChanged
+        onBoundNetworkKeyChanged = onBoundNetworkKeyChanged,
     )
 }
 
@@ -79,7 +94,7 @@ private fun ApplicationKeyScreen(
     keyState: KeyState,
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit,
-    onBoundNetworkKeyChanged: (NetworkKey) -> Unit
+    onBoundNetworkKeyChanged: (NetworkKey) -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

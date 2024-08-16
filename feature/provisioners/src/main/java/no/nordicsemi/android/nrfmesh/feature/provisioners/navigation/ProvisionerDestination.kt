@@ -51,6 +51,7 @@ internal fun NavGraphBuilder.provisionerGraph(
         val viewModel = hiltViewModel<ProvisionerViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProvisionerRoute(
+            appState = appState,
             uiState = uiState,
             onNameChanged = viewModel::onNameChanged,
             onAddressChanged = viewModel::onAddressChanged,
@@ -81,6 +82,7 @@ internal fun NavGraphBuilder.provisionerGraph(
                     )
                 )
             },
+            onBackPressed = onBackPressed
         )
     }
     unicastRangesGraph(

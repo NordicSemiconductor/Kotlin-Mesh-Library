@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
@@ -52,7 +52,9 @@ internal fun ProvisionersRoute(
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
             when (button) {
-                ProvisionersScreen.Actions.ADD_PROVISIONER -> onAddProvisionerClicked()
+                ProvisionersScreen.Actions.ADD_PROVISIONER ->  {
+                    navigateToProvisioner(onAddProvisionerClicked().uuid)
+                }
                 ProvisionersScreen.Actions.BACK -> onBackPressed()
             }
 
