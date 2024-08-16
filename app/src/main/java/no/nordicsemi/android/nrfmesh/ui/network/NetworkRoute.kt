@@ -134,7 +134,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             )
         },
         floatingActionButton = {
-            appState.floatingActionButton?.let {
+            appState.floatingActionButton?.forEach {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                     text = { Text(text = it.text) },
@@ -150,7 +150,6 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             }
         },
         bottomBar = {
-            Log.d("AAA", "${appState.currentScreen?.route}")
             AnimatedVisibility(
                 visible = appState.showBottomBar,
                 enter = enterTransition,

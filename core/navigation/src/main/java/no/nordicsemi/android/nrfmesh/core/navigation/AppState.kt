@@ -30,8 +30,8 @@ abstract class AppState {
     val actions: List<ActionMenuItem>
         get() = currentScreen?.actions.orEmpty()
 
-    val floatingActionButton: FloatingActionButton?
-        get() = currentScreen?.floatingActionButton
+    val floatingActionButton: List<FloatingActionButton>
+        get() = currentScreen?.floatingActionButton.orEmpty()
 
     val showBottomBar: Boolean
         get() = currentScreen?.showBottomBar ?: false

@@ -13,19 +13,18 @@ import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 class ProvisioningScreen(
     override val title: String = "Provisioning",
 ) : Screen {
-    override val route: String
-        get() = ProvisioningDestination.route
-    override val showTopBar: Boolean = true
-    override val navigationIcon: ImageVector = Icons.AutoMirrored.Outlined.ArrowBack
+    override val route = ProvisioningDestination.route
+    override val showTopBar = true
+    override val navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack
     override val onNavigationIconClick: (() -> Unit) = {
         _buttons.tryEmit(Actions.BACK)
     }
-    override val actions: List<ActionMenuItem> = emptyList()
-    override val floatingActionButton: FloatingActionButton? = null
-    override val showBottomBar: Boolean = false
+    override val actions = emptyList<ActionMenuItem>()
+    override val floatingActionButton = emptyList<FloatingActionButton>()
+    override val showBottomBar = false
 
     private val _buttons = MutableSharedFlow<Actions>(extraBufferCapacity = 1)
-    val buttons: Flow<Actions> = _buttons.asSharedFlow()
+    val buttons = _buttons.asSharedFlow()
 
     enum class Actions {
         BACK

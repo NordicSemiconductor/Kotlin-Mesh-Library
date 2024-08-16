@@ -5,21 +5,12 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class ExportScreen(
-    override val title: String = "Export",
-) : Screen {
-    override val route: String
-        get() = ExportDestination.route
-    override val showTopBar: Boolean
-        get() = true
-    override val navigationIcon: ImageVector?
-        get() = null
-    override val onNavigationIconClick: (() -> Unit)?
-        get() = null
-    override val actions: List<ActionMenuItem>
-        get() = emptyList()
-    override val floatingActionButton: FloatingActionButton?
-        get() = null
-    override val showBottomBar: Boolean
-        get() = true
+class ExportScreen(override val title: String) : Screen {
+    override val route = ExportDestination.route
+    override val showTopBar = true
+    override val navigationIcon = null
+    override val onNavigationIconClick: (() -> Unit)? = null
+    override val actions = emptyList<ActionMenuItem>()
+    override val floatingActionButton = emptyList<FloatingActionButton>()
+    override val showBottomBar = true
 }

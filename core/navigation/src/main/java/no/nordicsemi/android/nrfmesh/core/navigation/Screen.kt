@@ -21,12 +21,8 @@ interface Screen {
     val onNavigationIconClick: (() -> Unit)?
     val title: String
     val actions: List<ActionMenuItem>
-    val floatingActionButton: FloatingActionButton?
+    val floatingActionButton: List<FloatingActionButton>
     val showBottomBar: Boolean
-
-    enum class A {
-        BACK
-    }
 }
 
 data class FloatingActionButton(

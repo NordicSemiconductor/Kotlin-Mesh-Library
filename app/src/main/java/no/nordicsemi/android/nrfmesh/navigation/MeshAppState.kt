@@ -46,6 +46,8 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.SceneRanges
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.SceneRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesScreen
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
@@ -149,6 +151,7 @@ class MeshAppState(
 private fun getScreen(route: String?) = when (route) {
     NodesDestination.route -> NodesScreen(title = "Nodes")
     NodeDestination.route -> NodeScreen(title = "Node")
+    ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     ConfigNetworkKeyDestination.route -> ConfigNetworkKeysScreen()
     GroupsDestination.route -> GroupsScreen(title = "Groups")
     ProxyDestination.route -> ProxyScreen(title = "Proxy")

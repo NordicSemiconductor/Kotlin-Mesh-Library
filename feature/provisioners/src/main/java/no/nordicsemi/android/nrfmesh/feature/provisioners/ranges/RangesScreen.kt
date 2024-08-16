@@ -108,9 +108,10 @@ internal fun RangesScreen(
 
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
-            when(button) {
+            when (button) {
                 RangesScreen.Actions.BACK -> onBackPressed()
-                RangesScreen.Actions.FAB_ACTION -> resolve()
+                RangesScreen.Actions.ADD_RANGE -> showAddRangeDialog = !showAddRangeDialog
+                RangesScreen.Actions.RESOLVE -> resolve()
             }
         }
     }

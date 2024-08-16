@@ -11,18 +11,13 @@ import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 class GroupsScreen(
     override val title: String = "Groups",
 ) : Screen {
-    override val route: String
-        get() = GroupsDestination.route
-    override val showTopBar: Boolean
-        get() = true
-    override val navigationIcon: ImageVector?
-        get() = null
-    override val onNavigationIconClick: (() -> Unit)?
-        get() = null
-    override val actions: List<ActionMenuItem>
-        get() = emptyList()
-    override val floatingActionButton: FloatingActionButton
-        get() = FloatingActionButton(
+    override val route = GroupsDestination.route
+    override val showTopBar = true
+    override val navigationIcon = null
+    override val onNavigationIconClick: (() -> Unit)? = null
+    override val actions = emptyList<ActionMenuItem>()
+    override val floatingActionButton = listOf(
+        FloatingActionButton(
             icon = Icons.Outlined.Add,
             text = "Add Group",
             contentDescription = "Add Group",
@@ -30,6 +25,6 @@ class GroupsScreen(
 
             }
         )
-    override val showBottomBar: Boolean
-        get() = true
+    )
+    override val showBottomBar = true
 }
