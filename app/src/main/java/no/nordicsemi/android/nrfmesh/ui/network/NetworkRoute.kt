@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.ui.network
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility

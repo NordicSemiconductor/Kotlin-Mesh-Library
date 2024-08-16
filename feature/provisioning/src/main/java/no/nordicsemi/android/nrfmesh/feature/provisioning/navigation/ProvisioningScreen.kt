@@ -2,8 +2,6 @@ package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem

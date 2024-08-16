@@ -32,13 +32,6 @@ data class FloatingActionButton(
     val onClick: () -> Unit
 )
 
-data class ActionItem(
-    val icon: ImageVector,
-    val contentDescription: String? = null,
-    val enabled: Boolean = true,
-    val onClick: () -> Unit
-)
-
 sealed interface ActionMenuItem {
     val title: String
     val onClick: () -> Unit

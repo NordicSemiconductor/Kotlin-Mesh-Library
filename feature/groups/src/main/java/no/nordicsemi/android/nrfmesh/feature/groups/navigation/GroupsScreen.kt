@@ -2,8 +2,6 @@ package no.nordicsemi.android.nrfmesh.feature.groups.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.ui.graphics.vector.ImageVector
-import no.nordicsemi.android.nrfmesh.core.navigation.ActionItem
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
