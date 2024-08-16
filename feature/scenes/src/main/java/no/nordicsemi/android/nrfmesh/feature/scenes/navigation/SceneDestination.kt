@@ -8,13 +8,13 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.scenes.SceneRoute
 import no.nordicsemi.android.nrfmesh.feature.scenes.SceneViewModel
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 object SceneDestination : MeshNavigationDestination {
-    const val arg = "sceneNumberArg"
-    override val route: String = "scene_route/{$arg}"
+    override val route: String = "scene_route/{$ARG}"
     override val destination: String = "scene_destination"
 
     /**
@@ -28,7 +28,7 @@ object SceneDestination : MeshNavigationDestination {
      * call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(arg)!!
+        val encodedId = entry.arguments?.getString(ARG)!!
         return Uri.decode(encodedId)
     }
 }

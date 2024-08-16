@@ -9,8 +9,7 @@ pluginManagement {
     plugins {
         id("org.jetbrains.dokka") version "1.9.20"
         id("org.jetbrains.kotlin.jvm") version "2.0.0"
-        id("com.android.library") version "8.5.0"
-        id("org.jetbrains.kotlin.android") version "2.0.0"
+        // id("org.jetbrains.kotlin.android") version "2.0.0"
     }
 }
 dependencyResolutionManagement {
@@ -44,6 +43,7 @@ include(":feature:config-network-keys")
 include(":feature:application-keys")
 include(":feature:scenes")
 include(":feature:provisioners")
+include(":feature:ranges")
 include(":feature:provisioning")
 include(":feature:mesh-bearer-android")
 include(":feature:mesh-bearer-gatt")

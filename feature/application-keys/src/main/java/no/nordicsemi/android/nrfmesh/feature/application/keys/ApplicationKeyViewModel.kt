@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -23,7 +23,7 @@ internal class ApplicationKeyViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
-    private val keyIndex: KeyIndex = checkNotNull(savedStateHandle[ApplicationKeyDestination.arg])
+    private val keyIndex: KeyIndex = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG])
             .toString()
             .toUShort()
 

@@ -10,13 +10,13 @@ import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetwork
 import no.nordicsemi.android.feature.config.networkkeys.navigation.configNetworkKeysGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import java.util.UUID
 
 object NodeDestination : MeshNavigationDestination {
-    const val arg = "nodeUuidArg"
-    override val route: String = "node_route/{$arg}"
+    override val route: String = "node_route/{$ARG}"
     override val destination: String = "node_destination"
 
     /**
@@ -29,7 +29,7 @@ object NodeDestination : MeshNavigationDestination {
      * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(arg)!!
+        val encodedId = entry.arguments?.getString(ARG)!!
         return Uri.decode(encodedId)
     }
 }

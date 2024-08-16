@@ -36,20 +36,20 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.GroupRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.GroupRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreen
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.SceneRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.SceneRangesScreen
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.UnicastRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyScreen
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesScreen
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesScreen
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 

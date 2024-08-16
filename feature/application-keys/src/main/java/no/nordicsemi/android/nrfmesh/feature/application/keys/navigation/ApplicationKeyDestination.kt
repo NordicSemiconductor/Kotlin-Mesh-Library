@@ -8,13 +8,13 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeyViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object ApplicationKeyDestination : MeshNavigationDestination {
-    const val arg = "appKeyIndexArg"
-    override val route: String = "application_key_route/{$arg}"
+    override val route: String = "application_key_route/{$ARG}"
     override val destination: String = "application_key_destination"
 
     /**
@@ -28,7 +28,7 @@ object ApplicationKeyDestination : MeshNavigationDestination {
      * navigation call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(arg)!!
+        val encodedId = entry.arguments?.getString(ARG)!!
         return Uri.decode(encodedId)
     }
 }

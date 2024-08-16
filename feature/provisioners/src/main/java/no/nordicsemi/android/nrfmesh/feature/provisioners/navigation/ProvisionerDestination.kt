@@ -9,13 +9,19 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerViewModel
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesDestination
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.groupRangesGraph
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.sceneRangesGraph
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.unicastRangesGraph
 import java.util.UUID
 
 object ProvisionerDestination : MeshNavigationDestination {
-    const val arg = "provisionerUuidArg"
-    override val route: String = "provisioner_route/{$arg}"
+    override val route: String = "provisioner_route/{$ARG}"
     override val destination: String = "provisioner_destination"
 
     /**
@@ -29,7 +35,7 @@ object ProvisionerDestination : MeshNavigationDestination {
      * navigation call.
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(arg)!!
+        val encodedId = entry.arguments?.getString(ARG)!!
         return Uri.decode(encodedId)
     }
 }

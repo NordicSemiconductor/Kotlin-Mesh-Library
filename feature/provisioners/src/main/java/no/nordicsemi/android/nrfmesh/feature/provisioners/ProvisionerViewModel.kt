@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -24,7 +24,7 @@ internal class ProvisionerViewModel @Inject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private val provisionerUuid: String =
-        checkNotNull(savedStateHandle[ProvisionerDestination.arg])
+        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG])
 
     private val _uiState = MutableStateFlow(ProvisionerScreenUiState(ProvisionerState.Loading))
     val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()

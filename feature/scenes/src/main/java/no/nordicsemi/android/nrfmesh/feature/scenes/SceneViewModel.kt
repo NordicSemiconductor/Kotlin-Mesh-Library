@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
@@ -23,7 +23,7 @@ internal class SceneViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : ViewModel() {
     private val sceneNumber: SceneNumber =
-        checkNotNull(savedStateHandle[SceneDestination.arg]).toString().toUShort()
+        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).toString().toUShort()
 
     private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
     val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()

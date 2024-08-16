@@ -5,6 +5,7 @@ package no.nordicsemi.android.nrfmesh.core.navigation
  */
 
 interface MeshNavigationDestination {
+
     /**
      * Defines a specific route this destination belongs to.
      * Route is a String that defines the path to your composable.
@@ -19,4 +20,8 @@ interface MeshNavigationDestination {
      * destination's route from the route of the entire nested graph it belongs to.
      */
     val destination: String
+
+    companion object {
+        const val ARG = "ARG"
+    }
 }

@@ -8,11 +8,11 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 object NetKeySelectorDestination : MeshNavigationDestination {
-    const val netKeyIndexArg = "netKeyIndexArg"
-    override val route: String = "net_key_selector_route/{$netKeyIndexArg}"
+    override val route: String = "net_key_selector_route/{$ARG}"
     override val destination: String = "net_key_selector_destination"
 
     /**
@@ -25,7 +25,7 @@ object NetKeySelectorDestination : MeshNavigationDestination {
      * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
      */
     fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(netKeyIndexArg)!!
+        val encodedId = entry.arguments?.getString(ARG)!!
         return Uri.decode(encodedId)
     }
 }

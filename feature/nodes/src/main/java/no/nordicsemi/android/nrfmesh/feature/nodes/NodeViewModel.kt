@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
@@ -28,7 +28,7 @@ internal class NodeViewModel @Inject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val nodeUuid: UUID = checkNotNull(savedStateHandle[NodeDestination.arg]).let {
+    private val nodeUuid: UUID = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
         UUID.fromString(it as String)
     }
 

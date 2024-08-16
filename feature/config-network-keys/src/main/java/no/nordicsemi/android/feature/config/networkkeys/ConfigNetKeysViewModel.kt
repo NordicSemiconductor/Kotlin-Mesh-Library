@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -34,7 +34,7 @@ class ConfigNetKeysViewModel @Inject constructor(
     private lateinit var selectedNode: Node
 
     private val nodeUuid: UUID =
-        checkNotNull(savedStateHandle[ConfigNetworkKeyDestination.arg]).let {
+        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
             UUID.fromString(it as String)
         }
     private lateinit var meshNetwork: MeshNetwork

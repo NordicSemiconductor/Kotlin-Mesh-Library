@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":feature:application-keys"))
     implementation(project(":feature:scenes"))
     implementation(project(":feature:provisioners"))
+    implementation(project(":feature:ranges"))
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:mesh-bearer-pbgatt"))
     implementation(project(":feature:export"))

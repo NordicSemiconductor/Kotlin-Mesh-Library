@@ -59,6 +59,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
@@ -291,7 +292,7 @@ private fun UnicastAddress(
                             }
                         },
                         label = {
-                            Text(text = stringResource(id = R.string.label_unicast_address))
+                            Text(text = stringResource(id = R.string.label_name))
                         },
                         internalTrailingIcon = {
                             IconButton(

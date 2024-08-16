@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.provisioners"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.ranges"
 }
 
 dependencies {
@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:ranges"))
     implementation(project(":mesh:core"))
 
 }
