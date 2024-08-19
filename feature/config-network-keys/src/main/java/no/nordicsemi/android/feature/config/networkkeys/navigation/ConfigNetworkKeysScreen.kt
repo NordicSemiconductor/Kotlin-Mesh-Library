@@ -15,7 +15,9 @@ class ConfigNetworkKeysScreen(
     override val route = ConfigNetworkKeyDestination.route
     override val showTopBar = true
     override val navigationIcon = null
-    override val onNavigationIconClick: (() -> Unit)? = null
+    override val onNavigationIconClick: (() -> Unit)? = {
+        _buttons.tryEmit(Actions.BACK)
+    }
     override val actions = emptyList<ActionMenuItem>()
     override val floatingActionButton = listOf(
         FloatingActionButton(
@@ -33,5 +35,6 @@ class ConfigNetworkKeysScreen(
 
     enum class Actions {
         ADD_KEY,
+        BACK
     }
 }

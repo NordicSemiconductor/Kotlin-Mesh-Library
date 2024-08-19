@@ -74,6 +74,7 @@ fun NavGraphBuilder.nodeGraph(
         )
     }
     configNetworkKeysGraph(
+        appState = appState,
         navigateToNetworkKeys = {
             onNavigateToDestination(ConfigNetworkKeyDestination, ConfigNetworkKeyDestination.route)
         },

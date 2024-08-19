@@ -9,6 +9,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysRoute
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysViewModel
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import java.util.UUID
@@ -35,6 +36,7 @@ object ConfigNetworkKeyDestination : MeshNavigationDestination {
 }
 
 fun NavGraphBuilder.configNetworkKeysGraph(
+    appState: AppState,
     navigateToNetworkKeys: () -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -42,6 +44,7 @@ fun NavGraphBuilder.configNetworkKeysGraph(
         val viewmodel = hiltViewModel<ConfigNetKeysViewModel>()
         val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
         ConfigNetKeysRoute(
+            appState = appState,
             uiState = uiState,
             navigateToNetworkKeys = navigateToNetworkKeys,
             onAddKeyClicked = viewmodel::addNetworkKey,

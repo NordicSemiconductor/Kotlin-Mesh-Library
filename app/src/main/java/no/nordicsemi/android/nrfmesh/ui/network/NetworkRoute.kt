@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -108,7 +109,6 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
     }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
@@ -133,7 +133,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
             )
         },
         floatingActionButton = {
-            appState.floatingActionButton?.forEach {
+            appState.floatingActionButton.forEach {
                 ExtendedFloatingActionButton(
                     modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                     text = { Text(text = it.text) },
@@ -182,14 +182,7 @@ fun BottomNavigationBar(
     onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
     currentDestination: NavDestination?
 ) {
-    NavigationBar(
-        modifier = Modifier.windowInsetsPadding(
-            WindowInsets.safeDrawing.only(
-                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
-            )
-        ),
-        tonalElevation = 0.dp
-    ) {
+    NavigationBar {
         destinations.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any {
                 it.route == destination.route
