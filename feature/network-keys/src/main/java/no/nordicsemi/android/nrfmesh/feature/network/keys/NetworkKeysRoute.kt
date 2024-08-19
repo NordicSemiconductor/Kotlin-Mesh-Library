@@ -13,16 +13,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,7 +67,6 @@ internal fun NetworkKeysRoute(
     NetworkKeysScreen(
         uiState = uiState,
         navigateToKey = navigateToKey,
-        onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove
@@ -85,45 +78,28 @@ internal fun NetworkKeysRoute(
 private fun NetworkKeysScreen(
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
-    onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    when (uiState.keys.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.VpnKey,
+            title = stringResource(R.string.label_no_keys_added)
+        )
 
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-                navigateToKey(onAddKeyClicked().index)
-            }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_key)
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        when (uiState.keys.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(R.string.label_no_keys_added)
-            )
-
-            false -> NetworkKeys(
-                context = context,
-                coroutineScope = rememberCoroutineScope(),
-                snackbarHostState = snackbarHostState,
-                keys = uiState.keys,
-                navigateToKey = navigateToKey,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove
-            )
-        }
+        false -> NetworkKeys(
+            context = context,
+            coroutineScope = rememberCoroutineScope(),
+            snackbarHostState = snackbarHostState,
+            keys = uiState.keys,
+            navigateToKey = navigateToKey,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            remove = remove
+        )
     }
 }
 
