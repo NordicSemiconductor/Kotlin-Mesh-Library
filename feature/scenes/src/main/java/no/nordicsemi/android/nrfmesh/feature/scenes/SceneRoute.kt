@@ -62,8 +62,7 @@ private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit)
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         when (sceneState) {
-            SceneState.Loading -> { /* Do nothing */
-            }
+            SceneState.Loading -> { /* Do nothing */ }
 
             is SceneState.Success -> {
                 sceneInfo(

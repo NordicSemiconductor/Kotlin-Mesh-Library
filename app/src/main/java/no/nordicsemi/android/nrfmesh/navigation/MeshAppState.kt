@@ -59,6 +59,7 @@ import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesDestination
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreen
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
@@ -177,7 +178,7 @@ private fun getScreen(route: String?) = when (route) {
     ApplicationKeysDestination.route -> ApplicationKeysScreen(title = "Application Keys")
     ApplicationKeyDestination.route -> ApplicationKeyScreen(title = "Edit Key")
     ScenesDestination.route -> ScenesScreen(title = "Scenes")
-    SceneDestination.route -> NetworkKeyScreen(title = "Edit Scene")
+    SceneDestination.route -> SceneScreen(title = "Edit Scene")
     ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }
