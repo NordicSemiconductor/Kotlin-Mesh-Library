@@ -28,6 +28,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.R
 import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyScreen
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
@@ -54,6 +58,9 @@ import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesDestin
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesDestination
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesScreen
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 
@@ -162,11 +169,15 @@ private fun getScreen(route: String?) = when (route) {
     SettingsDestination.route -> SettingsScreen(title = "Settings")
     ProvisionersDestination.route -> ProvisionersScreen(title = "Provisioners")
     ProvisionerDestination.route -> ProvisionerScreen(title = "Edit Provisioner")
-    NetworkKeysDestination.route -> NetworkKeysScreen(title = "Network Keys")
-    NetworkKeyDestination.route -> NetworkKeyScreen(title = "Edit Network Key")
     UnicastRangesDestination.route -> UnicastRangesScreen(title = "Unicast Ranges")
     GroupRangesDestination.route -> GroupRangesScreen(title = "Group Ranges")
     SceneRangesDestination.route -> SceneRangesScreen(title = "Scene Ranges")
+    NetworkKeysDestination.route -> NetworkKeysScreen(title = "Network Keys")
+    NetworkKeyDestination.route -> NetworkKeyScreen(title = "Edit Key")
+    ApplicationKeysDestination.route -> ApplicationKeysScreen(title = "Application Keys")
+    ApplicationKeyDestination.route -> ApplicationKeyScreen(title = "Edit Key")
+    ScenesDestination.route -> ScenesScreen(title = "Scenes")
+    SceneDestination.route -> NetworkKeyScreen(title = "Edit Scene")
     ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

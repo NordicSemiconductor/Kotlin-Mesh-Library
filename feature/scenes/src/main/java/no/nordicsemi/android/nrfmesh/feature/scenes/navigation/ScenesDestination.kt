@@ -41,5 +41,5 @@ fun NavGraphBuilder.scenesGraph(
             onBackPressed = onBackPressed
         )
     }
-    sceneGraph(onBackPressed = onBackPressed)
+    sceneGraph(appState = appState, onBackPressed = onBackPressed)
 }

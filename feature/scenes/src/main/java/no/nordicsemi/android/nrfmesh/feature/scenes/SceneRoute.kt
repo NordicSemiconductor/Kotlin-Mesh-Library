@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,17 +26,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreen
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Composable
 internal fun SceneRoute(
+    appState: AppState,
     uiState: SceneScreenUiState,
-    onNameChanged: (String) -> Unit
+    onNameChanged: (String) -> Unit,
+    onBackPressed: () -> Unit
 ) {
+    val screen = appState.currentScreen as? SceneScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                SceneScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     SceneScreen(sceneState = uiState.sceneState, onNameChanged = onNameChanged)
 }
 
@@ -47,7 +62,9 @@ private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit)
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         when (sceneState) {
-            SceneState.Loading -> { /* Do nothing */ }
+            SceneState.Loading -> { /* Do nothing */
+            }
+
             is SceneState.Success -> {
                 sceneInfo(
                     scene = sceneState.scene,

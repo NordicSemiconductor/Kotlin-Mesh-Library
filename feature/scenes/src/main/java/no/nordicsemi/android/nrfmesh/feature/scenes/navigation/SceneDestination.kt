@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.scenes.SceneRoute
@@ -33,13 +34,15 @@ object SceneDestination : MeshNavigationDestination {
     }
 }
 
-internal fun NavGraphBuilder.sceneGraph(onBackPressed: () -> Unit) {
+internal fun NavGraphBuilder.sceneGraph(appState: AppState, onBackPressed: () -> Unit) {
     composable(route = SceneDestination.route) {
         val viewmodel = hiltViewModel<SceneViewModel>()
         val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
         SceneRoute(
+            appState = appState,
             uiState = uiState,
-            onNameChanged = viewmodel::onNameChanged
+            onNameChanged = viewmodel::onNameChanged,
+            onBackPressed = onBackPressed
         )
     }
 }
