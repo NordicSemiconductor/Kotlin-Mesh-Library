@@ -6,13 +6,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 /**
  * A screen represents a single screen in the application.
  *
- * @property route                   Route of the screen
- * @property showTopBar              True if the app bar should be displayed
- * @property navigationIcon          Navigation icon to be displayed on the screen
- * @property onNavigationIconClick   Action to be performed when the navigation icon is clicked
- * @property title                   Title of the screen
- * @property actions                 Actions to be displayed on the screen
- * @property showBottomBar           True if the bottom bar should be displayed
+ * @property route                   Route of the screen.
+ * @property showTopBar              True if the app bar should be displayed.
+ * @property navigationIcon          Navigation icon to be displayed on the screen.
+ * @property onNavigationIconClick   Action to be performed when the navigation icon is clicked.
+ * @property title                   Title of the screen.
+ * @property actions                 Actions to be displayed on the screen.
+ * @property showBottomBar           True if the bottom bar should be displayed.
  */
 interface Screen {
     val route: String

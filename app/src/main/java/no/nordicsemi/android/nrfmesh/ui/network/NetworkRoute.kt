@@ -13,15 +13,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -37,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
@@ -56,23 +52,29 @@ import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
-import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
+import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
 fun NetworkRoute(
-    appState: MeshAppState,
     viewModel: NetworkViewModel = hiltViewModel()
 ) {
     if (viewModel.isNetworkLoaded)
-        NetworkScreen(appState = appState, viewModel = viewModel)
+        NetworkScreen(viewModel = viewModel)
 }
 
 @Composable
-fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
+fun NetworkScreen(viewModel: NetworkViewModel) {
     val context = LocalContext.current
+    val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val appState = rememberMeshAppState(
+        navController = navController,
+        scope = scope,
+        snackbarHostState = snackbarHostState
+    )
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val fileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -109,7 +111,7 @@ fun NetworkScreen(appState: MeshAppState, viewModel: NetworkViewModel) {
     }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
                 title = { Text(text = appState.title) },

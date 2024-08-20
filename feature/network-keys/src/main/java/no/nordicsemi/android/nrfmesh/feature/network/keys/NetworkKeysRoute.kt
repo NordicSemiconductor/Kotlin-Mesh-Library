@@ -4,6 +4,7 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +65,7 @@ internal fun NetworkKeysRoute(
         }?.launchIn(this)
     }
     NetworkKeysScreen(
+        snackbarHostState = appState.snackbarHostState,
         uiState = uiState,
         navigateToKey = navigateToKey,
         onSwiped = onSwiped,
@@ -76,6 +77,7 @@ internal fun NetworkKeysRoute(
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NetworkKeysScreen(
+    snackbarHostState: SnackbarHostState,
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
@@ -83,7 +85,6 @@ private fun NetworkKeysScreen(
     remove: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     when (uiState.keys.isEmpty()) {
         true -> MeshNoItemsAvailable(
             imageVector = Icons.Outlined.VpnKey,
@@ -175,6 +176,7 @@ private fun SwipeToDismissKey(
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
+            Log.d("AAA", "Show snackbar?")
             showSnackbar(
                 scope = coroutineScope,
                 snackbarHostState = snackbarHostState,
@@ -187,25 +189,22 @@ private fun SwipeToDismissKey(
                 duration = SnackbarDuration.Short,
                 onDismissed = { shouldNotDismiss = false }
             )
+            Log.d("AAA", "Did snackbar appear?")
         }
     }
     if (dismissState.isDismissed()) {
         LaunchedEffect(snackbarHostState) {
             onSwiped(key)
-            snackbarHostState.showSnackbar(
+            showSnackbar(
+                scope = coroutineScope,
+                snackbarHostState = snackbarHostState,
                 message = context.getString(R.string.label_network_key_deleted),
                 actionLabel = context.getString(R.string.action_undo),
                 withDismissAction = true,
                 duration = SnackbarDuration.Long,
-            ).also {
-                when (it) {
-                    SnackbarResult.Dismissed -> remove(key)
-                    SnackbarResult.ActionPerformed -> {
-                        dismissState.reset()
-                        onUndoClicked(key)
-                    }
-                }
-            }
+                onDismissed = { remove(key) },
+                onActionPerformed = { onUndoClicked(key) }
+            )
         }
     }
 }

@@ -55,10 +55,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 
-
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 internal fun RangesScreen(
+    snackbarHostState: SnackbarHostState,
     screen: RangesScreen?,
     uiState: RangesScreenUiState,
     addRange: (start: UInt, end: UInt) -> Unit,
@@ -70,40 +70,7 @@ internal fun RangesScreen(
     resolve: () -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     var showAddRangeDialog by remember { mutableStateOf(false) }
-
-    /*Scaffold(
-        floatingActionButton = {
-            if (!uiState.conflicts) {
-                ExtendedFloatingActionButton(
-                    onClick = { showAddRangeDialog = !showAddRangeDialog },
-                    icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
-                    text = {
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = stringResource(R.string.action_add_range)
-                        )
-                    }
-                )
-            } else {
-                ExtendedFloatingActionButton(
-                    onClick = { resolve() },
-                    icon = { Icon(imageVector = Icons.Outlined.Check, contentDescription = null) },
-                    text = {
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = stringResource(R.string.label_resolve)
-                        )
-                    },
-                    containerColor = Color.Red
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-
-    }*/
 
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Hive
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -17,7 +18,6 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -67,13 +67,15 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 
 @Composable
 fun rememberMeshAppState(
-    navController: NavHostController = rememberNavController(),
-    scope: CoroutineScope
+    navController: NavHostController,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState
 ): MeshAppState {
     return remember(navController) {
         MeshAppState(
             navController = navController,
-            scope = scope
+            scope = scope,
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -81,7 +83,8 @@ fun rememberMeshAppState(
 @Stable
 class MeshAppState(
     val navController: NavHostController,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    override val snackbarHostState: SnackbarHostState
 ) : AppState() {
 
     val currentDestination: NavDestination?
