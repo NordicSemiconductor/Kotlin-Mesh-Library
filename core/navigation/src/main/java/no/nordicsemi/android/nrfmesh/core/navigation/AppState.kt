@@ -12,21 +12,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 /**
  * AppState is a class that holds the current state of the application.
  *
- * @property snackbarHostState          The [SnackbarHostState] that will be used to show snackbars.
- * @property topLevelDestinations       A list of [TopLevelDestination] that are the top level
- *                                      destinations of the application.
- * @property currentScreen              Current screen that is displayed.
- * @property showTopAppBar              True if the top app bar should be shown.
- * @property navigationIcon             The navigation icon that should be shown in the top app bar.
- * @property onNavigationIconClick      The action that should be performed when the navigation icon
- *                                      is clicked.
- * @property title                      The title of the current screen.
- * @property actions                    A list of [ActionMenuItem] that should be shown in the top
- *                                      app bar.
- * @property floatingActionButton       A list of [FloatingActionButton] that should be shown in the
- *                                      bottom app bar.
- * @property showBottomBar              True if the bottom app bar should be shown.
- * @property currentScreen              The current screen that is displayed.
+ * @property snackbarHostState      The [SnackbarHostState] that will be used to show snackbars.
+ * @property topLevelDestinations   List of [TopLevelDestination] that are the top level
+ *                                  destinations of the application.
+ * @property currentScreen          Current screen that is displayed.
+ * @property showTopAppBar          True if the top app bar should be shown.
+ * @property navigationIcon         Navigation icon that should be shown in the top app bar.
+ * @property onNavigationIconClick  The action that should be performed when the navigation icon is
+ *                                  clicked.
+ * @property title                  Title of the current screen.
+ * @property actions                List of [ActionMenuItem] that should be shown in the top AppBar.
+ * @property floatingActionButton   List of [FloatingActionButton] to be shown in the bottom AppBar.
+ * @property showBottomBar          True if the bottom app bar should be shown.
+ * @property currentScreen          Current screen that is displayed.
  */
 @Stable
 abstract class AppState {
