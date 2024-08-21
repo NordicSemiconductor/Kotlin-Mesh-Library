@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,7 +39,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -76,7 +81,6 @@ internal fun RangesScreen(
         screen?.buttons?.onEach { button ->
             when (button) {
                 RangesScreen.Actions.ADD_RANGE -> showAddRangeDialog = !showAddRangeDialog
-                RangesScreen.Actions.RESOLVE -> resolve()
                 RangesScreen.Actions.BACK -> onBackPressed()
             }
         }?.launchIn(this)
@@ -90,6 +94,8 @@ internal fun RangesScreen(
 
             false -> Ranges(
                 snackbarHostState = snackbarHostState,
+                conflicts = uiState.conflicts,
+                resolve = resolve,
                 ranges = uiState.ranges,
                 otherRanges = uiState.otherRanges,
                 onRangeUpdated = onRangeUpdated,
@@ -113,6 +119,8 @@ internal fun RangesScreen(
 @Composable
 private fun Ranges(
     snackbarHostState: SnackbarHostState,
+    conflicts: Boolean,
+    resolve: () -> Unit,
     ranges: List<Range>,
     otherRanges: List<Range>,
     onRangeUpdated: (Range, UShort, UShort) -> Unit,
@@ -129,7 +137,6 @@ private fun Ranges(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.6f, true),
-            contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = ranges) { range ->
@@ -176,6 +183,27 @@ private fun Ranges(
                 }
             }
         }
+        if (conflicts)
+            Button(
+                modifier = Modifier.align(Alignment.End),
+                onClick = { resolve() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red
+                ),
+                content = {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.AutoFixHigh,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Text(text = stringResource(R.string.label_resolve))
+                    }
+                }
+            )
         HorizontalDivider()
         Text(
             modifier = Modifier

@@ -52,12 +52,16 @@ fun NavGraphBuilder.settingsGraph(
             navigateToScenes = {
                 onNavigateToDestination(ScenesDestination, ScenesDestination.route)
             },
+            importNetwork = { uri, contentResolver ->
+                viewModel.importNetwork(uri = uri, contentResolver = contentResolver)
+            },
             navigateToExport = {
                 onNavigateToDestination(ExportDestination, ExportDestination.route)
             },
+            resetNetwork = viewModel::resetNetwork
         )
     }
-    exportGraph(onBackPressed = onBackPressed)
+    exportGraph(appState = appState, onBackPressed = onBackPressed)
     provisionersGraph(
         appState = appState,
         onBackPressed = onBackPressed,

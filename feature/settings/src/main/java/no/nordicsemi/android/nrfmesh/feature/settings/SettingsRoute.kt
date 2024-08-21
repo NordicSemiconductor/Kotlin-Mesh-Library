@@ -1,12 +1,13 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
+import android.content.ContentResolver
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
@@ -18,17 +19,10 @@ import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.FileDownload
-import androidx.compose.material.icons.rounded.FileUpload
-import androidx.compose.material.icons.rounded.LockReset
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
@@ -37,7 +31,6 @@ import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshDropDown
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
@@ -54,15 +47,27 @@ fun SettingsRoute(
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
-    navigateToExport: () -> Unit
+    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    navigateToExport: () -> Unit,
+    resetNetwork: () -> Unit
 ) {
+    val context = LocalContext.current
     val screen = appState.currentScreen as? SettingsScreen
+    val fileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            importNetwork(uri, context.contentResolver)
+        }
+    }
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
             when (button) {
-                SettingsScreen.Actions.IMPORT -> navigateToExport()
+                SettingsScreen.Actions.IMPORT -> {
+                    fileLauncher.launch("application/json")
+                }
                 SettingsScreen.Actions.EXPORT -> navigateToExport()
-                SettingsScreen.Actions.RESET -> navigateToExport()
+                SettingsScreen.Actions.RESET -> resetNetwork()
             }
         }?.launchIn(this)
     }
@@ -273,61 +278,4 @@ private fun VersionCodeRow() {
         title = stringResource(R.string.label_version_code),
         subtitle = BuildConfig.VERSION_CODE
     )
-}
-
-@Composable
-fun SettingsDropDown(
-    navigate: () -> Unit,
-    isOptionsMenuExpanded: Boolean,
-    onDismiss: () -> Unit,
-    importNetwork: () -> Unit,
-    resetNetwork: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.TopEnd)
-    ) {
-        MeshDropDown(
-            expanded = isOptionsMenuExpanded,
-            onDismiss = { onDismiss() }) {
-            DropdownMenuItem(
-                leadingIcon = {
-                    Icon(imageVector = Icons.Rounded.FileUpload, contentDescription = null)
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.label_import),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                },
-                onClick = importNetwork
-            )
-            DropdownMenuItem(
-                leadingIcon = {
-                    Icon(imageVector = Icons.Rounded.FileDownload, contentDescription = null)
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.label_export),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                },
-                onClick = navigate
-            )
-            //MenuDefaults.Divider()
-            DropdownMenuItem(
-                leadingIcon = {
-                    Icon(imageVector = Icons.Rounded.LockReset, contentDescription = null)
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.label_reset),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                },
-                onClick = resetNetwork
-            )
-        }
-    }
 }

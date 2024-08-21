@@ -1,10 +1,8 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.ranges
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.Range
 
 @Composable
@@ -20,8 +18,9 @@ internal fun GroupRangesRoute(
     isValidBound: (UShort) -> Boolean,
     onBackPressed: () -> Unit
 ) {
-    val screen = appState.currentScreen as? no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesScreen
+    val screen = appState.currentScreen as? GroupRangesScreen
     RangesScreen(
+        snackbarHostState = appState.snackbarHostState,
         screen = screen,
         uiState = uiState,
         addRange = addRange,

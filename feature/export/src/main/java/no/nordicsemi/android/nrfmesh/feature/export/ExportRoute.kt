@@ -3,22 +3,22 @@
 package no.nordicsemi.android.nrfmesh.feature.export
 
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Info
@@ -26,14 +26,13 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconToggleButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,9 +45,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneProvisionerMustBeSelected
@@ -58,29 +61,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 @Composable
 fun ExportRoute(
-    uiState: ExportScreenUiState,
-    onExportEverythingToggled: (Boolean) -> Unit,
-    onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
-    onProvisionerSelected: (Provisioner, Boolean) -> Unit,
-    onExportDeviceKeysToggled: (Boolean) -> Unit,
-    onExportClicked: (ContentResolver, Uri) -> Unit,
-    onExportStateDisplayed: () -> Unit,
-    onBackPressed: () -> Unit
-) {
-    ExportScreen(
-        uiState = uiState,
-        onExportEverythingToggled = onExportEverythingToggled,
-        onNetworkKeySelected = onNetworkKeySelected,
-        onProvisionerSelected = onProvisionerSelected,
-        onExportDeviceKeysToggled = onExportDeviceKeysToggled,
-        onExportClicked = onExportClicked,
-        onExportStateDisplayed = onExportStateDisplayed,
-        onBackPressed = onBackPressed
-    )
-}
-
-@Composable
-private fun ExportScreen(
+    appState: AppState,
     uiState: ExportScreenUiState,
     onExportEverythingToggled: (Boolean) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
@@ -91,11 +72,42 @@ private fun ExportScreen(
     onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
         onResult = { it?.let { onExportClicked(context.contentResolver, it) } }
     )
+    val screen = appState.currentScreen as? ExportScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach {
+            when (it) {
+                ExportScreen.Actions.BACK -> onBackPressed()
+                ExportScreen.Actions.SAVE -> createDocument.launch(uiState.networkName)
+            }
+        }?.launchIn(this)
+    }
+    ExportScreen(
+        context = context,
+        snackbarHostState = appState.snackbarHostState,
+        uiState = uiState,
+        onExportEverythingToggled = onExportEverythingToggled,
+        onNetworkKeySelected = onNetworkKeySelected,
+        onProvisionerSelected = onProvisionerSelected,
+        onExportDeviceKeysToggled = onExportDeviceKeysToggled,
+        onExportStateDisplayed = onExportStateDisplayed,
+    )
+}
+
+@Composable
+private fun ExportScreen(
+    context: Context,
+    snackbarHostState: SnackbarHostState,
+    uiState: ExportScreenUiState,
+    onExportEverythingToggled: (Boolean) -> Unit,
+    onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
+    onProvisionerSelected: (Provisioner, Boolean) -> Unit,
+    onExportDeviceKeysToggled: (Boolean) -> Unit,
+    onExportStateDisplayed: () -> Unit,
+) {
     when (uiState.exportState) {
         is ExportState.Success ->
             LaunchedEffect(key1 = snackbarHostState) {
@@ -127,70 +139,35 @@ private fun ExportScreen(
         is ExportState.Unknown -> { /*Do nothing*/
         }
     }
-    /*Scaffold(
-        topBar = {
-            MeshLargeTopAppBar(
-                title = stringResource(id = R.string.label_export),
-                actions = {
-                    IconButton(
-                        onClick = { createDocument.launch(uiState.networkName) },
-                        enabled = uiState.enableExportButton
-                    ) {
-                        Icon(imageVector = Icons.Filled.Save, contentDescription = null)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-    }*/
-    LazyColumn(
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState())
     ) {
-        item {
-            ExportSelection(
-                uiState = uiState,
-                onExportEverythingToggled = onExportEverythingToggled
-            )
-        }
+        ExportSelection(
+            uiState = uiState,
+            onExportEverythingToggled = onExportEverythingToggled
+        )
         if (uiState.exportEverything) {
-            item {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = null
-                )
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(id = R.string.label_export_configuration_rationale)
-                )
-            }
+            Icon(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null
+            )
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(id = R.string.label_export_configuration_rationale)
+            )
         } else {
             uiState.apply {
-                item {
-                    SectionTitle(title = stringResource(R.string.label_provisioners))
-                }
-                items(
-                    items = provisionerItemStates,
-                    key = { it.provisioner.uuid }
-                ) { state ->
+                SectionTitle(title = stringResource(R.string.label_provisioners))
+                provisionerItemStates.forEach { state ->
                     ProvisionerRow(
                         state = state,
                         onProvisionerSelected = onProvisionerSelected,
                         exportEverything = uiState.exportEverything
                     )
                 }
-                item {
-                    SectionTitle(title = stringResource(R.string.label_network_keys))
-                }
-                items(
-                    items = networkKeyItemStates,
-                    key = { it.networkKey.key }
-                ) { state ->
+                SectionTitle(title = stringResource(R.string.label_network_keys))
+                networkKeyItemStates.forEach { state ->
                     NetworkKeyRow(
                         state = state,
                         onNetworkKeySelected = onNetworkKeySelected,
@@ -198,12 +175,10 @@ private fun ExportScreen(
                     )
                 }
             }
-            item {
-                ExportDeviceKeys(
-                    uiState = uiState,
-                    onExportDeviceKeysToggled = onExportDeviceKeysToggled
-                )
-            }
+            ExportDeviceKeys(
+                uiState = uiState,
+                onExportDeviceKeysToggled = onExportDeviceKeysToggled
+            )
         }
     }
 }
@@ -253,7 +228,6 @@ private fun ExportSelection(
         )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ProvisionerRow(
     state: ProvisionerItemState,
@@ -276,11 +250,7 @@ private fun ProvisionerRow(
             title = state.provisioner.name,
             subtitle = state.provisioner.node?.primaryUnicastAddress?.address?.toString() ?: ""
         )
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 16.dp, vertical = 32.dp)
-        )
+        VerticalDivider(modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp))
         Checkbox(
             checked = state.isSelected,
             onCheckedChange = { onProvisionerSelected(state.provisioner, it) },
@@ -313,13 +283,7 @@ private fun NetworkKeyRow(
             subtitle = state.networkKey.key.toHexString(prefixOx = true),
             subtitleTextOverflow = TextOverflow.Ellipsis
         )
-        HorizontalDivider(
-            modifier = Modifier
-                .padding(
-                    horizontal = 16.dp,
-                    vertical = 32.dp
-                )
-        )
+        VerticalDivider(modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp))
         Checkbox(
             checked = state.isSelected,
             onCheckedChange = { onNetworkKeySelected(state.networkKey, it) },
@@ -348,13 +312,7 @@ private fun ExportDeviceKeys(
             subtitle = stringResource(R.string.label_export_device_keys_rationale),
             subtitleMaxLines = Int.MAX_VALUE
         )
-        HorizontalDivider()
-        Divider(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 16.dp, vertical = 32.dp)
-                .width(1.dp)
-        )
+        VerticalDivider(modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp))
         Switch(
             checked = uiState.exportDeviceKeys,
             onCheckedChange = { onExportDeviceKeysToggled(it) },

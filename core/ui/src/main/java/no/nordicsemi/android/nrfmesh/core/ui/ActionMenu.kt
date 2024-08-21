@@ -18,7 +18,7 @@ fun ActionsMenu(
     onToggleOverflow: () -> Unit,
     maxVisibleItems: Int,
 ) {
-    // 2
+
     val menuItems = remember(
         key1 = items,
         key2 = maxVisibleItems,
@@ -26,7 +26,7 @@ fun ActionsMenu(
         splitMenuItems(items, maxVisibleItems)
     }
 
-    // 3
+    // Items that are always shown
     menuItems.alwaysShownItems.forEach { item ->
         IconButton(onClick = item.onClick) {
             Icon(
@@ -36,16 +36,16 @@ fun ActionsMenu(
         }
     }
 
-    // 4
+    // Check if there are overflow items
     if (menuItems.overflowItems.isNotEmpty()) {
-        // 5
+        // Overflow menu button
         IconButton(onClick = onToggleOverflow) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = null
             )
         }
-        // 6
+        // Overflow menu
         DropdownMenu(
             expanded = isOpen,
             onDismissRequest = onToggleOverflow,
@@ -56,47 +56,51 @@ fun ActionsMenu(
                     text = {
                         Text(item.title)
                     },
-                    onClick = item.onClick
+                    onClick = {
+                        item.onClick()
+                        onToggleOverflow()
+                    }
                 )
             }
         }
     }
 }
 
-// 1
+/**
+ * Menu items class containing always shown items and overflow items.
+ */
 private data class MenuItems(
     val alwaysShownItems: List<ActionMenuItem.IconMenuItem>,
     val overflowItems: List<ActionMenuItem>,
 )
 
-// 2
+/**
+ * Splits the menu items into always shown items and overflow items.
+ */
 private fun splitMenuItems(
     items: List<ActionMenuItem>,
     maxVisibleItems: Int,
 ): MenuItems {
-    // 3
+
     val alwaysShownItems: MutableList<ActionMenuItem.IconMenuItem> =
         items.filterIsInstance<ActionMenuItem.IconMenuItem.AlwaysShown>().toMutableList()
     val ifRoomItems: MutableList<ActionMenuItem.IconMenuItem> =
         items.filterIsInstance<ActionMenuItem.IconMenuItem.ShownIfRoom>().toMutableList()
     val overflowItems = items.filterIsInstance<ActionMenuItem.NeverShown>()
 
-    // 4
     val hasOverflow = overflowItems.isNotEmpty() ||
             (alwaysShownItems.size + ifRoomItems.size - 1) > maxVisibleItems
-    // 5
+
     val usedSlots = alwaysShownItems.size + (if (hasOverflow) 1 else 0)
-    // 6
+
     val availableSlots = maxVisibleItems - usedSlots
-    // 7
+
     if (availableSlots > 0 && ifRoomItems.isNotEmpty()) {
-        // 8
         val visible = ifRoomItems.subList(0, availableSlots.coerceAtMost(ifRoomItems.size))
         alwaysShownItems.addAll(visible)
         ifRoomItems.removeAll(visible)
     }
 
-    // 9
     return MenuItems(
         alwaysShownItems = alwaysShownItems,
         overflowItems = ifRoomItems + overflowItems,

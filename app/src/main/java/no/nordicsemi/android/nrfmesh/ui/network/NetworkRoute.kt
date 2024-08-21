@@ -2,8 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.ui.network
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -13,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,11 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
@@ -54,19 +51,14 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
-import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
-fun NetworkRoute(
-    viewModel: NetworkViewModel = hiltViewModel()
-) {
-    if (viewModel.isNetworkLoaded)
-        NetworkScreen(viewModel = viewModel)
+fun NetworkRoute() {
+    NetworkScreen()
 }
 
 @Composable
-fun NetworkScreen(viewModel: NetworkViewModel) {
-    val context = LocalContext.current
+fun NetworkScreen() {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -76,14 +68,6 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         snackbarHostState = snackbarHostState
     )
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            viewModel.importNetwork(uri, context.contentResolver)
-        }
-    }
-
     val density = LocalDensity.current
     val enterTransition: EnterTransition = slideInVertically {
         // Slide in from 40 dp from the top.
@@ -103,14 +87,14 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
         screen?.buttons?.onEach { button ->
             when (button) {
                 NodesScreen.Actions.ADD_NODE -> appState.navigate(
-                    ProvisioningDestination,
-                    ProvisioningDestination.route
+                    destination = ProvisioningDestination,
+                    route = ProvisioningDestination.route
                 )
             }
         }?.launchIn(this)
     }
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             NordicLargeAppBar(
@@ -123,11 +107,9 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
                     val items = appState.actions
                     if (items.isNotEmpty()) {
                         ActionsMenu(
-                            items = items,
+                            items = appState.actions,
                             isOpen = menuExpanded,
-                            onToggleOverflow = {
-                                menuExpanded = !menuExpanded
-                            },
+                            onToggleOverflow = { menuExpanded = !menuExpanded },
                             maxVisibleItems = 3
                         )
                     }
@@ -135,19 +117,21 @@ fun NetworkScreen(viewModel: NetworkViewModel) {
             )
         },
         floatingActionButton = {
-            appState.floatingActionButton.forEach {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    text = { Text(text = it.text) },
-                    icon = {
-                        Icon(
-                            imageVector = it.icon,
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = it.onClick,
-                    expanded = true
-                )
+            Column {
+                appState.floatingActionButton.forEach {
+                    ExtendedFloatingActionButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                        text = { Text(text = it.text) },
+                        icon = {
+                            Icon(
+                                imageVector = it.icon,
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = it.onClick,
+                        expanded = true
+                    )
+                }
             }
         },
         bottomBar = {

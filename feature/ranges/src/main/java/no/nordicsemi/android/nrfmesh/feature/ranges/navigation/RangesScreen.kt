@@ -39,9 +39,7 @@ abstract class RangesScreen(override val title: String) : Screen {
             icon = Icons.Outlined.Add,
             text = "Add Range",
             contentDescription = "Add Range",
-            onClick = {
-                _buttons.tryEmit(Actions.ADD_RANGE)
-            }
+            onClick = { _buttons.tryEmit(Actions.ADD_RANGE) }
         )
     )
 
@@ -51,7 +49,6 @@ abstract class RangesScreen(override val title: String) : Screen {
 
     enum class Actions {
         BACK,
-        ADD_RANGE,
-        RESOLVE
+        ADD_RANGE
     }
 }
