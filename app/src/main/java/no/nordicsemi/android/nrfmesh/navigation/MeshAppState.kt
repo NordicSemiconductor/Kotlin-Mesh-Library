@@ -48,6 +48,8 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.Provisioner
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreen
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
@@ -82,7 +84,7 @@ fun rememberMeshAppState(
 
 @Stable
 class MeshAppState(
-    val navController: NavHostController,
+    override val navController: NavHostController,
     private val scope: CoroutineScope,
     override val snackbarHostState: SnackbarHostState
 ) : AppState() {
@@ -136,7 +138,13 @@ class MeshAppState(
             .launchIn(scope)
     }
 
-    override fun navigate(destination: MeshNavigationDestination, route: String?) {
+    /**
+     * Navigates to the given destination.
+     *
+     * @param destination Destination to navigate to.
+     * @param route       Route to navigate to.
+     */
+    internal fun navigate(destination: MeshNavigationDestination, route: String?) {
         trace("Navigation: $destination") {
             if (destination is TopLevelDestination) {
                 navController.navigate(route ?: destination.route) {
@@ -147,9 +155,9 @@ class MeshAppState(
                         saveState = true
                     }
                     // Avoid multiple copies of the same destination when
-                    // reselecting the same item
+                    // re-selecting the same item
                     launchSingleTop = true
-                    // Restore state when reselecting a previously selected item
+                    // Restore state when re-selecting a previously selected item
                     restoreState = true
                 }
             } else {
@@ -158,8 +166,11 @@ class MeshAppState(
         }
     }
 
-    override fun onBackPressed() {
-        navController.popBackStack()
+    /**
+     * Navigates back.
+     */
+    internal fun onBackPressed() {
+        navController.navigateUp()
     }
 }
 
@@ -167,6 +178,7 @@ private fun getScreen(route: String?) = when (route) {
     NodesDestination.route -> NodesScreen(title = "Nodes")
     NodeDestination.route -> NodeScreen(title = "Node")
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
+    NetKeySelectorDestination.route -> NetKeySelectorScreen()
     ConfigNetworkKeyDestination.route -> ConfigNetworkKeysScreen()
     GroupsDestination.route -> GroupsScreen(title = "Groups")
     ProxyDestination.route -> ProxyScreen(title = "Proxy")

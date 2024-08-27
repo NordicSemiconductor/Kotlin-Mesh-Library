@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +69,6 @@ internal fun ProvisionersRoute(
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun ProvisionersScreen(
     uiState: ProvisionersScreenUiState,
     navigateToProvisioner: (UUID) -> Unit,

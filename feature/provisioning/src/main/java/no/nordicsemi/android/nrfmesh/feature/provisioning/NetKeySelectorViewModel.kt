@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
+package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -21,15 +21,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NetKeySelectorViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel(), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
 
-    private val selectedNetKey =
-        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]) as KeyIndex
-
+    private val selectedNetKey: KeyIndex =
+        savedStateHandle.get<String>(MeshNavigationDestination.ARG)
+            ?.toUShort()
+            ?: 0u
 
     private var _uiState = MutableStateFlow(NetworkKeySelectionScreenUiState())
     internal val uiState = _uiState.asStateFlow()
@@ -48,7 +49,6 @@ class NetKeySelectorViewModel @Inject constructor(
 
     fun onKeySelected(keyIndex: KeyIndex) {
         _uiState.value = _uiState.value.copy(selectedKeyIndex = keyIndex)
-        savedStateHandle[MeshNavigationDestination.ARG] = keyIndex
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {

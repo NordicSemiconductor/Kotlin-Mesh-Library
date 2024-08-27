@@ -119,10 +119,6 @@ internal class NodeViewModel @Inject internal constructor(
             }
         }
     }
-
-    fun onNetworkKeysClicked() {
-        // navigator.navigateTo(to = configNetKeys, args = selectedNode.uuid)
-    }
 }
 
 sealed interface NodeState {

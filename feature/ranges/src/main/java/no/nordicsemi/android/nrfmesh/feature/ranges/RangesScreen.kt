@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.ranges
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -61,7 +60,6 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 internal fun RangesScreen(
     snackbarHostState: SnackbarHostState,
     screen: RangesScreen?,

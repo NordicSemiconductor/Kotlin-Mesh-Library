@@ -39,6 +39,8 @@ fun NavGraphBuilder.nodesGraph(
         )
     }
     provisioningGraph(
+        appState = appState,
+        onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
     nodeGraph(

@@ -36,10 +36,6 @@ internal class NodesViewModel @Inject internal constructor(
             }
         }
     }
-
-    fun navigate(selectedNode: Node) {
-        // navigateTo(node, selectedNode.uuid)
-    }
 }
 
 

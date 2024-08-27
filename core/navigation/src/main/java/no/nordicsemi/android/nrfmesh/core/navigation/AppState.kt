@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 
 /**
  * AppState is a class that holds the current state of the application.
@@ -28,6 +30,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
  */
 @Stable
 abstract class AppState {
+    protected abstract val navController: NavController
+
     abstract val snackbarHostState: SnackbarHostState
 
     abstract val topLevelDestinations: List<TopLevelDestination>
@@ -56,21 +60,11 @@ abstract class AppState {
     val showBottomBar: Boolean
         get() = currentScreen?.showBottomBar ?: false
 
+    val previousBackStackEntry: NavBackStackEntry?
+        get() = navController.previousBackStackEntry
+
     /**
      * Returns the current screen.
      */
     protected abstract fun currentScreen()
-
-    /**
-     * Navigates to the given destination.
-     *
-     * @param destination The destination to navigate to.
-     * @param route       The route to navigate to.
-     */
-    abstract fun navigate(destination: MeshNavigationDestination, route: String? = null)
-
-    /**
-     * Navigates back.
-     */
-    abstract fun onBackPressed()
 }

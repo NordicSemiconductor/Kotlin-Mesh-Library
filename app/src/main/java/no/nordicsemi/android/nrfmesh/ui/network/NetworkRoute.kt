@@ -142,7 +142,9 @@ fun NetworkScreen() {
             ) {
                 BottomNavigationBar(
                     destinations = appState.topLevelDestinations,
-                    onNavigateToTopLevelDestination = appState::navigate,
+                    onNavigateToTopLevelDestination = {
+                        appState.navigate(it, it.route)
+                    },
                     currentDestination = appState.currentDestination
                 )
             }
@@ -150,7 +152,7 @@ fun NetworkScreen() {
     ) { paddingValues ->
         MeshNavHost(
             appState = appState,
-            navController = appState.navController,
+            navController = navController,
             onNavigateToDestination = appState::navigate,
             onBackPressed = appState::onBackPressed,
             startDestination = NodesDestination.route,

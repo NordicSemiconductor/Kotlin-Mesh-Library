@@ -18,6 +18,7 @@ import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connecting
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Disconnected
@@ -41,7 +42,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel(), Logger {
 
@@ -49,7 +50,7 @@ class ProvisioningViewModel @Inject constructor(
     private lateinit var provisioningManager: ProvisioningManager
 
     private var unprovisionedDevice: UnprovisionedDevice? = null
-
+    private var keyIndex: KeyIndex = 0u
     private val _uiState = MutableStateFlow(ProvisioningScreenUiState(provisionerState = Scanning))
     internal val uiState = _uiState.asStateFlow()
 
@@ -154,27 +155,23 @@ class ProvisioningViewModel @Inject constructor(
      * Observers the result of the NetKeySelector destination.
      */
     private fun observeNetKeySelector() {
-        // resultFrom(netKeySelector)
-        //     // Filter out results of cancelled navigation.
-        //     .mapNotNull { it as? NavigationResult.Success }
-        //     .map { it.value }
-        //     // Save the result in SavedStateHandle.
-        //     .onEach { keyIndex ->
-        //         //savedStateHandle[KEY_INDEX] = it
-        //         uiState.value.provisionerState.let { provisionerState ->
-        //             if (provisionerState is Provisioning) {
-        //                 if (provisionerState.state is ProvisioningState.CapabilitiesReceived) {
-        //                     meshNetwork.networkKeys.find { key ->
-        //                         keyIndex == key.index.toInt()
-        //                     }?.let {
-        //                         provisionerState.state.parameters.networkKey = it
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     // And finally, launch the flow in the ViewModelScope.
-        //     .launchIn(viewModelScope)
+        savedStateHandle.getStateFlow(
+            key = MeshNavigationDestination.ARG,
+            initialValue = "0"
+        ).onEach { index ->
+            val state = _uiState.value
+            keyIndex = index.toInt().toUShort()
+            state.provisionerState.let {
+                if (it is Provisioning) {
+                    if (it.state is ProvisioningState.CapabilitiesReceived) {
+                        it.state.parameters.networkKey = meshNetwork.networkKeys.find { key ->
+                            keyIndex == key.index
+                        } ?: throw Throwable("Network key not found")
+                        _uiState.value = state.copy(provisionerState = it)
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     /**
@@ -222,15 +219,6 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     /**
-     * Navigates to the network key selector.
-     *
-     * @param keyIndex Index of the network key.
-     */
-    internal fun onNetworkKeyClick(keyIndex: KeyIndex) {
-        // navigateTo(netKeySelector, keyIndex.toInt())
-    }
-
-    /**
      * Starts the provisioning process after the identification is completed.
      *
      * @param authMethod Authentication method to be used.
@@ -243,6 +231,9 @@ class ProvisioningViewModel @Inject constructor(
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
                             parameters.authMethod = authMethod
+                            parameters.networkKey = meshNetwork.networkKeys.find { key ->
+                                0.toUShort() == key.index
+                            } ?: throw Throwable("Network key not found")
                             start(parameters)
                         }
                     }
@@ -309,5 +300,6 @@ sealed class ProvisionerState {
 }
 
 internal data class ProvisioningScreenUiState internal constructor(
-    val provisionerState: ProvisionerState
+    val provisionerState: ProvisionerState,
+    val keyIndex: KeyIndex = 0u
 )

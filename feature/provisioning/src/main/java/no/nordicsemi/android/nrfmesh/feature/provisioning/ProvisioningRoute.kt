@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
@@ -49,9 +52,11 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -62,6 +67,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
 @Composable
 internal fun ProvisioningRoute(
+    appState: AppState,
     uiState: ProvisioningScreenUiState,
     beginProvisioning: (Context, BleScanResults) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -74,6 +80,15 @@ internal fun ProvisioningRoute(
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit
 ) {
+    val screen = appState.currentScreen as? ProvisioningScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ProvisioningScreen.Actions.BACK -> disconnect()
+            }
+        }?.launchIn(this)
+    }
+
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
                 uiState.provisionerState is ProvisionerState.Connected ||
@@ -304,7 +319,6 @@ private fun ProvisioningContent(
                     }
                 )
             }
-
         }
 
         is ProvisionerState.Disconnected -> ProvisionerStateInfo(

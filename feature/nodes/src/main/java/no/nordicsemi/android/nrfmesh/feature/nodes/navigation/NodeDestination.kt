@@ -3,7 +3,6 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
 import android.net.Uri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
@@ -24,14 +23,6 @@ object NodeDestination : MeshNavigationDestination {
      */
     fun createNavigationRoute(uuid: UUID): String =
         "node_route/${Uri.encode(uuid.toString())}"
-
-    /**
-     * Returns the topicId from a [NavBackStackEntry] after a topic destination navigation call
-     */
-    fun fromNavArgs(entry: NavBackStackEntry): String {
-        val encodedId = entry.arguments?.getString(ARG)!!
-        return Uri.decode(encodedId)
-    }
 }
 
 fun NavGraphBuilder.nodeGraph(
@@ -75,9 +66,7 @@ fun NavGraphBuilder.nodeGraph(
     }
     configNetworkKeysGraph(
         appState = appState,
-        navigateToNetworkKeys = {
-            onNavigateToDestination(ConfigNetworkKeyDestination, ConfigNetworkKeyDestination.route)
-        },
+        onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
 }

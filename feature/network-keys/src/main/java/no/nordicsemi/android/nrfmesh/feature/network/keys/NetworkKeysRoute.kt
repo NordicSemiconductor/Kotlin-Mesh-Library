@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -75,7 +74,6 @@ internal fun NetworkKeysRoute(
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun NetworkKeysScreen(
     snackbarHostState: SnackbarHostState,
     uiState: NetworkKeysScreenUiState,

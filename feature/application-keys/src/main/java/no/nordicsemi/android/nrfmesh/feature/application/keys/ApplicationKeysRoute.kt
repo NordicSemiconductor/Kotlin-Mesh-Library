@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -71,7 +70,6 @@ internal fun ApplicationKeysRoute(
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun ApplicationsKeysScreen(
     uiState: ApplicationKeysScreenUiState,
     navigateToApplicationKey: (KeyIndex) -> Unit,
