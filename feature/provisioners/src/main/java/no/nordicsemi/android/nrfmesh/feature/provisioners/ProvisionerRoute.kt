@@ -28,9 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,9 +50,10 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -63,6 +62,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
+import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
@@ -73,19 +74,33 @@ import java.util.UUID
 
 @Composable
 internal fun ProvisionerRoute(
-    viewModel: ProvisionerViewModel = hiltViewModel(),
+    appState: AppState,
+    uiState: ProvisionerScreenUiState,
+    onNameChanged: (String) -> Unit,
+    onAddressChanged: (Int) -> Unit,
+    disableConfigurationCapabilities: () -> Unit,
+    onTtlChanged: (Int) -> Unit,
+    isValidAddress: (UShort) -> Boolean,
     navigateToUnicastRanges: (UUID) -> Unit,
     navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit
+    navigateToSceneRanges: (UUID) -> Unit,
+    onBackPressed: () -> Unit
 ) {
-    val uiState: ProvisionerScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val screen = appState.currentScreen as? ProvisionerScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { buttons ->
+            when(buttons){
+                ProvisionerScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     ProvisionerScreen(
         provisionerState = uiState.provisionerState,
-        onNameChanged = viewModel::onNameChanged,
-        onAddressChanged = viewModel::onAddressChanged,
-        disableConfigurationCapabilities = viewModel::disableConfigurationCapabilities,
-        onTtlChanged = viewModel::onTtlChanged,
-        isValidAddress = viewModel::isValidAddress,
+        onNameChanged = onNameChanged,
+        onAddressChanged = onAddressChanged,
+        disableConfigurationCapabilities = disableConfigurationCapabilities,
+        onTtlChanged = onTtlChanged,
+        isValidAddress = isValidAddress,
         navigateToUnicastRanges = navigateToUnicastRanges,
         navigateToGroupRanges = navigateToGroupRanges,
         navigateToSceneRanges = navigateToSceneRanges
@@ -106,42 +121,37 @@ private fun ProvisionerScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) {
+    when (provisionerState) {
+        ProvisionerState.Loading -> { /* Do nothing */
+        }
 
-        when (provisionerState) {
-            ProvisionerState.Loading -> { /* Do nothing */
-            }
+        is ProvisionerState.Success -> {
+            ProvisionerInfo(
+                snackbarHostState = snackbarHostState,
+                provisioner = provisionerState.provisioner,
+                otherProvisioners = provisionerState.otherProvisioners,
+                onNameChanged = onNameChanged,
+                onAddressChanged = onAddressChanged,
+                isValidAddress = isValidAddress,
+                disableConfigurationCapabilities = disableConfigurationCapabilities,
+                onTtlChanged = onTtlChanged,
+                navigateToUnicastRanges = navigateToUnicastRanges,
+                navigateToGroupRanges = navigateToGroupRanges,
+                navigateToSceneRanges = navigateToSceneRanges
+            )
+        }
 
-            is ProvisionerState.Success -> {
-                ProvisionerInfo(
-                    paddingValues = it,
-                    snackbarHostState = snackbarHostState,
-                    provisioner = provisionerState.provisioner,
-                    otherProvisioners = provisionerState.otherProvisioners,
-                    onNameChanged = onNameChanged,
-                    onAddressChanged = onAddressChanged,
-                    isValidAddress = isValidAddress,
-                    disableConfigurationCapabilities = disableConfigurationCapabilities,
-                    onTtlChanged = onTtlChanged,
-                    navigateToUnicastRanges = navigateToUnicastRanges,
-                    navigateToGroupRanges = navigateToGroupRanges,
-                    navigateToSceneRanges = navigateToSceneRanges
-                )
-            }
-
-            is ProvisionerState.Error -> {
-                MeshNoItemsAvailable(
-                    imageVector = Icons.Outlined.Group,
-                    title = provisionerState.throwable.message ?: "Unknown error"
-                )
-            }
+        is ProvisionerState.Error -> {
+            MeshNoItemsAvailable(
+                imageVector = Icons.Outlined.Group,
+                title = provisionerState.throwable.message ?: "Unknown error"
+            )
         }
     }
 }
 
 @Composable
 private fun ProvisionerInfo(
-    paddingValues: PaddingValues,
     snackbarHostState: SnackbarHostState,
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
@@ -160,8 +170,7 @@ private fun ProvisionerInfo(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
+            .fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
@@ -297,7 +306,7 @@ private fun UnicastAddress(
                             }
                         },
                         label = {
-                            Text(text = stringResource(id = R.string.label_unicast_address))
+                            Text(text = stringResource(id = R.string.label_name))
                         },
                         internalTrailingIcon = {
                             IconButton(

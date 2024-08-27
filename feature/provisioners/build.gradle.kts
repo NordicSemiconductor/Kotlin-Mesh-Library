@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.nordic.navigation)
+
     implementation(libs.nordic.kotlin.data)
 
     testImplementation(libs.junit4)
@@ -24,6 +24,8 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
+    implementation(project(":feature:ranges"))
     implementation(project(":mesh:core"))
 
 }

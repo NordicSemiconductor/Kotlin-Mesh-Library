@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.feature.config.networkkeys
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -19,16 +18,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -45,10 +39,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeysScreen
 import no.nordicsemi.android.nrfmesh.core.common.Failed
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
@@ -63,86 +60,78 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun ConfigNetKeysRoute(
+    appState: AppState,
     uiState: NetKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
     resetMessageState: () -> Unit,
-    onBackClick: () -> Unit
+    onBackPressed: () -> Unit
 ) {
-    NetKeysScreen(
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val screen = appState.currentScreen as? ConfigNetworkKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ConfigNetworkKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
+                ConfigNetworkKeysScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
+
+    BackHandler(enabled = uiState.messageState.isInProgress()) {
+        //
+    }
+    ConfigNetKeysScreen(
         uiState = uiState,
+        snackbarHostState = appState.snackbarHostState,
+        showBottomSheet = showBottomSheet,
+        dismissBottomSheet = { showBottomSheet = !showBottomSheet },
         navigateToNetworkKeys = navigateToNetworkKeys,
         onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
-        resetMessageState = resetMessageState,
-        onBackClick = onBackClick
+        resetMessageState = resetMessageState
     )
 }
 
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-private fun NetKeysScreen(
+private fun ConfigNetKeysScreen(
     uiState: NetKeysScreenUiState,
+    snackbarHostState: SnackbarHostState,
+    showBottomSheet: Boolean,
+    dismissBottomSheet: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
     resetMessageState: () -> Unit,
-    onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    Column {
+        AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        when (uiState.netKeysState) {
+            NetKeysState.Loading -> MeshLoadingItems(
+                imageVector = Icons.Outlined.VpnKey,
+                title = stringResource(id = R.string.label_loading)
+            )
 
-    BackHandler(enabled = uiState.messageState.isInProgress()) {
-        // onBackClick()
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = when {
-                    showBottomSheet -> false
-                    else -> uiState.messageState is NotStarted
-                }
-            ) {
-                ExtendedFloatingActionButton(
-                    text = { Text(stringResource(R.string.label_add_key)) },
-                    icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
-                    onClick = { showBottomSheet = !showBottomSheet }
+            is NetKeysState.Success -> {
+                NetworkKeys(
+                    context = context,
+                    coroutineScope = rememberCoroutineScope(),
+                    snackbarHostState = snackbarHostState,
+                    keys = uiState.netKeysState.netKeys,
+                    onSwiped = onSwiped
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        Column {
-            AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-            when (uiState.netKeysState) {
-                NetKeysState.Loading -> MeshLoadingItems(
+
+            is NetKeysState.Error -> {
+                MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(id = R.string.label_loading)
+                    title = stringResource(R.string.label_no_keys_added)
                 )
-
-                is NetKeysState.Success -> {
-                    NetworkKeys(
-                        context = context,
-                        coroutineScope = rememberCoroutineScope(),
-                        snackbarHostState = snackbarHostState,
-                        keys = uiState.netKeysState.netKeys,
-                        navigateToNetworkKeys = navigateToNetworkKeys,
-                        onSwiped = onSwiped
-                    )
-                }
-
-                is NetKeysState.Error -> {
-                    MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = stringResource(R.string.label_no_keys_added)
-                    )
-                }
             }
         }
     }
@@ -151,7 +140,7 @@ private fun NetKeysScreen(
             uiState = uiState,
             onAddKeyClicked = onAddKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
-            onDismissClick = { showBottomSheet = !showBottomSheet }
+            onDismissClick = dismissBottomSheet
         )
     }
 
@@ -224,7 +213,6 @@ private fun NetworkKeys(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
-    navigateToNetworkKeys: () -> Unit,
     onSwiped: (NetworkKey) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -241,7 +229,6 @@ private fun NetworkKeys(
                 context = context,
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                navigateToNetworkKeys = navigateToNetworkKeys,
                 onSwiped = onSwiped
             )
         }
@@ -255,7 +242,6 @@ private fun SwipeToDismissKey(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    navigateToNetworkKeys: () -> Unit,
     onSwiped: (NetworkKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable

@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,9 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.DestinationId
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -18,10 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NetworkKeysViewModel @Inject internal constructor(
-    savedStateHandle: SavedStateHandle,
-    private val navigator: Navigator,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
 
     private lateinit var network: MeshNetwork
 
@@ -46,10 +41,6 @@ internal class NetworkKeysViewModel @Inject internal constructor(
     override fun onCleared() {
         removeAllKeys()
         super.onCleared()
-    }
-
-    internal fun navigate(destinationId: DestinationId<Int, Unit>, keyIndex: Int) {
-        navigator.navigateTo(destinationId, keyIndex)
     }
 
     /**

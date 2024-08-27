@@ -1,93 +1,98 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreen
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 
 @Composable
 internal fun ProvisionersRoute(
-    viewModel: ProvisionersViewModel = hiltViewModel(),
-    navigateToProvisioner: (UUID) -> Unit
+    appState: AppState,
+    uiState: ProvisionersScreenUiState,
+    navigateToProvisioner: (UUID) -> Unit,
+    onAddProvisionerClicked: () -> Provisioner,
+    onSwiped: (Provisioner) -> Unit,
+    onUndoClicked: (Provisioner) -> Unit,
+    remove: (Provisioner) -> Unit,
+    onBackPressed: () -> Unit
 ) {
-    val uiState: ProvisionersScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val screen = appState.currentScreen as? ProvisionersScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ProvisionersScreen.Actions.ADD_PROVISIONER ->  {
+                    navigateToProvisioner(onAddProvisionerClicked().uuid)
+                }
+                ProvisionersScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
     ProvisionersScreen(
         uiState = uiState,
         navigateToProvisioner = navigateToProvisioner,
-        onAddProvisionerClicked = viewModel::addProvisioner,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
     )
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun ProvisionersScreen(
     uiState: ProvisionersScreenUiState,
     navigateToProvisioner: (UUID) -> Unit,
-    onAddProvisionerClicked: () -> Provisioner,
     onSwiped: (Provisioner) -> Unit,
     onUndoClicked: (Provisioner) -> Unit,
     remove: (Provisioner) -> Unit
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    when (uiState.provisioners.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.AutoAwesome,
+            title = stringResource(R.string.no_provisioners_currently_added)
+        )
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    navigateToProvisioner(onAddProvisionerClicked().uuid)
-                }
-            ) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_provisioner)
-                )
-            }
-        }
-    ) {
-        when (uiState.provisioners.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.AutoAwesome,
-                title = stringResource(R.string.no_provisioners_currently_added)
-            )
-
-            false -> Provisioners(
-                context = context,
-                snackbarHostState = snackbarHostState,
-                provisioners = uiState.provisioners,
-                navigateToProvisioner = navigateToProvisioner,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove
-            )
-        }
+        false -> Provisioners(
+            context = context,
+            snackbarHostState = snackbarHostState,
+            provisioners = uiState.provisioners,
+            navigateToProvisioner = navigateToProvisioner,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            remove = remove
+        )
     }
 }
 

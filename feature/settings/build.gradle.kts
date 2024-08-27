@@ -9,11 +9,11 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.navigation)
     implementation(libs.kotlinx.datetime)
 
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
     implementation(project(":feature:export"))
     implementation(project(":feature:provisioners"))
     implementation(project(":feature:network-keys"))

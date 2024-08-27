@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.nordic.navigation)
+
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)
@@ -23,6 +23,7 @@ dependencies {
 
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
     implementation(project(":mesh:core"))
 
 }

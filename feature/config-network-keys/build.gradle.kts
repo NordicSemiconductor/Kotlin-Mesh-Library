@@ -8,7 +8,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.nordic.navigation)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -24,6 +23,7 @@ dependencies {
 
     implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:network-keys"))

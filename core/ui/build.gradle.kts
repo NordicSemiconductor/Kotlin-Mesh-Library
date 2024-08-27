@@ -12,10 +12,10 @@ dependencies {
     api(libs.nordic.ui)
     api(libs.androidx.compose.material.iconsExtended)
     implementation(libs.nordic.logger)
-    implementation(libs.nordic.navigation)
     implementation(libs.nordic.log.timber)
 
     implementation(project(":core:common"))
+    implementation(project(":core:navigation"))
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -27,5 +27,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation("androidx.compose.material3:material3:1.3.0-beta04")
+    implementation("androidx.compose.material3:material3:1.3.0-beta05")
 }

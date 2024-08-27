@@ -2,45 +2,67 @@
 
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 @Composable
 internal fun ApplicationKeysRoute(
+    appState: AppState,
     uiState: ApplicationKeysScreenUiState,
-    navigateToApplicationKey: (KeyIndex) -> Unit,
+    navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
     onUndoClicked: (ApplicationKey) -> Unit,
-    remove: (ApplicationKey) -> Unit
+    remove: (ApplicationKey) -> Unit,
+    onBackPressed: () -> Unit
 ) {
-    val context = LocalContext.current
+    val screen = appState.currentScreen as? ApplicationKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ApplicationKeysScreen.Actions.ADD_KEY -> navigateToKey(onAddKeyClicked().index)
+                ApplicationKeysScreen.Actions.BACK -> onBackPressed()
+            }
+        }?.launchIn(this)
+    }
     ApplicationsKeysScreen(
-        context = context,
         uiState = uiState,
-        navigateToApplicationKey = navigateToApplicationKey,
-        onAddKeyClicked = onAddKeyClicked,
+        navigateToApplicationKey = navigateToKey,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove
@@ -48,52 +70,32 @@ internal fun ApplicationKeysRoute(
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun ApplicationsKeysScreen(
-    context: Context,
     uiState: ApplicationKeysScreenUiState,
     navigateToApplicationKey: (KeyIndex) -> Unit,
-    onAddKeyClicked: () -> ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
     onUndoClicked: (ApplicationKey) -> Unit,
     remove: (ApplicationKey) -> Unit
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
+    when (uiState.keys.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.VpnKey,
+            title = stringResource(R.string.label_no_keys_added)
+        )
 
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-                // Dismiss any snack bars that are being currently displayed.
-                dismissSnackbar(snackbarHostState = snackbarHostState)
-                navigateToApplicationKey(onAddKeyClicked().index)
-            }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_key)
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        when (uiState.keys.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(R.string.label_no_keys_added)
-            )
-
-            false -> ApplicationKeys(
-                context = context,
-                listState = listState,
-                snackbarHostState = snackbarHostState,
-                keys = uiState.keys,
-                navigateToApplicationKey = navigateToApplicationKey,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove
-            )
-        }
+        false -> ApplicationKeys(
+            context = context,
+            listState = listState,
+            snackbarHostState = snackbarHostState,
+            keys = uiState.keys,
+            navigateToApplicationKey = navigateToApplicationKey,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            remove = remove
+        )
     }
 }
 
@@ -111,6 +113,7 @@ private fun ApplicationKeys(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         items(items = keys, key = { it.key.hashCode() }) { key ->
