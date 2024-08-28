@@ -28,9 +28,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,8 +40,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -144,8 +144,7 @@ fun NetworkScreen() {
                     destinations = appState.topLevelDestinations,
                     onNavigateToTopLevelDestination = {
                         appState.navigate(it, it.route)
-                    },
-                    currentDestination = appState.currentDestination
+                    }
                 )
             }
         }
@@ -168,19 +167,19 @@ fun NetworkScreen() {
 fun BottomNavigationBar(
     destinations: List<TopLevelDestination>,
     onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?
 ) {
+    var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     NavigationBar {
-        destinations.forEach { destination ->
-            val selected = currentDestination?.hierarchy?.any {
-                it.route == destination.route
-            } == true
+        destinations.forEachIndexed { index, destination ->
             NavigationBarItem(
-                selected = selected,
-                onClick = { onNavigateToTopLevelDestination(destination) },
+                selected = selectedItem == index,
+                onClick = {
+                    selectedItem = index
+                    onNavigateToTopLevelDestination(destination)
+                },
                 icon = {
                     Icon(
-                        if (selected) {
+                        if (selectedItem == index) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon
