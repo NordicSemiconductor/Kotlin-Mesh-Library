@@ -63,7 +63,6 @@ class ConfigNetKeysViewModel @Inject constructor(
     }
 
     fun addNetworkKey(networkKey: NetworkKey) {
-
         val message = ConfigNetKeyAdd(networkKey)
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
@@ -82,11 +81,6 @@ class ConfigNetKeysViewModel @Inject constructor(
 
     fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
-    }
-
-    internal fun navigateToNetworkKeys() {
-        /*navigateTo(settings)
-        navigateTo(networkKeys)*/
     }
 }
 
