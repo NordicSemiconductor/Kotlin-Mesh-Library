@@ -37,25 +37,31 @@ sealed class KeyRefreshPhase(val phase: Int) {
         KeyDistribution -> "Key distribution"
         UsingNewKeys -> "Using new keys"
     }
+
+    override fun toString() = when (this) {
+        NormalOperation -> "Normal operation"
+        KeyDistribution -> "Key distribution"
+        UsingNewKeys -> "Using new keys"
+    }
 }
 
 /**
  * Normal operation; Key Refresh procedure is not active.
  */
-object NormalOperation : KeyRefreshPhase(phase = NORMAL_OPERATION)
+data object NormalOperation : KeyRefreshPhase(phase = NORMAL_OPERATION)
 
 /**
  * First phase of Key Refresh procedure, distributes new keys to all nodes. Nodes will transmit
  * using old keys, but can receive using old and new keys.
  */
-object KeyDistribution : KeyRefreshPhase(phase = KEY_DISTRIBUTION)
+data object KeyDistribution : KeyRefreshPhase(phase = KEY_DISTRIBUTION)
 
 /**
  * Second phase of Key Refresh procedure, nodes will use the new keys when encrypting messages but
  * will still receive using the old or new keys. Nodes shall only receive Secure Network beacons
  * secured using the new Network Key.
  */
-object UsingNewKeys : KeyRefreshPhase(phase = USING_NEW_KEYS)
+data object UsingNewKeys : KeyRefreshPhase(phase = USING_NEW_KEYS)
 
 private const val NORMAL_OPERATION = 0
 private const val KEY_DISTRIBUTION = 1
