@@ -18,8 +18,10 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -59,11 +61,14 @@ class ConfigNetKeysViewModel @Inject constructor(
     }
 
     fun onSwiped(networkKey: NetworkKey) {
-        TODO("Not yet implemented")
+        send(message = ConfigNetKeyDelete(networkKey.index))
     }
 
     fun addNetworkKey(networkKey: NetworkKey) {
-        val message = ConfigNetKeyAdd(networkKey)
+        send(message = ConfigNetKeyAdd(networkKey))
+    }
+
+    private fun send(message: AcknowledgedConfigMessage) {
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
                 messageState = Failed(message = message, error = throwable)

@@ -74,14 +74,14 @@ internal fun ConfigNetKeysRoute(
         screen?.buttons?.onEach { button ->
             when (button) {
                 ConfigNetworkKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
-                ConfigNetworkKeysScreen.Actions.BACK -> onBackPressed()
+                ConfigNetworkKeysScreen.Actions.BACK -> if (!uiState.messageState.isInProgress()) {
+                    onBackPressed()
+                }
             }
         }?.launchIn(this)
     }
 
-    BackHandler(enabled = uiState.messageState.isInProgress()) {
-        //
-    }
+    BackHandler(enabled = uiState.messageState.isInProgress(), onBack = { })
     ConfigNetKeysScreen(
         uiState = uiState,
         snackbarHostState = appState.snackbarHostState,
@@ -249,10 +249,10 @@ private fun SwipeToDismissKey(
         mutableStateOf(false)
     }
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
+        /*confirmValueChange = {
             shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
             !shouldNotDismiss
-        },
+        },*/
         positionalThreshold = { it * 0.5f }
     )
     SwipeDismissItem(
