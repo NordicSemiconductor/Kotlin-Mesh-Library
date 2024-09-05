@@ -131,9 +131,10 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         mutex.withLock {
             queue[handle.destination.address]?.first()
         }?.takeIf { first ->
-            first.pdu.message!!.opCode == handle.opCode && first.pdu.source == handle.source.address
+            first.pdu.message!!.opCode == handle.opCode &&
+                    first.pdu.source == handle.source.address
         }?.let {
-            logger?.d(LogCategory.UPPER_TRANSPORT) { "Cancelling message ${it.pdu}" }
+            logger?.d(LogCategory.UPPER_TRANSPORT) { "Cancelling sending ${it.pdu}" }
             networkManager.lowerTransportLayer.cancelSending(segmentedPdu = it.pdu)
             shouldSendNext = true
         }
@@ -145,6 +146,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                         it.pdu.destination == handle.destination
             }
         }
+        // If sending a message was cancelled, try sending another one.
         if (shouldSendNext) {
             onLowerTransportLayerSent(handle.destination.address)
         }
@@ -173,7 +175,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      */
     suspend fun onLowerTransportLayerSent(destination: Address) {
         mutex.withLock {
-            require(queue[destination]?.isEmpty() == false) { return }
+            require(queue[destination]?.isNotEmpty() ?: false) { return }
             // Remove the PDU that has just been sent.
             queue[destination]?.removeFirst()
         }
