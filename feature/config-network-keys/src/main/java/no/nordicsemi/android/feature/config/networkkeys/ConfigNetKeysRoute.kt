@@ -42,6 +42,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeysScreen
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
@@ -142,6 +143,30 @@ private fun ConfigNetKeysScreen(
             navigateToNetworkKeys = navigateToNetworkKeys,
             onDismissClick = dismissBottomSheet
         )
+    }
+
+    when(uiState.messageState) {
+        is Failed -> {
+            MeshMessageStatusDialog(
+                text = uiState.messageState.error.message ?: stringResource(R.string.unknown_error),
+                showDismissButton = !uiState.messageState.didFail(),
+                onDismissRequest = resetMessageState,
+            )
+        }
+
+        is Completed -> {
+            uiState.messageState.response?.let {
+                MeshMessageStatusDialog(
+                    text = it.message,
+                    showDismissButton = uiState.messageState.didFail(),
+                    onDismissRequest = resetMessageState,
+                )
+            }
+        }
+
+        else -> {
+
+        }
     }
 
     uiState.messageState.takeIf {

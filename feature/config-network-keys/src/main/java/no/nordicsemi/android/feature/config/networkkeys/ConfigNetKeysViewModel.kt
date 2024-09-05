@@ -19,7 +19,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
+import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -76,9 +76,13 @@ class ConfigNetKeysViewModel @Inject constructor(
         }
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
         viewModelScope.launch(context = handler) {
-            repository.send(selectedNode, message)?.let { response ->
+            val msg = repository.send(selectedNode, message)
+            msg.let { response ->
                 _uiState.value = _uiState.value.copy(
-                    messageState = Completed(message = message, response = response as MeshResponse)
+                    messageState = Completed(
+                        message = message,
+                        response = response as StatusMessage
+                    )
                 )
             }
         }
