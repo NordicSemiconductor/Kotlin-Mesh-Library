@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
-import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.data.hasBitSet
 import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
@@ -39,7 +38,15 @@ internal class SegmentedAccessMessage(
     override val sequenceZero: UShort,
     override val segmentOffset: UByte,
     override val lastSegmentNumber: UByte,
-) : AccessMessage(source, destination, networkKey, ivIndex, upperTransportPdu, transportMicSize, sequence), SegmentedMessage {
+) : AccessMessage(
+    source = source,
+    destination = destination,
+    networkKey = networkKey,
+    ivIndex = ivIndex,
+    upperTransportPdu = upperTransportPdu,
+    transportMicSize = transportMicSize,
+    sequence = sequence
+), SegmentedMessage {
 
     override val transportPdu: ByteArray
         get() {
@@ -64,7 +71,7 @@ internal class SegmentedAccessMessage(
         /**
          * Creates a SegmentedAccessMessage from a given Network PDU.
          *
-         * @param networkPdu Network pdu to be decoded.
+         * @param pdu Network pdu to be decoded.
          * @return SegmentedAccessMessage or null otherwise.
          */
         fun init(pdu: NetworkPdu): SegmentedAccessMessage {
@@ -126,18 +133,19 @@ internal class SegmentedAccessMessage(
             val upperBound = min(pdu.transportPdu.size, (offset.toInt() + 1) * 12)
             val segment = pdu.transportPdu.copyOfRange(lowerBound, upperBound)
             return SegmentedAccessMessage(
+                message = pdu.message,
+                aid = pdu.aid,
                 source = MeshAddress.create(pdu.source),
                 destination = pdu.destination,
                 networkKey = networkKey,
                 ivIndex = pdu.ivIndex,
-                upperTransportPdu = segment,
                 transportMicSize = pdu.transportMicSize,
                 sequence = pdu.sequence,
-                aid = pdu.aid,
-                userInitialized = pdu.userInitiated,
                 sequenceZero = (pdu.sequence and 0x1FFFu).toUShort(),
                 segmentOffset = offset,
                 lastSegmentNumber = (((pdu.transportPdu.size + 11) / 12) - 1).toUByte(),
+                upperTransportPdu = segment,
+                userInitialized = pdu.userInitiated,
             )
         }
     }
