@@ -85,35 +85,37 @@ internal class UpperTransportPdu(
             // ASZMIC is set to 1 for messages sent with high security(64-bit TransMIC). This is
             // allowed only for Segmented Access Messages.
             val aszmic: Byte = if (micSize == 4) 0 else 1
-            val seq = message.sequence.toByteArray().drop(1).toByteArray()
+            val seq = message.sequence.toByteArray().let {
+                it.copyOfRange(fromIndex = 1, toIndex = it.size)
+            }
 
             val nonce = byteArrayOf(type.toByte(), aszmic shl 7) + seq +
                     message.source.address.toByteArray() +
                     message.destination.address.toByteArray() +
                     message.ivIndex.toByteArray()
 
-            return Crypto.decrypt(
+            val decryptedData =  Crypto.decrypt(
                 data = encryptedData,
                 key = key,
                 nonce = nonce,
-                additionalData = null,
+                additionalData = (virtualGroup?.address as? VirtualAddress)?.uuid?.toByteArray(),
                 micSize = micSize
-            )?.let { decryptedData ->
-                UpperTransportPdu(
-                    source = message.source.address,
-                    destination = virtualGroup?.address?.address?.let { address ->
-                        MeshAddress.create(address)
-                    } ?: message.destination,
-                    aid = message.aid,
-                    transportMicSize = message.transportMicSize,
-                    transportPdu = message.upperTransportPdu,
-                    accessPdu = decryptedData,
-                    sequence = message.sequence,
-                    ivIndex = message.ivIndex,
-                    message = null,
-                    userInitiated = false
-                )
-            }
+            ) ?: return null
+
+            return UpperTransportPdu(
+                source = message.source.address,
+                destination = virtualGroup?.address?.address?.let { address ->
+                    MeshAddress.create(address)
+                } ?: message.destination,
+                aid = message.aid,
+                transportMicSize = message.transportMicSize,
+                transportPdu = message.upperTransportPdu,
+                accessPdu = decryptedData,
+                sequence = message.sequence,
+                ivIndex = message.ivIndex,
+                message = null,
+                userInitiated = false
+            )
         }
 
         /**
@@ -186,8 +188,8 @@ internal class UpperTransportPdu(
         ): Pair<UpperTransportPdu, KeySet>? {
             // Was the message signed using Application Key?
             message.aid?.let { aid ->
-                // When the message was sent to a Virtual Address, the message must be decoded with the
-                // Virtual Label as Additional Data.
+                // When the message was sent to a Virtual Address, the message must be decoded with
+                // the Virtual Label as Additional Data.
                 val matchingGroups = if (message.destination is VirtualAddress) {
                     network.groups.filter { group ->
                         group.address == message.destination
@@ -199,8 +201,8 @@ internal class UpperTransportPdu(
                 for (applicationKey in network.applicationKeys.boundTo(message.networkKey)) {
                     // The matchingGroups contains either a list of Virtual Groups, or a single nil
                     for (group in matchingGroups) {
-                        // Each time try decoding using the new, or the old key (if such exist) when the
-                        // generated aid matches the one sent int he message.
+                        // Each time try decoding using the new, or the old key (if such exist) when
+                        // the generated aid matches the one sent int he message.
                         if (aid == applicationKey.aid) {
                             init(
                                 message = message,
@@ -228,16 +230,33 @@ internal class UpperTransportPdu(
             } ?: run {
                 // Try decoding using source's Node Device Key. This should work if a status message
                 // was sent as a response to a Config Message sent by this Provisioner.
-                val node = network.node(message.source) ?: network.node(message.destination)
+
+                decode(network = network, address = message.source, message = message)?.let {
+                    return it
+                }
                 // On the other hand, if another Provisioner is sending a Config Messages, they will
                 // be signed using the target node Device Key instead.
-                return node?.deviceKey?.let { deviceKey ->
-                    init(message = message, key = deviceKey, virtualGroup = null)?.let {
-                        Pair(it, DeviceKeySet.init(networkKey = message.networkKey, node = node)!!)
-                    }
-                }
+                return decode(network = network, address = message.destination, message = message)
+
             }
             return null
+        }
+
+        /**
+         * Decodes a given access message.
+         *
+         * @param network Mesh network.
+         * @param address Mesh address.
+         * @param message Access message.
+         * @return a Pair containing UpperTransportPdu and the KeySet used to decode.
+         */
+        private fun decode(network: MeshNetwork, address: MeshAddress, message: AccessMessage): Pair<UpperTransportPdu, KeySet>? {
+            val node = network.node(address = address) ?: return null
+            val deviceKey = node.deviceKey ?: return null
+            val pdu = init(message = message, key = deviceKey, virtualGroup = null) ?: return null
+            val keySet = DeviceKeySet.init(networkKey = message.networkKey, node = node)
+                ?: return null
+            return Pair(pdu, keySet)
         }
     }
 }
