@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.crypto
 
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS1
 import no.nordicsemi.kotlin.mesh.crypto.Crypto.calculateS2
