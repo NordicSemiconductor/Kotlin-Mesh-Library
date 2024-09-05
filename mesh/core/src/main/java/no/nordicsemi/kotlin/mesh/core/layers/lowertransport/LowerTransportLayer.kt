@@ -945,7 +945,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param destination  Destination address of the message.
      * @param error        Error that caused the transmission to fail or null if the transmission
      */
-    private fun notifyTransmissionState(
+    private suspend fun notifyTransmissionState(
         message: MeshMessage,
         source: MeshAddress,
         destination: MeshAddress,

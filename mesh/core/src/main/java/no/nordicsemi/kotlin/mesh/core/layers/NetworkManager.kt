@@ -144,6 +144,15 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     }
 
     /**
+     * Clear outgoing messages for a given destination.
+     *
+     * @param destination destination address.
+     */
+    internal suspend fun clearOutgoingMessages(destination: MeshAddress) {
+        mutex.withLock { outgoingMessages.remove(destination) }
+    }
+
+    /**
      * Publishes the given message using the Publish information from the given Model. If
      * publication is not set, this message does nothing.
      *
@@ -357,8 +366,8 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
                 localElement = element,
                 destination = destination,
                 initialTtl = initialTtl
-            )?.also {
-                mutex.withLock { outgoingMessages.remove(meshAddress) }
+            ).also {
+                // mutex.withLock { outgoingMessages.remove(meshAddress) }
             }
         } catch (e: Busy) {
             mutex.withLock { outgoingMessages.remove(meshAddress) }
