@@ -2,11 +2,10 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AssistWalker
@@ -26,6 +25,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,14 +38,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
@@ -64,13 +66,25 @@ import java.util.Date
 
 @Composable
 internal fun NetworkKeyRoute(
-    viewModel: NetworkKeyViewModel = hiltViewModel()
+    appState: AppState,
+    uiState: NetworkKeyScreenUiState,
+    onNameChanged: (String) -> Unit,
+    onKeyChanged: (ByteArray) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
-    val uiState: NetworkKeyScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val screen = appState.currentScreen as? NetworkKeyScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                NetworkKeyScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
     NetworkKeyScreen(
         keyState = uiState.keyState,
-        onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
+        onNameChanged = onNameChanged,
+        onKeyChanged = onKeyChanged
     )
 }
 
@@ -83,7 +97,7 @@ private fun NetworkKeyScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = 8.dp),
@@ -93,7 +107,7 @@ private fun NetworkKeyScreen(
             KeyState.Loading -> { /* Do nothing */
             }
 
-            is KeyState.Success -> networkKeyInfo(
+            is KeyState.Success -> NetworkKeyInfo(
                 snackbarHostState = snackbarHostState,
                 networkKey = keyState.key,
                 isCurrentlyEditable = isCurrentlyEditable,
@@ -110,7 +124,8 @@ private fun NetworkKeyScreen(
     }
 }
 
-private fun LazyListScope.networkKeyInfo(
+@Composable
+private fun NetworkKeyInfo(
     snackbarHostState: SnackbarHostState,
     networkKey: NetworkKey,
     isCurrentlyEditable: Boolean,
@@ -118,29 +133,25 @@ private fun LazyListScope.networkKeyInfo(
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
-    item {
-        Name(
-            name = networkKey.name,
-            onNameChanged = onNameChanged,
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = onEditableStateChanged
-        )
-    }
-    item {
-        Key(
-            snackbarHostState = snackbarHostState,
-            networkKey = networkKey.key,
-            isInUse = networkKey.isInUse,
-            onKeyChanged = onKeyChanged,
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = onEditableStateChanged
-        )
-    }
-    item { OldKey(oldKey = networkKey.oldKey) }
-    item { KeyIndex(index = networkKey.index) }
-    item { KeyRefreshPhase(phase = networkKey.phase) }
-    item { Security(security = networkKey.security) }
-    item { LastModified(networkKey.timestamp) }
+    Name(
+        name = networkKey.name,
+        onNameChanged = onNameChanged,
+        isCurrentlyEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged
+    )
+    Key(
+        snackbarHostState = snackbarHostState,
+        networkKey = networkKey.key,
+        isInUse = networkKey.isInUse,
+        onKeyChanged = onKeyChanged,
+        isCurrentlyEditable = isCurrentlyEditable,
+        onEditableStateChanged = onEditableStateChanged
+    )
+    OldKey(oldKey = networkKey.oldKey)
+    KeyIndex(index = networkKey.index)
+    KeyRefreshPhase(phase = networkKey.phase)
+    Security(security = networkKey.security)
+    LastModified(networkKey.timestamp)
 }
 
 @Composable
@@ -212,7 +223,7 @@ fun Key(
                             regex = Regex("[0-9A-Fa-f]{0,32}"),
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Characters,
-                                autoCorrect = false
+                                autoCorrectEnabled = false
                             ),
                             content = {
                                 IconButton(

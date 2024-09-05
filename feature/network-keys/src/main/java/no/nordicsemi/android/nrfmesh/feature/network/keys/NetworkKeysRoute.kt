@@ -2,8 +2,8 @@
 
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,81 +13,92 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
-import no.nordicsemi.android.nrfmesh.core.ui.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
+import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun NetworkKeysRoute(
-    viewModel: NetworkKeysViewModel = hiltViewModel(),
-    navigateToKey: (KeyIndex) -> Unit
-) {
-    val uiState: NetworkKeysScreenUiState by viewModel.uiState.collectAsStateWithLifecycle()
-    NetworkKeysScreen(
-        uiState = uiState,
-        navigateToKey = navigateToKey,
-        onAddKeyClicked = viewModel::addNetworkKey,
-        onSwiped = viewModel::onSwiped,
-        onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove
-    )
-}
-
-@Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-private fun NetworkKeysScreen(
+    appState: AppState,
     uiState: NetworkKeysScreenUiState,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
+    remove: (NetworkKey) -> Unit,
+    onBackPressed: () -> Unit
+) {
+    val screen = appState.currentScreen as? NetworkKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                NetworkKeysScreen.Actions.ADD_KEY -> navigateToKey(onAddKeyClicked().index)
+                NetworkKeysScreen.Actions.BACK -> onBackPressed()
+            }
+
+        }?.launchIn(this)
+    }
+    NetworkKeysScreen(
+        snackbarHostState = appState.snackbarHostState,
+        uiState = uiState,
+        navigateToKey = navigateToKey,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
+    )
+}
+
+@Composable
+private fun NetworkKeysScreen(
+    snackbarHostState: SnackbarHostState,
+    uiState: NetworkKeysScreenUiState,
+    navigateToKey: (KeyIndex) -> Unit,
+    onSwiped: (NetworkKey) -> Unit,
+    onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
+    when (uiState.keys.isEmpty()) {
+        true -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.VpnKey,
+            title = stringResource(R.string.label_no_keys_added)
+        )
 
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = {
-                navigateToKey(onAddKeyClicked().index)
-            }) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = stringResource(R.string.action_add_key)
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        when (uiState.keys.isEmpty()) {
-            true -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(R.string.label_no_keys_added)
-            )
-
-            false -> NetworkKeys(
-                context = context,
-                coroutineScope = rememberCoroutineScope(),
-                snackbarHostState = snackbarHostState,
-                keys = uiState.keys,
-                navigateToKey = navigateToKey,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove
-            )
-        }
+        false -> NetworkKeys(
+            context = context,
+            coroutineScope = rememberCoroutineScope(),
+            snackbarHostState = snackbarHostState,
+            keys = uiState.keys,
+            navigateToKey = navigateToKey,
+            onSwiped = onSwiped,
+            onUndoClicked = onUndoClicked,
+            remove = remove
+        )
     }
 }
 
@@ -163,6 +174,7 @@ private fun SwipeToDismissKey(
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
+            Log.d("AAA", "Show snackbar?")
             showSnackbar(
                 scope = coroutineScope,
                 snackbarHostState = snackbarHostState,
@@ -175,25 +187,22 @@ private fun SwipeToDismissKey(
                 duration = SnackbarDuration.Short,
                 onDismissed = { shouldNotDismiss = false }
             )
+            Log.d("AAA", "Did snackbar appear?")
         }
     }
     if (dismissState.isDismissed()) {
         LaunchedEffect(snackbarHostState) {
             onSwiped(key)
-            snackbarHostState.showSnackbar(
+            showSnackbar(
+                scope = coroutineScope,
+                snackbarHostState = snackbarHostState,
                 message = context.getString(R.string.label_network_key_deleted),
                 actionLabel = context.getString(R.string.action_undo),
                 withDismissAction = true,
                 duration = SnackbarDuration.Long,
-            ).also {
-                when (it) {
-                    SnackbarResult.Dismissed -> remove(key)
-                    SnackbarResult.ActionPerformed -> {
-                        dismissState.reset()
-                        onUndoClicked(key)
-                    }
-                }
-            }
+                onDismissed = { remove(key) },
+                onActionPerformed = { onUndoClicked(key) }
+            )
         }
     }
 }

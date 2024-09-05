@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
-import androidx.lifecycle.SavedStateHandle
+import android.content.ContentResolver
+import android.net.Uri
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,18 +10,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import java.io.BufferedReader
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    navigator: Navigator,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsScreenUiState())
     val uiState: StateFlow<SettingsScreenUiState> = _uiState.asStateFlow()
@@ -64,6 +63,31 @@ class SettingsViewModel @Inject constructor(
             }
         }
         save()
+    }
+
+    /**
+     * Imports a network from a given Uri.
+     *
+     * @param uri                  URI of the file.
+     * @param contentResolver      Content resolver.
+     */
+    internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
+        viewModelScope.launch {
+            val networkJson = contentResolver.openInputStream(uri)?.use { inputStream ->
+                BufferedReader(inputStream.reader()).use { bufferedReader ->
+                    bufferedReader.readText()
+                }
+            } ?: ""
+            repository.importMeshNetwork(networkJson.encodeToByteArray())
+            // Let's save the imported network
+            repository.save()
+        }
+    }
+
+    internal fun resetNetwork() {
+        viewModelScope.launch {
+            repository.resetNetwork()
+        }
     }
 
 

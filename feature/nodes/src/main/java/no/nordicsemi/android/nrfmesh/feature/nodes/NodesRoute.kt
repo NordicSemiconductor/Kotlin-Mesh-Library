@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.CoroutineScope
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -19,6 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
 internal fun NodesRoute(
+    appState: AppState,
     uiState: NodesScreenUiState,
     navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,

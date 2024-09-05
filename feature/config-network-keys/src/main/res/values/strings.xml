@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="label_no_keys_added">No network keys ara available to add to this Node.\nGo to
+    <string name="label_no_keys_added">No network keys are available to add to this Node.\nGo to
         settings and add a key to the network.</string>
     <string name="error_cannot_delete_primary_network_key">Cannot delete the primary key.</string>
     <string name="label_network_key_deleted">Network key deleted.</string>
@@ -9,4 +9,8 @@
     <string name="label_add_key">Add Key</string>
     <string name="label_loading">Loading Keys</string>
     <string name="action_settings">Settings</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">@android:string/ok</string>
+    <string name="title_message_status">Message Status</string>
+    <string name="unknown_error">Unknown error</string>
 </resources>

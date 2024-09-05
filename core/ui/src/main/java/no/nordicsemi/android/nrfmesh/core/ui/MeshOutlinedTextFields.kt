@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -48,9 +49,6 @@ fun MeshOutlinedTextField(
     content: @Composable () -> Unit = {},
 ) {
     val requester = remember { FocusRequester() }
-    val textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
-    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -63,12 +61,12 @@ fun MeshOutlinedTextField(
                 .weight(1f)
                 .padding(start = 16.dp)
                 .focusRequester(requester),
-            value = textFieldValue,
+            value = TextFieldValue(text = value, selection = TextRange(value.length)),
             onValueChange = {
                 if (regex == null) {
                     onValueChanged(it.text)
                 } else if (regex.matches(it.text)) {
-                    onValueChanged(textFieldValue.text)
+                    onValueChanged(it.text)
                 }
             },
             label = label,

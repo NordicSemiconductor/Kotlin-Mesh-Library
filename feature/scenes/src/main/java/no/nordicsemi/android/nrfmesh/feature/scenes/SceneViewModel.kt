@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,21 +11,19 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.scenes.destination.scene
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
 
 @HiltViewModel
 internal class SceneViewModel @Inject internal constructor(
-    navigator: Navigator,
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
-    private val sceneNumberArg: SceneNumber = parameterOf(scene).toUShort()
+) : ViewModel() {
+    private val sceneNumber: SceneNumber =
+        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).toString().toUShort()
 
     private val _uiState = MutableStateFlow(SceneScreenUiState(SceneState.Loading))
     val uiState: StateFlow<SceneScreenUiState> = _uiState.asStateFlow()
@@ -32,13 +31,14 @@ internal class SceneViewModel @Inject internal constructor(
     init {
         repository.network.onEach { meshNetwork ->
             _uiState.update { state ->
-                val scene = meshNetwork.scene(sceneNumberArg)
+                val scene = meshNetwork.scene(sceneNumber)
                 when (val sceneState = state.sceneState) {
                     is SceneState.Loading -> SceneScreenUiState(
                         sceneState = SceneState.Success(
                             scene = scene
                         )
                     )
+
                     is SceneState.Success -> state.copy(sceneState = sceneState.copy(scene = scene))
                     else -> state
                 }

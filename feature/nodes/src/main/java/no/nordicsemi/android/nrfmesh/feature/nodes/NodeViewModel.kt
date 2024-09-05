@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,11 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
-import no.nordicsemi.android.feature.config.networkkeys.configNetKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.nodes.destinations.node
+import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
@@ -25,13 +23,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NodeViewModel @Inject internal constructor(
-    private val navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-    private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+    private val repository: CoreDataRepository,
+) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val nodeUuid: UUID = parameterOf(node)
+    private val nodeUuid: UUID = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
+        UUID.fromString(it as String)
+    }
 
     private val _uiState = MutableStateFlow(NodeScreenUiState())
 
@@ -102,26 +101,23 @@ internal class NodeViewModel @Inject internal constructor(
      *
      * @param exclude True to exclude the node, false to not exclude from the network.
      */
-    internal fun onExcluded(exclude : Boolean) {
+    internal fun onExcluded(exclude: Boolean) {
         // println("Excluded: $exclude")
         selectedNode.excluded = exclude
         viewModelScope.launch {
             repository.save()
         }
     }
+
     /**
      * Called when the user clicks on the reset node button.
      */
     fun onResetClicked() {
         viewModelScope.launch {
             repository.send(node = selectedNode, message = ConfigNodeReset())?.let {
-                navigateUp()
+                // navigateUp()
             }
         }
-    }
-
-    fun onNetworkKeysClicked() {
-        navigator.navigateTo(to = configNetKeys, args = selectedNode.uuid)
     }
 }
 
@@ -136,5 +132,5 @@ sealed interface NodeState {
 
 data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 )

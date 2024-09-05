@@ -2,11 +2,12 @@
 
 package no.nordicsemi.android.feature.config.networkkeys
 
-import android.annotation.SuppressLint
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,15 +18,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -42,9 +39,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeysScreen
+import no.nordicsemi.android.nrfmesh.core.common.Completed
+import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
+import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
@@ -55,44 +61,57 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun ConfigNetKeysRoute(
+    appState: AppState,
     uiState: NetKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (NetworkKey) -> Unit,
+    resetMessageState: () -> Unit,
+    onBackPressed: () -> Unit
 ) {
-    NetKeysScreen(
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val screen = appState.currentScreen as? ConfigNetworkKeysScreen
+    LaunchedEffect(key1 = screen) {
+        screen?.buttons?.onEach { button ->
+            when (button) {
+                ConfigNetworkKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
+                ConfigNetworkKeysScreen.Actions.BACK -> if (!uiState.messageState.isInProgress()) {
+                    onBackPressed()
+                }
+            }
+        }?.launchIn(this)
+    }
+
+    BackHandler(enabled = uiState.messageState.isInProgress(), onBack = { })
+    ConfigNetKeysScreen(
         uiState = uiState,
+        snackbarHostState = appState.snackbarHostState,
+        showBottomSheet = showBottomSheet,
+        dismissBottomSheet = { showBottomSheet = !showBottomSheet },
         navigateToNetworkKeys = navigateToNetworkKeys,
         onAddKeyClicked = onAddKeyClicked,
-        onSwiped = onSwiped
+        onSwiped = onSwiped,
+        resetMessageState = resetMessageState
     )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-private fun NetKeysScreen(
+private fun ConfigNetKeysScreen(
     uiState: NetKeysScreenUiState,
+    snackbarHostState: SnackbarHostState,
+    showBottomSheet: Boolean,
+    dismissBottomSheet: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (NetworkKey) -> Unit,
+    resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-
-    Scaffold(
-        floatingActionButton = {
-            AnimatedVisibility(visible = !showBottomSheet) {
-                ExtendedFloatingActionButton(
-                    text = { Text(stringResource(R.string.label_add_key)) },
-                    icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
-                    onClick = { showBottomSheet = !showBottomSheet }
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
+    Column {
+        AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
         when (uiState.netKeysState) {
             NetKeysState.Loading -> MeshLoadingItems(
                 imageVector = Icons.Outlined.VpnKey,
@@ -105,7 +124,6 @@ private fun NetKeysScreen(
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
                     keys = uiState.netKeysState.netKeys,
-                    navigateToNetworkKeys = navigateToNetworkKeys,
                     onSwiped = onSwiped
                 )
             }
@@ -119,42 +137,95 @@ private fun NetKeysScreen(
         }
     }
     if (showBottomSheet) {
-        ModalBottomSheet(onDismissRequest = { showBottomSheet = false }) {
-            BottomSheetTopAppBar(
-                navigationIcon = Icons.Outlined.Close,
-                onNavigationIconClick = { showBottomSheet = !showBottomSheet },
-                title = stringResource(R.string.label_add_key)
+        BottomSheetKeys(
+            uiState = uiState,
+            onAddKeyClicked = onAddKeyClicked,
+            navigateToNetworkKeys = navigateToNetworkKeys,
+            onDismissClick = dismissBottomSheet
+        )
+    }
+
+    when(uiState.messageState) {
+        is Failed -> {
+            MeshMessageStatusDialog(
+                text = uiState.messageState.error.message ?: stringResource(R.string.unknown_error),
+                showDismissButton = !uiState.messageState.didFail(),
+                onDismissRequest = resetMessageState,
             )
-            LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
-                if (uiState.keys.isEmpty()) {
-                    item {
-                        MeshNoItemsAvailable(
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = stringResource(R.string.label_no_keys_added)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OutlinedButton(onClick = { navigateToNetworkKeys() }) {
-                                Text(text = stringResource(R.string.action_settings))
-                            }
+        }
+
+        is Completed -> {
+            uiState.messageState.response?.let {
+                MeshMessageStatusDialog(
+                    text = it.message,
+                    showDismissButton = uiState.messageState.didFail(),
+                    onDismissRequest = resetMessageState,
+                )
+            }
+        }
+
+        else -> {
+
+        }
+    }
+
+    uiState.messageState.takeIf {
+        it is Failed
+    }?.let {
+        val state = it as Failed
+        MeshMessageStatusDialog(
+            text = state.error.message ?: stringResource(R.string.unknown_error),
+            showDismissButton = !uiState.messageState.didFail(),
+            onDismissRequest = resetMessageState,
+        )
+    }
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun BottomSheetKeys(
+    uiState: NetKeysScreenUiState,
+    onAddKeyClicked: (NetworkKey) -> Unit,
+    navigateToNetworkKeys: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+    ModalBottomSheet(onDismissRequest = onDismissClick) {
+        BottomSheetTopAppBar(
+            navigationIcon = Icons.Outlined.Close,
+            onNavigationIconClick = onDismissClick,
+            title = stringResource(R.string.label_add_key)
+        )
+        LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
+            if (uiState.keys.isEmpty()) {
+                item {
+                    MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_keys_added)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        OutlinedButton(onClick = { navigateToNetworkKeys() }) {
+                            Text(text = stringResource(R.string.action_settings))
                         }
                     }
-                } else {
-                    items(items = uiState.keys) { key ->
-                        ElevatedCardItem(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .clickable {
-                                    showBottomSheet = !showBottomSheet
-                                    onAddKeyClicked(key)
-                                },
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = key.name,
-                            subtitle = key.key.toHexString()
-                        )
-                    }
+                }
+            } else {
+                items(items = uiState.keys) { key ->
+                    ElevatedCardItem(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .clickable {
+                                onDismissClick()
+                                onAddKeyClicked(key)
+                            },
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = key.name,
+                        subtitle = key.key.toHexString()
+                    )
                 }
             }
         }
@@ -167,7 +238,6 @@ private fun NetworkKeys(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
-    navigateToNetworkKeys: () -> Unit,
     onSwiped: (NetworkKey) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -184,7 +254,6 @@ private fun NetworkKeys(
                 context = context,
                 coroutineScope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                navigateToNetworkKeys = navigateToNetworkKeys,
                 onSwiped = onSwiped
             )
         }
@@ -198,7 +267,6 @@ private fun SwipeToDismissKey(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    navigateToNetworkKeys: () -> Unit,
     onSwiped: (NetworkKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
@@ -206,10 +274,10 @@ private fun SwipeToDismissKey(
         mutableStateOf(false)
     }
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
+        /*confirmValueChange = {
             shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
             !shouldNotDismiss
-        },
+        },*/
         positionalThreshold = { it * 0.5f }
     )
     SwipeDismissItem(

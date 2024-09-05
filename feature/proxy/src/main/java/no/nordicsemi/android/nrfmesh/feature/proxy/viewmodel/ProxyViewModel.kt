@@ -1,7 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel
 
 import android.content.Context
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.navigation.Navigator
-import no.nordicsemi.android.common.navigation.viewmodel.SimpleNavigationViewModel
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.ProxyState
@@ -21,10 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ProxyViewModel @Inject internal constructor(
-    navigator: Navigator,
-    savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
-) : SimpleNavigationViewModel(navigator, savedStateHandle) {
+) : ViewModel() {
     private var meshNetwork: MeshNetwork? = null
     val uiState: StateFlow<ProxyScreenUiState> = repository.proxyStateFlow.transform {
         emit(ProxyScreenUiState(it))

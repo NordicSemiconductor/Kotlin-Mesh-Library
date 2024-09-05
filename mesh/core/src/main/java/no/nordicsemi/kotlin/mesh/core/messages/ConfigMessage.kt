@@ -166,6 +166,27 @@ enum class ConfigMessageStatus(val value: UByte) {
     /** Invalid Binding. */
     INVALID_BINDING(0x11.toUByte());
 
+    override fun toString() = when (this) {
+        SUCCESS -> "Success"
+        INVALID_ADDRESS -> "Invalid Address"
+        INVALID_MODEL -> "Invalid Model"
+        INVALID_APP_KEY_INDEX -> "Invalid Application Key Index"
+        INVALID_NET_KEY_INDEX -> "Invalid Network Key Index"
+        INSUFFICIENT_RESOURCES -> "Insufficient resources"
+        KEY_INDEX_ALREADY_STORED -> "Key Index already stored"
+        INVALID_PUBLISH_PARAMETERS -> "Invalid publish parameters"
+        NOT_A_SUBSCRIBE_MODEL -> "Not a Subscribe Model"
+        STORAGE_FAILURE -> "Storage failure"
+        FEATURE_NOT_SUPPORTED -> "Feature not supported"
+        CANNOT_UPDATE -> "Cannot update"
+        CANNOT_REMOVE -> "Cannot remove"
+        CANNOT_BIND -> "Cannot bind"
+        TEMPORARILY_UNABLE_TO_CHANGE_STATE -> "Temporarily unable to change state"
+        CANNOT_SET -> "Cannot set"
+        UNSPECIFIED_ERROR -> "Unspecified error"
+        INVALID_BINDING -> "Invalid binding"
+    }
+
     companion object {
 
         /**
@@ -174,7 +195,7 @@ enum class ConfigMessageStatus(val value: UByte) {
          * @param value Value of the status.
          * @return ConfigMessageStatus
          */
-        fun from(value: UByte): ConfigMessageStatus? = values().find { it.value == value }
+        fun from(value: UByte): ConfigMessageStatus? = entries.find { it.value == value }
     }
 }
 

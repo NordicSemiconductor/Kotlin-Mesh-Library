@@ -9,6 +9,7 @@ pluginManagement {
     plugins {
         id("org.jetbrains.dokka") version "1.9.20"
         id("org.jetbrains.kotlin.jvm") version "2.0.0"
+        // id("org.jetbrains.kotlin.android") version "2.0.0"
     }
 }
 dependencyResolutionManagement {
@@ -31,6 +32,7 @@ include(":app")
 include(":core:ui")
 include(":core:common")
 include(":core:data")
+include(":core:navigation")
 include(":feature:nodes")
 include(":feature:groups")
 include(":feature:settings")
@@ -41,6 +43,8 @@ include(":feature:config-network-keys")
 include(":feature:application-keys")
 include(":feature:scenes")
 include(":feature:provisioners")
+include(":feature:ranges")
+include(":feature:provisioning")
 include(":feature:mesh-bearer-android")
 include(":feature:mesh-bearer-gatt")
 include(":feature:mesh-bearer-pbgatt")
@@ -56,6 +60,9 @@ include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:foundation")
 
+// if (file("../Android-Common-Libraries").exists()) {
+//     includeBuild("../Android-Common-Libraries")
+// }
 // if (file("../Android-Gradle-Plugins").exists()) {
 //     includeBuild("../Android-Gradle-Plugins")
 // }
