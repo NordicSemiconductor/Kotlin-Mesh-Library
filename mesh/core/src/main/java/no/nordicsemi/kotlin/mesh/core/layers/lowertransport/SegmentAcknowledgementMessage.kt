@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.data.and
-import no.nordicsemi.kotlin.data.getInt
 import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.data.hasBitSet
@@ -14,7 +13,6 @@ import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import java.nio.ByteOrder
 
 /**
  * Internal data class defining a Segment Acknowledgement Message.
@@ -89,7 +87,7 @@ internal class SegmentAcknowledgementMessage(
         /**
          * Creates a segmented acknowledgement message using the given [NetworkPdu].
          *
-         * @param networkPdu The network pdu containing the segment acknowledgement message.
+         * @param pdu The network pdu containing the segment acknowledgement message.
          * @return The decoded [SegmentAcknowledgementMessage] or null if the pdu was invalid.
          */
         fun init(pdu: NetworkPdu): SegmentAcknowledgementMessage {
