@@ -20,6 +20,7 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -41,7 +42,7 @@ class ConfigAppKeysViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
 
     private val _uiState = MutableStateFlow(AppKeysScreenUiState())
-    val uiState: StateFlow<AppKeysScreenUiState> = _uiState.asStateFlow()
+    val uiState:     StateFlow<AppKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         repository.network.onEach {
@@ -60,14 +61,15 @@ class ConfigAppKeysViewModel @Inject constructor(
     }
 
     fun onSwiped(key: ApplicationKey) {
-        send(message = ConfigNetKeyDelete(key.index))
+        // send(message = ConfigNetKeyDelete(key.index))
     }
 
     fun addApplicationKey(key: ApplicationKey) {
-        // send(message = ConfigNetKeyAdd(networkKey))
+        send(message = ConfigAppKeyAdd(applicationKey = key))
     }
 
     private fun send(message: AcknowledgedConfigMessage) {
+
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
                 messageState = Failed(message = message, error = throwable)
