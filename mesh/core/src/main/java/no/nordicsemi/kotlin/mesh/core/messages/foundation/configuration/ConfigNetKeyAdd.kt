@@ -47,6 +47,7 @@ data class ConfigNetKeyAdd(
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8040u
+
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 18
         }?.let {
