@@ -20,8 +20,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeysScreen
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysDestination
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreen
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.R
@@ -30,6 +30,8 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.Applica
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyScreen
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
@@ -173,7 +175,8 @@ private fun getScreen(route: String?) = when (route) {
     NodeDestination.route -> NodeScreen(title = "Node")
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     NetKeySelectorDestination.route -> NetKeySelectorScreen()
-    ConfigNetworkKeyDestination.route -> ConfigNetworkKeysScreen()
+    ConfigNetKeysDestination.route -> ConfigNetKeysScreen()
+    ConfigAppKeysDestination.route -> ConfigAppKeysScreen()
     GroupsDestination.route -> GroupsScreen(title = "Groups")
     ProxyDestination.route -> ProxyScreen(title = "Proxy")
     SettingsDestination.route -> SettingsScreen(title = "Settings")

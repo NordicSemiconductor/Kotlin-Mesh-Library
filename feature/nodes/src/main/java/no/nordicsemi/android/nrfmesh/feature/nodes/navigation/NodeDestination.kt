@@ -5,11 +5,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetworkKeyDestination
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysDestination
 import no.nordicsemi.android.feature.config.networkkeys.navigation.configNetworkKeysGraph
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import java.util.UUID
@@ -40,15 +42,15 @@ fun NavGraphBuilder.nodeGraph(
             onNameChanged = viewModel::onNameChanged,
             onNetworkKeysClicked = {
                 onNavigateToDestination(
-                    ConfigNetworkKeyDestination,
-                    ConfigNetworkKeyDestination.createNavigationRoute(it)
+                    ConfigNetKeysDestination,
+                    ConfigNetKeysDestination.createNavigationRoute(it)
                 )
             },
             onApplicationKeysClicked = {
-                /*onNavigateToDestination(
-                    ConfigNetworkKeyDestination,
-                    ConfigNetworkKeyDestination.createNavigationRoute(it)
-                )*/
+                onNavigateToDestination(
+                    ConfigAppKeysDestination,
+                    ConfigAppKeysDestination.createNavigationRoute(it)
+                )
             },
             onElementsClicked = {
                 /*onNavigateToDestination(
@@ -65,6 +67,11 @@ fun NavGraphBuilder.nodeGraph(
         )
     }
     configNetworkKeysGraph(
+        appState = appState,
+        onNavigateToDestination = onNavigateToDestination,
+        onBackPressed = onBackPressed
+    )
+    configApplicationKeysGraph(
         appState = appState,
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed

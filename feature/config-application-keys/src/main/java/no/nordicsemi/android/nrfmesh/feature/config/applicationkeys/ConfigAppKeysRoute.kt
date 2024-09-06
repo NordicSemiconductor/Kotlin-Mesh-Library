@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package no.nordicsemi.android.feature.config.networkkeys
+package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreen
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
@@ -55,27 +54,27 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
-import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 
 @Composable
-internal fun ConfigNetKeysRoute(
+internal fun ConfigAppKeysRoute(
     appState: AppState,
-    uiState: NetKeysScreenUiState,
+    uiState: AppKeysScreenUiState,
     navigateToNetworkKeys: () -> Unit,
-    onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit,
+    onAddKeyClicked: (ApplicationKey) -> Unit,
+    onSwiped: (ApplicationKey) -> Unit,
     resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val screen = appState.currentScreen as? ConfigNetKeysScreen
+    val screen = appState.currentScreen as? ConfigAppKeysScreen
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { button ->
             when (button) {
-                ConfigNetKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
-                ConfigNetKeysScreen.Actions.BACK -> if (!uiState.messageState.isInProgress()) {
+                ConfigAppKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
+                ConfigAppKeysScreen.Actions.BACK -> if (!uiState.messageState.isInProgress()) {
                     onBackPressed()
                 }
             }
@@ -83,7 +82,7 @@ internal fun ConfigNetKeysRoute(
     }
 
     BackHandler(enabled = uiState.messageState.isInProgress(), onBack = { })
-    ConfigNetKeysScreen(
+    ConfigAppKeysRoute(
         uiState = uiState,
         snackbarHostState = appState.snackbarHostState,
         showBottomSheet = showBottomSheet,
@@ -97,14 +96,14 @@ internal fun ConfigNetKeysRoute(
 
 
 @Composable
-private fun ConfigNetKeysScreen(
-    uiState: NetKeysScreenUiState,
+private fun ConfigAppKeysRoute(
+    uiState: AppKeysScreenUiState,
     snackbarHostState: SnackbarHostState,
     showBottomSheet: Boolean,
     dismissBottomSheet: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
-    onAddKeyClicked: (NetworkKey) -> Unit,
-    onSwiped: (NetworkKey) -> Unit,
+    onAddKeyClicked: (ApplicationKey) -> Unit,
+    onSwiped: (ApplicationKey) -> Unit,
     resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -112,23 +111,23 @@ private fun ConfigNetKeysScreen(
         AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
-        when (uiState.netKeysState) {
-            NetKeysState.Loading -> MeshLoadingItems(
+        when (uiState.appKeysState) {
+            AppKeysState.Loading -> MeshLoadingItems(
                 imageVector = Icons.Outlined.VpnKey,
                 title = stringResource(id = R.string.label_loading)
             )
 
-            is NetKeysState.Success -> {
-                NetworkKeys(
+            is AppKeysState.Success -> {
+                ApplicationKeys(
                     context = context,
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
-                    keys = uiState.netKeysState.netKeys,
+                    keys = uiState.appKeysState.appKeys,
                     onSwiped = onSwiped
                 )
             }
 
-            is NetKeysState.Error -> {
+            is AppKeysState.Error -> {
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
                     title = stringResource(R.string.label_no_keys_added)
@@ -173,8 +172,8 @@ private fun ConfigNetKeysScreen(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun BottomSheetKeys(
-    uiState: NetKeysScreenUiState,
-    onAddKeyClicked: (NetworkKey) -> Unit,
+    uiState: AppKeysScreenUiState,
+    onAddKeyClicked: (ApplicationKey) -> Unit,
     navigateToNetworkKeys: () -> Unit,
     onDismissClick: () -> Unit
 ) {
@@ -222,12 +221,12 @@ private fun BottomSheetKeys(
 }
 
 @Composable
-private fun NetworkKeys(
+private fun ApplicationKeys(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    keys: List<NetworkKey>,
-    onSwiped: (NetworkKey) -> Unit
+    keys: List<ApplicationKey>,
+    onSwiped: (ApplicationKey) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
@@ -252,11 +251,11 @@ private fun NetworkKeys(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissKey(
-    key: NetworkKey,
+    key: ApplicationKey,
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (ApplicationKey) -> Unit
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var shouldNotDismiss by remember {

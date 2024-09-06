@@ -9,10 +9,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class ConfigNetworkKeysScreen(
+class ConfigNetKeysScreen(
     override val title: String = "Config Network Keys",
 ) : Screen {
-    override val route = ConfigNetworkKeyDestination.route
+    override val route = ConfigNetKeysDestination.route
     override val showTopBar = true
     override val navigationIcon = null
     override val onNavigationIconClick: (() -> Unit)? = {
