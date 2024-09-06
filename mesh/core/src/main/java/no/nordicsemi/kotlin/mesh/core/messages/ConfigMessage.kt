@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -222,17 +224,18 @@ interface ConfigStatusMessage : ConfigMessage, StatusMessage {
 interface ConfigNetKeyMessage : ConfigMessage {
     val networkKeyIndex: KeyIndex
 
-    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(networkKeyIndex)
+    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(keyIndex = networkKeyIndex)
 
-    fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex = decodeNetKeyIndex(data, offset)
+    fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
+        Companion.decodeNetKeyIndex(data = data, offset = offset)
 
     companion object {
 
         /**
          * Encodes the Network Key Index into a 2 octet byte array
          */
-        fun encodeNetKeyIndex(networkKeyIndex: KeyIndex): ByteArray =
-            ConfigMessage.encode(indexes = listOf(networkKeyIndex))
+        fun encodeNetKeyIndex(keyIndex: KeyIndex): ByteArray =
+            ConfigMessage.encode(indexes = listOf(keyIndex))
 
         /**
          * Decodes the Network Key Index from the given dat at the given offset.
@@ -252,13 +255,52 @@ interface ConfigNetKeyMessage : ConfigMessage {
  * @property applicationKeyIndex The Application Key Index.
  */
 interface ConfigAppKeyMessage : ConfigMessage {
-    var applicationKeyIndex: KeyIndex
+    val applicationKeyIndex: KeyIndex
 }
 
 /**
  *  A combined base interface for both Network and Application Key configuration messages.
  */
-interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage
+interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage {
+
+    /**
+     * A data class that holds both Network and Application Key Indexes.
+     *
+     * @property networkKeyIndex The Network Key Index.
+     * @property applicationKeyIndex The Application Key Index.
+     * @constructor Constructs a ConfigNetKeyAndAppKeyIndex.
+     */
+    data class ConfigNetKeyAndAppKeyIndex(
+        val networkKeyIndex: KeyIndex,
+        val applicationKeyIndex: KeyIndex
+    )
+
+    companion object {
+
+        /**
+         * Encodes the Network and Application Key Indexes into a Data.
+         *
+         * @param indexes List of Key Indexes.
+         * @return Encoded Data as a byte array.
+         */
+        fun encodeNetAndAppKeyIndex(indexes: List<KeyIndex>) = encode(indexes = indexes)
+
+        /**
+         * Decodes the Network and Application Key Indexes from the given data at the given offset.
+         *
+         * @param data   Data from where the indexes should be read.
+         * @param offset Offset from where to read the indexes.
+         * @return [ConfigNetKeyAndAppKeyIndex].
+         */
+        fun decodeNetAndAppKeyIndex(data: ByteArray, offset: Int) = decode(
+            limit = 2,
+            data = data,
+            offset = offset
+        ).let { indexes ->
+            ConfigNetKeyAndAppKeyIndex(indexes[0], indexes[1])
+        }
+    }
+}
 
 /**
  * A base interface for a configuration messages sent to an element.
