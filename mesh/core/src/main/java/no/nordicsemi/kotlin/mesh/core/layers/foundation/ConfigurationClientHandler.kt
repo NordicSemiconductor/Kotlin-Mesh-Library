@@ -6,6 +6,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
@@ -32,6 +34,7 @@ internal class ConfigurationClientHandler(
         get() = mapOf(
             ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
             ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
+            ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
             ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
             ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
             ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
@@ -41,7 +44,9 @@ internal class ConfigurationClientHandler(
     override val publicationMessageComposer: MessageComposer? = null
 
     /**
+     * Handles the model events.
      *
+     * @param event Event to be handled.
      * @throws ModelError if an acknowledged message is received.
      */
     override fun handle(event: ModelEvent) {
@@ -49,13 +54,15 @@ internal class ConfigurationClientHandler(
             is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
                 msg = event.request
             )
+
             is ModelEvent.ResponseReceived -> handleResponses(
                 model = event.model,
                 response = event.response,
                 request = event.request,
                 source = event.source
             )
-            is ModelEvent.UnacknowledgedMessageReceived ->  {
+
+            is ModelEvent.UnacknowledgedMessageReceived -> {
                 // Ignore do nothing
             }
         }
@@ -86,14 +93,29 @@ internal class ConfigurationClientHandler(
             // Network Keys Management
             is ConfigNetKeyStatus -> {
                 if (response.isSuccess) {
-                    node(address = source)?.apply { //node ->
-                        // TODO implement missing messages
+                    node(address = source)?.apply {
                         when (request as ConfigNetKeyMessage) {
                             is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
 
                             is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
 
                             is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
+                        }
+                    }
+                }
+            }
+
+            // Application Keys Management
+            is ConfigAppKeyStatus -> {
+                if (response.isSuccess) {
+                    node(address = source)?.apply {
+                        // TODO implement missing messages
+                        when (request as ConfigNetKeyMessage) {
+                            is ConfigAppKeyAdd -> addAppKey(response.applicationKeyIndex)
+
+                            /*is ConfigNetKeyDelete -> removeAppKey(response.applicationKeyIndex)
+
+                            is ConfigNetKeyUpdate -> updateAppKey(response.applicationKeyIndex)*/
                         }
                     }
                 }
