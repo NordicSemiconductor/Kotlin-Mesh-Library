@@ -8,6 +8,7 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
@@ -440,6 +441,22 @@ data class Node internal constructor(
                 network?.updateTimestamp()
                 true
             }
+        }
+    }
+
+    /**
+     * Adds an application key to the node. Invoked only when a [ConfigAppKeyStatus] is received
+     * with a success status.
+     *
+     * @param index Network Key index.
+     */
+    internal fun addAppKey(index: KeyIndex) {
+        _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
+        network?.let {
+            if (security is Insecure) {
+                it.applicationKeys.get(index)?.boundNetworkKey?.lowerSecurity()
+            }
+            it.updateTimestamp()
         }
     }
 
