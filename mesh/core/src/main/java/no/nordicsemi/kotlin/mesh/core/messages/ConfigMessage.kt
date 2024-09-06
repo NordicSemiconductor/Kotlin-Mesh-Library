@@ -235,7 +235,7 @@ interface ConfigNetKeyMessage : ConfigMessage {
          * Encodes the Network Key Index into a 2 octet byte array
          */
         fun encodeNetKeyIndex(keyIndex: KeyIndex): ByteArray =
-            ConfigMessage.encode(indexes = listOf(keyIndex))
+            encode(indexes = listOf(keyIndex))
 
         /**
          * Decodes the Network Key Index from the given dat at the given offset.
@@ -245,7 +245,7 @@ interface ConfigNetKeyMessage : ConfigMessage {
          * @return Decoded Key Indexes.
          */
         fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
-            ConfigMessage.decode(limit = 1, data = data, offset = offset).first()
+            decode(limit = 1, data = data, offset = offset).first()
     }
 }
 
