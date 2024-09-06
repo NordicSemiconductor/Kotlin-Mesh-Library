@@ -87,12 +87,6 @@ interface ConfigMessage : MeshMessage {
     }
 }
 
-fun main() {
-    val params = byteArrayOf(0x00, 0x00, 0x10, 0x00)
-    decode(2, params, 1)
-}
-
-
 /**
  * A base decoder interface for Configuration messages.
  */
