@@ -7,6 +7,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage.Companion.decodeNetAndAppKeyIndex
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage.Companion.encodeNetAndAppKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
@@ -27,13 +28,15 @@ class ConfigAppKeyAdd(
 ) : AcknowledgedConfigMessage, ConfigNetAndAppKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
-    override val parameters: ByteArray
-        get() = encodeNetKeyIndex() + key
+    override val parameters = encodeNetAndAppKeyIndex(
+        appKeyIndex = applicationKeyIndex,
+        netKeyIndex = networkKeyIndex
+    ) + key
 
-    override val responseOpCode = ConfigNetKeyStatus.opCode
+    override val responseOpCode = ConfigAppKeyStatus.opCode
 
     /**
-     * Convenience constructor to create a ConfigNetKeyAdd message.
+     * Convenience constructor to create a [ConfigAppKeyAdd] message.
      *
      * @param applicationKey Network key to be added.
      * @constructor Constructs the ConfigAppKeyAdd message.
@@ -64,7 +67,7 @@ class ConfigAppKeyAdd(
             ConfigAppKeyAdd(
                 networkKeyIndex = decodedIndexes.networkKeyIndex,
                 applicationKeyIndex = decodedIndexes.applicationKeyIndex,
-                key = it.copyOfRange(2, 18)
+                key = it.copyOfRange(3, 19)
             )
         }
     }

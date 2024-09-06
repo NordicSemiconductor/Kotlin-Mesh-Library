@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage.Companion.decodeNetAndAppKeyIndex
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetAndAppKeyMessage.Companion.encodeNetAndAppKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage.Companion.encodeNetKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
@@ -32,7 +33,10 @@ data class ConfigAppKeyStatus(
 
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
-        get() = status.value.toByteArray() + encodeNetKeyIndex(networkKeyIndex)
+        get() = status.value.toByteArray() + encodeNetAndAppKeyIndex(
+            appKeyIndex = applicationKeyIndex,
+            netKeyIndex = networkKeyIndex
+        )
 
     /**
      * Constructs the ConfigAppKeyStatus message.
@@ -49,12 +53,12 @@ data class ConfigAppKeyStatus(
     /**
      * Constructs the ConfigAppKeyStatus message.
      *
-     * @param request ConfigNetKeyMessage operation that was sent to the mesh node.
-     * @param status  Status of the message.
+     * @param request [ConfigNetAndAppKeyMessage] operation that was sent to the mesh node.
+     * @param status  [ConfigMessageStatus] for a given [request].
      * @constructor Constructs the ConfigAppKeyStatus message.
      */
     constructor(
-        request: ConfigAppKeyAdd,
+        request: ConfigNetAndAppKeyMessage,
         status: ConfigMessageStatus
     ) : this(
         applicationKeyIndex = request.applicationKeyIndex,
