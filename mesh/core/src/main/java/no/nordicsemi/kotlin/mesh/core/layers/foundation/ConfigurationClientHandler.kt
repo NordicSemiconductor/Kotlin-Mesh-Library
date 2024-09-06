@@ -7,6 +7,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
@@ -96,9 +97,7 @@ internal class ConfigurationClientHandler(
                     node(address = source)?.apply {
                         when (request as ConfigNetKeyMessage) {
                             is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
-
                             is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
-
                             is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
                         }
                     }
@@ -112,7 +111,7 @@ internal class ConfigurationClientHandler(
                         // TODO implement missing messages
                         when (request as ConfigNetKeyMessage) {
                             is ConfigAppKeyAdd -> addAppKey(response.applicationKeyIndex)
-
+                            is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
                             /*is ConfigNetKeyDelete -> removeAppKey(response.applicationKeyIndex)
 
                             is ConfigNetKeyUpdate -> updateAppKey(response.applicationKeyIndex)*/

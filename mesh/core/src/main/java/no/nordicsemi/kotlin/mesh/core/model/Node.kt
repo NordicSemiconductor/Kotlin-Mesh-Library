@@ -445,6 +445,19 @@ data class Node internal constructor(
     }
 
     /**
+     * Removes an application key from the node. Invoked only when a [ConfigNetKeyStatus] is
+     * received with a success status.
+     *
+     * @param index Network Key index.
+     */
+    internal fun removeAppKey(index: KeyIndex) {
+        _appKeys.get(index)?.let { appKey ->
+            _appKeys.remove(appKey)
+            network?.updateTimestamp()
+        }
+    }
+
+    /**
      * Adds an application key to the node. Invoked only when a [ConfigAppKeyStatus] is received
      * with a success status.
      *
