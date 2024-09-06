@@ -130,7 +130,7 @@ private fun ConfigAppKeysRoute(
             is AppKeysState.Error -> {
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_keys_added)
+                    title = stringResource(R.string.label_no_app_keys_to_add)
                 )
             }
         }
@@ -144,7 +144,7 @@ private fun ConfigAppKeysRoute(
         )
     }
 
-    when(uiState.messageState) {
+    when (uiState.messageState) {
         is Failed -> {
             MeshMessageStatusDialog(
                 text = uiState.messageState.error.message ?: stringResource(R.string.unknown_error),
@@ -188,7 +188,7 @@ private fun BottomSheetKeys(
                 item {
                     MeshNoItemsAvailable(
                         imageVector = Icons.Outlined.VpnKey,
-                        title = stringResource(R.string.label_no_keys_added)
+                        title = stringResource(R.string.label_no_app_keys_to_add)
                     )
                     Row(
                         modifier = Modifier
@@ -229,22 +229,31 @@ private fun ApplicationKeys(
     onSwiped: (ApplicationKey) -> Unit
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp),
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-    ) {
-        items(items = keys) { key ->
-            SwipeToDismissKey(
-                key = key,
-                context = context,
-                coroutineScope = coroutineScope,
-                snackbarHostState = snackbarHostState,
-                onSwiped = onSwiped
-            )
+    when (keys.isNotEmpty()) {
+        true -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 8.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            ) {
+                items(items = keys) { key ->
+                    SwipeToDismissKey(
+                        key = key,
+                        context = context,
+                        coroutineScope = coroutineScope,
+                        snackbarHostState = snackbarHostState,
+                        onSwiped = onSwiped
+                    )
+                }
+            }
         }
+
+        else -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.VpnKey,
+            title = stringResource(R.string.label_no_app_keys_added)
+        )
     }
 }
 
@@ -280,12 +289,7 @@ private fun SwipeToDismissKey(
             showSnackbar(
                 scope = coroutineScope,
                 snackbarHostState = snackbarHostState,
-                message = context.getString(
-                    if (key.index.toUInt() == 0.toUInt())
-                        R.string.error_cannot_delete_primary_network_key
-                    else
-                        R.string.error_cannot_delete_key_in_use
-                ),
+                message = context.getString(R.string.error_cannot_delete_key_in_use),
                 duration = SnackbarDuration.Short,
                 onDismissed = { shouldNotDismiss = false }
             )
