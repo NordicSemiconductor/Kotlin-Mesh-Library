@@ -411,8 +411,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         mutex.withLock {
             reliableMessageContexts.indexOfFirst {
                 it.source == handle.destination.address &&
-                it.request.responseOpCode == handle.opCode &&
-                it.destination == handle.source.address
+                        it.request.responseOpCode == handle.opCode &&
+                        it.destination == handle.source.address
             }.takeIf { it > -1 }?.let {
                 reliableMessageContexts.removeAt(it).invalidate()
             }
@@ -511,8 +511,12 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         } else {
             // .. otherwise, the Device Key was used.
             val models = localNode.elements
-                .flatMap { it.models }
-                .filter { it.supportsDeviceKey }
+                .flatMap {
+                    it.models.filter { model ->
+                        model.supportsDeviceKey
+                    }
+                }
+            //.filter { it.supportsDeviceKey }
 
             for (model in models) {
                 val eventHandler = model.eventHandler ?: continue
