@@ -262,10 +262,6 @@ private fun SwipeToDismissKey(
         mutableStateOf(false)
     }
     val dismissState = rememberSwipeToDismissBoxState(
-        /*confirmValueChange = {
-            shouldNotDismiss = (key.isInUse || key.index.toUInt() == 0.toUInt())
-            !shouldNotDismiss
-        },*/
         positionalThreshold = { it * 0.5f }
     )
     SwipeDismissItem(
@@ -298,12 +294,6 @@ private fun SwipeToDismissKey(
     if (dismissState.isDismissed()) {
         LaunchedEffect(snackbarHostState) {
             onSwiped(key)
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.label_network_key_deleted),
-                actionLabel = context.getString(R.string.action_undo),
-                withDismissAction = true,
-                duration = SnackbarDuration.Long,
-            )
         }
     }
 }

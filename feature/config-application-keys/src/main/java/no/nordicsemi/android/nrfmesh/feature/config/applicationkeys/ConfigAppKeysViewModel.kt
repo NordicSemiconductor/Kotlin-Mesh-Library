@@ -21,7 +21,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -61,7 +61,7 @@ class ConfigAppKeysViewModel @Inject constructor(
     }
 
     fun onSwiped(key: ApplicationKey) {
-        // send(message = ConfigNetKeyDelete(key.index))
+        send(message = ConfigAppKeyDelete(key))
     }
 
     fun addApplicationKey(key: ApplicationKey) {
@@ -86,6 +86,7 @@ class ConfigAppKeysViewModel @Inject constructor(
                     )
                 )
             }
+            repository.save()
         }
     }
 
