@@ -12,10 +12,11 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 /**
- * This message is used to add a network key to a mesh node.
+ * This message is used to add an Application Key to a mesh node.
  *
- * @property networkKeyIndex      Index of the network key to be added.
- * @property key                  The network key to be added.
+ * @property applicationKeyIndex  Index of the application key to be added.
+ * @property networkKeyIndex      Index of the bound network key.
+ * @property key                  The application key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
  * @property responseOpCode       Op Code of the response message.
@@ -38,7 +39,7 @@ class ConfigAppKeyAdd(
     /**
      * Convenience constructor to create a [ConfigAppKeyAdd] message.
      *
-     * @param applicationKey Network key to be added.
+     * @param applicationKey Application key to be added.
      * @constructor Constructs the ConfigAppKeyAdd message.
      */
     constructor(applicationKey: ApplicationKey) : this(
