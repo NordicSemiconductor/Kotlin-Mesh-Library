@@ -67,9 +67,10 @@ class ConfigAppKeyList(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigAppKeyList(networkKeyIndex: $networkKeyIndex, " +
             "applicationKeyIndexes: (${
-                applicationKeyIndexes.joinToString {
-                    it.toHexString()
-                }
+                applicationKeyIndexes.joinToString(
+                    separator = ", ",
+                    transform = { it.toHexString() }
+                )
             }), status: $status)"
 
     companion object Initializer : ConfigMessageInitializer {
