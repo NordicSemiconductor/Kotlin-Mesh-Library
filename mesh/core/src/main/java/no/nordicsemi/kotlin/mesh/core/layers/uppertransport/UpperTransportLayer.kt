@@ -129,7 +129,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         // Check if the message that is currently being sent matches the handler data. If so, cancel
         // it.
         mutex.withLock {
-            queue[handle.destination.address]?.first()
+            queue[handle.destination.address]?.firstOrNull()
         }?.takeIf { first ->
             first.pdu.message!!.opCode == handle.opCode &&
                     first.pdu.source == handle.source.address

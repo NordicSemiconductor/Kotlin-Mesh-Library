@@ -22,12 +22,11 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  */
 data class ConfigNetKeyAdd(
     override val networkKeyIndex: KeyIndex,
-    val key : ByteArray
+    val key: ByteArray
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
-    override val parameters: ByteArray
-        get() = encodeNetKeyIndex() + key
+    override val parameters = encodeNetKeyIndex() + key
 
     override val responseOpCode = ConfigNetKeyStatus.opCode
 
@@ -47,6 +46,7 @@ data class ConfigNetKeyAdd(
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8040u
+
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 18
         }?.let {

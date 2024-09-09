@@ -4,13 +4,10 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.nodes"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.config.applicationkeys"
 }
 
 dependencies {
-
-    implementation(libs.nordic.kotlin.data)
-    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -22,12 +19,14 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project(":core:ui"))
+    implementation(libs.nordic.kotlin.data)
+
+    implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:config-network-keys"))
-    implementation(project(":feature:config-application-keys"))
-    implementation(project(":feature:provisioning"))
-    implementation(project(":feature:mesh-bearer-android"))
+    implementation(project(":core:ui"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:application-keys"))
     implementation(project(":mesh:core"))
+
 }

@@ -168,34 +168,29 @@ internal data class AccessPdu(
                 userInitiated = userInitiated,
                 source = source,
                 destination = destination,
-                opCode = message.opCode,
-                parameters = message.parameters ?: byteArrayOf(),
+                opCode = opCode,
+                parameters = parameters,
                 accessPdu = when {
-                    opCode == 0b01111111u -> {
-                        throw IllegalArgumentException("Opcode reserved for future use")
-                    }
+                    opCode == 0b01111111u -> throw IllegalArgumentException(
+                        "Opcode reserved for future use"
+                    )
 
-                    opCode < 0x80u -> {
-                        byteArrayOf(opCode.toByte())
-                    }
+                    opCode < 0x80u -> byteArrayOf(opCode.toByte())
 
-                    opCode and 0xFF_C0_00u == 0x00_80_00u -> {
-                        byteArrayOf(
-                            (opCode shr 8).toByte() or 0x80,
-                            opCode.toByte()
-                        )
-                    }
+                    opCode and 0xFF_C0_00u == 0x00_80_00u -> byteArrayOf(
+                        (opCode shr 8).toByte() or 0x80,
+                        opCode.toByte()
+                    )
 
-                    opCode and 0xC0_00_00u == 0xC0_00_00u -> {
-                        byteArrayOf(
-                            (opCode shr 16).toByte() or 0xC0,
-                            (opCode shr 8).toByte(),
-                            opCode.toByte()
-                        )
-                    }
+                    opCode and 0xC0_00_00u == 0xC0_00_00u -> byteArrayOf(
+                        (opCode shr 16).toByte() or 0xC0,
+                        (opCode shr 8).toByte(),
+                        opCode.toByte()
+                    )
 
-                    else ->
-                        throw IllegalArgumentException("Invalid opcode: 0x${opCode.toHexString()}")
+                    else -> throw IllegalArgumentException(
+                        "Invalid opcode: 0x${opCode.toHexString()}"
+                    )
                 } + parameters
             )
         }

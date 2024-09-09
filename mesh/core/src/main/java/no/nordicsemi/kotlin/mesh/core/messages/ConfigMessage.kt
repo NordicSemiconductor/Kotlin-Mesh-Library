@@ -2,6 +2,11 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import no.nordicsemi.kotlin.data.or
+import no.nordicsemi.kotlin.data.shl
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -9,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import java.nio.ByteOrder
 import java.util.UUID
 import kotlin.experimental.and
 import kotlin.math.pow
@@ -34,27 +40,26 @@ interface ConfigMessage : MeshMessage {
          * @param indexes  An array of 12-bit Key Indexes.
          * @returns Key Indexes encoded to a Data.
          */
-        fun encode(limit: Int = 10000, indexes: List<KeyIndex>): ByteArray = when {
+        fun encode(limit: Int = 10000, indexes: Array<KeyIndex>): ByteArray = when {
             limit == 0 || indexes.isEmpty() -> byteArrayOf()
             limit == 1 || indexes.size == 1 -> {
                 // Encode a single Key Index into 2 bytes.
-                indexes.first().toShort().toLittleEndian()
+                indexes.first().toShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             }
 
             else -> {
                 // Encode a pair of Key Indexes into 3 bytes.
                 val first = indexes.first()
                 val second = indexes.drop(1).first()
-                val pair = (first.toInt() shl 12) or second.toInt()
-                val encodedPair = pair.toShort().toLittleEndian().dropLast(1).toByteArray()
-                val remainingIndexes = indexes.drop(2)
+                val pair = ((first shl 12) or second).toUInt()
+                val encodedPair = pair.toByteArray(order = ByteOrder.LITTLE_ENDIAN).let {
+                    it.copyOfRange(0, it.size - 1)
+                }
+                val remainingIndexes = indexes.copyOfRange(2, indexes.size)
                 val encodedRemaining = encode(limit - 2, remainingIndexes)
-                (encodedPair + encodedRemaining)
+                (encodedPair.copyOfRange(0, encodedPair.size) + encodedRemaining)
             }
         }
-
-        // TODO this needs to be moved to a utils module
-        fun Short.toLittleEndian(): ByteArray = byteArrayOf(toByte(), (toInt() ushr 8).toByte())
 
         /**
          * Decodes number of Key Indexes from the given Data from the given offset. This will decode
@@ -66,22 +71,21 @@ interface ConfigMessage : MeshMessage {
          * @returns Decoded Key Indexes.
          */
         fun decode(limit: Int = 10000, data: ByteArray, offset: Int): Array<KeyIndex> = when {
-            limit < 0 && data.size - offset < 2 -> emptyArray()
+            limit < 0 || data.size - offset < 2 -> arrayOf()
 
             limit == 1 || data.size - offset == 2 ->
                 arrayOf((data[offset + 1].toInt() shl 8 or data[offset].toInt()).toUShort())
 
             else -> {
-                val first = (data[offset + 2].toInt() shl 4 or data[offset + 1].toInt() shr 4)
-                    .toUShort()
-                val second = ((data[offset + 1] and 0x0F).toInt() shl 8 or data[offset].toInt())
-                    .toUShort()
+                val first: KeyIndex =
+                    ((data[offset + 2] shl 4) or (data[offset + 1].toInt() shr 4)).toUShort()
+                val second: KeyIndex =
+                    (((data[offset + 1] and 0x0F) shl 8) or data[offset].toInt()).toUShort()
                 arrayOf(first, second) + decode(limit - 2, data, offset + 3)
             }
         }
     }
 }
-
 
 /**
  * A base decoder interface for Configuration messages.
@@ -222,17 +226,18 @@ interface ConfigStatusMessage : ConfigMessage, StatusMessage {
 interface ConfigNetKeyMessage : ConfigMessage {
     val networkKeyIndex: KeyIndex
 
-    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(networkKeyIndex)
+    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(keyIndex = networkKeyIndex)
 
-    fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex = decodeNetKeyIndex(data, offset)
+    fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
+        Companion.decodeNetKeyIndex(data = data, offset = offset)
 
     companion object {
 
         /**
          * Encodes the Network Key Index into a 2 octet byte array
          */
-        fun encodeNetKeyIndex(networkKeyIndex: KeyIndex): ByteArray =
-            ConfigMessage.encode(indexes = listOf(networkKeyIndex))
+        fun encodeNetKeyIndex(keyIndex: KeyIndex): ByteArray =
+            encode(indexes = arrayOf(keyIndex))
 
         /**
          * Decodes the Network Key Index from the given dat at the given offset.
@@ -242,7 +247,7 @@ interface ConfigNetKeyMessage : ConfigMessage {
          * @return Decoded Key Indexes.
          */
         fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
-            ConfigMessage.decode(limit = 1, data = data, offset = offset).first()
+            decode(limit = 1, data = data, offset = offset).first()
     }
 }
 
@@ -252,13 +257,55 @@ interface ConfigNetKeyMessage : ConfigMessage {
  * @property applicationKeyIndex The Application Key Index.
  */
 interface ConfigAppKeyMessage : ConfigMessage {
-    var applicationKeyIndex: KeyIndex
+    val applicationKeyIndex: KeyIndex
 }
 
 /**
  *  A combined base interface for both Network and Application Key configuration messages.
  */
-interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage
+interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage {
+
+    /**
+     * A data class that holds both Network and Application Key Indexes.
+     *
+     * @property networkKeyIndex The Network Key Index.
+     * @property applicationKeyIndex The Application Key Index.
+     * @constructor Constructs a ConfigNetKeyAndAppKeyIndex.
+     */
+    data class ConfigNetKeyAndAppKeyIndex(
+        val networkKeyIndex: KeyIndex,
+        val applicationKeyIndex: KeyIndex
+    )
+
+    companion object {
+
+        /**
+         * Encodes the Network and Application Key Indexes into a Data.
+         *
+         * @param appKeyIndex Application Key Index.
+         * @param netKeyIndex Network Key Index.
+         * @return Encoded Data as a byte array.
+         */
+        fun encodeNetAndAppKeyIndex(appKeyIndex: KeyIndex, netKeyIndex: KeyIndex) = encode(
+            indexes = arrayOf(appKeyIndex, netKeyIndex)
+        )
+
+        /**
+         * Decodes the Network and Application Key Indexes from the given data at the given offset.
+         *
+         * @param data   Data from where the indexes should be read.
+         * @param offset Offset from where to read the indexes.
+         * @return [ConfigNetKeyAndAppKeyIndex].
+         */
+        fun decodeNetAndAppKeyIndex(data: ByteArray, offset: Int) = decode(
+            limit = 2,
+            data = data,
+            offset = offset
+        ).let { indexes ->
+            ConfigNetKeyAndAppKeyIndex(indexes[1], indexes[0])
+        }
+    }
+}
 
 /**
  * A base interface for a configuration messages sent to an element.

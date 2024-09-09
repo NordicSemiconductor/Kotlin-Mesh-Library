@@ -6,8 +6,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
@@ -441,6 +444,64 @@ data class Node internal constructor(
                 true
             }
         }
+    }
+
+    /**
+     * Adds an application key to the node. Invoked only when a [ConfigAppKeyStatus] is received
+     * with a success status.
+     *
+     * @param index Network Key index.
+     */
+    internal fun addAppKey(index: KeyIndex) {
+        _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
+        network?.let {
+            if (security is Insecure) {
+                it.applicationKeys.get(index)?.boundNetworkKey?.lowerSecurity()
+            }
+            it.updateTimestamp()
+        }
+    }
+
+    /**
+     * Mark the given application key in node as updated.
+     *
+     * @param applicationKeyIndex Application Key index.
+     */
+    internal fun updateAppKey(applicationKeyIndex: KeyIndex) {
+        _appKeys.get(applicationKeyIndex)?.apply {
+            update(true)
+            network?.updateTimestamp()
+        }
+    }
+    /**
+     * Removes an application key from the node. Invoked only when a [ConfigNetKeyStatus] is
+     * received with a success status.
+     *
+     * @param index Network Key index.
+     */
+    internal fun removeAppKey(index: KeyIndex) {
+        _appKeys.get(index)?.let { appKey ->
+            _appKeys.remove(appKey)
+            network?.updateTimestamp()
+        }
+    }
+
+    /**
+     * Replaces the existing set of assigned application keys with the given list of [appKeyIndexes]
+     * that's bound to the given [netKeyIndex]. This is invoked by [ConfigAppKeyList] message that's
+     * in response to [ConfigAppKeyGet] message.
+     *
+     * @param appKeyIndexes      List of Application Keys to set.
+     * @param netKeyIndex        Key index network key bound to [appKeyIndexes].
+     */
+    internal fun setAppKeys(appKeyIndexes: List<KeyIndex>, netKeyIndex: KeyIndex) {
+        // Replace only the keys that are bound to the given network key.
+        _appKeys = _appKeys.filter { nodeKey ->
+            applicationKeys.get(nodeKey.index)?.boundNetKeyIndex == netKeyIndex
+        }.toMutableList()
+        _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(it, false) })
+        _appKeys.sortBy { it.index }
+        network?.updateTimestamp()
     }
 
     /**

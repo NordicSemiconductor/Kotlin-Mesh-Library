@@ -328,9 +328,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
             localElement = element,
             destination = destination,
             initialTtl = initialTtl
-        )?.also {
-            mutex.withLock { outgoingMessages.remove(meshAddress) }
-        }
+        )
     }
 
     /**
@@ -366,9 +364,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
                 localElement = element,
                 destination = destination,
                 initialTtl = initialTtl
-            ).also {
-                // mutex.withLock { outgoingMessages.remove(meshAddress) }
-            }
+            )
         } catch (e: Busy) {
             mutex.withLock { outgoingMessages.remove(meshAddress) }
             //TODO clarify
