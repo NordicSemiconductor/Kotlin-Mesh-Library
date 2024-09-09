@@ -47,6 +47,7 @@ fun NavGraphBuilder.configApplicationKeysGraph(
             },
             onAddKeyClicked = viewmodel::addApplicationKey,
             onSwiped = viewmodel::onSwiped,
+            onRefresh = viewmodel::onRefresh,
             resetMessageState = viewmodel::resetMessageState,
             onBackPressed = onBackPressed,
         )

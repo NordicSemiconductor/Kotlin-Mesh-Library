@@ -130,6 +130,17 @@ internal class ConfigurationClientHandler(
                 }
             }
 
+            is ConfigAppKeyList -> {
+                if (response.isSuccess) {
+                    node(address = source)?.apply {
+                        setAppKeys(
+                            appKeyIndexes = response.applicationKeyIndexes.toList(),
+                            netKeyIndex = response.networkKeyIndex
+                        )
+                    }
+                }
+            }
+
             is ConfigGattProxyStatus -> {
                 node(address = source)?.apply {
                     features._proxy = Proxy(state = response.state)

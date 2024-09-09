@@ -25,6 +25,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +67,7 @@ internal fun ConfigAppKeysRoute(
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (ApplicationKey) -> Unit,
     onSwiped: (ApplicationKey) -> Unit,
+    onRefresh: () -> Unit,
     resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -90,6 +93,7 @@ internal fun ConfigAppKeysRoute(
         navigateToNetworkKeys = navigateToNetworkKeys,
         onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
+        onRefresh = onRefresh,
         resetMessageState = resetMessageState
     )
 }
@@ -104,6 +108,7 @@ private fun ConfigAppKeysRoute(
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (ApplicationKey) -> Unit,
     onSwiped: (ApplicationKey) -> Unit,
+    onRefresh: () -> Unit,
     resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -118,10 +123,12 @@ private fun ConfigAppKeysRoute(
             )
 
             is AppKeysState.Success -> {
-                ApplicationKeys(
+                ApplicationKeysInfo(
                     context = context,
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = onRefresh,
                     keys = uiState.appKeysState.appKeys,
                     onSwiped = onSwiped
                 )
@@ -221,33 +228,26 @@ private fun BottomSheetKeys(
 }
 
 @Composable
-private fun ApplicationKeys(
+private fun ApplicationKeysInfo(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     keys: List<ApplicationKey>,
     onSwiped: (ApplicationKey) -> Unit
 ) {
-    val listState = rememberLazyListState()
     when (keys.isNotEmpty()) {
         true -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 8.dp),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-            ) {
-                items(items = keys) { key ->
-                    SwipeToDismissKey(
-                        key = key,
-                        context = context,
-                        coroutineScope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        onSwiped = onSwiped
-                    )
-                }
-            }
+            ApplicationKeys(
+                context = context,
+                coroutineScope = coroutineScope,
+                snackbarHostState = snackbarHostState,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                keys = keys,
+                onSwiped = onSwiped
+            )
         }
 
         else -> MeshNoItemsAvailable(
@@ -256,6 +256,45 @@ private fun ApplicationKeys(
         )
     }
 }
+
+@Composable
+private fun ApplicationKeys(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    keys: List<ApplicationKey>,
+    onSwiped: (ApplicationKey) -> Unit
+) {
+    val listState = rememberLazyListState()
+    val state = rememberPullToRefreshState()
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        state = state,
+        onRefresh = onRefresh,
+        isRefreshing = isRefreshing
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
+            items(items = keys) { key ->
+                SwipeToDismissKey(
+                    key = key,
+                    context = context,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    onSwiped = onSwiped
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalStdlibApi::class)
 @Composable

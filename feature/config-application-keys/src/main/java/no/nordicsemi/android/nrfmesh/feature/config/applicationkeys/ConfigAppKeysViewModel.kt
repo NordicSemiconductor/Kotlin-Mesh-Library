@@ -22,6 +22,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -42,7 +44,7 @@ class ConfigAppKeysViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
 
     private val _uiState = MutableStateFlow(AppKeysScreenUiState())
-    val uiState:     StateFlow<AppKeysScreenUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<AppKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         repository.network.onEach {
@@ -60,12 +62,28 @@ class ConfigAppKeysViewModel @Inject constructor(
         }.launchIn(scope = viewModelScope)
     }
 
-    fun onSwiped(key: ApplicationKey) {
+    internal fun onSwiped(key: ApplicationKey) {
         send(message = ConfigAppKeyDelete(key))
     }
 
-    fun addApplicationKey(key: ApplicationKey) {
+    internal fun addApplicationKey(key: ApplicationKey) {
         send(message = ConfigAppKeyAdd(applicationKey = key))
+    }
+
+    /**
+     * Called when the user pulls down to refresh the node details.
+     */
+    internal fun onRefresh() {
+        _uiState.value = uiState.value.copy(isRefreshing = true)
+        viewModelScope.launch {
+            repository.send(
+                node = selectedNode,
+                message = ConfigAppKeyGet(
+                    networkKey = meshNetwork.networkKeys.first()
+                )
+            )
+            _uiState.value = uiState.value.copy(isRefreshing = false)
+        }
     }
 
     private fun send(message: AcknowledgedConfigMessage) {
@@ -110,6 +128,7 @@ data class AppKeysScreenUiState internal constructor(
     val appKeysState: AppKeysState = AppKeysState.Loading,
     val keys: List<ApplicationKey> = emptyList(),
     val showProgress: Boolean = false,
+    val isRefreshing: Boolean = false,
     val messageState: MessageState = NotStarted
 )
 
