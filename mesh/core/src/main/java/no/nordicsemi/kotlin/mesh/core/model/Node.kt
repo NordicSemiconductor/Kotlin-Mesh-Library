@@ -463,6 +463,17 @@ data class Node internal constructor(
     }
 
     /**
+     * Mark the given application key in node as updated.
+     *
+     * @param applicationKeyIndex Application Key index.
+     */
+    internal fun updateAppKey(applicationKeyIndex: KeyIndex) {
+        _appKeys.get(applicationKeyIndex)?.apply {
+            update(true)
+            network?.updateTimestamp()
+        }
+    }
+    /**
      * Removes an application key from the node. Invoked only when a [ConfigNetKeyStatus] is
      * received with a success status.
      *
@@ -476,9 +487,9 @@ data class Node internal constructor(
     }
 
     /**
-     * Replaces the existing set of assigned application keys with the given list of [appKeyIndexes] that's
-     * bound to the given [netKeyIndex]. This is invoked by [ConfigAppKeyList] message that's in
-     * response to [ConfigAppKeyGet] message.
+     * Replaces the existing set of assigned application keys with the given list of [appKeyIndexes]
+     * that's bound to the given [netKeyIndex]. This is invoked by [ConfigAppKeyList] message that's
+     * in response to [ConfigAppKeyGet] message.
      *
      * @param appKeyIndexes      List of Application Keys to set.
      * @param netKeyIndex        Key index network key bound to [appKeyIndexes].

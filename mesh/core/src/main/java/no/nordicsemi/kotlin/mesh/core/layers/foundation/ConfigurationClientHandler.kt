@@ -121,10 +121,8 @@ internal class ConfigurationClientHandler(
                         // TODO implement missing messages
                         when (request as ConfigNetKeyMessage) {
                             is ConfigAppKeyAdd -> addAppKey(response.applicationKeyIndex)
+                            is ConfigNetKeyUpdate -> updateAppKey(response.applicationKeyIndex)
                             is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
-                            /*is ConfigNetKeyDelete -> removeAppKey(response.applicationKeyIndex)
-
-                            is ConfigNetKeyUpdate -> updateAppKey(response.applicationKeyIndex)*/
                         }
                     }
                 }
