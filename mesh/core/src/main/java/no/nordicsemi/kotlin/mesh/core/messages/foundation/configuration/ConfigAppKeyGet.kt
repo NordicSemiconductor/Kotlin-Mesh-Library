@@ -27,7 +27,7 @@ class ConfigAppKeyGet(
 
     override val parameters = encodeNetKeyIndex()
 
-    override val responseOpCode = ConfigAppKeyStatus.opCode
+    override val responseOpCode = ConfigAppKeyList.opCode
 
     /**
      * Convenience constructor to create a [ConfigAppKeyGet] message.

@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
@@ -27,20 +28,29 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 
+/**
+ * ConfigurationClientHandler class handles the configuration messages sent from the provisioner
+ *
+ * @property meshNetwork                   Mesh network.
+ * @property messageTypes                  Message types supported by the handler.
+ * @property isSubscriptionSupported       True if the model supports subscription.
+ * @property publicationMessageComposer    Message composer for publication messages.
+ * @constructor Initialize ConfigurationClientHandler
+ */
 internal class ConfigurationClientHandler(
     override val meshNetwork: MeshNetwork
 ) : ModelEventHandler() {
 
-    override val messageTypes: Map<UInt, HasInitializer>
-        get() = mapOf(
-            ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
-            ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
-            ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
-            ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
-            ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
-            ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
-            ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
-        )
+    override val messageTypes: Map<UInt, HasInitializer> = mapOf(
+        ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
+        ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
+        ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
+        ConfigAppKeyList.opCode to ConfigAppKeyList,
+        ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
+        ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
+        ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
+        ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
+    )
     override val isSubscriptionSupported: Boolean = false
     override val publicationMessageComposer: MessageComposer? = null
 
