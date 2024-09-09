@@ -40,7 +40,7 @@ interface ConfigMessage : MeshMessage {
          * @param indexes  An array of 12-bit Key Indexes.
          * @returns Key Indexes encoded to a Data.
          */
-        fun encode(limit: Int = 10000, indexes: List<KeyIndex>): ByteArray = when {
+        fun encode(limit: Int = 10000, indexes: Array<KeyIndex>): ByteArray = when {
             limit == 0 || indexes.isEmpty() -> byteArrayOf()
             limit == 1 || indexes.size == 1 -> {
                 // Encode a single Key Index into 2 bytes.
@@ -55,7 +55,7 @@ interface ConfigMessage : MeshMessage {
                 val encodedPair = pair.toByteArray(order = ByteOrder.LITTLE_ENDIAN).let {
                     it.copyOfRange(0, it.size - 1)
                 }
-                val remainingIndexes = indexes.drop(2)
+                val remainingIndexes = indexes.copyOfRange(2, indexes.size)
                 val encodedRemaining = encode(limit - 2, remainingIndexes)
                 (encodedPair.copyOfRange(0, encodedPair.size) + encodedRemaining)
             }
@@ -237,7 +237,7 @@ interface ConfigNetKeyMessage : ConfigMessage {
          * Encodes the Network Key Index into a 2 octet byte array
          */
         fun encodeNetKeyIndex(keyIndex: KeyIndex): ByteArray =
-            encode(indexes = listOf(keyIndex))
+            encode(indexes = arrayOf(keyIndex))
 
         /**
          * Decodes the Network Key Index from the given dat at the given offset.
@@ -287,7 +287,7 @@ interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage {
          * @return Encoded Data as a byte array.
          */
         fun encodeNetAndAppKeyIndex(appKeyIndex: KeyIndex, netKeyIndex: KeyIndex) = encode(
-            indexes = listOf(appKeyIndex, netKeyIndex)
+            indexes = arrayOf(appKeyIndex, netKeyIndex)
         )
 
         /**
