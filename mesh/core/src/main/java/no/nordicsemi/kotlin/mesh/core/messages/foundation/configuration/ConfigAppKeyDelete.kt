@@ -44,6 +44,9 @@ class ConfigAppKeyDelete(
         networkKeyIndex = applicationKey.boundNetKeyIndex
     )
 
+    override fun toString() = "ConfigAppKeyDelete(applicationKeyIndex: $applicationKeyIndex, " +
+            "networkKeyIndex: $networkKeyIndex)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8000u
 

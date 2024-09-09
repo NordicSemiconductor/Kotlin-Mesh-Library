@@ -39,6 +39,8 @@ class ConfigAppKeyGet(
         networkKeyIndex = networkKey.index
     )
 
+    override fun toString() = "ConfigAppKeyGet(networkKeyIndex: $networkKeyIndex)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8001u
 
@@ -51,9 +53,7 @@ class ConfigAppKeyGet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 2
         }?.let { params ->
-            ConfigMessageStatus.from(params.first().toUByte())?.let {
-                ConfigAppKeyGet(networkKeyIndex = decodeNetKeyIndex(params, 0))
-            }
+            ConfigAppKeyGet(networkKeyIndex = decodeNetKeyIndex(params, 0))
         }
     }
 }

@@ -64,6 +64,14 @@ class ConfigAppKeyList(
         status = status
     )
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigAppKeyList(networkKeyIndex: $networkKeyIndex, " +
+            "applicationKeyIndexes: (${
+                applicationKeyIndexes.joinToString {
+                    it.toHexString()
+                }
+            }), status: $status)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8002u
 
@@ -76,19 +84,18 @@ class ConfigAppKeyList(
         override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
             it.size >= 4
         }?.let { params ->
-            ConfigMessageStatus.from(params.first().toUByte())?.let {
-                ConfigAppKeyList(
-                    networkKeyIndex = decodeNetKeyIndex(
-                        data = parameters,
-                        offset = 1
-                    ),
-                    applicationKeyIndexes = ConfigMessage.decode(
-                        data = params,
-                        offset = 3
-                    ),
-                    status = it
-                )
-            }
+            val status = ConfigMessageStatus.from(params.first().toUByte()) ?: return null
+            ConfigAppKeyList(
+                networkKeyIndex = decodeNetKeyIndex(
+                    data = parameters,
+                    offset = 1
+                ),
+                applicationKeyIndexes = ConfigMessage.decode(
+                    data = params,
+                    offset = 3
+                ),
+                status = status
+            )
         }
     }
 }

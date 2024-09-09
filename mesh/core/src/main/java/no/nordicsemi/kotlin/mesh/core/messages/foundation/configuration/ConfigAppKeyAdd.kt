@@ -52,6 +52,10 @@ class ConfigAppKeyAdd(
         require(key.size == 16) { throw InvalidKeyLength }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigAppKeyAdd(applicationKeyIndex: $applicationKeyIndex, " +
+            "networkKeyIndex: $networkKeyIndex, key: ${key.toHexString()})"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x00u
 

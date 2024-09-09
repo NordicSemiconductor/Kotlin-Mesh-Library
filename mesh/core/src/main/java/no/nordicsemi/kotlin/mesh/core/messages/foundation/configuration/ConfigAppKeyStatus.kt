@@ -25,7 +25,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
  * @property parameters          Message parameters.
  * @constructor Constructs the ConfigAppKeyStatus message.
  */
-data class ConfigAppKeyStatus(
+class ConfigAppKeyStatus(
     override val applicationKeyIndex: KeyIndex,
     override val networkKeyIndex: KeyIndex,
     override val status: ConfigMessageStatus
@@ -66,6 +66,9 @@ data class ConfigAppKeyStatus(
         status = status
     )
 
+    override fun toString() = "ConfigAppKeyStatus(applicationKeyIndex: $applicationKeyIndex, " +
+            "networkKeyIndex: $networkKeyIndex, status: $status)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8003u
 
@@ -78,14 +81,15 @@ data class ConfigAppKeyStatus(
         override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
             it.size == 4
         }?.let { params ->
-            ConfigMessageStatus.from(params.first().toUByte())?.let {
-                val decodedNetAndAppKeyIndex = decodeNetAndAppKeyIndex(data = params, offset = 1)
-                ConfigAppKeyStatus(
-                    applicationKeyIndex = decodedNetAndAppKeyIndex.applicationKeyIndex,
-                    networkKeyIndex = decodedNetAndAppKeyIndex.networkKeyIndex,
-                    status = it
-                )
-            }
+            val status = ConfigMessageStatus.from(
+                value = params.first().toUByte()
+            ) ?: return null
+            val decodedNetAndAppKeyIndex = decodeNetAndAppKeyIndex(data = params, offset = 1)
+            ConfigAppKeyStatus(
+                applicationKeyIndex = decodedNetAndAppKeyIndex.applicationKeyIndex,
+                networkKeyIndex = decodedNetAndAppKeyIndex.networkKeyIndex,
+                status = status
+            )
         }
     }
 }
