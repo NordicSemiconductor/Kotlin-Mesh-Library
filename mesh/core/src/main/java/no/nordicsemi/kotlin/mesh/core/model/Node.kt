@@ -403,6 +403,25 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Network Keys to the node.
+     *
+     * This method overwrites any existing keys.
+     *
+     * @param netKeyIndexes List of Network Keys to set.
+     */
+    internal fun setNetKeys(netKeyIndexes: List<KeyIndex>) {
+        _netKeys = netKeyIndexes.map { NodeKey(it, false) }
+            .toMutableList()
+            .apply { sortBy { it.index } }
+        // if an insecure Node received a Network Key, make sure to lower the minSecurity field of
+        // all the keys in it.
+        if (security is Insecure) {
+            networkKeys.forEach { it.lowerSecurity() }
+        }
+        network?.updateTimestamp()
+    }
+
+    /**
      * Sets the given list of Network Keys to the Node.
      *
      * Note: This is overwrite any existing keys.
