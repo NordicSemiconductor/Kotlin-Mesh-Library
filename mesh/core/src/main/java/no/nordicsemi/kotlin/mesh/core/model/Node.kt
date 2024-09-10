@@ -403,6 +403,25 @@ data class Node internal constructor(
     }
 
     /**
+     * Sets the given list of Network Keys to the node.
+     *
+     * This method overwrites any existing keys.
+     *
+     * @param netKeyIndexes List of Network Keys to set.
+     */
+    internal fun setNetKeys(netKeyIndexes: List<KeyIndex>) {
+        _netKeys = netKeyIndexes.map { NodeKey(it, false) }
+            .toMutableList()
+            .apply { sortBy { it.index } }
+        // if an insecure Node received a Network Key, make sure to lower the minSecurity field of
+        // all the keys in it.
+        if (security is Insecure) {
+            networkKeys.forEach { it.lowerSecurity() }
+        }
+        network?.updateTimestamp()
+    }
+
+    /**
      * Sets the given list of Network Keys to the Node.
      *
      * Note: This is overwrite any existing keys.
@@ -454,21 +473,16 @@ data class Node internal constructor(
      */
     internal fun addAppKey(index: KeyIndex) {
         _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
-        network?.let {
-            if (security is Insecure) {
-                it.applicationKeys.get(index)?.boundNetworkKey?.lowerSecurity()
-            }
-            it.updateTimestamp()
-        }
+        network?.updateTimestamp()
     }
 
     /**
      * Mark the given application key in node as updated.
      *
-     * @param applicationKeyIndex Application Key index.
+     * @param index Application Key index.
      */
-    internal fun updateAppKey(applicationKeyIndex: KeyIndex) {
-        _appKeys.get(applicationKeyIndex)?.apply {
+    internal fun updateAppKey(index: KeyIndex) {
+        _appKeys.get(index)?.apply {
             update(true)
             network?.updateTimestamp()
         }

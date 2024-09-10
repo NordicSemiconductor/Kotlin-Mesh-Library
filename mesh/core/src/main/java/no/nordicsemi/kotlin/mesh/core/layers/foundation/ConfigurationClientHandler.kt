@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyUpdate
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
@@ -45,6 +46,7 @@ internal class ConfigurationClientHandler(
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
         ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
+        ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
@@ -97,46 +99,43 @@ internal class ConfigurationClientHandler(
         when (response) {
             // Composition Data
             is ConfigCompositionDataStatus -> {
-                require(localProvisioner?.primaryUnicastAddress?.address != source) {
-                    return
-                }
-                node(source)?.apply(response)
+                localProvisioner?.primaryUnicastAddress?.address?.takeIf {
+                    it == source
+                }?.let {
+                    node(it)?.apply(response)
+                } ?: return
             }
             // Network Keys Management
-            is ConfigNetKeyStatus -> {
-                if (response.isSuccess) {
-                    node(address = source)?.apply {
-                        when (request as ConfigNetKeyMessage) {
-                            is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
-                            is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
-                            is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
-                        }
+            is ConfigNetKeyStatus -> if (response.isSuccess) {
+                node(address = source)?.apply {
+                    when (request as ConfigNetKeyMessage) {
+                        is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
                     }
                 }
+            }
+
+            is ConfigNetKeyList -> node(address = source)?.apply {
+                setNetKeys(
+                    netKeyIndexes = response.networkKeyIndexes.toList()
+                )
             }
 
             // Application Keys Management
-            is ConfigAppKeyStatus -> {
-                if (response.isSuccess) {
-                    node(address = source)?.apply {
-                        when (request as ConfigNetKeyMessage) {
-                            is ConfigAppKeyAdd -> addAppKey(response.applicationKeyIndex)
-                            is ConfigAppKeyUpdate -> updateAppKey(response.applicationKeyIndex)
-                            is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
-                        }
-                    }
+            is ConfigAppKeyStatus -> if (response.isSuccess) node(address = source)?.apply {
+                when (request as ConfigNetKeyMessage) {
+                    is ConfigAppKeyAdd -> addAppKey(index = response.applicationKeyIndex)
+                    is ConfigAppKeyUpdate -> updateAppKey(index = response.applicationKeyIndex)
+                    is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
                 }
             }
 
-            is ConfigAppKeyList -> {
-                if (response.isSuccess) {
-                    node(address = source)?.apply {
-                        setAppKeys(
-                            appKeyIndexes = response.applicationKeyIndexes.toList(),
-                            netKeyIndex = response.networkKeyIndex
-                        )
-                    }
-                }
+            is ConfigAppKeyList -> node(address = source)?.apply {
+                setAppKeys(
+                    appKeyIndexes = response.applicationKeyIndexes.toList(),
+                    netKeyIndex = response.networkKeyIndex
+                )
             }
 
             is ConfigGattProxyStatus -> {
