@@ -117,14 +117,16 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetKeyList -> node(address = source)?.apply {
-                setNetKeys(response.networkKeyIndexes.toList())
+                setNetKeys(
+                    netKeyIndexes = response.networkKeyIndexes.toList()
+                )
             }
 
             // Application Keys Management
             is ConfigAppKeyStatus -> if (response.isSuccess) node(address = source)?.apply {
                 when (request as ConfigNetKeyMessage) {
-                    is ConfigAppKeyAdd -> addAppKey(response.applicationKeyIndex)
-                    is ConfigAppKeyUpdate -> updateAppKey(response.applicationKeyIndex)
+                    is ConfigAppKeyAdd -> addAppKey(index = response.applicationKeyIndex)
+                    is ConfigAppKeyUpdate -> updateAppKey(index = response.applicationKeyIndex)
                     is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
                 }
             }

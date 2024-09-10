@@ -473,21 +473,16 @@ data class Node internal constructor(
      */
     internal fun addAppKey(index: KeyIndex) {
         _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
-        network?.let {
-            if (security is Insecure) {
-                it.applicationKeys.get(index)?.boundNetworkKey?.lowerSecurity()
-            }
-            it.updateTimestamp()
-        }
+        network?.updateTimestamp()
     }
 
     /**
      * Mark the given application key in node as updated.
      *
-     * @param applicationKeyIndex Application Key index.
+     * @param index Application Key index.
      */
-    internal fun updateAppKey(applicationKeyIndex: KeyIndex) {
-        _appKeys.get(applicationKeyIndex)?.apply {
+    internal fun updateAppKey(index: KeyIndex) {
+        _appKeys.get(index)?.apply {
             update(true)
             network?.updateTimestamp()
         }
