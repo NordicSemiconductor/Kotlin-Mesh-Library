@@ -44,6 +44,7 @@ fun NavGraphBuilder.configNetworkKeysGraph(
             },
             onAddKeyClicked = viewmodel::addNetworkKey,
             onSwiped = viewmodel::onSwiped,
+            onRefresh = viewmodel::onRefresh,
             resetMessageState = viewmodel::resetMessageState,
             onBackPressed = onBackPressed,
         )

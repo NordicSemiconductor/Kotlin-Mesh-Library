@@ -20,8 +20,10 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -60,18 +62,28 @@ class ConfigNetKeysViewModel @Inject constructor(
         }.launchIn(scope = viewModelScope)
     }
 
-    fun onSwiped(networkKey: NetworkKey) {
+    internal fun onSwiped(networkKey: NetworkKey) {
         send(message = ConfigNetKeyDelete(networkKey.index))
     }
 
-    fun addNetworkKey(networkKey: NetworkKey) {
+    internal fun addNetworkKey(networkKey: NetworkKey) {
         send(message = ConfigNetKeyAdd(networkKey))
+    }
+
+    internal fun onRefresh() {
+        _uiState.value = uiState.value.copy(isRefreshing = true)
+        viewModelScope.launch {
+            repository.send(node = selectedNode, message = ConfigNetKeyGet())
+            _uiState.value = uiState.value.copy(isRefreshing = false)
+        }
     }
 
     private fun send(message: AcknowledgedConfigMessage) {
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
-                messageState = Failed(message = message, error = throwable)
+                messageState = Failed(message = message, error = throwable),
+                isRefreshing = false,
+                showProgress = false
             )
         }
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
@@ -82,7 +94,9 @@ class ConfigNetKeysViewModel @Inject constructor(
                     messageState = Completed(
                         message = message,
                         response = response as StatusMessage
-                    )
+                    ),
+                    isRefreshing = false,
+                    showProgress = false
                 )
             }
         }
@@ -107,6 +121,7 @@ sealed interface NetKeysState {
 data class NetKeysScreenUiState internal constructor(
     val netKeysState: NetKeysState = NetKeysState.Loading,
     val keys: List<NetworkKey> = emptyList(),
+    val isRefreshing: Boolean = false,
     val showProgress: Boolean = false,
     val messageState: MessageState = NotStarted
 )

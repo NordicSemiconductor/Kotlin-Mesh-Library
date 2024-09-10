@@ -25,6 +25,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +68,7 @@ internal fun ConfigNetKeysRoute(
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
+    onRefresh: () -> Unit,
     resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -91,6 +94,7 @@ internal fun ConfigNetKeysRoute(
         navigateToNetworkKeys = navigateToNetworkKeys,
         onAddKeyClicked = onAddKeyClicked,
         onSwiped = onSwiped,
+        onRefresh = onRefresh,
         resetMessageState = resetMessageState
     )
 }
@@ -105,6 +109,7 @@ private fun ConfigNetKeysScreen(
     navigateToNetworkKeys: () -> Unit,
     onAddKeyClicked: (NetworkKey) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
+    onRefresh: () -> Unit,
     resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -119,12 +124,14 @@ private fun ConfigNetKeysScreen(
             )
 
             is NetKeysState.Success -> {
-                NetworkKeys(
+                NetworkKeysInfo(
                     context = context,
                     coroutineScope = rememberCoroutineScope(),
                     snackbarHostState = snackbarHostState,
                     keys = uiState.netKeysState.netKeys,
-                    onSwiped = onSwiped
+                    onSwiped = onSwiped,
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = onRefresh
                 )
             }
 
@@ -145,7 +152,7 @@ private fun ConfigNetKeysScreen(
         )
     }
 
-    when(uiState.messageState) {
+    when (uiState.messageState) {
         is Failed -> {
             MeshMessageStatusDialog(
                 text = uiState.messageState.error.message ?: stringResource(R.string.unknown_error),
@@ -222,29 +229,67 @@ private fun BottomSheetKeys(
 }
 
 @Composable
+private fun NetworkKeysInfo(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    keys: List<NetworkKey>,
+    onSwiped: (NetworkKey) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit
+) {
+    when (keys.isNotEmpty()) {
+        true -> NetworkKeys(
+            context = context,
+            coroutineScope = coroutineScope,
+            snackbarHostState = snackbarHostState,
+            keys = keys,
+            onSwiped = onSwiped,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh
+        )
+
+        false -> MeshNoItemsAvailable(
+            imageVector = Icons.Outlined.VpnKey,
+            title = context.getString(R.string.label_no_keys_added)
+        )
+    }
+}
+
+@Composable
 private fun NetworkKeys(
     context: Context,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
-    onSwiped: (NetworkKey) -> Unit
+    onSwiped: (NetworkKey) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp),
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    val state = rememberPullToRefreshState()
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        state = state,
+        onRefresh = onRefresh,
+        isRefreshing = isRefreshing
     ) {
-        items(items = keys) { key ->
-            SwipeToDismissKey(
-                key = key,
-                context = context,
-                coroutineScope = coroutineScope,
-                snackbarHostState = snackbarHostState,
-                onSwiped = onSwiped
-            )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
+            items(items = keys) { key ->
+                SwipeToDismissKey(
+                    key = key,
+                    context = context,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    onSwiped = onSwiped
+                )
+            }
         }
     }
 }
