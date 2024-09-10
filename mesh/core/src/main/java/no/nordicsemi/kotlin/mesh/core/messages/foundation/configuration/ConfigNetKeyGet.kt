@@ -17,7 +17,7 @@ class ConfigNetKeyGet : AcknowledgedConfigMessage {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = null
 
-    override val responseOpCode = ConfigNetKeyStatus.opCode
+    override val responseOpCode = ConfigNetKeyList.opCode
 
     override fun toString() = "ConfigNetKeyGet(opCode: $opCode)"
 
@@ -27,6 +27,6 @@ class ConfigNetKeyGet : AcknowledgedConfigMessage {
             it.isEmpty()
         }?.let {
             ConfigNetKeyGet()
-        } ?: ConfigNetKeyGet()
+        }
     }
 }

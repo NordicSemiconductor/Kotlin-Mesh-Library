@@ -46,6 +46,7 @@ internal class ConfigurationClientHandler(
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
         ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
+        ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,

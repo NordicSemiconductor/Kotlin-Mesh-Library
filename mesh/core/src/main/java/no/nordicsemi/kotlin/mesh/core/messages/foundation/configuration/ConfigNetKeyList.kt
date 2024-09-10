@@ -1,4 +1,4 @@
- @file:Suppress("unused")
+@file:Suppress("unused")
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
@@ -25,7 +25,9 @@ class ConfigNetKeyList(
 
     constructor(networkKeys: List<NetworkKey>) : this(networkKeys.map { it.index }.toTypedArray())
 
-    override fun toString() = "ConfigNetKeyList(networkKeyIndex: $networkKeyIndexes)"
+    override fun toString() = "ConfigNetKeyList(networkKeyIndex: ${
+        networkKeyIndexes.joinToString(separator = ", ", transform = { it.toString() })
+    })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8043u
