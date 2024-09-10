@@ -23,7 +23,11 @@ class ConfigNetKeyList(
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = null
 
-    constructor(networkKeys: List<NetworkKey>) : this(networkKeys.map { it.index }.toTypedArray())
+    constructor(networkKeys: List<NetworkKey>) : this(
+        networkKeyIndexes = networkKeys.map {
+            it.index
+        }.toTypedArray()
+    )
 
     override fun toString() = "ConfigNetKeyList(networkKeyIndex: ${
         networkKeyIndexes.joinToString(separator = ", ", transform = { it.toString() })
