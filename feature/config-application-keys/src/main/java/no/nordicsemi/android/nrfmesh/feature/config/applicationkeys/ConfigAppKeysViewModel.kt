@@ -23,7 +23,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -87,10 +86,11 @@ class ConfigAppKeysViewModel @Inject constructor(
     }
 
     private fun send(message: AcknowledgedConfigMessage) {
-
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
-                messageState = Failed(message = message, error = throwable)
+                messageState = Failed(message = message, error = throwable),
+                isRefreshing = false,
+                showProgress = false
             )
         }
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
@@ -101,10 +101,11 @@ class ConfigAppKeysViewModel @Inject constructor(
                     messageState = Completed(
                         message = message,
                         response = response as StatusMessage
-                    )
+                    ),
+                    isRefreshing = false,
+                    showProgress = false
                 )
             }
-            repository.save()
         }
     }
 
