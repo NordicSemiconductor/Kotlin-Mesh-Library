@@ -1,8 +1,8 @@
 package no.nordicsemi.android.nrfmesh.core.common
 
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 
 /**
  * Defines the message state of a mesh message.
@@ -34,7 +34,7 @@ data class Sending(val message: BaseMeshMessage) : MessageState()
  */
 data class Completed(
     val message: MeshMessage,
-    val response: StatusMessage? = null
+    val response: ConfigResponse? = null
 ) : MessageState()
 
 /**

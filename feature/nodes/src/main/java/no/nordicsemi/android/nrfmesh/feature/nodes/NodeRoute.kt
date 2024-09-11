@@ -2,13 +2,13 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
@@ -112,15 +112,17 @@ private fun NodeScreen(
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp)
+                .verticalScroll(state = rememberScrollState())
         ) {
             when (nodeState) {
                 NodeState.Loading -> {}
 
                 is NodeState.Success -> {
-                    nodeInfo(
+                    NodeInfo(
                         node = nodeState.node,
                         onNameChanged = onNameChanged,
                         onNetworkKeysClicked = onNetworkKeysClicked,
@@ -135,20 +137,18 @@ private fun NodeScreen(
                 }
 
                 is NodeState.Error -> {
-                    item {
-                        MeshNoItemsAvailable(
-                            imageVector = Icons.Outlined.ErrorOutline,
-                            title = nodeState.throwable.message ?: "Unknown error"
-                        )
-                    }
+                    MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.ErrorOutline,
+                        title = nodeState.throwable.message ?: "Unknown error"
+                    )
                 }
             }
         }
     }
 }
 
-
-private fun LazyListScope.nodeInfo(
+@Composable
+private fun NodeInfo(
     node: Node,
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
@@ -160,47 +160,41 @@ private fun LazyListScope.nodeInfo(
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit
 ) {
-    item { NodeNameRow(name = node.name, onNameChanged = onNameChanged) }
-    item { SectionTitle(title = stringResource(id = R.string.title_keys)) }
-    item {
-        NetworkKeysRow(count = node.networkKeys.size, onNetworkKeysClicked = {
-            onNetworkKeysClicked(node.uuid)
-        })
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
-        ApplicationKeysRow(count = node.applicationKeys.size, onApplicationKeysClicked = {
+    NodeNameRow(name = node.name, onNameChanged = onNameChanged)
+    SectionTitle(title = stringResource(id = R.string.title_keys))
+    NetworkKeysRow(
+        count = node.networkKeys.size,
+        onNetworkKeysClicked = { onNetworkKeysClicked(node.uuid) }
+    )
+    Spacer(modifier = Modifier.size(8.dp))
+    ApplicationKeysRow(
+        count = node.applicationKeys.size,
+        onApplicationKeysClicked = {
             onApplicationKeysClicked(node.uuid)
-        })
-    }
-    item { SectionTitle(title = stringResource(id = R.string.title_elements)) }
-    node.elements.forEachIndexed { index, element ->
-        item {
-            ElementRow(
-                element = element,
-                onElementsClicked = {
-                    onElementsClicked(node.uuid)
-                }
-            )
-            if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
         }
-    }
-    item {
-        SectionTitle(title = stringResource(id = R.string.title_time_to_live))
-    }
-    item { DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked) }
-    item { SectionTitle(title = stringResource(id = R.string.title_proxy_state)) }
-    item {
-        ProxyStateRow(
-            proxy = node.features.proxy,
-            onProxyStateToggled = onProxyStateToggled,
-            onGetProxyStateClicked = onGetProxyStateClicked
+    )
+    SectionTitle(title = stringResource(id = R.string.title_elements))
+    node.elements.forEachIndexed { index, element ->
+        ElementRow(
+            element = element,
+            onElementsClicked = {
+                onElementsClicked(node.uuid)
+            }
         )
+        if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
     }
-    item { SectionTitle(title = stringResource(id = R.string.title_exclusions)) }
-    item { ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded) }
-    item { SectionTitle(title = stringResource(id = R.string.label_reset_node)) }
-    item { ResetRow(onResetClicked = onResetClicked) }
+    SectionTitle(title = stringResource(id = R.string.title_time_to_live))
+    DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked)
+    SectionTitle(title = stringResource(id = R.string.title_proxy_state))
+    ProxyStateRow(
+        proxy = node.features.proxy,
+        onProxyStateToggled = onProxyStateToggled,
+        onGetProxyStateClicked = onGetProxyStateClicked
+    )
+    SectionTitle(title = stringResource(id = R.string.title_exclusions))
+    ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded)
+    SectionTitle(title = stringResource(id = R.string.label_reset_node))
+    ResetRow(onResetClicked = onResetClicked)
 }
 
 @Composable

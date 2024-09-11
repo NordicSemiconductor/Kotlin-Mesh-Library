@@ -13,4 +13,5 @@
     <string name="action_ok">@android:string/ok</string>
     <string name="title_message_status">Message Status</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="label_success">success</string>
 </resources>

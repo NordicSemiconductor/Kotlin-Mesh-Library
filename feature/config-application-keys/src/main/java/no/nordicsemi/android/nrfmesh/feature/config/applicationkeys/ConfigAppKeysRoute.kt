@@ -58,6 +58,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 
 @Composable
@@ -163,7 +164,10 @@ private fun ConfigAppKeysRoute(
         is Completed -> {
             uiState.messageState.response?.let {
                 MeshMessageStatusDialog(
-                    text = it.message,
+                    text = when (it) {
+                        is StatusMessage -> it.message
+                        else -> stringResource(id = R.string.label_success)
+                    },
                     showDismissButton = uiState.messageState.didFail(),
                     onDismissRequest = resetMessageState,
                 )

@@ -19,8 +19,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyGet
@@ -72,10 +71,7 @@ class ConfigNetKeysViewModel @Inject constructor(
 
     internal fun onRefresh() {
         _uiState.value = uiState.value.copy(isRefreshing = true)
-        viewModelScope.launch {
-            repository.send(node = selectedNode, message = ConfigNetKeyGet())
-            _uiState.value = uiState.value.copy(isRefreshing = false)
-        }
+        send(message = ConfigNetKeyGet())
     }
 
     private fun send(message: AcknowledgedConfigMessage) {
@@ -88,12 +84,20 @@ class ConfigNetKeysViewModel @Inject constructor(
         }
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
         viewModelScope.launch(context = handler) {
-            val msg = repository.send(selectedNode, message)
-            msg.let { response ->
+            repository.send(selectedNode, message)?.let { response ->
                 _uiState.value = _uiState.value.copy(
                     messageState = Completed(
                         message = message,
-                        response = response as StatusMessage
+                        response = response as ConfigResponse
+                    ),
+                    isRefreshing = false,
+                    showProgress = false
+                )
+            } ?: run {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(
+                        message = message,
+                        error = IllegalStateException("No response received")
                     ),
                     isRefreshing = false,
                     showProgress = false
