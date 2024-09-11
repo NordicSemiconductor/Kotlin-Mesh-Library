@@ -119,7 +119,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
 
                     LowerTransportPduType.CONTROL_MESSAGE -> {
                         val opCode = (networkPdu.transportPdu[0].toUByte().toInt() and 0x7F)
-                        msg = when(opCode == 0x00){
+                        msg = when (opCode == 0x00) {
                             true -> {
                                 val ack = SegmentAcknowledgementMessage.init(networkPdu)
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
@@ -127,6 +127,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                 }
                                 Message.Acknowledgement(ack)
                             }
+
                             else -> {
                                 val controlMessage = ControlMessage.init(networkPdu)
                                 logger?.d(LogCategory.LOWER_TRANSPORT) {
@@ -174,22 +175,27 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         initialTtl: UByte?,
         networkKey: NetworkKey
     ) {
-        network.localProvisioner?.node?.let { node ->
+        val localProvisionerNode = network.localProvisioner?.node ?: return
+        localProvisionerNode.let { node ->
+            val localElement = node.element(address = pdu.source) ?: return
             val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
             val message = AccessMessage(pdu = pdu, networkKey = networkKey)
             try {
                 logger?.i(LogCategory.LOWER_TRANSPORT) { "Sending $message" }
-                networkManager.networkLayer.send(
-                    pdu = message,
-                    type = PduType.NETWORK_PDU,
-                    ttl = ttl
-                )
+                networkManager.run {
+                    networkLayer.send(
+                        pdu = message,
+                        type = PduType.NETWORK_PDU,
+                        ttl = ttl
+                    )
+                    clearOutgoingMessages(destination = pdu.destination)
+                }
             } catch (ex: Exception) {
                 logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
-                pdu.takeIf {
-                    it.message != null && it.message.isAcknowledged
+                pdu.message!!.takeIf {
+                    it.isAcknowledged
                 }?.let {
-                    // TODO
+                    networkManager.clearOutgoingMessages(destination = pdu.destination)
                 }
             }
         }

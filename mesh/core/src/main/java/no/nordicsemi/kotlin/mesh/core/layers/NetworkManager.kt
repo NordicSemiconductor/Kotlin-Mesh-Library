@@ -358,18 +358,12 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
     ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return null }
-        return try {
-            accessLayer.send(
-                message = configMessage,
-                localElement = element,
-                destination = destination,
-                initialTtl = initialTtl
-            )
-        } catch (e: Busy) {
-            mutex.withLock { outgoingMessages.remove(meshAddress) }
-            //TODO clarify
-            throw e
-        }
+        return accessLayer.send(
+            message = configMessage,
+            localElement = element,
+            destination = destination,
+            initialTtl = initialTtl
+        )
     }
 
     /**
