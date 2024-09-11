@@ -175,9 +175,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
         initialTtl: UByte?,
         networkKey: NetworkKey
     ) {
-        val localProvisionerNode = network.localProvisioner?.node ?: return
-        localProvisionerNode.let { node ->
-            val localElement = node.element(address = pdu.source) ?: return
+        network.localProvisioner?.node?.let { node ->
             val ttl = initialTtl ?: node.defaultTTL ?: networkManager.networkParameters.defaultTtl
             val message = AccessMessage(pdu = pdu, networkKey = networkKey)
             try {
