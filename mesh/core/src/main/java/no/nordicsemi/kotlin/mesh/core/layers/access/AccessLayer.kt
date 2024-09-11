@@ -554,8 +554,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                 break
             }
         }
-
-        // If the message has not been decoded and handled by any of the ModelEventHandlers.
+        // If the message has not been decoded and handled by any of the ModelEventHandlers return
+        // it to the user as an Unknown Message.
+        // To add support to any new message, create a ModelEventHandler and add it to the local
+        // Element.
         return newMessage ?: UnknownMessage(accessPdu = accessPdu)
     }
 
