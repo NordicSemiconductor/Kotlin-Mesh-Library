@@ -31,7 +31,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toUShort
  * @param features    Features that trigger Heartbeat messages.
  * @constructor Creates a ConfigHeartbeatPublicationStatus message.
  */
-data class ConfigHeartbeatPublicationStatus(
+class ConfigHeartbeatPublicationStatus(
     val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog = 0x00u,
     val periodLog: UByte = 0x00u,
@@ -54,37 +54,10 @@ data class ConfigHeartbeatPublicationStatus(
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ConfigHeartbeatPublicationStatus
-
-        if (destination != other.destination) return false
-        if (countLog != other.countLog) return false
-        if (periodLog != other.periodLog) return false
-        if (ttl != other.ttl) return false
-        if (!features.contentEquals(other.features)) return false
-        if (networkKeyIndex != other.networkKeyIndex) return false
-        if (status != other.status) return false
-        if (opCode != other.opCode) return false
-        if (count != other.count) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = destination.hashCode()
-        result = 31 * result + countLog.hashCode()
-        result = 31 * result + periodLog.hashCode()
-        result = 31 * result + ttl.hashCode()
-        result = 31 * result + features.contentHashCode()
-        result = 31 * result + networkKeyIndex.hashCode()
-        result = 31 * result + status.hashCode()
-        result = 31 * result + opCode.hashCode()
-        result = 31 * result + count.hashCode()
-        return result
-    }
+    override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
+            "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: {${
+                features.joinToString(separator = ", ") { it.toString() }
+            }}, " + "networkKeyIndex: $networkKeyIndex, status: $status)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x06u

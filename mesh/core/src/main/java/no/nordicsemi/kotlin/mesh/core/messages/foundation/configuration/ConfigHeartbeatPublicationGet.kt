@@ -19,9 +19,7 @@ class ConfigHeartbeatPublicationGet : AcknowledgedConfigMessage {
     override val parameters: ByteArray? = null
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String {
-        return "ConfigHeartbeatPublicationGet opCode ${opCode.toHexString()}"
-    }
+    override fun toString() = "ConfigHeartbeatPublicationGet opCode ${opCode.toHexString()}"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8038u
