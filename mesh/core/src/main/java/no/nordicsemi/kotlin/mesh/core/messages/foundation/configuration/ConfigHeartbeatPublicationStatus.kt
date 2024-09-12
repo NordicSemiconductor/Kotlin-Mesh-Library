@@ -87,7 +87,7 @@ data class ConfigHeartbeatPublicationStatus(
     }
 
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode: UInt = 0x803Cu
+        override val opCode: UInt = 0x06u
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 10
