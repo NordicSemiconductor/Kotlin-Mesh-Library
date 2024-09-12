@@ -27,7 +27,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
  * @constructor Creates an Element object.
  */
 @Serializable
-data class Element constructor(
+data class Element(
     @Serializable(with = LocationAsStringSerializer::class)
     val location: Location,
     @SerialName(value = "models")
