@@ -122,6 +122,8 @@ sealed class Feature {
 @Serializable
 data class Relay internal constructor(override val state: FeatureState) : Feature() {
     override val rawValue: UShort = (state.value shr 0).toUShort()
+
+    override fun toString() = "Relay(state: $state, rawValue: $rawValue)"
 }
 
 /**
@@ -133,6 +135,8 @@ data class Relay internal constructor(override val state: FeatureState) : Featur
 @Serializable
 data class Proxy internal constructor(override var state: FeatureState) : Feature() {
     override val rawValue: UShort = (state.value shr 1).toUShort()
+
+    override fun toString() = "Proxy(state: $state, rawValue: $rawValue)"
 }
 
 /**
@@ -144,6 +148,8 @@ data class Proxy internal constructor(override var state: FeatureState) : Featur
 @Serializable
 data class Friend internal constructor(override val state: FeatureState) : Feature() {
     override val rawValue: UShort = (state.value shr 2).toUShort()
+
+    override fun toString() = "Friend(state: $state, rawValue: $rawValue)"
 }
 
 /**
@@ -155,6 +161,8 @@ data class Friend internal constructor(override val state: FeatureState) : Featu
 @Serializable
 data class LowPower internal constructor(override val state: FeatureState) : Feature() {
     override val rawValue: UShort = (state.value shr 3).toUShort()
+
+    override fun toString() = "LowPower(state: $state, rawValue: $rawValue)"
 }
 
 /**
@@ -176,6 +184,14 @@ sealed class FeatureState(val value: Int) {
     /** Unsupported state. */
     @Serializable
     data object Unsupported : FeatureState(value = UNSUPPORTED)
+
+    override fun toString() = "FeatureState(${
+        when (this) {
+            Disabled -> "Disabled"
+            Enabled -> "Enabled"
+            Unsupported -> "Unsupported"
+        }
+    })"
 
     companion object {
 
