@@ -75,8 +75,7 @@ internal fun List<SegmentedMessage?>.unacknowledged() = filterNotNull()
  *
  * All segments in teh array must not be null.
  */
-internal fun List<SegmentedMessage?>.reassembled() = if (first() is SegmentedAccessMessage) {
-    AccessMessage.init(segments = map { it as SegmentedAccessMessage })
-} else {
-    ControlMessage.init(segments = map { it as SegmentedControlMessage })
+internal fun List<SegmentedMessage?>.reassembled() = when (first() is SegmentedAccessMessage) {
+    true -> AccessMessage.init(segments = map { it as SegmentedAccessMessage })
+    false -> ControlMessage.init(segments = map { it as SegmentedControlMessage })
 }
