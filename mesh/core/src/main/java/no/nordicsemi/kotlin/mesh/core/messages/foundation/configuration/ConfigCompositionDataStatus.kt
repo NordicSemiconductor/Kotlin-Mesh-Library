@@ -139,10 +139,14 @@ data class Page0(
                 require(compositionData.size >= offset + 4) {
                     return null
                 }
-                val rawValue = compositionData.getUShort(offset)
-                val location = Location.from(rawValue)
-                val sigModelsByteCount = compositionData.getInt(offset + 2, format = IntFormat.UINT8) * 2
-                val vendorModelsByteCount = compositionData.getInt(offset + 3, format = IntFormat.UINT8) * 4
+                val rawValue = compositionData.getUShort(offset = offset)
+                val location = Location.from(value = rawValue)
+                val sigModelsByteCount = compositionData.getInt(
+                    offset = offset + 2,
+                    format = IntFormat.UINT8
+                ) * 2
+                val vendorModelsByteCount =
+                    compositionData.getInt(offset = offset + 3, format = IntFormat.UINT8) * 4
 
                 require(
                     compositionData.size >=
@@ -161,7 +165,7 @@ data class Page0(
                 // Read models.
                 val element = Element(location = location).apply {
                     this.index = index
-                    this.name = "Element ${elementNo++}"
+                    name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
                     val sigModelId = compositionData.getUShort(i)
