@@ -108,12 +108,8 @@ data class NetworkParameters(
             _defaultTtl = max(2, min(value.toInt(), 127)).toUByte()
         }
 
-    var discardTimeout: Duration
+    val discardTimeout: Duration
         get() = ((_sarDiscardTimeout + 1u).toInt() * 5).seconds
-        set(value) {
-            _sarDiscardTimeout =
-                (min(5, value.toInt(DurationUnit.SECONDS) / 5).toUByte() - 1u).toUByte()
-        }
 
     var sarDiscardTimeout: UByte
         get() = _sarDiscardTimeout
@@ -149,23 +145,11 @@ data class NetworkParameters(
             _sarReceiverSegmentIntervalStep = min(value.toInt(), 0b1111).toUByte()
         }
 
-    var acknowledgementDelayIncrement: Double
+    val acknowledgementDelayIncrement: Double
         get() = _sarAcknowledgementDelayIncrement.toDouble() + 1.5
-        set(value) {
-            val min1 = min(8.5, acknowledgementDelayIncrement)
-            _sarAcknowledgementDelayIncrement = max(0.0, max(1.5, min1) - 1.5).toInt().toUByte()
-        }
 
-    var segmentReceptionInterval: Duration
-        get() = ((_sarReceiverSegmentIntervalStep + 1u).toInt() * 10).milliseconds
-        set(value) {
-            val min1 = min(
-                a = 0.16,
-                b = (value.toDouble(DurationUnit.MILLISECONDS)) * 100
-            )
-            _sarReceiverSegmentIntervalStep =
-                ((max(a = 0.01, b = min1) * 100) - 1.0).toInt().toUByte()
-        }
+    val segmentReceptionInterval: Duration
+        get() = ((_sarReceiverSegmentIntervalStep + 1u).toInt() * 0.01).seconds
 
     internal fun acknowledgementTimerInterval(segN: UByte): Duration {
         val min = min(segN.toDouble() + 0.5, acknowledgementDelayIncrement)
@@ -174,8 +158,7 @@ data class NetworkParameters(
     }
 
     internal val completeAcknowledgementTimerInterval: Duration
-        get() = (acknowledgementDelayIncrement * (segmentReceptionInterval
-            .toDouble(unit = DurationUnit.SECONDS)))
+        get() = (acknowledgementDelayIncrement * (segmentReceptionInterval.toDouble(unit = DurationUnit.SECONDS)))
             .seconds
 
 
@@ -267,7 +250,7 @@ data class NetworkParameters(
             _sarMulticastRetransmissionsIntervalStep = min(value.toInt(), 0b1111).toUByte()
         }
 
-    var multicastRetransmissionsInterval : Duration
+    var multicastRetransmissionsInterval: Duration
         get() = ((_sarMulticastRetransmissionsIntervalStep + 1u).toInt() * 0.025).seconds
         set(value) {
             val max = max(value.toDouble(DurationUnit.MILLISECONDS), 0.025)
