@@ -5,7 +5,6 @@ package no.nordicsemi.kotlin.mesh.core.layers
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
