@@ -27,6 +27,8 @@ internal interface LowerTransportPdu {
 
 /**
  * Defines the Lower Transport PDU types.
+ *
+ * @property rawValue value
  */
 internal enum class LowerTransportPduType(val rawValue: Byte) {
     ACCESS_MESSAGE(rawValue = 0),
