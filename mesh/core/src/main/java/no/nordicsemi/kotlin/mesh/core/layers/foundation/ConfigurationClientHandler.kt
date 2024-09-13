@@ -99,11 +99,10 @@ internal class ConfigurationClientHandler(
         when (response) {
             // Composition Data
             is ConfigCompositionDataStatus -> {
-                localProvisioner?.primaryUnicastAddress?.address?.takeIf {
-                    it == source
-                }?.let {
-                    node(it)?.apply(response)
-                } ?: return
+                require(localProvisioner?.primaryUnicastAddress?.address != source) {
+                    return
+                }
+                node(address = source)?.apply(compositionData = response)
             }
             // Network Keys Management
             is ConfigNetKeyStatus -> if (response.isSuccess) {
