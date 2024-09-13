@@ -39,10 +39,11 @@ sealed interface CompositionDataPage {
  * @property page Page containing the composition of a node.
  * @constructor Creates a ConfigCompositionDataStatus message.
  */
-
 class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = page.parameters
+
+    override fun toString() = "ConfigCompositionDataStatus(opCode: $opCode, page: $page)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x02u
@@ -51,7 +52,9 @@ class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigRespons
             it.isNotEmpty()
         }?.let {
             if (it[0] == 0.toByte())
-                Page0.init(it)?.let { page0 -> ConfigCompositionDataStatus(page = page0) }
+                Page0.init(it)?.let { page0 ->
+                    ConfigCompositionDataStatus(page = page0)
+                }
             else null
         }
     }
