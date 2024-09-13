@@ -32,8 +32,6 @@ private sealed class Message {
     data class LowerTransportLayerPdu(val message: LowerTransportPdu) : Message()
 
     data class Acknowledgement(val ack: SegmentAcknowledgementMessage) : Message()
-
-    data object None : Message()
 }
 
 sealed class SecurityError : Exception() {
