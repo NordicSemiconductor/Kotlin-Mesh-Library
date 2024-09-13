@@ -4,14 +4,22 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.common.Completed
+import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted
+import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
@@ -55,8 +63,7 @@ internal class NodeViewModel @Inject internal constructor(
     internal fun onRefresh() {
         _uiState.value = uiState.value.copy(isRefreshing = true)
         viewModelScope.launch {
-            repository.send(selectedNode, ConfigCompositionDataGet(page = 0x00u))
-            _uiState.value = uiState.value.copy(isRefreshing = false)
+            send(message = ConfigCompositionDataGet(page = 0x00u))
         }
     }
 
@@ -83,7 +90,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onProxyStateToggled(enabled: Boolean) {
         viewModelScope.launch {
-            repository.send(node = selectedNode, message = ConfigGattProxySet(enabled))
+            send(message = ConfigGattProxySet(enabled))
         }
     }
 
@@ -92,7 +99,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onGetProxyStateClicked() {
         viewModelScope.launch {
-            repository.send(node = selectedNode, message = ConfigGattProxyGet())
+            send(message = ConfigGattProxyGet())
         }
     }
 
@@ -114,8 +121,38 @@ internal class NodeViewModel @Inject internal constructor(
      */
     fun onResetClicked() {
         viewModelScope.launch {
-            repository.send(node = selectedNode, message = ConfigNodeReset())?.let {
-                // navigateUp()
+            send(ConfigNodeReset())
+        }
+    }
+
+    private fun send(message: AcknowledgedConfigMessage) {
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            _uiState.value = _uiState.value.copy(
+                messageState = Failed(message = message, error = throwable),
+                isRefreshing = false,
+                showProgress = false
+            )
+        }
+        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
+        viewModelScope.launch(context = handler) {
+            repository.send(selectedNode, message)?.let { response ->
+                _uiState.value = _uiState.value.copy(
+                    messageState = Completed(
+                        message = message,
+                        response = response as ConfigResponse
+                    ),
+                    isRefreshing = false,
+                    showProgress = false
+                )
+            } ?: run {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(
+                        message = message,
+                        error = IllegalStateException("No response received")
+                    ),
+                    isRefreshing = false,
+                    showProgress = false
+                )
             }
         }
     }
@@ -133,4 +170,6 @@ sealed interface NodeState {
 data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading,
     val isRefreshing: Boolean = false,
+    val showProgress: Boolean = false,
+    val messageState: MessageState = NotStarted
 )

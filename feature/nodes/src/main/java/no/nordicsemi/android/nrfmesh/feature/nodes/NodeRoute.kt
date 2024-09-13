@@ -115,9 +115,9 @@ private fun NodeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 8.dp)
-                .verticalScroll(state = rememberScrollState())
+                .verticalScroll(state = rememberScrollState()),
         ) {
+            Spacer(modifier = Modifier.size(8.dp))
             when (nodeState) {
                 NodeState.Loading -> {}
 
@@ -143,6 +143,7 @@ private fun NodeScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.size(8.dp))
         }
     }
 }
