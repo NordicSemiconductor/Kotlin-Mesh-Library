@@ -207,8 +207,7 @@ private fun NodeInfo(
     val scrollState = rememberScrollState()
     PullToRefreshBox(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp),
+            .fillMaxSize(),
         state = state,
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
@@ -218,6 +217,7 @@ private fun NodeInfo(
                 .fillMaxSize()
                 .verticalScroll(state = scrollState)
         ) {
+            Spacer(modifier = Modifier.size(8.dp))
             NodeNameRow(name = node.name, onNameChanged = onNameChanged)
             SectionTitle(title = stringResource(id = R.string.title_keys))
             NetworkKeysRow(
@@ -253,6 +253,7 @@ private fun NodeInfo(
             ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded)
             SectionTitle(title = stringResource(id = R.string.label_reset_node))
             ResetRow(onResetClicked = onResetClicked)
+            Spacer(modifier = Modifier.size(8.dp))
         }
     }
 }
