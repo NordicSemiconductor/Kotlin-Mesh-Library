@@ -1,10 +1,12 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -35,10 +38,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
@@ -75,6 +81,7 @@ fun NodeRoute(
     }
     NodeScreen(
         nodeState = uiState.nodeState,
+        messageState = uiState.messageState,
         isRefreshing = uiState.isRefreshing,
         onRefresh = onRefresh,
         onNameChanged = onNameChanged,
@@ -89,10 +96,59 @@ fun NodeRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NodeScreen(
     nodeState: NodeState,
+    messageState: MessageState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onNameChanged: (String) -> Unit,
+    onNetworkKeysClicked: (UUID) -> Unit,
+    onApplicationKeysClicked: (UUID) -> Unit,
+    onElementsClicked: (UUID) -> Unit,
+    onGetTtlClicked: () -> Unit,
+    onProxyStateToggled: (Boolean) -> Unit,
+    onGetProxyStateClicked: () -> Unit,
+    onExcluded: (Boolean) -> Unit,
+    onResetClicked: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(visible = messageState.isInProgress()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        when (nodeState) {
+            NodeState.Loading -> MeshLoadingItems(
+                imageVector = Icons.Outlined.VpnKey,
+                title = stringResource(id = R.string.title_loading_node)
+            )
+
+            is NodeState.Success -> NodeInfo(
+                node = nodeState.node,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                onNameChanged = onNameChanged,
+                onNetworkKeysClicked = onNetworkKeysClicked,
+                onApplicationKeysClicked = onApplicationKeysClicked,
+                onElementsClicked = onElementsClicked,
+                onGetTtlClicked = onGetTtlClicked,
+                onProxyStateToggled = onProxyStateToggled,
+                onGetProxyStateClicked = onGetProxyStateClicked,
+                onExcluded = onExcluded,
+                onResetClicked = onResetClicked
+            )
+
+            is NodeState.Error -> MeshNoItemsAvailable(
+                imageVector = Icons.Outlined.ErrorOutline,
+                title = nodeState.throwable.message ?: "Unknown error"
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NodeInfo(
+    node: Node,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onNameChanged: (String) -> Unit,
@@ -106,95 +162,55 @@ private fun NodeScreen(
     onResetClicked: () -> Unit
 ) {
     val state = rememberPullToRefreshState()
+    val scrollState = rememberScrollState()
     PullToRefreshBox(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 8.dp),
         state = state,
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 8.dp)
-                .verticalScroll(state = rememberScrollState())
-        ) {
-            when (nodeState) {
-                NodeState.Loading -> {}
-
-                is NodeState.Success -> {
-                    NodeInfo(
-                        node = nodeState.node,
-                        onNameChanged = onNameChanged,
-                        onNetworkKeysClicked = onNetworkKeysClicked,
-                        onApplicationKeysClicked = onApplicationKeysClicked,
-                        onElementsClicked = onElementsClicked,
-                        onGetTtlClicked = onGetTtlClicked,
-                        onProxyStateToggled = onProxyStateToggled,
-                        onGetProxyStateClicked = onGetProxyStateClicked,
-                        onExcluded = onExcluded,
-                        onResetClicked = onResetClicked
-                    )
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(state = scrollState)) {
+            NodeNameRow(name = node.name, onNameChanged = onNameChanged)
+            SectionTitle(title = stringResource(id = R.string.title_keys))
+            NetworkKeysRow(
+                count = node.networkKeys.size,
+                onNetworkKeysClicked = { onNetworkKeysClicked(node.uuid) }
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            ApplicationKeysRow(
+                count = node.applicationKeys.size,
+                onApplicationKeysClicked = {
+                    onApplicationKeysClicked(node.uuid)
                 }
-
-                is NodeState.Error -> {
-                    MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.ErrorOutline,
-                        title = nodeState.throwable.message ?: "Unknown error"
-                    )
-                }
+            )
+            SectionTitle(title = stringResource(id = R.string.title_elements))
+            node.elements.forEachIndexed { index, element ->
+                ElementRow(
+                    element = element,
+                    onElementsClicked = {
+                        onElementsClicked(node.uuid)
+                    }
+                )
+                if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }
+            SectionTitle(title = stringResource(id = R.string.title_time_to_live))
+            DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked)
+            SectionTitle(title = stringResource(id = R.string.title_proxy_state))
+            ProxyStateRow(
+                proxy = node.features.proxy,
+                onProxyStateToggled = onProxyStateToggled,
+                onGetProxyStateClicked = onGetProxyStateClicked
+            )
+            SectionTitle(title = stringResource(id = R.string.title_exclusions))
+            ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded)
+            SectionTitle(title = stringResource(id = R.string.label_reset_node))
+            ResetRow(onResetClicked = onResetClicked)
         }
     }
-}
-
-@Composable
-private fun NodeInfo(
-    node: Node,
-    onNameChanged: (String) -> Unit,
-    onNetworkKeysClicked: (UUID) -> Unit,
-    onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
-    onGetTtlClicked: () -> Unit,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit,
-    onExcluded: (Boolean) -> Unit,
-    onResetClicked: () -> Unit
-) {
-    NodeNameRow(name = node.name, onNameChanged = onNameChanged)
-    SectionTitle(title = stringResource(id = R.string.title_keys))
-    NetworkKeysRow(
-        count = node.networkKeys.size,
-        onNetworkKeysClicked = { onNetworkKeysClicked(node.uuid) }
-    )
-    Spacer(modifier = Modifier.size(8.dp))
-    ApplicationKeysRow(
-        count = node.applicationKeys.size,
-        onApplicationKeysClicked = {
-            onApplicationKeysClicked(node.uuid)
-        }
-    )
-    SectionTitle(title = stringResource(id = R.string.title_elements))
-    node.elements.forEachIndexed { index, element ->
-        ElementRow(
-            element = element,
-            onElementsClicked = {
-                onElementsClicked(node.uuid)
-            }
-        )
-        if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
-    }
-    SectionTitle(title = stringResource(id = R.string.title_time_to_live))
-    DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked)
-    SectionTitle(title = stringResource(id = R.string.title_proxy_state))
-    ProxyStateRow(
-        proxy = node.features.proxy,
-        onProxyStateToggled = onProxyStateToggled,
-        onGetProxyStateClicked = onGetProxyStateClicked
-    )
-    SectionTitle(title = stringResource(id = R.string.title_exclusions))
-    ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded)
-    SectionTitle(title = stringResource(id = R.string.label_reset_node))
-    ResetRow(onResetClicked = onResetClicked)
 }
 
 @Composable
@@ -366,6 +382,7 @@ private fun ResetRow(onResetClicked: () -> Unit) {
             onConfirmClick = {
                 showResetDialog = !showResetDialog
                 onResetClicked()
-            })
+            }
+        )
     }
 }

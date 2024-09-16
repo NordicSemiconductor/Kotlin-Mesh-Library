@@ -23,19 +23,32 @@ import kotlin.experimental.or
 /**
  * Defines a Network PDU received/sent by a node.
  *
- * @property pdu              Raw PDU data.
- * @property key              Network key used to decode/encode the PDU.
- * @property ivIndex          IV Index used to decode/encode the PDU.
- * @property type             PDU type.
- * @property ttl              Time to live.
- * @property sequence         Sequence number of the message.
- * @property source           Source address of the message.
- * @property destination      Destination address of the message.
- * @property transportPdu     Transport protocol data unit that's guaranteed to have 1 to 16 bytes.
- * @property ivi              Raw data of the upper transport layer PDU.
- * @property nid              Flag indicating if the message is a control message.
- * @property isSegmented      Flag indicating if the message is segmented.
- * @property messageSequence  Message sequence number.
+ * @property pdu                             Raw PDU data.
+ * @property key                             Network key used to decode/encode the PDU.
+ * @property ivIndex                         IV Index used to decode/encode the PDU.
+ * @property type                            PDU type.
+ * @property ttl                             Time to live.
+ * @property sequence                        Sequence number of the message.
+ * @property source                          Source address of the message.
+ * @property destination                     Destination address of the message.
+ * @property transportPdu                    Transport protocol data unit that's guaranteed to have
+ *                                           1 to 16 bytes.
+ * @property ivi                             Raw data of the upper transport layer PDU.
+ * @property nid                             Indicates if the message is a control message.
+ * @property isSegmented                     Indicates if the message is segmented.
+ * @property isSegmentAcknowledgementMessage Indicates if the message is a segment acknowledgement
+ *                                           message.
+ * @property sequenceZero                    SeqZero field of the message. The message must be
+ *                                           either a Segment Access message, Segmented Control
+ *                                           message or Segment Acknowledgement message otherwise
+ *                                           null
+ * @property messageSequence                 24-bit message sequence number used to transmit the
+ *                                           first segment of a segmented message, or the 24-bit
+ *                                           sequence number of an unsegmented message. This should
+ *                                           be prefixed with the 32-bit IV Index to form the
+ *                                           SeqAuth. If the Seq is 0x647262 and SeqZero is 0x1849,
+ *                                           the message sequence is 0x6451849. See Bluetooth Mesh
+ *                                           Profile 1.0.1 section 3.5.3.1
  * @constructor Creates a Network PDU.
  */
 internal class NetworkPdu internal constructor(
@@ -52,12 +65,20 @@ internal class NetworkPdu internal constructor(
     val transportPdu: ByteArray
 ) {
     val isSegmented: Boolean
-        get() = transportPdu[0] hasBitSet 7
+        get() = transportPdu[0] hasBitSet 7 && transportPdu.size > 4
+
+    val isSegmentAcknowledgementMessage: Boolean
+        get() = transportPdu[0] == 0x00.toByte() && transportPdu.size == 7
+
+    val sequenceZero: UShort?
+        get() = if (isSegmented || isSegmentAcknowledgementMessage) {
+            ((transportPdu[1] and 0x7F).toUShort() shl 6) or (transportPdu[2] shr 2).toUShort()
+        } else null
 
     val messageSequence: UInt
         get() = if (isSegmented) {
             val sequenceZero = (transportPdu[1].toUShort() and 0x7Fu shl 6) or
-                               (transportPdu[2].toUShort() shr 2)
+                    (transportPdu[2].toUShort() shr 2)
             if ((sequence and 0x1FFFFu) < sequenceZero) {
                 (sequence and 0xFFE000u) + sequenceZero.toUInt() - (0x1FFF + 1).toUInt()
             } else {
@@ -70,7 +91,9 @@ internal class NetworkPdu internal constructor(
         "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
                 "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
                 "dst: ${destination.toHexString()}, " +
-                "transportPdu: 0x${pdu.copyOfRange(0, pdu.size - type.netMicSize).toHexString()}, " +
+                "transportPdu: 0x${
+                    pdu.copyOfRange(0, pdu.size - type.netMicSize).toHexString()
+                }, " +
                 "netMic: 0x${pdu.copyOfRange(pdu.size - type.netMicSize, pdu.size).toHexString()})"
 }
 
@@ -156,11 +179,11 @@ internal object NetworkPduDecoder {
 
             // Multiple octet values use Big Endian.
             val sequence = (deobfuscatedData[1].toUInt() shl 16) or
-                           (deobfuscatedData[2].toUInt() shl 8) or
-                            deobfuscatedData[3].toUInt()
+                    (deobfuscatedData[2].toUInt() shl 8) or
+                    deobfuscatedData[3].toUInt()
 
             val src = (deobfuscatedData[4].toUShort() shl 8) or
-                       deobfuscatedData[5].toUShort()
+                    deobfuscatedData[5].toUShort()
 
             val micOffset = pdu.size - type.netMicSize
             val destAndTransportPdu = pdu.copyOfRange(fromIndex = 7, toIndex = pdu.size)
@@ -183,7 +206,7 @@ internal object NetworkPduDecoder {
                 ) ?: continue
 
                 val dst = (decryptedData[0].toUShort() shl 8) or
-                           decryptedData[1].toUShort()
+                        decryptedData[1].toUShort()
 
                 return NetworkPdu(
                     pdu = pdu,

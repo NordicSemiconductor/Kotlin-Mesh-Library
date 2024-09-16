@@ -39,10 +39,11 @@ sealed interface CompositionDataPage {
  * @property page Page containing the composition of a node.
  * @constructor Creates a ConfigCompositionDataStatus message.
  */
-
 class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = page.parameters
+
+    override fun toString() = "ConfigCompositionDataStatus(opCode: $opCode, page: $page)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x02u
@@ -51,7 +52,9 @@ class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigRespons
             it.isNotEmpty()
         }?.let {
             if (it[0] == 0.toByte())
-                Page0.init(it)?.let { page0 -> ConfigCompositionDataStatus(page = page0) }
+                Page0.init(it)?.let { page0 ->
+                    ConfigCompositionDataStatus(page = page0)
+                }
             else null
         }
     }
@@ -136,10 +139,14 @@ data class Page0(
                 require(compositionData.size >= offset + 4) {
                     return null
                 }
-                val rawValue = compositionData.getUShort(offset)
-                val location = Location.from(rawValue)
-                val sigModelsByteCount = compositionData.getInt(offset + 2, format = IntFormat.UINT8) * 2
-                val vendorModelsByteCount = compositionData.getInt(offset + 3, format = IntFormat.UINT8) * 4
+                val rawValue = compositionData.getUShort(offset = offset)
+                val location = Location.from(value = rawValue)
+                val sigModelsByteCount = compositionData.getInt(
+                    offset = offset + 2,
+                    format = IntFormat.UINT8
+                ) * 2
+                val vendorModelsByteCount =
+                    compositionData.getInt(offset = offset + 3, format = IntFormat.UINT8) * 4
 
                 require(
                     compositionData.size >=
@@ -158,7 +165,7 @@ data class Page0(
                 // Read models.
                 val element = Element(location = location).apply {
                     this.index = index
-                    this.name = "Element ${elementNo++}"
+                    name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
                     val sigModelId = compositionData.getUShort(i)

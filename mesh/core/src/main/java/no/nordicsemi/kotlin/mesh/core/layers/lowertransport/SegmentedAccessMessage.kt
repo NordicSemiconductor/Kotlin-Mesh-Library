@@ -56,11 +56,11 @@ internal class SegmentedAccessMessage(
                 octet0 = octet0 or aid
             }
             val octet1 = (transportMicSize and 0x08u shl 4).toByte() or // 8 -> 0x80, 4 -> 0x00
-                         (sequenceZero shr 6).toByte()
+                    (sequenceZero shr 6).toByte()
             val octet2 = (sequenceZero shl 2).toByte() or
-                         (segmentOffset shr 3).toByte()
+                    (segmentOffset shr 3).toByte()
             val octet3 = (segmentOffset and 0x07u shl 5).toByte() or
-                         (lastSegmentNumber and 0x1Fu).toByte()
+                    (lastSegmentNumber and 0x1Fu).toByte()
             return byteArrayOf(octet0, octet1, octet2, octet3) + upperTransportPdu
         }
 
@@ -69,20 +69,23 @@ internal class SegmentedAccessMessage(
     internal companion object {
 
         /**
-         * Creates a SegmentedAccessMessage from a given Network PDU.
+         * Creates a segment of an [AccessMessage] from a network from a given Network PDU that
+         * contains a segmented access message. If the PDU is invalid the method will throw an
+         * [InvalidPdu] exception.
          *
          * @param pdu Network pdu to be decoded.
          * @return SegmentedAccessMessage or null otherwise.
+         * @throws InvalidPdu If the PDU is invalid.
          */
-        fun init(pdu: NetworkPdu): SegmentedAccessMessage {
+        fun init(pdu: NetworkPdu): SegmentedAccessMessage? {
             // Minimum length of a Access Message is 6 bytes:
             // * 1 byte for SEG | AKF | AID
             // * 3 bytes for SZMIC | SeqZero | SegO | SegN
             // * At least 1 byte of segment payload
-            require(pdu.transportPdu.size >= 5) { throw InvalidPdu }
+            require(pdu.transportPdu.size >= 5) { return null /*throw InvalidPdu*/ }
 
             // Make sure the SEG is 0, that is the message is segmented.
-            require(pdu.transportPdu[0] hasBitSet 7) { throw InvalidPdu } // TODO Change exception?
+            require(pdu.transportPdu[0] hasBitSet 7) { return null /*throw InvalidPdu*/ } // TODO Change exception?
 
             val akf = pdu.transportPdu[0] hasBitSet 6
             val aid = if (akf) pdu.transportPdu[0] and 0x3F else null
@@ -90,13 +93,13 @@ internal class SegmentedAccessMessage(
             val szmic = pdu.transportPdu[1] hasBitSet 7
             val transportMicSize: UByte = if (szmic) 8u else 4u
             val sequenceZero = (pdu.transportPdu[1].toUShort() and 0x7Fu shl 6) or
-                               (pdu.transportPdu[2].toUShort() shr 2)
+                    (pdu.transportPdu[2].toUShort() shr 2)
             val segmentOffset = (pdu.transportPdu[2].toUByte() and 0x03u shl 3) or
-                                (pdu.transportPdu[3].toUByte() shr 5)
+                    ((pdu.transportPdu[3].toUByte() and 0xE0u) shr 5)
             val lastSegmentNumber = pdu.transportPdu[3].toUByte() and 0x1Fu
 
             // Make sure SegO is less than or equal to SegN.
-            require(segmentOffset <= lastSegmentNumber) { throw InvalidPdu } // TODO Change exception?
+            require(segmentOffset <= lastSegmentNumber) { return null /*throw InvalidPdu*/ } // TODO Change exception?
 
             val upperTransportPdu = pdu.transportPdu.copyOfRange(4, pdu.transportPdu.size)
             val sequence = (pdu.sequence and 0xFFE000u) or sequenceZero.toUInt()
