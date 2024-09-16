@@ -16,8 +16,12 @@ import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Factory
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
+import androidx.compose.material.icons.outlined.SafetyCheck
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -241,6 +245,8 @@ private fun NodeInfo(
                 )
                 if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }
+            SectionTitle(title = stringResource(id = R.string.title_node_information))
+            NodeInformationRow(node)
             SectionTitle(title = stringResource(id = R.string.title_time_to_live))
             DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked)
             SectionTitle(title = stringResource(id = R.string.title_proxy_state))
@@ -304,6 +310,76 @@ private fun ElementRow(element: Element, onElementsClicked: () -> Unit) {
         imageVector = Icons.Outlined.DeviceHub,
         title = element.name ?: "Unknown",
         subtitle = "${element.models.size} ${if (element.models.size == 1) "model" else "models"}"
+    )
+}
+
+@Composable
+private fun NodeInformationRow(node: Node) {
+    CompanyIdentifier(companyIdentifier = node.companyIdentifier)
+    Spacer(modifier = Modifier.size(8.dp))
+    ProductIdentifier(productIdentifier = node.productIdentifier)
+    Spacer(modifier = Modifier.size(8.dp))
+    ProductVersion(productVersion = node.versionIdentifier)
+    Spacer(modifier = Modifier.size(8.dp))
+    ReplayProtectionCount(replayProtectionCount = node.replayProtectionCount)
+    Spacer(modifier = Modifier.size(8.dp))
+    Security(node)
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun CompanyIdentifier(companyIdentifier: UShort?) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Factory,
+        title = stringResource(R.string.label_company_identifier),
+        subtitle = companyIdentifier?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+    )
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun ProductIdentifier(productIdentifier: UShort?) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.QrCode,
+        title = stringResource(R.string.label_product_identifier),
+        subtitle = productIdentifier?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+    )
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun ProductVersion(productVersion: UShort?) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Numbers,
+        title = stringResource(R.string.label_product_version),
+        subtitle = productVersion?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+    )
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+@Composable
+private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.SafetyCheck,
+        title = stringResource(R.string.label_replay_protection_count),
+        subtitle = replayProtectionCount?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+    )
+}
+
+@Composable
+private fun Security(node: Node) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Factory,
+        title = stringResource(R.string.label_security),
+        subtitle = when (node.elements.isEmpty()) {
+            true -> node.security.toString()
+            false -> stringResource(id = R.string.unknown)
+        }
     )
 }
 
