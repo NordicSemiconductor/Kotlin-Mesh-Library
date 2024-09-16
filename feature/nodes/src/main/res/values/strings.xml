@@ -32,4 +32,6 @@
     <string name="label_disable_proxy_feature">Disable Proxy</string>
     <string name="label_are_you_sure_rationale">Are you sure you want to continue?</string>
     <string name="title_loading_node">Loading node…</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="label_success">Success</string>
 </resources>

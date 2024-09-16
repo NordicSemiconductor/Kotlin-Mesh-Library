@@ -38,17 +38,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.Completed
+import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
+import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
+import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -69,6 +75,7 @@ fun NodeRoute(
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
     onResetClicked: () -> Unit,
+    resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val screen = appState.currentScreen as? NodeScreen
@@ -92,7 +99,9 @@ fun NodeRoute(
         onProxyStateToggled = onProxyStateToggled,
         onGetProxyStateClicked = onGetProxyStateClicked,
         onExcluded = onExcluded,
-        onResetClicked = onResetClicked
+        onResetClicked = onResetClicked,
+        resetMessageState = resetMessageState,
+        onBackPressed = onBackPressed
     )
 }
 
@@ -110,7 +119,9 @@ private fun NodeScreen(
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
-    onResetClicked: () -> Unit
+    onResetClicked: () -> Unit,
+    resetMessageState: () -> Unit,
+    onBackPressed: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(visible = messageState.isInProgress()) {
@@ -142,6 +153,37 @@ private fun NodeScreen(
                 title = nodeState.throwable.message ?: "Unknown error"
             )
         }
+        when (messageState) {
+            is Failed -> {
+                MeshMessageStatusDialog(
+                    text = messageState.error.message
+                        ?: stringResource(id = R.string.unknown_error),
+                    showDismissButton = !messageState.didFail(),
+                    onDismissRequest = resetMessageState,
+                )
+            }
+
+            is Completed -> {
+                messageState.response?.let {
+                    if (it is ConfigNodeResetStatus) {
+                        onBackPressed()
+                    } else {
+                        MeshMessageStatusDialog(
+                            text = when (it) {
+                                is StatusMessage -> it.message
+                                else -> stringResource(id = R.string.label_success)
+                            },
+                            showDismissButton = messageState.didFail(),
+                            onDismissRequest = resetMessageState,
+                        )
+                    }
+                }
+            }
+
+            else -> {
+
+            }
+        }
     }
 }
 
@@ -171,9 +213,11 @@ private fun NodeInfo(
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(state = scrollState)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state = scrollState)
+        ) {
             NodeNameRow(name = node.name, onNameChanged = onNameChanged)
             SectionTitle(title = stringResource(id = R.string.title_keys))
             NetworkKeysRow(

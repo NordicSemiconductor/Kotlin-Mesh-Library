@@ -156,6 +156,10 @@ internal class NodeViewModel @Inject internal constructor(
             }
         }
     }
+
+    fun resetMessageState() {
+        _uiState.value = _uiState.value.copy(messageState = NotStarted)
+    }
 }
 
 sealed interface NodeState {

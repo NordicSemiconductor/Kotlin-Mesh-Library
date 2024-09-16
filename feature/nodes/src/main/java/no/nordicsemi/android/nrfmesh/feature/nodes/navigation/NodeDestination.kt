@@ -63,6 +63,7 @@ fun NavGraphBuilder.nodeGraph(
             onGetProxyStateClicked = viewModel::onGetProxyStateClicked,
             onExcluded = viewModel::onExcluded,
             onResetClicked = viewModel::onResetClicked,
+            resetMessageState = viewModel::resetMessageState,
             onBackPressed = onBackPressed
         )
     }
