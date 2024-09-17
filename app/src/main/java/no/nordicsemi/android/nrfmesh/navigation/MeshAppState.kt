@@ -32,6 +32,8 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.Applica
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
+import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
@@ -173,6 +175,7 @@ class MeshAppState(
 private fun getScreen(route: String?) = when (route) {
     NodesDestination.route -> NodesScreen(title = "Nodes")
     NodeDestination.route -> NodeScreen(title = "Node")
+    ElementDestination.route -> ElementScreen(title = "Elements")
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     NetKeySelectorDestination.route -> NetKeySelectorScreen()
     ConfigNetKeysDestination.route -> ConfigNetKeysScreen()

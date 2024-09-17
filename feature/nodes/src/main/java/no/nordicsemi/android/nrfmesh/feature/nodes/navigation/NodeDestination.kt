@@ -12,6 +12,8 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
+import no.nordicsemi.android.nrfmesh.feature.elements.navigation.elementsGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import java.util.UUID
@@ -53,10 +55,10 @@ fun NavGraphBuilder.nodeGraph(
                 )
             },
             onElementsClicked = {
-                /*onNavigateToDestination(
-                    ConfigNetworkKeyDestination,
-                    ConfigNetworkKeyDestination.createNavigationRoute(it)
-                )*/
+                onNavigateToDestination(
+                    ElementDestination,
+                    ElementDestination.createNavigationRoute(it)
+                )
             },
             onGetTtlClicked = { /*TODO*/ },
             onProxyStateToggled = viewModel::onProxyStateToggled,
@@ -73,6 +75,11 @@ fun NavGraphBuilder.nodeGraph(
         onBackPressed = onBackPressed
     )
     configApplicationKeysGraph(
+        appState = appState,
+        onNavigateToDestination = onNavigateToDestination,
+        onBackPressed = onBackPressed
+    )
+    elementsGraph(
         appState = appState,
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
