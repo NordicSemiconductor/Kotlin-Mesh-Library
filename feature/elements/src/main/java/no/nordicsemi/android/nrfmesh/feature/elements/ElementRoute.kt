@@ -10,11 +10,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -46,7 +50,7 @@ internal fun ElementRoute(
             when (action) {
                 ElementScreen.Actions.BACK -> onBackPressed()
             }
-        }
+        }?.launchIn(this)
     }
     ElementScreen(
         uiState = uiState,
@@ -119,7 +123,7 @@ private fun NameRow(name: String, onNameChanged: (String) -> Unit) {
 private fun AddressRow(address: UnicastAddress) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Badge,
+        imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
         subtitle = address.toHexString(),
     )
@@ -129,7 +133,7 @@ private fun AddressRow(address: UnicastAddress) {
 private fun LocationRow(location: Location) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Badge,
+        imageVector = Icons.Outlined.LocationOn,
         title = stringResource(id = R.string.label_location),
         subtitle = location.toString(),
     )
@@ -141,7 +145,7 @@ private fun ModelRow(model: Model, navigateToModel: (Model) -> Unit) {
         modifier = Modifier
             .padding(horizontal = 8.dp)
             .clickable(onClick = { navigateToModel(model) }),
-        imageVector = Icons.Outlined.Badge,
+        imageVector = Icons.Outlined.Widgets,
         title = model.name,
         subtitle = when (model.modelId) {
             is SigModelId -> "Bluetooth SIG"
