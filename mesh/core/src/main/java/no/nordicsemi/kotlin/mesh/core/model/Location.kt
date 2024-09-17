@@ -283,6 +283,8 @@ enum class Location(val value: UShort) {
     UNKNOWN(0x0000u),
     UPPER(0x0104u);
 
+    override fun toString() = nameOf(this)
+
     internal companion object {
 
         /**
