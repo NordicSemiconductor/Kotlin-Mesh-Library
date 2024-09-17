@@ -1,5 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.elements.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
@@ -11,8 +13,10 @@ class ElementScreen(
 ) : Screen {
     override val route = ElementDestination.route
     override val showTopBar = true
-    override val navigationIcon = null
-    override val onNavigationIconClick: (() -> Unit)? = null
+    override val navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack
+    override val onNavigationIconClick: (() -> Unit) = {
+        _buttons.tryEmit(Actions.BACK)
+    }
     override val actions = emptyList<ActionMenuItem>()
     override val floatingActionButton = emptyList<FloatingActionButton>()
     override val showBottomBar = true
