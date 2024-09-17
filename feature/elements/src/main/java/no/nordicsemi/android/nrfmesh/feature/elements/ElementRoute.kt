@@ -125,7 +125,7 @@ private fun AddressRow(address: UnicastAddress) {
         modifier = Modifier.padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
-        subtitle = address.toHexString(),
+        subtitle = "0x${address.toHexString()}",
     )
 }
 
