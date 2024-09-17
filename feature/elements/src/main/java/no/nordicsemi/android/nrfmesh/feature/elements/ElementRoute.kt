@@ -94,10 +94,10 @@ private fun Element(
         Spacer(modifier = Modifier.size(size = 8.dp))
         LocationRow(location = element.location)
         SectionTitle(title = stringResource(id = R.string.title_models))
-        element.models.forEach { model ->
-            println("Model: ${model.name}")
+        element.models.forEachIndexed { index, model ->
             ModelRow(model = model, navigateToModel = navigateToModel)
-            Spacer(modifier = Modifier.size(size = 8.dp))
+            if (index < element.models.size - 1)
+                Spacer(modifier = Modifier.size(size = 8.dp))
         }
         Spacer(modifier = Modifier.size(size = 8.dp))
     }
