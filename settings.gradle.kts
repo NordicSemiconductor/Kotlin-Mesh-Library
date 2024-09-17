@@ -72,3 +72,4 @@ include(":mesh:foundation")
 //     includeBuild("../Kotlin-Util-Library")
 // }
 include(":feature:config-application-keys")
+include(":feature:elements")
