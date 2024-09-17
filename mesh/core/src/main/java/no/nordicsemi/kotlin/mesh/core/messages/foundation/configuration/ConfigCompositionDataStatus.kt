@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
+import java.nio.ByteOrder
 
 /**
  * Base interface for a Composition Data Page.
@@ -139,11 +140,13 @@ data class Page0(
                 require(compositionData.size >= offset + 4) {
                     return null
                 }
-                val rawValue = compositionData.getUShort(offset = offset)
+                val rawValue = compositionData.getUShort(
+                    offset = offset, order = ByteOrder.LITTLE_ENDIAN)
                 val location = Location.from(value = rawValue)
                 val sigModelsByteCount = compositionData.getInt(
                     offset = offset + 2,
-                    format = IntFormat.UINT8
+                    format = IntFormat.UINT8,
+                    order = ByteOrder.LITTLE_ENDIAN
                 ) * 2
                 val vendorModelsByteCount =
                     compositionData.getInt(offset = offset + 3, format = IntFormat.UINT8) * 4
@@ -168,14 +171,20 @@ data class Page0(
                     name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
-                    val sigModelId = compositionData.getUShort(i)
+                    val sigModelId = compositionData.getUShort(
+                        offset = i,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
                     element.add(Model(modelId = SigModelId(sigModelId)))
                 }
                 offset += sigModelsByteCount
 
 
                 for (i in offset until offset + vendorModelsByteCount step 2) {
-                    val vendorModelId = compositionData.getUInt(i)
+                    val vendorModelId = compositionData.getUInt(
+                        offset = i,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
                     element.add(Model(modelId = VendorModelId(id = vendorModelId)))
                 }
                 offset += vendorModelsByteCount
