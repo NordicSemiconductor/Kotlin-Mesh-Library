@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
+import java.nio.ByteOrder
 
 /**
  * Base interface for a Composition Data Page.
@@ -127,11 +128,28 @@ data class Page0(
             it.size >= 11 && it[0].toUByte().toInt() == 0
         }?.let { compositionData ->
             val page = 0
-            val companyIdentifier = compositionData.getUShort(offset = 1)
-            val productIdentifier = compositionData.getUShort(offset = 3)
-            val versionIdentifier = compositionData.getUShort(offset = 5)
-            val minimumNumberOfReplayProtectionList = compositionData.getUShort(offset = 7)
-            val features = Features.init(compositionData.getUShort(offset = 9))
+            val companyIdentifier = compositionData.getUShort(
+                offset = 1,
+                order = ByteOrder.LITTLE_ENDIAN
+            )
+            val productIdentifier = compositionData.getUShort(
+                offset = 3,
+                order = ByteOrder.LITTLE_ENDIAN
+            )
+            val versionIdentifier = compositionData.getUShort(
+                offset = 5,
+                order = ByteOrder.LITTLE_ENDIAN
+            )
+            val minimumNumberOfReplayProtectionList = compositionData.getUShort(
+                offset = 7,
+                order = ByteOrder.LITTLE_ENDIAN
+            )
+            val features = Features.init(
+                mask = compositionData.getUShort(
+                    offset = 9,
+                    order = ByteOrder.LITTLE_ENDIAN
+                )
+            )
             val elements = mutableListOf<Element>()
             var offset = 11
             var elementNo = 0
@@ -139,14 +157,20 @@ data class Page0(
                 require(compositionData.size >= offset + 4) {
                     return null
                 }
-                val rawValue = compositionData.getUShort(offset = offset)
+                val rawValue = compositionData.getUShort(
+                    offset = offset,
+                    order = ByteOrder.LITTLE_ENDIAN
+                )
                 val location = Location.from(value = rawValue)
                 val sigModelsByteCount = compositionData.getInt(
                     offset = offset + 2,
-                    format = IntFormat.UINT8
+                    format = IntFormat.UINT8,
+                    order = ByteOrder.LITTLE_ENDIAN
                 ) * 2
-                val vendorModelsByteCount =
-                    compositionData.getInt(offset = offset + 3, format = IntFormat.UINT8) * 4
+                val vendorModelsByteCount = compositionData.getInt(
+                    offset = offset + 3,
+                    format = IntFormat.UINT8
+                ) * 4
 
                 require(
                     compositionData.size >=
@@ -168,14 +192,20 @@ data class Page0(
                     name = "Element ${elementNo++}"
                 }
                 for (i in offset until offset + sigModelsByteCount step 2) {
-                    val sigModelId = compositionData.getUShort(i)
-                    element.add(Model(modelId = SigModelId(sigModelId)))
+                    val sigModelId = compositionData.getUShort(
+                        offset = i,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
+                    element.add(model = Model(modelId = SigModelId(sigModelId)))
                 }
                 offset += sigModelsByteCount
 
 
                 for (i in offset until offset + vendorModelsByteCount step 2) {
-                    val vendorModelId = compositionData.getUInt(i)
+                    val vendorModelId = compositionData.getUInt(
+                        offset = i,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
                     element.add(Model(modelId = VendorModelId(id = vendorModelId)))
                 }
                 offset += vendorModelsByteCount

@@ -10,7 +10,7 @@ object CompanyIdentifier {
     /**
      * Returns the company name based on the company identifier
      *
-     * @param id
+     * @param id Company identifier.
      * @return company name or null otherwise.
      */
     fun name(id: UShort) = when (id) {

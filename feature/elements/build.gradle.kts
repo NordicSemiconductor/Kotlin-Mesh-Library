@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.nodes"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.elements"
 }
 
 dependencies {
@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:config-network-keys"))
     implementation(project(":feature:config-application-keys"))
-    implementation(project(":feature:elements"))
     implementation(project(":feature:provisioning"))
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":mesh:core"))
