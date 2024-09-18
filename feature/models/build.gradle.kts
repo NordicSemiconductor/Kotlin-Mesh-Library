@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.configserver"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.models"
     compileSdk = 34
 
     defaultConfig {
