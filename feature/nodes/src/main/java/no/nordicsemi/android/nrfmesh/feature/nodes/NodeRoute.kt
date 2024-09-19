@@ -16,14 +16,15 @@ import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Factory
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.SafetyCheck
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
@@ -332,7 +333,7 @@ private fun NodeInformationRow(node: Node) {
 private fun CompanyIdentifier(companyIdentifier: UShort?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Factory,
+        imageVector = Icons.Outlined.Work,
         title = stringResource(R.string.label_company_identifier),
         subtitle = companyIdentifier?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
     )
@@ -375,7 +376,7 @@ private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
 private fun Security(node: Node) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Factory,
+        imageVector = Icons.Outlined.Security,
         title = stringResource(R.string.label_security),
         subtitle = when (node.elements.isEmpty()) {
             true -> node.security.toString()

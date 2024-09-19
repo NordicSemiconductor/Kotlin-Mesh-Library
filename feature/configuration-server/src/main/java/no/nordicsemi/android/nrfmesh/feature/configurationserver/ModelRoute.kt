@@ -1,10 +1,14 @@
 package no.nordicsemi.android.nrfmesh.feature.configurationserver
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +26,17 @@ import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerScreen
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
 internal fun ConfigurationServerRoute(
@@ -38,11 +48,11 @@ internal fun ConfigurationServerRoute(
     onFriendStateToggled: (Boolean) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val screen = appState.currentScreen as? ConfigurationServerScreen
+    val screen = appState.currentScreen as? ModelScreen
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach {
             when (it) {
-                ConfigurationServerScreen.Actions.BACK -> onBackPressed()
+                ModelScreen.Actions.BACK -> onBackPressed()
             }
         }?.launchIn(this)
     }
@@ -67,6 +77,7 @@ internal fun ConfigurationServerModelScreen(
     when (uiState.modelState) {
         ModelState.Loading -> {}
         is ModelState.Success -> ConfigurationServerModel(
+            model = uiState.modelState.model,
             proxy = uiState.modelState.model.parentElement?.parentNode?.features?.proxy,
             onGetProxyStateClicked = onGetProxyStateClicked,
             onProxyStateToggled = onProxyStateToggled,
@@ -81,6 +92,7 @@ internal fun ConfigurationServerModelScreen(
 
 @Composable
 internal fun ConfigurationServerModel(
+    model: Model,
     proxy: Proxy?,
     onGetProxyStateClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
@@ -88,15 +100,47 @@ internal fun ConfigurationServerModel(
     onGetFriendStateClicked: () -> Unit,
     onFriendStateToggled: (Boolean) -> Unit
 ) {
-    ProxyStateRow(
-        proxy = proxy,
-        onProxyStateToggled = onProxyStateToggled,
-        onGetProxyStateClicked = onGetProxyStateClicked,
+    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
+        ModelIdRow(name = model.modelId.toHex(prefix0x = true))
+        Company(modelId = model.modelId)
+        ProxyStateRow(
+            proxy = proxy,
+            onProxyStateToggled = onProxyStateToggled,
+            onGetProxyStateClicked = onGetProxyStateClicked,
+        )
+        FriendFeature(
+            friend = friend,
+            onFriendStateToggled = onFriendStateToggled,
+            onGetFriendStateClicked = onGetFriendStateClicked
+        )
+    }
+}
+
+@Composable
+private fun ModelIdRow(name: String) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Numbers,
+        title = "Model ID",
+        subtitle = name
     )
-    FriendFeature(
-        friend = friend,
-        onFriendStateToggled = onFriendStateToggled,
-        onGetFriendStateClicked = onGetFriendStateClicked
+}
+
+@Composable
+private fun Company(modelId: ModelId) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Work,
+        title = stringResource(id = R.string.label_company),
+        subtitle = when (modelId) {
+            is SigModelId -> "Bluetooth SIG"
+            is VendorModelId -> CompanyIdentifier.name(id = modelId.modelIdentifier)
+                ?: stringResource(id = R.string.label_unknown)
+        }
     )
 }
 
@@ -112,8 +156,8 @@ private fun ProxyStateRow(
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = onGetProxyStateClicked),
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
@@ -166,8 +210,8 @@ private fun FriendFeature(
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = onGetFriendStateClicked),
+            .padding(vertical = 8.dp)
+            .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.label_friend_feature),
         titleAction = {

@@ -11,4 +11,7 @@
     <string name="label_friend_feature_rationale">"The Friend Feature state indicates support for
         the Friend feature. Disabling this feature will terminate all Friend relationships and clear
         the associated Friend Queue."</string>
+    <string name="label_company">Company</string>
+    <string name="label_unknown">Unknown</string>
+    <string name="label_model_information">Model Information</string>
 </resources>

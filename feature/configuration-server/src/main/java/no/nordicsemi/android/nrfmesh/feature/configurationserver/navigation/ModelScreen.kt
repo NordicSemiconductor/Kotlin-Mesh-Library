@@ -8,8 +8,8 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class ConfigurationServerScreen(
-    override val title: String = "Configuration Server",
+class ModelScreen(
+    override val title: String = "Model",
 ) : Screen {
     override val route = ConfigurationServerDestination.route
     override val showTopBar = true
