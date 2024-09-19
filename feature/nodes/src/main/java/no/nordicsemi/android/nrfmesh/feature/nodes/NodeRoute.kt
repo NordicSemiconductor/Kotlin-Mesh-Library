@@ -59,6 +59,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -73,7 +74,7 @@ fun NodeRoute(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -118,7 +119,7 @@ private fun NodeScreen(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -200,7 +201,7 @@ private fun NodeInfo(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -240,7 +241,7 @@ private fun NodeInfo(
                 ElementRow(
                     element = element,
                     onElementsClicked = {
-                        onElementsClicked(node.uuid)
+                        onElementsClicked(element.unicastAddress.address)
                     }
                 )
                 if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))

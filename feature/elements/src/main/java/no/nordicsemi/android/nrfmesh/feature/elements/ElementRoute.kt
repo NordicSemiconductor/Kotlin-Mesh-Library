@@ -42,9 +42,7 @@ internal fun ElementRoute(
     navigateToModel: (Model) -> Unit,
     onBackPressed: () -> Unit
 ) {
-
     val elementScreen = appState.currentScreen as? ElementScreen
-
     LaunchedEffect(key1 = elementScreen) {
         elementScreen?.buttons?.onEach { action ->
             when (action) {

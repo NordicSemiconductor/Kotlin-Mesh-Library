@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.elements.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -9,25 +8,28 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerDestination
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.configurationServerGraph
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementRoute
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementViewModel
-import java.util.UUID
+import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.Model
 
 object ElementDestination : MeshNavigationDestination {
-    internal const val ELEMENT_INDEX = "ELEMENT_INDEX"
-    override val route: String = "elements_route/{$ARG}/{$ELEMENT_INDEX}"
-    override val destination: String = "elements_destination"
+    override val route: String = "element_route/{$ARG}"
+    override val destination: String = "element_destination"
 
     /**
-     * Creates destination route for a network key index.
+     * Creates destination route for a selected element.
      *
-     * @param uuid UUID of the element.
+     * @param address Address of the element
      */
-    fun createNavigationRoute(uuid: UUID, index: Int = 0): String =
-        "elements_route/${Uri.encode(uuid.toString())}/${Uri.encode(index.toString())}"
+    @OptIn(ExperimentalStdlibApi::class)
+    fun createNavigationRoute(address: Address): String =
+        "element_route/${address.toHexString()}"
 }
 
-fun NavGraphBuilder.elementsGraph(
+fun NavGraphBuilder.elementGraph(
     appState: AppState,
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit
@@ -39,18 +41,27 @@ fun NavGraphBuilder.elementsGraph(
             appState = appState,
             uiState = uiState,
             onNameChanged = viewModel::onNameChanged,
-            navigateToModel = { node ->
-                /*onNavigateToDestination(
-                    NodeDestination,
-                    NodeDestination.createNavigationRoute(node.uuid)
-                )*/
-            },
+            navigateToModel = { navigate(it, onNavigateToDestination) },
             onBackPressed = onBackPressed
         )
     }
-    /*nodeGraph(
+    configurationServerGraph(
         appState = appState,
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
-    )*/
+    )
+}
+
+private fun navigate(
+    model: Model,
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit
+) {
+    val address = model.parentElement?.unicastAddress?.address
+        ?: throw IllegalArgumentException("Parent element address is null")
+    when {
+        model.isConfigurationServer -> onNavigateToDestination(
+            ConfigurationServerDestination,
+            ConfigurationServerDestination.createNavigationRoute(address = address)
+        )
+    }
 }

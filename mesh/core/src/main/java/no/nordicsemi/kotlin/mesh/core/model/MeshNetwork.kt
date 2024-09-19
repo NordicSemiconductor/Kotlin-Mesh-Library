@@ -1323,6 +1323,11 @@ class MeshNetwork internal constructor(
         it.networkId.contentEquals(networkId) || it.oldNetworkId.contentEquals(networkId)
     }
 
+    fun element(elementAddress: Address): Element? {
+        return nodes.flatMap { it.elements }
+            .firstOrNull { it.unicastAddress.address == elementAddress }
+    }
+
     companion object {
         /**
          *  Invoked when an observable property is changed.
