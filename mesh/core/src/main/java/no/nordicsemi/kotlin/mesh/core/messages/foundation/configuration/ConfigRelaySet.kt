@@ -49,6 +49,10 @@ data class ConfigRelaySet(
         steps = relayRetransmit.steps
     )
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigRelaySet(opCode: 0x${opCode.toHexString()}, state: $state, " +
+            "count: $count, steps: $steps)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8027u
 

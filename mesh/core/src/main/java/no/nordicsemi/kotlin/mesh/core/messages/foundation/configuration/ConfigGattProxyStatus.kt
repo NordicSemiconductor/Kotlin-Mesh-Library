@@ -18,7 +18,9 @@ class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
 
     constructor(node: Node) : this(node.features.proxy?.state ?: FeatureState.Unsupported)
 
-    override fun toString() = "ConfigGattProxyStatus(opCode: $opCode, state: $state)"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() =
+        "ConfigGattProxyStatus(opCode: 0x${opCode.toHexString()}, state: $state)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8014u

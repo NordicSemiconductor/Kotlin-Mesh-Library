@@ -23,7 +23,8 @@ data class ConfigFriendSet(val state: FeatureState) : AcknowledgedConfigMessage 
     constructor(enable: Boolean) :
             this(state = if (enable) FeatureState.Enabled else FeatureState.Disabled)
 
-    override fun toString() = "ConfigFriendSet(opCode: $opCode, state: $state)"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigFriendSet(opCode: 0x${opCode.toHexString()}, state: $state)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8010u
