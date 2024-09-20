@@ -41,5 +41,25 @@ data class RelayRetransmit internal constructor(val count: Int, val interval: In
         const val MAX_COUNT = 8
         const val MIN_INTERVAL = 10
         const val MAX_INTERVAL = 320
+
+        /**
+         * Initializes the relay retransmit object from the given RelayRetransmit.
+         *
+         * @param incorrectRetransmit The relay retransmit object.
+         */
+        fun init(incorrectRetransmit: RelayRetransmit) = RelayRetransmit(
+            count = incorrectRetransmit.count,
+            interval = incorrectRetransmit.interval
+        )
+
+        fun init(request: ConfigRelaySet) = RelayRetransmit(
+            count = request.count + 1,
+            interval = (request.steps.toInt() + 1) * 10
+        )
+
+        fun init(status: ConfigRelayStatus) = RelayRetransmit(
+            count = status.count + 1,
+            interval = (status.steps.toInt() + 1) * 10
+        )
     }
 }
