@@ -14,7 +14,7 @@ class ConfigFriendGet : AcknowledgedConfigMessage {
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String =
-        "ConfigFriendGet(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
+        "ConfigFriendStatus(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x800Fu
