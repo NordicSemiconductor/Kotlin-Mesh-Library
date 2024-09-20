@@ -12,11 +12,13 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
  *
  * @property state The state of the GATT Proxy feature.
  */
-data class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
+class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray = byteArrayOf(state.value.toByte())
 
     constructor(node: Node) : this(node.features.proxy?.state ?: FeatureState.Unsupported)
+
+    override fun toString() = "ConfigGattProxyStatus(opCode: $opCode, state: $state)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8014u
