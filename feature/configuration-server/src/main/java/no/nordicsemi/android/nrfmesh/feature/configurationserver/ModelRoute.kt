@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Numbers
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
@@ -101,7 +101,8 @@ internal fun ConfigurationServerModel(
     onFriendStateToggled: (Boolean) -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
-        ModelIdRow(name = model.modelId.toHex(prefix0x = true))
+        NameRow(name = model.name)
+        ModelIdRow(modelId = model.modelId.toHex(prefix0x = true))
         Company(modelId = model.modelId)
         ProxyStateRow(
             proxy = proxy,
@@ -117,14 +118,26 @@ internal fun ConfigurationServerModel(
 }
 
 @Composable
-private fun ModelIdRow(name: String) {
+private fun NameRow(name: String) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(R.string.label_name),
+        subtitle = name
+    )
+}
+
+@Composable
+private fun ModelIdRow(modelId: String) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Numbers,
-        title = "Model ID",
-        subtitle = name
+        title = stringResource(R.string.model_identifier),
+        subtitle = modelId
     )
 }
 

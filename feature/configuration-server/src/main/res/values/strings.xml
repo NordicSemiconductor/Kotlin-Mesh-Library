@@ -14,4 +14,7 @@
     <string name="label_company">Company</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_model_information">Model Information</string>
+    <string name="label_model_id">Model ID</string>
+    <string name="label_name">Name</string>
+    <string name="model_identifier">Model ID</string>
 </resources>
