@@ -8,7 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 /**
- * ConfigFriendStatus is the response received/sent for [ConfigFriendGet] message.
+ * Defines the response to a [ConfigFriendGet] or [ConfigFriendSet] message.
  *
  * @property state The state of the Friend feature.
  */
