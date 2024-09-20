@@ -8,7 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 /**
- * Defines the response to [ConfigGattProxyGet].
+ * Defines the response to a [ConfigGattProxyGet] or [ConfigGattProxySet] message.
  *
  * @property state The state of the GATT Proxy feature.
  */
