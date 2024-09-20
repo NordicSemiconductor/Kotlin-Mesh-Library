@@ -1,6 +1,11 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * The relay retransmit object represents the parameters of the retransmissions of network layer
