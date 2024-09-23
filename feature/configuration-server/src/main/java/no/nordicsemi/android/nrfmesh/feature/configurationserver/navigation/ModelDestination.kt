@@ -9,8 +9,8 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.ConfigurationServerRoute
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.ConfigurationServerViewModel
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.ModelRoute
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.ModelViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
 
 object ConfigurationServerDestination : MeshNavigationDestination {
@@ -34,15 +34,13 @@ fun NavGraphBuilder.configurationServerGraph(
     onBackPressed: () -> Unit
 ) {
     composable(route = ConfigurationServerDestination.route) {
-        val viewModel = hiltViewModel<ConfigurationServerViewModel>()
+        val viewModel = hiltViewModel<ModelViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        ConfigurationServerRoute(
+        ModelRoute(
             appState = appState,
             uiState = uiState,
-            onGetProxyStateClicked = viewModel::onGetProxyStateClicked,
-            onProxyStateToggled = viewModel::onProxyStateToggled,
-            onGetFriendStateClicked = viewModel::onGetFriendStateClicked,
-            onFriendStateToggled = viewModel::onFriendStateToggled,
+            send = viewModel::send,
+            resetMessageState = viewModel::resetMessageState,
             onBackPressed = onBackPressed
         )
     }

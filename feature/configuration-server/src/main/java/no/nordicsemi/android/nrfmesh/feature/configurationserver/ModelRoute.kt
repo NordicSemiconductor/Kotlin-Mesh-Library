@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrfmesh.feature.configurationserver
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,11 +27,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.Completed
+import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ModelScreen
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -39,13 +54,11 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
-internal fun ConfigurationServerRoute(
+internal fun ModelRoute(
     appState: AppState,
     uiState: ModelScreenUiState,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit,
-    onGetFriendStateClicked: () -> Unit,
-    onFriendStateToggled: (Boolean) -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val screen = appState.currentScreen as? ModelScreen
@@ -57,64 +70,98 @@ internal fun ConfigurationServerRoute(
         }?.launchIn(this)
     }
 
-    ConfigurationServerModelScreen(
+    ModelScreen(
         uiState = uiState,
-        onGetProxyStateClicked = onGetProxyStateClicked,
-        onProxyStateToggled = onProxyStateToggled,
-        onGetFriendStateClicked = onGetFriendStateClicked,
-        onFriendStateToggled = onFriendStateToggled
+        send = send,
+        resetMessageState = resetMessageState
     )
 }
 
 @Composable
-internal fun ConfigurationServerModelScreen(
+internal fun ModelScreen(
     uiState: ModelScreenUiState,
-    onGetProxyStateClicked: () -> Unit,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetFriendStateClicked: () -> Unit,
-    onFriendStateToggled: (Boolean) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit
 ) {
     when (uiState.modelState) {
         ModelState.Loading -> {}
-        is ModelState.Success -> ConfigurationServerModel(
+        is ModelState.Success -> ModelInformation(
+            messageState = uiState.messageState,
             model = uiState.modelState.model,
             proxy = uiState.modelState.model.parentElement?.parentNode?.features?.proxy,
-            onGetProxyStateClicked = onGetProxyStateClicked,
-            onProxyStateToggled = onProxyStateToggled,
             friend = uiState.modelState.model.parentElement?.parentNode?.features?.friend,
-            onGetFriendStateClicked = onGetFriendStateClicked,
-            onFriendStateToggled = onFriendStateToggled
+            send = send,
+            resetMessageState = resetMessageState
         )
 
-        is ModelState.Error -> TODO()
+        is ModelState.Error -> {}
     }
 }
 
 @Composable
-internal fun ConfigurationServerModel(
+internal fun ModelInformation(
+    messageState: MessageState,
     model: Model,
     proxy: Proxy?,
-    onGetProxyStateClicked: () -> Unit,
-    onProxyStateToggled: (Boolean) -> Unit,
     friend: Friend?,
-    onGetFriendStateClicked: () -> Unit,
-    onFriendStateToggled: (Boolean) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
-        NameRow(name = model.name)
-        ModelIdRow(modelId = model.modelId.toHex(prefix0x = true))
-        Company(modelId = model.modelId)
-        ProxyStateRow(
+        AnimatedVisibility(visible = messageState.isInProgress()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        CommonInformation(model = model)
+        ConfigurationServer(
             proxy = proxy,
-            onProxyStateToggled = onProxyStateToggled,
-            onGetProxyStateClicked = onGetProxyStateClicked,
-        )
-        FriendFeature(
             friend = friend,
-            onFriendStateToggled = onFriendStateToggled,
-            onGetFriendStateClicked = onGetFriendStateClicked
+            send = send
         )
     }
+
+    when (messageState) {
+        is Failed -> {
+            MeshMessageStatusDialog(
+                text = messageState.error.message ?: stringResource(R.string.label_unknown_error),
+                showDismissButton = !messageState.didFail(),
+                onDismissRequest = resetMessageState,
+            )
+        }
+
+        is Completed -> {
+            messageState.response?.let {
+                MeshMessageStatusDialog(
+                    text = when (it) {
+                        is StatusMessage -> it.message
+                        else -> stringResource(id = R.string.label_success)
+                    },
+                    showDismissButton = messageState.didFail(),
+                    onDismissRequest = resetMessageState,
+                )
+            }
+        }
+
+        else -> {
+
+        }
+    }
+}
+
+@Composable
+private fun CommonInformation(model: Model) {
+    NameRow(name = model.name)
+    ModelIdRow(modelId = model.modelId.toHex(prefix0x = true))
+    Company(modelId = model.modelId)
+}
+
+@Composable
+private fun ConfigurationServer(
+    proxy: Proxy?,
+    friend: Friend?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    ProxyStateRow(proxy = proxy, send = send)
+    FriendFeature(friend = friend, send = send)
 }
 
 @Composable
@@ -136,7 +183,7 @@ private fun ModelIdRow(modelId: String) {
             .padding(top = 8.dp)
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Numbers,
-        title = stringResource(R.string.model_identifier),
+        title = stringResource(R.string.label_model_identifier),
         subtitle = modelId
     )
 }
@@ -160,8 +207,7 @@ private fun Company(modelId: ModelId) {
 @Composable
 private fun ProxyStateRow(
     proxy: Proxy?,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit
 ) {
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
@@ -179,14 +225,14 @@ private fun ProxyStateRow(
                 if (!it) {
                     showProxyStateDialog = !showProxyStateDialog
                 } else {
-                    onProxyStateToggled(true)
+                    send(ConfigGattProxySet(state = FeatureState.Enabled))
                 }
             })
         },
         subtitle = "Proxy state is ${if (enabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
-        OutlinedButton(onClick = onGetProxyStateClicked) {
+        OutlinedButton(onClick = { send(ConfigGattProxyGet()) }) {
             Text(text = stringResource(R.string.label_get_state))
         }
     }
@@ -201,26 +247,25 @@ private fun ProxyStateRow(
             iconColor = Color.Red,
             onConfirmClick = {
                 enabled = false
-                onProxyStateToggled(false)
+                send(ConfigGattProxySet(state = FeatureState.Disabled))
                 showProxyStateDialog = !showProxyStateDialog
             },
             onDismissClick = {
                 showProxyStateDialog = !showProxyStateDialog
                 enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-            })
+            }
+        )
     }
 }
 
 @Composable
 private fun FriendFeature(
     friend: Friend?,
-    onFriendStateToggled: (Boolean) -> Unit,
-    onGetFriendStateClicked: () -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    var enabled by rememberSaveable {
-        mutableStateOf(friend?.state?.let { it == FeatureState.Enabled } ?: false)
+    val enabled by rememberSaveable {
+        mutableStateOf(friend?.state?.isEnabled ?: false)
     }
-    var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -229,18 +274,13 @@ private fun FriendFeature(
         title = stringResource(R.string.label_friend_feature),
         titleAction = {
             SwitchWithIcon(isChecked = enabled, onCheckedChange = {
-                enabled = it
-                if (!it) {
-                    showProxyStateDialog = !showProxyStateDialog
-                } else {
-                    onFriendStateToggled(true)
-                }
+                send(ConfigFriendSet(enable = it))
             })
         },
         subtitle = "Friend feature is ${if (enabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
-        OutlinedButton(onClick = onGetFriendStateClicked) {
+        OutlinedButton(onClick = { send(ConfigFriendGet()) }) {
             Text(text = stringResource(R.string.label_get_state))
         }
     }

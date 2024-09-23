@@ -20,8 +20,6 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -31,7 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.model.model
 import javax.inject.Inject
 
 @HiltViewModel
-internal class ConfigurationServerViewModel @Inject internal constructor(
+internal class ModelViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
@@ -47,7 +45,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
         repository.network.onEach {
             meshNetwork = it
             val state = it.node(address = address)?.let { node ->
-                this@ConfigurationServerViewModel.selectedElement =
+                this@ModelViewModel.selectedElement =
                     node.element(address) ?: throw IllegalArgumentException()
                 selectedModel = selectedElement.models
                     .model(modelId = SigModelId(0x0000.toUShort()))
@@ -61,51 +59,13 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
     }
 
     /**
-     * Called when the user requests the current proxy state of the node.
-     */
-    internal fun onGetProxyStateClicked() {
-        viewModelScope.launch {
-            send(message = ConfigGattProxyGet())
-        }
-    }
-
-    /**
-     * Called when the user toggles the proxy state of the node.
-     *
-     * @param enabled True if proxy is to be enabled or false otherwise.
-     */
-    internal fun onProxyStateToggled(enabled: Boolean) {
-        viewModelScope.launch {
-            send(message = ConfigGattProxySet(enabled))
-        }
-    }
-
-    /**
-     * Called when the user requests the current friend feature state of the node.
-     */
-    internal fun onGetFriendStateClicked() {
-        viewModelScope.launch {
-            send(message = ConfigGattProxyGet())
-        }
-    }
-
-    /**
-     * Called when the user toggles the friend feature state of the node.
-     *
-     * @param enabled True if friend feature state is to be enabled or false otherwise.
-     */
-    internal fun onFriendStateToggled(enabled: Boolean) {
-        viewModelScope.launch {
-            send(message = ConfigGattProxySet(enabled))
-        }
-    }
-
-    /**
      * Sends a message to the node.
      *
      * @param message Message to be sent.
      */
-    private fun send(message: AcknowledgedConfigMessage) {
+    internal fun send(message: AcknowledgedConfigMessage) {
+        _uiState.value =
+            _uiState.value.copy(messageState = Sending(message = message), showProgress = true)
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
                 messageState = Failed(message = message, error = throwable),
@@ -113,7 +73,6 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
                 showProgress = false
             )
         }
-        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
         viewModelScope.launch(context = handler) {
             repository.send(selectedElement.parentNode!!, message)?.let { response ->
                 _uiState.value = _uiState.value.copy(
