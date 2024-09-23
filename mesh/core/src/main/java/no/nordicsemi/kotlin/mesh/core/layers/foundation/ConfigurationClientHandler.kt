@@ -12,6 +12,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyUpdate
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
@@ -21,10 +23,15 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyUpdate
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Relay
+import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -49,6 +56,7 @@ internal class ConfigurationClientHandler(
         ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
+        ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
@@ -137,11 +145,29 @@ internal class ConfigurationClientHandler(
                 )
             }
 
+            is ConfigFriendStatus -> {
+                node(address = source)?.apply {
+                    features._friend = Friend(state = response.state)
+                    updateTimestamp()
+                }
+            }
+
             is ConfigGattProxyStatus -> {
                 node(address = source)?.apply {
                     features._proxy = Proxy(state = response.state)
+                    updateTimestamp()
                 }
-                updateTimestamp()
+            }
+
+            is ConfigRelayStatus -> {
+                node(address = source)?.apply {
+                    features._relay = Relay(state = response.state)
+                    relayRetransmit = when (response.state) {
+                        FeatureState.Unsupported -> null
+                        FeatureState.Disabled, FeatureState.Enabled -> RelayRetransmit(response)
+                    }
+                    updateTimestamp()
+                }
             }
 
             is ConfigHeartbeatPublicationStatus -> {
