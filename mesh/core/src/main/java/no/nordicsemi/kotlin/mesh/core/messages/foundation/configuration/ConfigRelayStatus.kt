@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Relay
@@ -21,10 +22,9 @@ data class ConfigRelayStatus(
     val state: FeatureState,
     val count: Int,
     val steps: UByte
-) : AcknowledgedConfigMessage {
+) : ConfigResponse {
     override val opCode = Initializer.opCode
     override val parameters = byteArrayOf(state.value.toByte())
-    override val responseOpCode: UInt = ConfigFriendStatus.opCode
 
     /**
      * Constructs a ConfigGattProxySet message.
