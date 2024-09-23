@@ -169,6 +169,8 @@ data class LowPower internal constructor(override val state: FeatureState) : Fea
  * FeatureState describes the state of a given [Feature].
  *
  * @property value 0 = disabled, 1 = enabled, 2 = unsupported
+ * @property isEnabled Returns true if the feature is enabled or false otherwise.
+ * @property isSupported Returns true if the feature is enabled or disabled and NOT unsupported.
  */
 @Serializable
 sealed class FeatureState(val value: Int) {
@@ -184,6 +186,12 @@ sealed class FeatureState(val value: Int) {
     /** Unsupported state. */
     @Serializable
     data object Unsupported : FeatureState(value = UNSUPPORTED)
+
+    val isEnabled: Boolean
+        get() = this is Enabled
+
+    val isSupported: Boolean
+        get() = this !is Unsupported
 
     override fun toString() = "FeatureState(${
         when (this) {
