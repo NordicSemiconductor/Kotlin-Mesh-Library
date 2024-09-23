@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.shr
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
