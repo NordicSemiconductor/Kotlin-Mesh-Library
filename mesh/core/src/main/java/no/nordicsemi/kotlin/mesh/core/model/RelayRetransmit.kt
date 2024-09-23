@@ -36,6 +36,38 @@ data class RelayRetransmit internal constructor(val count: Int, val interval: In
         }
     }
 
+    /**
+     * Convenience constructor
+     *
+     * @param incorrectRetransmit incorrect relay retransmit
+     */
+    @Suppress("unused")
+    internal constructor(incorrectRetransmit: RelayRetransmit) : this(
+        count = incorrectRetransmit.count,
+        interval = incorrectRetransmit.interval
+    )
+
+    /**
+     * Convenience constructor to be invoked upon receiving a [ConfigRelaySet] message.
+     *
+     * @param request [ConfigRelaySet] message.
+     */
+    @Suppress("unused")
+    internal constructor(request: ConfigRelaySet) : this(
+        count = request.count + 1,
+        interval = (request.steps.toInt() + 1) * 10
+    )
+
+    /**
+     * Convenience constructor to be invoked upon receiving a [ConfigRelayStatus] message.
+     *
+     * @param status [ConfigRelayStatus] message.
+     */
+    internal constructor(status: ConfigRelayStatus) : this(
+        count = status.count + 1,
+        interval = (status.steps.toInt() + 1) * 10
+    )
+
     internal companion object {
         const val MIN_COUNT = 1
         const val MAX_COUNT = 8
