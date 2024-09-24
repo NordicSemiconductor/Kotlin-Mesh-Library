@@ -111,6 +111,12 @@ data class Features internal constructor(
 sealed class Feature {
     abstract val state: FeatureState
     abstract val rawValue: UShort
+
+    val isEnabled: Boolean
+        get() = state.isEnabled
+
+    val isSupported: Boolean
+        get() = state.isSupported
 }
 
 /**
