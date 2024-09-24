@@ -24,7 +24,7 @@ data class ConfigRelaySet(
 ) : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
     override val parameters = byteArrayOf(state.value.toByte())
-    override val responseOpCode: UInt = ConfigFriendStatus.opCode
+    override val responseOpCode: UInt = ConfigRelayStatus.opCode
 
     /**
      * Constructs a ConfigRelaySet message.

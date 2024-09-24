@@ -10,7 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 class ConfigRelayGet : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
     override val parameters = null
-    override val responseOpCode: UInt = ConfigGattProxyStatus.opCode
+    override val responseOpCode: UInt = ConfigRelayStatus.opCode
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String =
