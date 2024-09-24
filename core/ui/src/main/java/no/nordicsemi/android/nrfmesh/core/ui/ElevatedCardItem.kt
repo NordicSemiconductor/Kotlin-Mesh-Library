@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +31,64 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+
+
+@Composable
+fun ElevatedCardItem(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    title: String,
+    titleAction: @Composable () -> Unit = {},
+    subtitle: String = "",
+    supportingText: String? = null,
+    body: @Composable (ColumnScope?.() -> Unit)? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
+) {
+    ElevatedCard(modifier = modifier) {
+        MeshTwoLineListItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(end = 16.dp),
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+            title = title,
+            subtitle = subtitle,
+            trailingComposable = titleAction
+        )
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        body?.let {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                it()
+            }
+        }
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
+            }
+        }
+    }
+}
 
 @Composable
 fun ElevatedCardItem(
@@ -134,7 +194,10 @@ fun ElevatedCardItemTextField(
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
-                                    value = TextFieldValue(text = value.text.trim(), selection = TextRange(value.text.trim().length))
+                                    value = TextFieldValue(
+                                        text = value.text.trim(),
+                                        selection = TextRange(value.text.trim().length)
+                                    )
                                     onValueChanged(value.text)
                                 }
                             ) {
