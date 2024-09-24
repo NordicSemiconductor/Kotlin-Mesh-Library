@@ -62,7 +62,7 @@ fun ElevatedCardItem(
         )
         if (supportingText != null)
             Text(
-                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp),
                 text = supportingText,
                 style = MaterialTheme.typography.bodyMedium
             )
