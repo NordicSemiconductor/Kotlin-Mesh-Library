@@ -58,6 +58,7 @@ internal class ConfigurationClientHandler(
         ConfigAppKeyList.opCode to ConfigAppKeyList,
         ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
+        ConfigRelayStatus.opCode to ConfigRelayStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
