@@ -41,7 +41,7 @@ data class ConfigRelayStatus(
             "state: $state, count: $count, steps: $steps)"
 
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x8027u
+        override val opCode = 0x8028u
 
         override fun init(parameters: ByteArray?) = parameters
             ?.takeIf { it.size == 2 }
