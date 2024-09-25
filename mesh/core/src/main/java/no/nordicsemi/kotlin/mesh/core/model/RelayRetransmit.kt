@@ -19,7 +19,7 @@ import kotlin.time.toDuration
  * @property timeInterval    The time interval between each transmissions in seconds.
  */
 @Serializable
-data class RelayRetransmit internal constructor(val count: Int, val interval: Int) {
+data class RelayRetransmit(val count: Int, val interval: Int) {
 
     val steps: UByte
         get() = ((interval / 10) - 1).toUByte()
@@ -68,30 +68,12 @@ data class RelayRetransmit internal constructor(val count: Int, val interval: In
         interval = (status.steps.toInt() + 1) * 10
     )
 
-    internal companion object {
+    companion object {
         const val MIN_COUNT = 1
         const val MAX_COUNT = 8
+        val COUNT_RANGE = MIN_COUNT..MAX_COUNT
         const val MIN_INTERVAL = 10
         const val MAX_INTERVAL = 320
-
-        /**
-         * Initializes the relay retransmit object from the given RelayRetransmit.
-         *
-         * @param incorrectRetransmit The relay retransmit object.
-         */
-        fun init(incorrectRetransmit: RelayRetransmit) = RelayRetransmit(
-            count = incorrectRetransmit.count,
-            interval = incorrectRetransmit.interval
-        )
-
-        fun init(request: ConfigRelaySet) = RelayRetransmit(
-            count = request.count + 1,
-            interval = (request.steps.toInt() + 1) * 10
-        )
-
-        fun init(status: ConfigRelayStatus) = RelayRetransmit(
-            count = status.count + 1,
-            interval = (status.steps.toInt() + 1) * 10
-        )
+        val INTERVAL_RANGE = MIN_INTERVAL..MAX_INTERVAL
     }
 }
