@@ -6,11 +6,9 @@
     <string name="label_proxy_state_rationale">"Turning off the proxy feature will set this node to
         a non-connectable state and disable the proxy server."</string>
     <string name="label_disable_proxy_feature">Disable Proxy</string>
+    <string name="label_friend">Friend</string>
     <string name="label_are_you_sure_rationale">Are you sure you want to continue?</string>
-    <string name="label_friend_feature">Friend Feature</string>
-    <string name="label_friend_feature_rationale">"The Friend Feature state indicates support for
-        the Friend feature. Disabling this feature will terminate all Friend relationships and clear
-        the associated Friend Queue."</string>
+    <string name="label_friend_feature_rationale">"Indicates support for the Friend feature. Disabling this feature will terminate all Friend relationships and clear the associated Friend Queue."</string>
     <string name="label_company">Company</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_model_information">Model Information</string>
@@ -19,4 +17,6 @@
     <string name="label_model_identifier">Model ID</string>
     <string name="label_unknown_error">Unknown Error</string>
     <string name="label_success">Success</string>
+    <string name="title_relay_count_and_interval">Relay Count &amp; Interval</string>
+    <string name="label_set_relay">Set Relay</string>
 </resources>

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -14,19 +15,25 @@ import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
@@ -44,14 +51,19 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFr
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Relay
+import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
+import kotlin.math.roundToInt
 
 @Composable
 internal fun ModelRoute(
@@ -88,6 +100,7 @@ internal fun ModelScreen(
         is ModelState.Success -> ModelInformation(
             messageState = uiState.messageState,
             model = uiState.modelState.model,
+            relay = uiState.modelState.model.parentElement?.parentNode?.features?.relay,
             proxy = uiState.modelState.model.parentElement?.parentNode?.features?.proxy,
             friend = uiState.modelState.model.parentElement?.parentNode?.features?.friend,
             send = send,
@@ -102,6 +115,7 @@ internal fun ModelScreen(
 internal fun ModelInformation(
     messageState: MessageState,
     model: Model,
+    relay: Relay?,
     proxy: Proxy?,
     friend: Friend?,
     send: (AcknowledgedConfigMessage) -> Unit,
@@ -113,6 +127,8 @@ internal fun ModelInformation(
         }
         CommonInformation(model = model)
         ConfigurationServer(
+            relayRetransmit = model.parentElement?.parentNode?.relayRetransmit,
+            relay = relay,
             proxy = proxy,
             friend = friend,
             send = send
@@ -156,12 +172,15 @@ private fun CommonInformation(model: Model) {
 
 @Composable
 private fun ConfigurationServer(
+    relayRetransmit: RelayRetransmit?,
+    relay: Relay?,
     proxy: Proxy?,
     friend: Friend?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    ProxyStateRow(proxy = proxy, send = send)
+    RelayFeature(relayRetransmit = relayRetransmit, relay = relay, send = send)
     FriendFeature(friend = friend, send = send)
+    ProxyStateRow(proxy = proxy, send = send)
 }
 
 @Composable
@@ -205,23 +224,146 @@ private fun Company(modelId: ModelId) {
 }
 
 @Composable
+private fun RelayFeature(
+    relayRetransmit: RelayRetransmit?,
+    relay: Relay?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    val supported by remember {
+        derivedStateOf { relay?.state?.isSupported ?: false }
+    }
+    var retransmissions by remember {
+        mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
+    }
+    val retransmissionsVal by remember {
+        derivedStateOf {
+            when (relayRetransmit) {
+                null -> "Unknown"
+                else -> "${retransmissions.roundToInt()} transmission(s)"
+            }
+        }
+    }
+    var interval by remember {
+        mutableFloatStateOf(relayRetransmit?.interval?.toFloat() ?: 0f)
+    }
+    val intervalVal by remember {
+        derivedStateOf {
+            when (relayRetransmit) {
+                null -> "Unknown"
+                else -> "${interval.roundToInt()} ms"
+            }
+        }
+    }
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Groups3,
+        title = stringResource(R.string.title_relay_count_and_interval),
+        body = {
+            Slider(
+                enabled = supported,
+                value = retransmissions,
+                onValueChange = {
+                    retransmissions = it
+                },
+                valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
+                steps = 6,
+                colors = NordicSliderDefaults.colors()
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp)
+                    .sizeIn(minWidth = 80.dp),
+                text = retransmissionsVal,
+                textAlign = TextAlign.End
+            )
+            Slider(
+                enabled = supported && retransmissions > 0,
+                value = interval,
+                onValueChange = { interval = it },
+                valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
+                steps = 30,
+                colors = NordicSliderDefaults.colors()
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp)
+                    .sizeIn(minWidth = 80.dp),
+                text = intervalVal,
+                textAlign = TextAlign.End
+            )
+
+        },
+        actions = {
+            OutlinedButton(onClick = { send(ConfigRelayGet()) },
+                content = { Text(text = stringResource(R.string.label_get_state)) }
+            )
+            OutlinedButton(
+                modifier = Modifier.padding(start = 8.dp),
+                onClick = {
+                    send(
+                        ConfigRelaySet(
+                            relayRetransmit = RelayRetransmit(
+                                count = retransmissions.roundToInt(),
+                                interval = interval.roundToInt()
+                            )
+                        )
+                    )
+                },
+                content = { Text(text = stringResource(R.string.label_set_relay)) }
+            )
+        }
+    )
+}
+
+@Composable
+private fun FriendFeature(
+    friend: Friend?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    val enabled by remember {
+        derivedStateOf { friend?.state?.isEnabled ?: false }
+    }
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Groups3,
+        title = stringResource(R.string.label_friend),
+        titleAction = {
+            SwitchWithIcon(isChecked = enabled, onCheckedChange = {
+                send(ConfigFriendSet(enable = it))
+            })
+        },
+        subtitle = "Friend feature is ${if (enabled) "enabled" else "disabled"}",
+        supportingText = stringResource(R.string.label_friend_feature_rationale)
+    ) {
+        OutlinedButton(onClick = { send(ConfigFriendGet()) }) {
+            Text(text = stringResource(R.string.label_get_state))
+        }
+    }
+}
+
+@Composable
 private fun ProxyStateRow(
     proxy: Proxy?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    var enabled by rememberSaveable {
-        mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
+    val enabled by remember {
+        derivedStateOf { proxy?.state?.let { it == FeatureState.Enabled } ?: false }
     }
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(top = 8.dp)
+            .padding(vertical = 8.dp)
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
             SwitchWithIcon(isChecked = enabled, onCheckedChange = {
-                enabled = it
                 if (!it) {
                     showProxyStateDialog = !showProxyStateDialog
                 } else {
@@ -239,49 +381,23 @@ private fun ProxyStateRow(
     if (showProxyStateDialog) {
         MeshAlertDialog(onDismissRequest = {
             showProxyStateDialog = !showProxyStateDialog
-            enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+            // enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
         },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
             iconColor = Color.Red,
             onConfirmClick = {
-                enabled = false
+                // enabled = false
                 send(ConfigGattProxySet(state = FeatureState.Disabled))
                 showProxyStateDialog = !showProxyStateDialog
             },
             onDismissClick = {
                 showProxyStateDialog = !showProxyStateDialog
-                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+                // enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
             }
         )
     }
 }
 
-@Composable
-private fun FriendFeature(
-    friend: Friend?,
-    send: (AcknowledgedConfigMessage) -> Unit
-) {
-    val enabled by rememberSaveable {
-        mutableStateOf(friend?.state?.isEnabled ?: false)
-    }
-    ElevatedCardItem(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Groups3,
-        title = stringResource(R.string.label_friend_feature),
-        titleAction = {
-            SwitchWithIcon(isChecked = enabled, onCheckedChange = {
-                send(ConfigFriendSet(enable = it))
-            })
-        },
-        subtitle = "Friend feature is ${if (enabled) "enabled" else "disabled"}",
-        supportingText = stringResource(R.string.label_proxy_state_rationale)
-    ) {
-        OutlinedButton(onClick = { send(ConfigFriendGet()) }) {
-            Text(text = stringResource(R.string.label_get_state))
-        }
-    }
-}
+fun IntRange.toFloat(): ClosedFloatingPointRange<Float> = start.toFloat()..endInclusive.toFloat()
