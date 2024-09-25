@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -9,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import kotlin.experimental.and
+import kotlin.experimental.or
 
 /**
  * Defines a message that's message sent as a response to a [ConfigRelayGet] or [ConfigRelaySet].
@@ -17,13 +19,14 @@ import kotlin.experimental.and
  * @property count Number of retransmissions.
  * @property steps Number of 10-millisecond steps between retransmissions.
  */
-data class ConfigRelaySet(
+class ConfigRelaySet(
     val state: FeatureState,
     val count: Int,
     val steps: UByte
 ) : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
-    override val parameters = byteArrayOf(state.value.toByte())
+    override val parameters =
+        byteArrayOf(state.value.toByte(), ((count and 0x07).toByte() or (steps shl 3).toByte()))
     override val responseOpCode: UInt = ConfigRelayStatus.opCode
 
     /**
