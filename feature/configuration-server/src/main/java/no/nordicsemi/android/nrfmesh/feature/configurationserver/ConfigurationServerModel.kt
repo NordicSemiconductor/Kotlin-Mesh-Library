@@ -87,9 +87,6 @@ private fun RelayFeature(
     relay: Relay?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    val supported by remember {
-        derivedStateOf { relay?.state?.isSupported ?: false }
-    }
     var retransmissions by remember {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
     }
@@ -120,7 +117,7 @@ private fun RelayFeature(
         title = stringResource(R.string.title_relay_count_and_interval),
         body = {
             Slider(
-                enabled = supported && !messageState.isInProgress(),
+                enabled = relay?.state?.isSupported == true && !messageState.isInProgress(),
                 value = retransmissions,
                 onValueChange = {
                     retransmissions = it
@@ -138,7 +135,9 @@ private fun RelayFeature(
                 textAlign = TextAlign.End
             )
             Slider(
-                enabled = supported && retransmissions > 0 && !messageState.isInProgress(),
+                enabled = relay?.state?.isSupported == true &&
+                        retransmissions > 0 &&
+                        !messageState.isInProgress(),
                 value = interval,
                 onValueChange = { interval = it },
                 valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
@@ -181,25 +180,55 @@ private fun RelayFeature(
 }
 
 @Composable
+private fun FriendFeature(
+    messageState: MessageState,
+    friend: Friend?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Diversity1,
+        title = stringResource(R.string.label_friend),
+        titleAction = {
+            Switch(
+                enabled = !messageState.isInProgress(),
+                checked = friend?.state?.isEnabled ?: false,
+                onCheckedChange = { send(ConfigFriendSet(enable = it)) }
+            )
+        },
+        subtitle = "Friend feature is ${
+            if (friend?.state?.isEnabled == true) "enabled"
+            else "disabled"
+        }",
+        supportingText = stringResource(R.string.label_friend_feature_rationale)
+    ) {
+        OutlinedButton(
+            enabled = !messageState.isInProgress(),
+            onClick = { send(ConfigFriendGet()) },
+            content = { Text(text = stringResource(R.string.label_get_state)) }
+        )
+    }
+}
+
+@Composable
 private fun ProxyStateRow(
     messageState: MessageState,
     proxy: Proxy?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    val enabled by remember {
-        derivedStateOf { proxy?.state?.let { it == FeatureState.Enabled } ?: false }
-    }
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(vertical = 8.dp)
+            .padding(top = 8.dp)
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
             Switch(
                 enabled = !messageState.isInProgress(),
-                checked = enabled,
+                checked = proxy?.state == FeatureState.Enabled,
                 onCheckedChange = {
                     when (!it) {
                         true -> showProxyStateDialog = !showProxyStateDialog
@@ -208,7 +237,10 @@ private fun ProxyStateRow(
                 }
             )
         },
-        subtitle = "Proxy state is ${if (enabled) "enabled" else "disabled"}",
+        subtitle = "Proxy state is ${
+            if (proxy?.state == FeatureState.Enabled) "enabled"
+            else "disabled"
+        }",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
         OutlinedButton(
@@ -220,54 +252,16 @@ private fun ProxyStateRow(
     if (showProxyStateDialog) {
         MeshAlertDialog(onDismissRequest = {
             showProxyStateDialog = !showProxyStateDialog
-            // enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
         },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
             iconColor = Color.Red,
             onConfirmClick = {
-                // enabled = false
                 send(ConfigGattProxySet(state = FeatureState.Disabled))
                 showProxyStateDialog = !showProxyStateDialog
             },
-            onDismissClick = {
-                showProxyStateDialog = !showProxyStateDialog
-                // enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-            }
-        )
-    }
-}
-
-@Composable
-private fun FriendFeature(
-    messageState: MessageState,
-    friend: Friend?,
-    send: (AcknowledgedConfigMessage) -> Unit
-) {
-    val enabled by remember {
-        derivedStateOf { friend?.state?.isEnabled ?: false }
-    }
-    ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Diversity1,
-        title = stringResource(R.string.label_friend),
-        titleAction = {
-            Switch(
-                enabled = !messageState.isInProgress(),
-                checked = enabled,
-                onCheckedChange = { send(ConfigFriendSet(enable = it)) }
-            )
-        },
-        subtitle = "Friend feature is ${if (enabled) "enabled" else "disabled"}",
-        supportingText = stringResource(R.string.label_friend_feature_rationale)
-    ) {
-        OutlinedButton(
-            enabled = !messageState.isInProgress(),
-            onClick = { send(ConfigFriendGet()) },
-            content = { Text(text = stringResource(R.string.label_get_state)) }
+            onDismissClick = { showProxyStateDialog = !showProxyStateDialog }
         )
     }
 }
@@ -310,26 +304,15 @@ private fun NodeIdentityStatusRow(
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     println("Node identity state for ${networkKey.name}: $state")
-    var isChecked by remember {
-        mutableStateOf(state?.isSupported == true && state.isRunning)
-    }
     MeshSingleLineListItem(
         modifier = Modifier.padding(start = 42.dp),
-        /*leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        },*/
         title = networkKey.name,
         trailingComposable = {
             Switch(
                 enabled = state?.isSupported ?: false,
-                checked = isChecked,
+                checked = state?.isSupported == true && state.isRunning,
                 onCheckedChange = {
-                    isChecked = it
+                    // isChecked = it
                     send(
                         ConfigNodeIdentitySet(
                             networkKeyIndex = networkKey.index,
