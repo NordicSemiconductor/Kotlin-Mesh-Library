@@ -11,6 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyUpdate
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
@@ -56,6 +57,7 @@ internal class ConfigurationClientHandler(
         ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
+        ConfigBeaconStatus.opCode to ConfigBeaconStatus,
         ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
         ConfigRelayStatus.opCode to ConfigRelayStatus,
@@ -169,6 +171,12 @@ internal class ConfigurationClientHandler(
                         FeatureState.Disabled, FeatureState.Enabled -> RelayRetransmit(response)
                     }
                     updateTimestamp()
+                }
+            }
+
+            is ConfigBeaconStatus -> {
+                node(address = source)?.apply {
+                    secureNetworkBeacon = response.isEnabled
                 }
             }
 
