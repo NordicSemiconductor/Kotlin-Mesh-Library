@@ -29,7 +29,7 @@ internal class ElementViewModel @Inject internal constructor(
     private lateinit var selectedElement: Element
     private val address: Address = checkNotNull(
         value = savedStateHandle[MeshNavigationDestination.ARG]
-    ).toString().toUShort()
+    ).toString().toUShort(radix = 16)
 
     private val _uiState = MutableStateFlow(ElementScreenUiState())
     val uiState: StateFlow<ElementScreenUiState> = _uiState.asStateFlow()

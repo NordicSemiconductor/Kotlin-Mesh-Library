@@ -40,7 +40,9 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedElement: Element
     private lateinit var selectedModel: Model
-    private val address: Address = checkNotNull(value = savedStateHandle[ARG]).toString().toUShort()
+    private val address: Address = checkNotNull(value = savedStateHandle[ARG])
+        .toString()
+        .toUShort(radix = 16)
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState.asStateFlow()
