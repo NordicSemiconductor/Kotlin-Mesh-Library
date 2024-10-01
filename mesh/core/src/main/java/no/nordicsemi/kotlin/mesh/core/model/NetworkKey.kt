@@ -177,6 +177,13 @@ data class NetworkKey internal constructor(
         regenerateKeyDerivatives()
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "NetworkKey(index: $index, name: $_name, key: ${_key.toHexString()}, " +
+                "key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
+                "timestamp: $timestamp)"
+    }
+
     private fun updateTimeStamp() {
         timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
