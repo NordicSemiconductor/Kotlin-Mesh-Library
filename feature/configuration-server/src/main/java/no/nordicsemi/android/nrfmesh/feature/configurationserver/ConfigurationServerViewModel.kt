@@ -112,6 +112,18 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
                     ),
                     isRefreshing = false,
                 )
+
+                if(response is ConfigNodeIdentityStatus) {
+                    val nodeIdentityStates = _uiState.value.nodeIdentityStates.toMutableList()
+                    val index = nodeIdentityStates.indexOfFirst { state ->
+                        state.networkKey.index == response.networkKeyIndex
+                    }
+                    nodeIdentityStates[index] = nodeIdentityStates[index]
+                        .copy(nodeIdentityState = response.identity)
+                    _uiState.value = _uiState.value.copy(
+                        nodeIdentityStates = nodeIdentityStates.toList()
+                    )
+                }
             } ?: run {
                 _uiState.value = _uiState.value.copy(
                     messageState = Failed(
