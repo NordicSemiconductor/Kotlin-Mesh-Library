@@ -7,6 +7,8 @@ package no.nordicsemi.kotlin.mesh.core.model
  * @property STOPPED             Advertising with Node Identity for a subnet is stopped.
  * @property RUNNING             Advertising with Node Identity for a subnet is running.
  * @property NOT_SUPPORTED       Advertising with Node Identity for a subnet is not supported.
+ * @property isSupported         Returns true if the state is supported.
+ * @property isRunning           Returns true if the state is running.
  */
 enum class NodeIdentityState(val value: UByte) {
     STOPPED(0x00u),
@@ -14,7 +16,10 @@ enum class NodeIdentityState(val value: UByte) {
     NOT_SUPPORTED(0x02u);
 
     val isSupported: Boolean
-        get() = this != NOT_SUPPORTED
+        get() = this == STOPPED || this == RUNNING
+
+    val isRunning: Boolean
+        get() = this == RUNNING
 
     companion object {
 
