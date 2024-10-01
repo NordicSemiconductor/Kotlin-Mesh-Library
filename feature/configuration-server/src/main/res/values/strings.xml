@@ -19,4 +19,6 @@
     <string name="label_success">Success</string>
     <string name="title_relay_count_and_interval">Relay Count &amp; Interval</string>
     <string name="label_set_relay">Set Relay</string>
+    <string name="label_node_identity">Node Identity</string>
+    <string name="label_node_identity_rationale">"Determines if a node is advertising with Node Identity messages on a subnet. If the Mesh Proxy Service is exposed, the node can be configured to advertise with node Identity on a given subnet."</string>
 </resources>

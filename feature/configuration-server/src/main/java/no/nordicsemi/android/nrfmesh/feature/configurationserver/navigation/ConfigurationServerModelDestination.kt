@@ -10,10 +10,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.ModelRoute
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.ModelViewModel
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.ConfigurationServerViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
 
-object ConfigurationServerDestination : MeshNavigationDestination {
+object ConfigurationServerModelDestination : MeshNavigationDestination {
     override val route: String = "configuration_server_route/{$ARG}"
     override val destination: String = "configuration_server_destination"
 
@@ -30,16 +30,16 @@ object ConfigurationServerDestination : MeshNavigationDestination {
 
 fun NavGraphBuilder.configurationServerGraph(
     appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    composable(route = ConfigurationServerDestination.route) {
-        val viewModel = hiltViewModel<ModelViewModel>()
+    composable(route = ConfigurationServerModelDestination.route) {
+        val viewModel = hiltViewModel<ConfigurationServerViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ModelRoute(
             appState = appState,
             uiState = uiState,
             send = viewModel::send,
+            requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
             resetMessageState = viewModel::resetMessageState,
             onBackPressed = onBackPressed
         )

@@ -8,10 +8,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class ModelScreen(
+class ConfigurationServerModelScreen(
     override val title: String = "Model",
 ) : Screen {
-    override val route = ConfigurationServerDestination.route
+    override val route = ConfigurationServerModelDestination.route
     override val showTopBar = true
     override val navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack
     override val onNavigationIconClick: (() -> Unit) = {

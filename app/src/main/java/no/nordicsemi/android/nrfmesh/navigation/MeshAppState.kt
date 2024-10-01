@@ -32,8 +32,8 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.Applica
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerDestination
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ModelScreen
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerModelDestination
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerModelScreen
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
@@ -76,14 +76,12 @@ fun rememberMeshAppState(
     navController: NavHostController,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState
-): MeshAppState {
-    return remember(navController) {
-        MeshAppState(
-            navController = navController,
-            scope = scope,
-            snackbarHostState = snackbarHostState
-        )
-    }
+): MeshAppState = remember(navController) {
+    MeshAppState(
+        navController = navController,
+        scope = scope,
+        snackbarHostState = snackbarHostState
+    )
 }
 
 @Stable
@@ -178,7 +176,7 @@ private fun getScreen(route: String?) = when (route) {
     NodesDestination.route -> NodesScreen(title = "Nodes")
     NodeDestination.route -> NodeScreen(title = "Node")
     ElementDestination.route -> ElementScreen(title = "Element Information")
-    ConfigurationServerDestination.route -> ModelScreen(title = "Model Information")
+    ConfigurationServerModelDestination.route -> ConfigurationServerModelScreen(title = "Model Information")
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     NetKeySelectorDestination.route -> NetKeySelectorScreen()
     ConfigNetKeysDestination.route -> ConfigNetKeysScreen()

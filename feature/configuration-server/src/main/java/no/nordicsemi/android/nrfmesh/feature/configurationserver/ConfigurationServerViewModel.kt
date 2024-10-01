@@ -20,16 +20,20 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.model
 import javax.inject.Inject
 
 @HiltViewModel
-internal class ModelViewModel @Inject internal constructor(
+internal class ConfigurationServerViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
@@ -44,19 +48,44 @@ internal class ModelViewModel @Inject internal constructor(
     init {
         repository.network.onEach {
             meshNetwork = it
-            val state = it.node(address = address)?.let { node ->
-                this@ModelViewModel.selectedElement =
-                    node.element(address) ?: throw IllegalArgumentException()
-                selectedModel = selectedElement.models
+            val modelState = it.element(elementAddress = address)?.let { element ->
+                this@ConfigurationServerViewModel.selectedElement = element
+                selectedModel = element.models
                     .model(modelId = SigModelId(0x0000.toUShort()))
                     ?: throw IllegalArgumentException()
                 ModelState.Success(model = selectedModel)
             } ?: ModelState.Error(Throwable("Model not found"))
             _uiState.value = _uiState.value.copy(
-                modelState = state
+                modelState = modelState
             )
+            if (shouldUpdateNodeIdentityState()) {
+                _uiState.value = _uiState.value.copy(
+                    nodeIdentityStates = createNodeIdentityStates()
+                )
+            }
         }.launchIn(scope = viewModelScope)
     }
+
+    /**
+     * Returns if the NodeIdentityState for this should be updated/refreshed.
+     *
+     * @return true if the NodeIdentityState should be updated, false otherwise.
+     */
+    private fun shouldUpdateNodeIdentityState(): Boolean =
+        _uiState.value.nodeIdentityStates.isEmpty()
+
+    /**
+     * Creates a list of NodeIdentityStatus objects for each network key.
+     *
+     * @return List of NodeIdentityStatus objects.
+     */
+    private fun createNodeIdentityStates() = selectedModel.parentElement?.parentNode?.networkKeys
+        ?.map { key ->
+            NodeIdentityStatus(
+                networkKey = key,
+                nodeIdentityState = null
+            )
+        } ?: emptyList()
 
     /**
      * Sends a message to the node.
@@ -65,12 +94,11 @@ internal class ModelViewModel @Inject internal constructor(
      */
     internal fun send(message: AcknowledgedConfigMessage) {
         _uiState.value =
-            _uiState.value.copy(messageState = Sending(message = message), showProgress = true)
+            _uiState.value.copy(messageState = Sending(message = message))
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
                 messageState = Failed(message = message, error = throwable),
-                isRefreshing = false,
-                showProgress = false
+                isRefreshing = false
             )
         }
         viewModelScope.launch(context = handler) {
@@ -81,7 +109,6 @@ internal class ModelViewModel @Inject internal constructor(
                         response = response as ConfigResponse
                     ),
                     isRefreshing = false,
-                    showProgress = false
                 )
             } ?: run {
                 _uiState.value = _uiState.value.copy(
@@ -90,9 +117,52 @@ internal class ModelViewModel @Inject internal constructor(
                         error = IllegalStateException("No response received")
                     ),
                     isRefreshing = false,
-                    showProgress = false
                 )
             }
+        }
+    }
+
+    internal fun requestNodeIdentityStates() {
+        viewModelScope.launch {
+            val uiState = _uiState.value
+            val nodeIdentityStates = uiState.nodeIdentityStates.toMutableList()
+            val keys = selectedElement.parentNode?.networkKeys ?: emptyList()
+
+            var message: ConfigNodeIdentityGet? = null
+            var response: ConfigNodeIdentityStatus? = null
+            try {
+                keys.forEach { key ->
+                    message = ConfigNodeIdentityGet(networkKeyIndex = key.index)
+                    _uiState.value = _uiState.value.copy(
+                        messageState = Sending(message = message!!),
+                    )
+                    response = repository.send(
+                        node = selectedElement.parentNode!!,
+                        message = message!!
+                    ) as ConfigNodeIdentityStatus
+
+                    response?.let { status ->
+                        val index = nodeIdentityStates.indexOfFirst { state ->
+                            state.networkKey.index == status.networkKeyIndex
+                        }
+                        nodeIdentityStates[index] = nodeIdentityStates[index]
+                            .copy(nodeIdentityState = status.identity)
+                    }
+                }
+                _uiState.value = _uiState.value.copy(
+                    messageState = Completed(
+                        message = ConfigNodeIdentityGet(networkKeyIndex = keys.first().index),
+                        response = response as ConfigNodeIdentityStatus
+                    ),
+                    nodeIdentityStates = nodeIdentityStates.toList()
+                )
+            } catch (ex: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(message = message, error = ex),
+                    isRefreshing = false,
+                )
+            }
+
         }
     }
 
@@ -113,6 +183,11 @@ internal sealed interface ModelState {
 internal data class ModelScreenUiState internal constructor(
     val modelState: ModelState = ModelState.Loading,
     val isRefreshing: Boolean = false,
-    val showProgress: Boolean = false,
-    val messageState: MessageState = NotStarted
+    val messageState: MessageState = NotStarted,
+    val nodeIdentityStates: List<NodeIdentityStatus> = emptyList()
+)
+
+internal data class NodeIdentityStatus(
+    val networkKey: NetworkKey,
+    val nodeIdentityState: NodeIdentityState?
 )
