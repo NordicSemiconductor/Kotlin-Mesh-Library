@@ -4,7 +4,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 
 /**
- * This message is used to get the beacon state of the mesh network.
+ * This message is used to set the current beacon feature state of the a mesh node. The response
+ * received after sending this message is a [ConfigBeaconStatus] message.
  *
  * @property enable True to enable the beacon feature or false to disable it.
  */

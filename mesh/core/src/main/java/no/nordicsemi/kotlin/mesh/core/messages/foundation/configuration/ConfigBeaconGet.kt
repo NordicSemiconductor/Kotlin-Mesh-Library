@@ -4,7 +4,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 
 /**
- * This message is used to get the beacon state of the mesh network.
+ * This message is used to get the beacon state of the mesh network. The response to this message
+ * would be a [ConfigBeaconStatus].
  */
 class ConfigBeaconGet : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode

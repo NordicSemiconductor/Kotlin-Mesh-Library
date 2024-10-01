@@ -1,12 +1,11 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 
 /**
- * This message is used to get the beacon state of the mesh network.
+ * This message is the status message sent as a response to [ConfigBeaconGet] and [ConfigBeaconSet].
  *
  * @property isEnabled True if the beacon is enabled or false otherwise.
  */
