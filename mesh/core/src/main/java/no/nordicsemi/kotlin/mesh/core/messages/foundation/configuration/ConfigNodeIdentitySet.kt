@@ -1,5 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -19,7 +20,7 @@ class ConfigNodeIdentitySet(
     val identityState: NodeIdentityState
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
-    override val parameters = encodeNetKeyIndex()
+    override val parameters = encodeNetKeyIndex() + byteArrayOf(identityState.value.toByte())
     override val responseOpCode: UInt = ConfigNodeIdentityStatus.opCode
 
     /**
@@ -35,18 +36,18 @@ class ConfigNodeIdentitySet(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String =
-        "ConfigNodeIdentityGet(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
+    override fun toString(): String = "ConfigNodeIdentityGet(opCode: 0x${opCode.toHexString()}, " +
+            "parameters: ${parameters.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8047u
 
         override fun init(parameters: ByteArray?) = parameters
-            ?.takeIf { it.size == 2 }
+            ?.takeIf { it.size == 3 }
             ?.let {
                 ConfigNodeIdentitySet(
                     networkKeyIndex = decodeNetKeyIndex(data = it, offset = 0),
-                    identityState = NodeIdentityState.from(it.first().toUByte())
+                    identityState = NodeIdentityState.from(it[2].toUByte())
                 )
             }
     }
