@@ -20,9 +20,9 @@ import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
  * @property status Status of the message.
  */
 class ConfigNodeIdentityStatus(
-    val identity: NodeIdentityState,
+    override val status: ConfigMessageStatus,
     override val networkKeyIndex: KeyIndex,
-    override val status: ConfigMessageStatus
+    val identity: NodeIdentityState
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters = encodeNetKeyIndex()
@@ -40,9 +40,9 @@ class ConfigNodeIdentityStatus(
             ?.let { params ->
                 ConfigMessageStatus.from(params.first().toUByte())?.let {
                     ConfigNodeIdentityStatus(
-                        identity = NodeIdentityState.from(params[1].toUByte()),
-                        networkKeyIndex = decodeNetKeyIndex(params, 2),
-                        status = it
+                        status = it,
+                        networkKeyIndex = decodeNetKeyIndex(params, 1),
+                        identity = NodeIdentityState.from(params[3].toUByte())
                     )
                 }
             }
