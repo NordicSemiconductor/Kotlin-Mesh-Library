@@ -8,12 +8,12 @@ import androidx.compose.material.icons.outlined.Diversity1
 import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.WavingHand
+import androidx.compose.material.icons.outlined.WifiTethering
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +32,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
@@ -63,6 +65,11 @@ internal fun ConfigurationServerModel(
         relay = model.parentElement?.parentNode?.features?.relay,
         send = send
     )
+    SecureNetworkBeacon(
+        messageState = messageState,
+        friend = model.parentElement?.parentNode?.features?.friend,
+        send = send
+    )
     FriendFeature(
         messageState = messageState,
         friend = model.parentElement?.parentNode?.features?.friend,
@@ -90,24 +97,8 @@ private fun RelayFeature(
     var retransmissions by remember {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
     }
-    val retransmissionsVal by remember {
-        derivedStateOf {
-            when (relayRetransmit) {
-                null -> "Unknown"
-                else -> "${retransmissions.roundToInt()} transmission(s)"
-            }
-        }
-    }
     var interval by remember {
         mutableFloatStateOf(relayRetransmit?.interval?.toFloat() ?: 0f)
-    }
-    val intervalVal by remember {
-        derivedStateOf {
-            when (relayRetransmit) {
-                null -> "Unknown"
-                else -> "${interval.roundToInt()} ms"
-            }
-        }
     }
     ElevatedCardItem(
         modifier = Modifier
@@ -131,7 +122,10 @@ private fun RelayFeature(
                     .fillMaxWidth()
                     .padding(start = 16.dp)
                     .sizeIn(minWidth = 80.dp),
-                text = retransmissionsVal,
+                text = when (relayRetransmit) {
+                    null -> "Unknown"
+                    else -> "${retransmissions.roundToInt()} transmission(s)"
+                },
                 textAlign = TextAlign.End
             )
             Slider(
@@ -149,10 +143,12 @@ private fun RelayFeature(
                     .fillMaxWidth()
                     .padding(start = 16.dp)
                     .sizeIn(minWidth = 80.dp),
-                text = intervalVal,
+                text = when (relayRetransmit) {
+                    null -> "Unknown"
+                    else -> "${interval.roundToInt()} ms"
+                },
                 textAlign = TextAlign.End
             )
-
         },
         actions = {
             OutlinedButton(
@@ -177,6 +173,39 @@ private fun RelayFeature(
             )
         }
     )
+}
+
+@Composable
+private fun SecureNetworkBeacon(
+    messageState: MessageState,
+    friend: Friend?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.WifiTethering,
+        title = stringResource(R.string.label_snb),
+        titleAction = {
+            Switch(
+                enabled = !messageState.isInProgress(),
+                checked = friend?.state?.isEnabled ?: false,
+                onCheckedChange = { send(ConfigBeaconSet(enable = it)) }
+            )
+        },
+        subtitle = "Secure Network Beacon is ${
+            if (friend?.state?.isEnabled == true) "enabled"
+            else "disabled"
+        }",
+        supportingText = stringResource(R.string.label_snb_rationale)
+    ) {
+        OutlinedButton(
+            enabled = !messageState.isInProgress(),
+            onClick = { send(ConfigBeaconGet()) },
+            content = { Text(text = stringResource(R.string.label_get_state)) }
+        )
+    }
 }
 
 @Composable
