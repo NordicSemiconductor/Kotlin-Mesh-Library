@@ -12,7 +12,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyUpdate
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
@@ -22,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyUpdate
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -59,6 +59,7 @@ internal class ConfigurationClientHandler(
         ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
         ConfigRelayStatus.opCode to ConfigRelayStatus,
+        ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
@@ -169,6 +170,10 @@ internal class ConfigurationClientHandler(
                     }
                     updateTimestamp()
                 }
+            }
+
+            is ConfigNodeIdentityStatus -> {
+                // Do nothing here as we don't store the NodeIdentityState in the CDB.
             }
 
             is ConfigHeartbeatPublicationStatus -> {
