@@ -71,7 +71,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             PduType.NETWORK_PDU -> {
                 val networkPdu = NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)
                 return if (networkPdu != null) {
-                    logger?.i(LogCategory.NETWORK) { "$networkPdu received?." }
+                    logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
                     networkManager.lowerTransportLayer.handle(networkPdu)?.let {
                         ReceivedMessage(
                             address = networkPdu.source,
