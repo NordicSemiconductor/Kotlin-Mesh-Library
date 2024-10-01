@@ -156,7 +156,10 @@ data class Node internal constructor(
         internal set
 
     var secureNetworkBeacon: Boolean? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     var networkTransmit: NetworkTransmit? = null
         internal set(value) {
