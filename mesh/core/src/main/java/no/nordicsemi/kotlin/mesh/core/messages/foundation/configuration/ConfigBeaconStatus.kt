@@ -1,0 +1,31 @@
+package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
+
+import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
+
+/**
+ * This message is used to get the beacon state of the mesh network.
+ *
+ * @property isEnabled True if the beacon is enabled or false otherwise.
+ */
+@Suppress("MemberVisibilityCanBePrivate")
+class ConfigBeaconStatus(val isEnabled: Boolean) : ConfigResponse {
+    override val opCode = Initializer.opCode
+    override val parameters = byteArrayOf(if (isEnabled) 0x01 else 0x00)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigBeaconStatus(opCode: 0x${opCode.toHexString()} " +
+            "parameters: ${parameters.toHexString()})"
+
+    companion object Initializer : ConfigMessageInitializer {
+        override val opCode = 0x800Bu
+
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 1 && it.first() <= 1
+        }?.let { params ->
+            ConfigBeaconStatus(isEnabled = params.first().toInt() == 0x01)
+        }
+    }
+}
