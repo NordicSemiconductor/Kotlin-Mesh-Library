@@ -44,6 +44,6 @@ data class Completed(
  * @param error     Error that occurred while sending the message.
  */
 data class Failed(
-    val message: MeshMessage,
+    val message: MeshMessage?,
     val error: Throwable
 ) : MessageState()
