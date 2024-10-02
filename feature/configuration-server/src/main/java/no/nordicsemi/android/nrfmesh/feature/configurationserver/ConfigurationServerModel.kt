@@ -45,6 +45,7 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
@@ -63,6 +64,11 @@ internal fun ConfigurationServerModel(
         messageState = messageState,
         relayRetransmit = model.parentElement?.parentNode?.relayRetransmit,
         relay = model.parentElement?.parentNode?.features?.relay,
+        send = send
+    )
+    NetworkTransmit(
+        messageState = messageState,
+        networkTransmit = model.parentElement?.parentNode?.networkTransmit,
         send = send
     )
     SecureNetworkBeacon(
@@ -164,6 +170,91 @@ private fun RelayFeature(
                         ConfigRelaySet(
                             relayRetransmit = RelayRetransmit(
                                 count = retransmissions.roundToInt(),
+                                interval = interval.roundToInt()
+                            )
+                        )
+                    )
+                },
+                content = { Text(text = stringResource(R.string.label_set_relay)) }
+            )
+        }
+    )
+}
+
+@Composable
+private fun NetworkTransmit(
+    messageState: MessageState,
+    networkTransmit: NetworkTransmit?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    var transmissions by remember {
+        mutableFloatStateOf(networkTransmit?.count?.toFloat() ?: 0f)
+    }
+    var interval by remember {
+        mutableFloatStateOf(networkTransmit?.interval?.toFloat() ?: 0f)
+    }
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp),
+        imageVector = Icons.Outlined.Groups3,
+        title = stringResource(R.string.title_network_transmit),
+        body = {
+            Slider(
+                enabled = !messageState.isInProgress(),
+                value = transmissions,
+                onValueChange = {
+                    transmissions = it
+                },
+                valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
+                steps = 6,
+                colors = NordicSliderDefaults.colors()
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp)
+                    .sizeIn(minWidth = 80.dp),
+                text = when (networkTransmit) {
+                    null -> "Unknown"
+                    else -> "${transmissions.roundToInt()} transmission(s)"
+                },
+                textAlign = TextAlign.End
+            )
+            Slider(
+                enabled = transmissions > 0 && !messageState.isInProgress(),
+                value = interval,
+                onValueChange = { interval = it },
+                valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
+                steps = 30,
+                colors = NordicSliderDefaults.colors()
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp)
+                    .sizeIn(minWidth = 80.dp),
+                text = when (networkTransmit) {
+                    null -> "Unknown"
+                    else -> "${interval.roundToInt()} ms"
+                },
+                textAlign = TextAlign.End
+            )
+        },
+        actions = {
+            OutlinedButton(
+                enabled = !messageState.isInProgress(),
+                onClick = { send(ConfigRelayGet()) },
+                content = { Text(text = stringResource(R.string.label_get_state)) }
+            )
+            OutlinedButton(
+                modifier = Modifier.padding(start = 8.dp),
+                enabled = !messageState.isInProgress(),
+                onClick = {
+                    send(
+                        ConfigRelaySet(
+                            relayRetransmit = RelayRetransmit(
+                                count = transmissions.roundToInt(),
                                 interval = interval.roundToInt()
                             )
                         )

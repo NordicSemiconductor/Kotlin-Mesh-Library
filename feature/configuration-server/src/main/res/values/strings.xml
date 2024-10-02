@@ -23,4 +23,5 @@
     <string name="label_node_identity_rationale">"Determines if a node is advertising with Node Identity messages on a subnet. If the Mesh Proxy Service is exposed, the node can be configured to advertise with node Identity on a given subnet."</string>
     <string name="label_snb">Secure Network Beacon</string>
     <string name="label_snb_rationale">"Determines if a node is periodically broadcasting Secure Network Beacons."</string>
+    <string name="title_network_transmit">Network Transmit</string>
 </resources>
