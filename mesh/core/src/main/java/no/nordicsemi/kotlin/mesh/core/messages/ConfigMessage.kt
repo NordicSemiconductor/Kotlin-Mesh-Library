@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -17,7 +16,6 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
 import java.util.UUID
 import kotlin.experimental.and
-import kotlin.math.pow
 
 
 /**
@@ -430,29 +428,6 @@ sealed class RemainingHeartbeatPublicationCount {
      * @property countLog Count log values sent.
      */
     data class Invalid(val countLog: UByte) : RemainingHeartbeatPublicationCount()
-
-    companion object {
-
-        /**
-         * Converts the given CountLog value to a RemainingHeartbeatPublicationCount.
-         *
-         * @return RemainingHeartbeatPublicationCount
-         */
-        internal fun CountLog.toRemainingPublicationCount(): RemainingHeartbeatPublicationCount {
-            return when {
-                this == 0x00.toUByte() -> Disabled
-                this == 0xFF.toUByte() -> Indefinitely
-                this == 0x01.toUByte() || this == 0x02.toUByte() -> Exact(this.toUShort())
-                this == 0x11.toUByte() -> Range(low = 0x8001.toUShort(), high = 0xFFFE.toUShort())
-                this >= 0x03.toUByte() && this <= 0x10.toUByte() -> Range(
-                    low = ((2.0.pow(this.toDouble() - 2.0)) + 1.0).toUInt().toUShort(),
-                    high = (2.0.pow(this.toDouble() - 1.0)).toUInt().toUShort()
-                )
-
-                else -> Invalid(this)
-            }
-        }
-    }
 }
 
 /**
@@ -504,9 +479,10 @@ sealed class HeartbeatSubscriptionCount {
     /**
      * Number of Heartbeat messages received as range.
      *
-     * @property range Range of values.
+     * @property low Start of the range.
+     * @property high   End of the range.
      */
-    data class Range(val range: ClosedRange<UShort>) : HeartbeatSubscriptionCount()
+    data class Range(val low: UShort, val high: UShort) : HeartbeatSubscriptionCount()
 
     /**
      * More than 0xFFFE messages have been received.
