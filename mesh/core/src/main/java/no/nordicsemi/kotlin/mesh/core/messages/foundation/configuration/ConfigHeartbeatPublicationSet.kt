@@ -18,9 +18,8 @@ import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
+import no.nordicsemi.kotlin.mesh.core.util.CountLog
 import kotlin.math.pow
-
-typealias CountLog = UByte
 
 /**
  * This message can be sent to set Heartbeat Publication of a given element.
