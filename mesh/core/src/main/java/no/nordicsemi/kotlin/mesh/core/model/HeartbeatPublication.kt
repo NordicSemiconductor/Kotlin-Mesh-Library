@@ -4,6 +4,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import kotlin.math.log2
 import kotlin.math.pow
 
@@ -99,6 +101,47 @@ data class HeartbeatPublication internal constructor(
         require(ttl.toInt() in MIN_TTL..MAX_TTL) {
             "TTL must range from $MIN_TTL to $MAX_TTL!"
         }
+    }
+
+    internal constructor(status: ConfigHeartbeatPublicationStatus) : this(
+        address = status.destination,
+        _countLog = status.countLog,
+        periodLog = status.periodLog,
+        ttl = status.ttl,
+        index = status.networkKeyIndex,
+        features = status.features
+    ) {
+        require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
+            "Period must range from $MIN_PERIOD to $MAX_PERIOD!"
+        }
+        require(ttl.toInt() in MIN_TTL..MAX_TTL) {
+            "TTL must range from $MIN_TTL to $MAX_TTL!"
+        }
+    }
+
+    /**
+     * Convenience constructor
+     *
+     * @param request ConfigHeartbeatPublicationSet
+     */
+    internal constructor(request: ConfigHeartbeatPublicationSet) : this(
+        address = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
+        _countLog = request.countLog,
+        periodLog = request.periodLog,
+        ttl = request.ttl,
+        index = request.networkKeyIndex,
+        features = request.features
+    ) {
+        require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
+            "Period must range from $MIN_PERIOD to $MAX_PERIOD!"
+        }
+        require(ttl.toInt() in MIN_TTL..MAX_TTL) {
+            "TTL must range from $MIN_TTL to $MAX_TTL!"
+        }
+        // Here, the state is stored for purpose of publication. This method is called only for the
+        // local Node. The value is not persistent and publications will stop when the app gets
+        // restarted.
+        state = PeriodicHeartbeatState.init(_countLog)
     }
 
     override fun equals(other: Any?): Boolean {
