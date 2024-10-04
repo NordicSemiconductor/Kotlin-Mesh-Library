@@ -202,9 +202,7 @@ class MeshNetwork internal constructor(
      * @param uuid UUID of the provisioner.
      * @return Provisioner with the given UUID or null otherwise
      */
-    fun provisioner(uuid: UUID): Provisioner? = runCatching {
-        provisioners.first { it.uuid == uuid }
-    }.getOrElse { return null }
+    fun provisioner(uuid: UUID): Provisioner? = provisioners.firstOrNull { it.uuid == uuid }
 
     /**
      * Checks if a provisioner with the given UUID already exists in the network.
@@ -1323,10 +1321,24 @@ class MeshNetwork internal constructor(
         it.networkId.contentEquals(networkId) || it.oldNetworkId.contentEquals(networkId)
     }
 
+    /**
+     * Returns an element with the given address.
+     *
+     * @param elementAddress Address of the element.
+     * @return Element if found or null otherwise.
+     */
     fun element(elementAddress: Address): Element? {
         return nodes.flatMap { it.elements }
             .firstOrNull { it.unicastAddress.address == elementAddress }
     }
+
+    /**
+     * Checks if the given provisioner is a part of the network.
+     *
+     * @param provisioner Provisioner to check.
+     * @return true if the provisioner is a part of the network or false otherwise.
+     */
+    fun contains(provisioner: Provisioner) = provisioner(uuid = provisioner.uuid) != null
 
     companion object {
         /**
