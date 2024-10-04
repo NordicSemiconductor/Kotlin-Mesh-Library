@@ -28,12 +28,12 @@ import kotlin.time.toDuration
  */
 @Serializable
 data class HeartbeatSubscription internal constructor(
-    val source: HeartbeatSubscriptionDestination,
+    val source: HeartbeatSubscriptionSource,
     val destination: HeartbeatSubscriptionDestination,
 ) {
 
     @Transient
-    internal var state: State? = null
+    var state: State? = null
         private set
 
     val isEnabled: Boolean
@@ -154,7 +154,7 @@ data class HeartbeatSubscription internal constructor(
      *                       transformation defined in Table 4.1, where 0xFF means that more than
      *                       0xFFFF messages were received.
      */
-    internal class State private constructor(_periodLog: UByte) {
+    class State private constructor(_periodLog: UByte) {
         private val startDate = Clock.System.now()
         val period = periodLog2Period(_periodLog).toInt().toDuration(DurationUnit.SECONDS)
         var count = 0.toUShort()
