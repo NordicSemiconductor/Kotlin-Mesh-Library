@@ -29,6 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRe
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
@@ -183,9 +184,9 @@ internal class ConfigurationClientHandler(
                 // Do nothing here as we don't store the NodeIdentityState in the CDB.
             }
 
-            is ConfigHeartbeatPublicationStatus -> {
-                // TODO
-            }
+            is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
+                it.isLocalProvisioner
+            }?.let { it.heartbeatPublication = HeartbeatPublication(response) }
 
             is ConfigModelPublicationStatus -> {
                 // TODO
