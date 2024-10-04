@@ -104,11 +104,12 @@ sealed class MeshAddress : HasAddress {
  */
 @Serializable(with = MeshAddressSerializer::class)
 object UnassignedAddress : MeshAddress(),
-        ParentGroupAddress,
-        PublicationAddress,
-        SubscriptionAddress,
-        HeartbeatPublicationDestination,
-        HeartbeatSubscriptionDestination {
+    ParentGroupAddress,
+    PublicationAddress,
+    SubscriptionAddress,
+    HeartbeatSubscriptionSource,
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionDestination {
     override val address = unassignedAddress
 
     fun isValid(address: Address): Boolean = address == unassignedAddress
@@ -126,11 +127,11 @@ object UnassignedAddress : MeshAddress(),
 data class UnicastAddress(
     override val address: Address
 ) : MeshAddress(),
-        PublicationAddress,
-        HeartbeatPublicationDestination,
-        HeartbeatSubscriptionSource,
-        HeartbeatSubscriptionDestination,
-        ProxyFilterAddress {
+    PublicationAddress,
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionSource,
+    HeartbeatSubscriptionDestination,
+    ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -171,11 +172,11 @@ data class UnicastAddress(
 data class VirtualAddress(
     val uuid: UUID
 ) : MeshAddress(),
-        PrimaryGroupAddress,
-        ParentGroupAddress,
-        PublicationAddress,
-        SubscriptionAddress,
-        ProxyFilterAddress {
+    PrimaryGroupAddress,
+    ParentGroupAddress,
+    PublicationAddress,
+    SubscriptionAddress,
+    ProxyFilterAddress {
 
     override val address: Address = Crypto.createVirtualAddress(uuid)
 
@@ -202,13 +203,13 @@ data class VirtualAddress(
 data class GroupAddress(
     override val address: Address
 ) : MeshAddress(),
-        PrimaryGroupAddress,
-        ParentGroupAddress,
-        PublicationAddress,
-        SubscriptionAddress,
-        HeartbeatPublicationDestination,
-        HeartbeatSubscriptionDestination,
-        ProxyFilterAddress {
+    PrimaryGroupAddress,
+    ParentGroupAddress,
+    PublicationAddress,
+    SubscriptionAddress,
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionDestination,
+    ProxyFilterAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
