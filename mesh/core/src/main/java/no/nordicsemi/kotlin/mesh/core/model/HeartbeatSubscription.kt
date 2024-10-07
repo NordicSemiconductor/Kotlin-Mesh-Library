@@ -6,6 +6,8 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.min
@@ -42,7 +44,28 @@ data class HeartbeatSubscription internal constructor(
     /**
      * Convenience constructor to use when sending a message to disable a heartbeat subscription.
      */
-    constructor() : this(source = UnassignedAddress, destination = UnassignedAddress)
+    internal constructor() : this(source = UnassignedAddress, destination = UnassignedAddress)
+
+    internal constructor(request: ConfigHeartbeatSubscriptionSet) : this(
+        source = request.source,
+        destination = request.destination
+    ) {
+        // Here, the state is stored for purpose of subscription.
+        // This method is called only for the local Node. The value is not persistent and
+        // subscription will stop when the app gets restarted.
+        state = State(_periodLog = request.periodLog)
+    }
+
+    internal constructor(status: ConfigHeartbeatSubscriptionStatus) : this(
+        source = status.source,
+        destination = status.destination
+    ) {
+        // The current state of the heartbeat subscription is not set for 2 reasons:
+        // - it is dynamic - the device is listening for heartbeat messages for some time only,
+        // - it is not saved in the Configuration Database.
+        //
+        // state = State(periodLog: status.periodLog)
+    }
 
     /**
      * Checks if the received Heartbeat message matches the subscription parameters.
@@ -154,7 +177,7 @@ data class HeartbeatSubscription internal constructor(
      *                       transformation defined in Table 4.1, where 0xFF means that more than
      *                       0xFFFF messages were received.
      */
-    class State private constructor(_periodLog: UByte) {
+    class State internal constructor(_periodLog: UByte) {
         private val startDate = Clock.System.now()
         val period = periodLog2Period(_periodLog).toInt().toDuration(DurationUnit.SECONDS)
         var count = 0.toUShort()
