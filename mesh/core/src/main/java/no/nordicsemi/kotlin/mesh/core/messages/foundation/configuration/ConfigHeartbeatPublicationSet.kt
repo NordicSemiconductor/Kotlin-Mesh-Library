@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
 import no.nordicsemi.kotlin.mesh.core.model.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
+import java.nio.ByteOrder
 import kotlin.math.pow
 
 /**
@@ -98,7 +99,7 @@ class ConfigHeartbeatPublicationSet(
             it.size == 9
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
-                destination = params.getUShort(offset = 0),
+                destination = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN),
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),
