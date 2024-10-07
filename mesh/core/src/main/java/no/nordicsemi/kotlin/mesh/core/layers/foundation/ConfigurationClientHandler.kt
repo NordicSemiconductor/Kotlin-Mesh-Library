@@ -16,6 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
@@ -30,6 +31,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
@@ -66,6 +68,7 @@ internal class ConfigurationClientHandler(
         ConfigRelayStatus.opCode to ConfigRelayStatus,
         ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
         ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
+        ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
@@ -184,8 +187,12 @@ internal class ConfigurationClientHandler(
                 // Do nothing here as we don't store the NodeIdentityState in the CDB.
             }
 
+            is ConfigHeartbeatSubscriptionStatus -> node(address = source)?.takeIf {
+                !it.isLocalProvisioner
+            }?.let { it.heartbeatSubscription = HeartbeatSubscription(response) }
+
             is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
-                it.isLocalProvisioner
+                !it.isLocalProvisioner
             }?.let { it.heartbeatPublication = HeartbeatPublication(response) }
 
             is ConfigModelPublicationStatus -> {
