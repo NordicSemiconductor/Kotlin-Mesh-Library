@@ -6,12 +6,10 @@ import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 
 /**
  * This message is used to set the Heartbeat Subscription state of an element. The response received

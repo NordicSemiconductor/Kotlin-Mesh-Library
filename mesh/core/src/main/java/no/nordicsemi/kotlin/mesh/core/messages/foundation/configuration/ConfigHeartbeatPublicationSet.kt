@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
-import no.nordicsemi.kotlin.mesh.core.messages.RemainingHeartbeatPublicationCount
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Feature
 import no.nordicsemi.kotlin.mesh.core.model.Features
@@ -18,7 +17,8 @@ import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.util.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
 import kotlin.math.pow
 
 /**

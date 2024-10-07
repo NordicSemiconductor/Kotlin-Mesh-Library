@@ -16,9 +16,9 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.util.CountLog
-import no.nordicsemi.kotlin.mesh.core.util.RemainingHeartbeatPublicationCount
-import no.nordicsemi.kotlin.mesh.core.util.toRemainingPublicationCount
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
+import no.nordicsemi.kotlin.mesh.core.model.toRemainingPublicationCount
 
 /**
  * This message contains the Heartbeat Publication status of an element. This is sent in response to

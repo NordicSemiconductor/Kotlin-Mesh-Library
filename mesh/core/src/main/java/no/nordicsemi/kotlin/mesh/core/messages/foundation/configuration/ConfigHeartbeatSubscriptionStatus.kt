@@ -13,12 +13,13 @@ import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import no.nordicsemi.kotlin.mesh.core.util.CountLog
-import no.nordicsemi.kotlin.mesh.core.util.HeartbeatSubscriptionCount
-import no.nordicsemi.kotlin.mesh.core.util.PeriodLog
-import no.nordicsemi.kotlin.mesh.core.util.RemainingHeartbeatSubscriptionPeriod
-import no.nordicsemi.kotlin.mesh.core.util.toHeartbeatSubscriptionCount
-import no.nordicsemi.kotlin.mesh.core.util.toRemainingHeartbeatSubscriptionPeriod
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionCount
+import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatSubscriptionPeriod
+import no.nordicsemi.kotlin.mesh.core.model.toHeartbeatSubscriptionCount
+import no.nordicsemi.kotlin.mesh.core.model.toRemainingHeartbeatSubscriptionPeriod
+import java.nio.ByteOrder
 
 /**
  * This message contains the Heartbeat Subscription status of an element. This is sent in response

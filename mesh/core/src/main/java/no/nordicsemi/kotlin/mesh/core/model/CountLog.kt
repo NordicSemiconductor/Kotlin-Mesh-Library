@@ -1,4 +1,4 @@
-package no.nordicsemi.kotlin.mesh.core.util
+package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlin.math.pow
 
