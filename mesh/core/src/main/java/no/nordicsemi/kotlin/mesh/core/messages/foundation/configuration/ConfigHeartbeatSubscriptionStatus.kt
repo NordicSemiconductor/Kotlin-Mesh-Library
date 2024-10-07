@@ -107,17 +107,16 @@ class ConfigHeartbeatSubscriptionStatus(
         override val opCode: UInt = 0x803Cu
 
         override fun init(parameters: ByteArray?) = parameters
-            ?.takeIf {
-                it.size == 9
-            }?.let {
+            ?.takeIf { it.size == 9 }
+            ?.let {
                 ConfigMessageStatus.from(it.first().toUByte())?.let { status ->
                     ConfigHeartbeatSubscriptionStatus(
                         status = status,
                         source = MeshAddress.create(
-                            address = it.getUShort(offset = 1)
+                            address = it.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
                         ) as HeartbeatSubscriptionSource,
                         destination = MeshAddress.create(
-                            address = it.getUShort(offset = 1)
+                            address = it.getUShort(offset = 3, order = ByteOrder.LITTLE_ENDIAN)
                         ) as HeartbeatSubscriptionDestination,
                         countLog = it[5].toUByte(),
                         periodLog = it[6].toUByte(),
