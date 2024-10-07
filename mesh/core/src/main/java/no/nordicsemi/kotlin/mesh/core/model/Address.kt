@@ -4,6 +4,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.data.HexString
+import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -59,7 +61,7 @@ sealed class MeshAddress : HasAddress {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toHexString(): HexString = address.toHexString()
+    override fun toHexString(): HexString = address.toByteArray().toHexString()
 
     companion object {
 
@@ -140,6 +142,8 @@ data class UnicastAddress(
             "A valid unicast address must range from $minUnicastAddress to $maxUnicastAddress!"
         }
     }
+
+    override fun toString() = super.toString()
 
     operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
 
