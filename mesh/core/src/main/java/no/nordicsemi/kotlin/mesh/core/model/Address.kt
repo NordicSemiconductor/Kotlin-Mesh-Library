@@ -291,6 +291,7 @@ sealed interface HeartbeatPublicationDestination : HeartbeatDestination {
 /**
  * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
  */
+@Serializable(with = MeshAddressSerializer::class)
 sealed interface HeartbeatSubscriptionSource : HasAddress
 
 /**
