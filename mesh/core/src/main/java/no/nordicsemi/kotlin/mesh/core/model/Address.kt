@@ -289,15 +289,18 @@ sealed interface HeartbeatPublicationDestination : HeartbeatDestination {
 }
 
 /**
- * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress].
+ * Heartbeat subscription source address for heartbeat messages. This represents a [UnicastAddress]
+ * or a [UnassignedAddress] if Heartbeat subscriptions are disabled.
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface HeartbeatSubscriptionSource : HasAddress
 
 /**
  * Heartbeat subscription destination address for heartbeat messages. This represents a
- * [UnicastAddress] or a [GroupAddress].
+ * [UnicastAddress], [GroupAddress] or a [UnassignedAddress] if Heartbeat subscriptions are
+ * disabled.
  */
+@Serializable(with = MeshAddressSerializer::class)
 sealed interface HeartbeatSubscriptionDestination : HeartbeatDestination
 
 /**
