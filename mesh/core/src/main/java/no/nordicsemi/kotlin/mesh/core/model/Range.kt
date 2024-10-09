@@ -264,7 +264,8 @@ sealed class AddressRange : Range() {
  */
 @Serializable
 data class UnicastRange(
-    override val lowAddress: UnicastAddress, override val highAddress: UnicastAddress
+    override val lowAddress: UnicastAddress,
+    override val highAddress: UnicastAddress
 ) : AddressRange() {
 
     /**
@@ -296,7 +297,8 @@ data class UnicastRange(
  */
 @Serializable
 data class GroupRange(
-    override val lowAddress: GroupAddress, override val highAddress: GroupAddress
+    override val lowAddress: GroupAddress,
+    override val highAddress: GroupAddress
 ) : AddressRange() {
 
     constructor(
