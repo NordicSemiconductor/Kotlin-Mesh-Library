@@ -93,7 +93,9 @@ data class HeartbeatSubscription internal constructor(
         state.maxHops = max(state.maxHops.toInt(), heartbeat.hops.toInt()).toUByte()
     }
 
-    private companion object {
+    companion object {
+
+        val PERIOD_LOG_RANGE = 0x01u..0x11u
 
         /**
          * Converts Subscription Count to Subscription Count Log.
@@ -104,7 +106,7 @@ data class HeartbeatSubscription internal constructor(
          * @param value Count.
          * @return Logarithmic value.
          */
-        fun countToCountLog(value: UShort) = when (value) {
+        private fun countToCountLog(value: UShort) = when (value) {
             0x0000.toUShort() -> 0x00.toUByte() // No Heartbeat messages are published.
             0xFFFF.toUShort() -> 0xFF.toUByte() // Maximum value.
             else -> (log2(value.toDouble()) + 1).toInt().toUByte()
@@ -116,7 +118,7 @@ data class HeartbeatSubscription internal constructor(
          * @param remainingPeriod Remaining period in seconds.
          * @return Logarithmic value.
          */
-        fun period2PeriodLog(remainingPeriod: Duration): UByte {
+        private fun period2PeriodLog(remainingPeriod: Duration): UByte {
             val period = remainingPeriod.toDouble(DurationUnit.SECONDS)
             return when {
                 period == 0.0 -> 0x00.toUByte()
@@ -189,8 +191,7 @@ data class HeartbeatSubscription internal constructor(
 
         val periodLog: UByte
             get() {
-                val timeIntervalSinceSubscriptionStart =
-                    (Clock.System.now() - startDate)
+                val timeIntervalSinceSubscriptionStart = Clock.System.now() - startDate
                 val remainingPeriod = period - timeIntervalSinceSubscriptionStart
                 return if (remainingPeriod.inWholeSeconds >= 0) period2PeriodLog(remainingPeriod) else 0u
             }
