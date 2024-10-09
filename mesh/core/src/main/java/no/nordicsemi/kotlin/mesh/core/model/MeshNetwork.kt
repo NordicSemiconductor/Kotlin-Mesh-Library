@@ -927,7 +927,7 @@ class MeshNetwork internal constructor(
      * @param rangeSize Size of the address range.
      * @return Next available unicast address range or null if there are no available ranges.
      */
-    fun nextAvailableUnicastAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+    fun nextAvailableUnicastAddressRange(rangeSize: Int) = getNextAvailableRange(
         size = rangeSize,
         bound = UnicastRange(
             UnicastAddress(minUnicastAddress),
@@ -944,7 +944,7 @@ class MeshNetwork internal constructor(
      * @param rangeSize Size of the address range.
      * @return Next available group address range or null if there are no available ranges.
      */
-    fun nextAvailableGroupAddressRange(rangeSize: Int) = getNextAvailableAddressRange(
+    fun nextAvailableGroupAddressRange(rangeSize: Int) = getNextAvailableRange(
         size = rangeSize,
         bound = GroupRange(
             GroupAddress(minGroupAddress),
@@ -961,29 +961,29 @@ class MeshNetwork internal constructor(
      * @param rangeSize Size of the address range.
      * @return Next available group address range or null if there are no available ranges.
      */
-    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableSceneRange(
+    fun nextAvailableSceneRange(rangeSize: Int) = getNextAvailableRange(
         size = rangeSize,
         bound = SceneRange(firstScene = minSceneNumber, lastScene = maxSceneNumber),
         ranges = provisioners.flatMap { it.allocatedSceneRanges }.sortedBy { it.low }
     )
 
     /**
-     * Returns the next available address range.
+     * Returns the next available range or null otherwise.
      *
      * @param size Size of the range to be allocated.
      * @param bound Allocated range that will be bound to this provisioner.
      * @param ranges Allocated ranges.
      */
-    private fun getNextAvailableAddressRange(
-        size: Int, bound: AddressRange, ranges: List<AddressRange>
-    ): AddressRange? {
-        var bestRange: AddressRange? = null
-        var lastUpperBound = (bound.lowAddress.address - 1u).toInt()
+    private fun getNextAvailableRange(
+        size: Int, bound: Range, ranges: List<Range>
+    ): Range? {
+        var bestRange: Range? = null
+        var lastUpperBound = (bound.low - 1u).toInt()
 
         // Go through all ranges looking for a gaps.
         for (range in ranges) {
             // If there is a space available before this range, return it.
-            if (lastUpperBound + size < range.lowAddress.address.toInt())
+            if (lastUpperBound + size < range.low.toInt())
                 return createRange(
                     bound,
                     (lastUpperBound + 1).toUShort(),
@@ -992,7 +992,7 @@ class MeshNetwork internal constructor(
 
             // If the space exists, but it's not as big as requested, compare
             // it with the best range so far and replace if it's bigger.
-            val availableSize = range.lowAddress.address.toInt() - lastUpperBound - 1
+            val availableSize = range.low.toInt() - lastUpperBound - 1
             if (availableSize > 0) {
                 val newRange = createRange(
                     bound,
@@ -1004,11 +1004,11 @@ class MeshNetwork internal constructor(
                     bestRange = newRange
                 }
             }
-            lastUpperBound = range.highAddress.address.toInt()
+            lastUpperBound = range.high.toInt()
         }
         // If if we didn't return earlier, check after the last range and if the requested size
         // hasn't been found, return the best found.
-        val availableSize = bound.highAddress.address.toInt() - lastUpperBound
+        val availableSize = bound.high.toInt() - lastUpperBound
         val bestSize = bestRange?.diff?.toInt() ?: 0
         return if (availableSize > bestSize) {
             createRange(
@@ -1053,25 +1053,27 @@ class MeshNetwork internal constructor(
                     bestRange = newRange
                 }
             }
-            lastUpperBound = range.firstScene.toInt()
+            lastUpperBound = range.lastScene.toInt()
         }
         // If if we didn't return earlier, check after the last range and if the requested size
         // hasn't been found, return the best found.
-        return if (lastUpperBound + size < bound.firstScene.toInt()) {
+        return if (lastUpperBound + size < bound.lastScene.toInt()) {
             SceneRange((lastUpperBound + 1).toUShort(), (lastUpperBound + size - 1).toUShort())
         } else bestRange // The gap of requested size hasn't been found. Return the best found.
     }
 
     /**
-     * Creates an address rang.
+     * Creates [UnicastRange], [GroupRange] or a [SceneRange] based on the given [bound] type].
      *
      * @param bound Address range bound.
      * @param low Low address.
      * @param high High address.
+     * @return a [UnicastRange], [GroupRange] or a [SceneRange].
      */
-    private fun createRange(bound: AddressRange, low: Address, high: Address) = when (bound) {
+    private fun createRange(bound: Range, low: UShort, high: UShort) = when (bound) {
         is UnicastRange -> UnicastRange(UnicastAddress(low), UnicastAddress(high))
         is GroupRange -> GroupRange(GroupAddress(low), GroupAddress(high))
+        is SceneRange -> SceneRange(low, high)
     }
 
     internal fun apply(config: NetworkConfiguration) = when (config) {
