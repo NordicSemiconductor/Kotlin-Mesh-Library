@@ -227,13 +227,13 @@ data class Node internal constructor(
             false -> 1 // TODO should we throw here?
         } - 1
 
-    val isCompositionDataReceived :Boolean
+    val isCompositionDataReceived: Boolean
         get() = companyIdentifier != null
 
-    val isProvisioner:Boolean
+    val isProvisioner: Boolean
         get() = network?.provisioner(uuid) != null
 
-    val isLocalProvisioner:Boolean
+    val isLocalProvisioner: Boolean
         get() = network?.localProvisioner?.uuid == uuid
 
     val provisioner: Provisioner?
@@ -356,7 +356,8 @@ data class Node internal constructor(
     }
 
     @Transient
-    internal var network: MeshNetwork? = null
+    var network: MeshNetwork? = null
+        internal set
 
     /**
      * Adds a network key to a node.
@@ -510,6 +511,7 @@ data class Node internal constructor(
             network?.updateTimestamp()
         }
     }
+
     /**
      * Removes an application key from the node. Invoked only when a [ConfigNetKeyStatus] is
      * received with a success status.
