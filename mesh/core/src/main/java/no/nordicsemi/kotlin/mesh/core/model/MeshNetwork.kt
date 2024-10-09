@@ -985,9 +985,9 @@ class MeshNetwork internal constructor(
             // If there is a space available before this range, return it.
             if (lastUpperBound + size < range.low.toInt())
                 return createRange(
-                    bound,
-                    (lastUpperBound + 1).toUShort(),
-                    (lastUpperBound + size).toUShort()
+                    bound = bound,
+                    low = (lastUpperBound + 1).toUShort(),
+                    high = (lastUpperBound + size).toUShort()
                 )
 
             // If the space exists, but it's not as big as requested, compare
@@ -995,9 +995,9 @@ class MeshNetwork internal constructor(
             val availableSize = range.low.toInt() - lastUpperBound - 1
             if (availableSize > 0) {
                 val newRange = createRange(
-                    bound,
-                    (lastUpperBound + 1).toUShort(),
-                    (lastUpperBound + availableSize).toUShort()
+                    bound = bound,
+                    low = (lastUpperBound + 1).toUShort(),
+                    high = (lastUpperBound + availableSize).toUShort()
                 )
 
                 if (bestRange == null || newRange.diff > bestRange.diff) {
@@ -1012,53 +1012,10 @@ class MeshNetwork internal constructor(
         val bestSize = bestRange?.diff?.toInt() ?: 0
         return if (availableSize > bestSize) {
             createRange(
-                bound,
-                (lastUpperBound + 1).toUShort(),
-                (lastUpperBound + min(size, availableSize)).toUShort()
+                bound = bound,
+                low = (lastUpperBound + 1).toUShort(),
+                high = (lastUpperBound + min(size, availableSize)).toUShort()
             )
-        } else bestRange // The gap of requested size hasn't been found. Return the best found.
-    }
-
-    /**
-     * Returns the next available scene range.
-     *
-     * @param size Size of the range to be allocated.
-     * @param bound Allocated range that will be bound to this provisioner.
-     * @param ranges Allocated ranges.
-     */
-    private fun getNextAvailableSceneRange(
-        size: Int, bound: SceneRange, ranges: List<SceneRange>
-    ): SceneRange? {
-        var bestRange: SceneRange? = null
-        var lastUpperBound = (bound.firstScene - 1u).toInt()
-
-        // Go through all ranges looking for a gaps.
-        for (range in ranges) {
-            // If there is a space available before this range, return it.
-            if (lastUpperBound + size < range.firstScene.toInt())
-                return SceneRange(
-                    (lastUpperBound + 1),
-                    (lastUpperBound + size)
-                )
-
-            // If the space exists, but it's not as big as requested, compare
-            // it with the best range so far and replace if it's bigger.
-            if (range.firstScene.toInt() - lastUpperBound > 1) {
-                val newRange = SceneRange(
-                    (lastUpperBound + 1).toUShort(),
-                    (range.firstScene - 1u).toUShort()
-                )
-
-                if (bestRange == null || newRange.diff > bestRange.diff) {
-                    bestRange = newRange
-                }
-            }
-            lastUpperBound = range.lastScene.toInt()
-        }
-        // If if we didn't return earlier, check after the last range and if the requested size
-        // hasn't been found, return the best found.
-        return if (lastUpperBound + size < bound.lastScene.toInt()) {
-            SceneRange((lastUpperBound + 1).toUShort(), (lastUpperBound + size - 1).toUShort())
         } else bestRange // The gap of requested size hasn't been found. Return the best found.
     }
 
