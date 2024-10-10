@@ -94,7 +94,8 @@ data class HeartbeatSubscription internal constructor(
     }
 
     companion object {
-
+        val PERIOD_LOG_MIN = 0x00u
+        val PERIOD_LOG_MAX = 0x11u
         val PERIOD_LOG_RANGE = 0x01u..0x11u
 
         /**
@@ -145,7 +146,7 @@ data class HeartbeatSubscription internal constructor(
                 0xFFFF.toUShort()
 
             else -> throw IllegalArgumentException(
-                "PeriodLog out or range $periodLog (required: 0x00-0x11)"
+                "PeriodLog out of range $periodLog (required: 0x00-0x11)"
             )
         }
     }
