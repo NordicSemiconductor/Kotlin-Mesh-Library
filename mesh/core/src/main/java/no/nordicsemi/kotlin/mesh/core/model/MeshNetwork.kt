@@ -671,6 +671,14 @@ class MeshNetwork internal constructor(
     }
 
     /**
+     * Returns a group for a given address or null
+     *
+     * @param address address
+     * @return a Group for a given address or null.
+     */
+    fun group(address: Address) = groups.firstOrNull { it.address.address == address }
+
+    /**
      * Removes a given [Group] from the list of groups in the mesh network.
      *
      * @param group Group to be removed.
