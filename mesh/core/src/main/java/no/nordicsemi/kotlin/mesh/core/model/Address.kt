@@ -245,7 +245,8 @@ data class GroupAddress(
  * fixed. Fixed group addresses are in the range of 0xFF00 through 0xFFFF.
  */
 @Serializable
-sealed class FixedGroupAddress(override val address: Address) : MeshAddress(), ProxyFilterAddress
+sealed class FixedGroupAddress(override val address: Address) : MeshAddress(), ProxyFilterAddress,
+    HeartbeatSubscriptionDestination
 
 /**
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes
