@@ -14,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
+    elevation: CardElevation = CardDefaults.elevatedCardElevation(),
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
@@ -44,7 +47,7 @@ fun ElevatedCardItem(
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(modifier = modifier) {
+    ElevatedCard(modifier = modifier, elevation = elevation) {
         MeshTwoLineListItem(
             modifier = Modifier
                 .padding(horizontal = 16.dp),
@@ -93,6 +96,7 @@ fun ElevatedCardItem(
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
@@ -100,7 +104,10 @@ fun ElevatedCardItem(
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(modifier = modifier) {
+    ElevatedCard(
+        modifier = modifier,
+        onClick = onClick,
+    ) {
         MeshTwoLineListItem(
             modifier = Modifier
                 .padding(horizontal = 16.dp),

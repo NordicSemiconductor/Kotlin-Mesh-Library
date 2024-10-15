@@ -141,8 +141,8 @@ private fun LocationRow(location: Location) {
 private fun ModelRow(model: Model, navigateToModel: (Model) -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = { navigateToModel(model) }),
+            .padding(horizontal = 8.dp),
+        onClick = { navigateToModel(model) },
         imageVector = Icons.Outlined.Widgets,
         title = model.name,
         subtitle = when (model.modelId) {

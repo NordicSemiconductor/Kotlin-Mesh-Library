@@ -307,8 +307,8 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ElementRow(element: Element, onElementsClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = onElementsClicked),
+            .padding(horizontal = 8.dp),
+        onClick = onElementsClicked,
         imageVector = Icons.Outlined.DeviceHub,
         title = element.name ?: "Unknown",
         subtitle = "${element.models.size} ${if (element.models.size == 1) "model" else "models"}"
