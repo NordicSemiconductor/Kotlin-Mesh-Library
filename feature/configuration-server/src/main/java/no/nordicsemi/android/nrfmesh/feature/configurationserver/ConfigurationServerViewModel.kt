@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +47,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState.asStateFlow()
+    private lateinit var job: Job
 
     init {
         repository.network.onEach {
@@ -103,7 +105,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
                 isRefreshing = false
             )
         }
-        viewModelScope.launch(context = handler) {
+        job = viewModelScope.launch(context = handler) {
             repository.send(selectedElement.parentNode!!, message)?.let { response ->
                 _uiState.value = _uiState.value.copy(
                     messageState = Completed(
@@ -113,7 +115,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
                     isRefreshing = false,
                 )
 
-                if(response is ConfigNodeIdentityStatus) {
+                if (response is ConfigNodeIdentityStatus) {
                     val nodeIdentityStates = _uiState.value.nodeIdentityStates.toMutableList()
                     val index = nodeIdentityStates.indexOfFirst { state ->
                         state.networkKey.index == response.networkKeyIndex
@@ -137,7 +139,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
     }
 
     internal fun requestNodeIdentityStates() {
-        viewModelScope.launch {
+        job = viewModelScope.launch {
             val uiState = _uiState.value
             val nodeIdentityStates = uiState.nodeIdentityStates.toMutableList()
             val keys = selectedElement.parentNode?.networkKeys ?: emptyList()
@@ -178,6 +180,10 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
             }
 
         }
+    }
+
+    private fun cancel() {
+        job.cancel()
     }
 
     fun resetMessageState() {

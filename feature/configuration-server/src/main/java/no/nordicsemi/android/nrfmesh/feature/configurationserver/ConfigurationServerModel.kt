@@ -31,6 +31,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet
@@ -43,6 +44,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
@@ -90,6 +93,17 @@ internal fun ConfigurationServerModel(
         nodeIdentityStates = nodeIdentityStates,
         send = send,
         requestNodeIdentityStates = requestNodeIdentityStates
+    )
+    SectionTitle(stringResource(id = R.string.title_heartbeat))
+    HeartBeatSubscriptionRow(
+        model = model,
+        subscription = model.parentElement?.parentNode?.heartbeatSubscription,
+        send = send
+    )
+    HeartBeatPublicationRow(
+        model = model,
+        publication = model.parentElement?.parentNode?.heartbeatPublication,
+        send = send
     )
 }
 
@@ -394,7 +408,7 @@ private fun NodeIdentityRow(
 ) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(vertical = 8.dp)
+            .padding(top = 8.dp)
             .padding(horizontal = 8.dp),
         imageVector = Icons.Outlined.WavingHand,
         title = stringResource(R.string.label_node_identity),
@@ -423,7 +437,6 @@ private fun NodeIdentityStatusRow(
     state: NodeIdentityState?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    println("Node identity state for ${networkKey.name}: $state")
     MeshSingleLineListItem(
         modifier = Modifier.padding(start = 42.dp),
         title = networkKey.name,
@@ -442,6 +455,32 @@ private fun NodeIdentityStatusRow(
                 }
             )
         }
+    )
+}
+
+@Composable
+private fun HeartBeatSubscriptionRow(
+    model: Model,
+    subscription: HeartbeatSubscription?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    HeartBeatSubscriptionContent(
+        model = model,
+        subscription = subscription,
+        send = send
+    )
+}
+
+@Composable
+private fun HeartBeatPublicationRow(
+    model: Model,
+    publication: HeartbeatPublication?,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    HeartBeatPublicationContent(
+        model = model,
+        publication = publication,
+        send = send
     )
 }
 
