@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.configurationserver
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,23 +15,29 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
+import androidx.compose.material.icons.outlined.Start
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -40,24 +45,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
 import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
 import no.nordicsemi.kotlin.mesh.core.model.AllRelays
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import kotlin.math.roundToInt
 
 
@@ -69,11 +75,12 @@ internal fun HeartBeatSubscriptionContent(
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
         subtitle = "Heartbeat subscriptions are ${
@@ -172,7 +179,7 @@ internal fun HeartBeatSubscriptionContent(
     if (showBottomSheet) {
         ModalBottomSheet(
             containerColor = MaterialTheme.colorScheme.surface,
-            sheetState = sheetState,
+            sheetState = bottomSheetState,
             onDismissRequest = {
                 showBottomSheet = !showBottomSheet
             },
@@ -185,11 +192,19 @@ internal fun HeartBeatSubscriptionContent(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
-                    onNavigationButtonClick = { showBottomSheet = !showBottomSheet },
+                    onNavigationButtonClick = {
+                        scope
+                            .launch { bottomSheetState.hide() }
+                            .invokeOnCompletion {
+                                if (!bottomSheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
+                    },
                     backButtonIcon = Icons.Outlined.Close,
                     actions = {
                         IconButton(
-                            onClick = { showBottomSheet = !showBottomSheet },
+                            onClick = { send(ConfigHeartbeatSubscriptionSet()) },
                             content = {
                                 Icon(
                                     imageVector = Icons.Outlined.Save,
@@ -222,7 +237,7 @@ private fun PeriodRow(subscription: HeartbeatSubscription?) {
         mutableFloatStateOf(subscription?.state?.periodLog?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_period),
         subtitle = "Remaining period in seconds",
@@ -252,86 +267,129 @@ private fun PeriodRow(subscription: HeartbeatSubscription?) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SourceRow(model: Model, subscription: HeartbeatSubscription?) {
     val network = model.parentElement?.parentNode?.network
     val sources = model.heartbeatSubscriptionSources()
-    var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var selectedAddressIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedAddress by remember {
+        mutableStateOf(UnassignedAddress as HeartbeatSubscriptionSource)
+    }
 
     SectionTitle(title = stringResource(R.string.label_source))
-    sources.forEachIndexed { index, source ->
+    ExposedDropdownMenuBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+    ) {
         ElevatedCardItem(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .clickable {
-                    selectedAddressIndex = -1
-                    selectedIndex = index
-                },
-            imageVector = Icons.Outlined.SportsScore,
-            title = network
-                ?.node(address = source.address)
-                ?.name ?: source.toHexString(),
-            titleAction = {
-                RadioButton(
-                    selected = selectedIndex == index,
-                    onClick = {
-                        selectedAddressIndex = -1
-                        selectedIndex = index
+            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            onClick = { expanded = true },
+            imageVector = Icons.Outlined.Start,
+            title = stringResource(R.string.label_source),
+            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            subtitle = if (selectedAddress is UnassignedAddress)
+                stringResource(R.string.label_select_address)
+            else network?.node(address = selectedAddress.address)?.name
+                ?: selectedAddress.toHexString(),
+        )
+        DropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
+            expanded = expanded,
+            onDismissRequest = { expanded = !expanded },
+            content = {
+                sources.forEachIndexed { index, source ->
+                    DropdownMenuItem(
+                        text = {
+                            MeshSingleLineListItem(
+                                leadingComposable = {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(horizontal = 8.dp)
+                                            .padding(end = 8.dp),
+                                        imageVector = Icons.Outlined.Start,
+                                        contentDescription = null
+                                    )
+                                },
+                                title = network
+                                    ?.node(address = source.address)?.name
+                                    ?: source.toHexString()
+                            )
+                        },
+                        onClick = {
+                            selectedAddress = source
+                            expanded = !expanded
+                        }
+                    )
+                    if (index < sources.size - 1) {
+                        HorizontalDivider()
                     }
-                )
+                }
             }
         )
-        if (index < sources.size - 1) {
-            Spacer(modifier = Modifier.size(8.dp))
-        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DestinationRow(model: Model, subscription: HeartbeatSubscription?) {
     val network = model.parentElement?.parentNode?.network
     val destinations = model.heartbeatPublicationDestinations()
-    var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var selectedAddressIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedAddress by remember { mutableStateOf(UnassignedAddress as HeartbeatSubscriptionDestination) }
 
     SectionTitle(title = stringResource(R.string.label_destination))
-    destinations.forEachIndexed { index, destination ->
+    ExposedDropdownMenuBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+    ) {
         ElevatedCardItem(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .clickable {
-                    selectedAddressIndex = -1
-                    selectedIndex = index
-                },
+            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
-            title = when (destination) {
-                is UnicastAddress -> network
-                    ?.node(address = destination.address)
-                    ?.name ?: destination.toHexString()
-
-                is AllRelays -> "All Relays"
-                is AllFriends -> "All Friends"
-                is AllProxies -> "All Proxies"
-                is AllNodes -> "All Nodes"
-                is GroupAddress -> network?.group(address = destination.address)?.name
-                    ?: destination.toHexString()
-
-                is UnassignedAddress -> "Unassigned"
-            },
-            titleAction = {
-                RadioButton(
-                    selected = selectedIndex == index,
-                    onClick = {
-                        selectedAddressIndex = -1
-                        selectedIndex = index
+            title = stringResource(R.string.label_destination),
+            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            subtitle = if (selectedAddress is UnassignedAddress)
+                stringResource(R.string.label_select_address)
+            else network?.node(address = selectedAddress.address)?.name
+                ?: selectedAddress.toHexString(),
+        )
+        DropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
+            expanded = expanded,
+            onDismissRequest = { expanded = !expanded },
+            content = {
+                destinations.forEachIndexed { index, destination ->
+                    DropdownMenuItem(
+                        text = {
+                            MeshSingleLineListItem(
+                                leadingComposable = {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(horizontal = 8.dp)
+                                            .padding(end = 8.dp),
+                                        imageVector = Icons.Outlined.SportsScore,
+                                        contentDescription = null
+                                    )
+                                },
+                                title = network
+                                    ?.node(address = destination.address)
+                                    ?.name ?: destination.toHexString(),
+                            )
+                        },
+                        onClick = {
+                            selectedAddress = destination
+                            expanded = !expanded
+                        }
+                    )
+                    if (index < destinations.size - 1) {
+                        HorizontalDivider()
                     }
-                )
+                }
             }
         )
-        if (index < destinations.size - 1) {
-            Spacer(modifier = Modifier.size(8.dp))
-        }
     }
 }
 

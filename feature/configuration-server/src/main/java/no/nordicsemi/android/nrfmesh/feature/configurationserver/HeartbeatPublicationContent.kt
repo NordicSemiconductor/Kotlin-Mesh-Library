@@ -9,8 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Groups3
@@ -39,6 +37,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -47,9 +46,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
@@ -57,9 +56,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
@@ -84,7 +82,9 @@ internal fun HeartBeatPublicationContent(
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
     ElevatedCardItem(
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -96,9 +96,6 @@ internal fun HeartBeatPublicationContent(
                 "disabled"
             else "enabled"
         }",
-        body = {
-
-        },
         actions = {
             OutlinedButton(
                 onClick = { showBottomSheet = true },
@@ -115,10 +112,8 @@ internal fun HeartBeatPublicationContent(
     if (showBottomSheet) {
         ModalBottomSheet(
             containerColor = MaterialTheme.colorScheme.surface,
-            sheetState = sheetState,
-            onDismissRequest = {
-                showBottomSheet = !showBottomSheet
-            },
+            sheetState = bottomSheetState,
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
             dragHandle = {
                 NordicAppBar(
                     title = {
@@ -128,11 +123,21 @@ internal fun HeartBeatPublicationContent(
                             overflow = TextOverflow.Ellipsis
                         )
                     },
-                    onNavigationButtonClick = { showBottomSheet = !showBottomSheet },
+                    onNavigationButtonClick = {
+                        scope
+                            .launch { bottomSheetState.hide() }
+                            .invokeOnCompletion {
+                                if (!bottomSheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
+                    },
                     backButtonIcon = Icons.Outlined.Close,
                     actions = {
                         IconButton(
-                            onClick = { showBottomSheet = !showBottomSheet },
+                            // Note: If you provide logic outside of onDismissRequest to remove the
+                            // sheet, you must additionally handle intended state cleanup, if any.
+                            onClick = { send(ConfigHeartbeatPublicationSet()) },
                             content = {
                                 Icon(
                                     imageVector = Icons.Outlined.Save,
@@ -186,25 +191,11 @@ private fun NetworkKeysRow(
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier
-                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_network_key),
-            titleAction = {
-                IconButton(
-                    onClick = { expanded = true },
-                    content = {
-                        Icon(
-                            imageVector = when (expanded) {
-                                true -> Icons.Outlined.ArrowDropUp
-                                false -> Icons.Outlined.ArrowDropDown
-                            },
-                            contentDescription = null
-                        )
-                    }
-                )
-            },
+            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             subtitle = network?.networkKeys?.firstOrNull {
                 it.index == selectedKeyIndex.toUShort()
             }?.name ?: stringResource(R.string.label_unknown)
@@ -253,7 +244,9 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
     val destinations = model.heartbeatPublicationDestinations()
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedAddress by remember { mutableStateOf(UnassignedAddress as HeartbeatPublicationDestination) }
+    var selectedAddress by remember {
+        mutableStateOf(UnassignedAddress as HeartbeatPublicationDestination)
+    }
     ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         expanded = expanded,
@@ -278,20 +271,7 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
 
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
             },
-            titleAction = {
-                IconButton(
-                    onClick = { expanded = true },
-                    content = {
-                        Icon(
-                            imageVector = when (expanded) {
-                                true -> Icons.Outlined.ArrowDropUp
-                                false -> Icons.Outlined.ArrowDropDown
-                            },
-                            contentDescription = null
-                        )
-                    }
-                )
-            },
+            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             subtitle = "0x${selectedAddress.address.toByteArray().toHexString()}"
         )
         DropdownMenu(
@@ -316,14 +296,15 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
                                 },
                                 title = when (destination) {
                                     is UnicastAddress -> network
-                                        ?.node(address = destination.address)
-                                        ?.name ?: destination.toHexString()
+                                        ?.node(address = destination.address)?.name
+                                        ?: destination.toHexString()
 
                                     is AllRelays -> stringResource(R.string.label_all_relays)
                                     is AllFriends -> stringResource(R.string.label_all_friends)
                                     is AllProxies -> stringResource(R.string.label_all_proxies)
                                     is AllNodes -> stringResource(R.string.label_all_nodes)
-                                    is GroupAddress -> network?.group(address = destination.address)?.name
+                                    is GroupAddress -> network
+                                        ?.group(address = destination.address)?.name
                                         ?: destination.toHexString()
 
                                     is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
@@ -331,12 +312,8 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
                             )
                         },
                         onClick = {
-                            try {
-                                selectedAddress = destination
-                                expanded = !expanded
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
+                            selectedAddress = destination
+                            expanded = !expanded
                         }
                     )
                     if (index < destinations.size - 1) {
@@ -378,7 +355,6 @@ private fun PeriodicHeartbeatsRow(
     }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(top = 8.dp)
             .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_heartbeat_count_and_period),

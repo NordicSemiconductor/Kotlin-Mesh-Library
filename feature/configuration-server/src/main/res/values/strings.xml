@@ -49,4 +49,5 @@
     <string name="label_periodic_heartbeats">Periodic Heartbeats</string>
     <string name="title_heartbeat_count_and_period">Heartbeat count and Period</string>
     <string name="label_heartbeat_publication">Heartbeat Publication</string>
+    <string name="label_select_address">Select an address</string>
 </resources>
