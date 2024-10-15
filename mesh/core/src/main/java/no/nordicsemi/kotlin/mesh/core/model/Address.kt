@@ -246,7 +246,7 @@ data class GroupAddress(
  */
 @Serializable
 sealed class FixedGroupAddress(override val address: Address) : MeshAddress(), ProxyFilterAddress,
-    HeartbeatSubscriptionDestination
+    HeartbeatSubscriptionDestination, HeartbeatPublicationDestination
 
 /**
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes
