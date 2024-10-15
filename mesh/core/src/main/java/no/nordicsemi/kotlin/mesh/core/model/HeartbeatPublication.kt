@@ -78,7 +78,7 @@ data class HeartbeatPublication internal constructor(
     val isPeriodicHeartbeatStateEnabled: Boolean
         get() = isEnabled && periodLog > 0u
 
-    val isFeatureTriggeredPublishingEnabled : Boolean
+    val isFeatureTriggeredPublishingEnabled: Boolean
         get() = isEnabled && features.isNotEmpty()
 
     internal constructor(
@@ -125,7 +125,8 @@ data class HeartbeatPublication internal constructor(
      * @param request ConfigHeartbeatPublicationSet
      */
     internal constructor(request: ConfigHeartbeatPublicationSet) : this(
-        address = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
+        address = MeshAddress
+            .create(address = request.destination.address) as HeartbeatPublicationDestination,
         _countLog = request.countLog,
         periodLog = request.periodLog,
         ttl = request.ttl,
