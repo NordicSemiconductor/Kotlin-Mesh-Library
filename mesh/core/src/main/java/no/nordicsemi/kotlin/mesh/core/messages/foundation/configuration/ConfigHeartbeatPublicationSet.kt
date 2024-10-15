@@ -18,6 +18,8 @@ import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
 import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
 import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
 import java.nio.ByteOrder
 import kotlin.math.pow
@@ -34,16 +36,16 @@ import kotlin.math.pow
  * @constructor Creates a ConfigHeartbeatPublicationSet message.
  */
 class ConfigHeartbeatPublicationSet(
-    val destination: Address = UnassignedAddress.address,
+    override val networkKeyIndex: KeyIndex,
+    val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog,
-    val periodLog: UByte,
+    val periodLog: PeriodLog,
     val ttl: UByte,
-    val features: Array<Feature>,
-    override val networkKeyIndex: KeyIndex
+    val features: Array<Feature>
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
-        get() = destination.toByteArray() +
+        get() = destination.address.toByteArray() +
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +
@@ -84,13 +86,25 @@ class ConfigHeartbeatPublicationSet(
     override val responseOpCode: UInt = ConfigHeartbeatPublicationStatus.opCode
 
     val isPublicationEnabled: Boolean
-        get() = destination != UnassignedAddress.address
+        get() = destination != UnassignedAddress
 
     val enablePeriodPublication: Boolean
         get() = isPublicationEnabled && periodLog > 0x00.toUByte()
 
     val enablesFeatureTriggeredPublication: Boolean
         get() = isPublicationEnabled && features.toFeatures().rawValue > 0x0000u
+
+    /**
+     * Convenience constructor to disable heartbeat publications.
+     */
+    constructor() : this(
+        networkKeyIndex = 0u,
+        destination = UnassignedAddress,
+        countLog = 0u,
+        periodLog = 0u,
+        ttl = 0.toUByte(),
+        features = emptyArray<Feature>()
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8039u
@@ -99,7 +113,12 @@ class ConfigHeartbeatPublicationSet(
             it.size == 9
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
-                destination = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN),
+                destination = MeshAddress.create(
+                    params.getUShort(
+                        offset = 0,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
+                ) as HeartbeatPublicationDestination,
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),

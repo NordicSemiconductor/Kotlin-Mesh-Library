@@ -114,7 +114,8 @@ class ConfigHeartbeatPublicationStatus(
             statusMessage: ConfigMessageStatus
         ): ConfigHeartbeatPublicationStatus {
             return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
+                destination = MeshAddress
+                    .create(address = request.destination.address) as HeartbeatPublicationDestination,
                 countLog = request.countLog,
                 periodLog = request.periodLog,
                 ttl = request.ttl,
