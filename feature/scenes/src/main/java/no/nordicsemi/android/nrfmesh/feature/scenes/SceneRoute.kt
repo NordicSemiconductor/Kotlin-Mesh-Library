@@ -1,11 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
@@ -43,9 +41,8 @@ internal fun SceneRoute(
 
 @Composable
 private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit) {
-    LazyColumn(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         when (sceneState) {
@@ -53,7 +50,7 @@ private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit)
             }
 
             is SceneState.Success -> {
-                sceneInfo(
+                SceneInfo(
                     scene = sceneState.scene,
                     onNameChanged = onNameChanged
                 )
@@ -64,15 +61,18 @@ private fun SceneScreen(sceneState: SceneState, onNameChanged: (String) -> Unit)
     }
 }
 
-private fun LazyListScope.sceneInfo(scene: Scene, onNameChanged: (String) -> Unit) {
-    item { Name(name = scene.name, onNameChanged = onNameChanged) }
-    item { Number(number = scene.number) }
+@Composable
+private fun SceneInfo(scene: Scene, onNameChanged: (String) -> Unit) {
+    Name(name = scene.name, onNameChanged = onNameChanged)
+    Number(number = scene.number)
 }
 
 @Composable
 fun Name(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
