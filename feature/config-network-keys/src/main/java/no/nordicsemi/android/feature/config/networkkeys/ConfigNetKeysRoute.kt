@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.feature.config.networkkeys
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -181,7 +178,7 @@ private fun ConfigNetKeysScreen(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomSheetKeys(
     uiState: NetKeysScreenUiState,
@@ -260,6 +257,7 @@ private fun NetworkKeysInfo(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NetworkKeys(
     context: Context,
@@ -298,7 +296,7 @@ private fun NetworkKeys(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     key: NetworkKey,

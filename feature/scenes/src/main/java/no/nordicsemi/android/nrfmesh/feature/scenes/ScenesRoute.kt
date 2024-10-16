@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
