@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,19 +9,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,8 +19,6 @@ import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreen
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
@@ -86,7 +72,7 @@ private fun LazyListScope.sceneInfo(scene: Scene, onNameChanged: (String) -> Uni
 @Composable
 fun Name(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -100,7 +86,7 @@ fun Name(name: String, onNameChanged: (String) -> Unit) {
 @Composable
 fun Number(number: SceneNumber) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_number),
         subtitle = number.toHexString()

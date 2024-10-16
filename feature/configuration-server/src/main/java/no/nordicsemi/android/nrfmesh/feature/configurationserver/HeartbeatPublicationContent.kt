@@ -87,8 +87,8 @@ internal fun HeartBeatPublicationContent(
 
     ElevatedCardItem(
         modifier = Modifier
-            .padding(vertical = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(top = 8.dp)
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
         subtitle = "Heartbeat publications are ${
@@ -354,8 +354,7 @@ private fun PeriodicHeartbeatsRow(
         mutableFloatStateOf(publication?.period?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_heartbeat_count_and_period),
         body = {

@@ -78,7 +78,6 @@ internal fun HeartBeatSubscriptionContent(
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     ElevatedCardItem(
         modifier = Modifier
-            .padding(top = 8.dp)
             .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),

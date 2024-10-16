@@ -175,7 +175,7 @@ private fun LazyListScope.settingsInfo(
 @Composable
 private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -187,8 +187,7 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 @Composable
 private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         onClick = { onProvisionersClicked() },
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
@@ -199,8 +198,7 @@ private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
 @Composable
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         onClick = { onNetworkKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
@@ -211,8 +209,7 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 @Composable
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         onClick = { onApplicationKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
@@ -223,8 +220,7 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 @Composable
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         onClick = { onScenesClicked() },
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
@@ -235,8 +231,7 @@ private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
 @Composable
 private fun IvIndexRow(ivIndex: IvIndex) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Tune,
         title = stringResource(R.string.label_iv_index),
         subtitle = "${ivIndex.index}"
@@ -246,8 +241,7 @@ private fun IvIndexRow(ivIndex: IvIndex) {
 @Composable
 private fun LastModifiedTimeRow(timestamp: Instant) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Update,
         title = stringResource(R.string.label_last_modified),
         subtitle = DateFormat.getDateTimeInstance().format(
@@ -260,8 +254,7 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
 private fun VersionNameRow() {
     // TODO Clarify version naming
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Subtitles,
         title = stringResource(R.string.label_version),
         subtitle = BuildConfig.VERSION_NAME

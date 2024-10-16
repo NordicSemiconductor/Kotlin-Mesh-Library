@@ -123,7 +123,7 @@ private fun RelayFeature(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_relay_count_and_interval),
         body = {
@@ -210,7 +210,7 @@ private fun NetworkTransmit(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_network_transmit),
         body = {
@@ -289,7 +289,7 @@ private fun SecureNetworkBeacon(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.WifiTethering,
         title = stringResource(R.string.label_snb),
         titleAction = {
@@ -322,7 +322,7 @@ private fun FriendFeature(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Diversity1,
         title = stringResource(R.string.label_friend),
         titleAction = {
@@ -356,7 +356,7 @@ private fun ProxyStateRow(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
@@ -409,7 +409,7 @@ private fun NodeIdentityRow(
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.WavingHand,
         title = stringResource(R.string.label_node_identity),
         supportingText = stringResource(R.string.label_node_identity_rationale),

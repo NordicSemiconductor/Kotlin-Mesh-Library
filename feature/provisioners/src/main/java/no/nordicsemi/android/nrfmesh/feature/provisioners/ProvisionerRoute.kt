@@ -243,7 +243,7 @@ fun Name(
     onEditableStateChanged: () -> Unit,
 ) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -432,7 +432,7 @@ private fun Ttl(
     onEditableStateChanged: () -> Unit,
 ) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(id = R.string.label_ttl),
         subtitle = ttl?.toString() ?: "0",
@@ -454,7 +454,7 @@ private fun Ttl(
 @Composable
 private fun DeviceKey(key: ByteArray?) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
         subtitle = key?.toHexString() ?: stringResource(R.string.label_not_applicable)

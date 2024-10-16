@@ -49,8 +49,7 @@ fun ElevatedCardItem(
 ) {
     ElevatedCard(modifier = modifier, elevation = elevation) {
         MeshTwoLineListItem(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
             leadingComposable = {
                 Icon(
                     modifier = Modifier.padding(end = 16.dp),
@@ -65,7 +64,7 @@ fun ElevatedCardItem(
         )
         if (supportingText != null)
             Text(
-                modifier = Modifier.padding(start = 58.dp, end = 16.dp),
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 8.dp),
                 text = supportingText,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -174,6 +173,7 @@ fun ElevatedCardItemTextField(
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
                     true -> MeshOutlinedTextField(
+                        modifier = Modifier.padding(start = 16.dp),
                         onFocus = onEditClick,
                         value = value,
                         onValueChanged = { value = it },
@@ -181,13 +181,21 @@ fun ElevatedCardItemTextField(
                         placeholder = { Text(text = placeholder) },
                         internalTrailingIcon = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = value.text.isNotBlank(),
                                 onClick = {
-                                    value =
-                                        TextFieldValue(text = "", selection = TextRange("".length))
-                                }) {
-                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                            }
+                                    value = TextFieldValue(
+                                        text = "",
+                                        selection = TextRange("".length)
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Clear,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
                         },
                         readOnly = readOnly,
                         keyboardOptions = keyboardOptions,
@@ -206,19 +214,24 @@ fun ElevatedCardItemTextField(
                                         selection = TextRange(value.text.trim().length)
                                     )
                                     onValueChanged(value.text)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null
+                                    )
                                 }
-                            ) {
-                                Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
-                            }
+                            )
                         }
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = value.text,
                         trailingComposable = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = isEditable,
                                 onClick = {
                                     onEditClick = !onEditClick

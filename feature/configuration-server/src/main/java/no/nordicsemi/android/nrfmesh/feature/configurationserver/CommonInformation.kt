@@ -29,7 +29,7 @@ private fun NameRow(name: String) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(R.string.label_name),
         subtitle = name
@@ -41,7 +41,7 @@ private fun ModelIdRow(modelId: String) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Numbers,
         title = stringResource(R.string.label_model_identifier),
         subtitle = modelId
@@ -53,7 +53,7 @@ private fun Company(modelId: ModelId) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Work,
         title = stringResource(id = R.string.label_company),
         subtitle = when (modelId) {

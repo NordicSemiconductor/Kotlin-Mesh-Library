@@ -213,8 +213,7 @@ private fun BottomSheetKeys(
             } else {
                 items(items = uiState.keys) { key ->
                     ElevatedCardItem(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
                             onDismissClick()
                             onAddKeyClicked(key)

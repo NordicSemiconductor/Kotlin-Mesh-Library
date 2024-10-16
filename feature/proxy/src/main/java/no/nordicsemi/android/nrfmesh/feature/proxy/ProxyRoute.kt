@@ -138,7 +138,9 @@ private fun AutomaticConnectionRow(
     onDisconnectClicked: () -> Unit
 ) {
     ElevatedCardItem(
-        modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_automatic_connection),
         titleAction = {
