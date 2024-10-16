@@ -14,17 +14,13 @@ import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.LocalPolice
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
@@ -34,6 +30,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
@@ -79,7 +76,6 @@ private fun NetworkKeyScreen(
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
 
     Column(
@@ -94,7 +90,6 @@ private fun NetworkKeyScreen(
             }
 
             is KeyState.Success -> NetworkKeyInfo(
-                snackbarHostState = snackbarHostState,
                 networkKey = keyState.key,
                 isCurrentlyEditable = isCurrentlyEditable,
                 onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
@@ -112,7 +107,6 @@ private fun NetworkKeyScreen(
 
 @Composable
 private fun NetworkKeyInfo(
-    snackbarHostState: SnackbarHostState,
     networkKey: NetworkKey,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -126,9 +120,7 @@ private fun NetworkKeyInfo(
         onEditableStateChanged = onEditableStateChanged
     )
     Key(
-        snackbarHostState = snackbarHostState,
         networkKey = networkKey.key,
-        isInUse = networkKey.isInUse,
         onKeyChanged = onKeyChanged,
         isCurrentlyEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged
@@ -161,117 +153,21 @@ fun Name(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun Key(
-    snackbarHostState: SnackbarHostState,
     networkKey: ByteArray,
-    isInUse: Boolean,
     onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var key by rememberSaveable { mutableStateOf(networkKey.toHexString()) }
-    var onEditClick by rememberSaveable { mutableStateOf(false) }
 
     ElevatedCardItemTextField(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = key,
-        onValueChanged = { key = it },
+        subtitle = networkKey.toHexString(),
+        onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
     )
-    /*
-
-        ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    modifier = Modifier.padding(start = 12.dp),
-                    imageVector = Icons.Outlined.VpnKey,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-                Crossfade(targetState = onEditClick, label = "name") { state ->
-                    when (state) {
-                        true ->
-                            MeshOutlinedTextField(
-                                onFocus = onEditClick,
-                                value = key,
-                                onValueChanged = { key = it },
-                                label = { Text(text = stringResource(id = R.string.label_key)) },
-                                placeholder = {
-                                    Text(
-                                        text = stringResource(id = R.string.label_placeholder_key),
-                                        maxLines = 1
-                                    )
-                                },
-                                internalTrailingIcon = {
-                                    IconButton(
-                                        enabled = key.isNotBlank(),
-                                        onClick = { key = "" }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Clear,
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
-                                regex = Regex("[0-9A-Fa-f]{0,32}"),
-                                keyboardOptions = KeyboardOptions(
-                                    capitalization = KeyboardCapitalization.Characters,
-                                    autoCorrectEnabled = false
-                                ),
-                                content = {
-                                    IconButton(
-                                        modifier = Modifier.padding(start = 8.dp, end = 16.dp),
-                                        enabled = key.length == 32,
-                                        onClick = {
-                                            onEditClick = !onEditClick
-                                            onKeyChanged(key.toByteArray())
-                                            onEditableStateChanged()
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Check,
-                                            contentDescription = null
-                                        )
-                                    }
-                                }
-                            )
-
-                        false -> MeshTwoLineListItem(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            title = stringResource(id = R.string.label_key),
-                            subtitle = key,
-                            trailingComposable = {
-                                IconButton(
-                                    enabled = isCurrentlyEditable,
-                                    onClick = {
-                                        if (!isInUse) {
-                                            onEditClick = !onEditClick
-                                            onEditableStateChanged()
-                                        } else {
-                                            showSnackbar(
-                                                scope = coroutineScope,
-                                                snackbarHostState = snackbarHostState,
-                                                message = context.getString(R.string.error_cannot_edit_key_in_use)
-                                            )
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Edit,
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        }*/
 }
 
 @OptIn(ExperimentalStdlibApi::class)

@@ -339,7 +339,9 @@ private fun DestinationRow(model: Model, subscription: HeartbeatSubscription?) {
 
     SectionTitle(title = stringResource(R.string.label_destination))
     ExposedDropdownMenuBox(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it },
     ) {

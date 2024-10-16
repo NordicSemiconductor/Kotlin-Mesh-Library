@@ -87,7 +87,7 @@ internal fun HeartBeatPublicationContent(
 
     ElevatedCardItem(
         modifier = Modifier
-            .padding(top = 8.dp)
+            .padding(top = 8.dp, bottom = 16.dp)
             .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
