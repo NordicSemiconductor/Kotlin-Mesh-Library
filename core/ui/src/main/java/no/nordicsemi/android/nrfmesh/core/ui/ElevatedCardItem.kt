@@ -96,7 +96,7 @@ fun ElevatedCardItem(
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit,
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},

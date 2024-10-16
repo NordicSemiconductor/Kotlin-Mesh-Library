@@ -154,8 +154,7 @@ private fun SwipeToDismissKey(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                modifier = Modifier
-                    .clickable { navigateToApplicationKey(key.index) },
+                onClick = { navigateToApplicationKey(key.index) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
                 subtitle = key.key.toHexString()

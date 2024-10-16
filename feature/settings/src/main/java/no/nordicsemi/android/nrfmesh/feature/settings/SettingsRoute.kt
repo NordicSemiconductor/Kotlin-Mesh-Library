@@ -66,6 +66,7 @@ fun SettingsRoute(
                 SettingsScreen.Actions.IMPORT -> {
                     fileLauncher.launch("application/json")
                 }
+
                 SettingsScreen.Actions.EXPORT -> navigateToExport()
                 SettingsScreen.Actions.RESET -> resetNetwork()
             }
@@ -188,8 +189,8 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onProvisionersClicked() },
+            .padding(horizontal = 8.dp),
+        onClick = { onProvisionersClicked() },
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
         subtitle = "$count ${if (count == 1) "provisioner" else "provisioners"} available"
@@ -200,8 +201,8 @@ private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onNetworkKeysClicked() },
+            .padding(horizontal = 8.dp),
+        onClick = { onNetworkKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -212,8 +213,8 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onApplicationKeysClicked() },
+            .padding(horizontal = 8.dp),
+        onClick = { onApplicationKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -224,8 +225,8 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onScenesClicked() },
+            .padding(horizontal = 8.dp),
+        onClick = { onScenesClicked() },
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
         subtitle = "$count ${if (count == 1) "scene" else "scenes"} available"

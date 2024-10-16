@@ -144,8 +144,7 @@ private fun SwipeToDismissProvisioner(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                modifier = Modifier
-                    .clickable { navigateToProvisioner(provisioner.uuid) },
+                onClick = { navigateToProvisioner(provisioner.uuid) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = provisioner.name,
                 subtitle = provisioner.uuid.toString().uppercase(Locale.US)

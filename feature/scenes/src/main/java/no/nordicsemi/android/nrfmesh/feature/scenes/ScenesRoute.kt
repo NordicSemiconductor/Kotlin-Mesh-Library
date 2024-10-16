@@ -176,8 +176,7 @@ private fun SwipeToDismissScene(
         content = {
             Surface(color = MaterialTheme.colorScheme.background) {
                 ElevatedCardItem(
-                    modifier = Modifier
-                        .clickable { navigateToScene(scene.number) },
+                    onClick = { navigateToScene(scene.number) },
                     imageVector = Icons.Outlined.AutoAwesome,
                     title = scene.name,
                     subtitle = "0x${scene.number.toHexString()}"

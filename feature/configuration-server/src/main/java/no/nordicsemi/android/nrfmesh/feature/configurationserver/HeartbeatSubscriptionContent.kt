@@ -219,7 +219,7 @@ internal fun HeartBeatSubscriptionContent(
                 Column(
                     modifier = Modifier
                         .padding(vertical = 8.dp)
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .verticalScroll(state = rememberScrollState())
                 ) {
                     PeriodRow(subscription = subscription)

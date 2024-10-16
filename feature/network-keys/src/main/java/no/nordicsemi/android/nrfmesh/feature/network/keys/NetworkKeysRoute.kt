@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import android.content.Context
@@ -136,7 +134,7 @@ private fun NetworkKeys(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     key: NetworkKey,
@@ -163,8 +161,7 @@ private fun SwipeToDismissKey(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                modifier = Modifier
-                    .clickable { navigateToNetworkKey(key.index) },
+                onClick = { navigateToNetworkKey(key.index) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
                 subtitle = key.key.toHexString()

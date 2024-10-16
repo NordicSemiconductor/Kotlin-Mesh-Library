@@ -216,11 +216,11 @@ private fun BottomSheetKeys(
                 items(items = uiState.keys) { key ->
                     ElevatedCardItem(
                         modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .clickable {
-                                onDismissClick()
-                                onAddKeyClicked(key)
-                            },
+                            .padding(horizontal = 8.dp),
+                        onClick = {
+                            onDismissClick()
+                            onAddKeyClicked(key)
+                        },
                         imageVector = Icons.Outlined.VpnKey,
                         title = key.name,
                         subtitle = key.key.toHexString()

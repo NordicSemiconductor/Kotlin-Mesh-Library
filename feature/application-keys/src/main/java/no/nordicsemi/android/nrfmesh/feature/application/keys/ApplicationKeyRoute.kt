@@ -357,16 +357,16 @@ private fun LazyListScope.boundNetworkKeys(
     ) { key ->
         ElevatedCardItem(
             modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .clickable {
-                    if (!isInUse) onBoundNetworkKeyChanged(key)
-                    else showSnackbar(
-                        scope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        message = context.getString(R.string.error_cannot_change_bound_net_key),
-                        withDismissAction = true
-                    )
-                },
+                .padding(horizontal = 8.dp),
+            onClick = {
+                if (!isInUse) onBoundNetworkKeyChanged(key)
+                else showSnackbar(
+                    scope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    message = context.getString(R.string.error_cannot_change_bound_net_key),
+                    withDismissAction = true
+                )
+            },
             imageVector = Icons.Outlined.VpnKey,
             title = key.name,
             titleAction = {
