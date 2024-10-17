@@ -277,12 +277,14 @@ data object AllNodes : FixedGroupAddress(address = allNodes)
  * An address that is used as a destination address by a Heartbeat Publication or a Heartbeat
  * Subscription message. This represents a [UnicastAddress], [GroupAddress].
  */
+@Serializable(with = MeshAddressSerializer::class)
 sealed interface HeartbeatDestination : HasAddress
 
 /**
  * Heartbeat publication destination address for heartbeat messages. This represents a
  * [UnicastAddress], [GroupAddress] or an [UnassignedAddress].
  */
+@Serializable(with = MeshAddressSerializer::class)
 sealed interface HeartbeatPublicationDestination : HeartbeatDestination {
 
     companion object {
