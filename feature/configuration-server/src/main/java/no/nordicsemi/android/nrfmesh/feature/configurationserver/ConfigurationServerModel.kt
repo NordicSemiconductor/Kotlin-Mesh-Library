@@ -299,7 +299,7 @@ private fun SecureNetworkBeacon(
                 onCheckedChange = { send(ConfigBeaconSet(enable = it)) }
             )
         },
-        subtitle = "Secure Network Beacon is ${
+        subtitle = "SNB is ${
             if (friend?.state?.isEnabled == true) "enabled"
             else "disabled"
         }",
