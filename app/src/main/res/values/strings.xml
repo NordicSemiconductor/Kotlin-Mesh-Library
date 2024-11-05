@@ -3,7 +3,7 @@
     <string name="label_export">Export</string>
     <string name="label_nav_bar_nodes">Nodes</string>
     <string name="label_nav_bar_groups">Groups</string>
-    <string name="label_nav_bar_proxy_filter">Proxy Filter</string>
+    <string name="label_nav_bar_proxy">Proxy</string>
     <string name="label_nav_bar_settings">Settings</string>
     <string name="label_import">Import</string>
     <string name="label_reset">Reset</string>
