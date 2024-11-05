@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -21,6 +22,7 @@ fun BottomSheetTopAppBar(
     onNavigationIconClick: () -> Unit,
     title: String,
     titleStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
     actions: @Composable () -> Unit = {}
 ) {
     Row(
@@ -35,6 +37,8 @@ fun BottomSheetTopAppBar(
             modifier = Modifier.weight(1f),
             text = title,
             style = titleStyle,
+            overflow = overflow,
+            maxLines = 1,
         )
         Spacer(modifier = Modifier.size(16.dp))
         actions()
