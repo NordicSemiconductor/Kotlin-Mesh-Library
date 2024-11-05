@@ -33,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,8 +52,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
@@ -67,7 +64,6 @@ import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -81,9 +77,14 @@ internal fun HeartBeatPublicationContent(
     publication: HeartbeatPublication?,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var selectedKeyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
+    var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
+    var destination by remember { mutableStateOf(publication?.address) }
+    var count by remember { mutableStateOf(publication?.count ?: 0u) }
+    var period by remember { mutableStateOf(publication?.period ?: 0u) }
 
     ElevatedCardItem(
         modifier = Modifier
@@ -157,19 +158,28 @@ internal fun HeartBeatPublicationContent(
                     SectionTitle(title = stringResource(R.string.label_network_key))
                     NetworkKeysRow(
                         network = model.parentElement?.parentNode?.network,
-                        onNetworkKeySelected = {}
+                        selectedKeyIndex = selectedKeyIndex,
+                        onNetworkKeySelected = { selectedKeyIndex = it }
                     )
                     SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
-                        model = model,
-                        publication = publication
+                        network = model.parentElement?.parentNode?.network,
+                        destinations = model.heartbeatPublicationDestinations(),
+                        destination = destination,
+                        onDestinationSelected = {
+                            destination = it
+                            println("Destination selected: $destination")
+                        }
                     )
                     SectionTitle(title = stringResource(R.string.label_time_to_live))
-                    TtlRow(ttl = 5, onTtlChanged = {})
+                    TtlRow(ttl = ttl, onTtlChanged = { ttl = it })
                     SectionTitle(title = stringResource(R.string.label_periodic_heartbeats))
                     PeriodicHeartbeatsRow(
                         publication = publication,
-                        model = model
+                        count = count,
+                        onCountChanged = { count = it },
+                        period = period,
+                        onPeriodChanged = { period = it }
                     )
                 }
             }
@@ -181,10 +191,10 @@ internal fun HeartBeatPublicationContent(
 @Composable
 private fun NetworkKeysRow(
     network: MeshNetwork?,
-    onNetworkKeySelected: (NetworkKey) -> Unit
+    selectedKeyIndex: Int,
+    onNetworkKeySelected: (Int) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedKeyIndex by rememberSaveable { mutableIntStateOf(0) }
     ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         expanded = expanded,
@@ -224,29 +234,27 @@ private fun NetworkKeysRow(
                             )
                         },
                         onClick = {
-                            selectedKeyIndex = key.index.toInt()
-                            expanded = !expanded
+                            onNetworkKeySelected(key.index.toInt())
+                                .also { expanded = !expanded }
                         }
                     )
-                    if (index < network.networkKeys.size - 1) {
+                    if (index < network.networkKeys.size - 1)
                         HorizontalDivider()
-                    }
                 }
             }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
-    val network = model.parentElement?.parentNode?.network
-    val destinations = model.heartbeatPublicationDestinations()
-
+private fun DestinationRow(
+    network: MeshNetwork?,
+    destinations: List<HeartbeatPublicationDestination>,
+    destination: HeartbeatPublicationDestination?,
+    onDestinationSelected: (HeartbeatPublicationDestination) -> Unit
+) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedAddress by remember {
-        mutableStateOf(UnassignedAddress as HeartbeatPublicationDestination)
-    }
     ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         expanded = expanded,
@@ -257,22 +265,23 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
                 .menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
-            title = when (selectedAddress) {
+            title = when (destination) {
                 is UnicastAddress -> network
-                    ?.node(address = selectedAddress.address)
-                    ?.name ?: selectedAddress.toHexString()
+                    ?.node(address = destination.address)
+                    ?.name ?: destination.toHexString()
 
                 is AllRelays -> stringResource(R.string.label_all_relays)
                 is AllFriends -> stringResource(R.string.label_all_friends)
                 is AllProxies -> stringResource(R.string.label_all_proxies)
                 is AllNodes -> stringResource(R.string.label_all_nodes)
-                is GroupAddress -> network?.group(address = selectedAddress.address)?.name
-                    ?: selectedAddress.toHexString()
+                is GroupAddress -> network?.group(address = destination.address)?.name
+                    ?: destination.toHexString()
 
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
+                else -> stringResource(R.string.label_select_destination)
             },
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            subtitle = "0x${selectedAddress.address.toByteArray().toHexString()}"
+            subtitle = destination?.let { "0x${it.toHexString()}" } ?: ""
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -312,7 +321,7 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
                             )
                         },
                         onClick = {
-                            selectedAddress = destination
+                            onDestinationSelected(destination)
                             expanded = !expanded
                         }
                     )
@@ -326,15 +335,12 @@ private fun DestinationRow(model: Model, publication: HeartbeatPublication?) {
 }
 
 @Composable
-private fun TtlRow(
-    ttl: Int?,
-    onTtlChanged: (Int) -> Unit,
-) {
+private fun TtlRow(ttl: Int, onTtlChanged: (Int) -> Unit) {
     ElevatedCardItemTextField(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(id = R.string.label_initial_ttl),
-        subtitle = ttl?.toString() ?: "0",
+        subtitle = "$ttl",
         onValueChanged = { onTtlChanged(it.toInt()) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number
@@ -344,23 +350,20 @@ private fun TtlRow(
 
 @Composable
 private fun PeriodicHeartbeatsRow(
-    model: Model,
-    publication: HeartbeatPublication?
+    publication: HeartbeatPublication?,
+    count: UShort,
+    onCountChanged: (UShort) -> Unit,
+    period: UShort,
+    onPeriodChanged: (UShort) -> Unit
 ) {
-    var countLog by remember {
-        mutableFloatStateOf(publication?.count?.toFloat() ?: 0f)
-    }
-    var period by remember {
-        mutableFloatStateOf(publication?.period?.toFloat() ?: 0f)
-    }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_heartbeat_count_and_period),
         body = {
             Slider(
-                value = countLog,
-                onValueChange = { countLog = it },
+                value = count.toFloat(),
+                onValueChange = { onCountChanged(it.roundToInt().toUShort()) },
                 valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
                 steps = 6,
                 colors = NordicSliderDefaults.colors()
@@ -371,15 +374,15 @@ private fun PeriodicHeartbeatsRow(
                     .padding(start = 16.dp)
                     .sizeIn(minWidth = 80.dp),
                 text = when (publication) {
-                    null -> "Unknown"
-                    else -> "${countLog.roundToInt()}"
+                    null -> stringResource(R.string.label_unknown)
+                    else -> "$count"
                 },
                 textAlign = TextAlign.End
             )
             Slider(
-                enabled = countLog == 0f,
-                value = period,
-                onValueChange = { period = it },
+                enabled = count != 0.toUShort(),
+                value = period.toFloat(),
+                onValueChange = { onPeriodChanged(it.roundToInt().toUShort()) },
                 valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
                 steps = 30,
                 colors = NordicSliderDefaults.colors()
@@ -390,8 +393,8 @@ private fun PeriodicHeartbeatsRow(
                     .padding(start = 16.dp)
                     .sizeIn(minWidth = 80.dp),
                 text = when (publication) {
-                    null -> "Unknown"
-                    else -> "${period.roundToInt()} ms"
+                    null -> stringResource(R.string.label_unknown)
+                    else -> "$period ms"
                 },
                 textAlign = TextAlign.End
             )

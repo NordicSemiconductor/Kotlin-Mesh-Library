@@ -50,4 +50,6 @@
     <string name="title_heartbeat_count_and_period">Heartbeat count and Period</string>
     <string name="label_heartbeat_publication">Heartbeat Publication</string>
     <string name="label_select_address">Select an address</string>
+    <string name="label_select_source">Select source address</string>
+    <string name="label_select_destination">Select destination address</string>
 </resources>

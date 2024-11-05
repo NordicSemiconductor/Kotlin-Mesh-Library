@@ -58,11 +58,13 @@ import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
 import no.nordicsemi.kotlin.mesh.core.model.AllRelays
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import kotlin.math.roundToInt
 
 
@@ -76,6 +78,9 @@ internal fun HeartBeatSubscriptionContent(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var source by remember { mutableStateOf(subscription?.source) }
+    var destination by remember { mutableStateOf(subscription?.destination) }
+
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp),
@@ -221,8 +226,16 @@ internal fun HeartBeatSubscriptionContent(
                         .verticalScroll(state = rememberScrollState())
                 ) {
                     PeriodRow(subscription = subscription)
-                    SourceRow(model = model, subscription = subscription)
-                    DestinationRow(model = model, subscription = subscription)
+                    SourceRow(
+                        model = model,
+                        source = source,
+                        onSourceSelected = { source = it }
+                    )
+                    DestinationRow(
+                        model = model,
+                        destination = destination,
+                        onDestinationSelected = { destination = it }
+                    )
                 }
             }
         )
@@ -267,13 +280,14 @@ private fun PeriodRow(subscription: HeartbeatSubscription?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SourceRow(model: Model, subscription: HeartbeatSubscription?) {
+private fun SourceRow(
+    model: Model,
+    source: HeartbeatSubscriptionSource?,
+    onSourceSelected: (HeartbeatSubscriptionSource) -> Unit
+) {
     val network = model.parentElement?.parentNode?.network
     val sources = model.heartbeatSubscriptionSources()
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedAddress by remember {
-        mutableStateOf(UnassignedAddress as HeartbeatSubscriptionSource)
-    }
 
     SectionTitle(title = stringResource(R.string.label_source))
     ExposedDropdownMenuBox(
@@ -285,12 +299,15 @@ private fun SourceRow(model: Model, subscription: HeartbeatSubscription?) {
             modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.Start,
-            title = stringResource(R.string.label_source),
+            title = when (source) {
+                is UnicastAddress -> network
+                    ?.node(address = source.address)
+                    ?.name ?:  stringResource(R.string.label_unknown)
+                is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
+                else -> stringResource(R.string.label_select_source)
+            },
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            subtitle = if (selectedAddress is UnassignedAddress)
-                stringResource(R.string.label_select_address)
-            else network?.node(address = selectedAddress.address)?.name
-                ?: selectedAddress.toHexString(),
+            subtitle =  source?.let { "0x${it.toHexString()}" } ?: "",
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -316,13 +333,12 @@ private fun SourceRow(model: Model, subscription: HeartbeatSubscription?) {
                             )
                         },
                         onClick = {
-                            selectedAddress = source
-                            expanded = !expanded
+                            onSourceSelected(source)
+                                .also { expanded = !expanded }
                         }
                     )
-                    if (index < sources.size - 1) {
+                    if (index < sources.size - 1)
                         HorizontalDivider()
-                    }
                 }
             }
         )
@@ -331,11 +347,14 @@ private fun SourceRow(model: Model, subscription: HeartbeatSubscription?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DestinationRow(model: Model, subscription: HeartbeatSubscription?) {
+private fun DestinationRow(
+    model: Model,
+    destination: HeartbeatSubscriptionDestination?,
+    onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit
+) {
     val network = model.parentElement?.parentNode?.network
     val destinations = model.heartbeatPublicationDestinations()
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedAddress by remember { mutableStateOf(UnassignedAddress as HeartbeatSubscriptionDestination) }
 
     SectionTitle(title = stringResource(R.string.label_destination))
     ExposedDropdownMenuBox(
@@ -349,12 +368,23 @@ private fun DestinationRow(model: Model, subscription: HeartbeatSubscription?) {
             modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
-            title = stringResource(R.string.label_destination),
+            title = when (destination) {
+                is UnicastAddress -> network
+                    ?.node(address = destination.address)
+                    ?.name ?: stringResource(R.string.label_unknown)
+
+                is AllRelays -> stringResource(R.string.label_all_relays)
+                is AllFriends -> stringResource(R.string.label_all_friends)
+                is AllProxies -> stringResource(R.string.label_all_proxies)
+                is AllNodes -> stringResource(R.string.label_all_nodes)
+                is GroupAddress -> network?.group(address = destination.address)?.name
+                    ?: destination.toHexString()
+
+                is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
+                else -> stringResource(R.string.label_select_destination)
+            },
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            subtitle = if (selectedAddress is UnassignedAddress)
-                stringResource(R.string.label_select_address)
-            else network?.node(address = selectedAddress.address)?.name
-                ?: selectedAddress.toHexString(),
+            subtitle =  destination?.let { "0x${it.toHexString()}" } ?: "",
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -380,8 +410,9 @@ private fun DestinationRow(model: Model, subscription: HeartbeatSubscription?) {
                             )
                         },
                         onClick = {
-                            selectedAddress = destination
-                            expanded = !expanded
+                            onDestinationSelected(destination).also {
+                                expanded = !expanded
+                            }
                         }
                     )
                     if (index < destinations.size - 1) {
