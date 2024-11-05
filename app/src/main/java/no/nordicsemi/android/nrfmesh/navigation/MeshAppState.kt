@@ -111,7 +111,7 @@ class MeshAppState(
             destination = ProxyDestination.destination,
             selectedIcon = Icons.Filled.Hub,
             unselectedIcon = Icons.Outlined.Hub,
-            iconTextId = R.string.label_nav_bar_proxy_filter
+            iconTextId = R.string.label_nav_bar_proxy
         ),
         TopLevelDestination(
             route = SettingsDestination.route,
