@@ -47,10 +47,9 @@ class ConfigHeartbeatSubscriptionStatus(
 ) : ConfigResponse, ConfigStatusMessage {
     override val opCode: UInt = Initializer.opCode
 
-    override val parameters: ByteArray
-        get() = byteArrayOf(status.value.toByte()) +
-                source.address.toByteArray() +
-                destination.address.toByteArray() +
+    override val parameters: ByteArray = byteArrayOf(status.value.toByte()) +
+                source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 periodLog.toByte() +
                 countLog.toByte() +
                 minHops.toByte() +

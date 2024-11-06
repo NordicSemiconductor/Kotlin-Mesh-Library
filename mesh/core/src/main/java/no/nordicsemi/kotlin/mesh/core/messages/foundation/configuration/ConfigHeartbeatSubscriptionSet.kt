@@ -10,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
+import java.nio.ByteOrder
 
 /**
  * This message is used to set the Heartbeat Subscription state of an element. The response received
@@ -28,8 +29,8 @@ class ConfigHeartbeatSubscriptionSet(
 ) : AcknowledgedConfigMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode = ConfigHeartbeatSubscriptionStatus.opCode
-    override val parameters: ByteArray = source.address.toByteArray() +
-            destination.address.toByteArray() +
+    override val parameters: ByteArray = source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             periodLog.toByte()
 
     /**
