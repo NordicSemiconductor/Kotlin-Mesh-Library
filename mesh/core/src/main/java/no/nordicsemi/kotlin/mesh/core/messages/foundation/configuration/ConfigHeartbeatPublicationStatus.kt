@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.model.toUShort
 import no.nordicsemi.kotlin.mesh.core.model.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
 import no.nordicsemi.kotlin.mesh.core.model.toRemainingPublicationCount
+import java.nio.ByteOrder
 
 /**
  * This message contains the Heartbeat Publication status of an element. This is sent in response to
@@ -45,7 +46,7 @@ class ConfigHeartbeatPublicationStatus(
 
     override val parameters: ByteArray
         get() = byteArrayOf(status.value.toByte()) +
-                destination.address.toByteArray() +
+                destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +

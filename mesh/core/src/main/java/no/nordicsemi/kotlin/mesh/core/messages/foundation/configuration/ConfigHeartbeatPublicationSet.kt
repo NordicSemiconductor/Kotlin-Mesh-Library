@@ -45,7 +45,7 @@ class ConfigHeartbeatPublicationSet(
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
-        get() = destination.address.toByteArray() +
+        get() = destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +
@@ -114,10 +114,7 @@ class ConfigHeartbeatPublicationSet(
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
                 destination = MeshAddress.create(
-                    params.getUShort(
-                        offset = 0,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    )
+                    address = params.getUShort(offset = 0)
                 ) as HeartbeatPublicationDestination,
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
