@@ -190,15 +190,20 @@ internal class ConfigurationClientHandler(
             is ConfigHeartbeatSubscriptionStatus -> node(address = source)?.takeIf {
                 !it.isLocalProvisioner
             }?.let {
-                if (response.isEnabled)
-                    it.heartbeatSubscription = HeartbeatSubscription(response)
-                else it.heartbeatSubscription = null
+                it.heartbeatSubscription = when {
+                    response.isEnabled -> HeartbeatSubscription(response)
+                    else -> null
+                }
             }
 
             is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
                 !it.isLocalProvisioner
             }?.let {
-                it.heartbeatPublication = HeartbeatPublication(response)
+                it.heartbeatPublication = when {
+                    response.isEnabled -> HeartbeatPublication(response)
+                    else -> null
+                }
+
             }
 
             is ConfigModelPublicationStatus -> {

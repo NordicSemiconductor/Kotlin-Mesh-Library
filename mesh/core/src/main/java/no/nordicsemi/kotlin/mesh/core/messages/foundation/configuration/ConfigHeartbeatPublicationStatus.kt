@@ -56,6 +56,9 @@ class ConfigHeartbeatPublicationStatus(
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
 
+    val isEnabled: Boolean
+        get() = destination != UnassignedAddress
+
     override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
             "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: {${
                 features.joinToString(separator = ", ") { it.toString() }
