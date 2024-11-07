@@ -77,6 +77,10 @@ sealed class MeshAddress : HasAddress {
             UnassignedAddress.isValid(address = address) -> UnassignedAddress
             UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
             GroupAddress.isValid(address = address) -> GroupAddress(address = address)
+            AllProxies.isValid(address = address) -> AllProxies
+            AllFriends.isValid(address = address) -> AllFriends
+            AllRelays.isValid(address = address) -> AllRelays
+            AllNodes.isValid(address = address) -> AllNodes
             else -> throw IllegalArgumentException(
                 "Unable to create an Address for the given address value!"
             )
@@ -252,26 +256,34 @@ sealed class FixedGroupAddress(override val address: Address) : MeshAddress(), P
  * A message sent to the all-proxies address shall be processed by the primary element of all nodes
  * that have the proxy functionality enabled.
  */
-object AllProxies : FixedGroupAddress(address = allProxies), SubscriptionAddress
+object AllProxies : FixedGroupAddress(address = allProxies), SubscriptionAddress {
+    fun isValid(address: Address) = address == allProxies
+}
 
 /**
  * A message sent to the all-friends address shall be processed by the primary element of all nodes
  * that have the friend functionality enabled.
  */
-object AllFriends : FixedGroupAddress(address = allFriends), SubscriptionAddress
+object AllFriends : FixedGroupAddress(address = allFriends), SubscriptionAddress {
+    fun isValid(address: Address) = address == allFriends
+}
 
 /**
  * A message sent to the all-relays address shall be processed by the primary element of all nodes
  * that have the relay functionality enabled.
  */
-object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress
+object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress {
+    fun isValid(address: Address) = address == allRelays
+}
 
 /**
  * A message sent to the all-nodes address shall be processed by the primary element of all nodes.
  *
  * Note: AllNodes cannot be used as subscription address.
  */
-data object AllNodes : FixedGroupAddress(address = allNodes)
+data object AllNodes : FixedGroupAddress(address = allNodes) {
+    fun isValid(address: Address) = address == allNodes
+}
 
 /**
  * An address that is used as a destination address by a Heartbeat Publication or a Heartbeat
