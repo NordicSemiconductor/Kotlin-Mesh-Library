@@ -117,8 +117,8 @@ class ConfigHeartbeatSubscriptionStatus(
                         destination = MeshAddress.create(
                             address = it.getUShort(offset = 3, order = ByteOrder.LITTLE_ENDIAN)
                         ) as HeartbeatSubscriptionDestination,
-                        countLog = it[5].toUByte(),
-                        periodLog = it[6].toUByte(),
+                        periodLog = it[5].toUByte(),
+                        countLog = it[6].toUByte(),
                         minHops = it[7].toUByte(),
                         maxHops = it[8].toUByte()
                     )
