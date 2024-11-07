@@ -173,10 +173,13 @@ data class HeartbeatPublication internal constructor(
         return result
     }
 
-    private companion object {
-
-        private const val MIN_PERIOD_LOG = 0x01
-        private const val MAX_PERIOD_LOG = 0x11
+    companion object {
+        const val MIN_COUNT_LOG = 0x00
+        const val MAX_COUNT_LOG = 0x11
+        const val INDEFINITE_COUNT_LOG = 0xFF
+        const val MIN_PERIOD_LOG = 0x01
+        const val MAX_PERIOD_LOG = 0x11
+        val PERIOD_LOG_RANGE = MIN_PERIOD_LOG..MAX_PERIOD_LOG
 
         private const val MIN_PERIOD = 0
         private const val MAX_PERIOD = 65536
@@ -185,12 +188,27 @@ data class HeartbeatPublication internal constructor(
         private const val MAX_TTL = 127
 
         /**
+         * Converts Publication Count Log to Publication Count.
+         *
+         * @param countLog Logarithmic value in range 0x00...0x11.
+         */
+        fun countLog2Count(countLog: UByte): UShort = when {
+            countLog > 0x11.toUByte() && countLog < 0xFF.toUByte() ->
+                throw IllegalArgumentException(
+                    "CountLog out of range $countLog (required: 0x00-0x11)"
+                )
+            countLog == 0x11.toUByte() -> (2.0.pow(countLog.toInt() - 1).toInt() - 2).toUShort()
+
+            else -> 2.0.pow(countLog.toInt() - 1).toInt().toUShort()
+        }
+
+        /**
          * Converts Publication Count to Publication Count Log.
          *
          * @param count Count.
          * @return Logarithmic value.
          */
-        fun countToCountLog(count: UShort) = when (count) {
+        fun count2CountLog(count: UShort) = when (count) {
             0x00.toUShort() -> 0x00.toUByte()
             0xFFFF.toUShort() -> 0xFF.toUByte()
             else -> (log2(count.toDouble() * 2 - 1).toInt().toUByte() + 1u).toUByte()
@@ -262,7 +280,7 @@ data class HeartbeatPublication internal constructor(
     internal data class PeriodicHeartbeatState(private var count: UShort) {
 
         val countLog: UByte
-            get() = countToCountLog(count)
+            get() = count2CountLog(count)
 
         /**
          * Checks if more periodic Heartbeat message should be sent, or not.
