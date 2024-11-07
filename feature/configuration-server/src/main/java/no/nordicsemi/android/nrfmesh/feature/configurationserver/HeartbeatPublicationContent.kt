@@ -388,7 +388,7 @@ private fun PeriodicHeartbeatsRow(
                         onCountLogChanged(countLogValue.toUByte())
                     }
                 },
-                valueRange = 0.toFloat()..18.toFloat(),
+                valueRange = HeartbeatPublication.MIN_COUNT_LOG.toFloat()..(HeartbeatPublication.MAX_COUNT_LOG + 1).toFloat(),
                 steps = 16,
                 colors = NordicSliderDefaults.colors()
             )
