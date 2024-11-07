@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Save
@@ -64,9 +65,9 @@ import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.utils.periodToTime
 import kotlin.math.roundToInt
 
 
@@ -80,11 +81,11 @@ internal fun HeartBeatPublicationContent(
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var selectedKeyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
+    var keyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
     var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
     var destination by remember { mutableStateOf(publication?.address) }
-    var count by remember { mutableStateOf(publication?.count ?: 0u) }
-    var period by remember { mutableStateOf(publication?.period ?: 0u) }
+    var countLog by remember { mutableStateOf(publication?.countLog ?: 0u) }
+    var periodLog by remember { mutableStateOf(publication?.periodLog ?: 1u) }
 
     ElevatedCardItem(
         modifier = Modifier
@@ -92,20 +93,26 @@ internal fun HeartBeatPublicationContent(
             .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
-        subtitle = "Heartbeat publications are ${
+        titleAction = {
+            IconButton(
+                onClick = { send(ConfigHeartbeatPublicationSet()) },
+                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
+            )
+        },
+        subtitle = "Publications are ${
             if (publication == null || publication.address is UnassignedAddress)
                 "disabled"
             else "enabled"
         }",
         actions = {
             OutlinedButton(
-                onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+                onClick = { send(ConfigHeartbeatSubscriptionGet()) },
+                content = { Text(text = stringResource(R.string.label_get_state)) }
             )
             OutlinedButton(
                 modifier = Modifier.padding(start = 8.dp),
-                onClick = { send(ConfigHeartbeatSubscriptionGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+                onClick = { showBottomSheet = true },
+                content = { Text(text = stringResource(R.string.label_set_state)) }
             )
         }
     )
@@ -138,12 +145,21 @@ internal fun HeartBeatPublicationContent(
                         IconButton(
                             // Note: If you provide logic outside of onDismissRequest to remove the
                             // sheet, you must additionally handle intended state cleanup, if any.
-                            onClick = { send(ConfigHeartbeatPublicationSet()) },
+                            enabled = destination != null,
+                            onClick = {
+                                send(
+                                    ConfigHeartbeatPublicationSet(
+                                        networkKeyIndex = keyIndex.toUShort(),
+                                        destination = destination!!,
+                                        countLog = countLog,
+                                        periodLog = periodLog,
+                                        ttl = ttl.toUByte(),
+                                        features = emptyArray()
+                                    )
+                                ).also { showBottomSheet = false }
+                            },
                             content = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Save,
-                                    contentDescription = null
-                                )
+                                Icon(imageVector = Icons.Outlined.Save, contentDescription = null)
                             }
                         )
                     }
@@ -158,28 +174,25 @@ internal fun HeartBeatPublicationContent(
                     SectionTitle(title = stringResource(R.string.label_network_key))
                     NetworkKeysRow(
                         network = model.parentElement?.parentNode?.network,
-                        selectedKeyIndex = selectedKeyIndex,
-                        onNetworkKeySelected = { selectedKeyIndex = it }
+                        selectedKeyIndex = keyIndex,
+                        onNetworkKeySelected = { keyIndex = it }
                     )
                     SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
                         network = model.parentElement?.parentNode?.network,
-                        destinations = model.heartbeatPublicationDestinations(),
+                        destinations = model.heartbeatSubscriptionDestinations(),
                         destination = destination,
-                        onDestinationSelected = {
-                            destination = it
-                            println("Destination selected: $destination")
-                        }
+                        onDestinationSelected = { destination = it }
                     )
                     SectionTitle(title = stringResource(R.string.label_time_to_live))
                     TtlRow(ttl = ttl, onTtlChanged = { ttl = it })
                     SectionTitle(title = stringResource(R.string.label_periodic_heartbeats))
                     PeriodicHeartbeatsRow(
                         publication = publication,
-                        count = count,
-                        onCountChanged = { count = it },
-                        period = period,
-                        onPeriodChanged = { period = it }
+                        countLog = countLog,
+                        onCountLogChanged = { countLog = it },
+                        periodLog = periodLog,
+                        onPeriodLogChanged = { periodLog = it }
                     )
                 }
             }
@@ -351,21 +364,32 @@ private fun TtlRow(ttl: Int, onTtlChanged: (Int) -> Unit) {
 @Composable
 private fun PeriodicHeartbeatsRow(
     publication: HeartbeatPublication?,
-    count: UShort,
-    onCountChanged: (UShort) -> Unit,
-    period: UShort,
-    onPeriodChanged: (UShort) -> Unit
+    countLog: UByte,
+    onCountLogChanged: (UByte) -> Unit,
+    periodLog: UByte,
+    onPeriodLogChanged: (UByte) -> Unit
 ) {
+    var countLogValue by rememberSaveable { mutableIntStateOf(countLog.toInt()) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_heartbeat_count_and_period),
         body = {
             Slider(
-                value = count.toFloat(),
-                onValueChange = { onCountChanged(it.roundToInt().toUShort()) },
-                valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
-                steps = 6,
+                value = countLog.toFloat(),
+                onValueChange = {
+                    countLogValue = it.roundToInt()
+                    if (countLogValue > 1 && periodLog == 0.toUByte()) {
+                        onPeriodLogChanged(HeartbeatPublication.MIN_PERIOD_LOG.toUByte())
+                    }
+                    if (countLogValue == HeartbeatPublication.MAX_COUNT_LOG + 1)
+                        onCountLogChanged(HeartbeatPublication.INDEFINITE_COUNT_LOG.toUByte())
+                    else {
+                        onCountLogChanged(countLogValue.toUByte())
+                    }
+                },
+                valueRange = 0.toFloat()..18.toFloat(),
+                steps = 16,
                 colors = NordicSliderDefaults.colors()
             )
             Text(
@@ -375,18 +399,29 @@ private fun PeriodicHeartbeatsRow(
                     .sizeIn(minWidth = 80.dp),
                 text = when (publication) {
                     null -> stringResource(R.string.label_unknown)
-                    else -> "$count"
+                    else -> "${
+                        when (countLogValue) {
+                            HeartbeatPublication.MIN_COUNT_LOG ->
+                                stringResource(R.string.label_disabled)
+
+                            in ((HeartbeatPublication.MIN_COUNT_LOG)..HeartbeatPublication.MAX_COUNT_LOG) ->
+                                HeartbeatPublication.countLog2Count(countLog = countLog)
+
+                            else -> stringResource(R.string.label_indefinitely)
+                        }
+                    }"
                 },
                 textAlign = TextAlign.End
             )
             Slider(
-                enabled = count != 0.toUShort(),
-                value = period.toFloat(),
-                onValueChange = { onPeriodChanged(it.roundToInt().toUShort()) },
-                valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
+                enabled = countLog != 0.toUByte(),
+                value = periodLog.toFloat(),
+                onValueChange = { onPeriodLogChanged(it.roundToInt().toUByte()) },
+                valueRange = HeartbeatPublication.PERIOD_LOG_RANGE.toFloat(),
                 steps = 30,
                 colors = NordicSliderDefaults.colors()
             )
+
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -394,7 +429,12 @@ private fun PeriodicHeartbeatsRow(
                     .sizeIn(minWidth = 80.dp),
                 text = when (publication) {
                     null -> stringResource(R.string.label_unknown)
-                    else -> "$period ms"
+                    else -> if (countLog > 0.toUByte()) {
+                        println("$periodLog")
+                        val periodValue =
+                            HeartbeatPublication.periodLog2Period(periodLog = periodLog)
+                        periodToTime(periodValue.toInt())
+                    } else stringResource(R.string.label_not_applicable)
                 },
                 textAlign = TextAlign.End
             )
@@ -406,7 +446,7 @@ private fun PeriodicHeartbeatsRow(
  * Returns the list of possible addresses that can be selected as a destination address for the
  * Heartbeat publication messages for a given ConfigurationServer Model.
  */
-private fun Model.heartbeatPublicationDestinations(): List<HeartbeatPublicationDestination> {
+private fun Model.heartbeatSubscriptionDestinations(): List<HeartbeatPublicationDestination> {
     require(isConfigurationServer) { throw IllegalStateException("Model is not a Configuration Server") }
     val network = parentElement?.parentNode?.network
     val nodes = network?.nodes.orEmpty().map { it.primaryUnicastAddress }
