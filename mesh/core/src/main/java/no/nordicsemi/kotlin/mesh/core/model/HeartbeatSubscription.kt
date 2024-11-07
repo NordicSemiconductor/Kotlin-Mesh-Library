@@ -64,7 +64,7 @@ data class HeartbeatSubscription internal constructor(
         // - it is dynamic - the device is listening for heartbeat messages for some time only,
         // - it is not saved in the Configuration Database.
         //
-        // state = State(periodLog: status.periodLog)
+        state = State(_periodLog = status.periodLog)
     }
 
     /**
