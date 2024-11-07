@@ -7,10 +7,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.util.Utils
 
@@ -47,13 +44,7 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
     private fun parse(hexAddress: String): MeshAddress = hexAddress.takeIf {
         it.length == 4
     }?.let { it ->
-        val address = it.toUInt(16).toUShort()
-        when {
-            UnassignedAddress.isValid(address = address) -> UnassignedAddress
-            UnicastAddress.isValid(address = address) -> UnicastAddress(address = address)
-            GroupAddress.isValid(address = address) -> GroupAddress(address = address)
-            else -> throw IllegalArgumentException("Error while parsing address!")
-        }
+        MeshAddress.create(address = it.toUInt(radix = 16).toUShort())
     } ?: run {
         VirtualAddress(Utils.decode(uuid = hexAddress))
     }
