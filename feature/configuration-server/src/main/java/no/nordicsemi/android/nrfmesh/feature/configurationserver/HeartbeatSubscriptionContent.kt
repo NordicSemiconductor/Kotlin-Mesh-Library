@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
@@ -33,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,6 +51,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.utils.periodToTime
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
@@ -63,6 +64,7 @@ import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import kotlin.math.roundToInt
@@ -80,13 +82,20 @@ internal fun HeartBeatSubscriptionContent(
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var source by remember { mutableStateOf(subscription?.source) }
     var destination by remember { mutableStateOf(subscription?.destination) }
+    var periodLog by remember { mutableStateOf(subscription?.state?.periodLog ?: 1.toUByte()) }
 
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
-        subtitle = "Heartbeat subscriptions are ${
+        titleAction = {
+            IconButton(
+                onClick = { send(ConfigHeartbeatSubscriptionSet()) },
+                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
+            )
+        },
+        subtitle = "Subscriptions are ${
             if (subscription == null ||
                 subscription.source is UnassignedAddress ||
                 subscription.destination is UnassignedAddress
@@ -126,10 +135,8 @@ internal fun HeartBeatSubscriptionContent(
                         .height(height = 50.dp)
                         .padding(horizontal = 40.dp),
                     title = stringResource(R.string.label_remaining_period),
-                    subtitle = when {
-                        subscription.state != null -> subscription.state?.period.toString()
-                        else -> stringResource(R.string.label_unknown)
-                    }
+                    subtitle = subscription.state?.period?.toString()
+                        ?: stringResource(R.string.label_unknown)
                 )
                 MeshTwoLineListItem(
                     modifier = Modifier
@@ -137,10 +144,8 @@ internal fun HeartBeatSubscriptionContent(
                         .height(height = 50.dp)
                         .padding(horizontal = 40.dp),
                     title = stringResource(R.string.label_count),
-                    subtitle = when {
-                        subscription.state != null -> subscription.state?.maxHops.toString()
-                        else -> stringResource(R.string.label_unknown)
-                    }
+                    subtitle = subscription.state?.count?.toString()
+                        ?: stringResource(R.string.label_unknown)
                 )
                 MeshTwoLineListItem(
                     modifier = Modifier
@@ -148,10 +153,8 @@ internal fun HeartBeatSubscriptionContent(
                         .height(height = 50.dp)
                         .padding(horizontal = 40.dp),
                     title = stringResource(R.string.label_min_hops),
-                    subtitle = when {
-                        subscription.state != null -> subscription.state?.minHops.toString()
-                        else -> stringResource(R.string.label_unknown)
-                    }
+                    subtitle = subscription.state?.minHops?.toString()
+                        ?: stringResource(R.string.label_unknown)
                 )
                 MeshTwoLineListItem(
                     modifier = Modifier
@@ -159,22 +162,20 @@ internal fun HeartBeatSubscriptionContent(
                         .height(height = 50.dp)
                         .padding(horizontal = 40.dp),
                     title = stringResource(R.string.label_max_hops),
-                    subtitle = when {
-                        subscription.state != null -> subscription.state?.maxHops.toString()
-                        else -> stringResource(R.string.label_unknown)
-                    }
+                    subtitle = subscription.state?.maxHops?.toString()
+                        ?: stringResource(R.string.label_unknown)
                 )
             }
         },
         actions = {
             OutlinedButton(
-                onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+                onClick = { send(ConfigHeartbeatSubscriptionGet()) },
+                content = { Text(text = stringResource(R.string.label_get_state)) }
             )
             OutlinedButton(
                 modifier = Modifier.padding(start = 8.dp),
-                onClick = { send(ConfigHeartbeatSubscriptionGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+                onClick = { showBottomSheet = true },
+                content = { Text(text = stringResource(R.string.label_set_state)) }
             )
         }
     )
@@ -207,7 +208,16 @@ internal fun HeartBeatSubscriptionContent(
                     backButtonIcon = Icons.Outlined.Close,
                     actions = {
                         IconButton(
-                            onClick = { send(ConfigHeartbeatSubscriptionSet()) },
+                            enabled = source != null || destination != null,
+                            onClick = {
+                                send(
+                                    ConfigHeartbeatSubscriptionSet(
+                                        source = source!!,
+                                        destination = destination!!,
+                                        periodLog = periodLog
+                                    )
+                                ).also { showBottomSheet = false }
+                            },
                             content = {
                                 Icon(
                                     imageVector = Icons.Outlined.Save,
@@ -225,7 +235,10 @@ internal fun HeartBeatSubscriptionContent(
                         .fillMaxWidth()
                         .verticalScroll(state = rememberScrollState())
                 ) {
-                    PeriodRow(subscription = subscription)
+                    PeriodRow(
+                        periodLog = periodLog,
+                        onPeriodLogChanged = { periodLog = it }
+                    )
                     SourceRow(
                         model = model,
                         source = source,
@@ -243,21 +256,21 @@ internal fun HeartBeatSubscriptionContent(
 }
 
 @Composable
-private fun PeriodRow(subscription: HeartbeatSubscription?) {
-    var periodLog by remember {
-        mutableFloatStateOf(subscription?.state?.periodLog?.toFloat() ?: 0f)
-    }
+private fun PeriodRow(
+    periodLog: PeriodLog,
+    onPeriodLogChanged: (PeriodLog) -> Unit
+) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_period),
-        subtitle = "Remaining period in seconds",
+        subtitle = stringResource(R.string.label_remaining_period_seconds),
         body = {
             Slider(
                 modifier = Modifier.padding(start = 40.dp),
-                value = periodLog,
-                onValueChange = { periodLog = it },
-                valueRange = HeartbeatSubscription.PERIOD_LOG_MIN.toFloat()..HeartbeatSubscription.PERIOD_LOG_MAX.toFloat(),
+                value = periodLog.toFloat(),
+                onValueChange = { onPeriodLogChanged(it.roundToInt().toUByte()) },
+                valueRange = (HeartbeatSubscription.PERIOD_LOG_MIN + 1).toFloat()..HeartbeatSubscription.PERIOD_LOG_MAX.toFloat(),
                 steps = 16,
                 colors = NordicSliderDefaults.colors()
             )
@@ -266,11 +279,8 @@ private fun PeriodRow(subscription: HeartbeatSubscription?) {
                     .fillMaxWidth()
                     .padding(start = 16.dp)
                     .sizeIn(minWidth = 80.dp),
-                text = stringResource(
-                    R.string.label_heartbeat_subscription_period_seconds,
-                    HeartbeatSubscription.periodLog2Period(
-                        periodLog = periodLog.roundToInt().toUByte()
-                    )
+                text = periodToTime(
+                    seconds = HeartbeatSubscription.periodLog2Period(periodLog = periodLog).toInt()
                 ),
                 textAlign = TextAlign.End
             )
@@ -302,12 +312,13 @@ private fun SourceRow(
             title = when (source) {
                 is UnicastAddress -> network
                     ?.node(address = source.address)
-                    ?.name ?:  stringResource(R.string.label_unknown)
+                    ?.name ?: stringResource(R.string.label_unknown)
+
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_source)
             },
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            subtitle =  source?.let { "0x${it.toHexString()}" } ?: "",
+            subtitle = source?.let { "0x${it.toHexString()}" } ?: "",
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -352,8 +363,8 @@ private fun DestinationRow(
     destination: HeartbeatSubscriptionDestination?,
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit
 ) {
-    val network = model.parentElement?.parentNode?.network
-    val destinations = model.heartbeatPublicationDestinations()
+    val network = model.parentElement?.parentNode?.network ?: return
+    val destinations = model.heartbeatSubscriptionDestinations()
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     SectionTitle(title = stringResource(R.string.label_destination))
@@ -370,21 +381,21 @@ private fun DestinationRow(
             imageVector = Icons.Outlined.SportsScore,
             title = when (destination) {
                 is UnicastAddress -> network
-                    ?.node(address = destination.address)
+                    .node(address = destination.address)
                     ?.name ?: stringResource(R.string.label_unknown)
 
                 is AllRelays -> stringResource(R.string.label_all_relays)
                 is AllFriends -> stringResource(R.string.label_all_friends)
                 is AllProxies -> stringResource(R.string.label_all_proxies)
                 is AllNodes -> stringResource(R.string.label_all_nodes)
-                is GroupAddress -> network?.group(address = destination.address)?.name
+                is GroupAddress -> network.group(address = destination.address)?.name
                     ?: destination.toHexString()
 
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_destination)
             },
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            subtitle =  destination?.let { "0x${it.toHexString()}" } ?: "",
+            subtitle = destination?.let { "0x${it.toHexString()}" } ?: "",
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -405,7 +416,7 @@ private fun DestinationRow(
                                     )
                                 },
                                 title = network
-                                    ?.node(address = destination.address)
+                                    .node(address = destination.address)
                                     ?.name ?: destination.toHexString(),
                             )
                         },
@@ -442,7 +453,7 @@ private fun Model.heartbeatSubscriptionSources(): List<HeartbeatSubscriptionSour
  * Returns the list of possible addresses that can be selected as a destination address for the
  * Heartbeat subscription messages for a given ConfigurationServer Model.
  */
-private fun Model.heartbeatPublicationDestinations(): List<HeartbeatSubscriptionDestination> {
+private fun Model.heartbeatSubscriptionDestinations(): List<HeartbeatSubscriptionDestination> {
     require(isConfigurationServer) { throw IllegalStateException("Model is not a Configuration Server") }
     val destination = parentElement?.parentNode?.primaryUnicastAddress
     return listOf(

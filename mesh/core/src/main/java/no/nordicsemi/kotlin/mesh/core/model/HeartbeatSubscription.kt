@@ -94,8 +94,8 @@ data class HeartbeatSubscription internal constructor(
     }
 
     companion object {
-        val PERIOD_LOG_MIN = 0x00u
-        val PERIOD_LOG_MAX = 0x11u
+        const val PERIOD_LOG_MIN = 0x00
+        const val PERIOD_LOG_MAX = 0x11
         val PERIOD_LOG_RANGE = 0x01u..0x11u
 
         /**

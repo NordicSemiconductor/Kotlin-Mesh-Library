@@ -55,4 +55,5 @@
     <string name="label_indefinitely">Indefinitely</string>
     <string name="label_not_applicable">N/A</string>
     <string name="label_disabled">Disabled</string>
+    <string name="label_remaining_period_seconds">Remaining period in seconds</string>
 </resources>
