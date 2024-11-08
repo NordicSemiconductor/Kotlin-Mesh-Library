@@ -16,11 +16,11 @@ import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +47,7 @@ fun ElevatedCardItem(
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(modifier = modifier, elevation = elevation) {
+    OutlinedCard(modifier = modifier, elevation = elevation) {
         MeshTwoLineListItem(
             modifier = Modifier.padding(horizontal = 16.dp),
             leadingComposable = {
@@ -103,7 +103,7 @@ fun ElevatedCardItem(
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(
+    OutlinedCard (
         modifier = modifier,
         onClick = onClick,
     ) {
@@ -162,7 +162,7 @@ fun ElevatedCardItemTextField(
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    ElevatedCard(modifier = modifier) {
+    OutlinedCard (modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
