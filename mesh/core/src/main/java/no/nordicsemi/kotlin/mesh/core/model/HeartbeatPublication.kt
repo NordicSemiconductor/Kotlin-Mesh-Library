@@ -53,7 +53,7 @@ data class HeartbeatPublication internal constructor(
     val periodLog: UByte,
     val ttl: UByte,
     val index: KeyIndex,
-    val features: Array<Feature>
+    val features: List<Feature>
 ) {
     val period: UShort by lazy {
         2.toDouble().pow(periodLog.toInt() - 1).toInt().toUShort()
@@ -86,7 +86,7 @@ data class HeartbeatPublication internal constructor(
         period: UShort,
         ttl: UByte,
         index: KeyIndex,
-        features: Array<Feature>
+        features: List<Feature>
     ) : this(
         address = address,
         _countLog = 0x00.toUByte(),
@@ -143,34 +143,6 @@ data class HeartbeatPublication internal constructor(
         // local Node. The value is not persistent and publications will stop when the app gets
         // restarted.
         state = PeriodicHeartbeatState.init(_countLog)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as HeartbeatPublication
-
-        if (address != other.address) return false
-        if (_countLog != other._countLog) return false
-        if (periodLog != other.periodLog) return false
-        if (ttl != other.ttl) return false
-        if (index != other.index) return false
-        if (!features.contentEquals(other.features)) return false
-        if (state != other.state) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = address.hashCode()
-        result = 31 * result + _countLog.hashCode()
-        result = 31 * result + periodLog.hashCode()
-        result = 31 * result + ttl.hashCode()
-        result = 31 * result + index.hashCode()
-        result = 31 * result + features.contentHashCode()
-        result = 31 * result + (state?.hashCode() ?: 0)
-        return result
     }
 
     companion object {

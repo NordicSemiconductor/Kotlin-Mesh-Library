@@ -38,7 +38,7 @@ class ConfigHeartbeatPublicationStatus(
     val countLog: CountLog = 0x00u,
     val periodLog: UByte = 0x00u,
     val ttl: UByte = 0x00u,
-    val features: Array<Feature> = emptyArray(),
+    val features: List<Feature> = emptyList(),
     val networkKeyIndex: KeyIndex = 0u,
     override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS
 ) : ConfigResponse, ConfigStatusMessage {
@@ -59,6 +59,12 @@ class ConfigHeartbeatPublicationStatus(
     val isEnabled: Boolean
         get() = destination != UnassignedAddress
 
+    val isPeriodicPublicationEnabled: Boolean
+        get() = isEnabled && periodLog > 0u
+
+    val isFeatureTriggeredPublishingEnabled: Boolean
+        get() = isEnabled && features.isNotEmpty()
+
     override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
             "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: {${
                 features.joinToString(separator = ", ") { it.toString() }
@@ -73,13 +79,18 @@ class ConfigHeartbeatPublicationStatus(
             ConfigMessageStatus.from(parameters[0].toUByte())?.let {
                 ConfigHeartbeatPublicationStatus(
                     destination = MeshAddress.create(
-                        parameters.getUShort(1)
+                        parameters.getUShort(offset = 1)
                     ) as HeartbeatPublicationDestination,
                     countLog = parameters[3].toUByte(),
                     periodLog = parameters[4].toUByte(),
                     ttl = parameters[5].toUByte(),
-                    features = Features(parameters.getUShort(6)).toArray(),
-                    networkKeyIndex = parameters.getUShort(8),
+                    features = Features(
+                        rawValue = parameters.getUShort(
+                            offset = 6,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        )
+                    ).toList(),
+                    networkKeyIndex = parameters.getUShort(offset = 8),
                     status = it
                 )
             }

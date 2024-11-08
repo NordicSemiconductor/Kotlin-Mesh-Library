@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrfmesh.feature.configurationserver
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,10 +11,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Forum
-import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
@@ -30,6 +32,7 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,6 +57,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.utils.periodToTime
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
@@ -60,14 +65,19 @@ import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
 import no.nordicsemi.kotlin.mesh.core.model.AllRelays
+import no.nordicsemi.kotlin.mesh.core.model.Feature
+import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
+import no.nordicsemi.kotlin.mesh.core.model.LowPower
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.Node
+import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.utils.periodToTime
 import kotlin.math.roundToInt
 
 
@@ -86,6 +96,7 @@ internal fun HeartBeatPublicationContent(
     var destination by remember { mutableStateOf(publication?.address) }
     var countLog by remember { mutableStateOf(publication?.countLog ?: 0u) }
     var periodLog by remember { mutableStateOf(publication?.periodLog ?: 1u) }
+    var features by remember { mutableStateOf(publication?.features?.toList() ?: listOf()) }
 
     ElevatedCardItem(
         modifier = Modifier
@@ -154,9 +165,17 @@ internal fun HeartBeatPublicationContent(
                                         countLog = countLog,
                                         periodLog = periodLog,
                                         ttl = ttl.toUByte(),
-                                        features = emptyArray()
+                                        features = emptyList()//features
                                     )
-                                ).also { showBottomSheet = false }
+                                ).also {
+                                    scope
+                                        .launch { bottomSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!bottomSheetState.isVisible) {
+                                                showBottomSheet = false
+                                            }
+                                        }
+                                }
                             },
                             content = {
                                 Icon(imageVector = Icons.Outlined.Save, contentDescription = null)
@@ -169,9 +188,10 @@ internal fun HeartBeatPublicationContent(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(state = rememberScrollState())
+                        .verticalScroll(state = rememberScrollState()),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    SectionTitle(title = stringResource(R.string.label_network_key))
+                    //SectionTitle(title = stringResource(R.string.label_network_key))
                     NetworkKeysRow(
                         network = model.parentElement?.parentNode?.network,
                         selectedKeyIndex = keyIndex,
@@ -184,15 +204,27 @@ internal fun HeartBeatPublicationContent(
                         destination = destination,
                         onDestinationSelected = { destination = it }
                     )
-                    SectionTitle(title = stringResource(R.string.label_time_to_live))
+                    // SectionTitle(title = stringResource(R.string.label_time_to_live))
                     TtlRow(ttl = ttl, onTtlChanged = { ttl = it })
-                    SectionTitle(title = stringResource(R.string.label_periodic_heartbeats))
+                    // SectionTitle(title = stringResource(R.string.label_periodic_heartbeats))
                     PeriodicHeartbeatsRow(
                         publication = publication,
                         countLog = countLog,
                         onCountLogChanged = { countLog = it },
                         periodLog = periodLog,
                         onPeriodLogChanged = { periodLog = it }
+                    )
+                    // SectionTitle(title = stringResource(R.string.label_publication_triggers))
+                    FeaturesRow(
+                        node = model.parentElement?.parentNode
+                            ?: throw IllegalStateException("Model does not belong to a node!"),
+                        features = features,
+                        onFeatureChanged = { feature, isEnabled ->
+                            when (isEnabled) {
+                                true -> features += feature
+                                false -> features -= feature
+                            }
+                        }
                     )
                 }
             }
@@ -209,7 +241,9 @@ private fun NetworkKeysRow(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it },
     ) {
@@ -350,7 +384,9 @@ private fun DestinationRow(
 @Composable
 private fun TtlRow(ttl: Int, onTtlChanged: (Int) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(id = R.string.label_initial_ttl),
         subtitle = "$ttl",
@@ -371,8 +407,10 @@ private fun PeriodicHeartbeatsRow(
 ) {
     var countLogValue by rememberSaveable { mutableIntStateOf(countLog.toInt()) }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Groups3,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.title_heartbeat_count_and_period),
         body = {
             Slider(
@@ -440,6 +478,50 @@ private fun PeriodicHeartbeatsRow(
             )
         }
     )
+}
+
+@Composable
+private fun FeaturesRow(
+    node: Node,
+    features: List<Feature>,
+    onFeatureChanged: (Feature, Boolean) -> Unit
+) {
+    val nodeFeatures = node.features.toList()
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(vertical = 8.dp),
+        imageVector = Icons.Outlined.AutoFixHigh,
+        title = stringResource(id = R.string.label_features),
+        body = {
+            nodeFeatures.forEach { feature ->
+                FeatureRow(
+                    text = when (feature) {
+                        is Friend -> stringResource(id = R.string.label_friend)
+                        is LowPower -> stringResource(id = R.string.label_low_power)
+                        is Proxy -> stringResource(id = R.string.label_proxy)
+                        is Relay -> stringResource(id = R.string.label_relay)
+                    },
+                    isSupported = feature.isSupported,
+                    isChecked = features.firstOrNull { it == feature }?.isEnabled ?: false,
+                    onCheckedChange = { onFeatureChanged(feature, it) }
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun FeatureRow(
+    text: String,
+    isSupported: Boolean,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(modifier = Modifier.weight(1f), text = text)
+        Switch(enabled = isSupported, checked = isChecked, onCheckedChange = onCheckedChange)
+    }
 }
 
 /**

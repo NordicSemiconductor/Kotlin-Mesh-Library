@@ -41,7 +41,7 @@ class ConfigHeartbeatPublicationSet(
     val countLog: CountLog,
     val periodLog: PeriodLog,
     val ttl: UByte,
-    val features: Array<Feature>
+    val features: List<Feature> = emptyList()
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
@@ -49,7 +49,7 @@ class ConfigHeartbeatPublicationSet(
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +
-                features.toUShort().toByteArray() +
+                features.toUShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 networkKeyIndex.toByteArray()
 
     val count: RemainingHeartbeatPublicationCount
@@ -103,7 +103,7 @@ class ConfigHeartbeatPublicationSet(
         countLog = 0u,
         periodLog = 0u,
         ttl = 0.toUByte(),
-        features = emptyArray<Feature>()
+        features = emptyList()
     )
 
     companion object Initializer : ConfigMessageInitializer {
@@ -119,7 +119,7 @@ class ConfigHeartbeatPublicationSet(
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),
-                features = Features(rawValue = params.getUShort(offset = 5)).toArray(),
+                features = Features(rawValue = params.getUShort(offset = 5)).toList(),
                 networkKeyIndex = params.getUShort(offset = 7)
             )
         }
@@ -157,7 +157,7 @@ class ConfigHeartbeatPublicationSet(
                 countLog = countLog,
                 periodLog = periodLog,
                 ttl = ttl,
-                features = features.toArray(),
+                features = features.toList(),
                 networkKeyIndex = networkKey.index
             )
         }
