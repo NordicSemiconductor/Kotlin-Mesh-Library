@@ -36,6 +36,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -91,6 +92,7 @@ internal fun HeartBeatPublicationContent(
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    println("Publication $")
     var keyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
     var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
     var destination by remember { mutableStateOf(publication?.address) }
@@ -127,6 +129,18 @@ internal fun HeartBeatPublicationContent(
             )
         }
     )
+    DisposableEffect(showBottomSheet) {
+        onDispose {
+            if(!showBottomSheet) {
+                keyIndex = 0
+                ttl = 5
+                destination = null
+                countLog = 0u
+                periodLog = 1u
+                features = listOf()
+            }
+        }
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -204,9 +218,7 @@ internal fun HeartBeatPublicationContent(
                         destination = destination,
                         onDestinationSelected = { destination = it }
                     )
-                    // SectionTitle(title = stringResource(R.string.label_time_to_live))
                     TtlRow(ttl = ttl, onTtlChanged = { ttl = it })
-                    // SectionTitle(title = stringResource(R.string.label_periodic_heartbeats))
                     PeriodicHeartbeatsRow(
                         publication = publication,
                         countLog = countLog,
@@ -214,7 +226,6 @@ internal fun HeartBeatPublicationContent(
                         periodLog = periodLog,
                         onPeriodLogChanged = { periodLog = it }
                     )
-                    // SectionTitle(title = stringResource(R.string.label_publication_triggers))
                     FeaturesRow(
                         node = model.parentElement?.parentNode
                             ?: throw IllegalStateException("Model does not belong to a node!"),

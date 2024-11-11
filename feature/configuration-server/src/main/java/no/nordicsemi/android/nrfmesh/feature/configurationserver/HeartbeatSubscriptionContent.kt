@@ -216,7 +216,14 @@ internal fun HeartBeatSubscriptionContent(
                                         destination = destination!!,
                                         periodLog = periodLog
                                     )
-                                ).also { showBottomSheet = false }
+                                ).also {
+                                    scope
+                                        .launch { bottomSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!bottomSheetState.isVisible)
+                                                showBottomSheet = false
+                                        }
+                                }
                             },
                             content = {
                                 Icon(
