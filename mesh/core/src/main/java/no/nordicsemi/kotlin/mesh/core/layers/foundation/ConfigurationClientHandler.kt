@@ -180,6 +180,7 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
+                println("Network Transmit Status: $response")
                 networkTransmit = NetworkTransmit(response)
             }
 

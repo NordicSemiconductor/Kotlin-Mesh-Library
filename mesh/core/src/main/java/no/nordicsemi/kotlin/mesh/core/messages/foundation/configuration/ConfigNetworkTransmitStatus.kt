@@ -5,7 +5,6 @@ import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import kotlin.experimental.and
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -31,18 +30,8 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
     val interval: Duration
         get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
 
-    /**
-     * Constructs a ConfigNetworkTransmitStatus message.
-     *
-     * @param networkTransmit Network transmit settings of the node.
-     */
-    constructor(networkTransmit: NetworkTransmit) : this(
-        count = (networkTransmit.count - 1u).toUByte(),
-        steps = networkTransmit.steps
-    )
-
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigBeaconStatus(opCode: 0x${opCode.toHexString()} " +
+    override fun toString() = "ConfigNetworkTransmitStatus(opCode: 0x${opCode.toHexString()} " +
             "parameters: ${parameters.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {

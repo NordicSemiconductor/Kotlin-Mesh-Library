@@ -39,6 +39,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFr
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentitySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
@@ -258,7 +260,10 @@ private fun NetworkTransmit(
         actions = {
             OutlinedButton(
                 enabled = !messageState.isInProgress(),
-                onClick = { send(ConfigRelayGet()) },
+                onClick = {
+                    println("Hello")
+                    send(ConfigNetworkTransmitGet())
+                          },
                 content = { Text(text = stringResource(R.string.label_get_state)) }
             )
             OutlinedButton(
@@ -266,11 +271,9 @@ private fun NetworkTransmit(
                 enabled = !messageState.isInProgress(),
                 onClick = {
                     send(
-                        ConfigRelaySet(
-                            relayRetransmit = RelayRetransmit(
-                                count = transmissions.roundToInt(),
-                                interval = interval.roundToInt()
-                            )
+                        ConfigNetworkTransmitSet(
+                            count = transmissions.roundToInt().toUByte(),
+                            steps = NetworkTransmit.toSteps(interval.roundToInt().toUShort())
                         )
                     )
                 },
