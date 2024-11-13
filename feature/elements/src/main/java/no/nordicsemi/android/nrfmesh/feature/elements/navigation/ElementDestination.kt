@@ -9,11 +9,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.modelGraph
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementRoute
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementViewModel
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination.modelGraph
 import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.Model
 
 object ElementDestination : MeshNavigationDestination {
     override val route: String = "element_route/{$ARG}"
@@ -29,7 +28,7 @@ object ElementDestination : MeshNavigationDestination {
         "element_route/${address.toHexString()}"
 }
 
-fun NavGraphBuilder.elementGraph(
+fun NavGraphBuilder.elementsGraph(
     appState: AppState,
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit
@@ -41,7 +40,12 @@ fun NavGraphBuilder.elementGraph(
             appState = appState,
             uiState = uiState,
             onNameChanged = viewModel::onNameChanged,
-            navigateToModel = { navigate(it, onNavigateToDestination) },
+            navigateToModel = {
+                onNavigateToDestination(
+                    ModelDestination,
+                    ModelDestination.createNavigationRoute(it)
+                )
+            },
             onBackPressed = onBackPressed
         )
     }
@@ -50,19 +54,3 @@ fun NavGraphBuilder.elementGraph(
         onBackPressed = onBackPressed
     )
 }
-
-private fun navigate(
-    model: Model,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit
-) {
-    val address = model.parentElement?.unicastAddress?.address
-        ?: throw IllegalArgumentException("Parent element address is null")
-    when {
-        model.isConfigurationServer -> onNavigateToDestination(
-            ModelDestination,
-            ModelDestination.createNavigationRoute(address = address)
-        )
-    }
-}
-
-val a = listOf<NavGraphBuilder>()

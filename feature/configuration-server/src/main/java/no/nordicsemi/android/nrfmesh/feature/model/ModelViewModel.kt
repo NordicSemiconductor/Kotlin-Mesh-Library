@@ -19,6 +19,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination.MODEL_ID
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
@@ -27,9 +28,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.ModelId
+import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
-import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.model
 import javax.inject.Inject
 
@@ -44,6 +46,9 @@ internal class ModelViewModel @Inject internal constructor(
     private val address: Address = checkNotNull(value = savedStateHandle[ARG])
         .toString()
         .toUShort(radix = 16)
+    private val modelId: ModelId = checkNotNull(value = savedStateHandle[MODEL_ID])
+        .toString()
+        .decode()
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState.asStateFlow()
@@ -55,7 +60,7 @@ internal class ModelViewModel @Inject internal constructor(
             val modelState = it.element(elementAddress = address)?.let { element ->
                 this@ModelViewModel.selectedElement = element
                 selectedModel = element.models
-                    .model(modelId = SigModelId(0x0000.toUShort()))
+                    .model(modelId = modelId)
                     ?: throw IllegalArgumentException()
                 ModelState.Success(model = selectedModel)
             } ?: ModelState.Error(Throwable("Model not found"))

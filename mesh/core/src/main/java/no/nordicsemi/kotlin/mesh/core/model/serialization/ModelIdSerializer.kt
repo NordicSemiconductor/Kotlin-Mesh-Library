@@ -9,8 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
-import no.nordicsemi.kotlin.mesh.core.model.SigModelId
-import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 
 /**
  * Custom JSON serializer/deserializer for ModelID.
@@ -20,12 +19,7 @@ internal object ModelIdSerializer : KSerializer<ModelId> {
         PrimitiveSerialDescriptor(serialName = "ModelId", kind = PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): ModelId = runCatching {
-        decoder.decodeString().toUInt(radix = 16).let { modelId ->
-            when (modelId and 0xFFFF0000u) {
-                0u -> SigModelId(modelIdentifier = modelId.toUShort())
-                else -> VendorModelId(id = modelId)
-            }
-        }
+        decoder.decodeString().decode()
     }.getOrElse {
         throw ImportError(
             "Error while deserializing model id " +

@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
 
 /**
@@ -32,6 +33,29 @@ sealed class ModelId {
         else -> "%08X".format(id.toInt())
     }.also {
         return if (prefix0x) "0x$it" else it
+    }
+
+    companion object {
+
+        /**
+         * Converts a [HexString] encoded model ID to a [ModelId].
+         *
+         * @return [ModelId] instance.
+         * @throws IllegalArgumentException If the model ID is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun HexString.decode(): ModelId = runCatching {
+            this.toUInt(radix = 16).let { modelId ->
+                when (modelId and 0xFFFF0000u) {
+                    0u -> SigModelId(modelIdentifier = modelId.toUShort())
+                    else -> VendorModelId(id = modelId)
+                }
+            }
+        }.getOrElse {
+            throw IllegalArgumentException(
+                "Error while deserializing model id $this", it
+            )
+        }
     }
 }
 

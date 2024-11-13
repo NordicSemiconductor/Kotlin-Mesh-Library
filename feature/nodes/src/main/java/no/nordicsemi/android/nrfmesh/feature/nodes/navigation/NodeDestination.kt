@@ -13,7 +13,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.C
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.elementGraph
+import no.nordicsemi.android.nrfmesh.feature.elements.navigation.elementsGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import java.util.UUID
@@ -79,7 +79,7 @@ fun NavGraphBuilder.nodeGraph(
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
-    elementGraph(
+    elementsGraph(
         appState = appState,
         onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
