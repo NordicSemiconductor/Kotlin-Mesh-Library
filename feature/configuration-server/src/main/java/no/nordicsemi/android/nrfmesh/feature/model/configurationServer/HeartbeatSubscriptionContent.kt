@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver
+package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -51,7 +51,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.utils.periodToTime
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.feature.model.utils.periodToTime
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet

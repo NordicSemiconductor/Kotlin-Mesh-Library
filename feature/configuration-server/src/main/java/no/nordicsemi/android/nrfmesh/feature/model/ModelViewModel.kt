@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver
+package no.nordicsemi.android.nrfmesh.feature.model
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -34,7 +34,7 @@ import no.nordicsemi.kotlin.mesh.core.model.model
 import javax.inject.Inject
 
 @HiltViewModel
-internal class ConfigurationServerViewModel @Inject internal constructor(
+internal class ModelViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
@@ -53,7 +53,7 @@ internal class ConfigurationServerViewModel @Inject internal constructor(
         repository.network.onEach {
             meshNetwork = it
             val modelState = it.element(elementAddress = address)?.let { element ->
-                this@ConfigurationServerViewModel.selectedElement = element
+                this@ModelViewModel.selectedElement = element
                 selectedModel = element.models
                     .model(modelId = SigModelId(0x0000.toUShort()))
                     ?: throw IllegalArgumentException()

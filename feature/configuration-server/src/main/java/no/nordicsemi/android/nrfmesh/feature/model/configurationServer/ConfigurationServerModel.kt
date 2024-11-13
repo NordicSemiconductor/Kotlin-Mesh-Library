@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver
+package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +32,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.feature.model.NodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet

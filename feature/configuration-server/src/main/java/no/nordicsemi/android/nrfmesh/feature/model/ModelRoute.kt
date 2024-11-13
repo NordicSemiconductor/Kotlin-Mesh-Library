@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver
+package no.nordicsemi.android.nrfmesh.feature.model
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,10 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerModelScreen
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
+import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ConfigurationServerModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model

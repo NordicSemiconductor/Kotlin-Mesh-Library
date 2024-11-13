@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver
+package no.nordicsemi.android.nrfmesh.feature.model.common
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId

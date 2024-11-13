@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation
+package no.nordicsemi.android.nrfmesh.feature.model.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -11,7 +11,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 class ConfigurationServerModelScreen(
     override val title: String = "Model",
 ) : Screen {
-    override val route = ConfigurationServerModelDestination.route
+    override val route = ModelDestination.route
     override val showTopBar = true
     override val navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack
     override val onNavigationIconClick: (() -> Unit) = {

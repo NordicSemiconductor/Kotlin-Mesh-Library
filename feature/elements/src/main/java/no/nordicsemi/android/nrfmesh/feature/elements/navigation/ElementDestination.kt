@@ -8,8 +8,8 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.ConfigurationServerModelDestination
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation.configurationServerGraph
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.modelGraph
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementRoute
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -45,7 +45,7 @@ fun NavGraphBuilder.elementGraph(
             onBackPressed = onBackPressed
         )
     }
-    configurationServerGraph(
+    modelGraph(
         appState = appState,
         onBackPressed = onBackPressed
     )
@@ -59,8 +59,10 @@ private fun navigate(
         ?: throw IllegalArgumentException("Parent element address is null")
     when {
         model.isConfigurationServer -> onNavigateToDestination(
-            ConfigurationServerModelDestination,
-            ConfigurationServerModelDestination.createNavigationRoute(address = address)
+            ModelDestination,
+            ModelDestination.createNavigationRoute(address = address)
         )
     }
 }
+
+val a = listOf<NavGraphBuilder>()

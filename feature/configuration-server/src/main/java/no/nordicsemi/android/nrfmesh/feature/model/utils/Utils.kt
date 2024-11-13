@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver.utils
+package no.nordicsemi.android.nrfmesh.feature.model.utils
 
 /**
  * Converts a period to time

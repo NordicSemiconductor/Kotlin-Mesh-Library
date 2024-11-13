@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.configurationserver.navigation
+package no.nordicsemi.android.nrfmesh.feature.model.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -9,13 +9,13 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.ModelRoute
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.ConfigurationServerViewModel
+import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
+import no.nordicsemi.android.nrfmesh.feature.model.ModelViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Address
 
-object ConfigurationServerModelDestination : MeshNavigationDestination {
-    override val route: String = "configuration_server_route/{$ARG}"
-    override val destination: String = "configuration_server_destination"
+object ModelDestination : MeshNavigationDestination {
+    override val route: String = "model_route/{$ARG}"
+    override val destination: String = "model_destination"
 
     /**
      * Creates destination route for a network key index.
@@ -25,15 +25,15 @@ object ConfigurationServerModelDestination : MeshNavigationDestination {
      */
     @OptIn(ExperimentalStdlibApi::class)
     fun createNavigationRoute(address: Address): String =
-        "configuration_server_route/${Uri.encode(address.toHexString())}"
+        "model_route/${Uri.encode(address.toHexString())}"
 }
 
-fun NavGraphBuilder.configurationServerGraph(
+fun NavGraphBuilder.modelGraph(
     appState: AppState,
     onBackPressed: () -> Unit
 ) {
-    composable(route = ConfigurationServerModelDestination.route) {
-        val viewModel = hiltViewModel<ConfigurationServerViewModel>()
+    composable(route = ModelDestination.route) {
+        val viewModel = hiltViewModel<ModelViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ModelRoute(
             appState = appState,
