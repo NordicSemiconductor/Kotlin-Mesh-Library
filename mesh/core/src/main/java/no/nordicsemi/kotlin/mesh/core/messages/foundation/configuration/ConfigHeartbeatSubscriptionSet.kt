@@ -1,0 +1,67 @@
+@file:Suppress("unused")
+
+package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
+
+import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionSource
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
+import java.nio.ByteOrder
+
+/**
+ * This message is used to set the Heartbeat Subscription state of an element. The response received
+ * to this message will be a [ConfigHeartbeatSubscriptionStatus] message.
+ *
+ * @property source      Source address for Heartbeat subscription messages.
+ * @property destination Destination address for Heartbeat subscription messages.
+ * @property periodLog   Period between Heartbeat messages.
+ *
+ * @constructor Creates a ConfigHeartbeatPublicationGet message.
+ */
+class ConfigHeartbeatSubscriptionSet(
+    val source: HeartbeatSubscriptionSource,
+    val destination: HeartbeatSubscriptionDestination,
+    val periodLog: UByte
+) : AcknowledgedConfigMessage {
+    override val opCode: UInt = Initializer.opCode
+    override val responseOpCode = ConfigHeartbeatSubscriptionStatus.opCode
+    override val parameters: ByteArray = source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            periodLog.toByte()
+
+    /**
+     * Constructs a ConfigHeartbeatSubscriptionSet message that will disable receiving and
+     * processing of Heartbeat messages.
+     */
+    constructor() : this(
+        source = UnassignedAddress,
+        destination = UnassignedAddress,
+        periodLog = 0u
+    )
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigHeartbeatSubscriptionSet opCode ${opCode.toHexString()}, " +
+            "parameters: ${parameters.toHexString()}"
+
+    object Initializer : ConfigMessageInitializer {
+        override val opCode: UInt = 0x803Bu
+
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 5
+        }?.let { params ->
+            ConfigHeartbeatSubscriptionSet(
+                source = MeshAddress.create(
+                    address = params.getUShort(offset = 0)
+                ) as HeartbeatSubscriptionSource,
+                destination = MeshAddress.create(
+                    address = params.getUShort(offset = 2)
+                ) as HeartbeatSubscriptionDestination,
+                periodLog = params[4].toUByte()
+            )
+        }
+    }
+}

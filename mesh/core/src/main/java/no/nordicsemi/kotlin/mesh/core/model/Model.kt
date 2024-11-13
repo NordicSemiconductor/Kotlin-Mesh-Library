@@ -98,7 +98,8 @@ data class Model internal constructor(
         get() = modelId is SigModelId
 
     @Transient
-    internal var parentElement: Element? = null
+    var parentElement: Element? = null
+        internal set
 
     val boundApplicationKeys: List<ApplicationKey>
         get() = parentElement?.parentNode?.applicationKeys?.filter { isBoundTo(it) } ?: emptyList()
@@ -244,7 +245,7 @@ data class Model internal constructor(
 
     companion object {
 
-        internal const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
+        const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
         internal const val CONFIGURATION_CLIENT_MODEL_ID: UShort = 0x0001u
         internal const val HEALTH_SERVER_MODEL_ID: UShort = 0x0002u
         internal const val HEALTH_CLIENT_MODEL_ID: UShort = 0x0002u

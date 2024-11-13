@@ -3,12 +3,12 @@
     <string name="label_export">Export</string>
     <string name="label_nav_bar_nodes">Nodes</string>
     <string name="label_nav_bar_groups">Groups</string>
-    <string name="label_nav_bar_proxy_filter">Proxy Filter</string>
+    <string name="label_nav_bar_proxy">Proxy</string>
     <string name="label_nav_bar_settings">Settings</string>
     <string name="label_import">Import</string>
     <string name="label_reset">Reset</string>
     <string name="title_scanning">Scanning</string>
-    <string name="label_name">Name</string>
+    <string name="label_model_id">Name</string>
     <string name="label_placeholder_provisioner_name">nRF Mesh Provisioner</string>
     <string name="title_device_capabilities">Device Capabilities</string>
     <string name="title_provisioning_data">Provisioning Data</string>

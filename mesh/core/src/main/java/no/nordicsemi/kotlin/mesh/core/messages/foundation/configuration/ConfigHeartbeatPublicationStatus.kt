@@ -8,8 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
-import no.nordicsemi.kotlin.mesh.core.messages.RemainingHeartbeatPublicationCount
-import no.nordicsemi.kotlin.mesh.core.messages.RemainingHeartbeatPublicationCount.Companion.toRemainingPublicationCount
 import no.nordicsemi.kotlin.mesh.core.model.Feature
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
@@ -18,6 +16,10 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
+import no.nordicsemi.kotlin.mesh.core.model.toRemainingPublicationCount
+import java.nio.ByteOrder
 
 /**
  * This message contains the Heartbeat Publication status of an element. This is sent in response to
@@ -36,7 +38,7 @@ class ConfigHeartbeatPublicationStatus(
     val countLog: CountLog = 0x00u,
     val periodLog: UByte = 0x00u,
     val ttl: UByte = 0x00u,
-    val features: Array<Feature> = emptyArray(),
+    val features: List<Feature> = emptyList(),
     val networkKeyIndex: KeyIndex = 0u,
     override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS
 ) : ConfigResponse, ConfigStatusMessage {
@@ -44,7 +46,7 @@ class ConfigHeartbeatPublicationStatus(
 
     override val parameters: ByteArray
         get() = byteArrayOf(status.value.toByte()) +
-                destination.address.toByteArray() +
+                destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +
@@ -53,6 +55,15 @@ class ConfigHeartbeatPublicationStatus(
 
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
+
+    val isEnabled: Boolean
+        get() = destination != UnassignedAddress
+
+    val isPeriodicPublicationEnabled: Boolean
+        get() = isEnabled && periodLog > 0u
+
+    val isFeatureTriggeredPublishingEnabled: Boolean
+        get() = isEnabled && features.isNotEmpty()
 
     override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
             "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: {${
@@ -68,13 +79,18 @@ class ConfigHeartbeatPublicationStatus(
             ConfigMessageStatus.from(parameters[0].toUByte())?.let {
                 ConfigHeartbeatPublicationStatus(
                     destination = MeshAddress.create(
-                        parameters.getUShort(1)
+                        parameters.getUShort(offset = 1)
                     ) as HeartbeatPublicationDestination,
                     countLog = parameters[3].toUByte(),
                     periodLog = parameters[4].toUByte(),
                     ttl = parameters[5].toUByte(),
-                    features = Features(parameters.getUShort(6)).toArray(),
-                    networkKeyIndex = parameters.getUShort(8),
+                    features = Features(
+                        rawValue = parameters.getUShort(
+                            offset = 6,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        )
+                    ).toList(),
+                    networkKeyIndex = parameters.getUShort(offset = 8),
                     status = it
                 )
             }
@@ -113,7 +129,8 @@ class ConfigHeartbeatPublicationStatus(
             statusMessage: ConfigMessageStatus
         ): ConfigHeartbeatPublicationStatus {
             return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress.create(request.destination) as HeartbeatPublicationDestination,
+                destination = MeshAddress
+                    .create(address = request.destination.address) as HeartbeatPublicationDestination,
                 countLog = request.countLog,
                 periodLog = request.periodLog,
                 ttl = request.ttl,

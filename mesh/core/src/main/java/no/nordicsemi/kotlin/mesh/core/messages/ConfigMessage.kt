@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -17,7 +16,6 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
 import java.util.UUID
 import kotlin.experimental.and
-import kotlin.math.pow
 
 
 /**
@@ -390,135 +388,6 @@ interface ConfigModelAppList : ConfigStatusMessage, ConfigModelMessage {
  */
 interface ConfigModelSubscriptionList : ConfigStatusMessage, ConfigModelMessage {
     val addresses: List<Address>
-}
-
-/**
- * This enum represents number of periodic Heartbeat messages remaining to be sent.
- */
-sealed class RemainingHeartbeatPublicationCount {
-    /**
-     * Periodic Heartbeat messages are not published.
-     */
-    data object Disabled : RemainingHeartbeatPublicationCount()
-
-    /**
-     * Periodic Heartbeat messages are not published.
-     */
-    data object Indefinitely : RemainingHeartbeatPublicationCount()
-
-    /**
-     * Periodic Heartbeat messages are not published.
-     *
-     * @property value
-     *
-     */
-    data class Exact(val value: UShort) : RemainingHeartbeatPublicationCount()
-
-    /**
-     * Remaining count of periodic Heartbeat messages represented as range. Exact count is only
-     * available when the count goes down to 2 and 1; otherwise a range is returned.
-     *
-     * @property low   Short range value.
-     * @property high  High range value.
-     * @constructor Constructs a range of remaining count of periodic Heartbeat messages.
-     */
-    data class Range(val low: UShort, val high: UShort) : RemainingHeartbeatPublicationCount()
-
-    /**
-     * Periodic Heartbeat messages are not published.
-     *
-     * @property countLog Count log values sent.
-     */
-    data class Invalid(val countLog: UByte) : RemainingHeartbeatPublicationCount()
-
-    companion object {
-
-        /**
-         * Converts the given CountLog value to a RemainingHeartbeatPublicationCount.
-         *
-         * @return RemainingHeartbeatPublicationCount
-         */
-        internal fun CountLog.toRemainingPublicationCount(): RemainingHeartbeatPublicationCount {
-            return when {
-                this == 0x00.toUByte() -> Disabled
-                this == 0xFF.toUByte() -> Indefinitely
-                this == 0x01.toUByte() || this == 0x02.toUByte() -> Exact(this.toUShort())
-                this == 0x11.toUByte() -> Range(low = 0x8001.toUShort(), high = 0xFFFE.toUShort())
-                this >= 0x03.toUByte() && this <= 0x10.toUByte() -> Range(
-                    low = ((2.0.pow(this.toDouble() - 2.0)) + 1.0).toUInt().toUShort(),
-                    high = (2.0.pow(this.toDouble() - 1.0)).toUInt().toUShort()
-                )
-
-                else -> Invalid(this)
-            }
-        }
-    }
-}
-
-/**
- *This enum represents remaining period for processing Heartbeat messages, in seconds.
- */
-sealed class RemainingHeartbeatSubscriptionPeriod {
-
-    /**
-     * Heartbeat messages are not processed.
-     */
-    data object Disabled : RemainingHeartbeatSubscriptionPeriod()
-
-    /**
-     * Exact remaining period for processing Heartbeat messages, in seconds. Exact period is only
-     * available when the count goes down to 1 or when is maximum; otherwise a range is returned.
-     *
-     * @property value Exact period value.
-     */
-    data class Exact(val value: UShort) : RemainingHeartbeatSubscriptionPeriod()
-
-    /**
-     * Remaining period for processing Heartbeat messages as range, in seconds.
-     *
-     * @property range Remaining period range.
-     */
-    data class Range(val range: ClosedRange<UShort>) : RemainingHeartbeatSubscriptionPeriod()
-
-    /**
-     * Unsupported PeriodLog value sent.
-     *
-     * @property periodLog PeriodLog value sent.
-     */
-    data class Invalid(val periodLog: UByte) : RemainingHeartbeatSubscriptionPeriod()
-}
-
-
-/**
- * This enum represents the number of Heartbeat messages received.
- */
-sealed class HeartbeatSubscriptionCount {
-    /**
-     * Number of Heartbeat messages received. Exact count is only available when there was none, or
-     * only one Heartbeat message received.
-     *
-     * @property value Exact count value.
-     */
-    data class Exact(val value: UShort) : HeartbeatSubscriptionCount()
-
-    /**
-     * Number of Heartbeat messages received as range.
-     *
-     * @property range Range of values.
-     */
-    data class Range(val range: ClosedRange<UShort>) : HeartbeatSubscriptionCount()
-
-    /**
-     * More than 0xFFFE messages have been received.
-     */
-    data object ReallyALot : HeartbeatSubscriptionCount()
-
-    /**
-     * Unsupported CountLog value sent.
-     *
-     * @property countLog CountLog value sent.
-     */
-    data class Invalid(val countLog: UByte) : HeartbeatSubscriptionCount()
 }
 
 /**

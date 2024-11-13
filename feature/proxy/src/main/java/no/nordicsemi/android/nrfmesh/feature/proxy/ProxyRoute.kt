@@ -4,11 +4,10 @@ package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.content.Context
 import android.os.ParcelUuid
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.rounded.Close
@@ -78,8 +77,8 @@ private fun ProxyFilterScreen(
     val proxyScannerSheetState = rememberModalBottomSheetState()
     RequireBluetooth(onChanged = onBluetoothEnabled) {
         RequireLocation(onChanged = onLocationEnabled) {
-            LazyColumn {
-                proxyFilterInfo(
+            Column {
+                ProxyFilterInfo(
                     proxyState = proxyState,
                     onAutoConnectToggled = onAutoConnectToggled,
                     onConnectClicked = { showProxyScannerSheet = true },
@@ -114,20 +113,19 @@ private fun ProxyFilterScreen(
     }
 }
 
-private fun LazyListScope.proxyFilterInfo(
+@Composable
+private fun ProxyFilterInfo(
     proxyState: ProxyState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
 ) {
-    item {
-        AutomaticConnectionRow(
-            proxyState = proxyState,
-            onAutoConnectToggled = onAutoConnectToggled,
-            onConnectClicked = onConnectClicked,
-            onDisconnectClicked = onDisconnectClicked
-        )
-    }
+    AutomaticConnectionRow(
+        proxyState = proxyState,
+        onAutoConnectToggled = onAutoConnectToggled,
+        onConnectClicked = onConnectClicked,
+        onDisconnectClicked = onDisconnectClicked
+    )
 }
 
 @Composable
@@ -137,32 +135,37 @@ private fun AutomaticConnectionRow(
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
 ) {
+    println("Switch: ${proxyState.autoConnect}")
+    // var test by rememberSaveable { mutableStateOf(proxyState.autoConnect) }
     ElevatedCardItem(
-        modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_automatic_connection),
         titleAction = {
             Switch(
                 modifier = Modifier.padding(start = 16.dp),
                 checked = proxyState.autoConnect,
-                onCheckedChange = {
-                    onAutoConnectToggled(it)
-                }
+                onCheckedChange = { onAutoConnectToggled(it) }
             )
         },
         subtitle = proxyState.connectionState.describe(),
         supportingText = stringResource(R.string.label_automatic_connection_rationale),
         actions = {
-            OutlinedButton(onClick = onConnectClicked, enabled = !proxyState.autoConnect) {
-                Text(text = "Connect")
-            }
+            OutlinedButton(
+                onClick = onConnectClicked,
+                enabled = !proxyState.autoConnect,
+                content = { Text(text = stringResource(R.string.label_connect)) }
+            )
             Spacer(modifier = Modifier.size(16.dp))
-            OutlinedButton(onClick = {
-                onAutoConnectToggled(false)
-                onDisconnectClicked()
-            }) {
-                Text(text = "Disconnect")
-            }
+            OutlinedButton(
+                onClick = {
+                    onAutoConnectToggled(false)
+                    onDisconnectClicked()
+                },
+                content = { Text(text = stringResource(R.string.label_disconnect)) }
+            )
         }
     )
 }

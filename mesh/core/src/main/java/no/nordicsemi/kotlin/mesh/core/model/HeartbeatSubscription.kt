@@ -6,6 +6,8 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.min
@@ -28,12 +30,12 @@ import kotlin.time.toDuration
  */
 @Serializable
 data class HeartbeatSubscription internal constructor(
-    val source: HeartbeatSubscriptionDestination,
+    val source: HeartbeatSubscriptionSource,
     val destination: HeartbeatSubscriptionDestination,
 ) {
 
     @Transient
-    internal var state: State? = null
+    var state: State? = null
         private set
 
     val isEnabled: Boolean
@@ -42,7 +44,28 @@ data class HeartbeatSubscription internal constructor(
     /**
      * Convenience constructor to use when sending a message to disable a heartbeat subscription.
      */
-    constructor() : this(source = UnassignedAddress, destination = UnassignedAddress)
+    internal constructor() : this(source = UnassignedAddress, destination = UnassignedAddress)
+
+    internal constructor(request: ConfigHeartbeatSubscriptionSet) : this(
+        source = request.source,
+        destination = request.destination
+    ) {
+        // Here, the state is stored for purpose of subscription.
+        // This method is called only for the local Node. The value is not persistent and
+        // subscription will stop when the app gets restarted.
+        state = State(_periodLog = request.periodLog)
+    }
+
+    internal constructor(status: ConfigHeartbeatSubscriptionStatus) : this(
+        source = status.source,
+        destination = status.destination
+    ) {
+        // The current state of the heartbeat subscription is not set for 2 reasons:
+        // - it is dynamic - the device is listening for heartbeat messages for some time only,
+        // - it is not saved in the Configuration Database.
+        //
+        state = State(_periodLog = status.periodLog)
+    }
 
     /**
      * Checks if the received Heartbeat message matches the subscription parameters.
@@ -70,7 +93,10 @@ data class HeartbeatSubscription internal constructor(
         state.maxHops = max(state.maxHops.toInt(), heartbeat.hops.toInt()).toUByte()
     }
 
-    private companion object {
+    companion object {
+        const val PERIOD_LOG_MIN = 0x00
+        const val PERIOD_LOG_MAX = 0x11
+        val PERIOD_LOG_RANGE = 0x01u..0x11u
 
         /**
          * Converts Subscription Count to Subscription Count Log.
@@ -81,7 +107,7 @@ data class HeartbeatSubscription internal constructor(
          * @param value Count.
          * @return Logarithmic value.
          */
-        fun countToCountLog(value: UShort) = when (value) {
+        private fun countToCountLog(value: UShort) = when (value) {
             0x0000.toUShort() -> 0x00.toUByte() // No Heartbeat messages are published.
             0xFFFF.toUShort() -> 0xFF.toUByte() // Maximum value.
             else -> (log2(value.toDouble()) + 1).toInt().toUByte()
@@ -93,7 +119,7 @@ data class HeartbeatSubscription internal constructor(
          * @param remainingPeriod Remaining period in seconds.
          * @return Logarithmic value.
          */
-        fun period2PeriodLog(remainingPeriod: Duration): UByte {
+        private fun period2PeriodLog(remainingPeriod: Duration): UByte {
             val period = remainingPeriod.toDouble(DurationUnit.SECONDS)
             return when {
                 period == 0.0 -> 0x00.toUByte()
@@ -120,7 +146,7 @@ data class HeartbeatSubscription internal constructor(
                 0xFFFF.toUShort()
 
             else -> throw IllegalArgumentException(
-                "PeriodLog out or range $periodLog (required: 0x00-0x11)"
+                "PeriodLog out of range $periodLog (required: 0x00-0x11)"
             )
         }
     }
@@ -154,7 +180,7 @@ data class HeartbeatSubscription internal constructor(
      *                       transformation defined in Table 4.1, where 0xFF means that more than
      *                       0xFFFF messages were received.
      */
-    internal class State private constructor(_periodLog: UByte) {
+    class State internal constructor(_periodLog: UByte) {
         private val startDate = Clock.System.now()
         val period = periodLog2Period(_periodLog).toInt().toDuration(DurationUnit.SECONDS)
         var count = 0.toUShort()
@@ -166,8 +192,7 @@ data class HeartbeatSubscription internal constructor(
 
         val periodLog: UByte
             get() {
-                val timeIntervalSinceSubscriptionStart =
-                    (Clock.System.now() - startDate)
+                val timeIntervalSinceSubscriptionStart = Clock.System.now() - startDate
                 val remainingPeriod = period - timeIntervalSinceSubscriptionStart
                 return if (remainingPeriod.inWholeSeconds >= 0) period2PeriodLog(remainingPeriod) else 0u
             }

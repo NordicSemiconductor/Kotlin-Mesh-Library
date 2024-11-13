@@ -8,15 +8,19 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 /**
- * Defines the response to [ConfigGattProxyGet].
+ * Defines the response to a [ConfigGattProxyGet] or [ConfigGattProxySet] message.
  *
  * @property state The state of the GATT Proxy feature.
  */
-data class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
+class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray = byteArrayOf(state.value.toByte())
 
     constructor(node: Node) : this(node.features.proxy?.state ?: FeatureState.Unsupported)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() =
+        "ConfigGattProxyStatus(opCode: 0x${opCode.toHexString()}, state: $state)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8014u

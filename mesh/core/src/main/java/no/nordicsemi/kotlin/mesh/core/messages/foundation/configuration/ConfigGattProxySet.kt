@@ -23,6 +23,9 @@ data class ConfigGattProxySet(val state: FeatureState) : AcknowledgedConfigMessa
     constructor(enable: Boolean) :
             this(state = if (enable) FeatureState.Enabled else FeatureState.Disabled)
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigGattProxySet(opCode: 0x${opCode.toHexString()}, state: $state)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8013u
 

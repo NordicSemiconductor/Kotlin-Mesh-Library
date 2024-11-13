@@ -8,9 +8,9 @@ pluginManagement {
 
     plugins {
         id("org.jetbrains.dokka") version "1.9.20"
-        id("org.jetbrains.kotlin.jvm") version "2.0.0"
+        id("org.jetbrains.kotlin.jvm") version "2.0.20"
         id("com.android.library") version "8.5.2"
-        id("org.jetbrains.kotlin.android") version "2.0.0"
+        id("org.jetbrains.kotlin.android") version "2.0.20"
         // id("org.jetbrains.kotlin.android") version "2.0.0"
     }
 }
@@ -25,7 +25,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.4")
+            from("no.nordicsemi.android.gradle:version-catalog:2.4-1")
         }
     }
 }
@@ -36,6 +36,8 @@ include(":core:common")
 include(":core:data")
 include(":core:navigation")
 include(":feature:nodes")
+include(":feature:elements")
+include(":feature:configuration-server")
 include(":feature:groups")
 include(":feature:settings")
 include(":feature:proxy")
@@ -43,6 +45,7 @@ include(":feature:export")
 include(":feature:network-keys")
 include(":feature:config-network-keys")
 include(":feature:application-keys")
+include(":feature:config-application-keys")
 include(":feature:scenes")
 include(":feature:provisioners")
 include(":feature:ranges")
@@ -71,5 +74,3 @@ include(":mesh:foundation")
 // if (file("../Kotlin-Util-Library").exists()) {
 //     includeBuild("../Kotlin-Util-Library")
 // }
-include(":feature:config-application-keys")
-include(":feature:elements")

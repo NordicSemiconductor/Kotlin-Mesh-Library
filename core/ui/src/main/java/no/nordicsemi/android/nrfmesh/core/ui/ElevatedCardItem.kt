@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,11 +14,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,9 +34,68 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
+
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
+    elevation: CardElevation = CardDefaults.elevatedCardElevation(),
+    imageVector: ImageVector,
+    title: String,
+    titleAction: @Composable () -> Unit = {},
+    subtitle: String = "",
+    supportingText: String? = null,
+    body: @Composable (ColumnScope?.() -> Unit)? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
+) {
+    OutlinedCard(modifier = modifier, elevation = elevation) {
+        MeshTwoLineListItem(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(end = 16.dp),
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            },
+            title = title,
+            subtitle = subtitle,
+            trailingComposable = titleAction
+        )
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 8.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        body?.let {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                it()
+            }
+        }
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
+            }
+        }
+    }
+}
+
+@Composable
+fun ElevatedCardItem(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
@@ -40,7 +103,10 @@ fun ElevatedCardItem(
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    ElevatedCard(modifier = modifier) {
+    OutlinedCard (
+        modifier = modifier,
+        onClick = onClick,
+    ) {
         MeshTwoLineListItem(
             modifier = Modifier
                 .padding(horizontal = 16.dp),
@@ -96,7 +162,7 @@ fun ElevatedCardItemTextField(
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    ElevatedCard(modifier = modifier) {
+    OutlinedCard (modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
@@ -107,6 +173,7 @@ fun ElevatedCardItemTextField(
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
                     true -> MeshOutlinedTextField(
+                        modifier = Modifier.padding(start = 16.dp),
                         onFocus = onEditClick,
                         value = value,
                         onValueChanged = { value = it },
@@ -114,13 +181,21 @@ fun ElevatedCardItemTextField(
                         placeholder = { Text(text = placeholder) },
                         internalTrailingIcon = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = value.text.isNotBlank(),
                                 onClick = {
-                                    value =
-                                        TextFieldValue(text = "", selection = TextRange("".length))
-                                }) {
-                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                            }
+                                    value = TextFieldValue(
+                                        text = "",
+                                        selection = TextRange("".length)
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Clear,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
                         },
                         readOnly = readOnly,
                         keyboardOptions = keyboardOptions,
@@ -134,21 +209,29 @@ fun ElevatedCardItemTextField(
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
-                                    value = TextFieldValue(text = value.text.trim(), selection = TextRange(value.text.trim().length))
+                                    value = TextFieldValue(
+                                        text = value.text.trim(),
+                                        selection = TextRange(value.text.trim().length)
+                                    )
                                     onValueChanged(value.text)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null
+                                    )
                                 }
-                            ) {
-                                Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
-                            }
+                            )
                         }
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = value.text,
                         trailingComposable = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = isEditable,
                                 onClick = {
                                     onEditClick = !onEditClick

@@ -4,6 +4,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import kotlin.math.log2
 import kotlin.math.pow
 
@@ -51,7 +53,7 @@ data class HeartbeatPublication internal constructor(
     val periodLog: UByte,
     val ttl: UByte,
     val index: KeyIndex,
-    val features: Array<Feature>
+    val features: List<Feature>
 ) {
     val period: UShort by lazy {
         2.toDouble().pow(periodLog.toInt() - 1).toInt().toUShort()
@@ -76,7 +78,7 @@ data class HeartbeatPublication internal constructor(
     val isPeriodicHeartbeatStateEnabled: Boolean
         get() = isEnabled && periodLog > 0u
 
-    val isFeatureTriggeredPublishingEnabled : Boolean
+    val isFeatureTriggeredPublishingEnabled: Boolean
         get() = isEnabled && features.isNotEmpty()
 
     internal constructor(
@@ -84,7 +86,7 @@ data class HeartbeatPublication internal constructor(
         period: UShort,
         ttl: UByte,
         index: KeyIndex,
-        features: Array<Feature>
+        features: List<Feature>
     ) : this(
         address = address,
         _countLog = 0x00.toUByte(),
@@ -101,38 +103,55 @@ data class HeartbeatPublication internal constructor(
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as HeartbeatPublication
-
-        if (address != other.address) return false
-        if (_countLog != other._countLog) return false
-        if (periodLog != other.periodLog) return false
-        if (ttl != other.ttl) return false
-        if (index != other.index) return false
-        if (!features.contentEquals(other.features)) return false
-        if (state != other.state) return false
-
-        return true
+    internal constructor(status: ConfigHeartbeatPublicationStatus) : this(
+        address = status.destination,
+        _countLog = status.countLog,
+        periodLog = status.periodLog,
+        ttl = status.ttl,
+        index = status.networkKeyIndex,
+        features = status.features
+    ) {
+        require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
+            "Period must range from $MIN_PERIOD to $MAX_PERIOD!"
+        }
+        require(ttl.toInt() in MIN_TTL..MAX_TTL) {
+            "TTL must range from $MIN_TTL to $MAX_TTL!"
+        }
     }
 
-    override fun hashCode(): Int {
-        var result = address.hashCode()
-        result = 31 * result + _countLog.hashCode()
-        result = 31 * result + periodLog.hashCode()
-        result = 31 * result + ttl.hashCode()
-        result = 31 * result + index.hashCode()
-        result = 31 * result + features.contentHashCode()
-        result = 31 * result + (state?.hashCode() ?: 0)
-        return result
+    /**
+     * Convenience constructor
+     *
+     * @param request ConfigHeartbeatPublicationSet
+     */
+    internal constructor(request: ConfigHeartbeatPublicationSet) : this(
+        address = MeshAddress
+            .create(address = request.destination.address) as HeartbeatPublicationDestination,
+        _countLog = request.countLog,
+        periodLog = request.periodLog,
+        ttl = request.ttl,
+        index = request.networkKeyIndex,
+        features = request.features
+    ) {
+        require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
+            "Period must range from $MIN_PERIOD to $MAX_PERIOD!"
+        }
+        require(ttl.toInt() in MIN_TTL..MAX_TTL) {
+            "TTL must range from $MIN_TTL to $MAX_TTL!"
+        }
+        // Here, the state is stored for purpose of publication. This method is called only for the
+        // local Node. The value is not persistent and publications will stop when the app gets
+        // restarted.
+        state = PeriodicHeartbeatState.init(_countLog)
     }
 
-    private companion object {
-
-        private const val MIN_PERIOD_LOG = 0x01
-        private const val MAX_PERIOD_LOG = 0x11
+    companion object {
+        const val MIN_COUNT_LOG = 0x00
+        const val MAX_COUNT_LOG = 0x11
+        const val INDEFINITE_COUNT_LOG = 0xFF
+        const val MIN_PERIOD_LOG = 0x01
+        const val MAX_PERIOD_LOG = 0x11
+        val PERIOD_LOG_RANGE = MIN_PERIOD_LOG..MAX_PERIOD_LOG
 
         private const val MIN_PERIOD = 0
         private const val MAX_PERIOD = 65536
@@ -141,12 +160,27 @@ data class HeartbeatPublication internal constructor(
         private const val MAX_TTL = 127
 
         /**
+         * Converts Publication Count Log to Publication Count.
+         *
+         * @param countLog Logarithmic value in range 0x00...0x11.
+         */
+        fun countLog2Count(countLog: UByte): UShort = when {
+            countLog > 0x11.toUByte() && countLog < 0xFF.toUByte() ->
+                throw IllegalArgumentException(
+                    "CountLog out of range $countLog (required: 0x00-0x11)"
+                )
+            countLog == 0x11.toUByte() -> (2.0.pow(countLog.toInt() - 1).toInt() - 2).toUShort()
+
+            else -> 2.0.pow(countLog.toInt() - 1).toInt().toUShort()
+        }
+
+        /**
          * Converts Publication Count to Publication Count Log.
          *
          * @param count Count.
          * @return Logarithmic value.
          */
-        fun countToCountLog(count: UShort) = when (count) {
+        fun count2CountLog(count: UShort) = when (count) {
             0x00.toUShort() -> 0x00.toUByte()
             0xFFFF.toUShort() -> 0xFF.toUByte()
             else -> (log2(count.toDouble() * 2 - 1).toInt().toUByte() + 1u).toUByte()
@@ -218,7 +252,7 @@ data class HeartbeatPublication internal constructor(
     internal data class PeriodicHeartbeatState(private var count: UShort) {
 
         val countLog: UByte
-            get() = countToCountLog(count)
+            get() = count2CountLog(count)
 
         /**
          * Checks if more periodic Heartbeat message should be sent, or not.

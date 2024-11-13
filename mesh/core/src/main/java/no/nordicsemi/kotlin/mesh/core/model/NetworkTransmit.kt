@@ -4,6 +4,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitStatus
 
 /**
  * The network transmit object represents the parameters of the transmissions of network layer
@@ -23,6 +25,32 @@ data class NetworkTransmit internal constructor(
     var steps = toSteps(interval = interval)
         internal set
 
+    val intervalAsSeconds : Double
+        get() = interval.toInt() / 1000.0
+
+    val intervalAsMilliseconds : Long
+        get() = interval.toInt() * 1000L
+
+    /**
+     * Convenience constructor.
+     *
+     * @param request Network transmit settings received from a node.
+     */
+    internal constructor(request : ConfigNetworkTransmitSet) : this(
+        count = request.count,
+        interval = ((request.steps + 1u).toUShort() * 10u).toUShort()
+    )
+
+    /**
+     * Convenience constructor.
+     *
+     * @param status Network transmit status received from the node.
+     */
+    internal constructor(status: ConfigNetworkTransmitStatus) : this(
+        count = status.count,
+        interval = ((status.steps + 1u).toUShort() * 10u).toUShort()
+    )
+
     init {
         require(count.toInt() in MIN_COUNT..MAX_COUNT) {
             "Count must be a value from $MIN_COUNT to $MAX_COUNT number of transmissions!"
@@ -32,12 +60,6 @@ data class NetworkTransmit internal constructor(
                     "transmissions!"
         }
     }
-
-    val intervalAsSeconds : Double
-        get() = interval.toInt() / 1000.0
-
-    val intervalAsMilliseconds : Long
-        get() = interval.toInt() * 1000L
 
     companion object {
         private const val MIN_COUNT = 1

@@ -11,20 +11,33 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyUpdate
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyUpdate
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Relay
+import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -49,7 +62,13 @@ internal class ConfigurationClientHandler(
         ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
+        ConfigBeaconStatus.opCode to ConfigBeaconStatus,
+        ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
+        ConfigRelayStatus.opCode to ConfigRelayStatus,
+        ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
+        ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
+        ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
@@ -137,15 +156,55 @@ internal class ConfigurationClientHandler(
                 )
             }
 
-            is ConfigGattProxyStatus -> {
-                node(address = source)?.apply {
-                    features._proxy = Proxy(state = response.state)
+            is ConfigFriendStatus -> node(address = source)?.apply {
+                features._friend = Friend(state = response.state)
+                updateTimestamp()
+            }
+
+            is ConfigGattProxyStatus -> node(address = source)?.apply {
+                features._proxy = Proxy(state = response.state)
+                updateTimestamp()
+            }
+
+            is ConfigRelayStatus -> node(address = source)?.apply {
+                features._relay = Relay(state = response.state)
+                relayRetransmit = when (response.state) {
+                    FeatureState.Unsupported -> null
+                    FeatureState.Disabled, FeatureState.Enabled -> RelayRetransmit(response)
                 }
                 updateTimestamp()
             }
 
-            is ConfigHeartbeatPublicationStatus -> {
-                // TODO
+            is ConfigBeaconStatus -> node(address = source)?.apply {
+                secureNetworkBeacon = response.isEnabled
+            }
+
+            is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
+                println("Network Transmit Status: $response")
+                networkTransmit = NetworkTransmit(response)
+            }
+
+            is ConfigNodeIdentityStatus -> {
+                // Do nothing here as we don't store the NodeIdentityState in the CDB.
+            }
+
+            is ConfigHeartbeatSubscriptionStatus -> node(address = source)?.takeIf {
+                !it.isLocalProvisioner
+            }?.let {
+                it.heartbeatSubscription = when {
+                    response.isEnabled -> HeartbeatSubscription(response)
+                    else -> null
+                }
+            }
+
+            is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
+                !it.isLocalProvisioner
+            }?.let {
+                it.heartbeatPublication = when {
+                    response.isEnabled -> HeartbeatPublication(response)
+                    else -> null
+                }
+
             }
 
             is ConfigModelPublicationStatus -> {

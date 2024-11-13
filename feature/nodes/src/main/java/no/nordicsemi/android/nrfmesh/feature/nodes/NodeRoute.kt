@@ -16,14 +16,15 @@ import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Factory
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.SafetyCheck
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
@@ -59,6 +60,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -73,7 +75,7 @@ fun NodeRoute(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -118,7 +120,7 @@ private fun NodeScreen(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -200,7 +202,7 @@ private fun NodeInfo(
     onNameChanged: (String) -> Unit,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (UUID) -> Unit,
+    onElementsClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
@@ -240,7 +242,7 @@ private fun NodeInfo(
                 ElementRow(
                     element = element,
                     onElementsClicked = {
-                        onElementsClicked(node.uuid)
+                        onElementsClicked(element.unicastAddress.address)
                     }
                 )
                 if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
@@ -267,7 +269,7 @@ private fun NodeInfo(
 @Composable
 private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -281,7 +283,7 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .clickable(onClick = onNetworkKeysClicked),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
@@ -293,7 +295,7 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .clickable(onClick = onApplicationKeysClicked),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
@@ -305,8 +307,8 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ElementRow(element: Element, onElementsClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = onElementsClicked),
+            .padding(horizontal = 16.dp),
+        onClick = onElementsClicked,
         imageVector = Icons.Outlined.DeviceHub,
         title = element.name ?: "Unknown",
         subtitle = "${element.models.size} ${if (element.models.size == 1) "model" else "models"}"
@@ -330,10 +332,11 @@ private fun NodeInformationRow(node: Node) {
 @Composable
 private fun CompanyIdentifier(companyIdentifier: UShort?) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Factory,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Work,
         title = stringResource(R.string.label_company_identifier),
-        subtitle = companyIdentifier?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+        subtitle = companyIdentifier?.toHexString()?.uppercase()
+            ?: stringResource(R.string.unknown),
     )
 }
 
@@ -341,10 +344,11 @@ private fun CompanyIdentifier(companyIdentifier: UShort?) {
 @Composable
 private fun ProductIdentifier(productIdentifier: UShort?) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.QrCode,
         title = stringResource(R.string.label_product_identifier),
-        subtitle = productIdentifier?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+        subtitle = productIdentifier?.toHexString()?.uppercase()
+            ?: stringResource(R.string.unknown),
     )
 }
 
@@ -352,7 +356,7 @@ private fun ProductIdentifier(productIdentifier: UShort?) {
 @Composable
 private fun ProductVersion(productVersion: UShort?) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Numbers,
         title = stringResource(R.string.label_product_version),
         subtitle = productVersion?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
@@ -363,18 +367,19 @@ private fun ProductVersion(productVersion: UShort?) {
 @Composable
 private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.SafetyCheck,
         title = stringResource(R.string.label_replay_protection_count),
-        subtitle = replayProtectionCount?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+        subtitle = replayProtectionCount?.toHexString()?.uppercase()
+            ?: stringResource(R.string.unknown),
     )
 }
 
 @Composable
 private fun Security(node: Node) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
-        imageVector = Icons.Outlined.Factory,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Security,
         title = stringResource(R.string.label_security),
         subtitle = when (node.elements.isEmpty()) {
             true -> node.security.toString()
@@ -387,7 +392,7 @@ private fun Security(node: Node) {
 private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .clickable(onClick = onGetTtlClicked),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_default_time_to_live),
@@ -406,7 +411,8 @@ private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
 
 @Composable
 private fun ProxyStateRow(
-    proxy: Proxy?, onProxyStateToggled: (Boolean) -> Unit, onGetProxyStateClicked: () -> Unit
+    proxy: Proxy?, onProxyStateToggled: (Boolean) -> Unit,
+    onGetProxyStateClicked: () -> Unit
 ) {
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
@@ -414,7 +420,7 @@ private fun ProxyStateRow(
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .clickable(onClick = onGetProxyStateClicked),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
@@ -460,14 +466,17 @@ private fun ProxyStateRow(
 private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
     var excluded by rememberSaveable { mutableStateOf(isExcluded) }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
         titleAction = {
-            SwitchWithIcon(isChecked = isExcluded, onCheckedChange = {
-                excluded = it
-                onExcluded(it)
-            })
+            SwitchWithIcon(
+                isChecked = isExcluded,
+                onCheckedChange = {
+                    excluded = it
+                    onExcluded(it)
+                }
+            )
         },
         subtitle = when (excluded) {
             true -> stringResource(id = R.string.label_node_excluded)
@@ -481,7 +490,7 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
 private fun ResetRow(onResetClicked: () -> Unit) {
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Recycling,
         title = stringResource(R.string.label_reset_node),
         supportingText = stringResource(R.string.label_reset_node_rationale)

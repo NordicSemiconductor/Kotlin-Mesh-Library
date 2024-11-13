@@ -5,7 +5,6 @@ package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -180,7 +179,7 @@ private fun ConfigAppKeysRoute(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomSheetKeys(
     uiState: AppKeysScreenUiState,
@@ -215,12 +214,11 @@ private fun BottomSheetKeys(
             } else {
                 items(items = uiState.keys) { key ->
                     ElevatedCardItem(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .clickable {
-                                onDismissClick()
-                                onAddKeyClicked(key)
-                            },
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onClick = {
+                            onDismissClick()
+                            onAddKeyClicked(key)
+                        },
                         imageVector = Icons.Outlined.VpnKey,
                         title = key.name,
                         subtitle = key.key.toHexString()

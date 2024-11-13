@@ -74,6 +74,14 @@ import java.util.UUID
  * @property configComplete             True if the node is configured.
  * @property networkKeys                List of network keys known to this node.
  * @property applicationKeys            List of application keys known to this node.
+ * @property primaryElement             The primary element of the node.
+ * @property network                    The mesh network to which this node belongs.
+ * @property provisioner                The provisioner that provisioned this node.
+ * @property isProvisioner              True if the node is a provisioner.
+ * @property isLocalProvisioner         True if the node is the local provisioner.
+ * @property provisioner                The provisioner that provisioned this node.
+ * @property isCompositionDataReceived  True if the node has received composition data.
+ *
  * @constructor                         Creates a mesh node.
  */
 @Serializable
@@ -156,7 +164,10 @@ data class Node internal constructor(
         internal set
 
     var secureNetworkBeacon: Boolean? = null
-        internal set
+        internal set(value) {
+            field = value
+            network?.updateTimestamp()
+        }
 
     var networkTransmit: NetworkTransmit? = null
         internal set(value) {
@@ -215,6 +226,18 @@ data class Node internal constructor(
             true -> elementsCount
             false -> 1 // TODO should we throw here?
         } - 1
+
+    val isCompositionDataReceived: Boolean
+        get() = companyIdentifier != null
+
+    val isProvisioner: Boolean
+        get() = network?.provisioner(uuid) != null
+
+    val isLocalProvisioner: Boolean
+        get() = network?.localProvisioner?.uuid == uuid
+
+    val provisioner: Provisioner?
+        get() = network?.provisioner(uuid)
 
     /**
      * Convenience constructor to initialize a node of a provisioner.
@@ -333,7 +356,8 @@ data class Node internal constructor(
     }
 
     @Transient
-    internal var network: MeshNetwork? = null
+    var network: MeshNetwork? = null
+        internal set
 
     /**
      * Adds a network key to a node.
@@ -487,6 +511,7 @@ data class Node internal constructor(
             network?.updateTimestamp()
         }
     }
+
     /**
      * Removes an application key from the node. Invoked only when a [ConfigNetKeyStatus] is
      * received with a success status.

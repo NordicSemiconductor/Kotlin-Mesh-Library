@@ -4,12 +4,10 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
@@ -66,6 +64,7 @@ fun SettingsRoute(
                 SettingsScreen.Actions.IMPORT -> {
                     fileLauncher.launch("application/json")
                 }
+
                 SettingsScreen.Actions.EXPORT -> navigateToExport()
                 SettingsScreen.Actions.RESET -> resetNetwork()
             }
@@ -90,26 +89,25 @@ fun SettingsScreen(
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
-    LazyColumn {
-        when (networkState) {
-            is MeshNetworkState.Success -> {
-                settingsInfo(
-                    network = networkState.network,
-                    onNameChanged = onNameChanged,
-                    onProvisionersClicked = onProvisionersClicked,
-                    onNetworkKeysClicked = onNetworkKeysClicked,
-                    onApplicationKeysClicked = onApplicationKeysClicked,
-                    onScenesClicked = onScenesClicked
-                )
-            }
-
-            is MeshNetworkState.Loading -> {}
-            is MeshNetworkState.Error -> {}
+    when (networkState) {
+        is MeshNetworkState.Success -> {
+            SettingsInfo(
+                network = networkState.network,
+                onNameChanged = onNameChanged,
+                onProvisionersClicked = onProvisionersClicked,
+                onNetworkKeysClicked = onNetworkKeysClicked,
+                onApplicationKeysClicked = onApplicationKeysClicked,
+                onScenesClicked = onScenesClicked
+            )
         }
+
+        is MeshNetworkState.Loading -> {}
+        is MeshNetworkState.Error -> {}
     }
 }
 
-private fun LazyListScope.settingsInfo(
+@Composable
+private fun SettingsInfo(
     network: MeshNetwork,
     onNameChanged: (String) -> Unit,
     onProvisionersClicked: () -> Unit,
@@ -117,65 +115,37 @@ private fun LazyListScope.settingsInfo(
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
-    item {
+    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
         SectionTitle(title = stringResource(R.string.label_configuration))
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         NetworkNameRow(name = network.name, onNameChanged = onNameChanged)
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         ProvisionersRow(
             count = network.provisioners.size,
             onProvisionersClicked = onProvisionersClicked
         )
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         NetworkKeysRow(
             count = network.networkKeys.size,
             onNetworkKeysClicked = onNetworkKeysClicked
         )
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         ApplicationKeysRow(
             count = network.applicationKeys.size,
             onApplicationKeysClicked = onApplicationKeysClicked
         )
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         ScenesRow(
             count = network.scenes.size,
             onScenesClicked = onScenesClicked
         )
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         IvIndexRow(ivIndex = network.ivIndex)
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         LastModifiedTimeRow(timestamp = network.timestamp)
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item { SectionTitle(title = stringResource(R.string.label_about)) }
-    item {
+        SectionTitle(title = stringResource(R.string.label_about))
         VersionNameRow()
-        Spacer(modifier = Modifier.size(8.dp))
-    }
-    item {
         VersionCodeRow()
-        Spacer(modifier = Modifier.size(8.dp))
     }
 }
 
 @Composable
 private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -188,8 +158,9 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onProvisionersClicked() },
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        onClick = { onProvisionersClicked() },
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
         subtitle = "$count ${if (count == 1) "provisioner" else "provisioners"} available"
@@ -200,8 +171,9 @@ private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
 private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onNetworkKeysClicked() },
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        onClick = { onNetworkKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -212,8 +184,9 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onApplicationKeysClicked() },
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        onClick = { onApplicationKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -224,8 +197,9 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable { onScenesClicked() },
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        onClick = { onScenesClicked() },
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
         subtitle = "$count ${if (count == 1) "scene" else "scenes"} available"
@@ -236,7 +210,8 @@ private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
 private fun IvIndexRow(ivIndex: IvIndex) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
         imageVector = Icons.Outlined.Tune,
         title = stringResource(R.string.label_iv_index),
         subtitle = "${ivIndex.index}"
@@ -247,7 +222,8 @@ private fun IvIndexRow(ivIndex: IvIndex) {
 private fun LastModifiedTimeRow(timestamp: Instant) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
         imageVector = Icons.Outlined.Update,
         title = stringResource(R.string.label_last_modified),
         subtitle = DateFormat.getDateTimeInstance().format(
@@ -260,8 +236,7 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
 private fun VersionNameRow() {
     // TODO Clarify version naming
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Subtitles,
         title = stringResource(R.string.label_version),
         subtitle = BuildConfig.VERSION_NAME
@@ -273,7 +248,8 @@ private fun VersionCodeRow() {
     // TODO Clarify version code
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp)
+            .padding(vertical = 8.dp),
         imageVector = Icons.Outlined.DataObject,
         title = stringResource(R.string.label_version_code),
         subtitle = BuildConfig.VERSION_CODE

@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
-import no.nordicsemi.kotlin.mesh.core.messages.RemainingHeartbeatPublicationCount
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Feature
 import no.nordicsemi.kotlin.mesh.core.model.Features
@@ -18,9 +17,12 @@ import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
+import java.nio.ByteOrder
 import kotlin.math.pow
-
-typealias CountLog = UByte
 
 /**
  * This message can be sent to set Heartbeat Publication of a given element.
@@ -34,20 +36,20 @@ typealias CountLog = UByte
  * @constructor Creates a ConfigHeartbeatPublicationSet message.
  */
 class ConfigHeartbeatPublicationSet(
-    val destination: Address = UnassignedAddress.address,
+    override val networkKeyIndex: KeyIndex,
+    val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog,
-    val periodLog: UByte,
+    val periodLog: PeriodLog,
     val ttl: UByte,
-    val features: Array<Feature>,
-    override val networkKeyIndex: KeyIndex
+    val features: List<Feature> = emptyList()
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
-        get() = destination.toByteArray() +
+        get() = destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 countLog.toByte() +
                 periodLog.toByte() +
                 ttl.toByte() +
-                features.toUShort().toByteArray() +
+                features.toUShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 networkKeyIndex.toByteArray()
 
     val count: RemainingHeartbeatPublicationCount
@@ -84,13 +86,25 @@ class ConfigHeartbeatPublicationSet(
     override val responseOpCode: UInt = ConfigHeartbeatPublicationStatus.opCode
 
     val isPublicationEnabled: Boolean
-        get() = destination != UnassignedAddress.address
+        get() = destination != UnassignedAddress
 
     val enablePeriodPublication: Boolean
         get() = isPublicationEnabled && periodLog > 0x00.toUByte()
 
     val enablesFeatureTriggeredPublication: Boolean
         get() = isPublicationEnabled && features.toFeatures().rawValue > 0x0000u
+
+    /**
+     * Convenience constructor to disable heartbeat publications.
+     */
+    constructor() : this(
+        networkKeyIndex = 0u,
+        destination = UnassignedAddress,
+        countLog = 0u,
+        periodLog = 0u,
+        ttl = 0.toUByte(),
+        features = emptyList()
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8039u
@@ -99,11 +113,13 @@ class ConfigHeartbeatPublicationSet(
             it.size == 9
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
-                destination = params.getUShort(offset = 0),
+                destination = MeshAddress.create(
+                    address = params.getUShort(offset = 0)
+                ) as HeartbeatPublicationDestination,
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),
-                features = Features(rawValue = params.getUShort(offset = 5)).toArray(),
+                features = Features(rawValue = params.getUShort(offset = 5)).toList(),
                 networkKeyIndex = params.getUShort(offset = 7)
             )
         }
@@ -141,7 +157,7 @@ class ConfigHeartbeatPublicationSet(
                 countLog = countLog,
                 periodLog = periodLog,
                 ttl = ttl,
-                features = features.toArray(),
+                features = features.toList(),
                 networkKeyIndex = networkKey.index
             )
         }

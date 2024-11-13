@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.elements
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -42,9 +41,7 @@ internal fun ElementRoute(
     navigateToModel: (Model) -> Unit,
     onBackPressed: () -> Unit
 ) {
-
     val elementScreen = appState.currentScreen as? ElementScreen
-
     LaunchedEffect(key1 = elementScreen) {
         elementScreen?.buttons?.onEach { action ->
             when (action) {
@@ -110,7 +107,7 @@ private fun Element(
 @Composable
 private fun NameRow(name: String, onNameChanged: (String) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
@@ -122,7 +119,7 @@ private fun NameRow(name: String, onNameChanged: (String) -> Unit) {
 @Composable
 private fun AddressRow(address: UnicastAddress) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
         subtitle = "0x${address.toHexString()}",
@@ -132,7 +129,7 @@ private fun AddressRow(address: UnicastAddress) {
 @Composable
 private fun LocationRow(location: Location) {
     ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.LocationOn,
         title = stringResource(id = R.string.label_location),
         subtitle = location.toString(),
@@ -143,8 +140,8 @@ private fun LocationRow(location: Location) {
 private fun ModelRow(model: Model, navigateToModel: (Model) -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .clickable(onClick = { navigateToModel(model) }),
+            .padding(horizontal = 16.dp),
+        onClick = { navigateToModel(model) },
         imageVector = Icons.Outlined.Widgets,
         title = model.name,
         subtitle = when (model.modelId) {

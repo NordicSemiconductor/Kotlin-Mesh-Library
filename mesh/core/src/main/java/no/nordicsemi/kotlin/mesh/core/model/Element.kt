@@ -54,7 +54,8 @@ data class Element(
         get() = _models
 
     @Transient
-    internal var parentNode: Node? = null
+    var parentNode: Node? = null
+        internal set
 
     val unicastAddress: UnicastAddress
         get() = parentNode?.run {

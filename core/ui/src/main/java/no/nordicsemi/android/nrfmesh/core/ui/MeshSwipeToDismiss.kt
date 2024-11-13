@@ -41,7 +41,7 @@ fun SwipeDismissItem(
         exit = shrinkVertically()
     ) {
         SwipeToDismissBox(
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
             state = dismissState,
             backgroundContent = {
                 val color by animateColorAsState(targetValue = Color.Red, label = "dismiss")

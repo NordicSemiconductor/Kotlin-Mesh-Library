@@ -26,12 +26,8 @@ fun NavGraphBuilder.proxyFilterGraph() {
             onLocationEnabled = {
 
             },
-            onAutoConnectToggled = {
-
-            },
-            onDisconnectClicked = {
-
-            },
+            onAutoConnectToggled = viewModel::onAutoConnectToggled,
+            onDisconnectClicked = viewModel::disconnect,
             onDeviceFound = { _, _ ->
 
             }

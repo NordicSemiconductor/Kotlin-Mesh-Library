@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +19,6 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -144,8 +142,7 @@ private fun SwipeToDismissProvisioner(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                modifier = Modifier
-                    .clickable { navigateToProvisioner(provisioner.uuid) },
+                onClick = { navigateToProvisioner(provisioner.uuid) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = provisioner.name,
                 subtitle = provisioner.uuid.toString().uppercase(Locale.US)

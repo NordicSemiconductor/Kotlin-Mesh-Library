@@ -268,12 +268,10 @@ private fun NetworkKeyRow(
 ) {
     Row(
         modifier = Modifier
-            .height(IntrinsicSize.Min)
+            .height(intrinsicSize = IntrinsicSize.Min)
             .fillMaxWidth()
             .padding(end = 16.dp)
-            .clickable {
-                onNetworkKeySelected(state.networkKey, !state.isSelected)
-            },
+            .clickable { onNetworkKeySelected(state.networkKey, !state.isSelected) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         MeshTwoLineListItem(

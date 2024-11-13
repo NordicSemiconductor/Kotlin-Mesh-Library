@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -176,8 +175,7 @@ private fun SwipeToDismissScene(
         content = {
             Surface(color = MaterialTheme.colorScheme.background) {
                 ElevatedCardItem(
-                    modifier = Modifier
-                        .clickable { navigateToScene(scene.number) },
+                    onClick = { navigateToScene(scene.number) },
                     imageVector = Icons.Outlined.AutoAwesome,
                     title = scene.name,
                     subtitle = "0x${scene.number.toHexString()}"

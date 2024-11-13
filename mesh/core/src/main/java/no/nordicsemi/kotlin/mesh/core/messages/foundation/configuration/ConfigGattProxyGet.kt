@@ -12,12 +12,17 @@ class ConfigGattProxyGet : AcknowledgedConfigMessage {
     override val parameters = null
     override val responseOpCode: UInt = ConfigGattProxyStatus.opCode
 
-    override fun toString(): String = "ConfigGattProxyGet"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String =
+        "ConfigGattProxyGet(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8012u
 
-        override fun init(parameters: ByteArray?) = parameters?.let {
+        override fun init(parameters: ByteArray?) = if (parameters == null) {
             ConfigGattProxyGet()
+        } else {
+            null
         }
     }
 }

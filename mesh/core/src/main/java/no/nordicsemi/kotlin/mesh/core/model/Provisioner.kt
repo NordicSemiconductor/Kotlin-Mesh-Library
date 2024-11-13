@@ -314,7 +314,7 @@ data class Provisioner internal constructor(
     }
 
     /**
-     * Returns the maximum number of elements that can be assigned to a Node witht he given Unicast
+     * Returns the maximum number of elements that can be assigned to a Node with he given Unicast
      * address.
      *
      * This method ensures that the addresses are ina single Unicast Address range allocated to the
@@ -425,11 +425,18 @@ data class Provisioner internal constructor(
                 provisioner = this@Provisioner,
                 unicastAddress = address
             ).apply {
-                companyIdentifier = 0x00E0u //Google
-                replayProtectionCount = maxUnicastAddress
-                name = this@Provisioner.name
                 assignNetKeys(network.networkKeys)
                 assignAppKeys(network.applicationKeys)
+                network.localProvisioner?.takeIf {
+                    it == this@Provisioner
+                }?.let {
+                    add(elements = network.localElements)
+                    companyIdentifier = 0x00E0u // Google
+                    replayProtectionCount = maxUnicastAddress
+                    name = this@Provisioner.name
+                } ?: run {
+                    add(element = Element.primaryElement)
+                }
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?

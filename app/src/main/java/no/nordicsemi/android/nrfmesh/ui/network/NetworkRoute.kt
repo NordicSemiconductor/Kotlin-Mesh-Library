@@ -179,7 +179,7 @@ fun BottomNavigationBar(
                 },
                 icon = {
                     Icon(
-                        if (selectedItem == index) {
+                        imageVector = if (selectedItem == index) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon

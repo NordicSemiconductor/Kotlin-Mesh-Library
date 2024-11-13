@@ -6,6 +6,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
@@ -175,6 +176,13 @@ data class NetworkKey internal constructor(
     init {
         require(index.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
         regenerateKeyDerivatives()
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "NetworkKey(index: $index, name: $_name, key: ${_key.toHexString()}, " +
+                "key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
+                "timestamp: $timestamp)"
     }
 
     private fun updateTimeStamp() {
