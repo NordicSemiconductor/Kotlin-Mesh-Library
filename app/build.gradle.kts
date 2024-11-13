@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:nodes"))
     implementation(project(":feature:elements"))
-    implementation(project(":feature:configuration-server"))
+    implementation(project(":feature:models"))
     implementation(project(":feature:groups"))
     implementation(project(":feature:proxy"))
     implementation(project(":feature:provisioning"))
