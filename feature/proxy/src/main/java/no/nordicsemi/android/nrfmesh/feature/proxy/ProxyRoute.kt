@@ -134,9 +134,8 @@ private fun AutomaticConnectionRow(
     onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
+
 ) {
-    println("Switch: ${proxyState.autoConnect}")
-    // var test by rememberSaveable { mutableStateOf(proxyState.autoConnect) }
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)

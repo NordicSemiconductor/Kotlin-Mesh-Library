@@ -91,7 +91,6 @@ internal fun HeartBeatPublicationContent(
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    println("Publication $")
     var keyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
     var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
     var destination by remember { mutableStateOf(publication?.address) }
