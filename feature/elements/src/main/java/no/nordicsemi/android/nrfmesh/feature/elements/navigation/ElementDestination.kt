@@ -21,7 +21,7 @@ object ElementDestination : MeshNavigationDestination {
     /**
      * Creates destination route for a selected element.
      *
-     * @param address Address of the element
+     * @param address Address of the element.
      */
     @OptIn(ExperimentalStdlibApi::class)
     fun createNavigationRoute(address: Address): String =
@@ -51,6 +51,7 @@ fun NavGraphBuilder.elementsGraph(
     }
     modelGraph(
         appState = appState,
+        onNavigateToDestination = onNavigateToDestination,
         onBackPressed = onBackPressed
     )
 }

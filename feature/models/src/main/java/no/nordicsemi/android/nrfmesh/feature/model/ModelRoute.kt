@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
@@ -20,18 +19,20 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.feature.model.common.BoundApplicationKeys
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ConfigurationServerModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import java.util.UUID
 
 @Composable
 internal fun ModelRoute(
     appState: AppState,
     uiState: ModelScreenUiState,
     send: (AcknowledgedConfigMessage) -> Unit,
+    navigateToApplicationKeys: (UUID) -> Unit,
     requestNodeIdentityStates: () -> Unit,
     resetMessageState: () -> Unit,
     onBackPressed: () -> Unit
@@ -48,6 +49,7 @@ internal fun ModelRoute(
     ModelScreen(
         uiState = uiState,
         send = send,
+        navigateToApplicationKeys = navigateToApplicationKeys,
         requestNodeIdentityStates = requestNodeIdentityStates,
         resetMessageState = resetMessageState
     )
@@ -57,6 +59,7 @@ internal fun ModelRoute(
 internal fun ModelScreen(
     uiState: ModelScreenUiState,
     send: (AcknowledgedConfigMessage) -> Unit,
+    navigateToApplicationKeys: (UUID) -> Unit,
     requestNodeIdentityStates: () -> Unit,
     resetMessageState: () -> Unit
 ) {
@@ -67,6 +70,7 @@ internal fun ModelScreen(
             nodeIdentityStates = uiState.nodeIdentityStates,
             model = uiState.modelState.model,
             send = send,
+            navigateToApplicationKeys = navigateToApplicationKeys,
             requestNodeIdentityStates = requestNodeIdentityStates,
             resetMessageState = resetMessageState
         )
@@ -81,6 +85,7 @@ internal fun ModelInformation(
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
+    navigateToApplicationKeys: (UUID) -> Unit,
     requestNodeIdentityStates: () -> Unit,
     resetMessageState: () -> Unit
 ) {
@@ -89,13 +94,27 @@ internal fun ModelInformation(
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
         CommonInformation(model = model)
-        ConfigurationServerModel(
-            messageState = messageState,
-            model = model,
-            nodeIdentityStates = nodeIdentityStates,
-            send = send,
-            requestNodeIdentityStates = requestNodeIdentityStates,
-        )
+        when {
+            model.isConfigurationServer -> ConfigurationServerModel(
+                messageState = messageState,
+                model = model,
+                nodeIdentityStates = nodeIdentityStates,
+                send = send,
+                requestNodeIdentityStates = requestNodeIdentityStates,
+            )
+
+            else -> {
+                BoundApplicationKeys(
+                    model = model,
+                    messageState = messageState,
+                    send = send,
+                    navigateToApplicationKey = navigateToApplicationKeys,
+                    navigateToApplicationKeys = {
+
+                    },
+                )
+            }
+        }
     }
 
     when (messageState) {
@@ -105,19 +124,6 @@ internal fun ModelInformation(
                 showDismissButton = !messageState.didFail(),
                 onDismissRequest = resetMessageState,
             )
-        }
-
-        is Completed -> {
-            messageState.response?.let {
-                MeshMessageStatusDialog(
-                    text = when (it) {
-                        is StatusMessage -> it.message
-                        else -> stringResource(id = R.string.label_success)
-                    },
-                    showDismissButton = messageState.didFail(),
-                    onDismissRequest = resetMessageState,
-                )
-            }
         }
 
         else -> {

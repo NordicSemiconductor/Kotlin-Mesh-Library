@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
 import no.nordicsemi.android.nrfmesh.feature.model.ModelViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -18,7 +20,7 @@ object ModelDestination : MeshNavigationDestination {
     override val destination: String = "model_destination"
 
     /**
-     * Creates destination route for a network key index.
+     * Creates destination route for a given Model
      *
      * @param model Model to navigate to.
      * @return The route string.
@@ -32,6 +34,7 @@ object ModelDestination : MeshNavigationDestination {
 
     fun NavGraphBuilder.modelGraph(
         appState: AppState,
+        onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
         onBackPressed: () -> Unit
     ) {
         composable(route = ModelDestination.route) {
@@ -42,9 +45,20 @@ object ModelDestination : MeshNavigationDestination {
                 uiState = uiState,
                 send = viewModel::send,
                 requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
+                navigateToApplicationKeys = {
+                    onNavigateToDestination(
+                        ConfigAppKeysDestination,
+                        ConfigAppKeysDestination.createNavigationRoute(it)
+                    )
+                },
                 resetMessageState = viewModel::resetMessageState,
                 onBackPressed = onBackPressed
             )
         }
+        configApplicationKeysGraph(
+            appState = appState,
+            onNavigateToDestination = onNavigateToDestination,
+            onBackPressed = onBackPressed
+        )
     }
 }

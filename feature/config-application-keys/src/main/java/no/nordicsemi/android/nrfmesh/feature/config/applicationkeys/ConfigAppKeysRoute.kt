@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
 import android.content.Context
@@ -193,7 +191,7 @@ private fun BottomSheetKeys(
             onNavigationIconClick = onDismissClick,
             title = stringResource(R.string.label_add_key)
         )
-        LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
             if (uiState.keys.isEmpty()) {
                 item {
                     MeshNoItemsAvailable(
@@ -206,9 +204,10 @@ private fun BottomSheetKeys(
                             .padding(bottom = 32.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        OutlinedButton(onClick = { navigateToNetworkKeys() }) {
-                            Text(text = stringResource(R.string.action_settings))
-                        }
+                        OutlinedButton(
+                            onClick = { navigateToNetworkKeys() },
+                            content = { Text(text = stringResource(R.string.action_settings)) }
+                        )
                     }
                 }
             } else {
@@ -259,6 +258,7 @@ private fun ApplicationKeysInfo(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ApplicationKeys(
     context: Context,
@@ -298,7 +298,7 @@ private fun ApplicationKeys(
 }
 
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     key: ApplicationKey,

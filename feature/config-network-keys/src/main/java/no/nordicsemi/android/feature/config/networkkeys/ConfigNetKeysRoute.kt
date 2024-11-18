@@ -41,13 +41,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreen
-import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.EmptyNetworkKeysContent
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -56,7 +56,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
 import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.messages.StatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
@@ -142,11 +141,24 @@ private fun ConfigNetKeysScreen(
         }
     }
     if (showBottomSheet) {
-        BottomSheetKeys(
-            uiState = uiState,
+        BottomSheetNetworkKeys(
+            title = stringResource(R.string.label_add_key),
+            keys = uiState.keys,
             onAddKeyClicked = onAddKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
-            onDismissClick = dismissBottomSheet
+            onDismissClick = dismissBottomSheet,
+            emptyKeysContent = {
+                EmptyNetworkKeysContent(
+                    noItemsAvailableContent = {
+                        MeshNoItemsAvailable(
+                            imageVector = Icons.Outlined.VpnKey,
+                            title = stringResource(R.string.label_no_keys_added)
+                        )
+                    },
+                    onClickText = stringResource(R.string.action_settings),
+                    onClick = navigateToNetworkKeys
+                )
+            }
         )
     }
 
@@ -157,19 +169,6 @@ private fun ConfigNetKeysScreen(
                 showDismissButton = !uiState.messageState.didFail(),
                 onDismissRequest = resetMessageState,
             )
-        }
-
-        is Completed -> {
-            uiState.messageState.response?.let {
-                MeshMessageStatusDialog(
-                    text = when (it) {
-                        is StatusMessage -> it.message
-                        else -> stringResource(id = R.string.label_success)
-                    },
-                    showDismissButton = uiState.messageState.didFail(),
-                    onDismissRequest = resetMessageState,
-                )
-            }
         }
 
         else -> {
@@ -192,7 +191,7 @@ private fun BottomSheetKeys(
             onNavigationIconClick = onDismissClick,
             title = stringResource(R.string.label_add_key)
         )
-        LazyColumn(verticalArrangement = Arrangement.SpaceAround) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
             if (uiState.keys.isEmpty()) {
                 item {
                     MeshNoItemsAvailable(
