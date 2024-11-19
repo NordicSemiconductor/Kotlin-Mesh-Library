@@ -14,15 +14,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
@@ -33,11 +36,13 @@ import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetA
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import java.lang.IllegalStateException
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
@@ -46,6 +51,8 @@ internal fun BoundApplicationKeys(
     navigateToApplicationKey: (UUID) -> Unit,
     navigateToApplicationKeys: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val keys by remember {
         mutableStateOf(model.parentElement?.parentNode?.applicationKeys ?: emptyList())
@@ -76,13 +83,19 @@ internal fun BoundApplicationKeys(
 
     if (showBottomSheet) {
         BottomSheetApplicationKeys(
-            title = stringResource(R.string.label_add_key),
+            bottomSheetState = bottomSheetState,
+            title = stringResource(R.string.label_bind_key),
             keys = keys,
-            onAddKeyClicked = {
-                // navigateToApplicationKey(it.uuid)
+            onAppKeyClicked = {
+                send(ConfigModelAppBind(model = model, applicationKey = it))
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    if(showBottomSheet) showBottomSheet = false
+                }
             },
             navigateToNetworkKeys = navigateToApplicationKeys,
-            onDismissClick = { showBottomSheet = !showBottomSheet},
+            onDismissClick = { showBottomSheet = !showBottomSheet },
             emptyKeysContent = {
                 EmptyNetworkKeysContent(
                     noItemsAvailableContent = {
