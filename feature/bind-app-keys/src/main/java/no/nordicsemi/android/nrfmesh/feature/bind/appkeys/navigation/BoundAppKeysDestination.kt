@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.model.navigation
+package no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -8,20 +8,21 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination.bindAppKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysViewModel
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
-import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
-import no.nordicsemi.android.nrfmesh.feature.model.ModelViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
-object ModelDestination : MeshNavigationDestination {
+object BoundAppKeysDestination : MeshNavigationDestination {
     const val MODEL_ID = "MODEL_ID"
-    override val route: String = "model_route/{$ARG}/{$MODEL_ID}"
-    override val destination: String = "model_destination"
+    override val route: String
+        get() = "bind_app_keys_route/{$ARG}/{$MODEL_ID}"
+    override val destination: String = "bind_app_keys_destination"
+
 
     /**
-     * Creates destination route for a given Model
+     * Creates destination route for a network key index.
      *
      * @param model Model to navigate to.
      * @return The route string.
@@ -30,37 +31,36 @@ object ModelDestination : MeshNavigationDestination {
     fun createNavigationRoute(model: Model): String {
         val address = model.parentElement?.unicastAddress
             ?: throw IllegalStateException("Parent element address is null")
-        return "model_route/${address.toHexString()}/${model.modelId.toHex()}"
+        return "bind_app_keys_route/${address.toHexString()}/${model.modelId.toHex()}"
     }
 
-    fun NavGraphBuilder.modelGraph(
+    /**
+     * Creates destination route for publication configuration of a given model.
+     *
+     * @param appState      App state.
+     * @param onBackPressed On back pressed callback.
+     */
+    fun NavGraphBuilder.bindAppKeysGraph(
         appState: AppState,
         onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
         onBackPressed: () -> Unit
     ) {
-        composable(route = ModelDestination.route) {
-            val viewModel = hiltViewModel<ModelViewModel>()
+        composable(route = BoundAppKeysDestination.route) {
+            val viewModel = hiltViewModel<BindAppKeysViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            ModelRoute(
+            BindAppKeysRoute(
                 appState = appState,
                 uiState = uiState,
                 send = viewModel::send,
-                navigateToBoundAppKeys = {
+                navigateToConfigApplicationKeys = {
                     onNavigateToDestination(
-                        BoundAppKeysDestination,
-                        BoundAppKeysDestination.createNavigationRoute(it)
+                        ConfigAppKeysDestination,
+                        ConfigAppKeysDestination.createNavigationRoute(it)
                     )
                 },
-                requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
-                resetMessageState = viewModel::resetMessageState,
                 onBackPressed = onBackPressed
             )
         }
-        bindAppKeysGraph(
-            appState = appState,
-            onNavigateToDestination = onNavigateToDestination,
-            onBackPressed = onBackPressed
-        )
         configApplicationKeysGraph(
             appState = appState,
             onNavigateToDestination = onNavigateToDestination,

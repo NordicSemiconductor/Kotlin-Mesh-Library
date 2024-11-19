@@ -12,11 +12,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
-import no.nordicsemi.android.nrfmesh.core.ui.EmptyNetworkKeysContent
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 
@@ -28,7 +26,6 @@ fun BottomSheetApplicationKeys(
     title: String,
     keys: List<ApplicationKey>,
     onAppKeyClicked: (ApplicationKey) -> Unit,
-    navigateToNetworkKeys: () -> Unit,
     onDismissClick: () -> Unit,
     emptyKeysContent: @Composable () -> Unit
 ) {
@@ -36,22 +33,11 @@ fun BottomSheetApplicationKeys(
         sheetState = bottomSheetState,
         onDismissRequest = onDismissClick
     ) {
-        BottomSheetTopAppBar(
-            navigationIcon = Icons.Outlined.Close,
-            onNavigationIconClick = onDismissClick,
-            title = title
-        )
+        BottomSheetTopAppBar(title = title)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
-            if (keys.isEmpty()) {
-                item {
-                    EmptyNetworkKeysContent(
-                        noItemsAvailableContent = emptyKeysContent,
-                        onClickText = stringResource(R.string.action_settings),
-                        onClick = { navigateToNetworkKeys() }
-                    )
-                }
-            } else {
-                items(items = keys) { key ->
+            when(keys.isEmpty()) {
+                true -> item { emptyKeysContent() }
+                else -> items(items = keys) { key ->
                     ElevatedCardItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {

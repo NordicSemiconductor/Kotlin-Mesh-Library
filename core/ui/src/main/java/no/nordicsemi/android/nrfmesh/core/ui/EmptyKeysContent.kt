@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EmptyNetworkKeysContent(
+fun EmptyKeysContent(
     noItemsAvailableContent: @Composable () -> Unit,
     onClickText: String,
     onClick: () -> Unit

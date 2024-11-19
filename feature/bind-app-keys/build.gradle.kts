@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.configurationserver"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.bind.appkeys"
 }
 
 dependencies {
@@ -26,8 +26,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:bind-app-keys"))
-    implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:config-application-keys"))
+    implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":mesh:core"))
 }

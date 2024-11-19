@@ -8,7 +8,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
-class ConfigurationServerModelScreen(
+class ModelScreen(
     override val title: String = "Model",
 ) : Screen {
     override val route = ModelDestination.route

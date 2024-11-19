@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.core.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,7 +12,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MeshNoItemsAvailable(imageVector: ImageVector, title: String, rationale: String = "") {
+fun MeshNoItemsAvailable(
+    imageVector: ImageVector,
+    title: String,
+    rationale: String = "",
+    onClickText: String? = null,
+    onClick: (() -> Unit)? = null
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -31,5 +38,18 @@ fun MeshNoItemsAvailable(imageVector: ImageVector, title: String, rationale: Str
             modifier = Modifier.padding(all = 16.dp),
             text = rationale
         )
+        if (onClickText != null && onClick != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                OutlinedButton(
+                    onClick = onClick,
+                    content = { Text(text = onClickText) }
+                )
+            }
+        }
     }
 }

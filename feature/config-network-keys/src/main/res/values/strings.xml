@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="label_no_keys_added">No network keys are available to add to this Node.\nGo to
-        settings and add a key to the network.</string>
+    <string name="label_no_keys_available">No Network Keys available</string>
+    <string name="label_no_keys_available_rationale">Go to settings and add a key to the network.</string>
+    <string name="label_no_keys_added">Go to settings and add a Network Key to the network configuration.</string>
     <string name="error_cannot_delete_primary_network_key">Cannot delete the primary key.</string>
     <string name="label_network_key_deleted">Network key deleted.</string>
     <string name="action_undo">Undo</string>
@@ -14,4 +15,5 @@
     <string name="title_message_status">Message Status</string>
     <string name="unknown_error">Unknown error</string>
     <string name="label_success">success</string>
+    <string name="label_settings">Settings</string>
 </resources>

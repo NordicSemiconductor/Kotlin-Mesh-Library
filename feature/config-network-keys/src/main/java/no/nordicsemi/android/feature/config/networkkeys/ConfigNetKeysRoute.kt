@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,17 +12,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,9 +41,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
-import no.nordicsemi.android.nrfmesh.core.ui.EmptyNetworkKeysContent
 import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -97,6 +91,7 @@ internal fun ConfigNetKeysRoute(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ConfigNetKeysScreen(
     uiState: NetKeysScreenUiState,
@@ -110,6 +105,7 @@ private fun ConfigNetKeysScreen(
     resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     Column {
         AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -142,21 +138,18 @@ private fun ConfigNetKeysScreen(
     }
     if (showBottomSheet) {
         BottomSheetNetworkKeys(
+            bottomSheetState = bottomSheetState,
             title = stringResource(R.string.label_add_key),
             keys = uiState.keys,
-            onAddKeyClicked = onAddKeyClicked,
-            navigateToNetworkKeys = navigateToNetworkKeys,
+            onNetKeyClicked = onAddKeyClicked,
             onDismissClick = dismissBottomSheet,
             emptyKeysContent = {
-                EmptyNetworkKeysContent(
-                    noItemsAvailableContent = {
-                        MeshNoItemsAvailable(
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = stringResource(R.string.label_no_keys_added)
-                        )
-                    },
-                    onClickText = stringResource(R.string.action_settings),
-                    onClick = navigateToNetworkKeys
+                MeshNoItemsAvailable(
+                    imageVector = Icons.Outlined.VpnKey,
+                    title = stringResource(R.string.label_no_keys_available),
+                    rationale = stringResource(R.string.label_no_keys_available_rationale),
+                    onClickText = stringResource(R.string.label_settings),
+                    onClick = { navigateToNetworkKeys() }
                 )
             }
         )
@@ -173,56 +166,6 @@ private fun ConfigNetKeysScreen(
 
         else -> {
 
-        }
-    }
-}
-
-@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun BottomSheetKeys(
-    uiState: NetKeysScreenUiState,
-    onAddKeyClicked: (NetworkKey) -> Unit,
-    navigateToNetworkKeys: () -> Unit,
-    onDismissClick: () -> Unit
-) {
-    ModalBottomSheet(onDismissRequest = onDismissClick) {
-        BottomSheetTopAppBar(
-            navigationIcon = Icons.Outlined.Close,
-            onNavigationIconClick = onDismissClick,
-            title = stringResource(R.string.label_add_key)
-        )
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
-            if (uiState.keys.isEmpty()) {
-                item {
-                    MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = stringResource(R.string.label_no_keys_added)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 32.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        OutlinedButton(onClick = { navigateToNetworkKeys() }) {
-                            Text(text = stringResource(R.string.action_settings))
-                        }
-                    }
-                }
-            } else {
-                items(items = uiState.keys) { key ->
-                    ElevatedCardItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        onClick = {
-                            onDismissClick()
-                            onAddKeyClicked(key)
-                        },
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = key.name,
-                        subtitle = key.key.toHexString()
-                    )
-                }
-            }
         }
     }
 }
