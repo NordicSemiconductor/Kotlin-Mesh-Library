@@ -34,7 +34,10 @@ class ConfigModelAppBind(
 
     override val parameters = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             encodeAppKeyIndex(applicationKeyIndex = applicationKeyIndex) +
-            modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+            when(modelId) {
+                is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+            }
 
     override val modelIdentifier: UShort = when {
         modelId.isBluetoothSigAssigned -> (modelId as SigModelId).modelIdentifier

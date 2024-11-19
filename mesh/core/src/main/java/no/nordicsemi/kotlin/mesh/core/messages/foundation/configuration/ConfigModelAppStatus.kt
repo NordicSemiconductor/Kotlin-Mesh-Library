@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyAppKeyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage.Companion.decodeAppKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -98,12 +99,9 @@ class ConfigModelAppStatus(
             ) ?: return null
             ConfigModelAppStatus(
                 status = status,
-                applicationKeyIndex = ConfigAppKeyMessage.decodeAppKeyIndex(
-                    data = params,
-                    offset = 1
-                ),
+                applicationKeyIndex = decodeAppKeyIndex(data = params, offset = 1),
                 elementAddress = UnicastAddress(
-                    params.getUShort(
+                    address = params.getUShort(
                         offset = 1,
                         order = ByteOrder.LITTLE_ENDIAN
                     )
@@ -111,14 +109,14 @@ class ConfigModelAppStatus(
                 modelId = when (params.size) {
                     9 -> VendorModelId(
                         id = params.getUInt(
-                            offset = 3,
+                            offset = 5,
                             order = ByteOrder.LITTLE_ENDIAN
                         )
                     )
 
                     else -> SigModelId(
                         modelIdentifier = params.getUShort(
-                            offset = 3,
+                            offset = 5,
                             order = ByteOrder.LITTLE_ENDIAN
                         )
                     )

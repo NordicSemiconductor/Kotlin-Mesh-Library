@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFr
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
@@ -66,6 +67,7 @@ internal class ConfigurationClientHandler(
         ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
         ConfigRelayStatus.opCode to ConfigRelayStatus,
+        ConfigModelAppStatus.opCode to ConfigModelAppStatus,
         ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
         ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
         ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
@@ -208,6 +210,10 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigModelPublicationStatus -> {
+                // TODO
+            }
+
+            is ConfigModelAppStatus -> {
                 // TODO
             }
 
