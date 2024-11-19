@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFr
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
@@ -39,6 +40,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
+import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -212,9 +214,23 @@ internal class ConfigurationClientHandler(
             is ConfigModelPublicationStatus -> {
                 // TODO
             }
-
             is ConfigModelAppStatus -> {
-                // TODO
+                if (response.isSuccess) {
+                    node(address = source)
+                        ?.element(address = response.elementAddress)
+                        ?.models
+                        ?.model(modelId = response.modelId)?.let {
+                            when (request) {
+                                is ConfigModelAppBind -> {
+                                    it.bind(index = request.applicationKeyIndex)
+                                }
+
+                                else -> {
+
+                                }
+                            }
+                        }
+                }
             }
 
             is ConfigNodeResetStatus -> {
