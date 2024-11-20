@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,11 +26,14 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import java.util.UUID
@@ -88,7 +92,7 @@ private fun BindAppKeysScreen(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BoundKeys(
     model: Model,
@@ -117,13 +121,7 @@ private fun BoundKeys(
             }
         } else {
             items(items = boundAppKeys) { key ->
-                ElevatedCardItem(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onClick = onBottomSheetDismissed,
-                    imageVector = Icons.Outlined.VpnKey,
-                    title = key.name,
-                    subtitle = key.key.toHexString()
-                )
+                SwipeToUnbindKey(model = model, key = key, send = send)
             }
         }
     }
@@ -136,7 +134,7 @@ private fun BoundKeys(
                 scope.launch {
                     bottomSheetState.hide()
                 }.invokeOnCompletion {
-                    if (showBottomSheet) {
+                    if (!bottomSheetState.isVisible) {
                         onBottomSheetDismissed()
                     }
                 }
@@ -157,5 +155,29 @@ private fun BoundKeys(
                 )
             }
         )
+    }
+}
+
+@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToUnbindKey(
+    model: Model,
+    key: ApplicationKey,
+    send: (AcknowledgedConfigMessage) -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { it * 0.5f })
+    SwipeDismissItem(
+        dismissState = dismissState,
+        content =  {
+            ElevatedCardItem(
+                imageVector = Icons.Outlined.VpnKey,
+                title = key.name,
+                subtitle = key.key.toHexString()
+            )
+        }
+    )
+
+    if (dismissState.isDismissed()) {
+        send(ConfigModelAppUnbind(model = model, applicationKey = key))
     }
 }
