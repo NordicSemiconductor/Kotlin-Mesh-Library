@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -186,11 +185,7 @@ private fun BottomSheetKeys(
     onDismissClick: () -> Unit
 ) {
     ModalBottomSheet(onDismissRequest = onDismissClick) {
-        BottomSheetTopAppBar(
-            navigationIcon = Icons.Outlined.Close,
-            onNavigationIconClick = onDismissClick,
-            title = stringResource(R.string.label_add_key)
-        )
+        BottomSheetTopAppBar(title = stringResource(R.string.label_add_key))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
             if (uiState.keys.isEmpty()) {
                 item {

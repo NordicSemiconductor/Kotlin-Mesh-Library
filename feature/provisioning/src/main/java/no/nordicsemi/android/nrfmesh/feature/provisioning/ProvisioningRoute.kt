@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircleOutline
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
@@ -149,11 +148,6 @@ private fun ProvisionerScreen(
             sheetState = capabilitiesSheetState
         ) {
             BottomSheetTopAppBar(
-                navigationIcon = Icons.Rounded.Close,
-                onNavigationIconClick = {
-                    scope.launch { capabilitiesSheetState.hide() }
-                    disconnect()
-                },
                 title = stringResource(R.string.label_device_information),
                 titleStyle = MaterialTheme.typography.titleLarge,
                 actions = {
