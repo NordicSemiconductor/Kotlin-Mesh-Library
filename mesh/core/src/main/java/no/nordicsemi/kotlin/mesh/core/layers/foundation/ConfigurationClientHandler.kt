@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
@@ -221,10 +222,11 @@ internal class ConfigurationClientHandler(
                         ?.models
                         ?.model(modelId = response.modelId)?.let {
                             when (request) {
-                                is ConfigModelAppBind -> {
+                                is ConfigModelAppBind ->
                                     it.bind(index = request.applicationKeyIndex)
-                                }
 
+                                is ConfigModelAppUnbind ->
+                                    it.unbind(index = request.applicationKeyIndex)
                                 else -> {
 
                                 }
