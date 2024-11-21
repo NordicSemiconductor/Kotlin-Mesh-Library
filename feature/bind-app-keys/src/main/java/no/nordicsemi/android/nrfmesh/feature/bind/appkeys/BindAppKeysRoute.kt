@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
@@ -165,10 +168,20 @@ private fun SwipeToUnbindKey(
     key: ApplicationKey,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { it * 0.5f })
+    // We need to check if the model is using the key that is being unbound.
+
+    var displayWarningDialog by rememberSaveable { mutableStateOf(false) }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            val flag = model.publish?.index != key.index
+            displayWarningDialog = flag
+            !flag
+        },
+        positionalThreshold = { it * 0.5f }
+    )
     SwipeDismissItem(
         dismissState = dismissState,
-        content =  {
+        content = {
             ElevatedCardItem(
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
@@ -179,5 +192,19 @@ private fun SwipeToUnbindKey(
 
     if (dismissState.isDismissed()) {
         send(ConfigModelAppUnbind(model = model, applicationKey = key))
+    }
+    if (displayWarningDialog) {
+        MeshAlertDialog(
+            onDismissRequest = {
+                send(ConfigModelAppUnbind(model = model, applicationKey = key))
+            },
+            icon = Icons.Outlined.Warning,
+            iconColor = MaterialTheme.colorScheme.error,
+            text = stringResource(R.string.warning),
+            title = stringResource(R.string.warning_unbind_rationale),
+            content = {
+
+            }
+        )
     }
 }
