@@ -423,7 +423,7 @@ data class Node internal constructor(
                         ?.let { _appKeys.remove(it) }
                 }
             // Remove the heartbeat publication, if set to use the removed network key.
-            if(heartbeatPublication?.index == index) heartbeatPublication = null
+            if (heartbeatPublication?.index == index) heartbeatPublication = null
             network?.updateTimestamp()
         }
     }
@@ -523,6 +523,13 @@ data class Node internal constructor(
     internal fun removeAppKey(index: KeyIndex) {
         _appKeys.get(index)?.let { appKey ->
             _appKeys.remove(appKey)
+            // Remove all bindings to the application key. Removing any app key bindings will also
+            // remove any publications using the same app key.
+            elements
+                .flatMap { it.models }
+                .forEach { model ->
+                    model.unbind(index)
+                }
             network?.updateTimestamp()
         }
     }
