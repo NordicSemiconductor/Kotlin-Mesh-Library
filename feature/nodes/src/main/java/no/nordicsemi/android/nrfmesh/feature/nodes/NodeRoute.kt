@@ -442,10 +442,11 @@ private fun ProxyStateRow(
         }
     }
     if (showProxyStateDialog) {
-        MeshAlertDialog(onDismissRequest = {
-            showProxyStateDialog = !showProxyStateDialog
-            enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-        },
+        MeshAlertDialog(
+            onDismissRequest = {
+                showProxyStateDialog = !showProxyStateDialog
+                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+            },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
@@ -458,7 +459,8 @@ private fun ProxyStateRow(
             onDismissClick = {
                 showProxyStateDialog = !showProxyStateDialog
                 enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
-            })
+            }
+        )
     }
 }
 
@@ -503,7 +505,8 @@ private fun ResetRow(onResetClicked: () -> Unit) {
         }
     }
     if (showResetDialog) {
-        MeshAlertDialog(onDismissRequest = { showResetDialog = !showResetDialog },
+        MeshAlertDialog(
+            onDismissRequest = { showResetDialog = !showResetDialog },
             icon = Icons.Outlined.Recycling,
             title = stringResource(R.string.label_reset_node),
             text = stringResource(R.string.label_are_you_sure_rationale),

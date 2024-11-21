@@ -422,6 +422,8 @@ data class Node internal constructor(
                         .get(boundAppKey.index)
                         ?.let { _appKeys.remove(it) }
                 }
+            // Remove the heartbeat publication, if set to use the removed network key.
+            if(heartbeatPublication?.index == index) heartbeatPublication = null
             network?.updateTimestamp()
         }
     }

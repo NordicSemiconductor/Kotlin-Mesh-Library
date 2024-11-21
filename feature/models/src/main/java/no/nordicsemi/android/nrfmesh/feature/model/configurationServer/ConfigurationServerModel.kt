@@ -264,7 +264,7 @@ private fun NetworkTransmit(
                 enabled = !messageState.isInProgress(),
                 onClick = {
                     send(ConfigNetworkTransmitGet())
-                          },
+                },
                 content = { Text(text = stringResource(R.string.label_get_state)) }
             )
             OutlinedButton(
