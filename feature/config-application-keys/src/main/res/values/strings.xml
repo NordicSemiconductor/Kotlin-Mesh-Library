@@ -13,4 +13,8 @@
     <string name="title_message_status">Message Status</string>
     <string name="unknown_error">Unknown error</string>
     <string name="label_success">Success</string>
+    <string name="warning">Warning</string>
+    <string name="warning_key_is_in_use">This application key is currently bound and may be used by publications in this node. Do you want to continue?</string>
+    <string name="label_ok">OK</string>
+    <string name="label_cancel">Cancel</string>
 </resources>
