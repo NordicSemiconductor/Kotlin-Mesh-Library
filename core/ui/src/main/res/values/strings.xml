@@ -22,6 +22,8 @@
     <string name="label_models">Models:</string>
     <string name="title_message_status">Message Status</string>
     <string name="action_cancel">Cancel</string>
-    <string name="action_ok">Ok</string>
+    <string name="action_ok">OK</string>
+    <string name="label_no_keys_added">No network keys are available to add to this Node.\nGo to
+        settings and add a key to the network.</string>
 
 </resources>

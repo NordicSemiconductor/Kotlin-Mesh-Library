@@ -256,6 +256,31 @@ interface ConfigNetKeyMessage : ConfigMessage {
  */
 interface ConfigAppKeyMessage : ConfigMessage {
     val applicationKeyIndex: KeyIndex
+
+    fun encodeAppKeyIndex(applicationKeyIndex: KeyIndex): ByteArray =
+        encodeAppKeyIndex(keyIndex = applicationKeyIndex)
+
+    fun decodeAppKeyIndex(data: ByteArray, offset: Int): KeyIndex =
+        decodeAppKeyIndex(data = data, offset = offset)
+
+    companion object {
+
+        /**
+         * Encodes the App Key Index into a 2 octet byte array
+         */
+        fun encodeAppKeyIndex(keyIndex: KeyIndex): ByteArray =
+            encode(indexes = arrayOf(keyIndex))
+
+        /**
+         * Decodes the Application Key Index from the given dat at the given offset.
+         *
+         * @param data       Data from where the indexes should be read.
+         * @param offset     Offset from where to read the indexes.
+         * @return Decoded Key Indexes.
+         */
+        fun decodeAppKeyIndex(data: ByteArray, offset: Int): KeyIndex =
+            decode(limit = 1, data = data, offset = offset).first()
+    }
 }
 
 /**
@@ -340,6 +365,11 @@ interface ConfigAnyModelMessage : ConfigModelMessage {
         get() = companyIdentifier?.let { VendorModelId(modelIdentifier, it) }
             ?: SigModelId(modelIdentifier)
 }
+
+/**
+ * A base interface for a app key bind model message to a model.
+ */
+interface ConfigAnyAppKeyModelMessage : ConfigAnyModelMessage, ConfigAppKeyMessage
 
 /**
  * A base interface for a configuration messages sent to a Vendor Model.

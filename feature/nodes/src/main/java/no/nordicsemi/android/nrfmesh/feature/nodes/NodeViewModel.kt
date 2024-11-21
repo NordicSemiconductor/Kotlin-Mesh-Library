@@ -109,7 +109,6 @@ internal class NodeViewModel @Inject internal constructor(
      * @param exclude True to exclude the node, false to not exclude from the network.
      */
     internal fun onExcluded(exclude: Boolean) {
-        // println("Excluded: $exclude")
         selectedNode.excluded = exclude
         viewModelScope.launch {
             repository.save()

@@ -200,12 +200,23 @@ data class Model internal constructor(
      * @param index Application key index.
      * @return true if the key index is bound or false if it's already bound.
      */
-    internal fun bind(index: KeyIndex) = when {
-        bind.contains(element = index) -> false
-        else -> {
-            _bind.add(index)
-            true
+    internal fun bind(index: KeyIndex) = when(bind.contains(element = index)) {
+        true -> false
+        else -> _bind.add(index)
+    }
+
+    /**
+     * Unbinds the given application key index from a model and clears any publication that was using
+     * the same key.
+     *
+     * @param index Application key index.
+     * @return true if the key index is unbound or false if it's already unbound.
+     */
+    internal fun unbind(index: KeyIndex) = when(bind.contains(element = index)) {
+        true -> _bind.remove(index).also {
+            if (publish?.index == index) _publish = null
         }
+        else -> false
     }
 
     /**

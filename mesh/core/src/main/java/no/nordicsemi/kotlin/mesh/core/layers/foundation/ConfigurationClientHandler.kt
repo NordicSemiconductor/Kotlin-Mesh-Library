@@ -17,6 +17,9 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFr
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
@@ -38,6 +41,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
+import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -66,6 +70,7 @@ internal class ConfigurationClientHandler(
         ConfigFriendStatus.opCode to ConfigFriendStatus,
         ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
         ConfigRelayStatus.opCode to ConfigRelayStatus,
+        ConfigModelAppStatus.opCode to ConfigModelAppStatus,
         ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
         ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
         ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
@@ -135,9 +140,7 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetKeyList -> node(address = source)?.apply {
-                setNetKeys(
-                    netKeyIndexes = response.networkKeyIndexes.toList()
-                )
+                setNetKeys(netKeyIndexes = response.networkKeyIndexes.toList())
             }
 
             // Application Keys Management
@@ -180,7 +183,6 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
-                println("Network Transmit Status: $response")
                 networkTransmit = NetworkTransmit(response)
             }
 
@@ -210,10 +212,25 @@ internal class ConfigurationClientHandler(
             is ConfigModelPublicationStatus -> {
                 // TODO
             }
+            is ConfigModelAppStatus -> if (response.isSuccess) {
+                node(address = source)
+                    ?.element(address = response.elementAddress)
+                    ?.models
+                    ?.model(modelId = response.modelId)?.let {
+                        when (request) {
+                            is ConfigModelAppBind ->
+                                it.bind(index = request.applicationKeyIndex)
 
-            is ConfigNodeResetStatus -> {
-                node(address = source)?.let { remove(it) }
+                            is ConfigModelAppUnbind ->
+                                it.unbind(index = request.applicationKeyIndex)
+                            else -> {
+
+                            }
+                        }
+                    }
             }
+
+            is ConfigNodeResetStatus -> node(address = source)?.let { remove(it) }
 
             else -> {}
         }

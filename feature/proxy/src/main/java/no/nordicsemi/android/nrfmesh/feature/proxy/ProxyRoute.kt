@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.content.Context
@@ -10,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -21,15 +18,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
@@ -43,6 +37,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyScreenUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProxyRoute(
     uiState: ProxyScreenUiState,
@@ -72,7 +67,6 @@ private fun ProxyFilterScreen(
     onDisconnectClicked: () -> Unit,
     onDeviceFound: (Context, BleScanResults) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
     val proxyScannerSheetState = rememberModalBottomSheetState()
     RequireBluetooth(onChanged = onBluetoothEnabled) {
@@ -91,14 +85,6 @@ private fun ProxyFilterScreen(
                     sheetState = proxyScannerSheetState
                 ) {
                     BottomSheetTopAppBar(
-                        navigationIcon = Icons.Rounded.Close,
-                        onNavigationIconClick = {
-                            scope.launch {
-                                proxyScannerSheetState.hide()
-                                delay(1000)
-                                showProxyScannerSheet = false
-                            }
-                        },
                         title = "Proxies",
                         titleStyle = MaterialTheme.typography.titleLarge
                     )
@@ -134,9 +120,8 @@ private fun AutomaticConnectionRow(
     onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
     onDisconnectClicked: () -> Unit
+
 ) {
-    println("Switch: ${proxyState.autoConnect}")
-    // var test by rememberSaveable { mutableStateOf(proxyState.autoConnect) }
     ElevatedCardItem(
         modifier = Modifier
             .padding(top = 8.dp)

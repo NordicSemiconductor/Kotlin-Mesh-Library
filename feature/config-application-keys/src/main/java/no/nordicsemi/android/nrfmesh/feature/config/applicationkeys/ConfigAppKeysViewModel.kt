@@ -53,6 +53,7 @@ class ConfigAppKeysViewModel @Inject constructor(
                 AppKeysState.Success(appKeys = node.applicationKeys)
             } ?: AppKeysState.Error(Throwable("Node not found"))
             _uiState.value = _uiState.value.copy(
+                node = selectedNode,
                 appKeysState = appKeysState,
                 keys = it.applicationKeys.filter { applicationKey ->
                     applicationKey !in selectedNode.applicationKeys
@@ -127,6 +128,7 @@ sealed interface AppKeysState {
 
 data class AppKeysScreenUiState internal constructor(
     val appKeysState: AppKeysState = AppKeysState.Loading,
+    val node: Node? = null,
     val keys: List<ApplicationKey> = emptyList(),
     val showProgress: Boolean = false,
     val isRefreshing: Boolean = false,
