@@ -185,7 +185,6 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
-                println("Network Transmit Status: $response")
                 networkTransmit = NetworkTransmit(response)
             }
 
@@ -215,29 +214,25 @@ internal class ConfigurationClientHandler(
             is ConfigModelPublicationStatus -> {
                 // TODO
             }
-            is ConfigModelAppStatus -> {
-                if (response.isSuccess) {
-                    node(address = source)
-                        ?.element(address = response.elementAddress)
-                        ?.models
-                        ?.model(modelId = response.modelId)?.let {
-                            when (request) {
-                                is ConfigModelAppBind ->
-                                    it.bind(index = request.applicationKeyIndex)
+            is ConfigModelAppStatus -> if (response.isSuccess) {
+                node(address = source)
+                    ?.element(address = response.elementAddress)
+                    ?.models
+                    ?.model(modelId = response.modelId)?.let {
+                        when (request) {
+                            is ConfigModelAppBind ->
+                                it.bind(index = request.applicationKeyIndex)
 
-                                is ConfigModelAppUnbind ->
-                                    it.unbind(index = request.applicationKeyIndex)
-                                else -> {
+                            is ConfigModelAppUnbind ->
+                                it.unbind(index = request.applicationKeyIndex)
+                            else -> {
 
-                                }
                             }
                         }
-                }
+                    }
             }
 
-            is ConfigNodeResetStatus -> {
-                node(address = source)?.let { remove(it) }
-            }
+            is ConfigNodeResetStatus -> node(address = source)?.let { remove(it) }
 
             else -> {}
         }
