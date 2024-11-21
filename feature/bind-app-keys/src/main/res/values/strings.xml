@@ -9,5 +9,8 @@
     <string name="label_bind_an_app_key_rationale">Bind an Application Key to be able to send application layer messages</string>
     <string name="label_add_key">Add Key</string>
     <string name="warning">Warning</string>
-    <string name="warning_unbind_rationale">This key is currently used by publication. Unbinding will clear any publications.</string>
+    <string name="warning_unbind_rationale">This key is currently used by publication. Unbinding will clear any publications. Do you want to continue?</string>
+    <string name="label_unbind">Unbind</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="label_ok">OK</string>
 </resources>

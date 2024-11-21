@@ -1,6 +1,7 @@
 package no.nordicsemi.android.feature.config.networkkeys
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,7 +31,12 @@ fun BottomSheetNetworkKeys(
 ) {
     ModalBottomSheet(sheetState = bottomSheetState, onDismissRequest = onDismissClick) {
         BottomSheetTopAppBar(title = title)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
             when (keys.isEmpty()) {
                 true -> item { emptyKeysContent() }
                 else -> items(items = keys) { key ->

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,7 +31,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
 import no.nordicsemi.kotlin.data.toHexString
@@ -170,12 +170,14 @@ private fun SwipeToUnbindKey(
 ) {
     // We need to check if the model is using the key that is being unbound.
 
+    // Hold the current state from the Swipe to Dismiss composable
+    var isKeyInUse by remember { mutableStateOf(false) }
     var displayWarningDialog by rememberSaveable { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            val flag = model.publish?.index != key.index
-            displayWarningDialog = flag
-            !flag
+            isKeyInUse = model.publish?.index != key.index
+            displayWarningDialog = isKeyInUse
+            !isKeyInUse
         },
         positionalThreshold = { it * 0.5f }
     )
@@ -189,21 +191,19 @@ private fun SwipeToUnbindKey(
             )
         }
     )
-
-    if (dismissState.isDismissed()) {
-        send(ConfigModelAppUnbind(model = model, applicationKey = key))
-    }
     if (displayWarningDialog) {
         MeshAlertDialog(
-            onDismissRequest = {
-                send(ConfigModelAppUnbind(model = model, applicationKey = key))
-            },
+            onDismissRequest = { displayWarningDialog = !displayWarningDialog },
             icon = Icons.Outlined.Warning,
             iconColor = MaterialTheme.colorScheme.error,
-            text = stringResource(R.string.warning),
-            title = stringResource(R.string.warning_unbind_rationale),
-            content = {
-
+            title = stringResource(R.string.warning),
+            text = stringResource(R.string.warning_unbind_rationale),
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismissClick = { displayWarningDialog = !displayWarningDialog },
+            confirmButtonText = stringResource(R.string.label_ok),
+            onConfirmClick = {
+                displayWarningDialog = !displayWarningDialog
+                send(ConfigModelAppUnbind(model = model, applicationKey = key))
             }
         )
     }

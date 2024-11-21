@@ -158,7 +158,12 @@ private fun BottomSheetKeys(
 ) {
     ModalBottomSheet(onDismissRequest = onDismissClick) {
         BottomSheetTopAppBar(title = stringResource(R.string.label_add_key))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
             if (uiState.keys.isEmpty()) {
                 item {
                     MeshNoItemsAvailable(
@@ -296,10 +301,10 @@ private fun SwipeToDismissKey(
             title = stringResource(R.string.warning),
             text = stringResource(R.string.warning_key_is_in_use),
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismissClick = { displayWarningDialog = false },
+            onDismissClick = { displayWarningDialog = !displayWarningDialog },
             confirmButtonText = stringResource(R.string.label_ok),
             onConfirmClick = {
-                displayWarningDialog = false
+                displayWarningDialog = !displayWarningDialog
                 onSwiped(key)
             }
         )
