@@ -110,22 +110,18 @@ private fun ConfigAppKeysRoute(
                 title = stringResource(id = R.string.label_loading)
             )
 
-            is AppKeysState.Success -> {
-                ApplicationKeysInfo(
-                    node = uiState.node,
-                    keys = uiState.appKeysState.appKeys,
-                    isRefreshing = uiState.isRefreshing,
-                    onRefresh = onRefresh,
-                    onSwiped = onSwiped
-                )
-            }
+            is AppKeysState.Success -> ApplicationKeysInfo(
+                node = uiState.node,
+                keys = uiState.appKeysState.appKeys,
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onRefresh,
+                onSwiped = onSwiped
+            )
 
-            is AppKeysState.Error -> {
-                MeshNoItemsAvailable(
-                    imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_app_keys_to_add)
-                )
-            }
+            is AppKeysState.Error -> MeshNoItemsAvailable(
+                imageVector = Icons.Outlined.VpnKey,
+                title = stringResource(R.string.label_no_app_keys_to_add)
+            )
         }
     }
     if (showBottomSheet) {
@@ -209,15 +205,13 @@ private fun ApplicationKeysInfo(
     onSwiped: (ApplicationKey) -> Unit
 ) {
     when (keys.isNotEmpty()) {
-        true -> {
-            ApplicationKeys(
-                node = node,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                keys = keys,
-                onSwiped = onSwiped
-            )
-        }
+        true -> ApplicationKeys(
+            node = node,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            keys = keys,
+            onSwiped = onSwiped
+        )
 
         else -> MeshNoItemsAvailable(
             imageVector = Icons.Outlined.VpnKey,

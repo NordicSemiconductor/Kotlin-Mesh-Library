@@ -140,9 +140,7 @@ internal class ConfigurationClientHandler(
             }
 
             is ConfigNetKeyList -> node(address = source)?.apply {
-                setNetKeys(
-                    netKeyIndexes = response.networkKeyIndexes.toList()
-                )
+                setNetKeys(netKeyIndexes = response.networkKeyIndexes.toList())
             }
 
             // Application Keys Management
