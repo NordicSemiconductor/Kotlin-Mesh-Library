@@ -28,6 +28,7 @@ import kotlinx.serialization.Serializable
  * @property retransmit         The [Retransmit] property describes the number of times a message is
  *                              published and the interval between retransmissions of the published
  *                              messages.
+ * @property isCanceled         Returns true if the publication is canceled.
  */
 @Serializable
 data class Publish(
@@ -38,6 +39,9 @@ data class Publish(
     val credentials: Credentials,
     val retransmit: Retransmit
 ) {
+
+    val isCanceled : Boolean
+        get() = address is UnassignedAddress
 
     /**
      * Publish constructor to be used when sending a ConfigModelPublicationSet to disable
