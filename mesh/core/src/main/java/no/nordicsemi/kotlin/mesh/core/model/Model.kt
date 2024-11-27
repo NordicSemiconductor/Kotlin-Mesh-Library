@@ -90,7 +90,7 @@ data class Model internal constructor(
         get() = _subscribe
     var publish: Publish?
         get() = _publish
-        internal set(value) {
+        private set(value) {
             _publish = value
             parentElement?.parentNode?.network?.updateTimestamp()
         }
@@ -221,6 +221,22 @@ data class Model internal constructor(
             if (publish?.index == index) _publish = null
         }
         else -> false
+    }
+
+    /**
+     * Sets the [Publish] settings for this model.
+     *
+     * @param publish Publish settings.
+     */
+    internal fun set(publish: Publish?){
+        this._publish = publish
+    }
+
+    /**
+     * Clears any publication that was assigned to this model.
+     */
+    internal fun clearPublication() {
+        _publish = null
     }
 
     /**
