@@ -18,6 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -37,8 +38,8 @@ data class ConfigModelPublicationVirtualAddressSet(
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray() +
-                    publish.address.address.toByteArray()
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
@@ -48,9 +49,9 @@ data class ConfigModelPublicationVirtualAddressSet(
                     (publish.period.resolution.value.toInt() shl 6).toByte()
             data += (publish.retransmit.count.toInt() and 0x07).toByte() or
                     (publish.retransmit.steps.toInt() shl 3).toByte()
-            data += companyIdentifier?.let {
-                it.toByteArray() + modelIdentifier.toByteArray()
-            } ?: modelIdentifier.toByteArray()
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray()
             return data
         }
 
@@ -80,12 +81,12 @@ data class ConfigModelPublicationVirtualAddressSet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 25 || it.size == 27
         }?.let { params ->
-            val elementAddress = params.getUShort(offset = 0)
+            val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
             val label = VirtualAddress(params.sliceArray(2 until 17).toUuid())
-            val index = params.getUShort(18) and 0x0FFFu
-            val flag = (params.getUShort(19) and 0x10u).toInt() shr 4
+            val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+            val flag = (params.getUShort(offset = 19) and 0x10u).toInt() shr 4
             val ttl = params[20].toUByte()
-            val periodSteps = (params.getUShort(21) and 0x3Fu).toUByte()
+            val periodSteps = (params.getUShort(offset = 21) and 0x3Fu).toUByte()
             val periodResolution = StepResolution.from((params[21].toInt() shr 6))
             val count = (params[22] and 0x07).toUByte()
             val intervalSteps = (params[22].toInt() shr 3).toUByte()
@@ -102,15 +103,15 @@ data class ConfigModelPublicationVirtualAddressSet(
             if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(23),
-                    modelIdentifier = params.getUShort(25),
+                    companyIdentifier = params.getUShort(offset = 23, order = ByteOrder.LITTLE_ENDIAN),
+                    modelIdentifier = params.getUShort(offset = 25, order = ByteOrder.LITTLE_ENDIAN),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.getUShort(23),
+                    modelIdentifier = params.getUShort(offset = 23, order = ByteOrder.LITTLE_ENDIAN),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

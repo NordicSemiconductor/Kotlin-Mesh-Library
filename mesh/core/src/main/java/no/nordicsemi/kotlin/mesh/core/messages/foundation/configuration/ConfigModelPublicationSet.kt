@@ -18,6 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -37,8 +38,8 @@ data class ConfigModelPublicationSet(
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray() +
-                    publish.address.address.toByteArray()
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
                     (publish.credentials.credential shl 4).toByte()
@@ -47,9 +48,9 @@ data class ConfigModelPublicationSet(
                     (publish.period.resolution.value.toInt() shl 6).toByte()
             data += (publish.retransmit.count.toInt() shl 3).toByte() or
                     (publish.retransmit.steps.toInt() shl 3).toByte()
-            data += companyIdentifier?.let {
-                it.toByteArray() + modelIdentifier.toByteArray()
-            } ?: modelIdentifier.toByteArray()
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             return data
         }
 
@@ -126,8 +127,8 @@ data class ConfigModelPublicationSet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 11 || it.size == 13
         }?.let { params ->
-            val elementAddress = params.getUShort(offset = 0)
-            val address = MeshAddress.create(params.getUShort(2))
+            val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
+            val address = MeshAddress.create(params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN))
             val index = params.getUShort(4) and 0x0FFFu
             val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
             val ttl = params[6].toUByte()
@@ -150,15 +151,15 @@ data class ConfigModelPublicationSet(
             if (params.size == 13) {
                 ConfigModelPublicationSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(9),
-                    modelIdentifier = params.getUShort(11),
+                    companyIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
+                    modelIdentifier = params.getUShort(offset = 11, order = ByteOrder.LITTLE_ENDIAN),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.getUShort(9),
+                    modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

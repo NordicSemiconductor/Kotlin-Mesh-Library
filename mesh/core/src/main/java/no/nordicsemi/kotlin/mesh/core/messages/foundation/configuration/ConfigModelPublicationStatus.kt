@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -19,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import kotlin.experimental.and
+import java.nio.ByteOrder
 import kotlin.experimental.or
 
 /**
@@ -38,8 +39,8 @@ data class ConfigModelPublicationStatus(
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray() +
-                    publish.address.address.toByteArray()
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
                     (publish.credentials.credential shl 4).toByte()
@@ -48,9 +49,9 @@ data class ConfigModelPublicationStatus(
                     (publish.period.resolution.value.toInt() shl 6).toByte()
             data += (publish.retransmit.count.toInt() shl 3).toByte() or
                     (publish.retransmit.steps.toInt() shl 3).toByte()
-            data += companyIdentifier?.let {
-                it.toByteArray() + modelIdentifier.toByteArray()
-            } ?: modelIdentifier.toByteArray()
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
             return data
         }
 
@@ -108,22 +109,24 @@ data class ConfigModelPublicationStatus(
             (it.size == 12 || it.size == 14)
         }?.let { params ->
             ConfigMessageStatus.from(params[0].toUByte())?.let {
-                val elementAddress = params.getUShort(offset = 1)
-                val address = MeshAddress.create(params.getUShort(2))
-                val index = params.getUShort(4) and 0x0FFFu
-                val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
-                val ttl = params[6].toUByte()
-                val periodSteps = (params.getUShort(7) and 0x3Fu).toUByte()
-                val periodResolution = StepResolution.from((params[7].toInt() shr 6))
+                val elementAddress = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
+                val address =
+                    MeshAddress.create(params.getUShort(3, order = ByteOrder.LITTLE_ENDIAN))
+                val index =
+                    params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+                val flag = (params[6].toUByte() and 0x10u) shr 4
+                val ttl = params[7].toUByte()
+                val periodSteps = params[8].toUByte() and 0x3Fu
+                val periodResolution = StepResolution.from((params[8].toInt() shr 6))
                 val period = PublishPeriod(periodSteps, periodResolution)
-                val count = (params[8] and 0x07).toUByte()
-                val intervalSteps = (params[8].toInt() shr 3).toUByte()
+                val count = params[9].toUByte() and 0x07u
+                val intervalSteps = params[9].toUByte() shr 3
 
                 val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
                 val publish = Publish(
                     address = address as PublicationAddress,
                     index = index,
-                    credentials = Credentials.from(flag),
+                    credentials = Credentials.from(flag.toInt()),
                     ttl = ttl,
                     period = period,
                     retransmit = retransmit
@@ -131,8 +134,14 @@ data class ConfigModelPublicationStatus(
                 if (params.size == 14) {
                     ConfigModelPublicationStatus(
                         publish = publish,
-                        companyIdentifier = params.getUShort(9),
-                        modelIdentifier = params.getUShort(11),
+                        companyIdentifier = params.getUShort(
+                            offset = 9,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        ),
+                        modelIdentifier = params.getUShort(
+                            offset = 11,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        ),
                         elementAddress = UnicastAddress(elementAddress),
                         status = it
                     )
@@ -140,7 +149,10 @@ data class ConfigModelPublicationStatus(
                     ConfigModelPublicationStatus(
                         publish = publish,
                         companyIdentifier = null,
-                        modelIdentifier = params.getUShort(9),
+                        modelIdentifier = params.getUShort(
+                            offset = 9,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        ),
                         elementAddress = UnicastAddress(elementAddress),
                         status = it
                     )
