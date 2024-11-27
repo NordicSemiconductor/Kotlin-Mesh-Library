@@ -88,8 +88,12 @@ data class Model internal constructor(
 ) {
     val subscribe: List<SubscriptionAddress>
         get() = _subscribe
-    val publish: Publish?
+    var publish: Publish?
         get() = _publish
+        internal set(value) {
+            _publish = value
+            parentElement?.parentNode?.network?.updateTimestamp()
+        }
     val bind: List<KeyIndex>
         get() = _bind
     val name: String
