@@ -27,10 +27,10 @@ import kotlin.experimental.or
  * @property publish               Contains the publication state.
  */
 data class ConfigModelPublicationVirtualAddressSet(
-    val publish: Publish,
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
     override val elementAddress: UnicastAddress,
+    val publish: Publish,
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode

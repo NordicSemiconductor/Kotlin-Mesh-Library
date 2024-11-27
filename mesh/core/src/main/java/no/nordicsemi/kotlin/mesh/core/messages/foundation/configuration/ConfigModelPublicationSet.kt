@@ -27,10 +27,10 @@ import kotlin.experimental.or
  * @property publish               Contains the publication state.
  */
 data class ConfigModelPublicationSet(
-    val publish: Publish,
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
     override val elementAddress: UnicastAddress,
+    val publish: Publish,
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
@@ -62,14 +62,14 @@ data class ConfigModelPublicationSet(
      */
     @Throws(IllegalArgumentException::class)
     constructor(publish: Publish, model: Model) : this(
-        publish = publish,
         elementAddress = model.parentElement?.unicastAddress
             ?: throw IllegalArgumentException("Element address cannot be null"),
         modelIdentifier = when (model.modelId) {
             is SigModelId -> model.modelId.modelIdentifier
             is VendorModelId -> model.modelId.modelIdentifier
         },
-        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+        publish = publish
     )
 
     /**
@@ -80,14 +80,14 @@ data class ConfigModelPublicationSet(
      */
     @Throws(IllegalArgumentException::class)
     constructor(model: Model) : this(
-        publish = Publish(),
         elementAddress = model.parentElement?.unicastAddress
             ?: throw IllegalArgumentException("Element address cannot be null"),
         modelIdentifier = when (model.modelId) {
             is SigModelId -> model.modelId.modelIdentifier
             is VendorModelId -> model.modelId.modelIdentifier
         },
-        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+        publish = Publish()
     )
 
     companion object Initializer : ConfigMessageInitializer {
