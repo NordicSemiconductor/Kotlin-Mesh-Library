@@ -11,6 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import java.nio.ByteOrder
 import kotlin.jvm.Throws
 
 /**
@@ -26,9 +27,13 @@ data class ConfigModelPublicationGet(
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
 
     override val parameters: ByteArray
-        get() = elementAddress.address.toByteArray() + (companyIdentifier?.let {
-            it.toByteArray() + modelIdentifier.toByteArray()
-        } ?: modelIdentifier.toByteArray())
+        get() {
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
+            return data
+        }
 
     /**
      * Convenience constructor to create the ConfigModelPublicationGet message.
@@ -53,14 +58,16 @@ data class ConfigModelPublicationGet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 4 || it.size == 6
         }?.let {
-            val elementAddress = UnicastAddress(parameters.getUShort(0))
+            val elementAddress =
+                UnicastAddress(parameters.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN))
             var companyIdentifier: UShort? = null
             val modelIdentifier: UShort
             if (parameters.size == 6) {
-                companyIdentifier = parameters.getUShort(2)
-                modelIdentifier = parameters.getUShort(4)
+                companyIdentifier = parameters
+                    .getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN)
+                modelIdentifier = parameters.getUShort(offset = 4, order = ByteOrder.LITTLE_ENDIAN)
             } else {
-                modelIdentifier = parameters.getUShort(2)
+                modelIdentifier = parameters.getUShort(2, order = ByteOrder.LITTLE_ENDIAN)
             }
             ConfigModelPublicationGet(
                 elementAddress = elementAddress,

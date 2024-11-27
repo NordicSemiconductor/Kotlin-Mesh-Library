@@ -34,7 +34,7 @@ class ConfigModelAppUnbind(
 
     override val parameters = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             encodeAppKeyIndex(applicationKeyIndex = applicationKeyIndex) +
-            when(modelId) {
+            when (modelId) {
                 is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
                 is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             }
@@ -79,11 +79,16 @@ class ConfigModelAppUnbind(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 6 || it.size == 8
         }?.let {
-            val elementAddress = it.getUShort(offset = 0)
+            val elementAddress = it.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
             val appKeyIndex = decodeAppKeyIndex(data = it, offset = 2)
             val modelId = when (it.size == 8) {
-                true -> VendorModelId(id = it.getUInt(offset = 4))
-                else -> SigModelId(modelIdentifier = it.getUShort(offset = 4))
+                true -> VendorModelId(id = it.getUInt(offset = 4, order = ByteOrder.LITTLE_ENDIAN))
+                else -> SigModelId(
+                    modelIdentifier = it.getUShort(
+                        offset = 4,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
+                )
             }
             ConfigModelAppUnbind(
                 applicationKeyIndex = appKeyIndex,

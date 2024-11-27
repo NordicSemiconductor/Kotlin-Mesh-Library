@@ -128,7 +128,8 @@ data class ConfigModelPublicationSet(
             it.size == 11 || it.size == 13
         }?.let { params ->
             val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
-            val address = MeshAddress.create(params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN))
+            val address =
+                MeshAddress.create(params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN))
             val index = params.getUShort(4) and 0x0FFFu
             val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
             val ttl = params[6].toUByte()
@@ -151,8 +152,14 @@ data class ConfigModelPublicationSet(
             if (params.size == 13) {
                 ConfigModelPublicationSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
-                    modelIdentifier = params.getUShort(offset = 11, order = ByteOrder.LITTLE_ENDIAN),
+                    companyIdentifier = params.getUShort(
+                        offset = 9,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    modelIdentifier = params.getUShort(
+                        offset = 11,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {

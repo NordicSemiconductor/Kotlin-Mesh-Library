@@ -103,15 +103,24 @@ data class ConfigModelPublicationVirtualAddressSet(
             if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(offset = 23, order = ByteOrder.LITTLE_ENDIAN),
-                    modelIdentifier = params.getUShort(offset = 25, order = ByteOrder.LITTLE_ENDIAN),
+                    companyIdentifier = params.getUShort(
+                        offset = 23,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    modelIdentifier = params.getUShort(
+                        offset = 25,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.getUShort(offset = 23, order = ByteOrder.LITTLE_ENDIAN),
+                    modelIdentifier = params.getUShort(
+                        offset = 23,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }
