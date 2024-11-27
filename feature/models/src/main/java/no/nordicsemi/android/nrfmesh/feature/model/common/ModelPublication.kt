@@ -60,6 +60,8 @@ import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.toFloat
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
 import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
@@ -72,6 +74,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MasterSecurity
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.PublicationAddress
+import no.nordicsemi.kotlin.mesh.core.model.Publish
 import no.nordicsemi.kotlin.mesh.core.model.PublishPeriod
 import no.nordicsemi.kotlin.mesh.core.model.Retransmit
 import no.nordicsemi.kotlin.mesh.core.model.StepResolution
@@ -159,15 +162,42 @@ internal fun ModelPublication(
                         IconButton(
                             // Note: If you provide logic outside of onDismissRequest to remove the
                             // sheet, you must additionally handle intended state cleanup, if any.
-                            enabled = destination != null,
+                            enabled = destination != null && retransmit != null,
                             onClick = {
-                                scope
-                                    .launch { bottomSheetState.hide() }
-                                    .invokeOnCompletion {
-                                        if (!bottomSheetState.isVisible) {
-                                            showBottomSheet = false
+                                send(
+                                    if (destination is VirtualAddress)
+                                        ConfigModelPublicationVirtualAddressSet(
+                                            publish = Publish(
+                                                address = destination!!,
+                                                index = keyIndex.toUShort(),
+                                                ttl = ttl.toUByte(),
+                                                period = publishPeriod,
+                                                credentials = credentials,
+                                                retransmit = retransmit!!
+                                            ),
+                                            model = model
+                                        )
+                                    else
+                                        ConfigModelPublicationSet(
+                                            model = model,
+                                            publish = Publish(
+                                                address = destination!!,
+                                                index = keyIndex.toUShort(),
+                                                ttl = ttl.toUByte(),
+                                                period = publishPeriod,
+                                                credentials = credentials,
+                                                retransmit = retransmit!!
+                                            )
+                                        )
+                                ).also {
+                                    scope
+                                        .launch { bottomSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!bottomSheetState.isVisible) {
+                                                showBottomSheet = false
+                                            }
                                         }
-                                    }
+                                }
                             },
                             content = {
                                 Icon(imageVector = Icons.Outlined.Save, contentDescription = null)
@@ -480,7 +510,10 @@ private fun PeriodicPublishingInterval(
 }
 
 @Composable
-private fun FriendshipCredential(credentials: Credentials, onCredentialsChanged: (Credentials) -> Unit) {
+private fun FriendshipCredential(
+    credentials: Credentials,
+    onCredentialsChanged: (Credentials) -> Unit
+) {
 
     ElevatedCardItem(
         modifier = Modifier
@@ -488,7 +521,7 @@ private fun FriendshipCredential(credentials: Credentials, onCredentialsChanged:
             .padding(top = 8.dp),
         imageVector = Icons.Outlined.Shield,
         title = stringResource(id = R.string.label_friendship_credentials_flag),
-        body = {
+        titleAction = {
             Switch(
                 checked = credentials is FriendshipSecurity,
                 onCheckedChange = {
@@ -497,7 +530,7 @@ private fun FriendshipCredential(credentials: Credentials, onCredentialsChanged:
                     )
                 }
             )
-        }
+        },
     )
 }
 
@@ -563,7 +596,8 @@ private fun RetransmissionCountAndInterval(
                     count.toUByte() == Retransmit.MIN_RETRANSMIT_COUNT ->
                         stringResource(R.string.label_na)
 
-                    else -> retransmit?.interval?.toString(DurationUnit.MILLISECONDS) ?: stringResource(R.string.label_na)
+                    else -> retransmit?.interval?.toString(DurationUnit.MILLISECONDS)
+                        ?: stringResource(R.string.label_na)
                 },
                 textAlign = TextAlign.End
             )
