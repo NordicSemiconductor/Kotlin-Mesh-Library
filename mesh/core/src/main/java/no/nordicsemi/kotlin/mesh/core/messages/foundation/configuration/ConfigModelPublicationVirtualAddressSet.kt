@@ -54,58 +54,28 @@ data class ConfigModelPublicationVirtualAddressSet(
             return data
         }
 
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(publish: Publish, model: Model) : this(
+        publish = if (publish.address is VirtualAddress) publish else throw IllegalArgumentException(
+            "Address must be VirtualAddress or consider sending ConfigModelPublicationSet"
+        ),
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x801Au
-
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given parameters.
-         *
-         * @param publish          Publish settings.
-         * @param model            Model with the Publish settings.
-         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
-         */
-        fun init(publish: Publish, model: Model): ConfigModelPublicationVirtualAddressSet? {
-            require(publish.address is VirtualAddress) { return null }
-            val elementAddress = model.parentElement?.unicastAddress ?: return null
-            val modelId = model.modelId
-            return ConfigModelPublicationVirtualAddressSet(
-                publish = publish,
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = elementAddress
-            )
-        }
-
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given model.
-         *
-         * @param model The model to set the publication for.
-         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
-         */
-        fun init(model: Model): ConfigModelPublicationVirtualAddressSet? = model.takeIf {
-            it.parentElement?.unicastAddress != null
-        }?.let {
-            val modelId = model.modelId
-            ConfigModelPublicationVirtualAddressSet(
-                publish = Publish(),
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = it.parentElement!!.unicastAddress
-            )
-        }
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 25 || it.size == 27

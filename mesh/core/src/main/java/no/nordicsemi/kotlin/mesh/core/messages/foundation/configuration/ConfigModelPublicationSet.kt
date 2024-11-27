@@ -18,7 +18,6 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
-import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -54,33 +53,45 @@ data class ConfigModelPublicationSet(
             return data
         }
 
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param publish Publish state to set.
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(publish: Publish, model: Model) : this(
+        publish = publish,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(model: Model) : this(
+        publish = Publish(),
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x03u
-
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given parameters.
-         *
-         * @param publish Publish state to set.
-         * @param model   Model to set the publication for.
-         */
-        fun init(publish: Publish, model: Model): ConfigModelPublicationSet? {
-            require(publish.address !is VirtualAddress) { return null }
-            val elementAddress = model.parentElement?.unicastAddress ?: return null
-            val modelId = model.modelId
-            return ConfigModelPublicationSet(
-                publish = publish,
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = elementAddress
-            )
-        }
 
         /**
          * Constructs the ConfigModelPublicationSet message using the given model.
