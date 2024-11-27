@@ -11,6 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import kotlin.jvm.Throws
 
 /**
  * This message is used to get the publication state of a model.
@@ -28,6 +29,23 @@ data class ConfigModelPublicationGet(
         get() = elementAddress.address.toByteArray() + (companyIdentifier?.let {
             it.toByteArray() + modelIdentifier.toByteArray()
         } ?: modelIdentifier.toByteArray())
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationGet message.
+     *
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(model: Model) : this(
+        model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8018u
