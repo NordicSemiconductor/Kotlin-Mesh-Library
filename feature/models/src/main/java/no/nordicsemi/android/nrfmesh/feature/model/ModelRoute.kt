@@ -25,6 +25,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
+import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -107,10 +108,8 @@ internal fun ModelInformation(
             )
 
             else -> {
-                BoundApplicationKeys(
-                    model = model,
-                    navigateToBoundAppKeys = navigateToBoundAppKeys
-                )
+                BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
+                ModelPublication(model = model, send = send)
             }
         }
     }
