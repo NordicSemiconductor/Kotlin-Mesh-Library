@@ -1,5 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
+import kotlin.jvm.Throws
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -38,5 +39,11 @@ enum class StepResolution(val value: UByte) {
             600000 -> TENS_OF_MINUTES
             else -> throw IllegalArgumentException("Invalid resolution: $resolution")
         }
+
+        /**
+         * Returns the StepResolution for the given number of steps.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun from(steps: UByte): StepResolution = entries.first { it.value == steps }
     }
 }
