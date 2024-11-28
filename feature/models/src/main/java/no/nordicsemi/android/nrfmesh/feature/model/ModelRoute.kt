@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
@@ -29,6 +30,7 @@ import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @Composable
@@ -123,9 +125,24 @@ internal fun ModelInformation(
             )
         }
 
-        else -> {
+        is Completed -> {
+            messageState.response?.let {
+                when (it is ConfigStatusMessage) {
+                    true -> {
+                        MeshMessageStatusDialog(
+                            text = it.message,
+                            showDismissButton = messageState.didFail(),
+                            onDismissRequest = resetMessageState,
+                        )
+                    }
 
+                    else -> { /* Do nothing */
+                    }
+                }
+            }
         }
+
+        else -> {}
     }
 }
 
