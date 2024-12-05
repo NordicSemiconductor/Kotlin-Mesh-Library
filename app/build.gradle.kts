@@ -9,6 +9,7 @@ android {
     namespace = "no.nordicsemi.android.nrfmesh"
     defaultConfig {
         applicationId = "no.nordicsemi.android.nrfmesh"
+        multiDexEnabled = true
     }
 }
 
