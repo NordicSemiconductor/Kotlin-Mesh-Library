@@ -82,4 +82,8 @@
     <string name="label_periodic_publishing_interval_rationale">Defines the interval at which status messages are pulished by a model.</string>
     <string name="label_retransmit_count_and_interval_rationale">Defines the number of retransmints and the interval between each transmission.</string>
     <string name="label_friendship_credentials_flag">Friendship Credentials Flag</string>
+    <string name="add_group">Add Group</string>
+    <string name="label_elements">Elements</string>
+    <string name="label_groups">Groups</string>
+    <string name="label_fixed_group_addresses">Fixed Group Addresses</string>
 </resources>

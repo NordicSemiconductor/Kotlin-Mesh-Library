@@ -65,7 +65,8 @@ internal fun ConfigurationServerModel(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
-    requestNodeIdentityStates: () -> Unit
+    requestNodeIdentityStates: () -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     RelayFeature(
         messageState = messageState,
@@ -102,12 +103,14 @@ internal fun ConfigurationServerModel(
     HeartBeatSubscriptionRow(
         model = model,
         subscription = model.parentElement?.parentNode?.heartbeatSubscription,
-        send = send
+        send = send,
+        onAddGroupClicked = onAddGroupClicked
     )
     HeartBeatPublicationRow(
         model = model,
         publication = model.parentElement?.parentNode?.heartbeatPublication,
-        send = send
+        send = send,
+        onAddGroupClicked = onAddGroupClicked
     )
 }
 
@@ -466,12 +469,14 @@ private fun NodeIdentityStatusRow(
 private fun HeartBeatSubscriptionRow(
     model: Model,
     subscription: HeartbeatSubscription?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     HeartBeatSubscriptionContent(
         model = model,
         subscription = subscription,
-        send = send
+        send = send,
+        onAddGroupClicked = onAddGroupClicked
     )
 }
 
@@ -479,12 +484,14 @@ private fun HeartBeatSubscriptionRow(
 private fun HeartBeatPublicationRow(
     model: Model,
     publication: HeartbeatPublication?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     HeartBeatPublicationContent(
         model = model,
         publication = publication,
-        send = send
+        send = send,
+        onAddGroupClicked = onAddGroupClicked
     )
 }
 

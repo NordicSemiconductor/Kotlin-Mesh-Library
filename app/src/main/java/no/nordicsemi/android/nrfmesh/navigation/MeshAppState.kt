@@ -13,7 +13,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.util.trace
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.CoroutineScope
@@ -32,16 +31,16 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.Applica
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
@@ -144,25 +143,23 @@ class MeshAppState(
      * @param destination Destination to navigate to.
      * @param route       Route to navigate to.
      */
-    internal fun navigate(destination: MeshNavigationDestination, route: String?) {
-        trace("Navigation: $destination") {
-            if (destination is TopLevelDestination) {
-                navController.navigate(route ?: destination.route) {
-                    // Pop up to the start destination of the graph to
-                    // avoid building up a large stack of destinations
-                    // on the back stack as users select items
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    // Avoid multiple copies of the same destination when
-                    // re-selecting the same item
-                    launchSingleTop = true
-                    // Restore state when re-selecting a previously selected item
-                    restoreState = true
+    fun navigate(destination: MeshNavigationDestination, route: String?) {
+        if (destination is TopLevelDestination) {
+            navController.navigate(route ?: destination.route) {
+                // Pop up to the start destination of the graph to
+                // avoid building up a large stack of destinations
+                // on the back stack as users select items
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
                 }
-            } else {
-                navController.navigate(route ?: destination.route)
+                // Avoid multiple copies of the same destination when
+                // re-selecting the same item
+                launchSingleTop = true
+                // Restore state when re-selecting a previously selected item
+                restoreState = true
             }
+        } else {
+            navController.navigate(route ?: destination.route)
         }
     }
 
