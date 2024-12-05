@@ -9,7 +9,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.Screen
 
 class NodeScreen(override val title: String = "Node") : Screen {
-    override val route = NodesDestination.route
+    override val route = NodeDestination.route
     override val showTopBar = true
     override val navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack
     override val onNavigationIconClick: (() -> Unit) = {
