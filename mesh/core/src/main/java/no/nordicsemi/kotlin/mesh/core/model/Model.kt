@@ -88,8 +88,12 @@ data class Model internal constructor(
 ) {
     val subscribe: List<SubscriptionAddress>
         get() = _subscribe
-    val publish: Publish?
+    var publish: Publish?
         get() = _publish
+        private set(value) {
+            _publish = value
+            parentElement?.parentNode?.network?.updateTimestamp()
+        }
     val bind: List<KeyIndex>
         get() = _bind
     val name: String
@@ -217,6 +221,22 @@ data class Model internal constructor(
             if (publish?.index == index) _publish = null
         }
         else -> false
+    }
+
+    /**
+     * Sets the [Publish] settings for this model.
+     *
+     * @param publish Publish settings.
+     */
+    internal fun set(publish: Publish?){
+        this._publish = publish
+    }
+
+    /**
+     * Clears any publication that was assigned to this model.
+     */
+    internal fun clearPublication() {
+        _publish = null
     }
 
     /**

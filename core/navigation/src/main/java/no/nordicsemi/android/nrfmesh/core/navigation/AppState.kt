@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 
 /**
  * AppState is a class that holds the current state of the application.
@@ -30,7 +30,7 @@ import androidx.navigation.NavController
  */
 @Stable
 abstract class AppState {
-    protected abstract val navController: NavController
+    abstract val navController: NavHostController
 
     abstract val snackbarHostState: SnackbarHostState
 

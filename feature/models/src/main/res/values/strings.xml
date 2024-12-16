@@ -43,6 +43,7 @@
     <string name="label_all_proxies">All Proxies</string>
     <string name="label_all_nodes">All Nodes</string>
     <string name="label_network_key">Network Key</string>
+    <string name="label_application_key">Application Key</string>
     <string name="label_unassigned_address">Unassigned Address</string>
     <string name="label_initial_ttl">Initial TTL</string>
     <string name="label_time_to_live">Time to live</string>
@@ -69,4 +70,20 @@
     <string name="label_add">Add</string>
     <string name="label_add_key">Add Key</string>
     <string name="action_settings">Settings</string>
+    <string name="label_virtual_address">Virtual Address</string>
+    <string name="label_na">N/A</string>
+    <string name="title_retransmit_count_and_interval"><![CDATA[Retransmit Count & Interval]]></string>
+    <string name="label_time_ms">%d ms</string>
+    <string name="label_time_s">%d s</string>
+    <string name="label_time_m">%d min</string>
+    <string name="label_time_h_m">%d h %d m</string>
+    <string name="label_publication">Publication</string>
+    <string name="label_periodic_publishing_interval">Periodic Publishing Interval</string>
+    <string name="label_periodic_publishing_interval_rationale">Defines the interval at which status messages are pulished by a model.</string>
+    <string name="label_retransmit_count_and_interval_rationale">Defines the number of retransmints and the interval between each transmission.</string>
+    <string name="label_friendship_credentials_flag">Friendship Credentials Flag</string>
+    <string name="add_group">Add Group</string>
+    <string name="label_elements">Elements</string>
+    <string name="label_groups">Groups</string>
+    <string name="label_fixed_group_addresses">Fixed Group Addresses</string>
 </resources>

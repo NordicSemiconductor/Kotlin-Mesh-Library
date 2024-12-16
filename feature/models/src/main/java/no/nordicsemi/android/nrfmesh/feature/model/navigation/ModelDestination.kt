@@ -11,6 +11,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.C
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination.bindAppKeysGraph
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
 import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
 import no.nordicsemi.android.nrfmesh.feature.model.ModelViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -53,6 +54,14 @@ object ModelDestination : MeshNavigationDestination {
                 },
                 requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
                 resetMessageState = viewModel::resetMessageState,
+                onAddGroupClicked = {
+                    onNavigateToDestination(
+                        appState.topLevelDestinations.first {
+                            it.route == GroupsDestination.route
+                        },
+                        GroupsDestination.route
+                    )
+                },
                 onBackPressed = onBackPressed
             )
         }

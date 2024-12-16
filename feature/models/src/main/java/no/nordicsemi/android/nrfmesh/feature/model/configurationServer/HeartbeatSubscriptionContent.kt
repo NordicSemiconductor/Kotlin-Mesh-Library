@@ -17,12 +17,9 @@ import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Start
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +45,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
-import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
@@ -76,18 +72,18 @@ import kotlin.math.roundToInt
 internal fun HeartBeatSubscriptionContent(
     model: Model,
     subscription: HeartbeatSubscription?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    onAddGroupClicked:() -> Unit
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var source by remember { mutableStateOf(subscription?.source) }
     var destination by remember { mutableStateOf(subscription?.destination) }
     var periodLog by remember { mutableStateOf(subscription?.state?.periodLog ?: 1.toUByte()) }
 
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
         titleAction = {
@@ -255,7 +251,16 @@ internal fun HeartBeatSubscriptionContent(
                     DestinationRow(
                         model = model,
                         destination = destination,
-                        onDestinationSelected = { destination = it }
+                        onDestinationSelected = { destination = it },
+                        onAddGroupClicked = {
+                            scope
+                                .launch { bottomSheetState.hide() }
+                                .invokeOnCompletion {
+                                    if (!bottomSheetState.isVisible)
+                                        onAddGroupClicked()
+                                }
+                            //onAddGroupClicked()
+                        }
                     )
                 }
             }
@@ -304,7 +309,6 @@ private fun SourceRow(
     onSourceSelected: (HeartbeatSubscriptionSource) -> Unit
 ) {
     val network = model.parentElement?.parentNode?.network
-    val sources = model.heartbeatSubscriptionSources()
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     SectionTitle(title = stringResource(R.string.label_source))
@@ -328,37 +332,13 @@ private fun SourceRow(
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             subtitle = source?.let { "0x${it.toHexString()}" } ?: "",
         )
-        DropdownMenu(
-            modifier = Modifier.exposedDropdownSize(),
+        HeartbeatSubscriptionSourcesDropdownMenu(
+            network = network,
             expanded = expanded,
-            onDismissRequest = { expanded = !expanded },
-            content = {
-                sources.forEachIndexed { index, source ->
-                    DropdownMenuItem(
-                        text = {
-                            MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.Start,
-                                        contentDescription = null
-                                    )
-                                },
-                                title = network
-                                    ?.node(address = source.address)?.name
-                                    ?: source.toHexString()
-                            )
-                        },
-                        onClick = {
-                            onSourceSelected(source)
-                                .also { expanded = !expanded }
-                        }
-                    )
-                    if (index < sources.size - 1)
-                        HorizontalDivider()
-                }
+            onDismissed = { expanded = !expanded },
+            onSourceSelected = {
+                onSourceSelected(it)
+                expanded = false
             }
         )
     }
@@ -369,10 +349,10 @@ private fun SourceRow(
 private fun DestinationRow(
     model: Model,
     destination: HeartbeatSubscriptionDestination?,
-    onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit
+    onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
+    onAddGroupClicked:() -> Unit
 ) {
     val network = model.parentElement?.parentNode?.network ?: return
-    val destinations = model.heartbeatSubscriptionDestinations()
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     SectionTitle(title = stringResource(R.string.label_destination))
@@ -405,70 +385,18 @@ private fun DestinationRow(
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             subtitle = destination?.let { "0x${it.toHexString()}" } ?: "",
         )
-        DropdownMenu(
-            modifier = Modifier.exposedDropdownSize(),
+        HeartbeatSubscriptionDestinationsDropdownMenu(
+            network = network,
             expanded = expanded,
-            onDismissRequest = { expanded = !expanded },
-            content = {
-                destinations.forEachIndexed { index, destination ->
-                    DropdownMenuItem(
-                        text = {
-                            MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.SportsScore,
-                                        contentDescription = null
-                                    )
-                                },
-                                title = network
-                                    .node(address = destination.address)
-                                    ?.name ?: destination.toHexString(),
-                            )
-                        },
-                        onClick = {
-                            onDestinationSelected(destination).also {
-                                expanded = !expanded
-                            }
-                        }
-                    )
-                    if (index < destinations.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
+            onDismissed = { expanded = !expanded },
+            onDestinationSelected = {
+                onDestinationSelected(it)
+                expanded = false
+            },
+            onAddGroupClicked = {
+                onAddGroupClicked()
+                expanded = false
             }
         )
     }
-}
-
-/**
- * Returns the list of possible addresses that can be selected as a source address for the Heartbeat
- * subscription messages for a give ConfigurationServer Model
- */
-private fun Model.heartbeatSubscriptionSources(): List<HeartbeatSubscriptionSource> {
-    require(isConfigurationServer) { throw IllegalStateException("Model is not a Configuration Server") }
-    val parentNode = parentElement?.parentNode
-    return parentNode?.network?.nodes?.filter {
-        it != parentNode
-    }?.map {
-        it.primaryUnicastAddress
-    } ?: emptyList()
-}
-
-/**
- * Returns the list of possible addresses that can be selected as a destination address for the
- * Heartbeat subscription messages for a given ConfigurationServer Model.
- */
-private fun Model.heartbeatSubscriptionDestinations(): List<HeartbeatSubscriptionDestination> {
-    require(isConfigurationServer) { throw IllegalStateException("Model is not a Configuration Server") }
-    val destination = parentElement?.parentNode?.primaryUnicastAddress
-    return listOf(
-        destination as HeartbeatSubscriptionDestination,
-        AllRelays as HeartbeatSubscriptionDestination,
-        AllFriends as HeartbeatSubscriptionDestination,
-        AllProxies as HeartbeatSubscriptionDestination,
-        AllNodes as HeartbeatSubscriptionDestination
-    )
 }

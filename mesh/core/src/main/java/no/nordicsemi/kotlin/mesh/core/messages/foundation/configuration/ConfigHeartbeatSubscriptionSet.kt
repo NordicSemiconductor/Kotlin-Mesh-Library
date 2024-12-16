@@ -55,10 +55,10 @@ class ConfigHeartbeatSubscriptionSet(
         }?.let { params ->
             ConfigHeartbeatSubscriptionSet(
                 source = MeshAddress.create(
-                    address = params.getUShort(offset = 0)
+                    address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ) as HeartbeatSubscriptionSource,
                 destination = MeshAddress.create(
-                    address = params.getUShort(offset = 2)
+                    address = params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN)
                 ) as HeartbeatSubscriptionDestination,
                 periodLog = params[4].toUByte()
             )

@@ -18,6 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -27,18 +28,18 @@ import kotlin.experimental.or
  * @property publish               Contains the publication state.
  */
 data class ConfigModelPublicationVirtualAddressSet(
-    val publish: Publish,
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
     override val elementAddress: UnicastAddress,
+    val publish: Publish,
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray() +
-                    publish.address.address.toByteArray()
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
@@ -48,74 +49,44 @@ data class ConfigModelPublicationVirtualAddressSet(
                     (publish.period.resolution.value.toInt() shl 6).toByte()
             data += (publish.retransmit.count.toInt() and 0x07).toByte() or
                     (publish.retransmit.steps.toInt() shl 3).toByte()
-            data += companyIdentifier?.let {
-                it.toByteArray() + modelIdentifier.toByteArray()
-            } ?: modelIdentifier.toByteArray()
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray()
             return data
         }
 
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(publish: Publish, model: Model) : this(
+        publish = if (publish.address is VirtualAddress) publish else throw IllegalArgumentException(
+            "Address must be VirtualAddress or consider sending ConfigModelPublicationSet"
+        ),
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x801Au
 
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given parameters.
-         *
-         * @param publish          Publish settings.
-         * @param model            Model with the Publish settings.
-         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
-         */
-        fun init(publish: Publish, model: Model): ConfigModelPublicationVirtualAddressSet? {
-            require(publish.address is VirtualAddress) { return null }
-            val elementAddress = model.parentElement?.unicastAddress ?: return null
-            val modelId = model.modelId
-            return ConfigModelPublicationVirtualAddressSet(
-                publish = publish,
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = elementAddress
-            )
-        }
-
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given model.
-         *
-         * @param model The model to set the publication for.
-         * @return A ConfigModelPublicationSet message or null if parameters are invalid.
-         */
-        fun init(model: Model): ConfigModelPublicationVirtualAddressSet? = model.takeIf {
-            it.parentElement?.unicastAddress != null
-        }?.let {
-            val modelId = model.modelId
-            ConfigModelPublicationVirtualAddressSet(
-                publish = Publish(),
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = it.parentElement!!.unicastAddress
-            )
-        }
-
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 25 || it.size == 27
         }?.let { params ->
-            val elementAddress = params.getUShort(offset = 0)
+            val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
             val label = VirtualAddress(params.sliceArray(2 until 17).toUuid())
-            val index = params.getUShort(18) and 0x0FFFu
-            val flag = (params.getUShort(19) and 0x10u).toInt() shr 4
+            val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+            val flag = (params.getUShort(offset = 19) and 0x10u).toInt() shr 4
             val ttl = params[20].toUByte()
-            val periodSteps = (params.getUShort(21) and 0x3Fu).toUByte()
+            val periodSteps = (params.getUShort(offset = 21) and 0x3Fu).toUByte()
             val periodResolution = StepResolution.from((params[21].toInt() shr 6))
             val count = (params[22] and 0x07).toUByte()
             val intervalSteps = (params[22].toInt() shr 3).toUByte()
@@ -132,15 +103,24 @@ data class ConfigModelPublicationVirtualAddressSet(
             if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(23),
-                    modelIdentifier = params.getUShort(25),
+                    companyIdentifier = params.getUShort(
+                        offset = 23,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    modelIdentifier = params.getUShort(
+                        offset = 25,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.getUShort(23),
+                    modelIdentifier = params.getUShort(
+                        offset = 23,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

@@ -87,10 +87,11 @@ import kotlin.math.roundToInt
 internal fun HeartBeatPublicationContent(
     model: Model,
     publication: HeartbeatPublication?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var keyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
     var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
@@ -143,6 +144,7 @@ internal fun HeartBeatPublicationContent(
 
     if (showBottomSheet) {
         ModalBottomSheet(
+            modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
@@ -213,9 +215,9 @@ internal fun HeartBeatPublicationContent(
                     SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
                         network = model.parentElement?.parentNode?.network,
-                        destinations = model.heartbeatSubscriptionDestinations(),
                         destination = destination,
-                        onDestinationSelected = { destination = it }
+                        onDestinationSelected = { destination = it },
+                        onAddGroupClicked = onAddGroupClicked
                     )
                     TtlRow(ttl = ttl, onTtlChanged = { ttl = it })
                     PeriodicHeartbeatsRow(
@@ -307,9 +309,9 @@ private fun NetworkKeysRow(
 @Composable
 private fun DestinationRow(
     network: MeshNetwork?,
-    destinations: List<HeartbeatPublicationDestination>,
     destination: HeartbeatPublicationDestination?,
-    onDestinationSelected: (HeartbeatPublicationDestination) -> Unit
+    onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -340,53 +342,15 @@ private fun DestinationRow(
             titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             subtitle = destination?.let { "0x${it.toHexString()}" } ?: ""
         )
-        DropdownMenu(
-            modifier = Modifier.exposedDropdownSize(),
+        HeartbeatPublicationDestinationsDropdownMenu(
+            network = network,
             expanded = expanded,
-            onDismissRequest = { expanded = !expanded },
-            content = {
-                destinations.forEachIndexed { index, destination ->
-                    DropdownMenuItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                        text = {
-                            MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.SportsScore,
-                                        contentDescription = null
-                                    )
-                                },
-                                title = when (destination) {
-                                    is UnicastAddress -> network
-                                        ?.node(address = destination.address)?.name
-                                        ?: destination.toHexString()
-
-                                    is AllRelays -> stringResource(R.string.label_all_relays)
-                                    is AllFriends -> stringResource(R.string.label_all_friends)
-                                    is AllProxies -> stringResource(R.string.label_all_proxies)
-                                    is AllNodes -> stringResource(R.string.label_all_nodes)
-                                    is GroupAddress -> network
-                                        ?.group(address = destination.address)?.name
-                                        ?: destination.toHexString()
-
-                                    is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
-                                },
-                            )
-                        },
-                        onClick = {
-                            onDestinationSelected(destination)
-                            expanded = !expanded
-                        }
-                    )
-                    if (index < destinations.size - 1) {
-                        HorizontalDivider()
-                    }
-                }
-            }
+            onDismissed = { expanded = !expanded },
+            onDestinationSelected = {
+                onDestinationSelected(it)
+                expanded = !expanded
+            },
+            onAddGroupClicked = onAddGroupClicked
         )
     }
 }
@@ -532,18 +496,4 @@ private fun FeatureRow(
         Text(modifier = Modifier.weight(1f), text = text)
         Switch(enabled = isSupported, checked = isChecked, onCheckedChange = onCheckedChange)
     }
-}
-
-/**
- * Returns the list of possible addresses that can be selected as a destination address for the
- * Heartbeat publication messages for a given ConfigurationServer Model.
- */
-private fun Model.heartbeatSubscriptionDestinations(): List<HeartbeatPublicationDestination> {
-    require(isConfigurationServer) { throw IllegalStateException("Model is not a Configuration Server") }
-    val network = parentElement?.parentNode?.network
-    val nodes = network?.nodes.orEmpty().map { it.primaryUnicastAddress }
-    val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
-    return nodes + groups + listOf<HeartbeatPublicationDestination>(
-        AllRelays, AllFriends, AllProxies, AllNodes
-    )
 }

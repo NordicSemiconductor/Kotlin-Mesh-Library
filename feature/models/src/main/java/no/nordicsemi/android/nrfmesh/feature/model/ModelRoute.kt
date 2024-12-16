@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
@@ -25,9 +26,11 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
+import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @Composable
@@ -38,6 +41,7 @@ internal fun ModelRoute(
     navigateToBoundAppKeys: (Model) -> Unit,
     requestNodeIdentityStates: () -> Unit,
     resetMessageState: () -> Unit,
+    onAddGroupClicked: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     val screen = appState.currentScreen as? ModelScreen
@@ -54,7 +58,8 @@ internal fun ModelRoute(
         send = send,
         navigateToBoundAppKeys = navigateToBoundAppKeys,
         requestNodeIdentityStates = requestNodeIdentityStates,
-        resetMessageState = resetMessageState
+        resetMessageState = resetMessageState,
+        onAddGroupClicked = onAddGroupClicked
     )
 }
 
@@ -64,7 +69,8 @@ internal fun ModelScreen(
     send: (AcknowledgedConfigMessage) -> Unit,
     navigateToBoundAppKeys: (Model) -> Unit,
     requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit
+    resetMessageState: () -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     when (uiState.modelState) {
         ModelState.Loading -> {}
@@ -75,7 +81,8 @@ internal fun ModelScreen(
             send = send,
             navigateToBoundAppKeys = navigateToBoundAppKeys,
             requestNodeIdentityStates = requestNodeIdentityStates,
-            resetMessageState = resetMessageState
+            resetMessageState = resetMessageState,
+            onAddGroupClicked = onAddGroupClicked
         )
 
         is ModelState.Error -> {}
@@ -90,7 +97,8 @@ internal fun ModelInformation(
     send: (AcknowledgedConfigMessage) -> Unit,
     navigateToBoundAppKeys: (Model) -> Unit,
     requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit
+    resetMessageState: () -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
         AnimatedVisibility(visible = messageState.isInProgress()) {
@@ -104,29 +112,39 @@ internal fun ModelInformation(
                 nodeIdentityStates = nodeIdentityStates,
                 send = send,
                 requestNodeIdentityStates = requestNodeIdentityStates,
+                onAddGroupClicked = onAddGroupClicked,
             )
 
             else -> {
-                BoundApplicationKeys(
-                    model = model,
-                    navigateToBoundAppKeys = navigateToBoundAppKeys
-                )
+                BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
+                ModelPublication(model = model, send = send)
             }
         }
     }
 
     when (messageState) {
-        is Failed -> {
-            MeshMessageStatusDialog(
-                text = messageState.error.message ?: stringResource(R.string.label_unknown_error),
-                showDismissButton = !messageState.didFail(),
-                onDismissRequest = resetMessageState,
-            )
+        is Failed -> MeshMessageStatusDialog(
+            text = messageState.error.message ?: stringResource(R.string.label_unknown_error),
+            showDismissButton = !messageState.didFail(),
+            onDismissRequest = resetMessageState,
+        )
+
+        is Completed -> messageState.response?.let {
+            when (it is ConfigStatusMessage) {
+                true -> {
+                    MeshMessageStatusDialog(
+                        text = it.message,
+                        showDismissButton = messageState.didFail(),
+                        onDismissRequest = resetMessageState,
+                    )
+                }
+
+                else -> { /* Do nothing */
+                }
+            }
         }
 
-        else -> {
-
-        }
+        else -> {}
     }
 }
 

@@ -50,7 +50,7 @@ class ConfigHeartbeatPublicationSet(
                 periodLog.toByte() +
                 ttl.toByte() +
                 features.toUShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                networkKeyIndex.toByteArray()
+                networkKeyIndex.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     val count: RemainingHeartbeatPublicationCount
         get() = when {
@@ -114,13 +114,18 @@ class ConfigHeartbeatPublicationSet(
         }?.let { params ->
             ConfigHeartbeatPublicationSet(
                 destination = MeshAddress.create(
-                    address = params.getUShort(offset = 0)
+                    address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ) as HeartbeatPublicationDestination,
                 countLog = params[2].toUByte(),
                 periodLog = params[3].toUByte(),
                 ttl = params[4].toUByte(),
-                features = Features(rawValue = params.getUShort(offset = 5)).toList(),
-                networkKeyIndex = params.getUShort(offset = 7)
+                features = Features(
+                    rawValue = params.getUShort(
+                        offset = 5,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
+                ).toList(),
+                networkKeyIndex = params.getUShort(offset = 7, order = ByteOrder.LITTLE_ENDIAN)
             )
         }
 

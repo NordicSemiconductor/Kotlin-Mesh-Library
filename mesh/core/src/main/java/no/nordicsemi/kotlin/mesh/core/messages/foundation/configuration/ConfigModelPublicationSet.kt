@@ -18,7 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
-import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -28,18 +28,18 @@ import kotlin.experimental.or
  * @property publish               Contains the publication state.
  */
 data class ConfigModelPublicationSet(
-    val publish: Publish,
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
     override val elementAddress: UnicastAddress,
+    val publish: Publish,
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray() +
-                    publish.address.address.toByteArray()
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
                     (publish.credentials.credential shl 4).toByte()
@@ -48,39 +48,51 @@ data class ConfigModelPublicationSet(
                     (publish.period.resolution.value.toInt() shl 6).toByte()
             data += (publish.retransmit.count.toInt() shl 3).toByte() or
                     (publish.retransmit.steps.toInt() shl 3).toByte()
-            data += companyIdentifier?.let {
-                it.toByteArray() + modelIdentifier.toByteArray()
-            } ?: modelIdentifier.toByteArray()
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             return data
         }
 
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param publish Publish state to set.
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(publish: Publish, model: Model) : this(
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+        publish = publish
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationSet message.
+     *
+     * @param model Model to get the publication state for.
+     * @throws IllegalArgumentException if the element address is not set.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(model: Model) : this(
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+        publish = Publish()
+    )
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x03u
-
-        /**
-         * Constructs the ConfigModelPublicationSet message using the given parameters.
-         *
-         * @param publish Publish state to set.
-         * @param model   Model to set the publication for.
-         */
-        fun init(publish: Publish, model: Model): ConfigModelPublicationSet? {
-            require(publish.address !is VirtualAddress) { return null }
-            val elementAddress = model.parentElement?.unicastAddress ?: return null
-            val modelId = model.modelId
-            return ConfigModelPublicationSet(
-                publish = publish,
-                companyIdentifier = when (modelId) {
-                    is VendorModelId -> modelId.companyIdentifier
-                    else -> null
-                },
-                modelIdentifier = when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier
-                    is VendorModelId -> modelId.modelIdentifier
-                },
-                elementAddress = elementAddress
-            )
-        }
 
         /**
          * Constructs the ConfigModelPublicationSet message using the given model.
@@ -115,8 +127,9 @@ data class ConfigModelPublicationSet(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 11 || it.size == 13
         }?.let { params ->
-            val elementAddress = params.getUShort(offset = 0)
-            val address = MeshAddress.create(params.getUShort(2))
+            val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
+            val address =
+                MeshAddress.create(params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN))
             val index = params.getUShort(4) and 0x0FFFu
             val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
             val ttl = params[6].toUByte()
@@ -139,15 +152,21 @@ data class ConfigModelPublicationSet(
             if (params.size == 13) {
                 ConfigModelPublicationSet(
                     publish = publish,
-                    companyIdentifier = params.getUShort(9),
-                    modelIdentifier = params.getUShort(11),
+                    companyIdentifier = params.getUShort(
+                        offset = 9,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    modelIdentifier = params.getUShort(
+                        offset = 11,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             } else {
                 ConfigModelPublicationSet(
                     publish = publish,
                     companyIdentifier = null,
-                    modelIdentifier = params.getUShort(9),
+                    modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
                     elementAddress = UnicastAddress(elementAddress)
                 )
             }

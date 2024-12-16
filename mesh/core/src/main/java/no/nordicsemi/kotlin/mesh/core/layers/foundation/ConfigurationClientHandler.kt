@@ -20,7 +20,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
@@ -41,6 +44,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
@@ -209,9 +213,35 @@ internal class ConfigurationClientHandler(
 
             }
 
-            is ConfigModelPublicationStatus -> {
-                // TODO
+            is ConfigModelPublicationStatus -> if (response.isSuccess) {
+                node(address = source)
+                    ?.element(address = response.elementAddress)
+                    ?.models
+                    ?.model(modelId = response.modelId)?.let { model ->
+                        when (request) {
+                            is ConfigModelPublicationGet -> {
+                                val publicationAddress = response.publish.address
+                                when {
+                                    response.publish.isCanceled -> model.clearPublication()
+                                    publicationAddress is VirtualAddress -> group(
+                                        address = publicationAddress.address
+                                    )?.takeIf { it.address is VirtualAddress }
+                                        ?.let { model.set(response.publish) }
+
+                                    else -> model.set(response.publish)
+                                }
+                            }
+                            is ConfigModelPublicationSet -> if (!response.publish.isCanceled)
+                                model.set(response.publish)
+                            else model.clearPublication()
+                            is ConfigModelPublicationVirtualAddressSet -> model.set(response.publish)
+                            else -> {}
+                        }
+                    }
+            } else {
+                // Do nothing
             }
+
             is ConfigModelAppStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
@@ -223,6 +253,7 @@ internal class ConfigurationClientHandler(
 
                             is ConfigModelAppUnbind ->
                                 it.unbind(index = request.applicationKeyIndex)
+
                             else -> {
 
                             }

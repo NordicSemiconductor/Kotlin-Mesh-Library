@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.ui.network
 
 import androidx.compose.animation.AnimatedVisibility
@@ -40,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -49,6 +48,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
+import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 
@@ -57,6 +57,7 @@ fun NetworkRoute() {
     NetworkScreen()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NetworkScreen() {
     val navController = rememberNavController()
@@ -141,6 +142,7 @@ fun NetworkScreen() {
                 exit = exitTransition
             ) {
                 BottomNavigationBar(
+                    appState = appState,
                     destinations = appState.topLevelDestinations,
                     onNavigateToTopLevelDestination = {
                         appState.navigate(it, it.route)
@@ -151,7 +153,6 @@ fun NetworkScreen() {
     ) { paddingValues ->
         MeshNavHost(
             appState = appState,
-            navController = navController,
             onNavigateToDestination = appState::navigate,
             onBackPressed = appState::onBackPressed,
             startDestination = NodesDestination.route,
@@ -162,24 +163,38 @@ fun NetworkScreen() {
     }
 }
 
-
 @Composable
 fun BottomNavigationBar(
+    appState: MeshAppState,
     destinations: List<TopLevelDestination>,
     onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
 ) {
+    val navBackStateEntry by appState.navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStateEntry?.destination
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     NavigationBar {
         destinations.forEachIndexed { index, destination ->
             NavigationBarItem(
-                selected = selectedItem == index,
+                selected = index == selectedItem,
                 onClick = {
                     selectedItem = index
-                    onNavigateToTopLevelDestination(destination)
+                    appState.navController.navigate(destination.route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(appState.navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // re-selecting the same item
+                        launchSingleTop = true
+                        // Restore state when re-selecting a previously selected item
+                        restoreState = true
+                    }
                 },
                 icon = {
                     Icon(
-                        imageVector = if (selectedItem == index) {
+                        imageVector = if (destination.route == currentDestination?.route) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon

@@ -94,9 +94,8 @@ class ConfigModelAppStatus(
         override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
             it.size == 7 || it.size == 9
         }?.let { params ->
-            val status = ConfigMessageStatus.from(
-                value = params.first().toUByte()
-            ) ?: return null
+            val status = ConfigMessageStatus
+                .from(value = params.first().toUByte()) ?: return null
             ConfigModelAppStatus(
                 status = status,
                 applicationKeyIndex = decodeAppKeyIndex(data = params, offset = 1),

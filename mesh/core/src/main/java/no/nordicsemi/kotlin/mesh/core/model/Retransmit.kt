@@ -60,11 +60,11 @@ data class Retransmit(
     val steps: UByte by lazy { (interval.inWholeMilliseconds / 50 - 1).toUByte() }
 
     companion object {
-        private const val MIN_RETRANSMIT_COUNT: UByte = 0u
-        private const val MAX_RETRANSMIT_COUNT: UByte = 7u
+        const val MIN_RETRANSMIT_COUNT: UByte = 0u
+        const val MAX_RETRANSMIT_COUNT: UByte = 7u
         private const val INTERVAL_STEP = 50L
-        private val MIN_INTERVAL = 50.toDuration(DurationUnit.MILLISECONDS)
-        private val MAX_INTERVAL = 1600.toDuration(DurationUnit.MILLISECONDS)
+        val MIN_INTERVAL = 50.toDuration(DurationUnit.MILLISECONDS)
+        val MAX_INTERVAL = 1600.toDuration(DurationUnit.MILLISECONDS)
 
         /**
          * Creates the Retransmit object when there should be no retransmissions.
