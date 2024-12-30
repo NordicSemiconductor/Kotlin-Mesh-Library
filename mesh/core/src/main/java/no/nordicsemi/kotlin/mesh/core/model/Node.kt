@@ -8,9 +8,9 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer

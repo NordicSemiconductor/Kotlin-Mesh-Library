@@ -15,7 +15,6 @@ import androidx.compose.material.icons.outlined.LocalPolice
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,17 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
-import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex

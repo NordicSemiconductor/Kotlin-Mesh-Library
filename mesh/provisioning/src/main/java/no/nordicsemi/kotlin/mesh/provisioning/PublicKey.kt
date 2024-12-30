@@ -3,6 +3,8 @@
 package no.nordicsemi.kotlin.mesh.provisioning
 
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
+import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyMethod.NO_OOB_PUBLIC_KEY
+import no.nordicsemi.kotlin.mesh.provisioning.PublicKeyMethod.OOB_PUBLIC_KEY
 
 /**
  * Defines Public Key type that's supported by the device. This field is received as a part of the

@@ -24,7 +24,13 @@ import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
 import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
-import no.nordicsemi.kotlin.mesh.bearer.*
+import no.nordicsemi.kotlin.mesh.bearer.Bearer
+import no.nordicsemi.kotlin.mesh.bearer.BearerError
+import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
+import no.nordicsemi.kotlin.mesh.bearer.Pdu
+import no.nordicsemi.kotlin.mesh.bearer.PduType
+import no.nordicsemi.kotlin.mesh.bearer.PduTypes
+import no.nordicsemi.kotlin.mesh.bearer.ProxyProtocolHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 

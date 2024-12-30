@@ -22,8 +22,6 @@ import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -63,7 +61,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
-import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange

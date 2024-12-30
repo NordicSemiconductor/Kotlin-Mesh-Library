@@ -6,9 +6,20 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
-import no.nordicsemi.kotlin.mesh.core.model.*
+import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.Features
+import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.LowPower
+import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Relay
 
 /**
  * Custom serializer/deserializer for Features.

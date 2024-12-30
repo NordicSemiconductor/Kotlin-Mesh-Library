@@ -8,17 +8,17 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Feature
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.model.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
+import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.toRemainingPublicationCount
+import no.nordicsemi.kotlin.mesh.core.model.toUShort
 import java.nio.ByteOrder
 
 /**

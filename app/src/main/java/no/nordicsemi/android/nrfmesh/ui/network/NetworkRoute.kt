@@ -21,13 +21,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -53,8 +48,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsViewModel
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsListDetailsScreen
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination

@@ -3,12 +3,9 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 import android.net.Uri
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
@@ -23,8 +20,6 @@ import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.sceneRangesGraph
 import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.unicastRangesGraph
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.util.UUID
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Parcelize
 data class ProvisionerRoute(val uuid: UUID) : Parcelable

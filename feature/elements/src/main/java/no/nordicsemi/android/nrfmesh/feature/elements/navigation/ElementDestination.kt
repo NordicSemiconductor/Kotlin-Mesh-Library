@@ -8,9 +8,9 @@ import androidx.navigation.compose.composable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementRoute
 import no.nordicsemi.android.nrfmesh.feature.elements.ElementViewModel
+import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination.modelGraph
 import no.nordicsemi.kotlin.mesh.core.model.Address
 

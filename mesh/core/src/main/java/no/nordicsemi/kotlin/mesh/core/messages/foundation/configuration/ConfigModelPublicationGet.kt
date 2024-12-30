@@ -12,7 +12,6 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
-import kotlin.jvm.Throws
 
 /**
  * This message is used to get the publication state of a model.

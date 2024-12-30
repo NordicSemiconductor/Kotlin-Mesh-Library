@@ -1,7 +1,29 @@
 package no.nordicsemi.android.nrfmesh.core.common
 
 import android.content.Context
-import no.nordicsemi.kotlin.mesh.core.exception.*
+import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
+import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
+import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneProvisionerMustBeSelected
+import no.nordicsemi.kotlin.mesh.core.exception.CannotRemove
+import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
+import no.nordicsemi.kotlin.mesh.core.exception.DuplicateKeyIndex
+import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
+import no.nordicsemi.kotlin.mesh.core.exception.ImportError
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
+import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.KeyIndexOutOfRange
+import no.nordicsemi.kotlin.mesh.core.exception.NoAddressesAvailable
+import no.nordicsemi.kotlin.mesh.core.exception.NoGroupRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
+import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
+import no.nordicsemi.kotlin.mesh.core.exception.ProvisionerAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.SceneAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.SceneInUse
 
 // TODO needs a better name, toString was getting overshadowed.
 fun Throwable.convertToString(context: Context) = when (this) {

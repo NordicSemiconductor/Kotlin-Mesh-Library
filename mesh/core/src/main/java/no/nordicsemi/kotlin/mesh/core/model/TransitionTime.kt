@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.immediate
+import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.unknown
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration

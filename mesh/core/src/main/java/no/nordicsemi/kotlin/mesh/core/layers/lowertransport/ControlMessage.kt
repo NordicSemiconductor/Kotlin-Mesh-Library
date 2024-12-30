@@ -4,7 +4,6 @@ package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -12,7 +11,6 @@ import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import kotlin.experimental.and
 
 /**
  * Data class defining a Control Message.

@@ -1,6 +1,5 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -9,7 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
-import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 
 /**
  * Defines message sent to request the current Node Identity state. [ConfigNodeIdentityStatus]
