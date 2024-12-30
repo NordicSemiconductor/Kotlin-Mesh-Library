@@ -11,7 +11,6 @@ pluginManagement {
         id("org.jetbrains.kotlin.jvm") version "2.1.0"
         id("org.jetbrains.kotlin.android") version "2.1.0"
         id("com.android.library") version "8.5.2"
-        // id("org.jetbrains.kotlin.android") version "2.0.0"
     }
 }
 dependencyResolutionManagement {
@@ -25,7 +24,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.5-3")
+            from("no.nordicsemi.android.gradle:version-catalog:2.5-4")
         }
     }
 }

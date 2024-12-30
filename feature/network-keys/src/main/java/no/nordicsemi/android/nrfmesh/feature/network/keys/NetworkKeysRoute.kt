@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.datetime.format.Padding
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
@@ -40,9 +42,9 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
-internal fun NetworkKeysRoute(
+fun NetworkKeysRoute(
     appState: AppState,
-    uiState: NetworkKeysScreenUiState,
+    networkKeys: List<NetworkKey>,
     navigateToKey: (KeyIndex) -> Unit,
     onAddKeyClicked: () -> NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
@@ -57,12 +59,11 @@ internal fun NetworkKeysRoute(
                 NetworkKeysScreen.Actions.ADD_KEY -> navigateToKey(onAddKeyClicked().index)
                 NetworkKeysScreen.Actions.BACK -> onBackPressed()
             }
-
         }?.launchIn(this)
     }
     NetworkKeysScreen(
         snackbarHostState = appState.snackbarHostState,
-        uiState = uiState,
+        networkKeys = networkKeys,
         navigateToKey = navigateToKey,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
@@ -73,36 +74,24 @@ internal fun NetworkKeysRoute(
 @Composable
 private fun NetworkKeysScreen(
     snackbarHostState: SnackbarHostState,
-    uiState: NetworkKeysScreenUiState,
+    networkKeys: List<NetworkKey>,
     navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (NetworkKey) -> Unit,
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
-    val context = LocalContext.current
-    when (uiState.keys.isEmpty()) {
-        true -> MeshNoItemsAvailable(
-            imageVector = Icons.Outlined.VpnKey,
-            title = stringResource(R.string.label_no_keys_added)
-        )
-
-        false -> NetworkKeys(
-            context = context,
-            coroutineScope = rememberCoroutineScope(),
-            snackbarHostState = snackbarHostState,
-            keys = uiState.keys,
-            navigateToKey = navigateToKey,
-            onSwiped = onSwiped,
-            onUndoClicked = onUndoClicked,
-            remove = remove
-        )
-    }
+    NetworkKeys(
+        snackbarHostState = snackbarHostState,
+        keys = networkKeys,
+        navigateToKey = navigateToKey,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
+    )
 }
 
 @Composable
 private fun NetworkKeys(
-    context: Context,
-    coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     keys: List<NetworkKey>,
     navigateToKey: (KeyIndex) -> Unit,
@@ -110,14 +99,20 @@ private fun NetworkKeys(
     onUndoClicked: (NetworkKey) -> Unit,
     remove: (NetworkKey) -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxSize(),
         state = listState,
+        contentPadding = PaddingValues(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
+        item {
+            SectionTitle(
+                title = stringResource(R.string.label_network_keys)
+            )
+        }
         items(items = keys) { key ->
             SwipeToDismissKey(
                 key = key,

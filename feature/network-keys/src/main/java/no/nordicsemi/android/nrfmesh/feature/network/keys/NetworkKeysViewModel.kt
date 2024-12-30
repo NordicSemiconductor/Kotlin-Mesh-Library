@@ -13,8 +13,9 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
+@OptIn(ExperimentalStdlibApi::class)
 @HiltViewModel
-internal class NetworkKeysViewModel @Inject internal constructor(
+class NetworkKeysViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : ViewModel() {
 

@@ -79,7 +79,7 @@ class MeshNetworkManager(
 
     var logger: Logger? = null
 
-    var meshBearer:MeshBearer? = null
+    var meshBearer: MeshBearer? = null
         set(value) {
             field = value
             networkManager?.bearer = value
@@ -106,8 +106,8 @@ class MeshNetworkManager(
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
         this@MeshNetworkManager.network = meshNetwork
-        _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
+        _meshNetwork.emit(meshNetwork)
         true
     } ?: false
 
@@ -139,6 +139,14 @@ class MeshNetworkManager(
         provisionerName: String = "Mesh Provisioner"
     ) = create(name = name, uuid = uuid, provisioner = Provisioner(name = provisionerName))
 
+    /**
+     * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
+     * be generated.
+     *
+     * @param name Name of the mesh network.
+     * @param uuid 128-bit UUID of the mesh network.
+     * @param provisioner Provisioner to be added to the network.
+     */
     suspend fun create(
         name: String = "Mesh Network",
         uuid: UUID = UUID.randomUUID(),
@@ -147,8 +155,8 @@ class MeshNetworkManager(
         it._networkKeys.add(NetworkKey())
         it.add(provisioner)
         network = it
-        _meshNetwork.emit(it)
         networkManager = NetworkManager(this)
+        _meshNetwork.emit(it)
     }
 
     /**
@@ -159,11 +167,11 @@ class MeshNetworkManager(
      * @throws ImportError if deserializing fails.
      */
     @Throws(ImportError::class)
-    suspend fun import(array: ByteArray) =
-        deserialize(array).also {
+    suspend fun import(array: ByteArray) = deserialize(array)
+        .also {
             network = it
-            _meshNetwork.emit(it)
             networkManager = NetworkManager(this)
+            _meshNetwork.emit(it)
         }
 
     /**
@@ -843,3 +851,5 @@ class MeshNetworkManager(
         }?.launchIn(scope)
     }
 }
+
+

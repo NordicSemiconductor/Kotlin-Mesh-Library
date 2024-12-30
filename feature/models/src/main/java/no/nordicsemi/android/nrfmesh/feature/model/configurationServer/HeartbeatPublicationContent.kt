@@ -442,7 +442,6 @@ private fun PeriodicHeartbeatsRow(
                 text = when (publication) {
                     null -> stringResource(R.string.label_unknown)
                     else -> if (countLog > 0.toUByte()) {
-                        println("$periodLog")
                         val periodValue =
                             HeartbeatPublication.periodLog2Period(periodLog = periodLog)
                         periodToTime(periodValue.toInt())

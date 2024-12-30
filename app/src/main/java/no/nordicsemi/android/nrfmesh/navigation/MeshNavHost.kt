@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.navigation
 
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -9,7 +10,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyFilterGraph
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsGraph
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsListDetailsScreen
 
 
 @Composable
@@ -36,10 +37,11 @@ fun MeshNavHost(
             onBackPressed = onBackPressed,
         )
         proxyFilterGraph()
-        settingsGraph(
+        settingsListDetailsScreen(appState = appState)
+        /*settingsGraph(
             appState = appState,
             onNavigateToDestination = onNavigateToDestination,
             onBackPressed = onBackPressed
-        )
+        )*/
     }
 }

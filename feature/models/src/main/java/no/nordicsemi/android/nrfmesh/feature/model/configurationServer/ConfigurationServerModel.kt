@@ -99,7 +99,7 @@ internal fun ConfigurationServerModel(
         send = send,
         requestNodeIdentityStates = requestNodeIdentityStates
     )
-    SectionTitle(stringResource(id = R.string.title_heartbeat))
+    SectionTitle(title = stringResource(id = R.string.title_heartbeat))
     HeartBeatSubscriptionRow(
         model = model,
         subscription = model.parentElement?.parentNode?.heartbeatSubscription,

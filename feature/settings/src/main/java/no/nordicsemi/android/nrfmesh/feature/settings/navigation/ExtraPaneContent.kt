@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.network.keys
+package no.nordicsemi.android.nrfmesh.feature.settings.navigation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,31 +14,35 @@ import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.LocalPolice
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
-import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
-import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.network.keys.R
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreenRoute
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NormalOperation
 import no.nordicsemi.kotlin.mesh.core.model.Secure
@@ -47,17 +51,32 @@ import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import java.text.DateFormat
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun NetworkKeyScreenRoute(
+internal fun ExtraPaneContent(
+    scope: CoroutineScope,
     appState: AppState,
-    networkKey: NetworkKey
+    navigator: ThreePaneScaffoldNavigator<Any>,
+    network: MeshNetwork,
+    content: Any
 ) {
-    val viewModel = hiltViewModel<NetworkKeyViewModel>()
-    NetworkKeyScreen(
-        key = networkKey,
-        onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
-    )
+    when (content) {
+        is NetworkKeyRoute -> NetworkKeyScreen(
+            key = network.networkKeys.first { it.index == content.keyIndex },
+            onNameChanged = { },
+            onKeyChanged = { }
+        )
+
+        is ProvisionerRoute -> ProvisionerScreenRoute(
+            appState = appState,
+            provisioner = network.provisioner(content.uuid) ?: return,
+            otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
+            onNavigateToUnicastRanges = { _, _ -> },
+            onNavigateToGroupRanges = { _, _ -> },
+            onNavigateToSceneRanges = { _, _ -> },
+            onBackPressed = { scope.launch { navigator.navigateBack() } }
+        )
+    }
 }
 
 @Composable
@@ -93,6 +112,7 @@ private fun NetworkKeyInfo(
     onNameChanged: (String) -> Unit,
     onKeyChanged: (ByteArray) -> Unit
 ) {
+    SectionTitle(title = stringResource(id = R.string.label_network_key))
     Name(
         name = networkKey.name,
         onNameChanged = {
@@ -141,6 +161,7 @@ private fun Key(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
+
     ElevatedCardItemTextField(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,

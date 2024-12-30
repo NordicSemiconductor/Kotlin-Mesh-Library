@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.ui.network
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.expandVertically
@@ -22,9 +21,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,41 +37,47 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.common.ui.view.NordicLargeAppBar
-import no.nordicsemi.android.nrfmesh.core.navigation.TopLevelDestination
+import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ActionsMenu
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsViewModel
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsListDetailsScreen
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
+import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 
 @Composable
-fun NetworkRoute() {
-    NetworkScreen()
+fun NetworkRoute(windowSizeClass: WindowSizeClass) {
+    NetworkScreen(windowSizeClass = windowSizeClass)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkScreen() {
+fun NetworkScreen(windowSizeClass: WindowSizeClass) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberMeshAppState(
         navController = navController,
         scope = scope,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
+        windowSizeClass = windowSizeClass
     )
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val currentDestination = appState.currentDestination
     val density = LocalDensity.current
     val enterTransition: EnterTransition = slideInVertically {
         // Slide in from 40 dp from the top.
@@ -94,107 +103,102 @@ fun NetworkScreen() {
             }
         }?.launchIn(this)
     }
-    Scaffold(
-        modifier = Modifier.nestedScroll(connection = scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            NordicLargeAppBar(
-                title = { Text(text = appState.title) },
-                scrollBehavior = scrollBehavior,
-                backButtonIcon = appState.navigationIcon,
-                showBackButton = appState.onNavigationIconClick != null,
-                onNavigationButtonClick = appState.onNavigationIconClick,
-                actions = {
-                    val items = appState.actions
-                    if (items.isNotEmpty()) {
-                        ActionsMenu(
-                            items = appState.actions,
-                            isOpen = menuExpanded,
-                            onToggleOverflow = { menuExpanded = !menuExpanded },
-                            maxVisibleItems = 3
+    NavigationSuiteScaffold(
+        navigationSuiteItems = {
+            appState.meshTopLevelDestinations.forEach { destination ->
+                val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+                item(
+                    selected = selected,
+                    onClick = { appState.navigateToTopLevelDestination(destination) },
+                    icon = {
+                        Icon(
+                            imageVector = if (selected) {
+                                destination.selectedIcon
+                            } else {
+                                destination.unselectedIcon
+                            },
+                            contentDescription = null
                         )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            Column {
-                appState.floatingActionButton.forEach {
-                    ExtendedFloatingActionButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                        text = { Text(text = it.text) },
-                        icon = {
-                            Icon(
-                                imageVector = it.icon,
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = it.onClick,
-                        expanded = true
-                    )
-                }
-            }
-        },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = appState.showBottomBar,
-                enter = enterTransition,
-                exit = exitTransition
-            ) {
-                BottomNavigationBar(
-                    appState = appState,
-                    destinations = appState.topLevelDestinations,
-                    onNavigateToTopLevelDestination = {
-                        appState.navigate(it, it.route)
+                    },
+                    label = {
+                        Text(stringResource(destination.iconTextId))
                     }
                 )
             }
         }
-    ) { paddingValues ->
-        MeshNavHost(
-            appState = appState,
-            onNavigateToDestination = appState::navigate,
-            onBackPressed = appState::onBackPressed,
-            startDestination = NodesDestination.route,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        )
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            topBar = {
+                NordicAppBar(
+                    title = { Text(text = appState.title) },
+                    backButtonIcon = appState.navigationIcon,
+                    showBackButton = appState.onNavigationIconClick != null,
+                    onNavigationButtonClick = appState.onNavigationIconClick,
+                    actions = {
+                        val items = appState.actions
+                        if (items.isNotEmpty()) {
+                            ActionsMenu(
+                                items = appState.actions,
+                                isOpen = menuExpanded,
+                                onToggleOverflow = { menuExpanded = !menuExpanded },
+                                maxVisibleItems = 3
+                            )
+                        }
+                    }
+                )
+            },
+            floatingActionButton = {
+                Column {
+                    appState.floatingActionButton.forEach {
+                        ExtendedFloatingActionButton(
+                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                            text = { Text(text = it.text) },
+                            icon = {
+                                Icon(
+                                    imageVector = it.icon,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = it.onClick,
+                            expanded = true
+                        )
+                    }
+                }
+            }
+        ) { paddingValues ->
+            MeshNavHost(
+                appState = appState,
+                onNavigateToDestination = appState::navigate,
+                onBackPressed = appState::onBackPressed,
+                startDestination = NodesDestination.route,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            )
+        }
     }
 }
 
 @Composable
 fun BottomNavigationBar(
     appState: MeshAppState,
-    destinations: List<TopLevelDestination>,
-    onNavigateToTopLevelDestination: (TopLevelDestination) -> Unit,
+    onNavigateToTopLevelDestination: (MeshTopLevelDestination) -> Unit,
 ) {
     val navBackStateEntry by appState.navController.currentBackStackEntryAsState()
     val currentDestination = navBackStateEntry?.destination
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     NavigationBar {
-        destinations.forEachIndexed { index, destination ->
+        appState.meshTopLevelDestinations.forEachIndexed { index, destination ->
             NavigationBarItem(
                 selected = index == selectedItem,
                 onClick = {
                     selectedItem = index
-                    appState.navController.navigate(destination.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        popUpTo(appState.navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination when
-                        // re-selecting the same item
-                        launchSingleTop = true
-                        // Restore state when re-selecting a previously selected item
-                        restoreState = true
-                    }
+                    onNavigateToTopLevelDestination(destination)
                 },
                 icon = {
                     Icon(
-                        imageVector = if (destination.route == currentDestination?.route) {
+                        imageVector = if (selectedItem == index) {
                             destination.selectedIcon
                         } else {
                             destination.unselectedIcon
@@ -207,3 +211,9 @@ fun BottomNavigationBar(
         }
     }
 }
+
+private fun NavDestination?.isTopLevelDestinationInHierarchy(
+    destination: MeshTopLevelDestination
+) = this?.hierarchy?.any {
+    it.route?.contains(destination.name, true) ?: false
+} ?: false

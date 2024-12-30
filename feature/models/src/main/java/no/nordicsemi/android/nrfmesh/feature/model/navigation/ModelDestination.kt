@@ -56,9 +56,7 @@ object ModelDestination : MeshNavigationDestination {
                 resetMessageState = viewModel::resetMessageState,
                 onAddGroupClicked = {
                     onNavigateToDestination(
-                        appState.topLevelDestinations.first {
-                            it.route == GroupsDestination.route
-                        },
+                        GroupsDestination,
                         GroupsDestination.route
                     )
                 },

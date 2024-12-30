@@ -27,4 +27,5 @@
     <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use.</string>
     <string name="label_no_keys_added">No Keys currently added.</string>
     <string name="error_cannot_delete_primary_network_key">Cannot delete primary key.</string>
+    <string name="label_network_key">Network Key</string>
 </resources>

@@ -1,6 +1,7 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -22,8 +23,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(project (":core:data"))
-    implementation(project (":core:navigation"))
-    implementation(project (":core:ui"))
+    implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
+    implementation(project(":core:ui"))
     implementation(project(":mesh:core"))
 }

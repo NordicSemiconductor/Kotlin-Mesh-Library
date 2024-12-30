@@ -23,45 +23,14 @@ internal class ProvisionerViewModel @Inject internal constructor(
     private val repository: CoreDataRepository
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
-    private val provisionerUuid: String =
-        checkNotNull(savedStateHandle[MeshNavigationDestination.ARG])
 
     private val _uiState = MutableStateFlow(ProvisionerScreenUiState(ProvisionerState.Loading))
-    val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
                 meshNetwork = network
-                _uiState.update { state ->
-                    network.provisioner((UUID.fromString(provisionerUuid)))?.let { provisioner ->
-                        when (val provisionerState = state.provisionerState) {
-                            is ProvisionerState.Loading -> ProvisionerScreenUiState(
-                                provisionerState = ProvisionerState.Success(
-                                    provisioner = provisioner,
-                                    otherProvisioners = network.provisioners.filter {
-                                        it != provisioner
-                                    }
-                                )
-                            )
 
-                            is ProvisionerState.Success -> state.copy(
-                                provisionerState = provisionerState.copy(
-                                    provisioner = provisioner,
-                                    otherProvisioners = network.provisioners.filter {
-                                        it != provisioner
-                                    }
-                                )
-                            )
-
-                            else -> state
-                        }
-                    } ?: ProvisionerScreenUiState(
-                        provisionerState = ProvisionerState.Error(
-                            throwable = Throwable("Provisioner not found")
-                        )
-                    )
-                }
             }
         }
     }

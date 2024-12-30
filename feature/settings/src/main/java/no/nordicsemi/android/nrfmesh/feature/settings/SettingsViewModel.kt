@@ -4,10 +4,14 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -19,30 +23,17 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val repository: CoreDataRepository
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(SettingsScreenUiState())
     val uiState: StateFlow<SettingsScreenUiState> = _uiState.asStateFlow()
+    private lateinit var network: MeshNetwork
 
     init {
         viewModelScope.launch {
-            repository.network.collect { network ->
-                _uiState.update { state ->
-                    when (val networkState = state.networkState) {
-                        is MeshNetworkState.Loading -> SettingsScreenUiState(
-                            networkState = MeshNetworkState.Success(
-                                network = network
-                            )
-                        )
-
-                        is MeshNetworkState.Success -> state.copy(
-                            networkState = networkState.copy(
-                                network = network
-                            )
-                        )
-
-                        else -> state
-                    }
-                }
+            repository.network.collect {
+                network = it
+                _uiState.value = SettingsScreenUiState(
+                    networkState = MeshNetworkState.Success(network = it)
+                )
             }
         }
     }
@@ -52,7 +43,7 @@ class SettingsViewModel @Inject constructor(
      *
      * @param name Name of the network.
      */
-    internal fun onNameChanged(name: String) {
+    fun onNameChanged(name: String) {
         viewModelScope.launch {
             _uiState.update { state ->
                 val networkState = state.networkState as MeshNetworkState.Success
@@ -102,4 +93,6 @@ sealed interface MeshNetworkState {
     object Loading : MeshNetworkState
 }
 
-data class SettingsScreenUiState(val networkState: MeshNetworkState = MeshNetworkState.Loading)
+data class SettingsScreenUiState(
+    val networkState: MeshNetworkState = MeshNetworkState.Loading
+)

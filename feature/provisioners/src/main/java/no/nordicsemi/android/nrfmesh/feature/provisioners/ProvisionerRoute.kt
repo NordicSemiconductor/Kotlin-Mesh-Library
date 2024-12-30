@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GppMaybe
-import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Timer
@@ -28,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -58,12 +58,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
@@ -75,7 +75,8 @@ import java.util.UUID
 @Composable
 internal fun ProvisionerRoute(
     appState: AppState,
-    uiState: ProvisionerScreenUiState,
+    provisioner: Provisioner,
+    otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Int) -> Unit,
     disableConfigurationCapabilities: () -> Unit,
@@ -89,13 +90,14 @@ internal fun ProvisionerRoute(
     val screen = appState.currentScreen as? ProvisionerScreen
     LaunchedEffect(key1 = screen) {
         screen?.buttons?.onEach { buttons ->
-            when(buttons){
+            when (buttons) {
                 ProvisionerScreen.Actions.BACK -> onBackPressed()
             }
         }?.launchIn(this)
     }
     ProvisionerScreen(
-        provisionerState = uiState.provisionerState,
+        provisioner = provisioner,
+        otherProvisioners = otherProvisioners,
         onNameChanged = onNameChanged,
         onAddressChanged = onAddressChanged,
         disableConfigurationCapabilities = disableConfigurationCapabilities,
@@ -109,50 +111,6 @@ internal fun ProvisionerRoute(
 
 @Composable
 private fun ProvisionerScreen(
-    provisionerState: ProvisionerState,
-    onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Unit,
-    onTtlChanged: (Int) -> Unit,
-    navigateToUnicastRanges: (UUID) -> Unit,
-    navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit
-) {
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    when (provisionerState) {
-        ProvisionerState.Loading -> { /* Do nothing */
-        }
-
-        is ProvisionerState.Success -> {
-            ProvisionerInfo(
-                snackbarHostState = snackbarHostState,
-                provisioner = provisionerState.provisioner,
-                otherProvisioners = provisionerState.otherProvisioners,
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                disableConfigurationCapabilities = disableConfigurationCapabilities,
-                onTtlChanged = onTtlChanged,
-                navigateToUnicastRanges = navigateToUnicastRanges,
-                navigateToGroupRanges = navigateToGroupRanges,
-                navigateToSceneRanges = navigateToSceneRanges
-            )
-        }
-
-        is ProvisionerState.Error -> {
-            MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.Group,
-                title = provisionerState.throwable.message ?: "Unknown error"
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProvisionerInfo(
-    snackbarHostState: SnackbarHostState,
     provisioner: Provisioner,
     otherProvisioners: List<Provisioner>,
     onNameChanged: (String) -> Unit,
@@ -164,6 +122,8 @@ private fun ProvisionerInfo(
     navigateToGroupRanges: (UUID) -> Unit,
     navigateToSceneRanges: (UUID) -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
@@ -226,7 +186,7 @@ private fun ProvisionerInfo(
                 )
             }
             item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
+                // HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
                 AddressRangeLegendsForProvisioner()
                 Spacer(modifier = Modifier.size(16.dp))
             }
@@ -278,7 +238,7 @@ private fun UnicastAddress(
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
 
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
@@ -467,7 +427,7 @@ private fun UnicastRange(
     otherRanges: List<UnicastRange>,
     navigateToRanges: () -> Unit
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.Lan,
             title = stringResource(id = R.string.label_unicast_range),
@@ -484,7 +444,7 @@ private fun GroupRange(
     otherRanges: List<GroupRange>,
     navigateToRanges: () -> Unit
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.GroupWork,
             title = stringResource(id = R.string.label_group_range),
@@ -501,7 +461,7 @@ private fun SceneRange(
     otherRanges: List<SceneRange>,
     navigateToRanges: () -> Unit
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.AutoAwesome,
             title = stringResource(id = R.string.label_scene_range),

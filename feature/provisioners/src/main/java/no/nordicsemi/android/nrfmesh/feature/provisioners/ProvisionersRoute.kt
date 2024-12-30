@@ -3,8 +3,12 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,6 +23,8 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,6 +33,7 @@ import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreen
@@ -37,8 +44,8 @@ import java.util.UUID
 @Composable
 internal fun ProvisionersRoute(
     appState: AppState,
-    uiState: ProvisionersScreenUiState,
-    navigateToProvisioner: (UUID) -> Unit,
+    provisioners: List<Provisioner>,
+    navigateToProvisioner: (Provisioner) -> Unit,
     onAddProvisionerClicked: () -> Provisioner,
     onSwiped: (Provisioner) -> Unit,
     onUndoClicked: (Provisioner) -> Unit,
@@ -50,7 +57,7 @@ internal fun ProvisionersRoute(
         screen?.buttons?.onEach { button ->
             when (button) {
                 ProvisionersScreen.Actions.ADD_PROVISIONER ->  {
-                    navigateToProvisioner(onAddProvisionerClicked().uuid)
+
                 }
                 ProvisionersScreen.Actions.BACK -> onBackPressed()
             }
@@ -58,8 +65,9 @@ internal fun ProvisionersRoute(
         }?.launchIn(this)
     }
     ProvisionersScreen(
-        uiState = uiState,
+        provisioners = provisioners,
         navigateToProvisioner = navigateToProvisioner,
+        onAddProvisionerClicked = onAddProvisionerClicked,
         onSwiped = onSwiped,
         onUndoClicked = onUndoClicked,
         remove = remove
@@ -68,48 +76,44 @@ internal fun ProvisionersRoute(
 
 @Composable
 private fun ProvisionersScreen(
-    uiState: ProvisionersScreenUiState,
-    navigateToProvisioner: (UUID) -> Unit,
+    provisioners: List<Provisioner>,
+    navigateToProvisioner: (Provisioner) -> Unit,
+    onAddProvisionerClicked: () -> Provisioner,
+    onSwiped: (Provisioner) -> Unit,
+    onUndoClicked: (Provisioner) -> Unit,
+    remove: (Provisioner) -> Unit
+) {
+    Provisioners(
+        provisioners = provisioners,
+        navigateToProvisioner = navigateToProvisioner,
+        onSwiped = onSwiped,
+        onUndoClicked = onUndoClicked,
+        remove = remove
+    )
+}
+
+@Composable
+private fun Provisioners(
+    provisioners: List<Provisioner>,
+    navigateToProvisioner: (Provisioner) -> Unit,
     onSwiped: (Provisioner) -> Unit,
     onUndoClicked: (Provisioner) -> Unit,
     remove: (Provisioner) -> Unit
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    when (uiState.provisioners.isEmpty()) {
-        true -> MeshNoItemsAvailable(
-            imageVector = Icons.Outlined.AutoAwesome,
-            title = stringResource(R.string.no_provisioners_currently_added)
-        )
-
-        false -> Provisioners(
-            context = context,
-            snackbarHostState = snackbarHostState,
-            provisioners = uiState.provisioners,
-            navigateToProvisioner = navigateToProvisioner,
-            onSwiped = onSwiped,
-            onUndoClicked = onUndoClicked,
-            remove = remove
-        )
-    }
-}
-
-@Composable
-private fun Provisioners(
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    provisioners: List<Provisioner>,
-    navigateToProvisioner: (UUID) -> Unit,
-    onSwiped: (Provisioner) -> Unit,
-    onUndoClicked: (Provisioner) -> Unit,
-    remove: (Provisioner) -> Unit
-) {
     val listState = rememberLazyListState()
     LazyColumn(
+        modifier = Modifier.fillMaxSize(),
         state = listState,
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
+        item {
+            SectionTitle(
+                title = stringResource(id = R.string.label_provisioners)
+            )
+        }
         items(items = provisioners, key = { it.uuid }) { provisioner ->
             SwipeToDismissProvisioner(
                 provisioner = provisioner,
@@ -122,14 +126,15 @@ private fun Provisioners(
             )
         }
     }
+
 }
 
 @Composable
 private fun SwipeToDismissProvisioner(
-    provisioner: Provisioner,
     context: Context,
     snackbarHostState: SnackbarHostState,
-    navigateToProvisioner: (UUID) -> Unit,
+    provisioner: Provisioner,
+    navigateToProvisioner: (Provisioner) -> Unit,
     onSwiped: (Provisioner) -> Unit,
     onUndoClicked: (Provisioner) -> Unit,
     remove: (Provisioner) -> Unit
@@ -142,7 +147,7 @@ private fun SwipeToDismissProvisioner(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                onClick = { navigateToProvisioner(provisioner.uuid) },
+                onClick = { navigateToProvisioner(provisioner) },
                 imageVector = Icons.Outlined.VpnKey,
                 title = provisioner.name,
                 subtitle = provisioner.uuid.toString().uppercase(Locale.US)

@@ -3,13 +3,18 @@ package no.nordicsemi.android.nrfmesh.core.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 /**
  * AppState is a class that holds the current state of the application.
@@ -29,42 +34,14 @@ import androidx.navigation.NavHostController
  * @property currentScreen          Current screen that is displayed.
  */
 @Stable
-abstract class AppState {
-    abstract val navController: NavHostController
-
-    abstract val snackbarHostState: SnackbarHostState
-
-    abstract val topLevelDestinations: List<TopLevelDestination>
-
+abstract class AppState(
+    val navController: NavHostController,
+    val snackbarHostState: SnackbarHostState,
+    val windowSizeClass: WindowSizeClass
+) {
     var currentScreen by mutableStateOf<Screen?>(null)
         protected set
 
-    val showTopAppBar: Boolean
-        get() = currentScreen?.showTopBar ?: false
-
-    val navigationIcon: ImageVector
-        get() = currentScreen?.navigationIcon ?: Icons.AutoMirrored.Outlined.ArrowBack
-
-    val onNavigationIconClick: (() -> Unit)?
-        get() = currentScreen?.onNavigationIconClick
-
-    val title: String
-        get() = currentScreen?.title.orEmpty()
-
-    val actions: List<ActionMenuItem>
-        get() = currentScreen?.actions.orEmpty()
-
-    val floatingActionButton: List<FloatingActionButton>
-        get() = currentScreen?.floatingActionButton.orEmpty()
-
-    val showBottomBar: Boolean
-        get() = currentScreen?.showBottomBar ?: false
-
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry
-
-    /**
-     * Returns the current screen.
-     */
-    protected abstract fun currentScreen()
 }
