@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.settings.navigation
+package no.nordicsemi.android.nrfmesh.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,13 +25,12 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeys
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.settings.R
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 @Composable
-internal fun DetailPaneContent(
+internal fun SettingsListDetails(
     appState: AppState,
     network: MeshNetwork,
     content: Any?,

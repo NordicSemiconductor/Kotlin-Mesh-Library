@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +38,7 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable
-internal fun SettingsRoute(
+internal fun SettingsList(
     appState: AppState,
     uiState: SettingsScreenUiState,
     onNameChanged: (String) -> Unit,
@@ -115,7 +116,7 @@ private fun SettingsInfo(
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit
 ) {
-    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())) {
         SectionTitle(
             modifier = Modifier.padding(vertical = 8.dp),
             title = stringResource(R.string.label_configuration)

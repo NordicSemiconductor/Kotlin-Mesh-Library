@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.settings.navigation
+package no.nordicsemi.android.nrfmesh.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,7 +50,7 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-internal fun ExtraPaneContent(
+internal fun SettingsListDetailsExtra(
     scope: CoroutineScope,
     appState: AppState,
     navigator: ThreePaneScaffoldNavigator<Any>,
