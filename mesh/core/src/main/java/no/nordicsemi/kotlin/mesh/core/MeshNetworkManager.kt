@@ -51,7 +51,7 @@ import java.util.*
  *
  * @param storage               Custom storage option allowing users to save the mesh network to a
  *                              custom location.
- * @param secureProperties     Custom storage option allowing users to save the sequence number.
+ * @param secureProperties      Custom storage option allowing users to save the sequence number.
  * @param scope                 The scope in which the mesh network will be created.
  * @property meshBearer         Mesh bearer is responsible for sending and receiving mesh messages.
  * @property logger             The logger is responsible for logging mesh messages.

@@ -66,11 +66,12 @@ fun MeshAlertDialog(
     iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
     error: Boolean = false,
+    properties: DialogProperties = DialogProperties(usePlatformDefaultWidth = false),
     content: @Composable () -> Unit = {}
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = properties,
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             TextButton(

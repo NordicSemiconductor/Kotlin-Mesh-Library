@@ -37,10 +37,5 @@ fun MeshNavHost(
         )
         proxyFilterGraph()
         settingsListDetailsScreen(appState = appState)
-        /*settingsGraph(
-            appState = appState,
-            onNavigateToDestination = onNavigateToDestination,
-            onBackPressed = onBackPressed
-        )*/
     }
 }

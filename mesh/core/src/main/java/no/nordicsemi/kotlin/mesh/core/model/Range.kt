@@ -54,10 +54,12 @@ sealed class Range {
                     lowAddress = UnicastAddress(overlap.first().toUShort()),
                     highAddress = UnicastAddress(overlap.last().toUShort())
                 )
+
                 is GroupRange -> GroupRange(
                     lowAddress = GroupAddress(overlap.first().toUShort()),
                     highAddress = GroupAddress(overlap.last().toUShort())
                 )
+
                 is SceneRange -> SceneRange(
                     firstScene = overlap.first().toUShort(),
                     lastScene = overlap.last().toUShort()
@@ -365,9 +367,7 @@ fun List<Range>.overlaps(other: Range) = any { it.overlaps(other) }
  * @param other Ranges to be checked.
  * @return true if the given list of ranges overlaps with any of the ranges in the list.
  */
-fun List<Range>.overlaps(other: List<Range>) = any {
-    it.overlaps(other)
-}
+fun List<Range>.overlaps(other: List<Range>) = any { it.overlaps(other) }
 
 /**
  *  Checks if the given range is within the range.

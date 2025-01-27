@@ -18,6 +18,8 @@ import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -33,14 +35,15 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
 internal fun SettingsList(
     appState: AppState,
-    uiState: SettingsScreenUiState,
+    settingsListData: SettingsListData,
+    selectedSetting: ClickableSetting?,
+    highlightSelectedItem: Boolean,
     onNameChanged: (String) -> Unit,
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
@@ -48,7 +51,7 @@ internal fun SettingsList(
     navigateToScenes: () -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     navigateToExport: () -> Unit,
-    resetNetwork: () -> Unit
+    resetNetwork: () -> Unit,
 ) {
     val context = LocalContext.current
     val screen = appState.currentScreen as? SettingsScreen
@@ -72,7 +75,9 @@ internal fun SettingsList(
         }?.launchIn(this)
     }
     SettingsScreen(
-        networkState = uiState.networkState,
+        settingsListData = settingsListData,
+        selectedSetting = selectedSetting,
+        highlightSelectedItem = highlightSelectedItem,
         onNameChanged = onNameChanged,
         onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
@@ -83,63 +88,47 @@ internal fun SettingsList(
 
 @Composable
 private fun SettingsScreen(
-    networkState: MeshNetworkState,
+    settingsListData: SettingsListData,
+    selectedSetting: ClickableSetting?,
+    highlightSelectedItem: Boolean,
     onNameChanged: (String) -> Unit,
     onProvisionersClicked: () -> Unit,
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
-    onScenesClicked: () -> Unit
+    onScenesClicked: () -> Unit,
 ) {
-    when (networkState) {
-        is MeshNetworkState.Success -> {
-            SettingsInfo(
-                network = networkState.network,
-                onNameChanged = onNameChanged,
-                onProvisionersClicked = onProvisionersClicked,
-                onNetworkKeysClicked = onNetworkKeysClicked,
-                onApplicationKeysClicked = onApplicationKeysClicked,
-                onScenesClicked = onScenesClicked
-            )
-        }
-
-        is MeshNetworkState.Loading -> {}
-        is MeshNetworkState.Error -> {}
-    }
-}
-
-@Composable
-private fun SettingsInfo(
-    network: MeshNetwork,
-    onNameChanged: (String) -> Unit,
-    onProvisionersClicked: () -> Unit,
-    onNetworkKeysClicked: () -> Unit,
-    onApplicationKeysClicked: () -> Unit,
-    onScenesClicked: () -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(state = rememberScrollState())
+    ) {
         SectionTitle(
             modifier = Modifier.padding(vertical = 8.dp),
             title = stringResource(R.string.label_configuration)
         )
-        NetworkNameRow(name = network.name, onNameChanged = onNameChanged)
+        NetworkNameRow(name = settingsListData.name, onNameChanged = onNameChanged)
         ProvisionersRow(
-            count = network.provisioners.size,
+            count = settingsListData.provisionerCount,
+            isSelected = selectedSetting == ClickableSetting.Provisioners && highlightSelectedItem,
             onProvisionersClicked = onProvisionersClicked
         )
         NetworkKeysRow(
-            count = network.networkKeys.size,
+            count = settingsListData.networkKeyCount,
+            isSelected = selectedSetting == ClickableSetting.NetworkKeys && highlightSelectedItem,
             onNetworkKeysClicked = onNetworkKeysClicked
         )
         ApplicationKeysRow(
-            count = network.applicationKeys.size,
+            count = settingsListData.appKeyCount,
+            isSelected = selectedSetting == ClickableSetting.ApplicationKeys && highlightSelectedItem,
             onApplicationKeysClicked = onApplicationKeysClicked
         )
         ScenesRow(
-            count = network.scenes.size,
+            count = settingsListData.sceneCount,
+            isSelected = selectedSetting == ClickableSetting.Scenes && highlightSelectedItem,
             onScenesClicked = onScenesClicked
         )
-        IvIndexRow(ivIndex = network.ivIndex)
-        LastModifiedTimeRow(timestamp = network.timestamp)
+        IvIndexRow(ivIndex = settingsListData.ivIndex)
+        LastModifiedTimeRow(timestamp = settingsListData.timestamp)
         SectionTitle(title = stringResource(R.string.label_about))
         VersionNameRow()
         VersionCodeRow()
@@ -159,11 +148,22 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
+private fun ProvisionersRow(
+    count: Int,
+    isSelected: Boolean,
+    onProvisionersClicked: () -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         onClick = { onProvisionersClicked() },
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
@@ -172,11 +172,22 @@ private fun ProvisionersRow(count: Int, onProvisionersClicked: () -> Unit) {
 }
 
 @Composable
-private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
+private fun NetworkKeysRow(
+    count: Int,
+    isSelected: Boolean,
+    onNetworkKeysClicked: () -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         onClick = { onNetworkKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
@@ -185,11 +196,22 @@ private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
 }
 
 @Composable
-private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
+private fun ApplicationKeysRow(
+    count: Int,
+    isSelected: Boolean,
+    onApplicationKeysClicked: () -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         onClick = { onApplicationKeysClicked() },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
@@ -198,11 +220,22 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 }
 
 @Composable
-private fun ScenesRow(count: Int, onScenesClicked: () -> Unit) {
+private fun ScenesRow(
+    count: Int,
+    isSelected: Boolean,
+    onScenesClicked: () -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         onClick = { onScenesClicked() },
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),

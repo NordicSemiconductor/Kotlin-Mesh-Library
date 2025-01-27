@@ -21,4 +21,7 @@
         2. Allocate a scene range to the provisioner. "\n"
         3. Add a scene.</string>
     <string name="error_scene_in_use">Scene in use.</string>
+    <string name="label_add_scene">Add Scene</string>
+    <string name="label_scene">Scene</string>
+    <string name="error_cannot_delete_selected_scene">Switch to a different scene to delete the currently selected scene.</string>
 </resources>

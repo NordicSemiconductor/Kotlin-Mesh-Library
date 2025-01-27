@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
@@ -95,6 +96,7 @@ fun ElevatedCardItem(
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
     onClick: () -> Unit,
     imageVector: ImageVector,
     title: String,
@@ -103,9 +105,10 @@ fun ElevatedCardItem(
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    OutlinedCard (
+    OutlinedCard(
         modifier = modifier,
         onClick = onClick,
+        colors = colors
     ) {
         MeshTwoLineListItem(
             modifier = Modifier
@@ -158,11 +161,11 @@ fun ElevatedCardItemTextField(
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle)
 ) {
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    OutlinedCard (modifier = modifier) {
+    OutlinedCard(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
@@ -228,7 +231,7 @@ fun ElevatedCardItemTextField(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
-                        subtitle = value.text,
+                        subtitle = subtitle,//.text,
                         trailingComposable = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),

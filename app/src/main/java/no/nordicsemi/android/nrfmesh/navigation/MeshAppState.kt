@@ -23,10 +23,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyDestination
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyScreen
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
@@ -41,20 +37,12 @@ import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyDestination
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyScreen
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NODES_ROUTE
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
@@ -63,16 +51,6 @@ import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.PROXY_ROUTE
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.GroupRangesScreen
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.SceneRangesScreen
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesDestination
-import no.nordicsemi.android.nrfmesh.feature.ranges.navigation.UnicastRangesScreen
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneDestination
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreen
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesDestination
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SETTINGS_ROUTE
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
@@ -226,17 +204,6 @@ private fun getScreen(route: String?) = when (route) {
     GroupsDestination.route -> GroupsScreen(title = "Groups")
     ProxyDestination.route -> ProxyScreen(title = "Proxy")
     SettingsDestination.route -> SettingsScreen(title = "Settings")
-    ProvisionersDestination.route -> ProvisionersScreen(title = "Provisioners")
-    ProvisionerDestination.route -> ProvisionerScreen(title = "Edit Provisioner")
-    UnicastRangesDestination.route -> UnicastRangesScreen(title = "Unicast Ranges")
-    GroupRangesDestination.route -> GroupRangesScreen(title = "Group Ranges")
-    SceneRangesDestination.route -> SceneRangesScreen(title = "Scene Ranges")
-    NetworkKeysDestination.route -> NetworkKeysScreen(title = "Network Keys")
-    NetworkKeyDestination.route -> NetworkKeyScreen(title = "Edit Key")
-    ApplicationKeysDestination.route -> ApplicationKeysScreen(title = "Application Keys")
-    ApplicationKeyDestination.route -> ApplicationKeyScreen(title = "Edit Key")
-    ScenesDestination.route -> ScenesScreen(title = "Scenes")
-    SceneDestination.route -> SceneScreen(title = "Edit Scene")
     ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

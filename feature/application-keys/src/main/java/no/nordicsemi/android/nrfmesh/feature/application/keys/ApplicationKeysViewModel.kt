@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,6 +22,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
+    private var selectedKeyIndex: KeyIndex? = null
 
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
     val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.asStateFlow()
@@ -28,7 +32,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
             repository.network.collect { network ->
                 this@ApplicationKeysViewModel.network = network
                 _uiState.update { state ->
-                    val keys = network.applicationKeys.toList()
+                    val keys = network.applicationKeys.map{ ApplicationKeyData(it) }
                     state.copy(
                         keys = keys,
                         keysToBeRemoved = keys.filter { it in state.keysToBeRemoved }
@@ -46,24 +50,46 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     /**
      * Adds an application key to the network.
      */
-    internal fun addApplicationKey(): ApplicationKey = network.add(
-        name = "nRF Application Key",
-        boundNetworkKey = network.networkKeys.first()
+    internal fun addApplicationKey(
+        name: String = "nRF Application Key",
+        boundNetworkKey: NetworkKey = network.networkKeys.first()
+    ): ApplicationKey = network.add(
+        name = name,
+        boundNetworkKey = boundNetworkKey
     ).also {
         save()
     }
 
-    fun onSwiped(key: ApplicationKey) {
+    /**
+     * Invoked when a key is swiped to be deleted. The given key is added to a list of keys to be
+     * deleted.
+     *
+     * @param key Application key to be deleted.
+     */
+    fun onSwiped(key: ApplicationKeyData) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(keysToBeRemoved = it.keysToBeRemoved + key)
-            }
+            val state = _uiState.value
+            _uiState.value = state.copy(
+                keys = state.keys - key,
+                keysToBeRemoved = state.keysToBeRemoved + key
+            )
         }
     }
 
-    fun onUndoSwipe(key: ApplicationKey) {
-        _uiState.update {
-            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
+    /**
+     * Invoked when a key is swiped to be deleted is undone. When invoked the given key is removed
+     * from the list of keys to be deleted.
+     *
+     * @param key Application key to be reverted.
+     */
+    fun onUndoSwipe(key: ApplicationKeyData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            _uiState.value = state.copy(
+                keys = (state.keys + key)
+                    .sortedBy { it.index },
+                keysToBeRemoved = state.keysToBeRemoved - key
+            )
         }
     }
 
@@ -72,20 +98,27 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      *
      * @param key Key to be removed.
      */
-    internal fun remove(key: ApplicationKey) {
-        _uiState.update {
-            it.copy(keysToBeRemoved = it.keysToBeRemoved - key)
+    internal fun remove(key: ApplicationKeyData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            network.run {
+                remove(key = networkKey(keyIndex = key.index))
+                save()
+            }
+            _uiState.value = state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
         }
-        network.remove(key)
-        save()
     }
 
     /**
      * Removes all keys that are queued for deletion.
      */
     private fun removeKeys() {
-        _uiState.value.keysToBeRemoved.forEach {
-            network.remove(it)
+        _uiState.value.keysToBeRemoved.forEach { keyData ->
+            network.run {
+                runCatching {
+                    remove(applicationKey(keyIndex = keyData.index))
+                }
+            }
         }
         save()
     }
@@ -96,9 +129,17 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
+
+
+    internal fun selectKeyIndex(keyIndex: KeyIndex) {
+        selectedKeyIndex = keyIndex
+    }
+
+    internal fun isCurrentlySelectedKey(keyIndex: KeyIndex): Boolean =
+        keyIndex == selectedKeyIndex
 }
 
 data class ApplicationKeysScreenUiState internal constructor(
-    val keys: List<ApplicationKey> = listOf(),
-    val keysToBeRemoved: List<ApplicationKey> = listOf()
+    val keys: List<ApplicationKeyData> = listOf(),
+    val keysToBeRemoved: List<ApplicationKeyData> = listOf()
 )

@@ -2,10 +2,7 @@
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,34 +30,32 @@ import androidx.compose.ui.unit.dp
 @ExperimentalMaterial3Api
 fun SwipeDismissItem(
     dismissState: SwipeToDismissBoxState,
+    enableDismissFromStartToEnd: Boolean = true,
+    enableDismissFromEndToStart: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = dismissState.currentValue == SwipeToDismissBoxValue.Settled,
-        enter = expandHorizontally(),
-        exit = shrinkVertically()
-    ) {
-        SwipeToDismissBox(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            state = dismissState,
-            backgroundContent = {
-                val color by animateColorAsState(targetValue = Color.Red, label = "dismiss")
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = color, shape = CardDefaults.elevatedShape)
-                        .padding(horizontal = 20.dp),
-                    contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
-                        Alignment.CenterStart
-                    else Alignment.CenterEnd
-                ) {
-                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
-                }
+    SwipeToDismissBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        state = dismissState,
+        enableDismissFromStartToEnd = enableDismissFromStartToEnd,
+        enableDismissFromEndToStart = enableDismissFromEndToStart,
+        backgroundContent = {
+            val color by animateColorAsState(targetValue = Color.Red, label = "dismiss")
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                    Alignment.CenterStart
+                else Alignment.CenterEnd
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
             }
-        ) {
-            content()
-            HorizontalDivider()
         }
+    ) {
+        content()
+        HorizontalDivider()
     }
 }
 
@@ -70,4 +65,4 @@ fun SwipeDismissItem(
  * @receiver SwipeToDismissState
  * @return Boolean if dismissed or false otherwise.
  */
-fun SwipeToDismissBoxState.isDismissed(): Boolean = currentValue != SwipeToDismissBoxValue.Settled
+fun SwipeToDismissBoxState.isDismissed(): Boolean = targetValue != SwipeToDismissBoxValue.Settled

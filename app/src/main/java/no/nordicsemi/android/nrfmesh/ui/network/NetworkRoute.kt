@@ -9,9 +9,13 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -122,6 +126,7 @@ fun NetworkScreen(windowSizeClass: WindowSizeClass) {
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            contentWindowInsets = WindowInsets.displayCutout.union(WindowInsets.navigationBars),
             topBar = {
                 NordicAppBar(
                     title = { Text(text = appState.title) },
@@ -168,38 +173,6 @@ fun NetworkScreen(windowSizeClass: WindowSizeClass) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-            )
-        }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(
-    appState: MeshAppState,
-    onNavigateToTopLevelDestination: (MeshTopLevelDestination) -> Unit,
-) {
-    val navBackStateEntry by appState.navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStateEntry?.destination
-    var selectedItem by rememberSaveable { mutableIntStateOf(0) }
-    NavigationBar {
-        appState.meshTopLevelDestinations.forEachIndexed { index, destination ->
-            NavigationBarItem(
-                selected = index == selectedItem,
-                onClick = {
-                    selectedItem = index
-                    onNavigateToTopLevelDestination(destination)
-                },
-                icon = {
-                    Icon(
-                        imageVector = if (selectedItem == index) {
-                            destination.selectedIcon
-                        } else {
-                            destination.unselectedIcon
-                        },
-                        contentDescription = null
-                    )
-                },
-                label = { Text(stringResource(destination.iconTextId)) }
             )
         }
     }

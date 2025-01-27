@@ -34,12 +34,12 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation("androidx.compose.material3:material3:1.4.0-alpha05")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha05")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha05")
+    implementation("androidx.compose.material3:material3:1.4.0-alpha06")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha06")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha06")
 
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-alpha08")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-alpha08")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-alpha08")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-alpha09")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-alpha09")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-alpha09")
 
 }

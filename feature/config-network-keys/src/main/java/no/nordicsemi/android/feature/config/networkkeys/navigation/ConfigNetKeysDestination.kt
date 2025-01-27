@@ -10,13 +10,11 @@ import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysRoute
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysViewModel
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.networkKeysGraph
 import java.util.UUID
 
 object ConfigNetKeysDestination : MeshNavigationDestination {
-    override val route: String = "config_net_key_route/{$ARG}"
+    override val route: String = "config_net_key_route/{ARG}"
     override val destination: String = "config_net_key_destination"
 
     /**
@@ -49,10 +47,5 @@ fun NavGraphBuilder.configNetworkKeysGraph(
             onBackPressed = onBackPressed,
         )
     }
-    networkKeysGraph(
-        appState = appState,
-        onNavigateToKey = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
 }
 

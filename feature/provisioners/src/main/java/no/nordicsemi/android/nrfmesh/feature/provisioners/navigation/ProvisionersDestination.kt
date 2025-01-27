@@ -4,15 +4,14 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.parcelize.Parcelize
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersViewModel
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import java.util.UUID
 
 @Parcelize
 data object ProvisionersRoute : Parcelable
@@ -22,39 +21,29 @@ object ProvisionersDestination : MeshNavigationDestination {
     override val destination: String = "provisioners_destination"
 }
 
-fun NavGraphBuilder.provisionersGraph(
-    appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit
-) {
-    composable(route = ProvisionersDestination.route) {
-
-    }
-    provisionerGraph(
-        appState = appState,
-        onNavigateToUnicastRanges = onNavigateToDestination,
-        onNavigateToGroupRanges = onNavigateToDestination,
-        onNavigateToSceneRanges = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
-}
-
 @Composable
 fun ProvisionersScreenRoute(
-    appState: AppState,
-    provisioners: List<Provisioner>,
-    navigateToProvisioner: (Provisioner) -> Unit,
-    onBackPressed: () -> Unit
+    highlightSelectedItem: Boolean,
+    navigateToProvisioner: (UUID) -> Unit,
+    navigateUp: () -> Unit,
 ){
     val viewModel = hiltViewModel<ProvisionersViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionersRoute(
-        appState = appState,
-        provisioners = provisioners,
-        navigateToProvisioner = navigateToProvisioner,
+        highlightSelectedItem = highlightSelectedItem,
+        provisioners = uiState.provisioners,
         onAddProvisionerClicked = viewModel::addProvisioner,
-        onSwiped = viewModel::onSwiped,
+        onSwiped = {
+            viewModel.onSwiped(it)
+            if(viewModel.isCurrentlySelectedProvisioner(it.uuid)) {
+                navigateUp()
+            }
+        },
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove,
-        onBackPressed = onBackPressed
+        navigateToProvisioner = {
+            viewModel.selectProvisioner(it)
+            navigateToProvisioner(it)
+        }
     )
 }

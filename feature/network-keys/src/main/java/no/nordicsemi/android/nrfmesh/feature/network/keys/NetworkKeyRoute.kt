@@ -22,11 +22,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
@@ -42,71 +41,40 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable
-fun NetworkKeyScreenRoute(
-    appState: AppState,
-    networkKey: NetworkKey
-) {
-    val viewModel = hiltViewModel<NetworkKeyViewModel>()
-    NetworkKeyScreen(
-        key = networkKey,
-        onNameChanged = viewModel::onNameChanged,
-        onKeyChanged = viewModel::onKeyChanged
-    )
-}
-
-@Composable
-private fun NetworkKeyScreen(
+internal fun NetworkKeyRoute(
     key: NetworkKey,
-    onNameChanged: (String) -> Unit,
-    onKeyChanged: (ByteArray) -> Unit
+    save: () -> Unit,
 ) {
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 8.dp)
+            .padding(top = 8.dp)
             .verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        NetworkKeyInfo(
-            networkKey = key,
+        SectionTitle(title = stringResource(id = R.string.label_network_key))
+        Name(
+            name = key.name,
+            onNameChanged = {
+                key.name = it
+                save()
+            },
             isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-            onNameChanged = onNameChanged,
-            onKeyChanged = onKeyChanged
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
+        Key(
+            networkKey = key.key,
+            onKeyChanged = { },
+            isCurrentlyEditable = isCurrentlyEditable,
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+        )
+        OldKey(oldKey = key.oldKey)
+        KeyIndex(index = key.index)
+        KeyRefreshPhase(phase = key.phase)
+        Security(security = key.security)
+        LastModified(key.timestamp)
     }
-}
-
-@Composable
-private fun NetworkKeyInfo(
-    networkKey: NetworkKey,
-    isCurrentlyEditable: Boolean,
-    onEditableStateChanged: () -> Unit,
-    onNameChanged: (String) -> Unit,
-    onKeyChanged: (ByteArray) -> Unit
-) {
-    Name(
-        name = networkKey.name,
-        onNameChanged = {
-            networkKey.name = it
-            onNameChanged(it)
-        },
-        isCurrentlyEditable = isCurrentlyEditable,
-        onEditableStateChanged = onEditableStateChanged
-    )
-    Key(
-        networkKey = networkKey.key,
-        onKeyChanged = onKeyChanged,
-        isCurrentlyEditable = isCurrentlyEditable,
-        onEditableStateChanged = onEditableStateChanged
-    )
-    OldKey(oldKey = networkKey.oldKey)
-    KeyIndex(index = networkKey.index)
-    KeyRefreshPhase(phase = networkKey.phase)
-    Security(security = networkKey.security)
-    LastModified(networkKey.timestamp)
 }
 
 @Composable

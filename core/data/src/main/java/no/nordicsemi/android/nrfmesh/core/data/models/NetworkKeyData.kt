@@ -57,8 +57,10 @@ data class NetworkKeyData internal constructor(
 ) {
     /**
      * Convenience constructor for creating a new network key
+     *
+     * @param key network key
      */
-    internal constructor(key: NetworkKey) : this(
+    constructor(key: NetworkKey) : this(
         index = key.index,
         name = key.name,
         key = key.key,

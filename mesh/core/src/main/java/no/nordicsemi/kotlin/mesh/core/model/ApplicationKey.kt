@@ -46,6 +46,11 @@ data class ApplicationKey internal constructor(
 
     @SerialName("boundNetKey")
     var boundNetKeyIndex: KeyIndex = 0u
+        set(value) {
+            require(value.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+            onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
+            field = value
+        }
 
     var key: ByteArray
         get() = _key

@@ -71,7 +71,6 @@ import java.util.UUID
  * @property networkKeys                List of network keys known to this node.
  * @property applicationKeys            List of application keys known to this node.
  * @property primaryElementData         The primary element of the node.
- * @property networkData                The mesh network to which this node belongs.
  * @property provisioner                The provisioner that provisioned this node.
  * @property isProvisioner              True if the node is a provisioner.
  * @property isLocalProvisioner         True if the node is the local provisioner.
@@ -112,8 +111,7 @@ data class NodeData internal constructor(
     val isCompositionDataReceived: Boolean,
     val isProvisioner: Boolean,
     val isLocalProvisioner: Boolean,
-    val provisioner: ProvisionerData?,
-    val networkData: MeshNetworkData?
+    val provisioner: ProvisionerData?
 ) {
     constructor(node: Node) : this(
         uuid = node.uuid,
@@ -147,8 +145,7 @@ data class NodeData internal constructor(
         isCompositionDataReceived = node.isCompositionDataReceived,
         isProvisioner = node.isProvisioner,
         isLocalProvisioner = node.isLocalProvisioner,
-        provisioner = node.provisioner?.let { ProvisionerData(it) },
-        networkData = null
+        provisioner = node.provisioner?.let { ProvisionerData(it) }
     )
 
     override fun equals(other: Any?): Boolean {
@@ -192,7 +189,6 @@ data class NodeData internal constructor(
         if (isProvisioner != other.isProvisioner) return false
         if (isLocalProvisioner != other.isLocalProvisioner) return false
         if (provisioner != other.provisioner) return false
-        if (networkData != other.networkData) return false
 
         return true
     }
@@ -230,7 +226,6 @@ data class NodeData internal constructor(
         result = 31 * result + isProvisioner.hashCode()
         result = 31 * result + isLocalProvisioner.hashCode()
         result = 31 * result + (provisioner?.hashCode() ?: 0)
-        result = 31 * result + (networkData?.hashCode() ?: 0)
         return result
     }
 }

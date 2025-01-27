@@ -3,10 +3,8 @@
 package no.nordicsemi.android.nrfmesh.core.data.models
 
 import kotlinx.datetime.Instant
-import no.nordicsemi.kotlin.mesh.core.exception.*
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
 import java.util.*
 
 /**
@@ -31,25 +29,22 @@ import java.util.*
  *                                  in the mesh network.
  * @property scenes                 List of scenes that includes information about scenes configured
  *                                  in the mesh network.
- * @property networkExclusions      List of excluded addresses per IvIndex.
  * @property ivIndex                IV Index of the network received via the last Secure Network
  *                                  Beacon and its current state.
- * @property localProvisioner       Main provisioner of the network which is the first provisioner
- *                                  in the list of provisioners.
  * @constructor                     Creates a mesh network.
  */
 data class MeshNetworkData(
     val uuid: UUID = UUID.randomUUID(),
-    private val name: String,
-    internal var provisioners: List<ProvisionerData> = mutableListOf(),
-    internal var networkKeys: List<NetworkKeyData> = mutableListOf(),
-    internal var applicationKeys: List<ApplicationKeyData> = mutableListOf(),
-    internal var nodes: List<NodeData> = mutableListOf(),
-    internal var groups: List<GroupData> = mutableListOf(),
-    internal var scenes: List<SceneData> = mutableListOf(),
+    val name: String,
+    val provisioners: List<ProvisionerData> = mutableListOf(),
+    val networkKeys: List<NetworkKeyData> = mutableListOf(),
+    val applicationKeys: List<ApplicationKeyData> = mutableListOf(),
+    val nodes: List<NodeData> = mutableListOf(),
+    val groups: List<GroupData> = mutableListOf(),
+    val scenes: List<SceneData> = mutableListOf(),
     val ivIndex: IvIndex,
-    val timeStamp: Instant,
-    val partial: Boolean
+    val timestamp: Instant,
+    val partial: Boolean,
 ) {
     constructor(network: MeshNetwork) : this(
         uuid = network.uuid,
@@ -61,7 +56,7 @@ data class MeshNetworkData(
         groups = network.groups.map { GroupData(it) },
         scenes = network.scenes.map { SceneData(it) },
         ivIndex = network.ivIndex,
-        timeStamp = network.timestamp,
+        timestamp = network.timestamp,
         partial = network.partial
     )
 }

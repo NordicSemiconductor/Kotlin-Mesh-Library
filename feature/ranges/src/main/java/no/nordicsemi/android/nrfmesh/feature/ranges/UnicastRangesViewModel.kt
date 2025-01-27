@@ -26,9 +26,7 @@ internal class UnicastRangesViewModel @Inject internal constructor(
     override fun addRange(start: UInt, end: UInt) {
         viewModelScope.launch {
             val range = (UnicastAddress(start.toUShort())..UnicastAddress(end.toUShort()))
-            _uiState.update {
-                it.copy(ranges = it.ranges + range)
-            }
+            _uiState.update { it.copy(ranges = it.ranges + range) }
             if (!_uiState.value.conflicts) {
                 allocate()
                 save()

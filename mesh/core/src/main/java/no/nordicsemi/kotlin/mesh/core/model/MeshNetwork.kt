@@ -45,22 +45,29 @@ import java.util.*
  * @constructor                     Creates a mesh network.
  */
 @Serializable
-class MeshNetwork internal constructor(
+data class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)
     @SerialName(value = "meshUUID")
     val uuid: UUID = UUID.randomUUID(),
     @SerialName(value = "meshName")
-    private var _name: String
+    private var _name: String,
+    @SerialName("provisioners")
+    internal var _provisioners: MutableList<Provisioner> = mutableListOf(),
+    @SerialName("netKeys")
+    internal var _networkKeys: MutableList<NetworkKey> = mutableListOf(),
+    @SerialName("appKeys")
+    internal var _applicationKeys: MutableList<ApplicationKey> = mutableListOf(),
+    @SerialName("nodes")
+    internal var _nodes: MutableList<Node> = mutableListOf(),
+    @SerialName("groups")
+    internal var _groups: MutableList<Group> = mutableListOf(),
+    @SerialName("scenes")
+    internal var _scenes: MutableList<Scene> = mutableListOf(),
+    @SerialName("networkExclusions")
+    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf(),
+    @SerialName("timestamp")
+    internal var _timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
 ) {
-    /**
-     * Convenience constructor to create a network for tests
-     *
-     * @param name The name of the network
-     */
-    internal constructor(name: String) : this(UUID.randomUUID(), name) {
-        add(name = "Primary Network Key", index = 0u)
-    }
-
     var name: String
         get() = _name
         set(value) {
@@ -68,8 +75,10 @@ class MeshNetwork internal constructor(
             onChange(oldValue = _name, newValue = value) { updateTimestamp() }
             _name = value
         }
-    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        internal set
+
+    val timestamp: Instant
+        get() = _timestamp
+
 
     var partial: Boolean = false
         internal set(value) {
@@ -77,38 +86,24 @@ class MeshNetwork internal constructor(
             field = value
         }
 
-    @SerialName("provisioners")
-    internal var _provisioners: MutableList<Provisioner> = mutableListOf()
     val provisioners: List<Provisioner>
         get() = _provisioners
 
-    @SerialName("netKeys")
-    internal var _networkKeys: MutableList<NetworkKey> = mutableListOf()
     val networkKeys: List<NetworkKey>
         get() = _networkKeys
 
-    @SerialName("appKeys")
-    internal var _applicationKeys: MutableList<ApplicationKey> = mutableListOf()
     val applicationKeys: List<ApplicationKey>
         get() = _applicationKeys
 
-    @SerialName("nodes")
-    internal var _nodes: MutableList<Node> = mutableListOf()
     val nodes: List<Node>
         get() = _nodes
 
-    @SerialName("groups")
-    internal var _groups: MutableList<Group> = mutableListOf()
     val groups: List<Group>
         get() = _groups
 
-    @SerialName("scenes")
-    internal var _scenes: MutableList<Scene> = mutableListOf()
     val scenes: List<Scene>
         get() = _scenes
 
-    @SerialName("networkExclusions")
-    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf()
     internal val networkExclusions: List<ExclusionList>
         get() = _networkExclusions
 
@@ -190,10 +185,19 @@ class MeshNetwork internal constructor(
         get() = _localElements
 
     /**
+     * Convenience constructor to create a network for tests
+     *
+     * @param name The name of the network
+     */
+    internal constructor(name: String) : this(UUID.randomUUID(), name) {
+        add(name = "Primary Network Key", index = 0u)
+    }
+
+    /**
      * Updates timestamp to the current time in milliseconds.
      */
     internal fun updateTimestamp() {
-        this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        this._timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
 
     /**
@@ -298,7 +302,6 @@ class MeshNetwork internal constructor(
         // And finally, add the Provisioner.
         provisioner.network = this
         _provisioners.add(provisioner).also { updateTimestamp() }
-
     }
 
     /**
@@ -425,7 +428,7 @@ class MeshNetwork internal constructor(
     fun add(
         name: String,
         key: ByteArray = Crypto.generateRandomKey(),
-        index: KeyIndex? = null
+        index: KeyIndex? = null,
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
@@ -485,7 +488,7 @@ class MeshNetwork internal constructor(
         name: String,
         key: ByteArray = Crypto.generateRandomKey(),
         index: KeyIndex? = null,
-        boundNetworkKey: NetworkKey
+        boundNetworkKey: NetworkKey,
     ): ApplicationKey {
         // Check if the network key belongs to the same network.
         require(boundNetworkKey.network == this) {
@@ -806,7 +809,7 @@ class MeshNetwork internal constructor(
     fun nextAvailableUnicastAddress(
         offset: UnicastAddress = UnicastAddress(minUnicastAddress),
         elementCount: Int,
-        provisioner: Provisioner
+        provisioner: Provisioner,
     ): UnicastAddress? {
         require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
 
@@ -983,7 +986,7 @@ class MeshNetwork internal constructor(
      * @param ranges Allocated ranges.
      */
     private fun getNextAvailableRange(
-        size: Int, bound: Range, ranges: List<Range>
+        size: Int, bound: Range, ranges: List<Range>,
     ): Range? {
         var bestRange: Range? = null
         var lastUpperBound = (bound.low - 1u).toInt()

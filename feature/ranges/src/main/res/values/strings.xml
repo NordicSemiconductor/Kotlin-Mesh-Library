@@ -18,4 +18,8 @@
     <string name="label_resolve">Resolve</string>
     <string name="title_edit_ranges">Edit Ranges</string>
     <string name="action_undo">Undo</string>
+    <string name="label_unicast_ranges">Unicast Ranges</string>
+    <string name="label_group_ranges">Group Ranges</string>
+    <string name="label_scene_ranges">Scene Ranges</string>
+    <string name="label_add_range">Add Range</string>
 </resources>
