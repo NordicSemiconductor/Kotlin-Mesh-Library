@@ -9,6 +9,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,29 +32,17 @@ import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestinat
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
-import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GROUPS_ROUTE
-import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsDestination
-import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NODES_ROUTE
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesDestination
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
-import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.PROXY_ROUTE
-import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyDestination
-import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SETTINGS_ROUTE
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsDestination
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.navigateToSettings
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.NODES
@@ -93,12 +82,8 @@ class MeshAppState(
             .currentBackStackEntryAsState().value?.destination
 
     val currentMeshTopLevelDestination: MeshTopLevelDestination?
-        @Composable get() = when (currentDestination?.route) {
-            NODES_ROUTE -> NODES
-            GROUPS_ROUTE -> GROUPS
-            PROXY_ROUTE -> PROXY
-            SETTINGS_ROUTE -> SETTINGS
-            else -> null
+        @Composable get() = MeshTopLevelDestination.entries.firstOrNull { destination ->
+            currentDestination?.hasRoute(route = destination.route) == true
         }
 
     val showTopAppBar: Boolean
@@ -192,7 +177,6 @@ class MeshAppState(
 }
 
 private fun getScreen(route: String?) = when (route) {
-    NodesDestination.route -> NodesScreen(title = "Nodes")
     NodeDestination.route -> NodeScreen(title = "Node")
     ElementDestination.route -> ElementScreen(title = "Element Information")
     ModelDestination.route -> ModelScreen(title = "Model Information")
@@ -201,9 +185,6 @@ private fun getScreen(route: String?) = when (route) {
     NetKeySelectorDestination.route -> NetKeySelectorScreen()
     ConfigNetKeysDestination.route -> ConfigNetKeysScreen()
     ConfigAppKeysDestination.route -> ConfigAppKeysScreen()
-    GroupsDestination.route -> GroupsScreen(title = "Groups")
-    ProxyDestination.route -> ProxyScreen(title = "Proxy")
-    SettingsDestination.route -> SettingsScreen(title = "Settings")
     ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

@@ -28,10 +28,13 @@ import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesRoute
+import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyRoute
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import kotlin.reflect.KClass
 
@@ -62,19 +65,22 @@ enum class MeshTopLevelDestination(
         iconTextId = R.string.label_nav_bar_groups,
         titleTextId = R.string.label_nav_bar_groups,
         route = GroupsRoute::class,
+        baseRoute = GroupsBaseRoute::class
     ),
     PROXY(
         selectedIcon = Icons.Filled.Hub,
         unselectedIcon = Icons.Outlined.Hub,
         iconTextId = R.string.label_nav_bar_proxy,
         titleTextId = R.string.label_nav_bar_proxy,
-        route = ProxyRoute::class
+        route = ProxyRoute::class,
+        baseRoute = ProxyBaseRoute::class
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
         iconTextId = R.string.label_nav_bar_settings,
         titleTextId = R.string.label_nav_bar_settings,
-        route = SettingsRoute::class
+        route = SettingsRoute::class,
+        baseRoute = SettingsBaseRoute::class
     )
 }

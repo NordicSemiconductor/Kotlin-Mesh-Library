@@ -26,7 +26,7 @@ fun ProvisionersScreenRoute(
     highlightSelectedItem: Boolean,
     navigateToProvisioner: (UUID) -> Unit,
     navigateUp: () -> Unit,
-){
+) {
     val viewModel = hiltViewModel<ProvisionersViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionersRoute(
@@ -35,7 +35,7 @@ fun ProvisionersScreenRoute(
         onAddProvisionerClicked = viewModel::addProvisioner,
         onSwiped = {
             viewModel.onSwiped(it)
-            if(viewModel.isCurrentlySelectedProvisioner(it.uuid)) {
+            if (viewModel.isCurrentlySelectedProvisioner(it.uuid)) {
                 navigateUp()
             }
         },

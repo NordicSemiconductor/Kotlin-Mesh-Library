@@ -2,8 +2,6 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 
 import android.content.ContentResolver
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -21,26 +19,19 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsScreen
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
 internal fun SettingsList(
-    appState: AppState,
     settingsListData: SettingsListData,
     selectedSetting: ClickableSetting?,
     highlightSelectedItem: Boolean,
@@ -53,27 +44,24 @@ internal fun SettingsList(
     navigateToExport: () -> Unit,
     resetNetwork: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val screen = appState.currentScreen as? SettingsScreen
-    val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            importNetwork(uri, context.contentResolver)
-        }
-    }
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { button ->
-            when (button) {
-                SettingsScreen.Actions.IMPORT -> {
-                    fileLauncher.launch("application/json")
-                }
-
-                SettingsScreen.Actions.EXPORT -> navigateToExport()
-                SettingsScreen.Actions.RESET -> resetNetwork()
-            }
-        }?.launchIn(this)
-    }
+    // val fileLauncher = rememberLauncherForActivityResult(
+    //     ActivityResultContracts.GetContent()
+    // ) { uri ->
+    //     uri?.let {
+    //         importNetwork(uri, context.contentResolver)
+    //     }
+    // }
+    // LaunchedEffect(key1 = screen) {
+    //     screen?.buttons?.onEach { button ->
+    //         when (button) {
+    //             SettingsScreen.Actions.IMPORT -> {
+    //                 fileLauncher.launch("application/json")
+    //             }
+    //             SettingsScreen.Actions.EXPORT -> navigateToExport()
+    //             SettingsScreen.Actions.RESET -> resetNetwork()
+    //         }
+    //     }?.launchIn(this)
+    // }
     SettingsScreen(
         settingsListData = settingsListData,
         selectedSetting = selectedSetting,

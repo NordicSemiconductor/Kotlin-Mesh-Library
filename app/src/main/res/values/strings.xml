@@ -34,4 +34,6 @@
     <string name="label_ok">OK</string>
     <string name="label_cancel">Cancel</string>
     <string name="label_status">Status</string>
+    <string name="label_unknown">Unknown</string>
+    <string name="label_empty" />
 </resources>

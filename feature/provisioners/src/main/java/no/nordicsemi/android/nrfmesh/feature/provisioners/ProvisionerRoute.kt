@@ -1,11 +1,12 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
-import android.content.Context
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,7 +30,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -80,14 +82,13 @@ import no.nordicsemi.kotlin.mesh.core.model.plus
 
 @Composable
 internal fun ProvisionerRoute(
-    appState: AppState,
     provisioner: Provisioner,
     // provisionerData: ProvisionerData = ProvisionerData(provisioner),
     otherProvisioners: List<Provisioner>,
     onTtlChanged: (Int) -> Unit,
     save: () -> Unit
 ) {
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val provisionerData by remember(provisioner.uuid) {
         derivedStateOf { ProvisionerData(provisioner) }
@@ -95,98 +96,103 @@ internal fun ProvisionerRoute(
     var isCurrentlyEditable by rememberSaveable(inputs = arrayOf(provisioner.uuid)) {
         mutableStateOf(true)
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp)
-            .verticalScroll(state = rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-    ) {
-        SectionTitle(title = stringResource(id = R.string.label_provisioner))
-        Name(
-            name = provisionerData.name,
-            onNameChanged = {
-                provisioner.name = it
-                save()
-            },
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
+    Scaffold(
+        modifier = Modifier.background(color = Color.Red),
+        contentWindowInsets = WindowInsets(top = 8.dp),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues = paddingValues)
+                .verticalScroll(state = rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
+            SectionTitle(title = stringResource(id = R.string.label_provisioner))
+            Name(
+                name = provisionerData.name,
+                onNameChanged = {
+                    provisioner.name = it
+                    save()
+                },
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+            )
+            UnicastAddress(
+                snackbarHostState = snackbarHostState,
+                keyboardController = keyboardController,
+                provisioner = provisioner,
+                address = provisionerData.address,
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                save = save,
+            )
+            Ttl(
+                keyboardController = keyboardController,
+                ttl = provisionerData.ttl,
+                onTtlChanged = onTtlChanged,
+                isCurrentlyEditable = isCurrentlyEditable
+            ) { isCurrentlyEditable = !isCurrentlyEditable }
 
-        UnicastAddress(
-            context = context,
-            snackbarHostState = appState.snackbarHostState,
-            keyboardController = keyboardController,
-            provisioner = provisioner,
-            address = provisionerData.address,
-            isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-            save = save,
-        )
-        Ttl(
-            keyboardController = keyboardController,
-            ttl = provisionerData.ttl,
-            onTtlChanged = onTtlChanged,
-            isCurrentlyEditable = isCurrentlyEditable
-        ) { isCurrentlyEditable = !isCurrentlyEditable }
-
-        DeviceKey(key = provisionerData.deviceKey)
-        SectionTitle(title = stringResource(R.string.label_allocated_ranges))
-        UnicastRanges(
-            snackbarHostState = appState.snackbarHostState,
-            provisionerData = provisionerData,
-            otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
-            allocate = {
-                runCatching { provisioner.allocate(it) }
-                    .onSuccess { save() }
-            },
-            updateRange = { range, newRange ->
-                runCatching { provisioner.update(range = range, newRange = newRange) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            }
-        )
-        GroupRanges(
-            snackbarHostState = appState.snackbarHostState,
-            provisionerData = provisionerData,
-            otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
-            allocate = {
-                runCatching { provisioner.allocate(range = it) }
-                    .onSuccess { save() }
-            },
-            updateRange = { range, newRange ->
-                runCatching { provisioner.update(range = range, newRange = newRange) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            }
-        )
-        SceneRanges(
-            snackbarHostState = appState.snackbarHostState,
-            provisionerData = provisionerData,
-            otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
-            allocate = {
-                runCatching { provisioner.allocate(it) }
-                    .onSuccess { save() }
-            },
-            updateRange = { range, newRange ->
-                runCatching { provisioner.update(range = range, newRange = newRange) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            }
-        )
-        AddressRangeLegendsForProvisioner()
-        Spacer(modifier = Modifier.size(16.dp))
+            DeviceKey(key = provisionerData.deviceKey)
+            SectionTitle(title = stringResource(R.string.label_allocated_ranges))
+            UnicastRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            GroupRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(range = it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            SceneRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            AddressRangeLegendsForProvisioner()
+            Spacer(modifier = Modifier.size(16.dp))
+        }
     }
 }
 
@@ -212,7 +218,6 @@ fun Name(
 
 @Composable
 private fun UnicastAddress(
-    context: Context,
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     provisioner: Provisioner,
@@ -221,6 +226,7 @@ private fun UnicastAddress(
     onEditableStateChanged: () -> Unit,
     save: () -> Unit
 ) {
+    val context = LocalContext.current
     val initialValue by remember { mutableStateOf(address?.toHexString() ?: "") }
     var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(

@@ -7,6 +7,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
@@ -20,15 +21,8 @@ data object NodesRoute
 @Serializable
 data object NodesBaseRoute
 
-object NodesDestination : MeshNavigationDestination {
-    override val route: String = "nodes_route"
-    override val destination: String = "nodes_destination"
-}
-
-const val NODES_ROUTE = "nodes_route"
-
 fun NavController.navigateToNodes(navOptions: NavOptions) = navigate(
-    route = NodesDestination.route,
+    route = NodesRoute,
     navOptions = navOptions
 )
 
@@ -37,31 +31,33 @@ fun NavGraphBuilder.nodesGraph(
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    composable(route = NodesDestination.route) {
-        val viewModel = hiltViewModel<NodesViewModel>()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        NodesRoute(
+    navigation<NodesBaseRoute>(startDestination = NodesRoute) {
+        composable<NodesRoute> {
+            val viewModel = hiltViewModel<NodesViewModel>()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            NodesRoute(
+                appState = appState,
+                uiState = uiState,
+                navigateToNode = { node ->
+                    onNavigateToDestination(
+                        NodeDestination,
+                        NodeDestination.createNavigationRoute(node.uuid)
+                    )
+                },
+                onSwiped = { },
+                onUndoClicked = { },
+                remove = { }
+            )
+        }
+        provisioningGraph(
             appState = appState,
-            uiState = uiState,
-            navigateToNode = { node ->
-                onNavigateToDestination(
-                    NodeDestination,
-                    NodeDestination.createNavigationRoute(node.uuid)
-                )
-            },
-            onSwiped = { },
-            onUndoClicked = { },
-            remove = { }
+            onNavigateToDestination = onNavigateToDestination,
+            onBackPressed = onBackPressed
+        )
+        nodeGraph(
+            appState = appState,
+            onNavigateToDestination = onNavigateToDestination,
+            onBackPressed = onBackPressed
         )
     }
-    provisioningGraph(
-        appState = appState,
-        onNavigateToDestination = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
-    nodeGraph(
-        appState = appState,
-        onNavigateToDestination = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
 }

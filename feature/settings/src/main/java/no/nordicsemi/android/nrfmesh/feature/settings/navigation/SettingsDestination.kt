@@ -10,32 +10,26 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsViewModel
 
 @Serializable
 @Parcelize
 data object SettingsRoute : Parcelable
 
-object SettingsDestination : MeshNavigationDestination {
-    override val route: String = "settings_route"
-    override val destination: String = "settings_destination"
-}
-
-const val SETTINGS_ROUTE = "settings_route"
+@Serializable
+@Parcelize
+data object SettingsBaseRoute : Parcelable
 
 fun NavController.navigateToSettings(navOptions: NavOptions) = navigate(
     route = SettingsRoute,
     navOptions = navOptions
 )
 
-fun NavGraphBuilder.settingsListDetailsScreen(appState: AppState) {
+fun NavGraphBuilder.settingsListDetailsScreen() {
     composable<SettingsRoute> {
         val viewModel = hiltViewModel<SettingsViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SettingsListDetailsScreen(
-            appState = appState,
             uiState = uiState,
             onItemSelected = viewModel::onItemSelected,
             onNameChanged = viewModel::onNameChanged,

@@ -13,7 +13,6 @@ import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
@@ -33,7 +32,6 @@ import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreenUiState
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun SettingsListDetailsScreen(
-    appState: AppState,
     uiState: SettingsScreenUiState,
     onItemSelected: (ClickableSetting) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -50,7 +48,6 @@ internal fun SettingsListDetailsScreen(
             listPane = {
                 AnimatedPane {
                     SettingsList(
-                        appState = appState,
                         settingsListData = uiState.networkState.settingsListData,
                         selectedSetting = uiState.selectedSetting,
                         highlightSelectedItem = navigator.isListPaneVisible(),
@@ -150,7 +147,6 @@ internal fun SettingsListDetailsScreen(
                 AnimatedPane {
                     val content = navigator.currentDestination?.contentKey
                     SettingsListDetailsExtra(
-                        appState = appState,
                         network = uiState.networkState.network,
                         content = content,
                         save = save
