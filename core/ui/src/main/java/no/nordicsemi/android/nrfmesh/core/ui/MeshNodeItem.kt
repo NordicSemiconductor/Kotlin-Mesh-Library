@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.common.theme.nordicDarkGray
+import no.nordicsemi.android.common.ui.view.CircularIcon
 
 @Composable
 fun MeshNodeItem(
@@ -28,21 +31,13 @@ fun MeshNodeItem(
     companyName: String,
     elements: Int,
     models: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-            .padding(top = 8.dp)
-            .clickable(onClick = { onClick() }),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(all = 16.dp)
-        ) {
+    OutlinedCard(onClick = onClick) {
+        Row(modifier = Modifier.padding(all = 16.dp)) {
             Image(
                 modifier = Modifier
+                    .size(48.dp)
                     .background(
                         color = MaterialTheme.colorScheme.nordicDarkGray,
                         shape = CircleShape
@@ -79,4 +74,34 @@ fun MeshNodeItem(
             }
         }
     }
+}
+
+@Composable
+fun MeshNodeItem1(
+    modifier: Modifier,
+    nodeName: String,
+    addressHex: String,
+    companyName: String,
+    elements: Int,
+    models: Int,
+    onClick: () -> Unit,
+) {
+    ElevatedCardItem(
+        modifier = modifier,
+        title = nodeName,
+        subtitle = addressHex,
+        onClick = onClick,
+        image = {
+            Image(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.nordicDarkGray,
+                        shape = CircleShape
+                    )
+                    .padding(5.dp),
+                painter = painterResource(R.drawable.ic_mesh_white),
+                contentDescription = null
+            )
+        }
+    )
 }

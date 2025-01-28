@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
+import android.media.Image
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -121,6 +123,51 @@ fun ElevatedCardItem(
                     tint = LocalContentColor.current.copy(alpha = 0.6f)
                 )
             },
+            title = title,
+            subtitle = subtitle,
+            trailingComposable = titleAction
+        )
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
+            }
+        }
+    }
+}
+
+@Composable
+fun ElevatedCardItem(
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    onClick: () -> Unit,
+    image: @Composable () -> Unit,
+    title: String,
+    titleAction: @Composable () -> Unit = {},
+    subtitle: String = "",
+    supportingText: String? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
+) {
+    OutlinedCard(
+        modifier = modifier,
+        onClick = onClick,
+        colors = colors
+    ) {
+        MeshTwoLineListItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            leadingComposable = { image() },
             title = title,
             subtitle = subtitle,
             trailingComposable = titleAction
