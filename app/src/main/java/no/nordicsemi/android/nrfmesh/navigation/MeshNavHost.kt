@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.exportGraph
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
@@ -16,7 +17,7 @@ fun MeshNavHost(
     appState: AppState,
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
     onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     NavHost(
         modifier = modifier,
@@ -35,5 +36,9 @@ fun MeshNavHost(
         )
         proxyFilterGraph()
         settingsListDetailsScreen()
+        exportGraph(
+            appState = appState,
+            onBackPressed = onBackPressed
+        )
     }
 }

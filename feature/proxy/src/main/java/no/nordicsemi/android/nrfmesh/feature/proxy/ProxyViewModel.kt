@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel
+package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

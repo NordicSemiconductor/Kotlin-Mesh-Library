@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyRoute
-import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyViewModel
+import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyViewModel
 
 @Serializable
 @Parcelize

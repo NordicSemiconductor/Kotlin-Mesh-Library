@@ -58,7 +58,6 @@ import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneProvisionerMustBeSelec
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
-
 @Composable
 fun ExportRoute(
     appState: AppState,

@@ -35,7 +35,6 @@ import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.core.data.ProxyState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
-import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,33 +46,13 @@ internal fun ProxyRoute(
     onDeviceFound: (Context, BleScanResults) -> Unit,
     onDisconnectClicked: () -> Unit,
 ) {
-    ProxyFilterScreen(
-        onBluetoothEnabled = onBluetoothEnabled,
-        onLocationEnabled = onLocationEnabled,
-        proxyState = uiState.proxyState,
-        onAutoConnectToggled = onAutoConnectToggled,
-        onDisconnectClicked = onDisconnectClicked,
-        onDeviceFound = onDeviceFound
-    )
-}
-
-@ExperimentalMaterial3Api
-@Composable
-private fun ProxyFilterScreen(
-    onBluetoothEnabled: (Boolean) -> Unit,
-    onLocationEnabled: (Boolean) -> Unit,
-    proxyState: ProxyState,
-    onAutoConnectToggled: (Boolean) -> Unit,
-    onDisconnectClicked: () -> Unit,
-    onDeviceFound: (Context, BleScanResults) -> Unit
-) {
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
     val proxyScannerSheetState = rememberModalBottomSheetState()
     RequireBluetooth(onChanged = onBluetoothEnabled) {
         RequireLocation(onChanged = onLocationEnabled) {
             Column {
                 ProxyFilterInfo(
-                    proxyState = proxyState,
+                    proxyState = uiState.proxyState,
                     onAutoConnectToggled = onAutoConnectToggled,
                     onConnectClicked = { showProxyScannerSheet = true },
                     onDisconnectClicked = onDisconnectClicked

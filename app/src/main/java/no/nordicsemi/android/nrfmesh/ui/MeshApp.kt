@@ -9,5 +9,8 @@ import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 @Composable
 fun MeshApp(windowSizeClass: WindowSizeClass) {
     val viewModel = hiltViewModel<NetworkViewModel>()
-    NetworkRoute(windowSizeClass = windowSizeClass)
+    NetworkRoute(
+        windowSizeClass = windowSizeClass,
+        importNetwork = viewModel::importNetwork,
+    )
 }

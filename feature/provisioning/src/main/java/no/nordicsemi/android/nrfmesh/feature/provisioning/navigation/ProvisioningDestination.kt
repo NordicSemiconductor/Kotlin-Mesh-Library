@@ -1,14 +1,21 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning.navigation
 
+import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningViewModel
+
+@Parcelize
+@Serializable
+data object ProvisioningRoute : Parcelable
 
 object ProvisioningDestination : MeshNavigationDestination {
     override val route: String = "provisioning_route"
@@ -18,9 +25,9 @@ object ProvisioningDestination : MeshNavigationDestination {
 fun NavGraphBuilder.provisioningGraph(
     appState: AppState,
     onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit
+    onBackPressed: () -> Unit,
 ) {
-    composable(route = ProvisioningDestination.route) {
+    composable<ProvisioningRoute> {
         val viewModel = hiltViewModel<ProvisioningViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProvisioningRoute(

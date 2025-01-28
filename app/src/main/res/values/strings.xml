@@ -36,4 +36,6 @@
     <string name="label_status">Status</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_empty" />
+    <string name="label_add_node">Add Node</string>
+    <string name="label_add_group">Add Group</string>
 </resources>

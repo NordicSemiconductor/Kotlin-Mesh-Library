@@ -19,7 +19,6 @@ class MainActivity : NordicActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
             NordicTheme {
                 MeshApp(windowSizeClass = windowSizeClass)
-                // ListDetailLayout()
             }
         }
     }
