@@ -4,7 +4,9 @@ import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -21,6 +23,11 @@ object ProvisioningDestination : MeshNavigationDestination {
     override val route: String = "provisioning_route"
     override val destination: String = "provisioning_destination"
 }
+
+fun NavController.navigateToProvisioning(navOptions: NavOptions) = navigate(
+    route = ProvisioningRoute,
+    navOptions = navOptions
+)
 
 fun NavGraphBuilder.provisioningGraph(
     appState: AppState,

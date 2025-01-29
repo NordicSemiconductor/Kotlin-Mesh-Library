@@ -46,9 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navOptions
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.navigateToExport
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
@@ -135,7 +137,7 @@ fun NetworkRoute(
                                     )
                                 },
                                 onClick = {
-                                    // navController.navigateTo
+                                    navController.navigateToProvisioning(navOptions = navOptions {  })
                                 },
                                 expanded = true
                             )
