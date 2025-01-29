@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.SnackbarHostState
@@ -21,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem1
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
@@ -86,7 +86,8 @@ private fun Nodes(
     FlowRow(
         modifier = Modifier
             .fillMaxSize()
-            .padding(all = 8.dp),
+            .padding(all = 8.dp)
+            .verticalScroll(state = rememberScrollState()),
         maxItemsInEachRow = 5,
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
