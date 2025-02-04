@@ -775,7 +775,7 @@ data class MeshNetwork internal constructor(
      */
     fun isAddressAvailable(address: UnicastAddress, elementCount: Int) =
         isAddressRangeAvailable(
-            UnicastRange(address, elementCount)
+            UnicastRange(address = address, elementsCount = elementCount)
         )
 
     /**
@@ -784,14 +784,10 @@ data class MeshNetwork internal constructor(
      *
      * @param address         Possible address of the primary element of the node.
      * @param node            Node
-     * @return true if the address is assignable to the given node or false otherwise.
+     * @return true if the address is assignable to the given `node or false otherwise.
      */
-    fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
-        val range = UnicastRange(address, (address + node.elementsCount))
-        return nodes.filter { it.uuid != node.uuid }
-            .none { it.containsElementsWithAddress(range) } &&
-                !_networkExclusions.contains(range, ivIndex)
-    }
+    fun isAddressAvailable(address: UnicastAddress, node: Node) =
+        isAddressAvailable(address = address, elementCount = node.elementsCount)
 
     /**
      * Returns the next available unicast address from the provisioner's range that can be assigned
