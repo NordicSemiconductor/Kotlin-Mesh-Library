@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -44,6 +44,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
+import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node

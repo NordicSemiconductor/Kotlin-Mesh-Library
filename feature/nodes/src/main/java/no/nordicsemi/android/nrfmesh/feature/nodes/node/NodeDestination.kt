@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import android.os.Parcelable
 import androidx.compose.runtime.getValue
@@ -10,7 +10,6 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Parcelize

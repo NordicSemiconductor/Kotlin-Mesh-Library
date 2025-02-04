@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.Node

@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 /**
  * ClickableNodeInfoItem is a sealed class that represents the clickable settings item in the node

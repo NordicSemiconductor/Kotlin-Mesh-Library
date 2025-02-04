@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.ElementModelRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.R
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
@@ -32,7 +33,7 @@ internal fun NodeInfoListDetails(
     save: () -> Unit,
 ) {
     when (content) {
-        is ElementModelRoute -> ElementScreenRoute(
+        is ElementModelRouteKey -> ElementScreenRoute(
             element = node.element(address = content.address) ?: return,
             highlightSelectedItem = highlightSelectedItem,
             navigateToModel = navigateToModel,

@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
+package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -10,14 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
-import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
-import no.nordicsemi.android.nrfmesh.feature.nodes.ClickableNodeInfoItem
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeInfoList
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeInfoListDetails
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeInfoListDetailsExtra
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeScreenUiState
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeState
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalStdlibApi::class)
@@ -60,7 +55,7 @@ internal fun NodeListDetailsScreen(
                                     onItemSelected(ClickableNodeInfoItem.Element)
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Detail,
-                                        contentKey = ElementRoute(address = it)
+                                        contentKey = ElementRouteKeyKey(address = it)
                                     )
                                 }
                             },
@@ -85,7 +80,7 @@ internal fun NodeListDetailsScreen(
                                 scope.launch {
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Extra,
-                                        contentKey = ModelRoute(
+                                        contentKey = ModelRouteKeyKey(
                                             modelId = it.modelId.id,
                                             address = it.parentElement?.unicastAddress?.address
                                                 ?: throw IllegalStateException()
@@ -105,7 +100,6 @@ internal fun NodeListDetailsScreen(
                             messageState = uiState.messageState,
                             nodeIdentityStatus = uiState.nodeIdentityStates,
                             content = content,
-                            highlightSelectedItem = navigator.isExtraPaneVisible(),
                             send = send
                         )
                     }
