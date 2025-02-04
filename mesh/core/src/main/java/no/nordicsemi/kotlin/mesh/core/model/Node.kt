@@ -208,9 +208,7 @@ data class Node internal constructor(
         }
 
     val primaryElement: Element?
-        get() = companyIdentifier?.let {
-            elements.firstOrNull()
-        }
+        get() = elements.firstOrNull()
 
     val elementsCount: Int
         get() = elements.size
