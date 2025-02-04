@@ -28,20 +28,23 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
  */
 @Serializable
 data class Element(
+    @SerialName(value = "name")
+    private var _name: String? = null,
     @Serializable(with = LocationAsStringSerializer::class)
     val location: Location,
     @SerialName(value = "models")
-    private var _models: MutableList<Model> = mutableListOf()
+    private var _models: MutableList<Model> = mutableListOf(),
 ) {
-    var name: String? = null
+    var name: String?
+        get() = _name
         set(value) {
             name?.let {
                 require(it.isNotBlank()) { "Element name cannot be blank!" }
             }
-            MeshNetwork.onChange(oldValue = field, newValue = value) {
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
                 parentNode?.network?.updateTimestamp()
             }
-            field = value
+            _name = value
         }
 
     // Final index will be set when Element is added to the Node.
@@ -94,6 +97,14 @@ data class Element(
         require(index in LOWER_BOUND..HIGHER_BOUND) {
             " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
         }
+    }
+
+    fun model(modelId: ModelId): Model? {
+        return _models.firstOrNull { it.modelId == modelId }
+    }
+
+    fun model(modelId: UInt): Model? {
+        return _models.firstOrNull { it.modelId.id == modelId }
     }
 
     /**

@@ -18,12 +18,12 @@ import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Start
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -47,8 +47,8 @@ import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.android.nrfmesh.feature.model.utils.periodToTime
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
@@ -73,7 +73,7 @@ internal fun HeartBeatSubscriptionContent(
     model: Model,
     subscription: HeartbeatSubscription?,
     send: (AcknowledgedConfigMessage) -> Unit,
-    onAddGroupClicked:() -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -271,7 +271,7 @@ internal fun HeartBeatSubscriptionContent(
 @Composable
 private fun PeriodRow(
     periodLog: PeriodLog,
-    onPeriodLogChanged: (PeriodLog) -> Unit
+    onPeriodLogChanged: (PeriodLog) -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -306,7 +306,7 @@ private fun PeriodRow(
 private fun SourceRow(
     model: Model,
     source: HeartbeatSubscriptionSource?,
-    onSourceSelected: (HeartbeatSubscriptionSource) -> Unit
+    onSourceSelected: (HeartbeatSubscriptionSource) -> Unit,
 ) {
     val network = model.parentElement?.parentNode?.network
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -318,7 +318,7 @@ private fun SourceRow(
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.Start,
             title = when (source) {
@@ -350,7 +350,7 @@ private fun DestinationRow(
     model: Model,
     destination: HeartbeatSubscriptionDestination?,
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
-    onAddGroupClicked:() -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     val network = model.parentElement?.parentNode?.network ?: return
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -364,7 +364,7 @@ private fun DestinationRow(
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
             title = when (destination) {

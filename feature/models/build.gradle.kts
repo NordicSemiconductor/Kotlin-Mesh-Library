@@ -1,15 +1,18 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.configurationserver"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.models"
 }
 
 dependencies {
 
     implementation(libs.nordic.kotlin.data)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)

@@ -22,7 +22,9 @@ import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -30,6 +32,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -42,34 +45,35 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import java.util.UUID
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NodeInfoList(
+    nodeData: NodeInfoListData,
     node: Node,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onNameChanged: (String) -> Unit,
+    highlightSelectedItem: Boolean,
+    selectedItem: ClickableNodeInfoItem?,
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
-    onElementsClicked: (Address) -> Unit,
+    onElementClicked: (Address) -> Unit,
     onGetTtlClicked: () -> Unit,
     onProxyStateToggled: (Boolean) -> Unit,
     onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
-    onResetClicked: () -> Unit
+    onResetClicked: () -> Unit,
+    save: () -> Unit,
 ) {
     val state = rememberPullToRefreshState()
     val scrollState = rememberScrollState()
+    var selectedAddress by remember { mutableStateOf<Address?>(null) }
     PullToRefreshBox(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         state = state,
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
@@ -79,43 +83,81 @@ internal fun NodeInfoList(
                 .fillMaxSize()
                 .verticalScroll(state = scrollState)
         ) {
-            Spacer(modifier = Modifier.size(8.dp))
-            NodeNameRow(name = node.name, onNameChanged = onNameChanged)
-            SectionTitle(title = stringResource(id = R.string.title_keys))
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(R.string.label_node)
+            )
+            NodeNameRow(
+                name = nodeData.name,
+                onNameChanged = {
+                    node.name = it
+                    save()
+                }
+            )
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_keys)
+            )
             NetworkKeysRow(
-                count = node.networkKeys.size,
-                onNetworkKeysClicked = { onNetworkKeysClicked(node.uuid) }
+                count = nodeData.networkKeyCount,
+                isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
+                        && highlightSelectedItem,
+                onNetworkKeysClicked = { onNetworkKeysClicked(nodeData.uuid) }
             )
             Spacer(modifier = Modifier.size(8.dp))
             ApplicationKeysRow(
-                count = node.applicationKeys.size,
+                count = nodeData.appKeyCount,
+                isSelected = selectedItem == ClickableNodeInfoItem.ApplicationKeys
+                        && highlightSelectedItem,
                 onApplicationKeysClicked = {
-                    onApplicationKeysClicked(node.uuid)
+                    onApplicationKeysClicked(nodeData.uuid)
                 }
             )
-            SectionTitle(title = stringResource(id = R.string.title_elements))
-            node.elements.forEachIndexed { index, element ->
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_elements)
+            )
+            nodeData.elements.forEachIndexed { index, element ->
                 ElementRow(
                     element = element,
+                    isSelected = selectedItem == ClickableNodeInfoItem.Element
+                            && selectedAddress == element.unicastAddress.address
+                            && highlightSelectedItem,
                     onElementsClicked = {
-                        onElementsClicked(element.unicastAddress.address)
+                        selectedAddress = element.unicastAddress.address
+                        onElementClicked(element.unicastAddress.address)
                     }
                 )
-                if (index != node.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
+                if (index != nodeData.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }
-            SectionTitle(title = stringResource(id = R.string.title_node_information))
-            NodeInformationRow(node)
-            SectionTitle(title = stringResource(id = R.string.title_time_to_live))
-            DefaultTtlRow(ttl = node.defaultTTL, onGetTtlClicked = onGetTtlClicked)
-            SectionTitle(title = stringResource(id = R.string.title_proxy_state))
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_node_information)
+            )
+            NodeInformationRow(nodeData)
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_time_to_live)
+            )
+            DefaultTtlRow(ttl = nodeData.defaultTtl, onGetTtlClicked = onGetTtlClicked)
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_proxy_state)
+            )
             ProxyStateRow(
-                proxy = node.features.proxy,
+                proxy = nodeData.features.proxy,
                 onProxyStateToggled = onProxyStateToggled,
                 onGetProxyStateClicked = onGetProxyStateClicked
             )
-            SectionTitle(title = stringResource(id = R.string.title_exclusions))
-            ExclusionRow(isExcluded = node.excluded, onExcluded = onExcluded)
-            SectionTitle(title = stringResource(id = R.string.label_reset_node))
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.title_exclusions)
+            )
+            ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
+            SectionTitle(
+                modifier = Modifier.padding(vertical = 8.dp),
+                title = stringResource(id = R.string.label_reset_node)
+            )
             ResetRow(onResetClicked = onResetClicked)
             Spacer(modifier = Modifier.size(8.dp))
         }
@@ -136,23 +178,39 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
 
 
 @Composable
-private fun NetworkKeysRow(count: Int, onNetworkKeysClicked: () -> Unit) {
+private fun NetworkKeysRow(count: Int, isSelected: Boolean, onNetworkKeysClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onNetworkKeysClicked),
+        modifier = Modifier.padding(horizontal = 16.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         imageVector = Icons.Outlined.VpnKey,
+        onClick = onNetworkKeysClicked,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} added"
     )
 }
 
 @Composable
-private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit) {
+private fun ApplicationKeysRow(
+    count: Int,
+    isSelected: Boolean,
+    onApplicationKeysClicked: () -> Unit,
+) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onApplicationKeysClicked),
+        modifier = Modifier.padding(horizontal = 16.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
+        onClick = onApplicationKeysClicked,
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} added"
@@ -160,19 +218,25 @@ private fun ApplicationKeysRow(count: Int, onApplicationKeysClicked: () -> Unit)
 }
 
 @Composable
-private fun ElementRow(element: Element, onElementsClicked: () -> Unit) {
+private fun ElementRow(element: ElementListData, isSelected: Boolean, onElementsClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         onClick = onElementsClicked,
         imageVector = Icons.Outlined.DeviceHub,
         title = element.name ?: "Unknown",
-        subtitle = "${element.models.size} ${if (element.models.size == 1) "model" else "models"}"
+        subtitle = "${element.modelCount} ${if (element.modelCount == 1) "model" else "models"}"
     )
 }
 
 @Composable
-private fun NodeInformationRow(node: Node) {
+private fun NodeInformationRow(node: NodeInfoListData) {
     CompanyIdentifier(companyIdentifier = node.companyIdentifier)
     Spacer(modifier = Modifier.size(8.dp))
     ProductIdentifier(productIdentifier = node.productIdentifier)
@@ -181,7 +245,7 @@ private fun NodeInformationRow(node: Node) {
     Spacer(modifier = Modifier.size(8.dp))
     ReplayProtectionCount(replayProtectionCount = node.replayProtectionCount)
     Spacer(modifier = Modifier.size(8.dp))
-    Security(node)
+    Security(node = node)
 }
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -232,7 +296,7 @@ private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
 }
 
 @Composable
-private fun Security(node: Node) {
+private fun Security(node: NodeInfoListData) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Security,
@@ -247,9 +311,7 @@ private fun Security(node: Node) {
 @Composable
 private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onGetTtlClicked),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_default_time_to_live),
         subtitle = if (ttl != null) "TTL set to $ttl" else "Unknown",
@@ -268,7 +330,7 @@ private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
 @Composable
 private fun ProxyStateRow(
     proxy: Proxy?, onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit
+    onGetProxyStateClicked: () -> Unit,
 ) {
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)

@@ -86,4 +86,5 @@
     <string name="label_elements">Elements</string>
     <string name="label_groups">Groups</string>
     <string name="label_fixed_group_addresses">Fixed Group Addresses</string>
+    <string name="label_model">Model</string>
 </resources>

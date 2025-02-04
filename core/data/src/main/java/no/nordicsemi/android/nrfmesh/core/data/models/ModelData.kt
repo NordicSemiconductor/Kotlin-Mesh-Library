@@ -31,7 +31,6 @@ import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
  * @property name                                       Name of the model.
  * @property isBluetoothSigAssigned                     True if the model is a Bluetooth SIG defined
  *                                                      model.
- * @property parentElement                              Parent element of the model.
  * @property boundApplicationKeys                       List of [ApplicationKeyData] bound to the model.
  * @property supportsApplicationKeyBinding              True if the model supports application key
  *                                                      binding.
@@ -84,7 +83,6 @@ data class ModelData internal constructor(
     val subscribe: List<SubscriptionAddress>,
     val publish: Publish? = null,
     val isBluetoothSigAssigned: Boolean,
-    val parentElement: ElementData?,
     val boundApplicationKeys: List<ApplicationKeyData>,
     val supportsApplicationKeyBinding: Boolean,
     val supportsDeviceKey: Boolean,
@@ -109,7 +107,7 @@ data class ModelData internal constructor(
     val isOpcodesAggregatorClient: Boolean,
     val isLargeCompositionDataServer: Boolean,
     val isLargeCompositionDataClient: Boolean,
-    val requiresDeviceKey: Boolean
+    val requiresDeviceKey: Boolean,
 ) {
     constructor(model: Model) : this(
         modelId = model.modelId,
@@ -118,7 +116,6 @@ data class ModelData internal constructor(
         subscribe = model.subscribe,
         publish = model.publish,
         isBluetoothSigAssigned = model.isBluetoothSigAssigned,
-        parentElement = model.parentElement?.let { ElementData(it) },
         boundApplicationKeys = model.boundApplicationKeys.map { ApplicationKeyData(it) },
         supportsApplicationKeyBinding = model.supportsApplicationKeyBinding,
         supportsDeviceKey = model.supportsDeviceKey,

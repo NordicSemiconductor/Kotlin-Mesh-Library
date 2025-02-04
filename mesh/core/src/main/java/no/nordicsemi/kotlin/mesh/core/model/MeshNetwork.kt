@@ -150,7 +150,7 @@ data class MeshNetwork internal constructor(
             }
             elements = elements.filter { it.models.isEmpty() }.toMutableList()
             if (elements.isEmpty()) {
-                elements.add(Element(Location.UNKNOWN))
+                elements.add(Element(location = Location.UNKNOWN))
             }
             elements.first().addPrimaryElementModels(this)
 

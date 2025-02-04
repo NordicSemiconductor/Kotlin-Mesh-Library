@@ -28,15 +28,9 @@ import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKey
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeDestination
-import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
@@ -177,9 +171,6 @@ class MeshAppState(
 }
 
 private fun getScreen(route: String?) = when (route) {
-    NodeDestination.route -> NodeScreen(title = "Node")
-    ElementDestination.route -> ElementScreen(title = "Element Information")
-    ModelDestination.route -> ModelScreen(title = "Model Information")
     BoundAppKeysDestination.route -> BoundAppKeysScreen()
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     NetKeySelectorDestination.route -> NetKeySelectorScreen()

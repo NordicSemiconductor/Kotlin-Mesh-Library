@@ -1,88 +1,43 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.navigation
 
-import android.net.Uri
+import android.os.Parcelable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysDestination
-import no.nordicsemi.android.feature.config.networkkeys.navigation.configNetworkKeysGraph
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configApplicationKeysGraph
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementDestination
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.elementsGraph
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodeRoute
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodeViewModel
-import java.util.UUID
+import no.nordicsemi.kotlin.mesh.core.model.Node
 
-object NodeDestination : MeshNavigationDestination {
-    override val route: String = "node_route/{$ARG}"
-    override val destination: String = "node_destination"
+@Parcelize
+@Serializable
+data class NodeRoute(val uuid: String) : Parcelable
 
-    /**
-     * Creates destination route for a network key index.
-     */
-    fun createNavigationRoute(uuid: UUID): String =
-        "node_route/${Uri.encode(uuid.toString())}"
-}
+fun NavController.navigateToNode(
+    node: Node,
+    navOptions: NavOptions? = null,
+) = navigate(route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions)
 
-fun NavGraphBuilder.nodeGraph(
-    appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit
-) {
-    composable(route = NodeDestination.route) {
+fun NavGraphBuilder.nodeGraph() {
+    composable<NodeRoute> {
         val viewModel = hiltViewModel<NodeViewModel>()
-        val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-        NodeRoute(
-            appState = appState,
-            uiState = uiState.value,
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        NodeListDetailsScreen(
+            uiState = uiState,
             onRefresh = viewModel::onRefresh,
-            onNameChanged = viewModel::onNameChanged,
-            onNetworkKeysClicked = {
-                onNavigateToDestination(
-                    ConfigNetKeysDestination,
-                    ConfigNetKeysDestination.createNavigationRoute(it)
-                )
-            },
-            onApplicationKeysClicked = {
-                onNavigateToDestination(
-                    ConfigAppKeysDestination,
-                    ConfigAppKeysDestination.createNavigationRoute(it)
-                )
-            },
-            onElementsClicked = {
-                onNavigateToDestination(
-                    ElementDestination,
-                    ElementDestination.createNavigationRoute(it)
-                )
-            },
-            onGetTtlClicked = { /*TODO*/ },
-            onProxyStateToggled = viewModel::onProxyStateToggled,
+            onGetTtlClicked = { },
             onGetProxyStateClicked = viewModel::onGetProxyStateClicked,
+            onProxyStateToggled = viewModel::onProxyStateToggled,
             onExcluded = viewModel::onExcluded,
             onResetClicked = viewModel::onResetClicked,
-            resetMessageState = viewModel::resetMessageState,
-            onBackPressed = onBackPressed
+            onItemSelected = viewModel::onItemSelected,
+            send = viewModel::send,
+            save = viewModel::save
         )
     }
-    configNetworkKeysGraph(
-        appState = appState,
-        onNavigateToDestination = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
-    configApplicationKeysGraph(
-        appState = appState,
-        onNavigateToDestination = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
-    elementsGraph(
-        appState = appState,
-        onNavigateToDestination = onNavigateToDestination,
-        onBackPressed = onBackPressed
-    )
 }
 

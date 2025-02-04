@@ -41,4 +41,6 @@
     <string name="label_product_version">Product Version</string>
     <string name="label_replay_protection_count">Replay Protection Count</string>
     <string name="label_security">Security</string>
+    <string name="label_node">Node</string>
+    <string name="label_select_node_item_rationale">Select Network Keys, Application Keys or an Element to configure.</string>
 </resources>

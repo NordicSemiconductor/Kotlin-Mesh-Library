@@ -10,87 +10,28 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @Composable
 internal fun ModelRoute(
-    appState: AppState,
-    uiState: ModelScreenUiState,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit,
-    onBackPressed: () -> Unit
-) {
-    val screen = appState.currentScreen as? ModelScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach {
-            when (it) {
-                ModelScreen.Actions.BACK -> onBackPressed()
-            }
-        }?.launchIn(this)
-    }
-
-    ModelScreen(
-        uiState = uiState,
-        send = send,
-        navigateToBoundAppKeys = navigateToBoundAppKeys,
-        requestNodeIdentityStates = requestNodeIdentityStates,
-        resetMessageState = resetMessageState,
-        onAddGroupClicked = onAddGroupClicked
-    )
-}
-
-@Composable
-internal fun ModelScreen(
-    uiState: ModelScreenUiState,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit
-) {
-    when (uiState.modelState) {
-        ModelState.Loading -> {}
-        is ModelState.Success -> ModelInformation(
-            messageState = uiState.messageState,
-            nodeIdentityStates = uiState.nodeIdentityStates,
-            model = uiState.modelState.model,
-            send = send,
-            navigateToBoundAppKeys = navigateToBoundAppKeys,
-            requestNodeIdentityStates = requestNodeIdentityStates,
-            resetMessageState = resetMessageState,
-            onAddGroupClicked = onAddGroupClicked
-        )
-
-        is ModelState.Error -> {}
-    }
-}
-
-@Composable
-internal fun ModelInformation(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
@@ -104,6 +45,10 @@ internal fun ModelInformation(
         AnimatedVisibility(visible = messageState.isInProgress()) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
+        SectionTitle(
+            modifier = Modifier.padding(vertical = 8.dp),
+            title = stringResource(R.string.label_model)
+        )
         CommonInformation(model = model)
         when {
             model.isConfigurationServer -> ConfigurationServerModel(
@@ -139,8 +84,7 @@ internal fun ModelInformation(
                     )
                 }
 
-                else -> { /* Do nothing */
-                }
+                else -> { /* Do nothing */ }
             }
         }
 
@@ -151,7 +95,7 @@ internal fun ModelInformation(
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
-    navigateToBoundAppKeys: (Model) -> Unit
+    navigateToBoundAppKeys: (Model) -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -160,8 +104,6 @@ internal fun BoundApplicationKeys(
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
         subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
-        onClick = {
-            navigateToBoundAppKeys(model)
-        }
+        onClick = { navigateToBoundAppKeys(model) }
     )
 }

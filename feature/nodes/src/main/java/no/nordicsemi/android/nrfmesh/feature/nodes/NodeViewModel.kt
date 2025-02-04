@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,10 +15,11 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodeRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
@@ -36,8 +38,8 @@ internal class NodeViewModel @Inject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val nodeUuid: UUID = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
-        UUID.fromString(it as String)
+    private val nodeUuid = savedStateHandle.toRoute<NodeRoute>().let {
+        UUID.fromString(it.uuid)
     }
 
     private val _uiState = MutableStateFlow(NodeScreenUiState())
@@ -49,7 +51,7 @@ internal class NodeViewModel @Inject internal constructor(
             meshNetwork = it
             val state = it.node(nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
-                NodeState.Success(node)
+                NodeState.Success(node = node, nodeInfoListData = NodeInfoListData(node = node))
             } ?: NodeState.Error(Throwable("Node not found"))
             _uiState.value = _uiState.value.copy(
                 nodeState = state
@@ -64,22 +66,6 @@ internal class NodeViewModel @Inject internal constructor(
         _uiState.value = uiState.value.copy(isRefreshing = true)
         viewModelScope.launch {
             send(message = ConfigCompositionDataGet(page = 0x00u))
-        }
-    }
-
-    /**
-     * Called when the user changes the name of the node.
-     *
-     * @param name New name of the node.
-     */
-    internal fun onNameChanged(name: String) {
-        if (selectedNode.name != name) {
-            if (name.isNotEmpty())
-                selectedNode.name = name
-            else throw IllegalArgumentException("Name cannot be empty")
-            viewModelScope.launch {
-                repository.save()
-            }
         }
     }
 
@@ -124,7 +110,11 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
-    private fun send(message: AcknowledgedConfigMessage) {
+    internal fun onItemSelected(item: ClickableNodeInfoItem) {
+        _uiState.value = _uiState.value.copy(selectedNodeInfoItem = item)
+    }
+
+    internal fun send(message: AcknowledgedConfigMessage) {
         val handler = CoroutineExceptionHandler { _, throwable ->
             _uiState.value = _uiState.value.copy(
                 messageState = Failed(message = message, error = throwable),
@@ -159,13 +149,22 @@ internal class NodeViewModel @Inject internal constructor(
     fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
+
+    fun save() {
+        viewModelScope.launch {
+            repository.save()
+        }
+    }
 }
 
 sealed interface NodeState {
 
     data object Loading : NodeState
 
-    data class Success(val node: Node) : NodeState
+    data class Success(
+        val node: Node,
+        val nodeInfoListData: NodeInfoListData
+    ) : NodeState
 
     data class Error(val throwable: Throwable) : NodeState
 }
@@ -174,5 +173,7 @@ data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading,
     val isRefreshing: Boolean = false,
     val showProgress: Boolean = false,
-    val messageState: MessageState = NotStarted
+    val messageState: MessageState = NotStarted,
+    val selectedNodeInfoItem: ClickableNodeInfoItem? = null,
+    val nodeIdentityStates: List<NodeIdentityStatus> = emptyList(),
 )

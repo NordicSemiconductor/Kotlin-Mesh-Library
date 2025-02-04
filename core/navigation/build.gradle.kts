@@ -10,7 +10,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.kotlinx.serialization.json)
@@ -18,6 +17,6 @@ dependencies {
     implementation(project(":core:common"))
     // implementation(project(":core:ui"))
 
-    implementation("androidx.compose.material:material-icons-extended-android:1.7.6")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha05")
+    implementation("androidx.compose.material:material-icons-extended-android:1.7.7")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha07")
 }

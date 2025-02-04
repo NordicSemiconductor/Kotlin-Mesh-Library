@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.model
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,40 +14,26 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination.Companion.ARG
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelDestination.MODEL_ID
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
-import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.ModelId
-import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
-import no.nordicsemi.kotlin.mesh.core.model.model
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ModelViewModel @Inject internal constructor(
-    savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedElement: Element
     private lateinit var selectedModel: Model
-    private val address: Address = checkNotNull(value = savedStateHandle[ARG])
-        .toString()
-        .toUShort(radix = 16)
-    private val modelId: ModelId = checkNotNull(value = savedStateHandle[MODEL_ID])
-        .toString()
-        .decode()
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState.asStateFlow()
@@ -57,21 +42,7 @@ internal class ModelViewModel @Inject internal constructor(
     init {
         repository.network.onEach {
             meshNetwork = it
-            val modelState = it.element(elementAddress = address)?.let { element ->
-                this@ModelViewModel.selectedElement = element
-                selectedModel = element.models
-                    .model(modelId = modelId)
-                    ?: throw IllegalArgumentException()
-                ModelState.Success(model = selectedModel)
-            } ?: ModelState.Error(Throwable("Model not found"))
-            _uiState.value = _uiState.value.copy(
-                modelState = modelState
-            )
-            if (shouldUpdateNodeIdentityState()) {
-                _uiState.value = _uiState.value.copy(
-                    nodeIdentityStates = createNodeIdentityStates()
-                )
-            }
+
         }.launchIn(scope = viewModelScope)
     }
 
@@ -210,9 +181,4 @@ internal data class ModelScreenUiState internal constructor(
     val isRefreshing: Boolean = false,
     val messageState: MessageState = NotStarted,
     val nodeIdentityStates: List<NodeIdentityStatus> = emptyList()
-)
-
-internal data class NodeIdentityStatus(
-    val networkKey: NetworkKey,
-    val nodeIdentityState: NodeIdentityState?
 )

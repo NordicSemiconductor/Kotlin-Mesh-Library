@@ -21,13 +21,13 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -55,8 +55,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.toFloat
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationGet
@@ -88,7 +88,7 @@ import kotlin.time.DurationUnit
 @Composable
 internal fun ModelPublication(
     model: Model,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -250,7 +250,7 @@ private fun Destination(
     network: MeshNetwork?,
     destinations: List<PublicationAddress>,
     destination: PublicationAddress?,
-    onDestinationSelected: (PublicationAddress) -> Unit
+    onDestinationSelected: (PublicationAddress) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -260,7 +260,7 @@ private fun Destination(
     ) {
         ElevatedCardItem(
             modifier = Modifier
-                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
             title = when (destination) {
@@ -338,7 +338,7 @@ private fun Destination(
 private fun ApplicationKeys(
     keys: List<ApplicationKey>,
     selectedKeyIndex: Int,
-    onApplicationKeySelected: (Int) -> Unit
+    onApplicationKeySelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -349,7 +349,7 @@ private fun ApplicationKeys(
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_application_key),
@@ -413,7 +413,7 @@ private fun Ttl(ttl: Int, onTtlChanged: (Int) -> Unit) {
 @Composable
 private fun PeriodicPublishingInterval(
     publishPeriod: PublishPeriod?,
-    onPeriodChanged: (PublishPeriod) -> Unit
+    onPeriodChanged: (PublishPeriod) -> Unit,
 ) {
     val minPublicationInterval = 0f
     val maxPublicationInterval = 239f
@@ -512,7 +512,7 @@ private fun PeriodicPublishingInterval(
 @Composable
 private fun FriendshipCredential(
     credentials: Credentials,
-    onCredentialsChanged: (Credentials) -> Unit
+    onCredentialsChanged: (Credentials) -> Unit,
 ) {
 
     ElevatedCardItem(
@@ -537,7 +537,7 @@ private fun FriendshipCredential(
 @Composable
 private fun RetransmissionCountAndInterval(
     retransmit: Retransmit?,
-    onRetransmitChanged: (Retransmit) -> Unit
+    onRetransmitChanged: (Retransmit) -> Unit,
 ) {
     var count by remember { mutableIntStateOf(retransmit?.count?.toInt() ?: 0) }
     var steps by remember { mutableIntStateOf(retransmit?.steps?.toInt() ?: 0) }

@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import android.media.Image
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -208,7 +206,7 @@ fun ElevatedCardItemTextField(
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle)
 ) {
-    var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
+    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
@@ -278,7 +276,7 @@ fun ElevatedCardItemTextField(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
-                        subtitle = subtitle,//.text,
+                        subtitle = value.text,
                         trailingComposable = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
