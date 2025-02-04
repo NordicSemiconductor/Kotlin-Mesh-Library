@@ -7,7 +7,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 /**
  * Defines the message state of a mesh message.
  */
-sealed class MessageState {
+sealed class MessageState(
+    open val message: BaseMeshMessage? = null,
+    open val response: ConfigResponse? = null,
+    open val error: Throwable? = null,
+) {
 
     fun MessageState.isInProgress(): Boolean = this is Sending
 
@@ -24,7 +28,7 @@ data object NotStarted : MessageState()
  *
  * @param message Message that is being sent.
  */
-data class Sending(val message: BaseMeshMessage) : MessageState()
+data class Sending(override val message: BaseMeshMessage) : MessageState()
 
 /**
  * Defines a state when a message sending has been completed successfully.
@@ -33,9 +37,9 @@ data class Sending(val message: BaseMeshMessage) : MessageState()
  * @param response  Response received from the mesh node.
  */
 data class Completed(
-    val message: MeshMessage,
-    val response: ConfigResponse? = null
-) : MessageState()
+    override val message: MeshMessage,
+    override val response: ConfigResponse? = null,
+) : MessageState(message = message, response = response)
 
 /**
  * Define a state when hen a message sending has failed.
@@ -44,6 +48,6 @@ data class Completed(
  * @param error     Error that occurred while sending the message.
  */
 data class Failed(
-    val message: MeshMessage?,
-    val error: Throwable
-) : MessageState()
+    override val message: MeshMessage?,
+    override val error: Throwable,
+) : MessageState(message = message, error = error)

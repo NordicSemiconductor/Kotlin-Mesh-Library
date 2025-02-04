@@ -12,11 +12,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Start
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -25,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -44,7 +45,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.utils.periodToTime
@@ -71,6 +75,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun HeartBeatSubscriptionContent(
     model: Model,
+    messageState: MessageState,
     subscription: HeartbeatSubscription?,
     send: (AcknowledgedConfigMessage) -> Unit,
     onAddGroupClicked: () -> Unit,
@@ -165,14 +170,22 @@ internal fun HeartBeatSubscriptionContent(
             }
         },
         actions = {
-            OutlinedButton(
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatSubscriptionGet,
                 onClick = { send(ConfigHeartbeatSubscriptionGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
-                onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+            Spacer(modifier = Modifier.size(8.dp))
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_state),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatSubscriptionSet,
+                onClick = { showBottomSheet = true }
             )
         }
     )

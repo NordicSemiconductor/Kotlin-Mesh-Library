@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,10 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -30,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -54,13 +56,17 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.utils.periodToTime
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.model.AllFriends
@@ -86,9 +92,10 @@ import kotlin.math.roundToInt
 @Composable
 internal fun HeartBeatPublicationContent(
     model: Model,
+    messageState: MessageState,
     publication: HeartbeatPublication?,
     send: (AcknowledgedConfigMessage) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -118,20 +125,28 @@ internal fun HeartBeatPublicationContent(
             else "enabled"
         }",
         actions = {
-            OutlinedButton(
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatPublicationGet,
                 onClick = { send(ConfigHeartbeatSubscriptionGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state)
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
+            Spacer(modifier = Modifier.padding(8.dp))
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatPublicationSet,
                 onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_state)
             )
         }
     )
     DisposableEffect(showBottomSheet) {
         onDispose {
-            if(!showBottomSheet) {
+            if (!showBottomSheet) {
                 keyIndex = 0
                 ttl = 5
                 destination = null
@@ -249,7 +264,7 @@ internal fun HeartBeatPublicationContent(
 private fun NetworkKeysRow(
     network: MeshNetwork?,
     selectedKeyIndex: Int,
-    onNetworkKeySelected: (Int) -> Unit
+    onNetworkKeySelected: (Int) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -311,7 +326,7 @@ private fun DestinationRow(
     network: MeshNetwork?,
     destination: HeartbeatPublicationDestination?,
     onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -377,7 +392,7 @@ private fun PeriodicHeartbeatsRow(
     countLog: UByte,
     onCountLogChanged: (UByte) -> Unit,
     periodLog: UByte,
-    onPeriodLogChanged: (UByte) -> Unit
+    onPeriodLogChanged: (UByte) -> Unit,
 ) {
     var countLogValue by rememberSaveable { mutableIntStateOf(countLog.toInt()) }
     ElevatedCardItem(
@@ -457,7 +472,7 @@ private fun PeriodicHeartbeatsRow(
 private fun FeaturesRow(
     node: Node,
     features: List<Feature>,
-    onFeatureChanged: (Feature, Boolean) -> Unit
+    onFeatureChanged: (Feature, Boolean) -> Unit,
 ) {
     val nodeFeatures = node.features.toList()
     ElevatedCardItem(
@@ -489,7 +504,7 @@ private fun FeatureRow(
     text: String,
     isSupported: Boolean,
     isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(modifier = Modifier.weight(1f), text = text)

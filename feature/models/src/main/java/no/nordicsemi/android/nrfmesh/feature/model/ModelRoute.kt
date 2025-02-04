@@ -1,14 +1,12 @@
 package no.nordicsemi.android.nrfmesh.feature.model
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -18,7 +16,6 @@ import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -39,14 +36,13 @@ internal fun ModelRoute(
     navigateToBoundAppKeys: (Model) -> Unit,
     requestNodeIdentityStates: () -> Unit,
     resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
-    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
-        AnimatedVisibility(visible = messageState.isInProgress()) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
+    Column(
+        modifier = Modifier.verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
             title = stringResource(R.string.label_model)
         )
         CommonInformation(model = model)
@@ -62,7 +58,11 @@ internal fun ModelRoute(
 
             else -> {
                 BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
-                ModelPublication(model = model, send = send)
+                ModelPublication(
+                    messageState = messageState,
+                    model = model,
+                    send = send
+                )
             }
         }
     }
@@ -76,13 +76,11 @@ internal fun ModelRoute(
 
         is Completed -> messageState.response?.let {
             when (it is ConfigStatusMessage) {
-                true -> {
-                    MeshMessageStatusDialog(
-                        text = it.message,
-                        showDismissButton = messageState.didFail(),
-                        onDismissRequest = resetMessageState,
-                    )
-                }
+                true -> MeshMessageStatusDialog(
+                    text = it.message,
+                    showDismissButton = messageState.didFail(),
+                    onDismissRequest = resetMessageState,
+                )
 
                 else -> { /* Do nothing */ }
             }
@@ -98,9 +96,7 @@ internal fun BoundApplicationKeys(
     navigateToBoundAppKeys: (Model) -> Unit,
 ) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
         subtitle = "${model.boundApplicationKeys.size} key(s) are bound",

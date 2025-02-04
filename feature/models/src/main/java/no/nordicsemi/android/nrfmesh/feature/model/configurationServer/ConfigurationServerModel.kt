@@ -1,15 +1,18 @@
 package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Diversity1
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Groups3
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material.icons.outlined.WifiTethering
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -31,6 +34,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.models.R
@@ -39,7 +43,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitSet
@@ -66,7 +69,7 @@ internal fun ConfigurationServerModel(
     nodeIdentityStates: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
     requestNodeIdentityStates: () -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     RelayFeature(
         messageState = messageState,
@@ -101,12 +104,14 @@ internal fun ConfigurationServerModel(
     )
     SectionTitle(title = stringResource(id = R.string.title_heartbeat))
     HeartBeatSubscriptionRow(
+        messageState = messageState,
         model = model,
         subscription = model.parentElement?.parentNode?.heartbeatSubscription,
         send = send,
         onAddGroupClicked = onAddGroupClicked
     )
     HeartBeatPublicationRow(
+        messageState = messageState,
         model = model,
         publication = model.parentElement?.parentNode?.heartbeatPublication,
         send = send,
@@ -119,7 +124,7 @@ private fun RelayFeature(
     messageState: MessageState,
     relayRetransmit: RelayRetransmit?,
     relay: Relay?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     var retransmissions by remember {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
@@ -128,9 +133,7 @@ private fun RelayFeature(
         mutableFloatStateOf(relayRetransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_relay_count_and_interval),
         body = {
@@ -178,14 +181,18 @@ private fun RelayFeature(
             )
         },
         actions = {
-            OutlinedButton(
-                enabled = !messageState.isInProgress(),
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress() && messageState.message is ConfigRelayGet,
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
                 onClick = { send(ConfigRelayGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+                enabled = !messageState.isInProgress()
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
-                enabled = !messageState.isInProgress(),
+            Spacer(modifier = Modifier.size(8.dp))
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress() && messageState.message is ConfigRelaySet,
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_relay),
                 onClick = {
                     send(
                         ConfigRelaySet(
@@ -196,7 +203,7 @@ private fun RelayFeature(
                         )
                     )
                 },
-                content = { Text(text = stringResource(R.string.label_set_relay)) }
+                enabled = !messageState.isInProgress() //&& relay?.state?.isSupported == true
             )
         }
     )
@@ -206,7 +213,7 @@ private fun RelayFeature(
 private fun NetworkTransmit(
     messageState: MessageState,
     networkTransmit: NetworkTransmit?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     var transmissions by remember {
         mutableFloatStateOf(networkTransmit?.count?.toFloat() ?: 0f)
@@ -215,9 +222,7 @@ private fun NetworkTransmit(
         mutableFloatStateOf(networkTransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Groups3,
         title = stringResource(R.string.title_network_transmit),
         body = {
@@ -263,16 +268,20 @@ private fun NetworkTransmit(
             )
         },
         actions = {
-            OutlinedButton(
-                enabled = !messageState.isInProgress(),
-                onClick = {
-                    send(ConfigNetworkTransmitGet())
-                },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigNetworkTransmitGet,
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
+                onClick = { send(ConfigNetworkTransmitGet()) },
+                enabled = !messageState.isInProgress()
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
-                enabled = !messageState.isInProgress(),
+            Spacer(modifier = Modifier.size(8.dp))
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigRelaySet,
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_relay),
                 onClick = {
                     send(
                         ConfigNetworkTransmitSet(
@@ -281,7 +290,7 @@ private fun NetworkTransmit(
                         )
                     )
                 },
-                content = { Text(text = stringResource(R.string.label_set_relay)) }
+                enabled = !messageState.isInProgress()
             )
         }
     )
@@ -291,12 +300,10 @@ private fun NetworkTransmit(
 private fun SecureNetworkBeacon(
     messageState: MessageState,
     friend: Friend?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.WifiTethering,
         title = stringResource(R.string.label_snb),
         titleAction = {
@@ -312,10 +319,13 @@ private fun SecureNetworkBeacon(
         }",
         supportingText = stringResource(R.string.label_snb_rationale)
     ) {
-        OutlinedButton(
-            enabled = !messageState.isInProgress(),
+        MeshOutlinedButton(
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigBeaconGet,
+            buttonIcon = Icons.Outlined.Download,
+            text = stringResource(R.string.label_get_state),
             onClick = { send(ConfigBeaconGet()) },
-            content = { Text(text = stringResource(R.string.label_get_state)) }
+            enabled = !messageState.isInProgress()
         )
     }
 }
@@ -324,12 +334,10 @@ private fun SecureNetworkBeacon(
 private fun FriendFeature(
     messageState: MessageState,
     friend: Friend?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Diversity1,
         title = stringResource(R.string.label_friend),
         titleAction = {
@@ -345,10 +353,13 @@ private fun FriendFeature(
         }",
         supportingText = stringResource(R.string.label_friend_feature_rationale)
     ) {
-        OutlinedButton(
-            enabled = !messageState.isInProgress(),
+        MeshOutlinedButton(
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigFriendGet,
+            buttonIcon = Icons.Outlined.Download,
+            text = stringResource(R.string.label_get_state),
             onClick = { send(ConfigFriendGet()) },
-            content = { Text(text = stringResource(R.string.label_get_state)) }
+            enabled = !messageState.isInProgress()
         )
     }
 }
@@ -357,13 +368,11 @@ private fun FriendFeature(
 private fun ProxyStateRow(
     messageState: MessageState,
     proxy: Proxy?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
@@ -384,10 +393,13 @@ private fun ProxyStateRow(
         }",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
-        OutlinedButton(
-            enabled = !messageState.isInProgress(),
-            onClick = { send(ConfigGattProxyGet()) },
-            content = { Text(text = stringResource(R.string.label_get_state)) }
+        MeshOutlinedButton(
+            isOnClickActionInProgress = messageState.isInProgress()
+                    && messageState.message is ConfigGattProxySet,
+            buttonIcon = Icons.Outlined.Upload,
+            text = stringResource(R.string.label_set_state),
+            onClick = { send(ConfigGattProxySet(state = FeatureState.Enabled)) },
+            enabled = !messageState.isInProgress()
         )
     }
     if (showProxyStateDialog) {
@@ -414,9 +426,7 @@ private fun NodeIdentityRow(
     requestNodeIdentityStates: () -> Unit,
 ) {
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.WavingHand,
         title = stringResource(R.string.label_node_identity),
         supportingText = stringResource(R.string.label_node_identity_rationale),
@@ -430,9 +440,13 @@ private fun NodeIdentityRow(
             }
         },
         actions = {
-            OutlinedButton(
-                onClick = requestNodeIdentityStates,
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+            MeshOutlinedButton(
+                isOnClickActionInProgress = nodeIdentityStates.any { it.nodeIdentityState != null },
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
+                onClick = { requestNodeIdentityStates() },
+                enabled = nodeIdentityStates.isEmpty()
+                        || nodeIdentityStates.any { it.nodeIdentityState != null }
             )
         }
     )
@@ -442,7 +456,7 @@ private fun NodeIdentityRow(
 private fun NodeIdentityStatusRow(
     networkKey: NetworkKey,
     state: NodeIdentityState?,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     MeshSingleLineListItem(
         modifier = Modifier.padding(start = 42.dp),
@@ -452,13 +466,7 @@ private fun NodeIdentityStatusRow(
                 enabled = state?.isSupported ?: false,
                 checked = state?.isSupported == true && state.isRunning,
                 onCheckedChange = {
-                    // isChecked = it
-                    send(
-                        ConfigNodeIdentitySet(
-                            networkKeyIndex = networkKey.index,
-                            start = it
-                        )
-                    )
+                    send(ConfigNodeIdentitySet(networkKeyIndex = networkKey.index, start = it))
                 }
             )
         }
@@ -468,12 +476,14 @@ private fun NodeIdentityStatusRow(
 @Composable
 private fun HeartBeatSubscriptionRow(
     model: Model,
+    messageState: MessageState,
     subscription: HeartbeatSubscription?,
     send: (AcknowledgedConfigMessage) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     HeartBeatSubscriptionContent(
         model = model,
+        messageState = messageState,
         subscription = subscription,
         send = send,
         onAddGroupClicked = onAddGroupClicked
@@ -483,12 +493,14 @@ private fun HeartBeatSubscriptionRow(
 @Composable
 private fun HeartBeatPublicationRow(
     model: Model,
+    messageState: MessageState,
     publication: HeartbeatPublication?,
     send: (AcknowledgedConfigMessage) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     HeartBeatPublicationContent(
         model = model,
+        messageState = messageState,
         publication = publication,
         send = send,
         onAddGroupClicked = onAddGroupClicked

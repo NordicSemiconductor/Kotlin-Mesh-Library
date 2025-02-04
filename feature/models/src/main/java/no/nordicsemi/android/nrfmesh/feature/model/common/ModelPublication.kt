@@ -2,9 +2,11 @@ package no.nordicsemi.android.nrfmesh.feature.model.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,11 +14,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -51,8 +54,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.toFloat
@@ -87,6 +93,7 @@ import kotlin.time.DurationUnit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ModelPublication(
+    messageState: MessageState,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
@@ -105,9 +112,7 @@ internal fun ModelPublication(
     var retransmit by remember { mutableStateOf(model.publish?.retransmit) }
 
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp, bottom = 16.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
         titleAction = {
@@ -122,14 +127,22 @@ internal fun ModelPublication(
             else "enabled"
         }",
         actions = {
-            OutlinedButton(
+            MeshOutlinedButton(
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
                 onClick = { send(ConfigModelPublicationGet(model = model)) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
+                enabled = !messageState.isInProgress(),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigModelPublicationGet
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
+            Spacer(modifier = Modifier.size(size = 8.dp))
+            MeshOutlinedButton(
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_state),
                 onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+                enabled = !messageState.isInProgress(),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigModelPublicationSet
             )
         }
     )
