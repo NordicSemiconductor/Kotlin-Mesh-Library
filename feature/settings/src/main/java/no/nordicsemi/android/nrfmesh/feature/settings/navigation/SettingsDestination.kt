@@ -33,8 +33,6 @@ fun NavGraphBuilder.settingsListDetailsScreen() {
             uiState = uiState,
             onItemSelected = viewModel::onItemSelected,
             onNameChanged = viewModel::onNameChanged,
-            importNetwork = viewModel::importNetwork,
-            resetNetwork = viewModel::resetNetwork,
             save = viewModel::save
         )
     }

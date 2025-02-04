@@ -1,18 +1,17 @@
 package no.nordicsemi.android.nrfmesh.feature.settings.navigation
 
-import android.content.ContentResolver
-import android.net.Uri
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
-import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
+import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
+import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
@@ -35,8 +34,6 @@ internal fun SettingsListDetailsScreen(
     uiState: SettingsScreenUiState,
     onItemSelected: (ClickableSetting) -> Unit,
     onNameChanged: (String) -> Unit,
-    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
-    resetNetwork: () -> Unit,
     save: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -88,9 +85,6 @@ internal fun SettingsListDetailsScreen(
                                 )
                             }
                         },
-                        importNetwork = importNetwork,
-                        navigateToExport = {},
-                        resetNetwork = resetNetwork
                     )
                 }
             },
@@ -160,15 +154,3 @@ internal fun SettingsListDetailsScreen(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isListPaneVisible(): Boolean =
-    scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isDetailPaneVisible(): Boolean =
-    scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isExtraPaneVisible(): Boolean =
-    scaffoldValue[ListDetailPaneScaffoldRole.Extra] == PaneAdaptedValue.Expanded

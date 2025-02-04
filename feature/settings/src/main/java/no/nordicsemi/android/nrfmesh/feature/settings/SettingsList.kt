@@ -1,7 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
-import android.content.ContentResolver
-import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -39,29 +37,8 @@ internal fun SettingsList(
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
-    navigateToScenes: () -> Unit,
-    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
-    navigateToExport: () -> Unit,
-    resetNetwork: () -> Unit,
+    navigateToScenes: () -> Unit
 ) {
-    // val fileLauncher = rememberLauncherForActivityResult(
-    //     ActivityResultContracts.GetContent()
-    // ) { uri ->
-    //     uri?.let {
-    //         importNetwork(uri, context.contentResolver)
-    //     }
-    // }
-    // LaunchedEffect(key1 = screen) {
-    //     screen?.buttons?.onEach { button ->
-    //         when (button) {
-    //             SettingsScreen.Actions.IMPORT -> {
-    //                 fileLauncher.launch("application/json")
-    //             }
-    //             SettingsScreen.Actions.EXPORT -> navigateToExport()
-    //             SettingsScreen.Actions.RESET -> resetNetwork()
-    //         }
-    //     }?.launchIn(this)
-    // }
     SettingsScreen(
         settingsListData = settingsListData,
         selectedSetting = selectedSetting,
@@ -117,7 +94,10 @@ private fun SettingsScreen(
         )
         IvIndexRow(ivIndex = settingsListData.ivIndex)
         LastModifiedTimeRow(timestamp = settingsListData.timestamp)
-        SectionTitle(title = stringResource(R.string.label_about))
+        SectionTitle(
+            modifier = Modifier.padding(vertical = 8.dp),
+            title = stringResource(R.string.label_about)
+        )
         VersionNameRow()
         VersionCodeRow()
     }
@@ -152,7 +132,7 @@ private fun ProvisionersRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = { onProvisionersClicked() },
+        onClick = onProvisionersClicked,
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
         subtitle = "$count ${if (count == 1) "provisioner" else "provisioners"} available"
@@ -176,7 +156,7 @@ private fun NetworkKeysRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = { onNetworkKeysClicked() },
+        onClick = onNetworkKeysClicked,
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -200,7 +180,7 @@ private fun ApplicationKeysRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = { onApplicationKeysClicked() },
+        onClick = onApplicationKeysClicked,
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -224,7 +204,7 @@ private fun ScenesRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = { onScenesClicked() },
+        onClick = onScenesClicked,
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
         subtitle = "$count ${if (count == 1) "scene" else "scenes"} available"
