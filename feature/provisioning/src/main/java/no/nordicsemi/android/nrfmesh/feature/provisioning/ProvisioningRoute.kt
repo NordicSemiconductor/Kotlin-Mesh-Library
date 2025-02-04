@@ -77,7 +77,7 @@ internal fun ProvisioningRoute(
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
-    disconnect: () -> Unit
+    disconnect: () -> Unit,
 ) {
     val screen = appState.currentScreen as? ProvisioningScreen
     LaunchedEffect(key1 = screen) {
@@ -124,7 +124,7 @@ private fun ProvisionerScreen(
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
-    disconnect: () -> Unit
+    disconnect: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -163,8 +163,9 @@ private fun ProvisionerScreen(
                                                 ?: context.getString(R.string.label_unknown_error)
                                         )
                                     }
-                                }//.onSuccess {}
-                        }) {
+                                }
+                        }
+                    ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = stringResource(id = R.string.label_provision).uppercase(),
@@ -177,9 +178,7 @@ private fun ProvisionerScreen(
                 provisionerState = uiState.provisionerState,
                 snackbarHostState = snackbarHostState,
                 showAuthenticationDialog = showAuthenticationDialog,
-                onAuthenticationDialogDismissed = {
-                    showAuthenticationDialog = false
-                },
+                onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
                 onNameChanged = onNameChanged,
                 onAddressChanged = onAddressChanged,
                 isValidAddress = isValidAddress,
@@ -241,7 +240,7 @@ private fun ProvisioningContent(
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: () -> Unit,
     onProvisioningFailed: () -> Unit,
-    dismissCapabilitiesSheet: () -> Unit
+    dismissCapabilitiesSheet: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -344,7 +343,7 @@ private fun ProvisioningStateInfo(
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
-    dismissCapabilitiesSheet: () -> Unit
+    dismissCapabilitiesSheet: () -> Unit,
 ) {
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
@@ -440,7 +439,7 @@ private fun ProvisionerStateInfo(
     shouldShowProgress: Boolean = true,
     isError: Boolean = false,
     imageVector: ImageVector = Icons.Rounded.Error,
-    errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+    errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
 ) {
     Column(
         modifier = Modifier

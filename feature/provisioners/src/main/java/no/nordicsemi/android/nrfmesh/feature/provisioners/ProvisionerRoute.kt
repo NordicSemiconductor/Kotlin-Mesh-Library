@@ -83,7 +83,6 @@ import no.nordicsemi.kotlin.mesh.core.model.plus
 @Composable
 internal fun ProvisionerRoute(
     provisioner: Provisioner,
-    // provisionerData: ProvisionerData = ProvisionerData(provisioner),
     otherProvisioners: List<Provisioner>,
     onTtlChanged: (Int) -> Unit,
     save: () -> Unit
