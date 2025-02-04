@@ -40,7 +40,6 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:config-network-keys"))
     implementation(project(":feature:config-application-keys"))
-    implementation(project(":feature:elements"))
     implementation(project(":feature:models"))
     implementation(project(":feature:provisioning"))
     implementation(project(":feature:mesh-bearer-android"))

@@ -43,6 +43,7 @@ internal fun ModelRoute(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         SectionTitle(
+            modifier = Modifier.padding(top = 8.dp),
             title = stringResource(R.string.label_model)
         )
         CommonInformation(model = model)
@@ -82,7 +83,8 @@ internal fun ModelRoute(
                     onDismissRequest = resetMessageState,
                 )
 
-                else -> { /* Do nothing */ }
+                else -> { /* Do nothing */
+                }
             }
         }
 

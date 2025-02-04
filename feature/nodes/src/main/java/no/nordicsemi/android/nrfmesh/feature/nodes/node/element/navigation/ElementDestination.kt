@@ -1,7 +1,6 @@
-package no.nordicsemi.android.nrfmesh.feature.elements.navigation
+package no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation
 
 import androidx.compose.runtime.Composable
-import no.nordicsemi.android.nrfmesh.feature.elements.ElementRoute
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
@@ -12,7 +11,7 @@ fun ElementScreenRoute(
     navigateToModel: (Model) -> Unit,
     save: () -> Unit,
 ) {
-    ElementRoute(
+    no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementRoute(
         element = element,
         highlightSelectedItem = highlightSelectedItem,
         navigateToModel = navigateToModel,

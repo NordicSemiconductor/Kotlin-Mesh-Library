@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.feature.elements.navigation.ElementScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.model.Model

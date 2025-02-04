@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.elements
+package no.nordicsemi.android.nrfmesh.feature.nodes.node.element
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +28,7 @@ import no.nordicsemi.android.nrfmesh.core.data.models.ElementData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -69,7 +70,7 @@ internal fun ElementRoute(
         LocationRow(location = element.location)
         SectionTitle(
             modifier = Modifier.padding(vertical = 8.dp),
-            title = stringResource(id = R.string.title_models)
+            title = stringResource(id = R.string.label_models)
         )
         element.models.forEachIndexed { index, model ->
             ModelRow(

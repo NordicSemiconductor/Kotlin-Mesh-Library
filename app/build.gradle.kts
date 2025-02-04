@@ -33,20 +33,19 @@ dependencies {
     // implementation(libs.kotlinx.coroutines)
 
     // Material3
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha06")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha06")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha07")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha07")
 
     // Adaptive layouts
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-alpha09")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-alpha09")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-alpha09")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-beta01")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-beta01")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-beta01")
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:nodes"))
-    implementation(project(":feature:elements"))
     implementation(project(":feature:models"))
     implementation(project(":feature:groups"))
     implementation(project(":feature:proxy"))
