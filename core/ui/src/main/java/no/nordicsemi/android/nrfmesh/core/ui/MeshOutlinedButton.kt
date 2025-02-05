@@ -1,14 +1,19 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -29,21 +34,34 @@ fun MeshOutlinedButton(
     modifier: Modifier = Modifier,
     isOnClickActionInProgress: Boolean = false,
     buttonIcon: ImageVector? = null,
+    buttonIconTint: Color? = null,
     text: String,
+    textColor: Color = Color.Unspecified,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    border: BorderStroke? = ButtonDefaults.outlinedButtonBorder(enabled = enabled),
 ) {
     OutlinedButton(
         modifier = modifier.defaultMinSize(minWidth = 120.dp),
+        border = border,
         enabled = enabled,
         onClick = onClick,
         content = {
             if (isOnClickActionInProgress) {
-                CircularProgressIndicator(modifier = Modifier.size(size = 24.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.size(size = 24.dp),
+                    color = buttonIconTint ?: ProgressIndicatorDefaults.circularColor
+                )
             } else {
-                buttonIcon?.let { Icon(imageVector = it, contentDescription = null) }
+                buttonIcon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = buttonIconTint ?: LocalContentColor.current,
+                    )
+                }
             }
-            Text(modifier = modifier.padding(start = 8.dp), text = text)
+            Text(modifier = modifier.padding(start = 8.dp), text = text, color = textColor)
         }
     )
 }
