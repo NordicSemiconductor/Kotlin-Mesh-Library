@@ -13,9 +13,11 @@ sealed class MessageState(
     open val error: Throwable? = null,
 ) {
 
-    fun MessageState.isInProgress(): Boolean = this is Sending
+    fun isInProgress(): Boolean = this is Sending
 
-    fun MessageState.didFail(): Boolean = this is Failed
+    fun didFail(): Boolean = this is Failed
+
+    fun didSucceed(): Boolean = this is Completed
 }
 
 /**
