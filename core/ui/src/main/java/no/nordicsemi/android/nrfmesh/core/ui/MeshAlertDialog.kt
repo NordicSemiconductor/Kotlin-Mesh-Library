@@ -127,7 +127,7 @@ fun MeshAlertDialog(
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        // properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             TextButton(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
