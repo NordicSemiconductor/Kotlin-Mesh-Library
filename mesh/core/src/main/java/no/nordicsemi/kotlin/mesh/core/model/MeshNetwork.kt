@@ -142,7 +142,7 @@ data class MeshNetwork internal constructor(
             return null
         }
 
-    internal var _localElements = mutableListOf<Element>()
+    internal var _localElements = mutableListOf(Element(location = Location.MAIN))
         set(value) {
             var elements = value
             elements.forEach {
@@ -235,9 +235,8 @@ data class MeshNetwork internal constructor(
     fun add(provisioner: Provisioner) {
         add(
             provisioner = provisioner,
-            address = nextAvailableUnicastAddress(
-                elementCount = 1, provisioner = provisioner
-            ) ?: throw NoAddressesAvailable
+            address = nextAvailableUnicastAddress(elementCount = 1, provisioner = provisioner)
+                ?: throw NoAddressesAvailable
         )
     }
 
@@ -285,17 +284,17 @@ data class MeshNetwork internal constructor(
             val node = Node(
                 provisioner = provisioner,
                 unicastAddress = unicastAddress,
-                elements = if (provisioners.isEmpty()) {
-                    localElements
-                } else {
-                    listOf(Element.primaryElement)
-                },
                 netKeys = networkKeys,
                 appKeys = applicationKeys
             ).apply {
-                companyIdentifier = 0x00E0u //Google
-                replayProtectionCount = maxUnicastAddress
-                name = provisioner.name
+                if (provisioners.isEmpty()) {
+                    add(elements = localElements)
+                    companyIdentifier = 0x00E0u //Google
+                    replayProtectionCount = maxUnicastAddress
+                    name = provisioner.name
+                } else {
+                    add(element = Element.primaryElement)
+                }
             }
             add(node)
         }
