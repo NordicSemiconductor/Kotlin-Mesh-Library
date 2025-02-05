@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -37,9 +38,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -49,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.navigateToExport
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
@@ -61,6 +65,7 @@ import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 fun NetworkRoute(
     windowSizeClass: WindowSizeClass,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    resetNetwork: () -> Unit,
 ) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -73,6 +78,7 @@ fun NetworkRoute(
     )
     val currentDestination = appState.currentDestination
     var menuExpanded by remember { mutableStateOf(false) }
+    var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             appState.meshTopLevelDestinations.forEach { destination ->
@@ -118,7 +124,14 @@ fun NetworkRoute(
                             onExpandPressed = { menuExpanded = true },
                             onDismissRequest = { menuExpanded = false },
                             importNetwork = importNetwork,
-                            navigateToExport = { navController.navigateToExport() }
+                            navigateToExport = {
+                                menuExpanded = false
+                                navController.navigateToExport()
+                            },
+                            resetNetwork = {
+                                menuExpanded = false
+                                showResetNetworkDialog = true
+                            }
                         )
                     }
                 )
@@ -137,7 +150,7 @@ fun NetworkRoute(
                                     )
                                 },
                                 onClick = {
-                                    navController.navigateToProvisioning(navOptions = navOptions {  })
+                                    navController.navigateToProvisioning(navOptions = navOptions { })
                                 },
                                 expanded = true
                             )
@@ -171,6 +184,23 @@ fun NetworkRoute(
                     .fillMaxSize()
                     .padding(paddingValues)
             )
+
+            if (showResetNetworkDialog) {
+                MeshAlertDialog(
+                    icon = Icons.Outlined.RestartAlt,
+                    iconColor = Color.Red,
+                    title = stringResource(R.string.label_reset_network),
+                    text = stringResource(R.string.label_reset_network_rationale),
+                    onConfirmClick = {
+                        showResetNetworkDialog = false
+                        resetNetwork()
+                    },
+                    onDismissClick = {
+                        showResetNetworkDialog = false
+                    },
+                    onDismissRequest = { showResetNetworkDialog = false }
+                )
+            }
         }
     }
 }
@@ -183,6 +213,7 @@ private fun DisplayDropdown(
     onDismissRequest: () -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     navigateToExport: () -> Unit,
+    resetNetwork: () -> Unit,
 ) {
     val context = LocalContext.current
     val fileLauncher = rememberLauncherForActivityResult(
@@ -232,10 +263,7 @@ private fun DisplayDropdown(
                             )
                         }
                     },
-                    onClick = {
-                        navigateToExport()
-                        onDismissRequest()
-                    }
+                    onClick = navigateToExport
                 )
                 DropdownMenuItem(
                     text = {
@@ -249,13 +277,11 @@ private fun DisplayDropdown(
                             )
                             Text(
                                 modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_reset)
+                                text = stringResource(R.string.label_reset_network)
                             )
                         }
                     },
-                    onClick = {
-                        onDismissRequest()
-                    }
+                    onClick = resetNetwork
                 )
             }
         }
