@@ -267,7 +267,7 @@ sealed class AddressRange : Range() {
 @Serializable
 data class UnicastRange(
     override val lowAddress: UnicastAddress,
-    override val highAddress: UnicastAddress
+    override val highAddress: UnicastAddress,
 ) : AddressRange() {
 
     /**
@@ -278,12 +278,15 @@ data class UnicastRange(
      * @constructor Creates a Unicast Range.
      */
     internal constructor(
-        start: Int, end: Int
+        start: Int, end: Int,
     ) : this(lowAddress = UnicastAddress(start), highAddress = UnicastAddress(end))
 
     constructor(
-        address: UnicastAddress, elementsCount: Int
-    ) : this(lowAddress = address, highAddress = address + (elementsCount - 1))
+        address: UnicastAddress, elementsCount: Int,
+    ) : this(
+        lowAddress = address,
+        highAddress = address + if (elementsCount > 0) elementsCount - 1 else 0
+    )
 }
 
 /**
@@ -300,11 +303,11 @@ data class UnicastRange(
 @Serializable
 data class GroupRange(
     override val lowAddress: GroupAddress,
-    override val highAddress: GroupAddress
+    override val highAddress: GroupAddress,
 ) : AddressRange() {
 
     constructor(
-        address: GroupAddress, size: Int
+        address: GroupAddress, size: Int,
     ) : this(lowAddress = address, highAddress = address + size)
 }
 
@@ -322,7 +325,7 @@ data class GroupRange(
 @Serializable
 data class SceneRange(
     @Serializable(with = UShortAsStringSerializer::class) val firstScene: SceneNumber,
-    @Serializable(with = UShortAsStringSerializer::class) val lastScene: SceneNumber
+    @Serializable(with = UShortAsStringSerializer::class) val lastScene: SceneNumber,
 ) : Range() {
 
     internal constructor(firstScene: Int, lastScene: Int) : this(
