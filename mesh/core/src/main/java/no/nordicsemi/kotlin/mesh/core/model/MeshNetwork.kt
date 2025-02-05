@@ -616,12 +616,9 @@ data class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.
-        require(
-            isAddressAvailable(
-                node.primaryUnicastAddress,
-                node
-            )
-        ) { throw NoAddressesAvailable }
+        require(isAddressAvailable(address = node.primaryUnicastAddress, node = node)) {
+            throw NoAddressesAvailable
+        }
         // Ensure the Network Key exists.
         require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
         // Make sure the network contains a Network Key with he same Key Index.
@@ -775,7 +772,9 @@ data class MeshNetwork internal constructor(
      */
     fun isAddressAvailable(address: UnicastAddress, elementCount: Int) =
         isAddressRangeAvailable(
-            UnicastRange(address = address, elementsCount = elementCount)
+            range = UnicastRange(
+                address = address, elementsCount = elementCount
+            )
         )
 
     /**
