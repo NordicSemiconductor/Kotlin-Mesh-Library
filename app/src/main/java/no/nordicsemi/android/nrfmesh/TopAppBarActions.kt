@@ -67,7 +67,7 @@ internal fun SettingsDropDown(
                 },
                 text = {
                     Text(
-                        text = stringResource(R.string.label_reset),
+                        text = stringResource(R.string.label_reset_network),
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
