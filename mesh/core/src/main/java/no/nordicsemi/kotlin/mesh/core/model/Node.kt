@@ -269,7 +269,7 @@ data class Node internal constructor(
         provisioner: Provisioner,
         unicastAddress: UnicastAddress,
         deviceKey: ByteArray = Crypto.generateRandomKey(),
-        elements: List<Element>,
+        elements: List<Element> = emptyList(),
         netKeys: List<NetworkKey>,
         appKeys: List<ApplicationKey>
     ) : this(
