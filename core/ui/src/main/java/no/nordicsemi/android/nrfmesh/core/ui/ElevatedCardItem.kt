@@ -206,7 +206,7 @@ fun ElevatedCardItemTextField(
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle)
 ) {
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
