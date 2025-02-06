@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -91,8 +92,9 @@ internal fun HeartBeatSubscriptionContent(
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
         titleAction = {
-            if(subscription != null) {
+            AnimatedVisibility(visible = subscription != null) {
                 IconButton(
+                    enabled = !messageState.isInProgress(),
                     onClick = { send(ConfigHeartbeatSubscriptionSet()) },
                     content = {
                         Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)

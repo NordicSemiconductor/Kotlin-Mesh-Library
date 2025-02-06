@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -113,8 +114,9 @@ internal fun HeartBeatPublicationContent(
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
         titleAction = {
-            if (publication != null) {
+            AnimatedVisibility(visible = publication != null) {
                 IconButton(
+                    enabled = !messageState.isInProgress(),
                     onClick = { send(ConfigHeartbeatPublicationSet()) },
                     content = {
                         Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)

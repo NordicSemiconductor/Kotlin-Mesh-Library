@@ -17,10 +17,6 @@ import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyViewModel
 @Parcelize
 data object ProxyRoute : Parcelable
 
-@Serializable
-@Parcelize
-data object ProxyBaseRoute : Parcelable
-
 fun NavController.navigateToProxy(navOptions: NavOptions? = null) = navigate(
     route = ProxyRoute,
     navOptions = navOptions

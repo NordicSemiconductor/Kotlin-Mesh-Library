@@ -55,7 +55,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -117,15 +116,11 @@ internal fun ModelPublication(
         title = stringResource(R.string.label_publications),
         titleAction = {
             IconButton(
+                enabled = !messageState.isInProgress(),
                 onClick = { send(ConfigHeartbeatPublicationSet()) },
                 content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
             )
         },
-        subtitle = "Publications are ${
-            if (model.publish == null || model.publish?.address is UnassignedAddress)
-                "disabled"
-            else "enabled"
-        }",
         actions = {
             MeshOutlinedButton(
                 buttonIcon = Icons.Outlined.Download,

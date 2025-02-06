@@ -194,10 +194,9 @@ fun NetworkRoute(
                     onConfirmClick = {
                         showResetNetworkDialog = false
                         resetNetwork()
+                        appState.navController.popBackStack()
                     },
-                    onDismissClick = {
-                        showResetNetworkDialog = false
-                    },
+                    onDismissClick = { showResetNetworkDialog = false },
                     onDismissRequest = { showResetNetworkDialog = false }
                 )
             }

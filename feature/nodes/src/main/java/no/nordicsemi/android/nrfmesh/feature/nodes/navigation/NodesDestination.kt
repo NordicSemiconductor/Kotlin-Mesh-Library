@@ -19,11 +19,11 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.node.nodeGraph
 
 @Serializable
 @Parcelize
-data object NodesRoute : Parcelable
+data object NodesBaseRoute : Parcelable
 
 @Serializable
 @Parcelize
-data object NodesBaseRoute : Parcelable
+data object NodesRoute : Parcelable
 
 fun NavController.navigateToNodes(navOptions: NavOptions) = navigate(
     route = NodesRoute,

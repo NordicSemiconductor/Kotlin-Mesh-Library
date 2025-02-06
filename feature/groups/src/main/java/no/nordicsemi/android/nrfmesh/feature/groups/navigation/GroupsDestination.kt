@@ -19,10 +19,6 @@ import no.nordicsemi.android.nrfmesh.feature.groups.GroupsViewModel
 @Parcelize
 data object GroupsRoute : Parcelable
 
-@Serializable
-@Parcelize
-data object GroupsBaseRoute : Parcelable
-
 object GroupsDestination : MeshNavigationDestination {
     override val route: String = "groups_route"
     override val destination: String = "groups_destination"
