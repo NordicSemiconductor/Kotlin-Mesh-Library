@@ -70,7 +70,7 @@ class CoreDataRepository @Inject constructor(
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     private val scanner: BleScanner,
-    @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+    @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : Logger {
     private var _proxyStateFlow = MutableStateFlow(ProxyState())
     val proxyStateFlow = _proxyStateFlow.asStateFlow()
@@ -320,15 +320,18 @@ class CoreDataRepository @Inject constructor(
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
         context = ioDispatcher
     ) {
-        meshNetworkManager.send(
-            message = message, node = node, initialTtl = null
-        ).also {
-            log(
-                message = it?.toString() ?: "",
-                category = LogCategory.ACCESS,
-                level = LogLevel.INFO
-            )
-        }
+        bearer?.takeIf {
+            it.isOpen
+        }?.let {
+            meshNetworkManager.send(message = message, node = node, initialTtl = null)
+                .also {
+                    log(
+                        message = it?.toString() ?: "",
+                        category = LogCategory.ACCESS,
+                        level = LogLevel.INFO
+                    )
+                }
+        } ?: throw IllegalStateException("Bearer is not open")
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
@@ -353,5 +356,5 @@ sealed class NetworkConnectionState {
 
 data class ProxyState(
     val autoConnect: Boolean = false,
-    val connectionState: NetworkConnectionState = NetworkConnectionState.Disconnected
+    val connectionState: NetworkConnectionState = NetworkConnectionState.Disconnected,
 )
