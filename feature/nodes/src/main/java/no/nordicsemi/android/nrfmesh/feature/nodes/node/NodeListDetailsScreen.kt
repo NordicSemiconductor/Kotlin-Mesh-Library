@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
+import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
@@ -50,7 +51,7 @@ internal fun NodeListDetailsScreen(
                             },
                             onElementClicked = {
                                 scope.launch {
-                                    onItemSelected(ClickableNodeInfoItem.Element)
+                                    onItemSelected(ClickableNodeInfoItem.Element(it))
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Detail,
                                         contentKey = ElementRouteKeyKey(address = it)
@@ -71,7 +72,8 @@ internal fun NodeListDetailsScreen(
                         NodeInfoListDetails(
                             content = content,
                             node = uiState.nodeState.node,
-                            highlightSelectedItem = navigator.isDetailPaneVisible(),
+                            highlightSelectedItem = navigator.isDetailPaneVisible() &&
+                                    navigator.isExtraPaneVisible(),
                             navigateToModel = {
                                 scope.launch {
                                     navigator.navigateTo(

@@ -32,7 +32,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -78,7 +77,6 @@ internal fun NodeInfoList(
 ) {
     val state = rememberPullToRefreshState()
     val scrollState = rememberScrollState()
-    var selectedAddress by remember { mutableStateOf<Address?>(null) }
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
         state = state,
@@ -117,13 +115,10 @@ internal fun NodeInfoList(
             nodeData.elements.forEachIndexed { index, element ->
                 ElementRow(
                     element = element,
-                    isSelected = selectedItem == ClickableNodeInfoItem.Element
-                            && selectedAddress == element.unicastAddress.address
+                    isSelected = (selectedItem as? ClickableNodeInfoItem.Element)?.address
+                            == element.unicastAddress.address
                             && highlightSelectedItem,
-                    onElementsClicked = {
-                        selectedAddress = element.unicastAddress.address
-                        onElementClicked(element.unicastAddress.address)
-                    }
+                    onElementsClicked = { onElementClicked(element.unicastAddress.address) }
                 )
                 if (index != nodeData.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }

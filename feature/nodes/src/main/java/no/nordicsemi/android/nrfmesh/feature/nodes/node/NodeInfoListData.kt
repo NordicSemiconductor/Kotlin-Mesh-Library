@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
+import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Security
@@ -41,11 +42,7 @@ data class NodeInfoListData(
         name = node.name,
         networkKeyCount = node.networkKeys.size,
         appKeyCount = node.applicationKeys.size,
-        elements = node.elements.map {
-            ElementListData(
-                name = it.name, unicastAddress = it.unicastAddress, modelCount = it.models.size
-            )
-        },
+        elements = node.elements.map { ElementListData(element = it) },
         companyIdentifier = node.companyIdentifier,
         productIdentifier = node.productIdentifier,
         versionIdentifier = node.versionIdentifier,
@@ -67,5 +64,11 @@ data class NodeInfoListData(
 data class ElementListData(
     val name: String?,
     val unicastAddress: UnicastAddress,
-    val modelCount: Int,
-)
+    val modelCount: Int
+) {
+    constructor(element: Element) : this(
+        name = element.name,
+        unicastAddress = element.unicastAddress,
+        modelCount = element.models.size
+    )
+}
