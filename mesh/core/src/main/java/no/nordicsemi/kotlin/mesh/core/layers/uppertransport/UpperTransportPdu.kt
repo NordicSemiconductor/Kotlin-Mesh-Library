@@ -43,7 +43,7 @@ internal class UpperTransportPdu(
     val sequence: UInt,
     val ivIndex: UInt,
     val message: MeshMessage?,
-    val userInitiated: Boolean
+    val userInitiated: Boolean,
 ) {
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -94,7 +94,7 @@ internal class UpperTransportPdu(
                     message.destination.address.toByteArray() +
                     message.ivIndex.toByteArray()
 
-            val decryptedData =  Crypto.decrypt(
+            val decryptedData = Crypto.decrypt(
                 data = encryptedData,
                 key = key,
                 nonce = nonce,
@@ -131,7 +131,7 @@ internal class UpperTransportPdu(
             pdu: AccessPdu,
             keySet: KeySet,
             sequence: UInt,
-            ivIndex: IvIndex
+            ivIndex: IvIndex,
         ): UpperTransportPdu {
             val security = pdu.message!!.security
             // The nonce type is 0x01 for messages signed with Application Key and 0x02 for messages
@@ -184,7 +184,7 @@ internal class UpperTransportPdu(
          */
         fun decode(
             message: AccessMessage,
-            network: MeshNetwork
+            network: MeshNetwork,
         ): Pair<UpperTransportPdu, KeySet>? {
             // Was the message signed using Application Key?
             message.aid?.let { aid ->
@@ -230,13 +230,10 @@ internal class UpperTransportPdu(
             } ?: run {
                 // Try decoding using source's Node Device Key. This should work if a status message
                 // was sent as a response to a Config Message sent by this Provisioner.
-
-                decode(network = network, address = message.source, message = message)?.let {
-                    return it
-                }
+                return decode(network = network, address = message.source, message = message) ?:
                 // On the other hand, if another Provisioner is sending a Config Messages, they will
                 // be signed using the target node Device Key instead.
-                return decode(network = network, address = message.destination, message = message)
+                decode(network = network, address = message.destination, message = message)
 
             }
             return null
@@ -250,7 +247,11 @@ internal class UpperTransportPdu(
          * @param message Access message.
          * @return a Pair containing UpperTransportPdu and the KeySet used to decode.
          */
-        private fun decode(network: MeshNetwork, address: MeshAddress, message: AccessMessage): Pair<UpperTransportPdu, KeySet>? {
+        private fun decode(
+            network: MeshNetwork,
+            address: MeshAddress,
+            message: AccessMessage,
+        ): Pair<UpperTransportPdu, KeySet>? {
             val node = network.node(address = address) ?: return null
             val deviceKey = node.deviceKey ?: return null
             val pdu = init(message = message, key = deviceKey, virtualGroup = null) ?: return null
