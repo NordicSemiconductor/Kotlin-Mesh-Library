@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -90,6 +92,7 @@ fun ElevatedCardItem(
                 it()
             }
         }
+        if (body == null && actions == null) Spacer(modifier = Modifier.size(8.dp))
     }
 }
 
@@ -204,7 +207,7 @@ fun ElevatedCardItemTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
-    isError: Boolean = regex != null && !regex.matches(subtitle)
+    isError: Boolean = regex != null && !regex.matches(subtitle),
 ) {
     var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
