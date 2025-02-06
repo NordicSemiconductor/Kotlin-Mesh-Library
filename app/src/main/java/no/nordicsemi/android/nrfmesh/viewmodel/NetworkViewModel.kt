@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -18,7 +20,14 @@ class NetworkViewModel @Inject constructor(
     private lateinit var meshNetwork: MeshNetwork
 
     init {
+        // Loads a mesh network on view model creation
         loadNetwork()
+
+        // Observes the mesh network for any changes i.e. network reset etc.
+        repository.network
+            .onEach { meshNetwork = it }
+            .launchIn(scope = viewModelScope)
+
     }
 
     override fun onCleared() {
@@ -56,5 +65,9 @@ class NetworkViewModel @Inject constructor(
             // Let's save the imported network
             repository.save()
         }
+    }
+
+    internal fun resetNetwork(){
+        viewModelScope.launch { repository.resetNetwork() }
     }
 }

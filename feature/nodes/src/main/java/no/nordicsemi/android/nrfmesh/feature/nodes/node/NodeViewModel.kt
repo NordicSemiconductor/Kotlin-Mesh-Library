@@ -22,9 +22,6 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import java.util.UUID
@@ -69,26 +66,6 @@ internal class NodeViewModel @Inject internal constructor(
     }
 
     /**
-     * Called when the user toggles the proxy state of the node.
-     *
-     * @param enabled True if proxy is to be enabled or false otherwise.
-     */
-    internal fun onProxyStateToggled(enabled: Boolean) {
-        viewModelScope.launch {
-            send(message = ConfigGattProxySet(enabled))
-        }
-    }
-
-    /**
-     * Called when the user requests the current proxy state of the node.
-     */
-    internal fun onGetProxyStateClicked() {
-        viewModelScope.launch {
-            send(message = ConfigGattProxyGet())
-        }
-    }
-
-    /**
      * Called when the user clicks on the excluded elements.
      *
      * @param exclude True to exclude the node, false to not exclude from the network.
@@ -97,15 +74,6 @@ internal class NodeViewModel @Inject internal constructor(
         selectedNode.excluded = exclude
         viewModelScope.launch {
             repository.save()
-        }
-    }
-
-    /**
-     * Called when the user clicks on the reset node button.
-     */
-    fun onResetClicked() {
-        viewModelScope.launch {
-            send(ConfigNodeReset())
         }
     }
 
@@ -162,7 +130,7 @@ sealed interface NodeState {
 
     data class Success(
         val node: Node,
-        val nodeInfoListData: NodeInfoListData
+        val nodeInfoListData: NodeInfoListData,
     ) : NodeState
 
     data class Error(val throwable: Throwable) : NodeState

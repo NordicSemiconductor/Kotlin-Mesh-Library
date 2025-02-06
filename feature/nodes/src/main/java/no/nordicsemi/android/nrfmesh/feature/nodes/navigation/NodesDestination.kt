@@ -30,7 +30,7 @@ fun NavController.navigateToNodes(navOptions: NavOptions) = navigate(
     navOptions = navOptions
 )
 
-fun NavGraphBuilder.nodesGraph(appState: AppState) {
+fun NavGraphBuilder.nodesGraph(appState: AppState, navigateBack: () -> Unit) {
     navigation<NodesBaseRoute>(startDestination = NodesRoute) {
         composable<NodesRoute> {
             val viewModel = hiltViewModel<NodesViewModel>()
@@ -44,6 +44,6 @@ fun NavGraphBuilder.nodesGraph(appState: AppState) {
                 remove = { }
             )
         }
-        nodeGraph()
+        nodeGraph(navigateBack = navigateBack)
     }
 }

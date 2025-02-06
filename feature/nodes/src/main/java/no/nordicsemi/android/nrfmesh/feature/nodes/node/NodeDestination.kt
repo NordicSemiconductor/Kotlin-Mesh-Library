@@ -21,21 +21,18 @@ fun NavController.navigateToNode(
     navOptions: NavOptions? = null,
 ) = navigate(route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions)
 
-fun NavGraphBuilder.nodeGraph() {
+fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
     composable<NodeRoute> {
         val viewModel = hiltViewModel<NodeViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NodeListDetailsScreen(
             uiState = uiState,
             onRefresh = viewModel::onRefresh,
-            onGetTtlClicked = { },
-            onGetProxyStateClicked = viewModel::onGetProxyStateClicked,
-            onProxyStateToggled = viewModel::onProxyStateToggled,
             onExcluded = viewModel::onExcluded,
-            onResetClicked = viewModel::onResetClicked,
             onItemSelected = viewModel::onItemSelected,
             send = viewModel::send,
-            save = viewModel::save
+            save = viewModel::save,
+            navigateBack = navigateBack
         )
     }
 }

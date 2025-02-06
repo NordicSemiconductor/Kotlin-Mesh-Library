@@ -8,13 +8,10 @@ import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
 fun MeshApp(windowSizeClass: WindowSizeClass) {
-    runCatching {
-        val viewModel = hiltViewModel<NetworkViewModel>()
-        NetworkRoute(
-            windowSizeClass = windowSizeClass,
-            importNetwork = viewModel::importNetwork,
-        )
-    }.onFailure {
-        println("Error: ${it.message}")
-    }
+    val viewModel = hiltViewModel<NetworkViewModel>()
+    NetworkRoute(
+        windowSizeClass = windowSizeClass,
+        importNetwork = viewModel::importNetwork,
+        resetNetwork = viewModel::resetNetwork,
+    )
 }

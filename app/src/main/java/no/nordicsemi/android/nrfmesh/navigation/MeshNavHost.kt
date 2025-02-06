@@ -16,16 +16,16 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsListDet
 @Composable
 fun MeshNavHost(
     appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
+    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
+    onBackPressed: () -> Unit
 ) {
     NavHost(
         modifier = modifier,
         navController = appState.navController,
         startDestination = NodesBaseRoute
     ) {
-        nodesGraph(appState = appState)
+        nodesGraph(appState = appState, navigateBack = onBackPressed)
         groupsGraph(
             appState = appState,
             onNavigateToDestination = onNavigateToDestination,

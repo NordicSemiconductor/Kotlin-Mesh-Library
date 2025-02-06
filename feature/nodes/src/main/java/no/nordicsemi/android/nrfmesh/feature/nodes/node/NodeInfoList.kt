@@ -1,7 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeviceHub
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
@@ -20,13 +21,12 @@ import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.SafetyCheck
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -39,12 +39,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -54,6 +61,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NodeInfoList(
+    messageState: MessageState,
     nodeData: NodeInfoListData,
     node: Node,
     isRefreshing: Boolean,
@@ -63,12 +71,10 @@ internal fun NodeInfoList(
     onNetworkKeysClicked: (UUID) -> Unit,
     onApplicationKeysClicked: (UUID) -> Unit,
     onElementClicked: (Address) -> Unit,
-    onGetTtlClicked: () -> Unit,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
-    onResetClicked: () -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
     save: () -> Unit,
+    navigateBack: () -> Unit,
 ) {
     val state = rememberPullToRefreshState()
     val scrollState = rememberScrollState()
@@ -82,12 +88,11 @@ internal fun NodeInfoList(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(state = scrollState)
+                .padding(top = 8.dp)
+                .verticalScroll(state = scrollState),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(R.string.label_node)
-            )
+            SectionTitle(title = stringResource(R.string.label_node))
             NodeNameRow(
                 name = nodeData.name,
                 onNameChanged = {
@@ -95,29 +100,20 @@ internal fun NodeInfoList(
                     save()
                 }
             )
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_keys)
-            )
+            SectionTitle(title = stringResource(id = R.string.title_keys))
             NetworkKeysRow(
                 count = nodeData.networkKeyCount,
                 isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
                         && highlightSelectedItem,
                 onNetworkKeysClicked = { onNetworkKeysClicked(nodeData.uuid) }
             )
-            Spacer(modifier = Modifier.size(8.dp))
             ApplicationKeysRow(
                 count = nodeData.appKeyCount,
                 isSelected = selectedItem == ClickableNodeInfoItem.ApplicationKeys
                         && highlightSelectedItem,
-                onApplicationKeysClicked = {
-                    onApplicationKeysClicked(nodeData.uuid)
-                }
+                onApplicationKeysClicked = { onApplicationKeysClicked(nodeData.uuid) }
             )
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_elements)
-            )
+            SectionTitle(title = stringResource(id = R.string.title_elements))
             nodeData.elements.forEachIndexed { index, element ->
                 ElementRow(
                     element = element,
@@ -131,36 +127,24 @@ internal fun NodeInfoList(
                 )
                 if (index != nodeData.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_node_information)
-            )
+            SectionTitle(title = stringResource(id = R.string.title_node_information))
             NodeInformationRow(nodeData)
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_time_to_live)
-            )
-            DefaultTtlRow(ttl = nodeData.defaultTtl, onGetTtlClicked = onGetTtlClicked)
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_proxy_state)
-            )
+            SectionTitle(title = stringResource(id = R.string.title_time_to_live))
+            DefaultTtlRow(ttl = nodeData.defaultTtl, messageState = messageState, send = send)
+            SectionTitle(title = stringResource(id = R.string.title_proxy_state))
             ProxyStateRow(
+                messageState = messageState,
                 proxy = nodeData.features.proxy,
-                onProxyStateToggled = onProxyStateToggled,
-                onGetProxyStateClicked = onGetProxyStateClicked
+                send = send
             )
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.title_exclusions)
-            )
+            SectionTitle(title = stringResource(id = R.string.title_exclusions))
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
-            SectionTitle(
-                modifier = Modifier.padding(vertical = 8.dp),
-                title = stringResource(id = R.string.label_reset_node)
+            SectionTitle(title = stringResource(id = R.string.label_reset_node))
+            ResetRow(
+                messageState = messageState,
+                navigateBack = navigateBack,
+                send = send,
             )
-            ResetRow(onResetClicked = onResetClicked)
-            Spacer(modifier = Modifier.size(8.dp))
         }
     }
 }
@@ -219,7 +203,11 @@ private fun ApplicationKeysRow(
 }
 
 @Composable
-private fun ElementRow(element: ElementListData, isSelected: Boolean, onElementsClicked: () -> Unit) {
+private fun ElementRow(
+    element: ElementListData,
+    isSelected: Boolean,
+    onElementsClicked: () -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         colors = when (isSelected) {
@@ -239,13 +227,9 @@ private fun ElementRow(element: ElementListData, isSelected: Boolean, onElements
 @Composable
 private fun NodeInformationRow(node: NodeInfoListData) {
     CompanyIdentifier(companyIdentifier = node.companyIdentifier)
-    Spacer(modifier = Modifier.size(8.dp))
     ProductIdentifier(productIdentifier = node.productIdentifier)
-    Spacer(modifier = Modifier.size(8.dp))
     ProductVersion(productVersion = node.versionIdentifier)
-    Spacer(modifier = Modifier.size(8.dp))
     ReplayProtectionCount(replayProtectionCount = node.replayProtectionCount)
-    Spacer(modifier = Modifier.size(8.dp))
     Security(node = node)
 }
 
@@ -310,7 +294,11 @@ private fun Security(node: NodeInfoListData) {
 }
 
 @Composable
-private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
+private fun DefaultTtlRow(
+    ttl: UByte?,
+    messageState: MessageState,
+    send: (AcknowledgedConfigMessage) -> Unit,
+) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
@@ -318,47 +306,58 @@ private fun DefaultTtlRow(ttl: UByte?, onGetTtlClicked: () -> Unit) {
         subtitle = if (ttl != null) "TTL set to $ttl" else "Unknown",
         supportingText = stringResource(R.string.label_default_ttl_rationale)
     ) {
-        OutlinedButton(onClick = onGetTtlClicked) {
-            Text(text = stringResource(R.string.label_get_ttl))
-        }
+        MeshOutlinedButton(
+            onClick = { send(ConfigGattProxyGet()) },
+            text = stringResource(R.string.label_get_ttl),
+            buttonIcon = Icons.Outlined.Download,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress()
+                    && messageState.message is ConfigGattProxyGet
+        )
         Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-        OutlinedButton(onClick = {}) {
-            Text(text = stringResource(R.string.label_set_ttl))
-        }
+        MeshOutlinedButton(
+            onClick = { send(ConfigGattProxySet(FeatureState.Enabled)) },
+            text = stringResource(R.string.label_set_ttl),
+            buttonIcon = Icons.Outlined.Upload,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress()
+                    && messageState.message is ConfigGattProxySet
+        )
     }
 }
 
 @Composable
 private fun ProxyStateRow(
-    proxy: Proxy?, onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit,
+    proxy: Proxy?,
+    messageState: MessageState,
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     var enabled by rememberSaveable {
         mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
     }
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onGetProxyStateClicked),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
         titleAction = {
-            SwitchWithIcon(isChecked = enabled, onCheckedChange = {
-                enabled = it
-                if (!it) {
-                    showProxyStateDialog = !showProxyStateDialog
-                } else {
-                    onProxyStateToggled(true)
-                }
+            SwitchWithIcon(isChecked = proxy?.state == FeatureState.Enabled, onCheckedChange = {
+                // enabled = it
+                if (!it) showProxyStateDialog = true
+                else send(ConfigGattProxySet(FeatureState.Enabled))
             })
         },
         subtitle = "Proxy state is ${if (enabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
-        OutlinedButton(onClick = onGetProxyStateClicked) {
-            Text(text = stringResource(R.string.label_get_state))
-        }
+        MeshOutlinedButton(
+            onClick = { send(ConfigGattProxyGet()) },
+            text = stringResource(R.string.label_get_state),
+            buttonIcon = Icons.Outlined.Download,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress()
+                    && messageState.message is ConfigGattProxyGet
+        )
     }
     if (showProxyStateDialog) {
         MeshAlertDialog(
@@ -372,7 +371,7 @@ private fun ProxyStateRow(
             iconColor = Color.Red,
             onConfirmClick = {
                 enabled = false
-                onProxyStateToggled(false)
+                send(ConfigGattProxySet(state = FeatureState.Disabled))
                 showProxyStateDialog = !showProxyStateDialog
             },
             onDismissClick = {
@@ -399,16 +398,16 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
                 }
             )
         },
-        subtitle = when (excluded) {
-            true -> stringResource(id = R.string.label_node_excluded)
-            false -> stringResource(id = R.string.label_node_not_excluded)
-        },
         supportingText = stringResource(R.string.label_exclusion_rationale)
     )
 }
 
 @Composable
-private fun ResetRow(onResetClicked: () -> Unit) {
+private fun ResetRow(
+    messageState: MessageState,
+    send: (AcknowledgedConfigMessage) -> Unit,
+    navigateBack: () -> Unit,
+) {
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -416,12 +415,17 @@ private fun ResetRow(onResetClicked: () -> Unit) {
         title = stringResource(R.string.label_reset_node),
         supportingText = stringResource(R.string.label_reset_node_rationale)
     ) {
-        OutlinedButton(
+        MeshOutlinedButton(
+            border = BorderStroke(width = 1.dp, color = Color.Red),
             onClick = { showResetDialog = !showResetDialog },
-            border = BorderStroke(width = 1.dp, color = Color.Red)
-        ) {
-            Text(text = stringResource(R.string.label_reset), color = Color.Red)
-        }
+            text = stringResource(R.string.label_reset),
+            buttonIcon = Icons.Outlined.Recycling,
+            buttonIconTint = Color.Red,
+            textColor = Color.Red,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress()
+                    && messageState.message is ConfigNodeReset
+        )
     }
     if (showResetDialog) {
         MeshAlertDialog(
@@ -433,8 +437,11 @@ private fun ResetRow(onResetClicked: () -> Unit) {
             onDismissClick = { showResetDialog = !showResetDialog },
             onConfirmClick = {
                 showResetDialog = !showResetDialog
-                onResetClicked()
+                send(ConfigNodeReset())
             }
         )
+    }
+    if (messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
+        navigateBack()
     }
 }

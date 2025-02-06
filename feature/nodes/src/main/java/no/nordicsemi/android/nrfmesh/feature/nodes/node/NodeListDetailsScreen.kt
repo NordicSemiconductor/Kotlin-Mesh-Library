@@ -15,19 +15,16 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteK
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun NodeListDetailsScreen(
     uiState: NodeScreenUiState,
     onRefresh: () -> Unit,
-    onGetTtlClicked: () -> Unit,
-    onProxyStateToggled: (Boolean) -> Unit,
-    onGetProxyStateClicked: () -> Unit,
     onExcluded: (Boolean) -> Unit,
-    onResetClicked: () -> Unit,
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     save: () -> Unit,
+    navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
@@ -39,6 +36,7 @@ internal fun NodeListDetailsScreen(
                 listPane = {
                     AnimatedPane {
                         NodeInfoList(
+                            messageState = uiState.messageState,
                             nodeData = uiState.nodeState.nodeInfoListData,
                             node = uiState.nodeState.node,
                             highlightSelectedItem = navigator.isListPaneVisible(),
@@ -59,13 +57,11 @@ internal fun NodeListDetailsScreen(
                                     )
                                 }
                             },
-                            onGetTtlClicked = onGetTtlClicked,
-                            onProxyStateToggled = onProxyStateToggled,
-                            onGetProxyStateClicked = onGetProxyStateClicked,
                             onExcluded = onExcluded,
-                            onResetClicked = onResetClicked,
                             selectedItem = uiState.selectedNodeInfoItem,
-                            save = save
+                            send = send,
+                            save = save,
+                            navigateBack = navigateBack
                         )
                     }
                 },
