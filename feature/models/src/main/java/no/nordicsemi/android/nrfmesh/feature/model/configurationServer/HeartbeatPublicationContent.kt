@@ -57,7 +57,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -159,7 +158,6 @@ internal fun HeartBeatPublicationContent(
 
     if (showBottomSheet) {
         ModalBottomSheet(
-            modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
