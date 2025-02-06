@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
@@ -194,9 +193,7 @@ internal fun HeartBeatSubscriptionContent(
         ModalBottomSheet(
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
-            onDismissRequest = {
-                showBottomSheet = !showBottomSheet
-            },
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
             dragHandle = {
                 NordicAppBar(
                     title = {
