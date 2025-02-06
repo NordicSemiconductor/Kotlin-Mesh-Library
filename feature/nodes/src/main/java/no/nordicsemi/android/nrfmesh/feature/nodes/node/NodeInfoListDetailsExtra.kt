@@ -6,6 +6,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 
@@ -16,6 +17,7 @@ internal fun NodeInfoListDetailsExtra(
     messageState: MessageState,
     nodeIdentityStatus: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit
 ) {
     when (content) {
@@ -27,7 +29,8 @@ internal fun NodeInfoListDetailsExtra(
                 messageState = messageState,
                 nodeIdentityStates = nodeIdentityStatus,
                 send = send,
-                resetMessageState = resetMessageState
+                requestNodeIdentityStates = requestNodeIdentityStates,
+                resetMessageState = resetMessageState,
             )
         }
 

@@ -31,6 +31,7 @@ fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
             onExcluded = viewModel::onExcluded,
             onItemSelected = viewModel::onItemSelected,
             send = viewModel::send,
+            requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
             save = viewModel::save,
             resetMessageState = viewModel::resetMessageState,
             navigateBack = navigateBack

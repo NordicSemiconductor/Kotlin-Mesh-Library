@@ -22,7 +22,10 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import java.util.UUID
 import javax.inject.Inject
@@ -54,6 +57,28 @@ internal class NodeViewModel @Inject internal constructor(
             )
         }.launchIn(scope = viewModelScope)
     }
+
+    /**
+     * Returns if the NodeIdentityState for this should be updated/refreshed.
+     *
+     * @return true if the NodeIdentityState should be updated, false otherwise.
+     */
+    private fun shouldUpdateNodeIdentityState(): Boolean =
+        _uiState.value.nodeIdentityStates.isEmpty()
+
+    /**
+     * Creates a list of NodeIdentityStatus objects for each network key.
+     *
+     * @return List of NodeIdentityStatus objects.
+     */
+    private fun createNodeIdentityStates(model: Model) =
+        model.parentElement?.parentNode?.networkKeys
+            ?.map { key ->
+                NodeIdentityStatus(
+                    networkKey = key,
+                    nodeIdentityState = null
+                )
+            } ?: emptyList()
 
     /**
      * Called when the user pulls down to refresh the node details.
@@ -113,6 +138,56 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
+    internal fun requestNodeIdentityStates(model: Model) {
+        viewModelScope.launch {
+            val element = model.parentElement ?: throw IllegalStateException("Element not found")
+            if (shouldUpdateNodeIdentityState()) {
+                _uiState.value = _uiState.value.copy(
+                    nodeIdentityStates = createNodeIdentityStates(model = model)
+                )
+            }
+            val uiState = _uiState.value
+            val nodeIdentityStates = uiState.nodeIdentityStates.toMutableList()
+            val keys = element.parentNode?.networkKeys ?: emptyList()
+
+            var message: ConfigNodeIdentityGet? = null
+            var response: ConfigNodeIdentityStatus? = null
+            try {
+                keys.forEach { key ->
+                    message = ConfigNodeIdentityGet(networkKeyIndex = key.index)
+                    _uiState.value = _uiState.value.copy(
+                        messageState = Sending(message = message!!),
+                    )
+                    response = repository.send(
+                        node = element.parentNode!!,
+                        message = message!!
+                    ) as ConfigNodeIdentityStatus
+
+                    response?.let { status ->
+                        val index = nodeIdentityStates.indexOfFirst { state ->
+                            state.networkKey.index == status.networkKeyIndex
+                        }
+                        nodeIdentityStates[index] = nodeIdentityStates[index]
+                            .copy(nodeIdentityState = status.identity)
+                    }
+                }
+                _uiState.value = _uiState.value.copy(
+                    messageState = Completed(
+                        message = ConfigNodeIdentityGet(networkKeyIndex = keys.first().index),
+                        response = response as ConfigNodeIdentityStatus
+                    ),
+                    nodeIdentityStates = nodeIdentityStates.toList()
+                )
+            } catch (ex: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(message = message, error = ex),
+                    isRefreshing = false,
+                )
+            }
+
+        }
+    }
+
     fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
@@ -136,7 +211,7 @@ sealed interface NodeState {
     data class Error(val throwable: Throwable) : NodeState
 }
 
-data class NodeScreenUiState internal constructor(
+internal data class NodeScreenUiState internal constructor(
     val nodeState: NodeState = NodeState.Loading,
     val isRefreshing: Boolean = false,
     val showProgress: Boolean = false,

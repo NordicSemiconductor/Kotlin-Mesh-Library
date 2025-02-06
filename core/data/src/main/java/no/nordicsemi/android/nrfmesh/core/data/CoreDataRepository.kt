@@ -320,9 +320,7 @@ class CoreDataRepository @Inject constructor(
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
         context = ioDispatcher
     ) {
-        bearer?.takeIf {
-            it.isOpen
-        }?.let {
+        if (bearer != null && bearer!!.isOpen) {
             meshNetworkManager.send(message = message, node = node, initialTtl = null)
                 .also {
                     log(
@@ -331,7 +329,9 @@ class CoreDataRepository @Inject constructor(
                         level = LogLevel.INFO
                     )
                 }
-        } ?: throw IllegalStateException("Bearer is not open")
+        } else {
+            throw IllegalStateException("Bearer is not open")
+        }
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {

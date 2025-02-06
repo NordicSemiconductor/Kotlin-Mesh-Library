@@ -42,9 +42,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetworkTransmitSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentitySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
@@ -67,7 +69,7 @@ internal fun ConfigurationServerModel(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
     onAddGroupClicked: () -> Unit,
 ) {
     RelayFeature(
@@ -97,6 +99,8 @@ internal fun ConfigurationServerModel(
         send = send
     )
     NodeIdentityRow(
+        model = model,
+        messageState = messageState,
         nodeIdentityStates = nodeIdentityStates,
         send = send,
         requestNodeIdentityStates = requestNodeIdentityStates
@@ -384,17 +388,16 @@ private fun ProxyStateRow(
     ) {
         MeshOutlinedButton(
             isOnClickActionInProgress = messageState.isInProgress()
-                    && messageState.message is ConfigGattProxySet,
+                    && messageState.message is ConfigGattProxyGet,
             buttonIcon = Icons.Outlined.Upload,
-            text = stringResource(R.string.label_set_state),
+            text = stringResource(R.string.label_get_state),
             onClick = { send(ConfigGattProxySet(state = FeatureState.Enabled)) },
             enabled = !messageState.isInProgress()
         )
     }
     if (showProxyStateDialog) {
-        MeshAlertDialog(onDismissRequest = {
-            showProxyStateDialog = !showProxyStateDialog
-        },
+        MeshAlertDialog(
+            onDismissRequest = { showProxyStateDialog = !showProxyStateDialog },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
@@ -410,9 +413,11 @@ private fun ProxyStateRow(
 
 @Composable
 private fun NodeIdentityRow(
+    model: Model,
+    messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -420,20 +425,21 @@ private fun NodeIdentityRow(
         title = stringResource(R.string.label_node_identity),
         supportingText = stringResource(R.string.label_node_identity_rationale),
         body = {
-            nodeIdentityStates.forEach { state ->
+            model.parentElement?.parentNode?.networkKeys?.forEach { key ->
                 NodeIdentityStatusRow(
-                    networkKey = state.networkKey,
-                    state = state.nodeIdentityState,
+                    networkKey = key,
+                    state = nodeIdentityStates.find { it.networkKey == key }?.nodeIdentityState,
                     send = send
                 )
             }
         },
         actions = {
             MeshOutlinedButton(
-                isOnClickActionInProgress = nodeIdentityStates.any { it.nodeIdentityState != null },
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigNodeIdentityGet,
                 buttonIcon = Icons.Outlined.Download,
                 text = stringResource(R.string.label_get_state),
-                onClick = { requestNodeIdentityStates() },
+                onClick = { requestNodeIdentityStates(model) },
                 enabled = nodeIdentityStates.isEmpty()
                         || nodeIdentityStates.any { it.nodeIdentityState != null }
             )
@@ -447,14 +453,16 @@ private fun NodeIdentityStatusRow(
     state: NodeIdentityState?,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
+    var checked by remember { mutableStateOf(state?.isRunning == true && state.isRunning) }
     MeshSingleLineListItem(
         modifier = Modifier.padding(start = 42.dp),
         title = networkKey.name,
         trailingComposable = {
             Switch(
                 enabled = state?.isSupported ?: false,
-                checked = state?.isSupported == true && state.isRunning,
+                checked = checked,
                 onCheckedChange = {
+                    checked = it
                     send(ConfigNodeIdentitySet(networkKeyIndex = networkKey.index, start = it))
                 }
             )

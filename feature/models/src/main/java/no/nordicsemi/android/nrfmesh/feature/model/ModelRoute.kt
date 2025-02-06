@@ -11,11 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -24,7 +22,6 @@ import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @Composable
@@ -34,7 +31,7 @@ internal fun ModelRoute(
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
     navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
 ) {
@@ -59,35 +56,17 @@ internal fun ModelRoute(
 
             else -> {
                 BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
-                ModelPublication(
-                    messageState = messageState,
-                    model = model,
-                    send = send
-                )
+                ModelPublication(messageState = messageState, model = model, send = send)
             }
         }
     }
 
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
-            text = messageState.error.message ?: stringResource(R.string.label_unknown_error),
+            text = messageState.error.toString(),
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
-
-        is Completed -> messageState.response?.let {
-            when (it is ConfigStatusMessage) {
-                true -> MeshMessageStatusDialog(
-                    text = it.message,
-                    showDismissButton = messageState.didFail(),
-                    onDismissRequest = resetMessageState,
-                )
-
-                else -> { /* Do nothing */
-                }
-            }
-        }
-
         else -> {}
     }
 }

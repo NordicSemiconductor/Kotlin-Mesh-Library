@@ -15,6 +15,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -24,6 +25,7 @@ internal fun NodeListDetailsScreen(
     onExcluded: (Boolean) -> Unit,
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
     save: () -> Unit,
     resetMessageState: () -> Unit,
     navigateBack: () -> Unit
@@ -100,7 +102,8 @@ internal fun NodeListDetailsScreen(
                             nodeIdentityStatus = uiState.nodeIdentityStates,
                             content = content,
                             send = send,
-                            resetMessageState = resetMessageState
+                            resetMessageState = resetMessageState,
+                            requestNodeIdentityStates = requestNodeIdentityStates
                         )
                     }
                 }
