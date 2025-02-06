@@ -70,11 +70,11 @@ data class ProvisioningCapabilities(
             authMethods.add(AuthenticationMethod.StaticOob)
         }
 
-        outputOobActions.toOutputActions().first().let {
+        outputOobActions.toOutputActions().firstOrNull()?.let {
             authMethods.add(AuthenticationMethod.OutputOob(it, it.rawValue))
         }
 
-        inputOobActions.toInputActions().first().let {
+        inputOobActions.toInputActions().firstOrNull()?.let {
             authMethods.add(AuthenticationMethod.InputOob(it, it.rawValue))
         }
         return authMethods.toList()
