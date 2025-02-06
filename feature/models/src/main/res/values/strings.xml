@@ -2,6 +2,7 @@
 <resources>
     <string name="label_gatt_proxy">GATT Proxy</string>
     <string name="label_get_state">Get State</string>
+    <string name="label_set_state">Set State</string>
     <string name="label_off">Off</string>
     <string name="label_proxy_state_rationale">"Turning off the proxy feature will set this node to
         a non-connectable state and disable the proxy server."</string>
@@ -35,7 +36,6 @@
     <string name="label_count">Count</string>
     <string name="label_min_hops">Min Hops</string>
     <string name="label_max_hops">Max Hops</string>
-    <string name="label_set_state">Set State</string>
     <string name="label_heartbeat_subscription">Heartbeat Subscription</string>
     <string name="label_heartbeat_subscription_period_seconds">%1$s seconds</string>
     <string name="label_all_relays">All Relays</string>

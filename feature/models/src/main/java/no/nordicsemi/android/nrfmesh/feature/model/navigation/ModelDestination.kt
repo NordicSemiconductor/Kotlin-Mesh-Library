@@ -15,7 +15,7 @@ fun ModelScreenRoute(
     navigateToBoundAppKeys: (Model) -> Unit = {},
     requestNodeIdentityStates: () -> Unit = {},
     onAddGroupClicked: () -> Unit = {},
-    resetMessageState: () -> Unit = {},
+    resetMessageState: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     ModelRoute(

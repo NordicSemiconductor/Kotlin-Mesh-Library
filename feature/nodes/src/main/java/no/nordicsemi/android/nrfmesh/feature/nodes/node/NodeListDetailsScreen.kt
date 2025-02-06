@@ -25,6 +25,7 @@ internal fun NodeListDetailsScreen(
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     save: () -> Unit,
+    resetMessageState: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -98,7 +99,8 @@ internal fun NodeListDetailsScreen(
                             messageState = uiState.messageState,
                             nodeIdentityStatus = uiState.nodeIdentityStates,
                             content = content,
-                            send = send
+                            send = send,
+                            resetMessageState = resetMessageState
                         )
                     }
                 }

@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -84,7 +83,7 @@ internal fun ConfigurationServerModel(
     )
     SecureNetworkBeacon(
         messageState = messageState,
-        friend = model.parentElement?.parentNode?.features?.friend,
+        snb = model.parentElement?.parentNode?.secureNetworkBeacon ?: false,
         send = send
     )
     FriendFeature(
@@ -182,7 +181,8 @@ private fun RelayFeature(
         },
         actions = {
             MeshOutlinedButton(
-                isOnClickActionInProgress = messageState.isInProgress() && messageState.message is ConfigRelayGet,
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigRelayGet,
                 buttonIcon = Icons.Outlined.Download,
                 text = stringResource(R.string.label_get_state),
                 onClick = { send(ConfigRelayGet()) },
@@ -190,7 +190,8 @@ private fun RelayFeature(
             )
             Spacer(modifier = Modifier.size(8.dp))
             MeshOutlinedButton(
-                isOnClickActionInProgress = messageState.isInProgress() && messageState.message is ConfigRelaySet,
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigRelaySet,
                 buttonIcon = Icons.Outlined.Upload,
                 text = stringResource(R.string.label_set_relay),
                 onClick = {
@@ -279,9 +280,9 @@ private fun NetworkTransmit(
             Spacer(modifier = Modifier.size(8.dp))
             MeshOutlinedButton(
                 isOnClickActionInProgress = messageState.isInProgress()
-                        && messageState.message is ConfigRelaySet,
+                        && messageState.message is ConfigNetworkTransmitSet,
                 buttonIcon = Icons.Outlined.Upload,
-                text = stringResource(R.string.label_set_relay),
+                text = stringResource(R.string.label_set_state),
                 onClick = {
                     send(
                         ConfigNetworkTransmitSet(
@@ -299,7 +300,7 @@ private fun NetworkTransmit(
 @Composable
 private fun SecureNetworkBeacon(
     messageState: MessageState,
-    friend: Friend?,
+    snb: Boolean,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     ElevatedCardItem(
@@ -309,14 +310,10 @@ private fun SecureNetworkBeacon(
         titleAction = {
             Switch(
                 enabled = !messageState.isInProgress(),
-                checked = friend?.state?.isEnabled ?: false,
+                checked = snb,
                 onCheckedChange = { send(ConfigBeaconSet(enable = it)) }
             )
         },
-        subtitle = "SNB is ${
-            if (friend?.state?.isEnabled == true) "enabled"
-            else "disabled"
-        }",
         supportingText = stringResource(R.string.label_snb_rationale)
     ) {
         MeshOutlinedButton(
@@ -347,19 +344,15 @@ private fun FriendFeature(
                 onCheckedChange = { send(ConfigFriendSet(enable = it)) }
             )
         },
-        subtitle = "Friend feature is ${
-            if (friend?.state?.isEnabled == true) "enabled"
-            else "disabled"
-        }",
         supportingText = stringResource(R.string.label_friend_feature_rationale)
     ) {
         MeshOutlinedButton(
-            isOnClickActionInProgress = messageState.isInProgress() &&
-                    messageState.message is ConfigFriendGet,
             buttonIcon = Icons.Outlined.Download,
             text = stringResource(R.string.label_get_state),
             onClick = { send(ConfigFriendGet()) },
-            enabled = !messageState.isInProgress()
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigFriendGet
         )
     }
 }
@@ -387,10 +380,6 @@ private fun ProxyStateRow(
                 }
             )
         },
-        subtitle = "Proxy state is ${
-            if (proxy?.state == FeatureState.Enabled) "enabled"
-            else "disabled"
-        }",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
         MeshOutlinedButton(

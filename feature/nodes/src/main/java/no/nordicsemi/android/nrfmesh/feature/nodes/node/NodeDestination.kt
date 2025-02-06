@@ -32,6 +32,7 @@ fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
             onItemSelected = viewModel::onItemSelected,
             send = viewModel::send,
             save = viewModel::save,
+            resetMessageState = viewModel::resetMessageState,
             navigateBack = navigateBack
         )
     }

@@ -15,7 +15,8 @@ internal fun NodeInfoListDetailsExtra(
     node: Node,
     messageState: MessageState,
     nodeIdentityStatus: List<NodeIdentityStatus>,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit
 ) {
     when (content) {
         is ModelRouteKeyKey -> {
@@ -25,7 +26,8 @@ internal fun NodeInfoListDetailsExtra(
                     ?: return,
                 messageState = messageState,
                 nodeIdentityStates = nodeIdentityStatus,
-                send = send
+                send = send,
+                resetMessageState = resetMessageState
             )
         }
 
