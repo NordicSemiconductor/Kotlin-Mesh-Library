@@ -113,16 +113,15 @@ internal fun HeartBeatPublicationContent(
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
         titleAction = {
-            IconButton(
-                onClick = { send(ConfigHeartbeatPublicationSet()) },
-                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
-            )
+            if (publication != null) {
+                IconButton(
+                    onClick = { send(ConfigHeartbeatPublicationSet()) },
+                    content = {
+                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                    }
+                )
+            }
         },
-        subtitle = "Publications are ${
-            if (publication == null || publication.address is UnassignedAddress)
-                "disabled"
-            else "enabled"
-        }",
         actions = {
             MeshOutlinedButton(
                 enabled = !messageState.isInProgress(),

@@ -91,17 +91,15 @@ internal fun HeartBeatSubscriptionContent(
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
         titleAction = {
-            IconButton(
-                onClick = { send(ConfigHeartbeatSubscriptionSet()) },
-                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
-            )
+            if(subscription != null) {
+                IconButton(
+                    onClick = { send(ConfigHeartbeatSubscriptionSet()) },
+                    content = {
+                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                    }
+                )
+            }
         },
-        subtitle = "Subscriptions are ${
-            if (subscription == null ||
-                subscription.source is UnassignedAddress ||
-                subscription.destination is UnassignedAddress
-            ) "disabled" else "enabled"
-        }",
         body = {
             if (subscription != null &&
                 subscription.source !is UnassignedAddress &&
