@@ -25,8 +25,6 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.network.collect {
-                println("Update received in settings vm ${it.timestamp}")
-                network = it
                 val selectedSetting = _uiState.value.selectedSetting
                 _uiState.value = _uiState.value.copy(
                     networkState = MeshNetworkState.Success(
@@ -35,6 +33,7 @@ class SettingsViewModel @Inject constructor(
                     ),
                     selectedSetting = selectedSetting
                 )
+                network = it
             }
         }
     }
