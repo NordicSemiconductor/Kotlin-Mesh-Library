@@ -77,7 +77,7 @@ data class NetworkKey internal constructor(
     internal constructor(
         name: String = "Primary Network Key",
         index: KeyIndex = 0u,
-        key: ByteArray = Crypto.generateRandomKey()
+        key: ByteArray = Crypto.generateRandomKey(),
     ) : this(index = index, _name = name, _key = key)
 
     var name: String
@@ -291,7 +291,7 @@ internal data class NetworkKeyDerivatives(
     val privateBeaconKey: ByteArray,
     val encryptionKey: ByteArray,
     val privacyKey: ByteArray,
-    val nid: Byte
+    val nid: Byte,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -326,7 +326,9 @@ internal data class NetworkKeyDerivatives(
  * @param node Node to check.
  * @return List of network keys known to the node.
  */
-fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter { node.knows(it) }
+fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter {
+    node.knows(networkKey = it)
+}
 
 /**
  * Returns an Network Key with the given KeyIndex.
