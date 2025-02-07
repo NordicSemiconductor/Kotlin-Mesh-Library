@@ -130,10 +130,10 @@ data class Node internal constructor(
         }
 
     val networkKeys: List<NetworkKey>
-        get() = network?.networkKeys?.knownTo(this) ?: emptyList()
+        get() = network?.networkKeys?.knownTo(node = this) ?: emptyList()
 
     val applicationKeys: List<ApplicationKey>
-        get() = network?.applicationKeys?.knownTo(this) ?: emptyList()
+        get() = network?.applicationKeys?.knownTo(node = this) ?: emptyList()
 
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "cid")
@@ -758,7 +758,7 @@ data class Node internal constructor(
      * @param networkKey Network Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(networkKey.index)
+    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(index = networkKey.index)
 
     /**
      * Checks if the given Network Key index known by the node.
