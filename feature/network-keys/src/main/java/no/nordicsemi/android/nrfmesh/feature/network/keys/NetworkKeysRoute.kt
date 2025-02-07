@@ -82,7 +82,7 @@ private fun NetworkKeys(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedKeyIndex by rememberSaveable { mutableStateOf<KeyIndex?>(null) }
+    var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         contentWindowInsets = WindowInsets(top = 8.dp),
@@ -96,7 +96,7 @@ private fun NetworkKeys(
                     runCatching {
                         onAddKeyClicked()
                     }.onSuccess {
-                        selectedKeyIndex = it.index
+                        selectedKeyIndex = it.index.toInt()
                         navigateToKey(it.index)
                     }
                 },
@@ -111,7 +111,7 @@ private fun NetworkKeys(
         ) {
             item { SectionTitle(title = stringResource(R.string.label_network_keys)) }
             items(items = keys, key = { (it.index + 1u).toInt() }) { key ->
-                val isSelected = highlightSelectedItem && key.index == selectedKeyIndex
+                val isSelected = highlightSelectedItem && key.index.toInt() == selectedKeyIndex
                 SwipeToDismissKey(
                     scope = scope,
                     context = context,
@@ -119,7 +119,7 @@ private fun NetworkKeys(
                     key = key,
                     isSelected = isSelected,
                     navigateToNetworkKey = {
-                        selectedKeyIndex = it
+                        selectedKeyIndex = it.toInt()
                         navigateToKey(it)
                     },
                     onSwiped = onSwiped,
