@@ -151,8 +151,8 @@ class MeshNetworkManager(
         name: String = "Mesh Network",
         uuid: UUID = UUID.randomUUID(),
         provisioner: Provisioner
-    ) = MeshNetwork(uuid = uuid, name = name).also {
-        it._networkKeys.add(NetworkKey())
+    ) = MeshNetwork(uuid = uuid, _name = name).also {
+        it.add(name = "Primary Network Key", index = 0u)
         it.add(provisioner)
         network = it
         networkManager = NetworkManager(this)

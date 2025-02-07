@@ -189,9 +189,7 @@ data class MeshNetwork internal constructor(
      *
      * @param name The name of the network
      */
-    internal constructor(name: String) : this(name = name, uuid = UUID.randomUUID()) {
-        add(name = "Primary Network Key", index = 0u)
-    }
+    internal constructor(name: String) : this(name = name, uuid = UUID.randomUUID())
 
     /**
      * Convenience constructor to create a network.
@@ -202,7 +200,7 @@ data class MeshNetwork internal constructor(
     internal constructor(name: String, uuid: UUID = UUID.randomUUID()) : this(
         uuid = uuid,
         _name = name
-    ) { add(name = "Primary Network Key", index = 0u) }
+    )
 
     /**
      * Updates timestamp to the current time in milliseconds.
@@ -452,9 +450,7 @@ data class MeshNetwork internal constructor(
             network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
-            _networkKeys.apply {
-                add(networkKey)
-            }.sortBy { it.index }
+            _networkKeys.apply { add(element = networkKey) }.sortBy { it.index }
             updateTimestamp()
         }
     }
