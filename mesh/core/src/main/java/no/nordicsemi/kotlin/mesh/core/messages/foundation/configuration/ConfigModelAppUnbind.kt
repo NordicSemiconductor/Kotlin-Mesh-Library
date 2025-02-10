@@ -25,7 +25,7 @@ import java.nio.ByteOrder
  * @constructor Constructs the ConfigAppKeyAdd message.
  */
 class ConfigModelAppUnbind(
-    override val applicationKeyIndex: KeyIndex,
+    override val keyIndex: KeyIndex,
     override val elementAddress: UnicastAddress,
     override val modelId: ModelId,
 ) : AcknowledgedConfigMessage, ConfigAppKeyMessage, ConfigAnyModelMessage {
@@ -33,7 +33,7 @@ class ConfigModelAppUnbind(
     override val responseOpCode: UInt = ConfigModelAppStatus.opCode
 
     override val parameters = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-            encodeAppKeyIndex(applicationKeyIndex = applicationKeyIndex) +
+            encodeAppKeyIndex(applicationKeyIndex = keyIndex) +
             when (modelId) {
                 is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
                 is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
@@ -58,13 +58,13 @@ class ConfigModelAppUnbind(
      * @constructor Constructs the ConfigModelAppUnbind message.
      */
     constructor(model: Model, applicationKey: ApplicationKey) : this(
-        applicationKeyIndex = applicationKey.index,
+        keyIndex = applicationKey.index,
         elementAddress = model.parentElement?.unicastAddress
             ?: throw IllegalArgumentException("Parent element address is null"),
         modelId = model.modelId
     )
 
-    override fun toString() = "ConfigModelAppUnbind(applicationKeyIndex: $applicationKeyIndex, " +
+    override fun toString() = "ConfigModelAppUnbind(applicationKeyIndex: $keyIndex, " +
             "elementAddress: ${elementAddress.toHexString()}, modelId: ${modelId.toHex()})"
 
     companion object Initializer : ConfigMessageInitializer {
@@ -91,7 +91,7 @@ class ConfigModelAppUnbind(
                 )
             }
             ConfigModelAppUnbind(
-                applicationKeyIndex = appKeyIndex,
+                keyIndex = appKeyIndex,
                 elementAddress = UnicastAddress(elementAddress),
                 modelId = modelId
             )

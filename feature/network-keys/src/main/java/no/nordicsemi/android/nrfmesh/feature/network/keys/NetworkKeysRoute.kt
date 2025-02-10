@@ -52,28 +52,8 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 internal fun NetworkKeysRoute(
     highlightSelectedItem: Boolean,
     onAddKeyClicked: () -> NetworkKey,
-    networkKeys: List<NetworkKeyData>,
-    navigateToKey: (KeyIndex) -> Unit,
-    onSwiped: (NetworkKeyData) -> Unit,
-    onUndoClicked: (NetworkKeyData) -> Unit,
-    remove: (NetworkKeyData) -> Unit,
-) {
-    NetworkKeys(
-        highlightSelectedItem = highlightSelectedItem,
-        keys = networkKeys,
-        onAddKeyClicked = onAddKeyClicked,
-        navigateToKey = navigateToKey,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove
-    )
-}
-
-@Composable
-private fun NetworkKeys(
-    highlightSelectedItem: Boolean,
     keys: List<NetworkKeyData>,
-    onAddKeyClicked: () -> NetworkKey,
+    onNetworkKeyClicked: (KeyIndex) -> Unit,
     navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (NetworkKeyData) -> Unit,
     onUndoClicked: (NetworkKeyData) -> Unit,
@@ -118,8 +98,9 @@ private fun NetworkKeys(
                     snackbarHostState = snackbarHostState,
                     key = key,
                     isSelected = isSelected,
-                    navigateToNetworkKey = {
+                    onNetworkKeyClicked = {
                         selectedKeyIndex = it.toInt()
+                        onNetworkKeyClicked(it)
                         navigateToKey(it)
                     },
                     onSwiped = onSwiped,
@@ -139,7 +120,7 @@ private fun SwipeToDismissKey(
     snackbarHostState: SnackbarHostState,
     key: NetworkKeyData,
     isSelected: Boolean,
-    navigateToNetworkKey: (KeyIndex) -> Unit,
+    onNetworkKeyClicked: (KeyIndex) -> Unit,
     onSwiped: (NetworkKeyData) -> Unit,
     onUndoClicked: (NetworkKeyData) -> Unit,
     remove: (NetworkKeyData) -> Unit,
@@ -160,7 +141,7 @@ private fun SwipeToDismissKey(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                onClick = { navigateToNetworkKey(key.index) },
+                onClick = { onNetworkKeyClicked(key.index) },
                 colors = when (isSelected) {
                     true -> CardDefaults.outlinedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant

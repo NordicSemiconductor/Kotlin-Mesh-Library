@@ -21,14 +21,14 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * [NetworkKey] that are known to the Node. This message is a response to the [ConfigAppKeyGet]
  *
  * @property applicationKeyIndexes   Index of the application key.
- * @property networkKeyIndex         Index of the network key.
+ * @property index         Index of the network key.
  * @property status                  Status of the message.
  * @property opCode                  Message op code.
  * @property parameters              Message parameters.
  * @constructor Constructs the ConfigAppKeyList message.
  */
 class ConfigAppKeyList(
-    override val networkKeyIndex: KeyIndex,
+    override val index: KeyIndex,
     val applicationKeyIndexes: Array<KeyIndex>,
     override val status: ConfigMessageStatus
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
@@ -36,7 +36,7 @@ class ConfigAppKeyList(
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
         get() = status.value.toByteArray() +
-                encodeNetKeyIndex(keyIndex = networkKeyIndex) +
+                encodeNetKeyIndex(keyIndex = index) +
                 ConfigMessage.encode(indexes = applicationKeyIndexes)
 
     /**
@@ -47,7 +47,7 @@ class ConfigAppKeyList(
      * @constructor Constructs the ConfigAppKeyList message.
      */
     constructor(request: ConfigAppKeyGet, applicationKeys: List<ApplicationKey>) : this(
-        networkKeyIndex = request.networkKeyIndex,
+        index = request.index,
         applicationKeyIndexes = applicationKeys.map { it.index }.toTypedArray(),
         status = ConfigMessageStatus.SUCCESS
     )
@@ -59,13 +59,13 @@ class ConfigAppKeyList(
      * @param status  Status of the message.
      */
     constructor(request: ConfigAppKeyGet, status: ConfigMessageStatus) : this(
-        networkKeyIndex = request.networkKeyIndex,
+        index = request.index,
         applicationKeyIndexes = emptyArray(),
         status = status
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigAppKeyList(networkKeyIndex: $networkKeyIndex, " +
+    override fun toString() = "ConfigAppKeyList(networkKeyIndex: $index, " +
             "applicationKeyIndexes: (${
                 applicationKeyIndexes.joinToString(
                     separator = ", ",
@@ -87,7 +87,7 @@ class ConfigAppKeyList(
         }?.let { params ->
             val status = ConfigMessageStatus.from(params.first().toUByte()) ?: return null
             ConfigAppKeyList(
-                networkKeyIndex = decodeNetKeyIndex(
+                index = decodeNetKeyIndex(
                     data = parameters,
                     offset = 1
                 ),

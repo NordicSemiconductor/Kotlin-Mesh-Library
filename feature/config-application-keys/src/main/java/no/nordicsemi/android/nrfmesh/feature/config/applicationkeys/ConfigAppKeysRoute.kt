@@ -1,30 +1,31 @@
 package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,112 +34,124 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshLoadingItems
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import java.lang.IllegalStateException
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigAppKeysRoute(
-    appState: AppState,
-    uiState: AppKeysScreenUiState,
-    navigateToNetworkKeys: () -> Unit,
+    node: Node,
+    messageState: MessageState,
+    onApplicationKeysClicked: () -> Unit,
     onAddKeyClicked: (ApplicationKey) -> Unit,
-    onSwiped: (ApplicationKey) -> Unit,
-    onRefresh: () -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
-    onBackPressed: () -> Unit
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val screen = appState.currentScreen as? ConfigAppKeysScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { button ->
-            when (button) {
-                ConfigAppKeysScreen.Actions.ADD_KEY -> showBottomSheet = !showBottomSheet
-                ConfigAppKeysScreen.Actions.BACK -> if (!uiState.messageState.isInProgress()) {
-                    onBackPressed()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val isRefreshing by rememberSaveable {
+        mutableStateOf(messageState.isInProgress() && messageState.message is ConfigAppKeyGet)
+    }
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        contentWindowInsets = WindowInsets(top = 0.dp),
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                text = { Text(text = stringResource(R.string.label_application_keys)) },
+                icon = { Icon(imageVector = Icons.Outlined.VpnKey, contentDescription = null) },
+                onClick = onApplicationKeysClicked,
+                expanded = true
+            )
+        },
+        content = { paddingValues ->
+            PullToRefreshBox(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues = paddingValues),
+                onRefresh = {
+                    send(
+                        ConfigAppKeyGet(
+                            key = node.networkKeys.firstOrNull()
+                                ?: throw IllegalStateException("No network keys added to this node")
+                        )
+                    )
+                },
+                isRefreshing = isRefreshing
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    SectionTitle(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        title = stringResource(R.string.label_added_application_keys)
+                    )
+                    when (node.applicationKeys.isNotEmpty()) {
+                        true -> LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                        ) {
+                            items(items = node.applicationKeys) { key ->
+                                SwipeToDismissKey(
+                                    node = node,
+                                    key = key,
+                                    onSwiped = { send(ConfigAppKeyDelete(key = it)) }
+                                )
+                            }
+                        }
+
+                        else -> MeshNoItemsAvailable(
+                            imageVector = Icons.Outlined.VpnKey,
+                            title = stringResource(R.string.label_no_app_keys_added),
+                            rationale = stringResource(R.string.label_no_app_keys_to_add_rationale)
+                        )
+                    }
                 }
+
             }
-        }?.launchIn(this)
-    }
-
-    BackHandler(enabled = uiState.messageState.isInProgress(), onBack = { })
-    ConfigAppKeysRoute(
-        uiState = uiState,
-        showBottomSheet = showBottomSheet,
-        dismissBottomSheet = { showBottomSheet = !showBottomSheet },
-        navigateToNetworkKeys = navigateToNetworkKeys,
-        onAddKeyClicked = onAddKeyClicked,
-        onSwiped = onSwiped,
-        onRefresh = onRefresh,
-        resetMessageState = resetMessageState
+        }
     )
-}
-
-
-@Composable
-private fun ConfigAppKeysRoute(
-    uiState: AppKeysScreenUiState,
-    showBottomSheet: Boolean,
-    dismissBottomSheet: () -> Unit,
-    onSwiped: (ApplicationKey) -> Unit,
-    navigateToNetworkKeys: () -> Unit,
-    onAddKeyClicked: (ApplicationKey) -> Unit,
-    onRefresh: () -> Unit,
-    resetMessageState: () -> Unit,
-) {
-    Column {
-        AnimatedVisibility(visible = uiState.messageState.isInProgress()) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-        when (uiState.appKeysState) {
-            AppKeysState.Loading -> MeshLoadingItems(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(id = R.string.label_loading)
-            )
-
-            is AppKeysState.Success -> ApplicationKeysInfo(
-                node = uiState.node,
-                keys = uiState.appKeysState.appKeys,
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = onRefresh,
-                onSwiped = onSwiped
-            )
-
-            is AppKeysState.Error -> MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(R.string.label_no_app_keys_to_add)
-            )
-        }
-    }
     if (showBottomSheet) {
         BottomSheetKeys(
-            uiState = uiState,
+            appKeys = node.applicationKeys,
             onAddKeyClicked = onAddKeyClicked,
-            navigateToNetworkKeys = navigateToNetworkKeys,
-            onDismissClick = dismissBottomSheet
+            navigateToNetworkKeys = onApplicationKeysClicked,
+            onDismissClick = { showBottomSheet = false }
         )
     }
 
-    when (uiState.messageState) {
+    when (messageState) {
         is Failed -> MeshMessageStatusDialog(
-            text = uiState.messageState.error.message ?: stringResource(R.string.unknown_error),
-            showDismissButton = !uiState.messageState.didFail(),
+            text = messageState.error.message ?: stringResource(R.string.unknown_error),
+            showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
+
+        is Completed -> {
+            messageState.response?.takeIf {
+                (it is ConfigStatusMessage && !it.isSuccess)
+            }?.let {
+                MeshMessageStatusDialog(
+                    text = (messageState.response as ConfigStatusMessage).message,
+                    showDismissButton = true,
+                    onDismissRequest = resetMessageState,
+                )
+            }
+        }
 
         else -> {}
     }
@@ -147,7 +160,7 @@ private fun ConfigAppKeysRoute(
 @OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomSheetKeys(
-    uiState: AppKeysScreenUiState,
+    appKeys: List<ApplicationKey>,
     onAddKeyClicked: (ApplicationKey) -> Unit,
     navigateToNetworkKeys: () -> Unit,
     onDismissClick: () -> Unit,
@@ -160,7 +173,7 @@ private fun BottomSheetKeys(
                 .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            if (uiState.keys.isEmpty()) {
+            if (appKeys.isEmpty()) {
                 item {
                     MeshNoItemsAvailable(
                         imageVector = Icons.Outlined.VpnKey,
@@ -179,7 +192,7 @@ private fun BottomSheetKeys(
                     }
                 }
             } else {
-                items(items = uiState.keys) { key ->
+                items(items = appKeys) { key ->
                     ElevatedCardItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
@@ -196,72 +209,13 @@ private fun BottomSheetKeys(
     }
 }
 
-@Composable
-private fun ApplicationKeysInfo(
-    node: Node?,
-    keys: List<ApplicationKey>,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
-    onSwiped: (ApplicationKey) -> Unit
-) {
-    when (keys.isNotEmpty()) {
-        true -> ApplicationKeys(
-            node = node,
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
-            keys = keys,
-            onSwiped = onSwiped
-        )
-
-        else -> MeshNoItemsAvailable(
-            imageVector = Icons.Outlined.VpnKey,
-            title = stringResource(R.string.label_no_app_keys_added)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ApplicationKeys(
-    node: Node?,
-    keys: List<ApplicationKey>,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
-    onSwiped: (ApplicationKey) -> Unit
-) {
-    val listState = rememberLazyListState()
-    val state = rememberPullToRefreshState()
-    PullToRefreshBox(
-        modifier = Modifier.fillMaxSize(),
-        state = state,
-        onRefresh = onRefresh,
-        isRefreshing = isRefreshing
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 8.dp),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-        ) {
-            items(items = keys) { key ->
-                SwipeToDismissKey(
-                    node = node,
-                    key = key,
-                    onSwiped = onSwiped
-                )
-            }
-        }
-    }
-}
-
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     node: Node?,
     key: ApplicationKey,
-    onSwiped: (ApplicationKey) -> Unit
+    onSwiped: (ApplicationKey) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var isKeyInUse by remember { mutableStateOf(false) }

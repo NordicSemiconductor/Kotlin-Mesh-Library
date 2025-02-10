@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationsKeysScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreenRoute
@@ -53,12 +53,14 @@ internal fun SettingsListDetails(
 
         is NetworkKeysRoute, is NetworkKeyRoute -> NetworkKeysScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
+            onNetworkKeyClicked = navigateToNetworkKey,
             navigateToKey = navigateToNetworkKey,
             navigateUp = navigateUp
         )
 
-        is ApplicationKeysRoute, is ApplicationKeyRoute -> ApplicationsKeysScreenRoute(
+        is ApplicationKeysRoute, is ApplicationKeyRoute -> ApplicationKeysScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
+            onApplicationKeyClicked = navigateToApplicationKey,
             navigateToKey = navigateToApplicationKey,
             navigateUp = navigateUp
         )

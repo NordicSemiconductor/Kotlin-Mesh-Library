@@ -189,7 +189,7 @@ internal fun HeartBeatPublicationContent(
                             onClick = {
                                 send(
                                     ConfigHeartbeatPublicationSet(
-                                        networkKeyIndex = keyIndex.toUShort(),
+                                        index = keyIndex.toUShort(),
                                         destination = destination!!,
                                         countLog = countLog,
                                         periodLog = periodLog,

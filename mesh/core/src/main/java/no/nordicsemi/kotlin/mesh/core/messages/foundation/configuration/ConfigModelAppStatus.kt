@@ -28,7 +28,7 @@ import java.nio.ByteOrder
  */
 class ConfigModelAppStatus(
     override val status: ConfigMessageStatus,
-    override val applicationKeyIndex: KeyIndex,
+    override val keyIndex: KeyIndex,
     override val elementAddress: UnicastAddress,
     override val modelId: ModelId,
 ) : ConfigResponse, ConfigStatusMessage, ConfigAppKeyMessage, ConfigAnyModelMessage {
@@ -37,7 +37,7 @@ class ConfigModelAppStatus(
     override val parameters: ByteArray
         get() = status.value.toByteArray() +
                 elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                encodeAppKeyIndex(applicationKeyIndex = applicationKeyIndex) +
+                encodeAppKeyIndex(applicationKeyIndex = keyIndex) +
                 when (modelId) {
                     is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
                     is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
@@ -72,13 +72,13 @@ class ConfigModelAppStatus(
      */
     constructor(request: ConfigAnyAppKeyModelMessage, status: ConfigMessageStatus) : this(
         status = status,
-        applicationKeyIndex = request.applicationKeyIndex,
+        keyIndex = request.keyIndex,
         elementAddress = request.elementAddress,
         modelId = request.modelId
     )
 
     override fun toString() = "ConfigAppBindStatus(status: ${status}, " +
-            "applicationKeyIndex: $applicationKeyIndex, " +
+            "applicationKeyIndex: $keyIndex, " +
             "elementAddress: ${elementAddress.toHexString()}, " +
             "modelId: $modelId)"
 
@@ -98,7 +98,7 @@ class ConfigModelAppStatus(
                 .from(value = params.first().toUByte()) ?: return null
             ConfigModelAppStatus(
                 status = status,
-                applicationKeyIndex = decodeAppKeyIndex(data = params, offset = 1),
+                keyIndex = decodeAppKeyIndex(data = params, offset = 1),
                 elementAddress = UnicastAddress(
                     address = params.getUShort(
                         offset = 1,

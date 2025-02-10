@@ -40,8 +40,8 @@ data class NodeInfoListData(
     constructor(node: Node) : this(
         uuid = node.uuid,
         name = node.name,
-        networkKeyCount = node.networkKeys.size,
-        appKeyCount = node.applicationKeys.size,
+        networkKeyCount = node.netKeys.size,
+        appKeyCount = node.appKeys.size,
         elements = node.elements.map { ElementListData(element = it) },
         companyIdentifier = node.companyIdentifier,
         productIdentifier = node.productIdentifier,

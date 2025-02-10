@@ -302,7 +302,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         // ConfigNetKeyDelete must be signed using the key that is being deleted.
         val netKeyDelete = message as? ConfigNetKeyDelete
         netKeyDelete?.takeIf { netKeyDeleteMsg ->
-            netKeyDeleteMsg.networkKeyIndex == networkKey.index
+            netKeyDeleteMsg.index == networkKey.index
         }?.let {
             networkKey = node.networkKeys.last()
         }

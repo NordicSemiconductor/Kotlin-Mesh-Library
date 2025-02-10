@@ -16,4 +16,6 @@
     <string name="unknown_error">Unknown error</string>
     <string name="label_success">success</string>
     <string name="label_settings">Settings</string>
+    <string name="label_network_keys">Network Keys</string>
+    <string name="label_added_network_keys">Network Keys added to this Node</string>
 </resources>

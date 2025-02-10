@@ -14,8 +14,8 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 /**
  * This message is used to add an Application Key to a mesh node.
  *
- * @property applicationKeyIndex  Index of the application key to be added.
- * @property networkKeyIndex      Index of the bound network key.
+ * @property keyIndex  Index of the application key to be added.
+ * @property index      Index of the bound network key.
  * @property key                  The application key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
@@ -23,15 +23,15 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
  * @constructor Constructs the ConfigAppKeyAdd message.
  */
 class ConfigAppKeyAdd(
-    override val applicationKeyIndex: KeyIndex,
+    override val keyIndex: KeyIndex,
     val key: ByteArray,
-    override val networkKeyIndex: KeyIndex
+    override val index: KeyIndex,
 ) : AcknowledgedConfigMessage, ConfigNetAndAppKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
     override val parameters = encodeNetAndAppKeyIndex(
-        appKeyIndex = applicationKeyIndex,
-        netKeyIndex = networkKeyIndex
+        appKeyIndex = keyIndex,
+        netKeyIndex = index
     ) + key
 
     override val responseOpCode = ConfigAppKeyStatus.opCode
@@ -39,13 +39,13 @@ class ConfigAppKeyAdd(
     /**
      * Convenience constructor to create a [ConfigAppKeyAdd] message.
      *
-     * @param applicationKey Application key to be added.
+     * @param key Application key to be added.
      * @constructor Constructs the ConfigAppKeyAdd message.
      */
-    constructor(applicationKey: ApplicationKey) : this(
-        applicationKeyIndex = applicationKey.index,
-        key = applicationKey.key,
-        networkKeyIndex = applicationKey.boundNetKeyIndex
+    constructor(key: ApplicationKey) : this(
+        keyIndex = key.index,
+        key = key.key,
+        index = key.boundNetKeyIndex
     )
 
     init {
@@ -53,8 +53,8 @@ class ConfigAppKeyAdd(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigAppKeyAdd(applicationKeyIndex: $applicationKeyIndex, " +
-            "networkKeyIndex: $networkKeyIndex, key: ${key.toHexString()})"
+    override fun toString() = "ConfigAppKeyAdd(applicationKeyIndex: $keyIndex, " +
+            "networkKeyIndex: $index, key: ${key.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x00u
@@ -70,8 +70,8 @@ class ConfigAppKeyAdd(
         }?.let {
             val decodedIndexes = decodeNetAndAppKeyIndex(data = it, offset = 0)
             ConfigAppKeyAdd(
-                networkKeyIndex = decodedIndexes.networkKeyIndex,
-                applicationKeyIndex = decodedIndexes.applicationKeyIndex,
+                index = decodedIndexes.networkKeyIndex,
+                keyIndex = decodedIndexes.applicationKeyIndex,
                 key = it.copyOfRange(3, 19)
             )
         }

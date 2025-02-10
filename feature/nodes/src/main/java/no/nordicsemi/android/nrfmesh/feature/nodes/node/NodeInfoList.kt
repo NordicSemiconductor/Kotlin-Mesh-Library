@@ -393,7 +393,8 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
                 }
             )
         },
-        supportingText = stringResource(R.string.label_exclusion_rationale)
+        supportingText = stringResource(R.string.label_exclusion_rationale),
+        body = { Spacer(modifier = Modifier.size(8.dp)) }
     )
 }
 

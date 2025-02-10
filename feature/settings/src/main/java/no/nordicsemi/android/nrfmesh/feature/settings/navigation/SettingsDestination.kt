@@ -16,7 +16,7 @@ import no.nordicsemi.android.nrfmesh.feature.settings.SettingsViewModel
 @Parcelize
 data object SettingsRoute : Parcelable
 
-fun NavController.navigateToSettings(navOptions: NavOptions) = navigate(
+fun NavController.navigateToSettings(navOptions: NavOptions? = null) = navigate(
     route = SettingsRoute,
     navOptions = navOptions
 )

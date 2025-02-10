@@ -138,7 +138,7 @@ class ConfigHeartbeatPublicationStatus(
                 periodLog = request.periodLog,
                 ttl = request.ttl,
                 features = request.features,
-                networkKeyIndex = request.networkKeyIndex,
+                networkKeyIndex = request.index,
                 status = statusMessage
             )
         }

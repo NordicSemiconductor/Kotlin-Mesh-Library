@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,27 +55,7 @@ internal fun ApplicationKeysRoute(
     highlightSelectedItem: Boolean,
     keys: List<ApplicationKeyData>,
     onAddKeyClicked: () -> ApplicationKey,
-    navigateToKey: (KeyIndex) -> Unit,
-    onSwiped: (ApplicationKeyData) -> Unit,
-    onUndoClicked: (ApplicationKeyData) -> Unit,
-    remove: (ApplicationKeyData) -> Unit
-) {
-    ApplicationKeys(
-        highlightSelectedItem = highlightSelectedItem,
-        keys = keys,
-        onAddKeyClicked = onAddKeyClicked,
-        navigateToKey = navigateToKey,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove
-    )
-}
-
-@Composable
-private fun ApplicationKeys(
-    highlightSelectedItem: Boolean,
-    keys: List<ApplicationKeyData>,
-    onAddKeyClicked: () -> ApplicationKey,
+    onApplicationKeyClicked: (KeyIndex) -> Unit,
     navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (ApplicationKeyData) -> Unit,
     onUndoClicked: (ApplicationKeyData) -> Unit,
@@ -88,7 +66,6 @@ private fun ApplicationKeys(
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedKeyIndex by remember { mutableStateOf<KeyIndex?>(null) }
     Scaffold(
-        modifier = Modifier.background(color = Color.Red),
         contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -134,9 +111,9 @@ private fun ApplicationKeys(
                             snackbarHostState = snackbarHostState,
                             key = key,
                             isSelected = isSelected,
-                            navigateToApplicationKey = {
+                            onApplicationKeyClicked = {
                                 selectedKeyIndex = it
-                                navigateToKey(it)
+                                onApplicationKeyClicked(it)
                             },
                             onSwiped = onSwiped,
                             onUndoClicked = onUndoClicked,
@@ -159,7 +136,7 @@ private fun SwipeToDismissKey(
     snackbarHostState: SnackbarHostState,
     key: ApplicationKeyData,
     isSelected: Boolean,
-    navigateToApplicationKey: (KeyIndex) -> Unit,
+    onApplicationKeyClicked: (KeyIndex) -> Unit,
     onSwiped: (ApplicationKeyData) -> Unit,
     onUndoClicked: (ApplicationKeyData) -> Unit,
     remove: (ApplicationKeyData) -> Unit
@@ -180,7 +157,7 @@ private fun SwipeToDismissKey(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                onClick = { navigateToApplicationKey(key.index) },
+                onClick = { onApplicationKeyClicked(key.index) },
                 colors = when (isSelected) {
                     true -> CardDefaults.outlinedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant

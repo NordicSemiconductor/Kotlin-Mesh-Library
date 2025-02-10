@@ -5,11 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -18,21 +15,10 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 @Parcelize
 data object ApplicationKeysRoute : Parcelable
 
-object ApplicationKeysDestination : MeshNavigationDestination {
-    override val route: String = "application_keys_route"
-    override val destination: String = "application_keys_destination"
-}
-
-fun NavGraphBuilder.applicationKeysGraph(
-    appState: AppState,
-    onNavigateToKey: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit,
-) {
-}
-
 @Composable
-fun ApplicationsKeysScreenRoute(
+fun ApplicationKeysScreenRoute(
     highlightSelectedItem: Boolean,
+    onApplicationKeyClicked: (KeyIndex) -> Unit,
     navigateToKey: (KeyIndex) -> Unit,
     navigateUp: () -> Unit
 ) {
@@ -42,10 +28,11 @@ fun ApplicationsKeysScreenRoute(
         highlightSelectedItem = highlightSelectedItem,
         keys = uiState.keys,
         onAddKeyClicked = viewModel::addApplicationKey,
-        navigateToKey = {
+        onApplicationKeyClicked = {
             viewModel.selectKeyIndex(it)
-            navigateToKey(it)
+            onApplicationKeyClicked(it)
         },
+        navigateToKey = navigateToKey,
         onSwiped = {
             viewModel.onSwiped(it)
             if(viewModel.isCurrentlySelectedKey(it.index)) {

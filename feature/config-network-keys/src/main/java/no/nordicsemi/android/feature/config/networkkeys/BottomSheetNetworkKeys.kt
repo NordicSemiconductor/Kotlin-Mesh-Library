@@ -25,7 +25,7 @@ fun BottomSheetNetworkKeys(
     bottomSheetState: SheetState,
     title: String,
     keys: List<NetworkKey>,
-    onNetKeyClicked: (NetworkKey) -> Unit,
+    onNetworkKeyClicked: (NetworkKey) -> Unit,
     onDismissClick: () -> Unit,
     emptyKeysContent: @Composable () -> Unit
 ) {
@@ -44,7 +44,7 @@ fun BottomSheetNetworkKeys(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
                             onDismissClick()
-                            onNetKeyClicked(key)
+                            onNetworkKeyClicked(key)
                         },
                         imageVector = Icons.Outlined.VpnKey,
                         title = key.name,

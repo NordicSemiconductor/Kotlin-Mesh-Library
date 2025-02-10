@@ -18,16 +18,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysDestination
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreen
 import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysDestination
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
@@ -171,11 +165,8 @@ class MeshAppState(
 }
 
 private fun getScreen(route: String?) = when (route) {
-    BoundAppKeysDestination.route -> BoundAppKeysScreen()
     ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
     NetKeySelectorDestination.route -> NetKeySelectorScreen()
-    ConfigNetKeysDestination.route -> ConfigNetKeysScreen()
-    ConfigAppKeysDestination.route -> ConfigAppKeysScreen()
     ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

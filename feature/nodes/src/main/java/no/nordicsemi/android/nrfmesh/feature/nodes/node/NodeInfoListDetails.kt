@@ -18,9 +18,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementScreenRoute
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreenRoute
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRouteKey
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
@@ -28,8 +36,13 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 internal fun NodeInfoListDetails(
     content: Any?,
     node: Node,
+    messageState: MessageState,
     highlightSelectedItem: Boolean,
+    navigateToNetworkKeys: () -> Unit,
+    navigateToApplicationKeys: () -> Unit,
     navigateToModel: (Model) -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit,
     save: () -> Unit,
 ) {
     when (content) {
@@ -38,6 +51,22 @@ internal fun NodeInfoListDetails(
             highlightSelectedItem = highlightSelectedItem,
             navigateToModel = navigateToModel,
             save = save
+        )
+
+        is ConfigNetKeysRoute, NetworkKeysRoute -> ConfigNetKeysScreenRoute(
+            node = node,
+            messageState = messageState,
+            navigateToNetworkKeys = navigateToNetworkKeys,
+            resetMessageState = resetMessageState,
+            send = send
+        )
+
+        is ConfigAppKeysRoute, ApplicationKeysRoute -> ConfigAppKeysScreenRoute(
+            node = node,
+            messageState = messageState,
+            onApplicationKeyClicked = navigateToApplicationKeys,
+            resetMessageState = resetMessageState,
+            send = send
         )
 
         else -> NodeInfoPlaceHolder()

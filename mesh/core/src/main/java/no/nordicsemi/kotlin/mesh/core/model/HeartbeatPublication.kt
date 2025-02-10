@@ -130,7 +130,7 @@ data class HeartbeatPublication internal constructor(
         _countLog = request.countLog,
         periodLog = request.periodLog,
         ttl = request.ttl,
-        index = request.networkKeyIndex,
+        index = request.index,
         features = request.features
     ) {
         require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {

@@ -7,7 +7,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -55,7 +63,7 @@ internal fun ModelRoute(
             )
 
             else -> {
-                BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
+                BoundApplicationKeys(model = model)
                 ModelPublication(messageState = messageState, model = model, send = send)
             }
         }
@@ -67,20 +75,31 @@ internal fun ModelRoute(
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
+
         else -> {}
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun BoundApplicationKeys(
-    model: Model,
-    navigateToBoundAppKeys: (Model) -> Unit,
-) {
+internal fun BoundApplicationKeys(model: Model) {
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
         subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
-        onClick = { navigateToBoundAppKeys(model) }
+        onClick = { showBottomSheet = !showBottomSheet }
     )
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = bottomSheetState,
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
+            content = {
+
+            }
+        )
+    }
 }

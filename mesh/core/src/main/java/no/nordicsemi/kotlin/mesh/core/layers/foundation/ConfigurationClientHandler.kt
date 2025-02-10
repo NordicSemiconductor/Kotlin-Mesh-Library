@@ -136,9 +136,9 @@ internal class ConfigurationClientHandler(
             is ConfigNetKeyStatus -> if (response.isSuccess) {
                 node(address = source)?.apply {
                     when (request as ConfigNetKeyMessage) {
-                        is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
-                        is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
-                        is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyAdd -> addNetKey(response.index)
+                        is ConfigNetKeyDelete -> removeNetKey(response.index)
+                        is ConfigNetKeyUpdate -> updateNetKey(response.index)
                     }
                 }
             }
@@ -150,16 +150,16 @@ internal class ConfigurationClientHandler(
             // Application Keys Management
             is ConfigAppKeyStatus -> if (response.isSuccess) node(address = source)?.apply {
                 when (request as ConfigNetKeyMessage) {
-                    is ConfigAppKeyAdd -> addAppKey(index = response.applicationKeyIndex)
-                    is ConfigAppKeyUpdate -> updateAppKey(index = response.applicationKeyIndex)
-                    is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
+                    is ConfigAppKeyAdd -> addAppKey(index = response.keyIndex)
+                    is ConfigAppKeyUpdate -> updateAppKey(index = response.keyIndex)
+                    is ConfigAppKeyDelete -> removeAppKey(response.keyIndex)
                 }
             }
 
             is ConfigAppKeyList -> node(address = source)?.apply {
                 setAppKeys(
                     appKeyIndexes = response.applicationKeyIndexes.toList(),
-                    netKeyIndex = response.networkKeyIndex
+                    netKeyIndex = response.index
                 )
             }
 
@@ -249,10 +249,10 @@ internal class ConfigurationClientHandler(
                     ?.model(modelId = response.modelId)?.let {
                         when (request) {
                             is ConfigModelAppBind ->
-                                it.bind(index = request.applicationKeyIndex)
+                                it.bind(index = request.keyIndex)
 
                             is ConfigModelAppUnbind ->
-                                it.unbind(index = request.applicationKeyIndex)
+                                it.unbind(index = request.keyIndex)
 
                             else -> {
 

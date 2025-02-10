@@ -384,17 +384,18 @@ private fun ProxyStateRow(
                 }
             )
         },
-        supportingText = stringResource(R.string.label_proxy_state_rationale)
-    ) {
-        MeshOutlinedButton(
-            isOnClickActionInProgress = messageState.isInProgress()
-                    && messageState.message is ConfigGattProxyGet,
-            buttonIcon = Icons.Outlined.Upload,
-            text = stringResource(R.string.label_get_state),
-            onClick = { send(ConfigGattProxySet(state = FeatureState.Enabled)) },
-            enabled = !messageState.isInProgress()
-        )
-    }
+        supportingText = stringResource(R.string.label_proxy_state_rationale),
+        actions = {
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigGattProxyGet,
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_get_state),
+                onClick = { send(ConfigGattProxySet(state = FeatureState.Enabled)) },
+                enabled = !messageState.isInProgress()
+            )
+        }
+    )
     if (showProxyStateDialog) {
         MeshAlertDialog(
             onDismissRequest = { showProxyStateDialog = !showProxyStateDialog },

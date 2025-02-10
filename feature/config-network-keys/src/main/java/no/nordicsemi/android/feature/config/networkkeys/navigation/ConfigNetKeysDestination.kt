@@ -1,51 +1,31 @@
 package no.nordicsemi.android.feature.config.networkkeys.navigation
 
-import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import android.os.Parcelable
+import androidx.compose.runtime.Composable
+import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysRoute
-import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysViewModel
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysDestination
-import java.util.UUID
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.Node
 
-object ConfigNetKeysDestination : MeshNavigationDestination {
-    override val route: String = "config_net_key_route/{ARG}"
-    override val destination: String = "config_net_key_destination"
+@Parcelize
+data object ConfigNetKeysRoute : Parcelable
 
-    /**
-     * Creates destination route for a network key index.
-     *
-     * @param uuid UUID of the node to which the key is added
-     */
-    fun createNavigationRoute(uuid: UUID): String =
-        "config_net_key_route/${Uri.encode(uuid.toString())}"
-}
-
-fun NavGraphBuilder.configNetworkKeysGraph(
-    appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit
+@Composable
+fun ConfigNetKeysScreenRoute(
+    node: Node,
+    messageState: MessageState,
+    navigateToNetworkKeys: () -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
+    resetMessageState: () -> Unit
 ) {
-    composable(route = ConfigNetKeysDestination.route) {
-        val viewmodel = hiltViewModel<ConfigNetKeysViewModel>()
-        val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
-        ConfigNetKeysRoute(
-            appState = appState,
-            uiState = uiState,
-            navigateToNetworkKeys = {
-                onNavigateToDestination(NetworkKeysDestination, NetworkKeysDestination.route)
-            },
-            onAddKeyClicked = viewmodel::addNetworkKey,
-            onSwiped = viewmodel::onSwiped,
-            onRefresh = viewmodel::onRefresh,
-            resetMessageState = viewmodel::resetMessageState,
-            onBackPressed = onBackPressed,
-        )
-    }
+    ConfigNetKeysRoute(
+        node = node,
+        messageState = messageState,
+        navigateToNetworkKeys = navigateToNetworkKeys,
+        onNetworkKeyClicked = { },
+        send = send,
+        resetMessageState = resetMessageState
+    )
 }
 

@@ -94,7 +94,7 @@ internal class ModelViewModel @Inject internal constructor(
                 if (response is ConfigNodeIdentityStatus) {
                     val nodeIdentityStates = _uiState.value.nodeIdentityStates.toMutableList()
                     val index = nodeIdentityStates.indexOfFirst { state ->
-                        state.networkKey.index == response.networkKeyIndex
+                        state.networkKey.index == response.index
                     }
                     nodeIdentityStates[index] = nodeIdentityStates[index]
                         .copy(nodeIdentityState = response.identity)
@@ -124,7 +124,7 @@ internal class ModelViewModel @Inject internal constructor(
             var response: ConfigNodeIdentityStatus? = null
             try {
                 keys.forEach { key ->
-                    message = ConfigNodeIdentityGet(networkKeyIndex = key.index)
+                    message = ConfigNodeIdentityGet(index = key.index)
                     _uiState.value = _uiState.value.copy(
                         messageState = Sending(message = message!!),
                     )
@@ -135,7 +135,7 @@ internal class ModelViewModel @Inject internal constructor(
 
                     response?.let { status ->
                         val index = nodeIdentityStates.indexOfFirst { state ->
-                            state.networkKey.index == status.networkKeyIndex
+                            state.networkKey.index == status.index
                         }
                         nodeIdentityStates[index] = nodeIdentityStates[index]
                             .copy(nodeIdentityState = status.identity)
@@ -143,7 +143,7 @@ internal class ModelViewModel @Inject internal constructor(
                 }
                 _uiState.value = _uiState.value.copy(
                     messageState = Completed(
-                        message = ConfigNodeIdentityGet(networkKeyIndex = keys.first().index),
+                        message = ConfigNodeIdentityGet(index = keys.first().index),
                         response = response as ConfigNodeIdentityStatus
                     ),
                     nodeIdentityStates = nodeIdentityStates.toList()

@@ -9,9 +9,14 @@ import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -28,7 +33,7 @@ internal fun NodeListDetailsScreen(
     requestNodeIdentityStates: (Model) -> Unit,
     save: () -> Unit,
     resetMessageState: () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
@@ -47,10 +52,22 @@ internal fun NodeListDetailsScreen(
                             isRefreshing = uiState.isRefreshing,
                             onRefresh = onRefresh,
                             onNetworkKeysClicked = {
-                                onItemSelected(ClickableNodeInfoItem.NetworkKeys)
+                                scope.launch {
+                                    onItemSelected(ClickableNodeInfoItem.NetworkKeys)
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = ConfigNetKeysRoute
+                                    )
+                                }
                             },
                             onApplicationKeysClicked = {
-                                onItemSelected(ClickableNodeInfoItem.ApplicationKeys)
+                                scope.launch {
+                                    onItemSelected(ClickableNodeInfoItem.ApplicationKeys)
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = ConfigAppKeysRoute
+                                    )
+                                }
                             },
                             onElementClicked = {
                                 scope.launch {
@@ -77,6 +94,22 @@ internal fun NodeListDetailsScreen(
                             node = uiState.nodeState.node,
                             highlightSelectedItem = navigator.isDetailPaneVisible() &&
                                     navigator.isExtraPaneVisible(),
+                            navigateToNetworkKeys = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = NetworkKeysRoute
+                                    )
+                                }
+                            },
+                            navigateToApplicationKeys = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = ApplicationKeysRoute
+                                    )
+                                }
+                            },
                             navigateToModel = {
                                 scope.launch {
                                     navigator.navigateTo(
@@ -89,7 +122,10 @@ internal fun NodeListDetailsScreen(
                                     )
                                 }
                             },
-                            save = save
+                            save = save,
+                            send = send,
+                            messageState = uiState.messageState,
+                            resetMessageState = resetMessageState
                         )
                     }
                 },
