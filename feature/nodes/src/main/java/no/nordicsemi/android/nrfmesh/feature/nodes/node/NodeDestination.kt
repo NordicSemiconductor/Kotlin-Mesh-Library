@@ -16,10 +16,9 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 @Serializable
 data class NodeRoute(val uuid: String) : Parcelable
 
-fun NavController.navigateToNode(
-    node: Node,
-    navOptions: NavOptions? = null,
-) = navigate(route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions)
+fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null, ) = navigate(
+    route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions
+)
 
 fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
     composable<NodeRoute> {
