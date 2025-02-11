@@ -102,7 +102,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         viewModelScope.launch {
             val state = _uiState.value
             network.run {
-                remove(key = networkKey(keyIndex = key.index))
+                remove(key = applicationKey(keyIndex = key.index))
                 save()
             }
             _uiState.value = state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
