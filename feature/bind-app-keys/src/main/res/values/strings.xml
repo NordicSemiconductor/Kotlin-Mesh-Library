@@ -13,4 +13,5 @@
     <string name="label_unbind">Unbind</string>
     <string name="label_cancel">Cancel</string>
     <string name="label_ok">OK</string>
+    <string name="label_bound_app_keys">Bound Application Keys</string>
 </resources>

@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.bind.appkeys
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -40,14 +42,11 @@ fun BindAppKeysRoute(
     navigateToConfigApplicationKeys: (UUID) -> Unit = {},
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     BoundKeys(
         model = model,
         addedKeys = model.parentElement?.parentNode?.applicationKeys ?: emptyList(),
         navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-        send = send,
-        showBottomSheet = showBottomSheet,
-        onBottomSheetDismissed = { showBottomSheet = false }
+        send = send
     )
 }
 
@@ -58,28 +57,35 @@ private fun BoundKeys(
     addedKeys: List<ApplicationKey>,
     navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
-    showBottomSheet: Boolean,
-    onBottomSheetDismissed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp),
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
-        if (addedKeys.isEmpty()) {
-            item {
-                MeshNoItemsAvailable(
-                    imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_bound_app_keys),
-                    rationale = stringResource(R.string.label_bind_an_app_key_rationale)
-                )
-            }
-        } else {
-            items(items = addedKeys, key = { it.index.toInt() + 1 }) { key ->
-                AddedKeyRow(model = model, key = key, send = send)
+        SectionTitle(
+            title = stringResource(R.string.label_bound_app_keys),
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
+            if (addedKeys.isEmpty()) {
+                item {
+                    MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_bound_app_keys),
+                        rationale = stringResource(R.string.label_bind_an_app_key_rationale)
+                    )
+                }
+            } else {
+                items(items = addedKeys, key = { it.index.toInt() + 1 }) { key ->
+                    AddedKeyRow(model = model, key = key, send = send)
+                }
             }
         }
     }
@@ -93,12 +99,12 @@ private fun BoundKeys(
                     bottomSheetState.hide()
                 }.invokeOnCompletion {
                     if (!bottomSheetState.isVisible) {
-                        onBottomSheetDismissed()
+                        showBottomSheet = false
                     }
                 }
                 send(ConfigModelAppBind(model = model, applicationKey = it))
             },
-            onDismissClick = onBottomSheetDismissed,
+            onDismissClick = { showBottomSheet = false },
             emptyKeysContent = {
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
