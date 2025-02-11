@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
@@ -28,9 +29,10 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
-import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
+import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @Composable
@@ -52,8 +54,8 @@ internal fun ModelRoute(
             title = stringResource(R.string.label_model)
         )
         CommonInformation(model = model)
-        when {
-            model.isConfigurationServer -> ConfigurationServerModel(
+        if (model.isConfigurationServer) {
+            ConfigurationServer(
                 messageState = messageState,
                 model = model,
                 nodeIdentityStates = nodeIdentityStates,
@@ -61,11 +63,10 @@ internal fun ModelRoute(
                 requestNodeIdentityStates = requestNodeIdentityStates,
                 onAddGroupClicked = onAddGroupClicked,
             )
-
-            else -> {
-                BoundApplicationKeys(model = model, send = send)
-                ModelPublication(messageState = messageState, model = model, send = send)
-            }
+        }
+        if (!model.isConfigurationClient) {
+            BoundApplicationKeys(model = model, send = send)
+            ModelPublication(messageState = messageState, model = model, send = send)
         }
     }
 
@@ -76,7 +77,21 @@ internal fun ModelRoute(
             onDismissRequest = resetMessageState,
         )
 
-        else -> {}
+        is Completed -> {
+            messageState.response?.takeIf {
+                (it is ConfigStatusMessage && !it.isSuccess)
+            }?.let {
+                MeshMessageStatusDialog(
+                    text = (messageState.response as ConfigStatusMessage).message,
+                    showDismissButton = true,
+                    onDismissRequest = resetMessageState,
+                )
+            }
+        }
+
+        else -> {
+
+        }
     }
 }
 

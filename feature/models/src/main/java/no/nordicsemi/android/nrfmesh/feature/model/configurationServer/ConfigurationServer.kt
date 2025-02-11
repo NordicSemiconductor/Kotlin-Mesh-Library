@@ -64,7 +64,7 @@ import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import kotlin.math.roundToInt
 
 @Composable
-internal fun ConfigurationServerModel(
+internal fun ConfigurationServer(
     model: Model,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
