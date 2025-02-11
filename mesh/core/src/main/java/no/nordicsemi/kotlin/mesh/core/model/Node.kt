@@ -737,10 +737,10 @@ data class Node internal constructor(
      *
      * Note: This is based on the key index.
      *
-     * @param applicationKey Application Key.
+     * @param key Application Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knows(applicationKey: ApplicationKey) = knowsApplicationKeyIndex(applicationKey.index)
+    fun knows(key: ApplicationKey) = knowsApplicationKeyIndex(index = key.index)
 
     /**
      * Checks if the given Application Key index known by the node.
@@ -755,10 +755,10 @@ data class Node internal constructor(
      *
      * Note: This is based on the key index.
      *
-     * @param networkKey Network Key.
+     * @param key Network Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(index = networkKey.index)
+    fun knows(key: NetworkKey) = knowsNetworkKeyIndex(index = key.index)
 
     /**
      * Checks if the given Network Key index known by the node.

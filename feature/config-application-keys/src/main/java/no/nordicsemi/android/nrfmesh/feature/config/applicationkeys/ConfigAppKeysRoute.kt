@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,20 +21,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
@@ -44,30 +51,35 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.Node
-import java.lang.IllegalStateException
+import no.nordicsemi.kotlin.mesh.core.model.Element
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigAppKeysRoute(
-    node: Node,
+    elements: List<Element>,
+    networkKeys: List<NetworkKey>,
+    applicationKeys: List<ApplicationKey>,
     messageState: MessageState,
     onApplicationKeysClicked: () -> Unit,
     onAddKeyClicked: (ApplicationKey) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val isRefreshing by rememberSaveable {
         mutableStateOf(messageState.isInProgress() && messageState.message is ConfigAppKeyGet)
     }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         contentWindowInsets = WindowInsets(top = 0.dp),
@@ -88,7 +100,7 @@ internal fun ConfigAppKeysRoute(
                 onRefresh = {
                     send(
                         ConfigAppKeyGet(
-                            key = node.networkKeys.firstOrNull()
+                            key = networkKeys.firstOrNull()
                                 ?: throw IllegalStateException("No network keys added to this node")
                         )
                     )
@@ -100,15 +112,18 @@ internal fun ConfigAppKeysRoute(
                         modifier = Modifier.padding(vertical = 8.dp),
                         title = stringResource(R.string.label_added_application_keys)
                     )
-                    when (node.applicationKeys.isNotEmpty()) {
+                    when (applicationKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                         ) {
-                            items(items = node.applicationKeys) { key ->
+                            items(items = applicationKeys, key = { it.index.toInt() + 1 }) { key ->
                                 SwipeToDismissKey(
-                                    node = node,
+                                    context = context,
+                                    scope = scope,
+                                    elements = elements,
                                     key = key,
+                                    snackbarHostState = snackbarHostState,
                                     onSwiped = { send(ConfigAppKeyDelete(key = it)) }
                                 )
                             }
@@ -127,7 +142,7 @@ internal fun ConfigAppKeysRoute(
     )
     if (showBottomSheet) {
         BottomSheetKeys(
-            appKeys = node.applicationKeys,
+            appKeys = applicationKeys,
             onAddKeyClicked = onAddKeyClicked,
             navigateToNetworkKeys = onApplicationKeysClicked,
             onDismissClick = { showBottomSheet = false }
@@ -213,20 +228,25 @@ private fun BottomSheetKeys(
 @OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
-    node: Node?,
+    elements: List<Element>,
+    context: Context,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
     key: ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    var isKeyInUse by remember { mutableStateOf(false) }
     var displayWarningDialog by remember { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             // Check if the key is in use and prevent dismissing if it is in use.
-            isKeyInUse = node?.elements?.flatMap { it.models }?.any { model ->
+            val isKeyInUse = elements.flatMap { it.models }.any { model ->
                 model.bind.contains(key.index)
-            } ?: false
+            }
             displayWarningDialog = isKeyInUse
+            if(!isKeyInUse) {
+                onSwiped(key)
+            }
             !isKeyInUse
         },
         positionalThreshold = { it * 0.5f }
@@ -256,5 +276,15 @@ private fun SwipeToDismissKey(
                 onSwiped(key)
             }
         )
+    }
+    LaunchedEffect(snackbarHostState) {
+        if (dismissState.isDismissed()) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.label_application_key_deleted),
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
     }
 }

@@ -63,6 +63,7 @@
     <string name="label_low_power">Low Power</string>
     <string name="label_publication_triggers">Publication Triggers</string>
     <string name="label_bind">Bind</string>
+    <string name="label_bound_application_keys">Bound Application Keys</string>
     <string name="label_bind_application_keys">Bind Application Keys</string>
     <string name="label_bind_key">Bind Key</string>
     <string name="label_settings">Settings</string>

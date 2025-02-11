@@ -327,7 +327,7 @@ internal data class NetworkKeyDerivatives(
  * @return List of network keys known to the node.
  */
 fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter {
-    node.knows(networkKey = it)
+    node.knows(key = it)
 }
 
 /**

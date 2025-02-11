@@ -25,13 +25,11 @@ class ConfigAppKeyDelete(
     override val index: KeyIndex
 ) : AcknowledgedConfigMessage, ConfigNetAndAppKeyMessage {
     override val opCode: UInt = Initializer.opCode
-
+    override val responseOpCode = ConfigAppKeyStatus.opCode
     override val parameters = encodeNetAndAppKeyIndex(
         appKeyIndex = keyIndex,
         netKeyIndex = index
     )
-
-    override val responseOpCode = ConfigAppKeyStatus.opCode
 
     /**
      * Convenience constructor to create a [ConfigAppKeyDelete] message.

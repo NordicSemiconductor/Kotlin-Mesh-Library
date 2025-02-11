@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
@@ -52,19 +53,17 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigNetKeysRoute(
-    node: Node,
+    networkKeys: List<NetworkKey>,
     messageState: MessageState,
     navigateToNetworkKeys: () -> Unit,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -72,6 +71,7 @@ internal fun ConfigNetKeysRoute(
     val isRefreshing by rememberSaveable {
         mutableStateOf(messageState.isInProgress() && messageState.message is ConfigNetKeyGet)
     }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         contentWindowInsets = WindowInsets(top = 0.dp),
@@ -97,18 +97,21 @@ internal fun ConfigNetKeysRoute(
                         modifier = Modifier.padding(vertical = 8.dp),
                         title = stringResource(R.string.label_added_network_keys)
                     )
-                    when (node.networkKeys.isNotEmpty()) {
+                    when (networkKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                         ) {
-                            items(items = node.networkKeys) { key ->
+                            items(items = networkKeys, key = { it.index.toInt() + 1 }) { key ->
                                 SwipeToDismissKey(
                                     key = key,
                                     context = context,
-                                    coroutineScope = scope,
+                                    scope = scope,
                                     snackbarHostState = snackbarHostState,
-                                    onSwiped = { send(ConfigNetKeyDelete(key = key)) }
+                                    onSwiped = {
+                                        if (!messageState.isInProgress())
+                                            send(ConfigNetKeyDelete(key = key))
+                                    }
                                 )
                             }
                         }
@@ -126,7 +129,7 @@ internal fun ConfigNetKeysRoute(
         BottomSheetNetworkKeys(
             bottomSheetState = bottomSheetState,
             title = stringResource(R.string.label_add_key),
-            keys = node.networkKeys,
+            keys = networkKeys,
             onNetworkKeyClicked = onNetworkKeyClicked,
             onDismissClick = { showBottomSheet = false },
             emptyKeysContent = {
@@ -169,13 +172,19 @@ internal fun ConfigNetKeysRoute(
 private fun SwipeToDismissKey(
     key: NetworkKey,
     context: Context,
-    coroutineScope: CoroutineScope,
+    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     onSwiped: (NetworkKey) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     var shouldNotDismiss by remember { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { it * 0.5f })
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            onSwiped(key)
+            true
+        },
+        positionalThreshold = { it * 0.5f }
+    )
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
@@ -190,7 +199,7 @@ private fun SwipeToDismissKey(
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
             showSnackbar(
-                scope = coroutineScope,
+                scope = scope,
                 snackbarHostState = snackbarHostState,
                 message = context.getString(
                     if (key.index.toUInt() == 0.toUInt())
@@ -205,13 +214,12 @@ private fun SwipeToDismissKey(
     }
     if (dismissState.isDismissed()) {
         LaunchedEffect(snackbarHostState) {
-            onSwiped(key)
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.label_network_key_deleted),
-                actionLabel = context.getString(R.string.action_undo),
-                withDismissAction = true,
-                duration = SnackbarDuration.Long,
-            )
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.label_network_key_deleted),
+                    duration = SnackbarDuration.Short,
+                )
+            }
         }
     }
 }

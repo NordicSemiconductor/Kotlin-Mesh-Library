@@ -77,7 +77,7 @@ class ConfigModelAppStatus(
         modelId = request.modelId
     )
 
-    override fun toString() = "ConfigAppBindStatus(status: ${status}, " +
+    override fun toString() = "ConfigModelAppStatus(status: ${status}, " +
             "applicationKeyIndex: $keyIndex, " +
             "elementAddress: ${elementAddress.toHexString()}, " +
             "modelId: $modelId)"

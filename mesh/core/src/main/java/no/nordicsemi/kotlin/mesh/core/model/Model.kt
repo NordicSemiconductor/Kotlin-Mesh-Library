@@ -217,7 +217,7 @@ data class Model internal constructor(
      * @return true if the key index is unbound or false if it's already unbound.
      */
     internal fun unbind(index: KeyIndex) = when(bind.contains(element = index)) {
-        true -> _bind.remove(index).also {
+        true -> _bind.remove(element = index).also {
             if (publish?.index == index) _publish = null
         }
         else -> false
@@ -253,10 +253,10 @@ data class Model internal constructor(
     /**
      * Checks if the given application key is bound to the model.
      *
-     * @param applicationKey Application key to check.
+     * @param key Application key to check.
      * @return true if the key is bound to the model or false otherwise.
      */
-    fun isBoundTo(applicationKey: ApplicationKey) = bind.any { it == applicationKey.index }
+    fun isBoundTo(key: ApplicationKey) = bind.any { it == key.index }
 
     /**
      * Checks if the Model is subscribed to the given Group.

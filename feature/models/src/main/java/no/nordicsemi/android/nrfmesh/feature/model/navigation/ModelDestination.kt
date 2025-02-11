@@ -12,9 +12,7 @@ fun ModelScreenRoute(
     model: Model,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
-    navigateToBoundAppKeys: (Model) -> Unit = {},
     requestNodeIdentityStates: (Model) -> Unit = {},
-    onAddGroupClicked: () -> Unit = {},
     resetMessageState: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
@@ -22,7 +20,6 @@ fun ModelScreenRoute(
         model = model,
         messageState = messageState,
         nodeIdentityStates = nodeIdentityStates,
-        navigateToBoundAppKeys = {},
         requestNodeIdentityStates = requestNodeIdentityStates,
         onAddGroupClicked = {},
         resetMessageState = resetMessageState,

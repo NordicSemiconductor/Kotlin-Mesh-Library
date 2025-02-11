@@ -25,6 +25,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
@@ -38,7 +39,6 @@ internal fun ModelRoute(
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
@@ -63,7 +63,7 @@ internal fun ModelRoute(
             )
 
             else -> {
-                BoundApplicationKeys(model = model)
+                BoundApplicationKeys(model = model, send = send)
                 ModelPublication(messageState = messageState, model = model, send = send)
             }
         }
@@ -82,7 +82,10 @@ internal fun ModelRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun BoundApplicationKeys(model: Model) {
+internal fun BoundApplicationKeys(
+    model: Model,
+    send: (AcknowledgedConfigMessage) -> Unit,
+) {
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
@@ -97,9 +100,7 @@ internal fun BoundApplicationKeys(model: Model) {
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
-            content = {
-
-            }
+            content = { BindAppKeysRoute(model = model, send = send) }
         )
     }
 }

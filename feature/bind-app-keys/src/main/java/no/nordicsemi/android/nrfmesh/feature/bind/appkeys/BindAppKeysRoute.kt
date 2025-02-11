@@ -8,30 +8,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.navigation.BoundAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -42,69 +35,31 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import java.util.UUID
 
 @Composable
-internal fun BindAppKeysRoute(
-    appState: AppState,
-    uiState: BindAppKeysScreenUiState,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+fun BindAppKeysRoute(
+    model: Model,
+    navigateToConfigApplicationKeys: (UUID) -> Unit = {},
     send: (AcknowledgedConfigMessage) -> Unit,
-    onBackPressed: () -> Unit
 ) {
-    val screen = appState.currentScreen as? BoundAppKeysScreen
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach {
-            when (it) {
-                BoundAppKeysScreen.Actions.BACK -> onBackPressed()
-                BoundAppKeysScreen.Actions.BIND_KEY -> showBottomSheet = true
-            }
-        }?.launchIn(this)
-    }
-
-    BindAppKeysScreen(
-        uiState = uiState,
-        showBottomSheet = showBottomSheet,
+    BoundKeys(
+        model = model,
+        addedKeys = model.parentElement?.parentNode?.applicationKeys ?: emptyList(),
         navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
         send = send,
+        showBottomSheet = showBottomSheet,
         onBottomSheetDismissed = { showBottomSheet = false }
     )
-}
-
-@Composable
-private fun BindAppKeysScreen(
-    uiState: BindAppKeysScreenUiState,
-    showBottomSheet: Boolean,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    onBottomSheetDismissed: () -> Unit
-) {
-
-    when (uiState.modelState) {
-        ModelState.Loading -> {}
-        is ModelState.Success -> BoundKeys(
-            model = uiState.modelState.model,
-            boundAppKeys = uiState.boundKeys,
-            addedKeys = uiState.addedKeys,
-            navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-            send = send,
-            showBottomSheet = showBottomSheet,
-            onBottomSheetDismissed = onBottomSheetDismissed
-        )
-
-        is ModelState.Error -> {}
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BoundKeys(
     model: Model,
-    boundAppKeys: List<ApplicationKey>,
     addedKeys: List<ApplicationKey>,
     navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     showBottomSheet: Boolean,
-    onBottomSheetDismissed: () -> Unit
+    onBottomSheetDismissed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -114,7 +69,7 @@ private fun BoundKeys(
             .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
-        if (boundAppKeys.isEmpty()) {
+        if (addedKeys.isEmpty()) {
             item {
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.VpnKey,
@@ -123,8 +78,8 @@ private fun BoundKeys(
                 )
             }
         } else {
-            items(items = boundAppKeys) { key ->
-                SwipeToUnbindKey(model = model, key = key, send = send)
+            items(items = addedKeys, key = { it.index.toInt() + 1 }) { key ->
+                AddedKeyRow(model = model, key = key, send = send)
             }
         }
     }
@@ -161,36 +116,40 @@ private fun BoundKeys(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
-private fun SwipeToUnbindKey(
+private fun AddedKeyRow(
     model: Model,
     key: ApplicationKey,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    // We need to check if the model is using the key that is being unbound.
-
-    // Hold the current state from the Swipe to Dismiss composable
-    var isKeyInUse by remember { mutableStateOf(false) }
+    var isBound by rememberSaveable { mutableStateOf(model.isBoundTo(key = key)) }
     var displayWarningDialog by rememberSaveable { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            isKeyInUse = model.publish?.index != key.index
-            displayWarningDialog = isKeyInUse
-            !isKeyInUse
-        },
-        positionalThreshold = { it * 0.5f }
-    )
-    SwipeDismissItem(
-        dismissState = dismissState,
-        content = {
-            ElevatedCardItem(
-                imageVector = Icons.Outlined.VpnKey,
-                title = key.name,
-                subtitle = key.key.toHexString()
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.VpnKey,
+        title = key.name,
+        subtitle = key.key.toHexString(),
+        titleAction = {
+            Checkbox(
+                checked = isBound,
+                onCheckedChange = {
+                    if (!isBound) {
+                        send(ConfigModelAppBind(model = model, applicationKey = key))
+                    } else {
+                        // Check if the key is in use before unbinding.
+                        if (model.publish?.index == key.index) {
+                            displayWarningDialog = true
+                        } else {
+                            send(ConfigModelAppUnbind(model = model, applicationKey = key))
+                        }
+                    }
+                    isBound = it
+                }
             )
         }
     )
+
     if (displayWarningDialog) {
         MeshAlertDialog(
             onDismissRequest = { displayWarningDialog = !displayWarningDialog },
