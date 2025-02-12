@@ -545,8 +545,8 @@ data class MeshNetwork internal constructor(
      */
     fun node(provisioner: Provisioner) = try {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork }
-        require(has(provisioner)) { return null }
-        node(provisioner.uuid)
+        require(has(provisioner = provisioner)) { return null }
+        node(uuid = provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
         null
     }
