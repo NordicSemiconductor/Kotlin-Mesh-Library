@@ -89,6 +89,7 @@ data class Node internal constructor(
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
+    private var _name:String = "nRF Mesh Node",
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray?,
     @SerialName(value = "unicastAddress")
@@ -98,17 +99,20 @@ data class Node internal constructor(
     @SerialName(value = "netKeys")
     private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: MutableList<NodeKey>
+    private var _appKeys: MutableList<NodeKey>,
 ) {
 
     val primaryUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress
 
-    var name: String = "nRF Mesh Node"
+    var name: String
+        get() = _name
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            network?.updateTimestamp()
-            field = value
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
+                _name = value
+                network?.updateTimestamp()
+            }
         }
 
     val netKeys: List<NodeKey>
@@ -245,7 +249,7 @@ data class Node internal constructor(
      */
     internal constructor(
         provisioner: Provisioner,
-        unicastAddress: UnicastAddress
+        unicastAddress: UnicastAddress,
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = Crypto.generateRandomKey(),
@@ -271,7 +275,7 @@ data class Node internal constructor(
         deviceKey: ByteArray = Crypto.generateRandomKey(),
         elements: List<Element> = emptyList(),
         netKeys: List<NetworkKey>,
-        appKeys: List<ApplicationKey>
+        appKeys: List<ApplicationKey>,
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = deviceKey,
@@ -315,14 +319,16 @@ data class Node internal constructor(
      */
     @Throws(SecurityException::class)
     constructor(
+        name: String = "nRF Mesh Node",
         uuid: UUID,
         deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
         elementCount: Int,
         assignedNetworkKey: NetworkKey,
-        security: Security
+        security: Security,
     ) : this(
         uuid = uuid,
+        _name = name,
         deviceKey = deviceKey,
         _primaryUnicastAddress = unicastAddress,
         _elements = MutableList(elementCount) {
