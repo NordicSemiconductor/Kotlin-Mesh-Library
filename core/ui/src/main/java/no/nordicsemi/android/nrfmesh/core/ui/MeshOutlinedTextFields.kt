@@ -105,7 +105,6 @@ fun MeshOutlinedTextField(
     val requester = remember { FocusRequester() }
     Row(
         modifier = modifier
-            .fillMaxWidth()
             .height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

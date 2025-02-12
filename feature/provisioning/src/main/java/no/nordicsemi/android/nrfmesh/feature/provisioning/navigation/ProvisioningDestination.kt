@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningViewModel
 
@@ -19,36 +18,23 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningViewModel
 @Serializable
 data object ProvisioningRoute : Parcelable
 
-object ProvisioningDestination : MeshNavigationDestination {
-    override val route: String = "provisioning_route"
-    override val destination: String = "provisioning_destination"
-}
-
 fun NavController.navigateToProvisioning(navOptions: NavOptions) = navigate(
     route = ProvisioningRoute,
     navOptions = navOptions
 )
 
-fun NavGraphBuilder.provisioningGraph(
-    appState: AppState,
-    onNavigateToDestination: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit,
-) {
+fun NavGraphBuilder.provisioningGraph(appState: AppState, onBackPressed: () -> Unit) {
     composable<ProvisioningRoute> {
         val viewModel = hiltViewModel<ProvisioningViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProvisioningRoute(
-            appState = appState,
             uiState = uiState,
             beginProvisioning = viewModel::beginProvisioning,
             onNameChanged = viewModel::onNameChanged,
             onAddressChanged = viewModel::onAddressChanged,
             isValidAddress = viewModel::isValidAddress,
             onNetworkKeyClick = {
-                onNavigateToDestination(
-                    NetKeySelectorDestination,
-                    NetKeySelectorDestination.route
-                )
+
             },
             startProvisioning = viewModel::startProvisioning,
             authenticate = viewModel::authenticate,
@@ -63,8 +49,5 @@ fun NavGraphBuilder.provisioningGraph(
             disconnect = viewModel::disconnect
         )
     }
-    netKeySelectorGraph(
-        appState = appState,
-        onBackPressed = onBackPressed
-    )
+    netKeySelectorGraph(appState = appState)
 }

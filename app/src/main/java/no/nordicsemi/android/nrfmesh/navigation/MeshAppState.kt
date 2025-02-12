@@ -22,14 +22,8 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportDestination
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningDestination
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.navigateToSettings
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
@@ -165,8 +159,5 @@ class MeshAppState(
 }
 
 private fun getScreen(route: String?) = when (route) {
-    ProvisioningDestination.route -> ProvisioningScreen(title = "Provisioning")
-    NetKeySelectorDestination.route -> NetKeySelectorScreen()
-    ExportDestination.route -> ExportScreen(title = "Export")
     else -> null
 }

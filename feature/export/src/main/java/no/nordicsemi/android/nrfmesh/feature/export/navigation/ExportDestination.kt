@@ -4,30 +4,27 @@ import android.os.Parcelable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.export.ExportRoute
 import no.nordicsemi.android.nrfmesh.feature.export.ExportViewModel
 
 @Parcelize
 @Serializable
-data object ApplicationKeysRoute : Parcelable
+data object ExportRoute : Parcelable
 
-object ExportDestination : MeshNavigationDestination {
-    override val route: String = "export_route"
-    override val destination: String = "export_destination"
-}
-
-fun NavController.navigateToExport() { navigate(route = ExportDestination.route) }
-
+fun NavController.navigateToExport(navOptions: NavOptions? = null) = navigate(
+    route = ExportRoute,
+    navOptions = navOptions
+)
 fun NavGraphBuilder.exportGraph(
     appState: AppState,
     onBackPressed: () -> Unit
 ) {
-    composable(route = ExportDestination.route) {
+    composable<ExportRoute> {
         val viewModel = hiltViewModel<ExportViewModel>()
         ExportRoute(
             appState = appState,

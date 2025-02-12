@@ -14,8 +14,8 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigateToNode
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.nodeGraph
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.nodeGraph
 
 @Serializable
 @Parcelize

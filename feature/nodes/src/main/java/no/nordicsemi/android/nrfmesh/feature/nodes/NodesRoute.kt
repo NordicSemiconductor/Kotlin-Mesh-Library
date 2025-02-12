@@ -23,7 +23,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
 internal fun NodesRoute(
@@ -96,11 +95,6 @@ private fun Nodes(
             MeshNodeItem(
                 nodeName = node.name,
                 addressHex = "0x${node.primaryUnicastAddress.address.toHexString()}",
-                companyName = node.companyIdentifier?.let {
-                    CompanyIdentifier.name(it) ?: "Unknown"
-                } ?: "Unknown",
-                elements = node.elementsCount,
-                models = node.elements.flatMap { it.models }.size,
                 onClick = { navigateToNode(node) },
             )
         }

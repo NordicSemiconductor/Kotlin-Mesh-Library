@@ -104,6 +104,7 @@ fun NetworkRoute(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             contentWindowInsets = WindowInsets.displayCutout.union(WindowInsets.navigationBars),
             topBar = {
+                println("Parent name: ${currentDestination?.hierarchy?.firstOrNull()?.route}")
                 NordicAppBar(
                     title = {
                         Text(
@@ -178,7 +179,6 @@ fun NetworkRoute(
         ) { paddingValues ->
             MeshNavHost(
                 appState = appState,
-                onNavigateToDestination = appState::navigate,
                 onBackPressed = appState::onBackPressed,
                 modifier = Modifier
                     .fillMaxSize()

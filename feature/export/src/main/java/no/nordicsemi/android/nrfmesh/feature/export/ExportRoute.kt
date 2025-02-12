@@ -45,13 +45,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneProvisionerMustBeSelected
@@ -75,15 +72,6 @@ fun ExportRoute(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
         onResult = { it?.let { onExportClicked(context.contentResolver, it) } }
     )
-    val screen = appState.currentScreen as? ExportScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach {
-            when (it) {
-                ExportScreen.Actions.BACK -> onBackPressed()
-                ExportScreen.Actions.SAVE -> createDocument.launch(uiState.networkName)
-            }
-        }?.launchIn(this)
-    }
     ExportScreen(
         context = context,
         snackbarHostState = appState.snackbarHostState,

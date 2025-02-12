@@ -46,7 +46,7 @@ enum class MeshTopLevelDestination(
     @StringRes val iconTextId: Int,
     @StringRes val titleTextId: Int,
     val route: KClass<*>,
-    val baseRoute: KClass<*> = route
+    val baseRoute: KClass<*> = route,
 ) {
     NODES(
         selectedIcon = Icons.Filled.Hive,

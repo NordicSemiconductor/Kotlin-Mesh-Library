@@ -10,32 +10,17 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.NetKeySelectorScreen
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun NetKeySelectorRoute(
-    appState: AppState,
     uiState: NetworkKeySelectionScreenUiState,
-    onKeySelected: (KeyIndex) -> Unit,
-    onBackPressed: () -> Unit
+    onKeySelected: (KeyIndex) -> Unit
 ) {
-    val screen = appState.currentScreen as? NetKeySelectorScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { button ->
-            when (button) {
-                NetKeySelectorScreen.Actions.BACK -> onBackPressed()
-            }
-        }?.launchIn(this)
-    }
     NetKeySelectorScreen(
         uiState = uiState,
         onKeySelected = onKeySelected
