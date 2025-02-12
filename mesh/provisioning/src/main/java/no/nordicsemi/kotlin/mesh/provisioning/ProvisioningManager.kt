@@ -249,6 +249,7 @@ class ProvisioningManager(
                 emit(value = ProvisioningState.Complete)
                 meshNetwork.add(
                     node = Node(
+                        name = unprovisionedDevice.name,
                         uuid = unprovisionedDevice.uuid,
                         deviceKey = provisioningData.deviceKey,
                         unicastAddress = configuration.unicastAddress!!,
