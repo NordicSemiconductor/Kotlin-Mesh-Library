@@ -26,7 +26,7 @@
     <string name="label_connected">Connected to %s</string>
     <string name="label_identifying">Identifying %s…</string>
     <string name="label_disconnected">%s disconnected</string>
-    <string name="title_network_key">Network Key</string>
+    <string name="label_network_key">Network Key</string>
     <string name="label_unknown_error">Unknown Error</string>
     <string name="error_invalid_address">Invalid address.</string>
     <string name="action_add_node">Add Node</string>

@@ -7,12 +7,16 @@ import android.os.ParcelUuid
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SyncLock
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
@@ -24,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,8 +56,9 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
@@ -112,6 +117,7 @@ internal fun ProvisioningRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
@@ -147,12 +153,24 @@ private fun ProvisionerScreen(
             },
             sheetState = capabilitiesSheetState
         ) {
-            BottomSheetTopAppBar(
-                title = stringResource(R.string.label_device_information),
-                titleStyle = MaterialTheme.typography.titleLarge,
-                actions = {
-                    Spacer(modifier = Modifier.size(16.dp))
-                    TextButton(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(state = rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionTitle(
+                        modifier = Modifier.weight(weight = 1f),
+                        title = stringResource(R.string.label_device_information),
+                    )
+                    MeshOutlinedButton(
+                        modifier = Modifier.padding(end = 16.dp),
                         enabled = uiState.provisionerState is ProvisionerState.Provisioning,
                         onClick = {
                             runCatching { showAuthenticationDialog = true }
@@ -164,31 +182,27 @@ private fun ProvisionerScreen(
                                         )
                                     }
                                 }
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            text = stringResource(id = R.string.label_provision).uppercase(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+                        },
+                        buttonIcon = Icons.Outlined.SyncLock,
+                        text = stringResource(id = R.string.label_provision)
+                    )
                 }
-            )
-            ProvisioningContent(
-                provisionerState = uiState.provisionerState,
-                snackbarHostState = snackbarHostState,
-                showAuthenticationDialog = showAuthenticationDialog,
-                onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                onNetworkKeyClick = onNetworkKeyClick,
-                startProvisioning = startProvisioning,
-                authenticate = authenticate,
-                onProvisioningComplete = onProvisioningComplete,
-                onProvisioningFailed = onProvisioningFailed,
-                dismissCapabilitiesSheet = { scope.launch { capabilitiesSheetState.hide() } }
-            )
+                ProvisioningContent(
+                    provisionerState = uiState.provisionerState,
+                    snackbarHostState = snackbarHostState,
+                    showAuthenticationDialog = showAuthenticationDialog,
+                    onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
+                    onNameChanged = onNameChanged,
+                    onAddressChanged = onAddressChanged,
+                    isValidAddress = isValidAddress,
+                    onNetworkKeyClick = onNetworkKeyClick,
+                    startProvisioning = startProvisioning,
+                    authenticate = authenticate,
+                    onProvisioningComplete = onProvisioningComplete,
+                    onProvisioningFailed = onProvisioningFailed,
+                    dismissCapabilitiesSheet = { scope.launch { capabilitiesSheetState.hide() } }
+                )
+            }
         }
     }
 }
@@ -442,9 +456,7 @@ private fun ProvisionerStateInfo(
     errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(fraction = 0.5f),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

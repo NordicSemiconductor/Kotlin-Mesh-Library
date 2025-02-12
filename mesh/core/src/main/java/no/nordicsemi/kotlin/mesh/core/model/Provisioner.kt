@@ -43,7 +43,7 @@ data class Provisioner internal constructor(
     @SerialName(value = "allocatedGroupRange")
     internal var _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
     @SerialName(value = "allocatedSceneRange")
-    internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
+    internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf(),
 ) {
     var name: String
         get() = _name
@@ -132,7 +132,7 @@ data class Provisioner internal constructor(
         name: String,
         allocatedUnicastRanges: List<UnicastRange> = mutableListOf(),
         allocatedGroupRanges: List<GroupRange> = mutableListOf(),
-        allocatedSceneRanges: List<SceneRange> = mutableListOf()
+        allocatedSceneRanges: List<SceneRange> = mutableListOf(),
     ) : this(
         uuid = UUID.randomUUID(),
         _allocatedUnicastRanges = allocatedUnicastRanges.toMutableList(),
@@ -421,9 +421,9 @@ data class Provisioner internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
         network?.let { network ->
-            require(network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
+            require(value = network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
             var isNewNode = false
-            val node = network.node(this@Provisioner) ?: Node(
+            val node = network.node(provisioner = this@Provisioner) ?: Node(
                 provisioner = this@Provisioner,
                 unicastAddress = address
             ).apply {
@@ -442,14 +442,21 @@ data class Provisioner internal constructor(
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?
-            val newRange = UnicastRange(address, node.elementsCount)
-            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges }
+            val newRange = UnicastRange(address = address, elementsCount = node.elementsCount)
+            require(value = hasAllocatedRange(range = newRange)) {
+                throw AddressNotInAllocatedRanges
+            }
 
             // Is there any other node using the address?
-            require(network.isAddressAvailable(address, node)) { throw AddressAlreadyInUse }
+            require(
+                value = network.isAddressAvailable(
+                    address = address,
+                    node = node
+                )
+            ) { throw AddressAlreadyInUse }
 
             when (isNewNode) {
-                true -> network.add(node)
+                true -> network.add(node = node)
                 else -> node._primaryUnicastAddress = address
             }
             network.updateTimestamp()
