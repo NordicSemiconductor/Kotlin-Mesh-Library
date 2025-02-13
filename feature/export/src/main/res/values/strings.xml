@@ -22,4 +22,6 @@
     <string name="error_unknown">Unknown error</string>
     <string name="label_success">Success</string>
     <string name="document_type">application/json</string>
+    <string name="label_all">All</string>
+    <string name="label_partial">Partial</string>
 </resources>

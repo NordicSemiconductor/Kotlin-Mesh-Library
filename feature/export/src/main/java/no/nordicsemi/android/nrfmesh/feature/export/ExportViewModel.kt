@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExportViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
 
     var uiState by mutableStateOf(ExportScreenUiState())
@@ -43,12 +43,12 @@ class ExportViewModel @Inject internal constructor(
     }
 
     /**
-     * Invoked when export everything is toggled.
+     * Invoked when export option is toggled.
      *
-     * @param isToggled True if toggled or false otherwise.
+     * @param option Selected export option
      */
-    internal fun onExportEverythingToggled(isToggled: Boolean) {
-        uiState = uiState.copy(exportEverything = isToggled)
+    internal fun onExportOptionSelected(option: ExportOption) {
+        uiState = uiState.copy(exportOption = option)
     }
 
     /**
@@ -89,7 +89,7 @@ class ExportViewModel @Inject internal constructor(
      * @param isToggled True if toggled and false otherwise.
      */
     internal fun onExportDeviceKeysToggled(isToggled: Boolean) {
-        uiState = uiState.copy(/*exportState = ExportState.Unknown,*/ exportDeviceKeys = isToggled)
+        uiState = uiState.copy(exportDeviceKeys = isToggled)
     }
 
     /**
@@ -111,9 +111,9 @@ class ExportViewModel @Inject internal constructor(
             repository.network.collectLatest { network ->
                 uiState.run {
                     val data = repository.exportNetwork(
-                        configuration = when (exportEverything) {
-                            true -> NetworkConfiguration.Full
-                            false -> createPartialConfiguration(
+                        configuration = when (exportOption) {
+                            ExportOption.ALL -> NetworkConfiguration.Full
+                            ExportOption.PARTIAL -> createPartialConfiguration(
                                 network = network,
                                 networkKeyItemStates = networkKeyItemStates,
                                 provisionerItemStates = provisionerItemStates,
@@ -143,7 +143,7 @@ class ExportViewModel @Inject internal constructor(
         network: MeshNetwork,
         networkKeyItemStates: List<NetworkKeyItemState>,
         provisionerItemStates: List<ProvisionerItemState>,
-        exportDeviceKeys: Boolean
+        exportDeviceKeys: Boolean,
     ) = NetworkConfiguration.Partial(
         networkKeysConfig = networkKeyConfiguration(
             network = network,
@@ -169,7 +169,7 @@ class ExportViewModel @Inject internal constructor(
      */
     private fun provisionerConfiguration(
         network: MeshNetwork,
-        selectedProvisioners: List<ProvisionerItemState>
+        selectedProvisioners: List<ProvisionerItemState>,
     ): ProvisionersConfig = when (selectedProvisioners.size == network.provisioners.size) {
         true -> ProvisionersConfig.All
         false -> ProvisionersConfig.Some(selectedProvisioners.map { it.provisioner })
@@ -183,7 +183,7 @@ class ExportViewModel @Inject internal constructor(
      */
     private fun networkKeyConfiguration(
         network: MeshNetwork,
-        selectedNetworkKeys: List<NetworkKeyItemState>
+        selectedNetworkKeys: List<NetworkKeyItemState>,
     ): NetworkKeysConfig = when (selectedNetworkKeys.size == network.networkKeys.size) {
         true -> NetworkKeysConfig.All
         false -> NetworkKeysConfig.Some(selectedNetworkKeys.map { it.networkKey })
@@ -191,33 +191,26 @@ class ExportViewModel @Inject internal constructor(
 }
 
 sealed interface ExportState {
-    object Success : ExportState
+    data object Success : ExportState
     data class Error(val throwable: Throwable) : ExportState
-    object Unknown : ExportState
+    data object Unknown : ExportState
 }
 
 data class ExportScreenUiState internal constructor(
     val exportState: ExportState = ExportState.Unknown,
-    val exportEverything: Boolean = true,
+    val exportOption: ExportOption = ExportOption.ALL,
     val networkName: String = "Mesh Network",
     val provisionerItemStates: List<ProvisionerItemState> = listOf(),
     val networkKeyItemStates: List<NetworkKeyItemState> = listOf(),
-    val exportDeviceKeys: Boolean = true
-) {
-    val  enableExportButton: Boolean
-        get() = when (exportEverything) {
-            true -> true
-            false -> provisionerItemStates.any { it.isSelected } &&
-                    networkKeyItemStates.any { it.isSelected }
-        }
-}
+    val exportDeviceKeys: Boolean = true,
+)
 
 data class ProvisionerItemState internal constructor(
     val provisioner: Provisioner,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )
 
 data class NetworkKeyItemState internal constructor(
     val networkKey: NetworkKey,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )

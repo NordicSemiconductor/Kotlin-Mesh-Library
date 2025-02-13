@@ -27,11 +27,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,10 +53,11 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.navigateToExport
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
@@ -77,7 +81,9 @@ fun NetworkRoute(
         windowSizeClass = windowSizeClass
     )
     val currentDestination = appState.currentDestination
+    val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var menuExpanded by remember { mutableStateOf(false) }
+    var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -127,7 +133,7 @@ fun NetworkRoute(
                             importNetwork = importNetwork,
                             navigateToExport = {
                                 menuExpanded = false
-                                navController.navigateToExport()
+                                showExportBottomSheet = true
                             },
                             resetNetwork = {
                                 menuExpanded = false
@@ -167,7 +173,7 @@ fun NetworkRoute(
                                         contentDescription = null
                                     )
                                 },
-                                onClick = { navController.navigateToExport() },
+                                onClick = { },
                                 expanded = true
                             )
                         }
@@ -198,6 +204,37 @@ fun NetworkRoute(
                     },
                     onDismissClick = { showResetNetworkDialog = false },
                     onDismissRequest = { showResetNetworkDialog = false }
+                )
+            }
+            if (showExportBottomSheet) {
+                ModalBottomSheet(
+                    sheetState = exportSheetState,
+                    onDismissRequest = { showExportBottomSheet = false },
+                    content = {
+                        ExportScreenRoute(
+                            onDismissRequest = {
+                                scope.launch { exportSheetState.hide() }
+                                    .invokeOnCompletion {
+                                        if (!exportSheetState.isVisible) {
+                                            showExportBottomSheet = false
+                                        }
+                                    }
+                            },
+                            onExportCompleted = { message ->
+                                scope.launch {
+                                    exportSheetState.hide()
+                                    snackbarHostState.showSnackbar(
+                                        message = message,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }.invokeOnCompletion {
+                                    if (!exportSheetState.isVisible) {
+                                        showExportBottomSheet = false
+                                    }
+                                }
+                            }
+                        )
+                    }
                 )
             }
         }
