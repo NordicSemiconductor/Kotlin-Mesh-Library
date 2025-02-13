@@ -95,9 +95,8 @@ private fun BoundKeys(
             title = stringResource(R.string.label_bind_key),
             keys = addedKeys,
             onAppKeyClicked = {
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
+                scope.launch { bottomSheetState.hide() }
+                    .invokeOnCompletion {
                     if (!bottomSheetState.isVisible) {
                         showBottomSheet = false
                     }
