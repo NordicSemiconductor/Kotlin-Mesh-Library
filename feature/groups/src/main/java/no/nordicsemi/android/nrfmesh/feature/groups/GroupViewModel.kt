@@ -51,7 +51,7 @@ internal class GroupViewModel @Inject internal constructor(
                                 ?: listOf(model)
                         }
                     }
-                _uiState.value = _uiState.value.copy(
+                val state = _uiState.value.copy(
                     groupState = GroupState.Success(
                         network = network,
                         group = network.group(address = groupAddress)!!,
@@ -61,6 +61,7 @@ internal class GroupViewModel @Inject internal constructor(
                         )
                     )
                 )
+                _uiState.emit(value = state)
                 this@GroupViewModel.network = network
             }
         }

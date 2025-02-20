@@ -56,13 +56,13 @@ internal fun GroupListPane(
             title = stringResource(id = R.string.label_group)
         )
         NodeNameRow(
-            name = groupInfo.name,
+            name = group.name,
             onNameChanged = {
                 group.name = it
                 save()
             }
         )
-        AddressRow(address = groupInfo.address)
+        AddressRow(address = group.address)
         if (groupInfo.models.isNotEmpty()) {
             var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
