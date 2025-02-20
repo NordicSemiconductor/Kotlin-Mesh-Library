@@ -58,11 +58,13 @@ import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroup
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
+import no.nordicsemi.kotlin.mesh.core.model.Group
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +72,9 @@ fun NetworkRoute(
     windowSizeClass: WindowSizeClass,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
+    onAddGroupClicked: () -> Group,
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -144,8 +148,8 @@ fun NetworkRoute(
                 )
             },
             floatingActionButton = {
-                appState.currentMeshTopLevelDestination?.let {
-                    when (it) {
+                appState.currentMeshTopLevelDestination?.let { dst ->
+                    when (dst) {
                         MeshTopLevelDestination.NODES -> {
                             ExtendedFloatingActionButton(
                                 modifier = Modifier.defaultMinSize(minWidth = 150.dp),
@@ -173,7 +177,21 @@ fun NetworkRoute(
                                         contentDescription = null
                                     )
                                 },
-                                onClick = { },
+                                onClick = {
+                                    runCatching {
+                                        onAddGroupClicked().also {
+                                            navController.navigateToGroup(address = it.address)
+                                        }
+                                    }.onFailure {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = it.message
+                                                    ?: context.getString(R.string.label_failed_to_add_group),
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    }
+                                },
                                 expanded = true
                             )
                         }

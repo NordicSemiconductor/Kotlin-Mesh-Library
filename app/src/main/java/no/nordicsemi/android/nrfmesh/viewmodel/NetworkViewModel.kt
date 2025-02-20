@@ -9,13 +9,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
 import javax.inject.Inject
 
 @HiltViewModel
 class NetworkViewModel @Inject constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
 
@@ -67,7 +68,26 @@ class NetworkViewModel @Inject constructor(
         }
     }
 
-    internal fun resetNetwork(){
+    internal fun resetNetwork() {
         viewModelScope.launch { repository.resetNetwork() }
+    }
+
+    fun onAddGroupClicked(): Group {
+        val provisioner = meshNetwork.provisioners.firstOrNull()
+        require(provisioner != null) { throw IllegalArgumentException("No provisioner found") }
+        return meshNetwork.nextAvailableGroup(provisioner)?.let { address ->
+            Group(
+                _name = "Group ${meshNetwork.groups.size + 1}",
+                address = address
+            ).also {
+                meshNetwork.add(it)
+                save()
+            }
+        }
+            ?: throw IllegalArgumentException("No available group address found for ${provisioner.name}")
+    }
+
+    internal fun save() {
+        viewModelScope.launch { repository.save() }
     }
 }

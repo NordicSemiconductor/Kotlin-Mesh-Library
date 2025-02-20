@@ -56,7 +56,7 @@ internal fun GroupListPane(
             }
         )
         AddressRow(address = groupInfo.address)
-        if(groupInfo.models.isNotEmpty()) {
+        if (groupInfo.models.isNotEmpty()) {
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
             groupInfo.models.forEach { entry ->
                 ModelRow(
@@ -94,7 +94,7 @@ private fun AddressRow(address: PrimaryGroupAddress) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
-        subtitle = "0x${address.address.toHexString()}"
+        subtitle = "0x${address.address.toHexString(format = HexFormat.UpperCase)}"
     )
 }
 
