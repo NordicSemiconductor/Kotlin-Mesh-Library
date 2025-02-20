@@ -16,6 +16,6 @@
     <string name="label_minus">-</string>
     <string name="goup_controls">Group Controls</string>
     <string name="label_no_models_subscribed">No models subscribed to this Group</string>
-    <string name="label_no_models_subscribed_rationale">Bind and app key to a Generic On Off, Level model and subscribe to this group in order to control a Group</string>
+    <string name="label_no_models_subscribed_rationale">Bind an application key to a Generic On Off, Level, Scene, Scene Setup or a Light LC Server model and subscribe to this group in order to control a Group</string>
     <string name="label_no_models_selected">Select a Group of Models</string>
 </resources>

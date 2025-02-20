@@ -14,7 +14,13 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionMark
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,6 +42,7 @@ internal fun GroupListPane(
     groupInfo: GroupInfoListData,
     group: Group,
     onModelClicked: (ModelId) -> Unit,
+    isDetailPaneVisible: Boolean,
     save: () -> Unit,
 ) {
     Column(
@@ -57,21 +64,27 @@ internal fun GroupListPane(
         )
         AddressRow(address = groupInfo.address)
         if (groupInfo.models.isNotEmpty()) {
+            var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
             groupInfo.models.forEach { entry ->
                 ModelRow(
-                    group = group,
-                    modelId = entry.key,
                     models = entry.value,
-                    onModelClicked = onModelClicked
+                    onModelClicked = {
+                        selectedIndex = groupInfo.models.keys.indexOf(it)
+                        onModelClicked(it)
+                    },
+                    modelId = entry.key,
+                    isSelected = isDetailPaneVisible &&
+                            groupInfo.models.keys.indexOf(entry.key) == selectedIndex
                 )
             }
         } else {
-            MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.Info,
-                title = stringResource(id = R.string.label_no_models_subscribed),
-                rationale = stringResource(id = R.string.label_no_models_subscribed_rationale)
-            )
+            if (!isDetailPaneVisible)
+                MeshNoItemsAvailable(
+                    imageVector = Icons.Outlined.Info,
+                    title = stringResource(id = R.string.label_no_models_subscribed),
+                    rationale = stringResource(id = R.string.label_no_models_subscribed_rationale)
+                )
         }
     }
 }
@@ -100,10 +113,10 @@ private fun AddressRow(address: PrimaryGroupAddress) {
 
 @Composable
 private fun ModelRow(
-    group: Group,
     models: List<Model>,
     onModelClicked: (ModelId) -> Unit,
     modelId: ModelId,
+    isSelected: Boolean,
 ) {
     val name = models.first().name
     val icon = models.first().let {
@@ -120,6 +133,13 @@ private fun ModelRow(
 
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
         imageVector = icon,
         title = name,
         subtitle = "${models.size} models",

@@ -31,7 +31,7 @@ fun MeshNoItemsAvailable(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            modifier = Modifier.size(128.dp),
+            modifier = Modifier.size(96.dp),
             imageVector = imageVector,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.surfaceTint
