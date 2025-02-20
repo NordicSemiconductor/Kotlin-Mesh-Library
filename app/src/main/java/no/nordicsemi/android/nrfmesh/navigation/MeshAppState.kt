@@ -22,9 +22,16 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ActionMenuItem
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.FloatingActionButton
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningRoute
+import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.navigateToSettings
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.NODES
@@ -36,7 +43,7 @@ fun rememberMeshAppState(
     navController: NavHostController,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass
+    windowSizeClass: WindowSizeClass,
 ): MeshAppState = remember(navController) {
     MeshAppState(
         navController = navController,
@@ -51,7 +58,7 @@ class MeshAppState(
     navController: NavHostController,
     private val scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass
+    windowSizeClass: WindowSizeClass,
 ) : AppState(
     navController = navController,
     snackbarHostState = snackbarHostState,
@@ -78,7 +85,18 @@ class MeshAppState(
         get() = currentScreen?.onNavigationIconClick
 
     val title: String
-        get() = currentScreen?.title.orEmpty()
+        get() = when {
+            navController.currentDestination?.hasRoute<NodesRoute>() == true ->{
+              "Nodes"
+            }
+            navController.currentDestination?.hasRoute<NodeRoute>() == true -> "Node"
+            navController.currentDestination?.hasRoute<GroupsRoute>() == true -> "Groups"
+            navController.currentDestination?.hasRoute<GroupRoute>() == true -> "Group"
+            navController.currentDestination?.hasRoute<ProxyRoute>() == true -> "Proxy"
+            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> "Provisioning"
+            navController.currentDestination?.hasRoute<SettingsRoute>() == true -> "Settings"
+            else -> "Unknown"
+        }
 
     val actions: List<ActionMenuItem>
         get() = currentScreen?.actions.orEmpty()
@@ -88,20 +106,6 @@ class MeshAppState(
 
     val showBottomBar: Boolean
         get() = currentScreen?.showBottomBar ?: false
-
-    init {
-        currentScreen()
-    }
-
-    private fun currentScreen() {
-        navController.currentBackStackEntryFlow
-            .distinctUntilChanged()
-            .onEach { backStackEntry ->
-                val route = backStackEntry.destination.route
-                currentScreen = getScreen(route)
-            }
-            .launchIn(scope)
-    }
 
     /**
      * Navigates to the given destination.
@@ -150,14 +154,15 @@ class MeshAppState(
         }
     }
 
+    fun clearBackStack() {
+        navController.popBackStack(navController.graph.findStartDestination().id, false)
+        navController.navigateToSettings()
+    }
+
     /**
      * Navigates back.
      */
     internal fun onBackPressed() {
         navController.navigateUp()
     }
-}
-
-private fun getScreen(route: String?) = when (route) {
-    else -> null
 }

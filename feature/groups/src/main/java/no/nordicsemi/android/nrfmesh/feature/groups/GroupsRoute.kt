@@ -60,14 +60,9 @@ internal fun GroupsRoute(
             )
         }
     }
-    when (uiState.groups.isEmpty()) {
-        true -> MeshNoItemsAvailable(
-            imageVector = Icons.Outlined.GroupWork,
-            title = stringResource(R.string.no_groups_currently_added)
-        )
-
-        false -> {
-
-        }
-    }
+    if (uiState.groups.isEmpty()) MeshNoItemsAvailable(
+        imageVector = Icons.Outlined.GroupWork,
+        title = stringResource(R.string.label_no_groups_currently_added),
+        rationale = stringResource(R.string.label_no_groups_currently_added_rationale),
+    )
 }

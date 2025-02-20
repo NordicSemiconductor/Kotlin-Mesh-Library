@@ -36,33 +36,32 @@ internal class GroupViewModel @Inject internal constructor(
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
-                val models = mutableMapOf<ModelId, List<Model>>()
-                val group = network.group(address = groupAddress) ?: throw IllegalArgumentException(
-                    "Group with address $groupAddress not found"
-                )
-                network.nodes
-                    .flatMap { it.elements }
-                    .flatMap { it.models }
-                    .filter { it.isSubscribedTo(group = group) }
-                    .forEach { model ->
-                        if (isSupportedGroupItem(model)) {
-                            models[model.modelId] = (models[model.modelId]
-                                ?.plus(model))
-                                ?: listOf(model)
+                network.group(address = groupAddress)?.let { group ->
+                    val models = mutableMapOf<ModelId, List<Model>>()
+                    network.nodes
+                        .flatMap { it.elements }
+                        .flatMap { it.models }
+                        .filter { it.isSubscribedTo(group = group) }
+                        .forEach { model ->
+                            if (isSupportedGroupItem(model)) {
+                                models[model.modelId] = (models[model.modelId]
+                                    ?.plus(model))
+                                    ?: listOf(model)
+                            }
                         }
-                    }
-                val state = _uiState.value.copy(
-                    groupState = GroupState.Success(
-                        network = network,
-                        group = network.group(address = groupAddress)!!,
-                        groupInfoListData = GroupInfoListData(
+                    val state = _uiState.value.copy(
+                        groupState = GroupState.Success(
+                            network = network,
                             group = network.group(address = groupAddress)!!,
-                            models = models
+                            groupInfoListData = GroupInfoListData(
+                                group = network.group(address = groupAddress)!!,
+                                models = models
+                            )
                         )
                     )
-                )
-                _uiState.emit(value = state)
-                this@GroupViewModel.network = network
+                    _uiState.emit(value = state)
+                    this@GroupViewModel.network = network
+                }
             }
         }
     }

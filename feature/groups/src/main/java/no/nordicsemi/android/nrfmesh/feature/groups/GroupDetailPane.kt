@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
-import android.os.Parcelable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.Group
@@ -25,8 +24,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 
-@Parcelize
-data class ModelControls(val id: HexString) : Parcelable
+@Serializable
+data class ModelControls(val id: HexString)
 
 @Composable
 internal fun GroupDetailPane(

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="no_groups_currently_added">No groups currently added.</string>
+    <string name="label_no_groups_currently_added">No groups currently added.</string>
     <string name="label_group_name">Group Name</string>
     <string name="label_add_group">Add Group</string>
     <string name="label_group">Group</string>
@@ -18,4 +18,5 @@
     <string name="label_no_models_subscribed">No models subscribed to this Group</string>
     <string name="label_no_models_subscribed_rationale">Bind an application key to a Generic On Off, Level, Scene, Scene Setup or a Light LC Server model and subscribe to this group in order to control a Group</string>
     <string name="label_no_models_selected">Select a Group of Models</string>
+    <string name="label_no_groups_currently_added_rationale">Create a Group and subscribe some model(s) to control them simultaneously.</string>
 </resources>

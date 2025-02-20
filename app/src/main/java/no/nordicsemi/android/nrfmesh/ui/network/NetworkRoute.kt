@@ -7,13 +7,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
@@ -112,19 +108,10 @@ fun NetworkRoute(
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            contentWindowInsets = WindowInsets.displayCutout.union(WindowInsets.navigationBars),
+            // contentWindowInsets = WindowInsets.displayCutout.union(WindowInsets.navigationBars),
             topBar = {
-                println("Parent name: ${currentDestination?.hierarchy?.firstOrNull()?.route}")
                 NordicAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(
-                                id = appState.currentMeshTopLevelDestination
-                                    ?.titleTextId
-                                    ?: R.string.label_empty
-                            )
-                        )
-                    },
+                    title = { Text(text = appState.title) },
                     backButtonIcon = appState.navigationIcon,
                     showBackButton = appState.onNavigationIconClick != null,
                     onNavigationButtonClick = appState.onNavigationIconClick,
@@ -134,7 +121,10 @@ fun NetworkRoute(
                             menuExpanded = menuExpanded,
                             onExpandPressed = { menuExpanded = true },
                             onDismissRequest = { menuExpanded = false },
-                            importNetwork = importNetwork,
+                            importNetwork = { uri, contentResolver ->
+                                appState.clearBackStack()
+                                importNetwork(uri, contentResolver)
+                            },
                             navigateToExport = {
                                 menuExpanded = false
                                 showExportBottomSheet = true
@@ -216,9 +206,12 @@ fun NetworkRoute(
                     title = stringResource(R.string.label_reset_network),
                     text = stringResource(R.string.label_reset_network_rationale),
                     onConfirmClick = {
-                        showResetNetworkDialog = false
-                        resetNetwork()
-                        appState.navController.popBackStack()
+                        scope.launch {
+                            appState.clearBackStack()
+                        }.invokeOnCompletion {
+                            showResetNetworkDialog = false
+                            resetNetwork()
+                        }
                     },
                     onDismissClick = { showResetNetworkDialog = false },
                     onDismissRequest = { showResetNetworkDialog = false }

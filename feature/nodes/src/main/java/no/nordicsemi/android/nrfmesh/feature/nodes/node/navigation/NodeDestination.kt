@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation
 
-import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -8,17 +7,15 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListDetailsScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
-@Parcelize
 @Serializable
-data class NodeRoute(val uuid: String) : Parcelable
+data class NodeRoute(val uuid: String)
 
-fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null, ) = navigate(
+fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null) = navigate(
     route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions
 )
 
