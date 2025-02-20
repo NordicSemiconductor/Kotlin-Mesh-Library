@@ -79,12 +79,14 @@ internal fun GroupListPane(
                 )
             }
         } else {
-            if (!isDetailPaneVisible)
+            if (!isDetailPaneVisible){
+                SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.Info,
                     title = stringResource(id = R.string.label_no_models_subscribed),
                     rationale = stringResource(id = R.string.label_no_models_subscribed_rationale)
                 )
+            }
         }
     }
 }
