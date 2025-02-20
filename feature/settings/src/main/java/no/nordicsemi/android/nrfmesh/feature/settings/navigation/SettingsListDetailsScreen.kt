@@ -12,19 +12,19 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyRoute
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerRoute
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersRoute
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneRoute
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerContent
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersContent
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContent
 import no.nordicsemi.android.nrfmesh.feature.settings.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.settings.MeshNetworkState
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsList
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListDetails
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListDetailsExtra
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListPane
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDetailsPane
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsExtraPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreenUiState
 
 
@@ -44,7 +44,7 @@ internal fun SettingsListDetailsScreen(
             defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
             listPane = {
                 AnimatedPane {
-                    SettingsList(
+                    SettingsListPane(
                         settingsListData = uiState.networkState.settingsListData,
                         selectedSetting = uiState.selectedSetting,
                         highlightSelectedItem = navigator.isListPaneVisible(),
@@ -54,7 +54,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ProvisionersRoute
+                                    contentKey = ProvisionersContent
                                 )
                             }
                         },
@@ -63,7 +63,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = NetworkKeysRoute
+                                    contentKey = NetworkKeysContent
                                 )
                             }
                         },
@@ -72,7 +72,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ApplicationKeysRoute
+                                    contentKey = ApplicationKeysContent
                                 )
                             }
                         },
@@ -81,7 +81,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ScenesRoute
+                                    contentKey = ScenesContent
                                 )
                             }
                         },
@@ -91,7 +91,7 @@ internal fun SettingsListDetailsScreen(
             detailPane = {
                 AnimatedPane {
                     val content = navigator.currentDestination?.contentKey
-                    SettingsListDetails(
+                    SettingsDetailsPane(
                         content = content,
                         highlightSelectedItem = navigator.isDetailPaneVisible() &&
                                 navigator.isExtraPaneVisible(),
@@ -99,7 +99,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = ProvisionerRoute(uuid = it)
+                                    contentKey = ProvisionerContent(uuid = it)
                                 )
                             }
                         },
@@ -107,7 +107,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = NetworkKeyRoute(keyIndex = it)
+                                    contentKey = NetworkKeyContent(keyIndex = it)
                                 )
                             }
                         },
@@ -115,7 +115,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = ApplicationKeyRoute(keyIndex = it)
+                                    contentKey = ApplicationKeyContent(keyIndex = it)
                                 )
                             }
                         },
@@ -123,7 +123,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = SceneRoute(number = it)
+                                    contentKey = SceneContent(number = it)
                                 )
                             }
                         },
@@ -140,7 +140,7 @@ internal fun SettingsListDetailsScreen(
             extraPane = {
                 AnimatedPane {
                     val content = navigator.currentDestination?.contentKey
-                    SettingsListDetailsExtra(
+                    SettingsExtraPane(
                         network = uiState.networkState.network,
                         content = content,
                         save = save

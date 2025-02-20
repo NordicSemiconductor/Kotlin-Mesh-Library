@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRouteKey
@@ -33,7 +33,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Composable
-internal fun NodeInfoListDetails(
+internal fun NodeDetailsPane(
     content: Any?,
     node: Node,
     messageState: MessageState,
@@ -53,7 +53,7 @@ internal fun NodeInfoListDetails(
             save = save
         )
 
-        is ConfigNetKeysRoute, NetworkKeysRoute -> ConfigNetKeysScreenRoute(
+        is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysScreenRoute(
             networkKeys = node.networkKeys,
             messageState = messageState,
             navigateToNetworkKeys = navigateToNetworkKeys,
@@ -61,7 +61,7 @@ internal fun NodeInfoListDetails(
             send = send
         )
 
-        is ConfigAppKeysRoute, ApplicationKeysRoute -> ConfigAppKeysScreenRoute(
+        is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
             elements = node.elements,
             networkKeys = node.networkKeys,
             applicationKeys = node.applicationKeys,

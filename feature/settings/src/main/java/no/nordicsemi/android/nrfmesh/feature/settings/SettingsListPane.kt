@@ -29,7 +29,7 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable
-internal fun SettingsList(
+internal fun SettingsListPane(
     settingsListData: SettingsListData,
     selectedSetting: ClickableSetting?,
     highlightSelectedItem: Boolean,

@@ -2,26 +2,32 @@
 
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Composable
@@ -92,9 +98,22 @@ private fun Nodes(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         nodes.forEach { node ->
-            MeshNodeItem(
-                nodeName = node.name,
-                addressHex = "0x${node.primaryUnicastAddress.address.toHexString()}",
+            MeshItem(
+                icon = {
+                    Image(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = CircleShape
+                            )
+                            .padding(2.dp),
+                        painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
+                        contentDescription = null
+                    )
+                },
+                title = node.name,
+                subtitle = "0x${node.primaryUnicastAddress.address.toHexString()}",
                 onClick = { navigateToNode(node) },
             )
         }

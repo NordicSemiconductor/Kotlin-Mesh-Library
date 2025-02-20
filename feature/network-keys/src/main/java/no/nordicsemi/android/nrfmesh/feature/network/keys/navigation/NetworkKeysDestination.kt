@@ -11,7 +11,7 @@ import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 @Parcelize
-data object NetworkKeysRoute : Parcelable
+data object NetworkKeysContent : Parcelable
 
 @Composable
 fun NetworkKeysScreenRoute(

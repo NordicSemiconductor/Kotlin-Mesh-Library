@@ -29,10 +29,8 @@ fun NavGraphBuilder.groupsGraph(appState: AppState) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         GroupsRoute(
             uiState = uiState,
-            navigateToGroup = {},
-            onSwiped = {},
-            onUndoClicked = {},
-            remove = {}
+            navigateToGroup = { appState.navController.navigateToGroup(address = it) }
         )
     }
+    groupGraph()
 }

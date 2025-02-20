@@ -14,7 +14,7 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersViewModel
 import java.util.UUID
 
 @Parcelize
-data object ProvisionersRoute : Parcelable
+data object ProvisionersContent : Parcelable
 
 object ProvisionersDestination : MeshNavigationDestination {
     override val route: String = "provisioners_route"

@@ -18,24 +18,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyRoute
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerRoute
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerContent
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersContent
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneRoute
-import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesRoute
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreenRoute
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import java.util.UUID
 
 @Composable
-internal fun SettingsListDetails(
+internal fun SettingsDetailsPane(
     content: Any?,
     highlightSelectedItem: Boolean,
     navigateToProvisioner: (UUID) -> Unit,
@@ -45,27 +45,27 @@ internal fun SettingsListDetails(
     navigateUp: () -> Unit,
 ) {
     when (content) {
-        is ProvisionersRoute, is ProvisionerRoute -> ProvisionersScreenRoute(
+        is ProvisionersContent, is ProvisionerContent -> ProvisionersScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
             navigateToProvisioner = navigateToProvisioner,
             navigateUp = navigateUp
         )
 
-        is NetworkKeysRoute, is NetworkKeyRoute -> NetworkKeysScreenRoute(
+        is NetworkKeysContent, is NetworkKeyContent -> NetworkKeysScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
             onNetworkKeyClicked = navigateToNetworkKey,
             navigateToKey = navigateToNetworkKey,
             navigateUp = navigateUp
         )
 
-        is ApplicationKeysRoute, is ApplicationKeyRoute -> ApplicationKeysScreenRoute(
+        is ApplicationKeysContent, is ApplicationKeyContent -> ApplicationKeysScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
             onApplicationKeyClicked = navigateToApplicationKey,
             navigateToKey = navigateToApplicationKey,
             navigateUp = navigateUp
         )
 
-        is ScenesRoute, is SceneRoute -> ScenesScreenRoute(
+        is ScenesContent, is SceneContent -> ScenesScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
             navigateToScene = navigateToScene,
             navigateUp = navigateUp

@@ -8,7 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Parcelize
-data class NetworkKeyRoute(val keyIndex: KeyIndex) : Parcelable
+data class NetworkKeyContent(val keyIndex: KeyIndex) : Parcelable
 
 @Composable
 fun NetworkKeyScreenRoute(

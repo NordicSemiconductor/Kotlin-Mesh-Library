@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.Group
@@ -15,14 +14,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class GroupsViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GroupsScreenUiState(listOf()))
-    val uiState: StateFlow<GroupsScreenUiState> = _uiState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        GroupsScreenUiState()
-    )
+    val uiState: StateFlow<GroupsScreenUiState> = _uiState.asStateFlow()
 
     private lateinit var network: MeshNetwork
 
@@ -36,8 +31,15 @@ internal class GroupsViewModel @Inject internal constructor(
             }
         }
     }
+
+    @Suppress("unused")
+    internal fun save() {
+        viewModelScope.launch {
+            repository.save()
+        }
+    }
 }
 
-data class GroupsScreenUiState internal constructor(
-    val groups: List<Group> = listOf()
+internal data class GroupsScreenUiState internal constructor(
+    val groups: List<Group> = listOf(),
 )

@@ -157,7 +157,8 @@ data class NetworkKey internal constructor(
     val isPrimary: Boolean by lazy { index == 0.toUShort() }
 
     @Transient
-    internal var network: MeshNetwork? = null
+    var network: MeshNetwork? = null
+        internal set
 
     val isInUse: Boolean
         get() = network?.run {

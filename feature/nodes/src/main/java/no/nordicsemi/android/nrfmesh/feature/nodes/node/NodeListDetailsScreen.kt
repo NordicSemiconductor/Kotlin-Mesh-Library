@@ -10,13 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -44,7 +43,7 @@ internal fun NodeListDetailsScreen(
                 defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
                 listPane = {
                     AnimatedPane {
-                        NodeInfoList(
+                        NodeListPane(
                             messageState = uiState.messageState,
                             nodeData = uiState.nodeState.nodeInfoListData,
                             node = uiState.nodeState.node,
@@ -89,7 +88,7 @@ internal fun NodeListDetailsScreen(
                 detailPane = {
                     AnimatedPane {
                         val content = navigator.currentDestination?.contentKey
-                        NodeInfoListDetails(
+                        NodeDetailsPane(
                             content = content,
                             node = uiState.nodeState.node,
                             highlightSelectedItem = navigator.isDetailPaneVisible() &&
@@ -98,7 +97,7 @@ internal fun NodeListDetailsScreen(
                                 scope.launch {
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Extra,
-                                        contentKey = NetworkKeysRoute
+                                        contentKey = NetworkKeysContent
                                     )
                                 }
                             },
@@ -106,7 +105,7 @@ internal fun NodeListDetailsScreen(
                                 scope.launch {
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Extra,
-                                        contentKey = ApplicationKeysRoute
+                                        contentKey = ApplicationKeysContent
                                     )
                                 }
                             },
@@ -132,7 +131,7 @@ internal fun NodeListDetailsScreen(
                 extraPane = {
                     AnimatedPane {
                         val content = navigator.currentDestination?.contentKey
-                        NodeInfoListDetailsExtra(
+                        NodeExtraPane(
                             node = uiState.nodeState.node,
                             messageState = uiState.messageState,
                             nodeIdentityStatus = uiState.nodeIdentityStates,

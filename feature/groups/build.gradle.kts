@@ -10,9 +10,10 @@ android {
 }
 
 dependencies {
-
-    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.nordic.theme)
+    implementation(libs.nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -27,6 +28,17 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:common"))
+    implementation(project(":feature:application-keys"))
     implementation(project(":mesh:core"))
+
+    // Material3 adaptive navigation suite
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha08")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha08")
+
+    // Adaptive layouts
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-beta02")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-beta02")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-beta02")
 
 }

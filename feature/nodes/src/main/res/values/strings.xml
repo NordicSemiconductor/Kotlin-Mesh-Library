@@ -50,4 +50,5 @@
     <string name="label_address">Address</string>
     <string name="label_unknown_vendor">Unknown Vendor</string>
     <string name="label_element">Element</string>
+    <string name="label_add_node">Add Node</string>
 </resources>

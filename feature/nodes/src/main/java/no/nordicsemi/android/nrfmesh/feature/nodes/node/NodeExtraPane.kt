@@ -3,10 +3,10 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 import androidx.compose.runtime.Composable
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -17,7 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 
 
 @Composable
-internal fun NodeInfoListDetailsExtra(
+internal fun NodeExtraPane(
     content: Any?,
     node: Node,
     messageState: MessageState,
@@ -38,7 +38,7 @@ internal fun NodeInfoListDetailsExtra(
             resetMessageState = resetMessageState,
         )
 
-        is NetworkKeysRoute -> NetworkKeysScreenRoute(
+        is NetworkKeysContent -> NetworkKeysScreenRoute(
             highlightSelectedItem = false,
             onNetworkKeyClicked = {
                 send(
@@ -53,7 +53,7 @@ internal fun NodeInfoListDetailsExtra(
             navigateUp = {}
         )
 
-        is ApplicationKeysRoute -> ApplicationKeysScreenRoute(
+        is ApplicationKeysContent -> ApplicationKeysScreenRoute(
             highlightSelectedItem = false,
             onApplicationKeyClicked = {
                 send(

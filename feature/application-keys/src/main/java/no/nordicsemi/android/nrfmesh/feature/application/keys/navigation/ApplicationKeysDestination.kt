@@ -13,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 @Serializable
 @Parcelize
-data object ApplicationKeysRoute : Parcelable
+data object ApplicationKeysContent : Parcelable
 
 @Composable
 fun ApplicationKeysScreenRoute(

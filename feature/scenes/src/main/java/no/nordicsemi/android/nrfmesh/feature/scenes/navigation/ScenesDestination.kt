@@ -6,18 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.parcelize.Parcelize
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesRoute
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Parcelize
-data object ScenesRoute : Parcelable
-
-object ScenesDestination : MeshNavigationDestination {
-    override val route: String = "scenes_route"
-    override val destination: String = "scenes_destination"
-}
+data object ScenesContent : Parcelable
 
 @Composable
 fun ScenesScreenRoute(

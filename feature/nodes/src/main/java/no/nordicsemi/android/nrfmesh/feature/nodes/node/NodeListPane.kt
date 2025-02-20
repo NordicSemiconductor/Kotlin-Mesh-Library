@@ -59,7 +59,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun NodeInfoList(
+internal fun NodeListPane(
     messageState: MessageState,
     nodeData: NodeInfoListData,
     node: Node,

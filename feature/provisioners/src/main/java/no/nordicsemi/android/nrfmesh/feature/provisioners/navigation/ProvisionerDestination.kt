@@ -8,7 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.util.UUID
 
 @Parcelize
-data class ProvisionerRoute(val uuid: UUID) : Parcelable
+data class ProvisionerContent(val uuid: UUID) : Parcelable
 
 @Composable
 fun ProvisionerScreenRoute(
