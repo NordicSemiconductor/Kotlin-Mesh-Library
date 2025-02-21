@@ -29,4 +29,6 @@ abstract class AppState(
 
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry
+
+    abstract fun onBackPressed()
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
@@ -76,7 +77,6 @@ fun NetworkRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberMeshAppState(
         navController = navController,
-        scope = scope,
         snackbarHostState = snackbarHostState,
         windowSizeClass = windowSizeClass
     )
@@ -85,6 +85,7 @@ fun NetworkRoute(
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             appState.meshTopLevelDestinations.forEach { destination ->
@@ -112,9 +113,9 @@ fun NetworkRoute(
             topBar = {
                 NordicAppBar(
                     title = { Text(text = appState.title) },
-                    backButtonIcon = appState.navigationIcon,
-                    showBackButton = appState.onNavigationIconClick != null,
-                    onNavigationButtonClick = appState.onNavigationIconClick,
+                    backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    showBackButton = appState.showBackButton,
+                    onNavigationButtonClick = appState::onBackPressed,
                     actions = {
                         DisplayDropdown(
                             appState = appState,
