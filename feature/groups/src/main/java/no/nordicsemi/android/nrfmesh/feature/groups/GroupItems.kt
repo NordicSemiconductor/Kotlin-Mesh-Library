@@ -73,19 +73,23 @@ internal fun GroupItems(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            network.applicationKeys.forEach outer@{ key ->
+            network.applicationKeys.forEach { key ->
                 models[modelId]?.firstOrNull {
                     it.isBoundTo(key = key)
                 }?.let { model ->
                     when {
-                        model.isGenericOnOffServer() -> GenericOnOffItem(key = key)
-                        model.isGenericLevelServer() -> GenericLevelItem(key = key)
-                        model.isSceneServer() -> SceneServerGroupItem(key = key)
-                        model.isSceneSetupServer() -> SceneSetupServerGroupItem(key = key)
+                        model.isGenericOnOffServer() -> GenericOnOffItem(key = key, send = send)
+                        model.isGenericLevelServer() -> GenericLevelItem(key = key, send = send)
+                        model.isSceneServer() -> SceneServerGroupItem(key = key, send = send)
+                        model.isSceneSetupServer() -> SceneSetupServerGroupItem(
+                            key = key,
+                            send = send
+                        )
+
                         model.isLightLCServer() -> {
-                            LightLCModeGroupItem(key = key)
-                            LightLCOccupancyModeGroupItem(key = key)
-                            LightLCLightOnOffGroupItem(key = key)
+                            LightLCModeGroupItem(key = key, send = send)
+                            LightLCOccupancyModeGroupItem(key = key, send = send)
+                            LightLCLightOnOffGroupItem(key = key, send = send)
                         }
                     }
                 }
@@ -95,7 +99,10 @@ internal fun GroupItems(
 }
 
 @Composable
-private fun GenericOnOffItem(key: ApplicationKey) {
+private fun GenericOnOffItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -136,7 +143,10 @@ private fun GenericOnOffItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun GenericLevelItem(key: ApplicationKey) {
+private fun GenericLevelItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -177,7 +187,10 @@ private fun GenericLevelItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun SceneServerGroupItem(key: ApplicationKey) {
+private fun SceneServerGroupItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -209,7 +222,10 @@ private fun SceneServerGroupItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun SceneSetupServerGroupItem(key: ApplicationKey) {
+private fun SceneSetupServerGroupItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -241,7 +257,10 @@ private fun SceneSetupServerGroupItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun LightLCModeGroupItem(key: ApplicationKey) {
+private fun LightLCModeGroupItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -282,7 +301,10 @@ private fun LightLCModeGroupItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun LightLCOccupancyModeGroupItem(key: ApplicationKey) {
+private fun LightLCOccupancyModeGroupItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {
@@ -323,7 +345,10 @@ private fun LightLCOccupancyModeGroupItem(key: ApplicationKey) {
 }
 
 @Composable
-private fun LightLCLightOnOffGroupItem(key: ApplicationKey) {
+private fun LightLCLightOnOffGroupItem(
+    key: ApplicationKey,
+    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+) {
     OutlinedCard(
         modifier = Modifier.width(width = 200.dp),
         content = {

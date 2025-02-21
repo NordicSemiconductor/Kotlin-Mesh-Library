@@ -17,10 +17,6 @@ import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -41,8 +37,9 @@ import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 internal fun GroupListPane(
     groupInfo: GroupInfoListData,
     group: Group,
-    onModelClicked: (ModelId) -> Unit,
+    onModelClicked: (ModelId, Int) -> Unit,
     isDetailPaneVisible: Boolean,
+    selectedModelIndex: Int,
     save: () -> Unit,
 ) {
     Column(
@@ -64,22 +61,19 @@ internal fun GroupListPane(
         )
         AddressRow(address = group.address)
         if (groupInfo.models.isNotEmpty()) {
-            var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
             groupInfo.models.forEach { entry ->
                 ModelRow(
                     models = entry.value,
                     onModelClicked = {
-                        selectedIndex = groupInfo.models.keys.indexOf(it)
-                        onModelClicked(it)
+                        onModelClicked(it, groupInfo.models.keys.indexOf(it))
                     },
-                    modelId = entry.key,
                     isSelected = isDetailPaneVisible &&
-                            groupInfo.models.keys.indexOf(entry.key) == selectedIndex
+                            groupInfo.models.keys.indexOf(entry.key) == selectedModelIndex
                 )
             }
         } else {
-            if (!isDetailPaneVisible){
+            if (!isDetailPaneVisible) {
                 SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
                 MeshNoItemsAvailable(
                     imageVector = Icons.Outlined.Info,
@@ -117,22 +111,8 @@ private fun AddressRow(address: PrimaryGroupAddress) {
 private fun ModelRow(
     models: List<Model>,
     onModelClicked: (ModelId) -> Unit,
-    modelId: ModelId,
     isSelected: Boolean,
 ) {
-    val name = models.first().name
-    val icon = models.first().let {
-        if (it.isGenericOnOffServer()) {
-            Icons.Outlined.Lightbulb
-        } else if (it.isGenericLevelServer()) {
-            Icons.Outlined.LightMode
-        } else if (it.isSceneServer() || it.isSceneSetupServer()) {
-            Icons.Outlined.Palette
-        } else {
-            Icons.Outlined.QuestionMark
-        }
-    }
-
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         colors = when (isSelected) {
@@ -142,9 +122,20 @@ private fun ModelRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        imageVector = icon,
-        title = name,
+        imageVector = models.first().toIcon(),
+        title = models.first().name,
         subtitle = "${models.size} models",
-        onClick = { onModelClicked(modelId) }
+        onClick = { onModelClicked(models.first().modelId) }
     )
+}
+
+@Composable
+private fun Model.toIcon() = if (isGenericOnOffServer()) {
+    Icons.Outlined.Lightbulb
+} else if (isGenericLevelServer()) {
+    Icons.Outlined.LightMode
+} else if (isSceneServer() || isSceneSetupServer()) {
+    Icons.Outlined.Palette
+} else {
+    Icons.Outlined.QuestionMark
 }

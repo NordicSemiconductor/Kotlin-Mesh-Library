@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
+import android.os.Parcelable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,17 +16,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.serialization.Serializable
+import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.kotlin.data.HexString
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 
-@Serializable
-data class ModelControls(val id: HexString)
+@Parcelize
+data class ModelControls(val id: HexString) : Parcelable
 
 @Composable
 internal fun GroupDetailPane(
@@ -33,6 +35,7 @@ internal fun GroupDetailPane(
     network: MeshNetwork,
     group: Group,
     models: Map<ModelId, List<Model>>,
+    send: (UnacknowledgedMeshMessage) -> Unit
 ) {
     when (content) {
         is ModelControls -> GroupItems(
@@ -40,7 +43,7 @@ internal fun GroupDetailPane(
             network = network,
             group = group,
             models = models,
-            send = {},
+            send = send,
         )
 
         else -> GroupInfoPlaceHolder(hasModels = models.isNotEmpty())

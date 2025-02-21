@@ -29,6 +29,8 @@ fun NavGraphBuilder.groupGraph() {
         GroupListDetailScreen(
             messageState = uiState.messageState,
             uiState = uiState.groupState,
+            onModelClicked = viewModel::onModelClicked,
+            send = viewModel::send,
             save = viewModel::save
         )
     }

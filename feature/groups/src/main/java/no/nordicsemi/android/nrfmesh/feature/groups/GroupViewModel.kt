@@ -14,6 +14,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -87,6 +88,20 @@ internal class GroupViewModel @Inject internal constructor(
             }
         }
     }
+
+    fun onModelClicked(index: Int) {
+        val state = _uiState.value.groupState as? GroupState.Success ?: return
+        _uiState.value = _uiState.value.copy(
+            groupState = state.copy(selectedModelIndex = index)
+        )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun send(message: UnacknowledgedMeshMessage) {
+        viewModelScope.launch {
+            // repository.send(message)
+        }
+    }
 }
 
 internal data class GroupScreenUiState internal constructor(
@@ -100,6 +115,7 @@ internal sealed interface GroupState {
         val network: MeshNetwork,
         val group: Group,
         val groupInfoListData: GroupInfoListData,
+        val selectedModelIndex: Int = -1,
     ) : GroupState
 
     @Suppress("unused")
