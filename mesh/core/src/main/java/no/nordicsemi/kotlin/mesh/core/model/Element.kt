@@ -38,9 +38,7 @@ data class Element(
     var name: String?
         get() = _name
         set(value) {
-            name?.let {
-                require(it.isNotBlank()) { "Element name cannot be blank!" }
-            }
+             name?.let { require(it.isNotBlank()) { "Element name cannot be blank!" } }
             MeshNetwork.onChange(oldValue = _name, newValue = value) {
                 parentNode?.network?.updateTimestamp()
             }

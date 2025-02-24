@@ -90,7 +90,7 @@ data class Page0(
     val versionIdentifier: UShort,
     val minimumNumberOfReplayProtectionList: UShort,
     val features: Features,
-    val elements: List<Element>
+    val elements: List<Element>,
 ) : CompositionDataPage {
 
     override val parameters: ByteArray = byteArrayOf(page.toByte()) +
@@ -187,10 +187,9 @@ data class Page0(
                 val index = 0
 
                 // Read models.
-                val element = Element(location = location).apply {
-                    this.index = index
-                    name = "Element ${elementNo++}"
-                }
+                val element = Element(_name = "Element ${elementNo++}", location = location)
+                    .apply { this.index = index }
+
                 for (i in offset until offset + sigModelsByteCount step 2) {
                     val sigModelId = compositionData.getUShort(
                         offset = i,
