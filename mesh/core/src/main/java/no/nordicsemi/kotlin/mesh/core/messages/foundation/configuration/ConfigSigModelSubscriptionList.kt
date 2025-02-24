@@ -1,12 +1,9 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
-import no.nordicsemi.kotlin.data.getShort
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage

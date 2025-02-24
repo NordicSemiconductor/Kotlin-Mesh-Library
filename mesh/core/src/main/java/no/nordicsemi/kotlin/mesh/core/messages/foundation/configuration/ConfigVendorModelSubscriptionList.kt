@@ -1,18 +1,14 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
-import no.nordicsemi.kotlin.data.getShort
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigVendorModelMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
@@ -21,6 +17,7 @@ import java.nio.ByteOrder
  * This message is the status message to the [ConfigVendorModelSubscriptionGet] message. This lists
  * the subscription list of a vendor model.
  */
+@Suppress("unused")
 class ConfigVendorModelSubscriptionList(
     override val status: ConfigMessageStatus,
     override val elementAddress: UnicastAddress,
