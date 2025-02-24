@@ -17,14 +17,14 @@ import java.nio.ByteOrder
 /**
  * This message is used to add a model subscription to a group.
  *
- * @property address           Group address the model should subscribe to.
  * @property elementAddress    Element address of the model.
+ * @property address           Group address the model should subscribe to.
  * @property modelIdentifier   Model identifier.
  * @property companyIdentifier Company identifier, if the model is a vendor model.
  */
 class ConfigModelSubscriptionAdd(
-    override val address: Address,
     override val elementAddress: UnicastAddress,
+    override val address: Address,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigAddressMessage, ConfigAnyModelMessage {
@@ -68,10 +68,10 @@ class ConfigModelSubscriptionAdd(
             it.size == 6 || it.size == 8
         }?.let { params ->
             ConfigModelSubscriptionAdd(
-                address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN),
                 elementAddress = UnicastAddress(
-                    address = params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN)
+                    address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ),
+                address = params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN),
                 companyIdentifier = if (params.size == 8) params.getUShort(
                     offset = 4,
                     order = ByteOrder.LITTLE_ENDIAN

@@ -66,11 +66,14 @@ class ConfigModelSubscriptionDeleteAll(
                 elementAddress = UnicastAddress(
                     address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ),
-                modelIdentifier = params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN),
-                companyIdentifier = if (params.size == 4) params.getUShort(
-                    offset = 6,
+                companyIdentifier = if (params.size == 6) params.getUShort(
+                    offset = 2,
                     order = ByteOrder.LITTLE_ENDIAN
-                ) else null
+                ) else null,
+                modelIdentifier = if (params.size == 6) params.getUShort(
+                    offset = 4,
+                    order = ByteOrder.LITTLE_ENDIAN
+                ) else params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN)
             )
         }
     }

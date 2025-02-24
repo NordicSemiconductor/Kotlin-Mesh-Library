@@ -52,28 +52,21 @@ class ConfigModelSubscriptionStatus(
             parameters.size == 7 || parameters.size == 9
         }?.let { params ->
             ConfigMessageStatus.from(value = params[0].toUByte())?.let { status ->
-                val address = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
-                val elementAddress = UnicastAddress(
-                    address = params.getUShort(
-                        offset = 3,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    )
-                )
-                val modelIdentifier: UShort
-                var companyIdentifier: UShort? = null
-                if (params.size == 9) {
-                    companyIdentifier =
-                        params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN)
-                    modelIdentifier = params.getUShort(offset = 7, order = ByteOrder.LITTLE_ENDIAN)
-                } else {
-                    modelIdentifier = params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN)
-                }
                 ConfigModelSubscriptionStatus(
                     status = status,
-                    address = address,
-                    elementAddress = elementAddress,
-                    modelIdentifier = modelIdentifier,
-                    companyIdentifier = companyIdentifier,
+                    elementAddress = UnicastAddress(
+                        address = params.getUShort(
+                            offset = 1,
+                            order = ByteOrder.LITTLE_ENDIAN
+                        )
+                    ),
+                    address = params.getUShort(offset = 3, order = ByteOrder.LITTLE_ENDIAN),
+                    companyIdentifier = if (params.size == 9) {
+                        params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN)
+                    } else null,
+                    modelIdentifier = if (params.size == 9) {
+                        params.getUShort(offset = 7, order = ByteOrder.LITTLE_ENDIAN)
+                    } else params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN),
                 )
             }
         }
