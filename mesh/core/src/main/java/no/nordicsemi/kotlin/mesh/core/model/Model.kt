@@ -384,6 +384,7 @@ data class Model internal constructor(
                 0x0001.toUInt() -> "Configuration Client"
                 0x0002.toUInt() -> "Health Server"
                 0x0003.toUInt() -> "Health Client"
+                0x0004.toUInt() -> "Remote Provisioning Server"
                 // Generic
                 0x1000.toUInt() -> "Generic OnOff Server"
                 0x1001.toUInt() -> "Generic OnOff Client"
