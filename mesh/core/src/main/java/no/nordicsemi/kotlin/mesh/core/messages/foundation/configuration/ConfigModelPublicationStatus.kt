@@ -33,7 +33,7 @@ data class ConfigModelPublicationStatus(
     override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
-    val publish: Publish
+    val publish: Publish,
 ) : ConfigResponse, ConfigStatusMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
 
@@ -131,32 +131,23 @@ data class ConfigModelPublicationStatus(
                     period = period,
                     retransmit = retransmit
                 )
+
+                val modelIdentifier: UShort
+                var companyIdentifier: UShort? = null
+
                 if (params.size == 14) {
-                    ConfigModelPublicationStatus(
-                        publish = publish,
-                        companyIdentifier = params.getUShort(
-                            offset = 9,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        modelIdentifier = params.getUShort(
-                            offset = 11,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        elementAddress = UnicastAddress(elementAddress),
-                        status = it
-                    )
+                    companyIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
+                    modelIdentifier = params.getUShort(offset = 11, order = ByteOrder.LITTLE_ENDIAN)
                 } else {
-                    ConfigModelPublicationStatus(
-                        publish = publish,
-                        companyIdentifier = null,
-                        modelIdentifier = params.getUShort(
-                            offset = 9,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        elementAddress = UnicastAddress(elementAddress),
-                        status = it
-                    )
+                    modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
                 }
+                ConfigModelPublicationStatus(
+                    publish = publish,
+                    companyIdentifier = companyIdentifier,
+                    modelIdentifier = modelIdentifier,
+                    elementAddress = UnicastAddress(elementAddress),
+                    status = it
+                )
             }
         }
     }
