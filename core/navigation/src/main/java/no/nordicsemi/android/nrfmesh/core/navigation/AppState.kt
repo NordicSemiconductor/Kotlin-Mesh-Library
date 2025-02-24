@@ -22,7 +22,7 @@ import androidx.navigation.NavHostController
 abstract class AppState(
     val navController: NavHostController,
     val snackbarHostState: SnackbarHostState,
-    val windowSizeClass: WindowSizeClass
+    val windowSizeClass: WindowSizeClass,
 ) {
     var currentScreen by mutableStateOf<Screen?>(null)
         protected set

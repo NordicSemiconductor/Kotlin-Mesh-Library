@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -38,9 +37,6 @@ internal fun NodeListDetailsScreen(
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
 
-    BackHandler(enabled = navigator.canNavigateBack()) {
-        scope.launch { navigator.navigateBack() }
-    }
     when (uiState.nodeState) {
         is NodeState.Success -> {
             NavigableListDetailPaneScaffold(

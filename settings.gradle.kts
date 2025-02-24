@@ -7,7 +7,7 @@ pluginManagement {
     }
 
     plugins {
-        id("org.jetbrains.dokka") version "1.9.20"
+        id("org.jetbrains.dokka") version "2.0.0"
         id("org.jetbrains.kotlin.jvm") version "2.1.0"
         id("org.jetbrains.kotlin.android") version "2.1.0"
         id("com.android.library") version "8.5.2"
@@ -62,7 +62,6 @@ include(":mesh:lighting")
 include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
-include(":mesh:foundation")
 
 // if (file("../Android-Common-Libraries").exists()) {
 //     includeBuild("../Android-Common-Libraries")
