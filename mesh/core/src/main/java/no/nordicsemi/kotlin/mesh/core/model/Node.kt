@@ -89,6 +89,7 @@ data class Node internal constructor(
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
+    @SerialName(value = "name")
     private var _name:String = "nRF Mesh Node",
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray?,
