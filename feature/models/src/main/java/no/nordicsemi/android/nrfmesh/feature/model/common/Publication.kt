@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.model.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,11 +13,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
@@ -45,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -91,7 +95,7 @@ import kotlin.time.DurationUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ModelPublication(
+internal fun Publication(
     messageState: MessageState,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
@@ -147,80 +151,67 @@ internal fun ModelPublication(
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
-            dragHandle = {
-                NordicAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.label_publication),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    onNavigationButtonClick = {
-                        scope
-                            .launch { bottomSheetState.hide() }
-                            .invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
-                            }
-                    },
-                    backButtonIcon = Icons.Outlined.Close,
-                    actions = {
-                        IconButton(
-                            // Note: If you provide logic outside of onDismissRequest to remove the
-                            // sheet, you must additionally handle intended state cleanup, if any.
-                            enabled = destination != null && retransmit != null,
-                            onClick = {
-                                send(
-                                    if (destination is VirtualAddress)
-                                        ConfigModelPublicationVirtualAddressSet(
-                                            publish = Publish(
-                                                address = destination!!,
-                                                index = keyIndex.toUShort(),
-                                                ttl = ttl.toUByte(),
-                                                period = publishPeriod,
-                                                credentials = credentials,
-                                                retransmit = retransmit!!
-                                            ),
-                                            model = model
-                                        )
-                                    else
-                                        ConfigModelPublicationSet(
-                                            model = model,
-                                            publish = Publish(
-                                                address = destination!!,
-                                                index = keyIndex.toUShort(),
-                                                ttl = ttl.toUByte(),
-                                                period = publishPeriod,
-                                                credentials = credentials,
-                                                retransmit = retransmit!!
-                                            )
-                                        )
-                                ).also {
-                                    scope
-                                        .launch { bottomSheetState.hide() }
-                                        .invokeOnCompletion {
-                                            if (!bottomSheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
-                                        }
-                                }
-                            },
-                            content = {
-                                Icon(imageVector = Icons.Outlined.Save, contentDescription = null)
-                            }
-                        )
-                    }
-                )
-            },
             content = {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(vertical = 16.dp)
                         .verticalScroll(state = rememberScrollState()),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = {
+                            SectionTitle(
+                                modifier = Modifier.weight(weight = 1f),
+                                title = stringResource(R.string.label_publication)
+                            )
+                            MeshOutlinedButton(
+                                modifier = Modifier.padding(end = 16.dp),
+                                enabled = destination != null && retransmit != null,
+                                onClick = {
+                                    send(
+                                        if (destination is VirtualAddress)
+                                            ConfigModelPublicationVirtualAddressSet(
+                                                publish = Publish(
+                                                    address = destination!!,
+                                                    index = keyIndex.toUShort(),
+                                                    ttl = ttl.toUByte(),
+                                                    period = publishPeriod,
+                                                    credentials = credentials,
+                                                    retransmit = retransmit!!
+                                                ),
+                                                model = model
+                                            )
+                                        else
+                                            ConfigModelPublicationSet(
+                                                model = model,
+                                                publish = Publish(
+                                                    address = destination!!,
+                                                    index = keyIndex.toUShort(),
+                                                    ttl = ttl.toUByte(),
+                                                    period = publishPeriod,
+                                                    credentials = credentials,
+                                                    retransmit = retransmit!!
+                                                )
+                                            )
+                                    ).also {
+                                        scope
+                                            .launch { bottomSheetState.hide() }
+                                            .invokeOnCompletion {
+                                                if (!bottomSheetState.isVisible) {
+                                                    showBottomSheet = false
+                                                }
+                                            }
+                                    }
+                                },
+                                buttonIcon = Icons.AutoMirrored.Outlined.Send,
+                                text = stringResource(R.string.label_send),
+                            )
+                        }
+                    )
                     ApplicationKeys(
                         keys = model.parentElement?.parentNode?.applicationKeys.orEmpty(),
                         selectedKeyIndex = keyIndex,
@@ -350,9 +341,7 @@ private fun ApplicationKeys(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it },
     ) {
@@ -405,9 +394,7 @@ private fun ApplicationKeys(
 @Composable
 private fun Ttl(ttl: Int, onTtlChanged: (Int) -> Unit) {
     ElevatedCardItemTextField(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(id = R.string.label_initial_ttl),
         subtitle = "$ttl",
@@ -432,9 +419,7 @@ private fun PeriodicPublishingInterval(
     }
     var resource by rememberSaveable { mutableIntStateOf(R.string.label_disabled) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_periodic_publishing_interval),
         supportingText = stringResource(R.string.label_periodic_publishing_interval_rationale),
@@ -522,11 +507,8 @@ private fun FriendshipCredential(
     credentials: Credentials,
     onCredentialsChanged: (Credentials) -> Unit,
 ) {
-
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Shield,
         title = stringResource(id = R.string.label_friendship_credentials_flag),
         titleAction = {
@@ -550,14 +532,13 @@ private fun RetransmissionCountAndInterval(
     var count by remember { mutableIntStateOf(retransmit?.count?.toInt() ?: 0) }
     var steps by remember { mutableIntStateOf(retransmit?.steps?.toInt() ?: 0) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.title_retransmit_count_and_interval),
         supportingText = stringResource(R.string.label_retransmit_count_and_interval_rationale),
         body = {
             Slider(
+                modifier = Modifier.padding(start = 42.dp),
                 value = count.toFloat(),
                 onValueChange = {
                     count = it.roundToInt()
@@ -581,7 +562,7 @@ private fun RetransmissionCountAndInterval(
                 textAlign = TextAlign.End
             )
             Slider(
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(start = 42.dp, top = 8.dp),
                 value = if (count > 0) steps.toFloat() else {
                     steps = 0
                     0f
