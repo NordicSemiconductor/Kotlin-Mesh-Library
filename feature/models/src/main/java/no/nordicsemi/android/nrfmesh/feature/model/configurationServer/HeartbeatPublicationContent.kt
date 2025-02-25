@@ -13,12 +13,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Upload
@@ -69,6 +71,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
 import no.nordicsemi.kotlin.mesh.core.model.AllFriends
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.AllProxies
@@ -83,9 +87,11 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.Publish
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,9 +114,7 @@ internal fun HeartBeatPublicationContent(
     var features by remember { mutableStateOf(publication?.features?.toList() ?: listOf()) }
 
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp, bottom = 16.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_publications),
         titleAction = {
@@ -162,57 +166,6 @@ internal fun HeartBeatPublicationContent(
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
-            dragHandle = {
-                NordicAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.label_heartbeat_publication),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    onNavigationButtonClick = {
-                        scope
-                            .launch { bottomSheetState.hide() }
-                            .invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
-                            }
-                    },
-                    backButtonIcon = Icons.Outlined.Close,
-                    actions = {
-                        IconButton(
-                            // Note: If you provide logic outside of onDismissRequest to remove the
-                            // sheet, you must additionally handle intended state cleanup, if any.
-                            enabled = destination != null,
-                            onClick = {
-                                send(
-                                    ConfigHeartbeatPublicationSet(
-                                        index = keyIndex.toUShort(),
-                                        destination = destination!!,
-                                        countLog = countLog,
-                                        periodLog = periodLog,
-                                        ttl = ttl.toUByte(),
-                                        features = emptyList()//features
-                                    )
-                                ).also {
-                                    scope
-                                        .launch { bottomSheetState.hide() }
-                                        .invokeOnCompletion {
-                                            if (!bottomSheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
-                                        }
-                                }
-                            },
-                            content = {
-                                Icon(imageVector = Icons.Outlined.Save, contentDescription = null)
-                            }
-                        )
-                    }
-                )
-            },
             content = {
                 Column(
                     modifier = Modifier
@@ -220,7 +173,41 @@ internal fun HeartBeatPublicationContent(
                         .verticalScroll(state = rememberScrollState()),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    //SectionTitle(title = stringResource(R.string.label_network_key))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = {
+                            SectionTitle(
+                                modifier = Modifier.weight(weight = 1f),
+                                title = stringResource(R.string.label_heartbeat_publication)
+                            )
+                            MeshOutlinedButton(
+                                onClick = {
+                                    send(
+                                        ConfigHeartbeatPublicationSet(
+                                            index = keyIndex.toUShort(),
+                                            destination = destination!!,
+                                            countLog = countLog,
+                                            periodLog = periodLog,
+                                            ttl = ttl.toUByte(),
+                                            features = emptyList()//features
+                                        )
+                                    ).also {
+                                        scope
+                                            .launch { bottomSheetState.hide() }
+                                            .invokeOnCompletion {
+                                                if (!bottomSheetState.isVisible) {
+                                                    showBottomSheet = false
+                                                }
+                                            }
+                                    }
+                                },
+                                buttonIcon = Icons.AutoMirrored.Outlined.Send,
+                                text = stringResource(R.string.label_send),
+                            )
+                        }
+                    )
                     NetworkKeysRow(
                         network = model.parentElement?.parentNode?.network,
                         selectedKeyIndex = keyIndex,
