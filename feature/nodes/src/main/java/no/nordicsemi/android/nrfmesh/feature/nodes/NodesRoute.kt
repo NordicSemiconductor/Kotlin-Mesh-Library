@@ -113,7 +113,8 @@ private fun Nodes(
                     )
                 },
                 title = node.name,
-                subtitle = "0x${node.primaryUnicastAddress.address.toHexString()}",
+                subtitle = "0x${node.primaryUnicastAddress.address
+                    .toHexString(format = HexFormat.UpperCase)}",
                 onClick = { navigateToNode(node) },
             )
         }
