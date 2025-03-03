@@ -38,6 +38,7 @@ internal object MeshNetworkSerializer {
      *
      * @param array in to a mesh network.
      */
+    @OptIn(ExperimentalSerializationApi::class)
     internal fun deserialize(array: ByteArray) = jsonSerializer.run {
         val networkElement: JsonElement = decodeFromStream(ByteArrayInputStream(array)
             .also { stream -> stream.close() })
