@@ -34,7 +34,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -167,12 +166,17 @@ class MeshNetworkManager(
      * @throws ImportError if deserializing fails.
      */
     @Throws(ImportError::class)
-    suspend fun import(array: ByteArray) = deserialize(array)
-        .also {
-            network = it
-            networkManager = NetworkManager(this)
-            _meshNetwork.emit(it)
-        }
+    suspend fun import(array: ByteArray) = runCatching {
+        deserialize(array)
+            .also {
+                network = it
+                networkManager = NetworkManager(this)
+                _meshNetwork.emit(it)
+            }
+    }.onFailure {
+        if(it is ImportError) throw it
+        else throw ImportError(error = "Error while deserializing the mesh network", throwable = it)
+    }
 
     /**
      * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
