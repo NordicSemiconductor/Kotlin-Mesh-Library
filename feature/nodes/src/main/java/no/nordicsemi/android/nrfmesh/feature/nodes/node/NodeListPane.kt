@@ -86,11 +86,13 @@ internal fun NodeListPane(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 8.dp)
                 .verticalScroll(state = scrollState),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            SectionTitle(title = stringResource(R.string.label_node))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(R.string.label_node)
+            )
             NodeNameRow(
                 name = nodeData.name,
                 onNameChanged = {
