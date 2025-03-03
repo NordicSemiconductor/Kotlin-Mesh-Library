@@ -111,7 +111,7 @@ class ConfigHeartbeatPublicationStatus(
             } else {
                 ConfigHeartbeatPublicationStatus(
                     destination = publication.address,
-                    countLog = publication.countLog,
+                    countLog = publication.state?.countLog ?: 0u,
                     periodLog = publication.periodLog,
                     ttl = publication.ttl,
                     features = publication.features,

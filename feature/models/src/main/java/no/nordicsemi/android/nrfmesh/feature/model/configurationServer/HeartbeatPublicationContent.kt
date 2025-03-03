@@ -109,7 +109,7 @@ internal fun HeartBeatPublicationContent(
     var keyIndex by remember { mutableIntStateOf(publication?.index?.toInt() ?: 0) }
     var ttl by remember { mutableIntStateOf(publication?.ttl?.toInt() ?: 5) }
     var destination by remember { mutableStateOf(publication?.address) }
-    var countLog by remember { mutableStateOf(publication?.countLog ?: 0u) }
+    var countLog by remember { mutableStateOf(0.toUByte()) }
     var periodLog by remember { mutableStateOf(publication?.periodLog ?: 1u) }
     var features by remember { mutableStateOf(publication?.features?.toList() ?: listOf()) }
 
