@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ProxyViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
     private var meshNetwork: MeshNetwork? = null
     val uiState: StateFlow<ProxyScreenUiState> = repository.proxyStateFlow.transform {
@@ -48,11 +48,10 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun connect(context: Context, results: BleScanResults) {
         viewModelScope.launch {
-            repository.disconnect()
-            repository.connectOverGattBearer(
-                context = context,
-                device = results.device
-            )
+            repository.run {
+                disconnect()
+                connectOverGattBearer(context = context, device = results.device)
+            }
         }
     }
 
@@ -82,5 +81,5 @@ internal class ProxyViewModel @Inject internal constructor(
 }
 
 internal data class ProxyScreenUiState internal constructor(
-    val proxyState: ProxyState = ProxyState()
+    val proxyState: ProxyState = ProxyState(),
 )

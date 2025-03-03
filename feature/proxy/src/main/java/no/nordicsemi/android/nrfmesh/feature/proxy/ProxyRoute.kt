@@ -2,10 +2,15 @@ package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.content.Context
 import android.os.ParcelUuid
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,10 +38,10 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.core.data.ProxyState
-import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun ProxyRoute(
     uiState: ProxyScreenUiState,
@@ -50,7 +55,15 @@ internal fun ProxyRoute(
     val proxyScannerSheetState = rememberModalBottomSheetState()
     RequireBluetooth(onChanged = onBluetoothEnabled) {
         RequireLocation(onChanged = onLocationEnabled) {
-            Column {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(all = 8.dp)
+                    .verticalScroll(state = rememberScrollState()),
+                maxItemsInEachRow = 5,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 ProxyFilterInfo(
                     proxyState = uiState.proxyState,
                     onAutoConnectToggled = onAutoConnectToggled,
@@ -63,10 +76,7 @@ internal fun ProxyRoute(
                     onDismissRequest = { showProxyScannerSheet = false },
                     sheetState = proxyScannerSheetState
                 ) {
-                    BottomSheetTopAppBar(
-                        title = "Proxies",
-                        titleStyle = MaterialTheme.typography.titleLarge
-                    )
+                    SectionTitle(title = stringResource(R.string.label_proxies))
                     ScannerSection(
                         onDeviceFound = { context, results ->
                             showProxyScannerSheet = false
@@ -83,7 +93,7 @@ private fun ProxyFilterInfo(
     proxyState: ProxyState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
-    onDisconnectClicked: () -> Unit
+    onDisconnectClicked: () -> Unit,
 ) {
     AutomaticConnectionRow(
         proxyState = proxyState,
@@ -98,8 +108,7 @@ private fun AutomaticConnectionRow(
     proxyState: ProxyState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onConnectClicked: () -> Unit,
-    onDisconnectClicked: () -> Unit
-
+    onDisconnectClicked: () -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -136,20 +145,16 @@ private fun AutomaticConnectionRow(
 
 @Composable
 private fun ScannerSection(
-    onDeviceFound: (Context, BleScanResults) -> Unit
+    onDeviceFound: (Context, BleScanResults) -> Unit,
 ) {
     val context = LocalContext.current
     val filters = listOf(
-        WithServiceUuid(
-            title = "Provisioned",
-            uuid = ParcelUuid(MeshProxyService.uuid)
-        )
+        WithServiceUuid(title = "Provisioned", uuid = ParcelUuid(MeshProxyService.uuid))
     )
     ScannerView(
         filters = filters,
-        onResult = {
-            onDeviceFound(context, it)
-        },
+        onResult = { onDeviceFound(context, it) },
+        filterShape = MaterialTheme.shapes.small,
         deviceItem = {
             DeviceListItem(
                 modifier = Modifier.padding(vertical = 16.dp),

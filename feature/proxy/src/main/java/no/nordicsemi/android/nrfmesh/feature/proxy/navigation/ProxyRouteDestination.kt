@@ -28,16 +28,12 @@ fun NavGraphBuilder.proxyFilterGraph() {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProxyRoute(
             uiState = uiState,
-            onBluetoothEnabled = {
-
-            },
-            onLocationEnabled = {
-
-            },
+            onBluetoothEnabled = viewModel::onBluetoothEnabled,
+            onLocationEnabled = viewModel::onLocationEnabled,
             onAutoConnectToggled = viewModel::onAutoConnectToggled,
             onDisconnectClicked = viewModel::disconnect,
-            onDeviceFound = { _, _ ->
-
+            onDeviceFound = { context, results ->
+                viewModel.connect(context = context, results = results)
             }
         )
     }
