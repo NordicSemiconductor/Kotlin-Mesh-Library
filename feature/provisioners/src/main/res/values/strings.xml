@@ -35,4 +35,5 @@
     <string name="label_provisioner">Provisioner</string>
     <string name="error_cannot_delete_last_provisioner">Cannot delete, a mesh network must have at least one provisioner</string>
     <string name="error_cannot_delete_selected_provisioner">Switch to a different provisioner to delete the currently selected provisioner</string>
+    <string name="label_unassigned">Configuration capabilities disabled</string>
 </resources>
