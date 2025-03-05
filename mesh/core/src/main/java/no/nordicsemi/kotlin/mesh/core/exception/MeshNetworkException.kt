@@ -1,6 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.exception
 
-sealed class MeshNetworkException : Exception()
+sealed class MeshNetworkException : Exception() {
+    protected fun readResolve(): Any = this
+}
 
 /** Thrown when a given key index is out of range. A valid key index must range from 0 to 4095. */
 data object KeyIndexOutOfRange : MeshNetworkException()
@@ -91,7 +93,7 @@ data object SecurityException : MeshNetworkException()
  */
 data class ImportError internal constructor(
     val error: String,
-    val throwable: Throwable
+    val throwable: Throwable,
 ) : MeshNetworkException()
 
 /** Thrown when a network property does not belong to the current network. */
