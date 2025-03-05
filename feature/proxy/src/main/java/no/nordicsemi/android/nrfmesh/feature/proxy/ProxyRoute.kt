@@ -58,7 +58,6 @@ internal fun ProxyRoute(
             FlowRow(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(all = 8.dp)
                     .verticalScroll(state = rememberScrollState()),
                 maxItemsInEachRow = 5,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
