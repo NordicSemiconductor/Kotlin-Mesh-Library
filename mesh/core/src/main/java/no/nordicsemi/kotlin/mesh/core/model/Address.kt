@@ -184,6 +184,8 @@ data class VirtualAddress(
     ParentGroupAddress,
     PublicationAddress,
     SubscriptionAddress,
+    HeartbeatPublicationDestination,
+    HeartbeatSubscriptionDestination,
     ProxyFilterAddress {
 
     override val address: Address = Crypto.createVirtualAddress(uuid)
