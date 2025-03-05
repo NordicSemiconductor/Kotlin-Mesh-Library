@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.groups.navigation
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle

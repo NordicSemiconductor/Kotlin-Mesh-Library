@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,69 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-
-@Composable
-fun MeshOutlinedTextField(
-    modifier: Modifier = Modifier,
-    onFocus: Boolean = false,
-    leadingComposable: @Composable () -> Unit = {},
-    label: @Composable (() -> Unit)? = null,
-    placeholder: @Composable (() -> Unit)? = null,
-    value: String,
-    onValueChanged: (String) -> Unit,
-    internalTrailingIcon: @Composable (() -> Unit)? = null,
-    readOnly: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    regex: Regex? = null,
-    isError: Boolean = regex != null && !regex.matches(value),
-    supportingText: @Composable (() -> Unit)? = null,
-    content: @Composable () -> Unit = {},
-) {
-    val requester = remember { FocusRequester() }
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height = 80.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        leadingComposable()
-        OutlinedTextField(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp)
-                .focusRequester(requester),
-            value = TextFieldValue(text = value, selection = TextRange(value.length)),
-            onValueChange = {
-                if (regex == null) {
-                    onValueChanged(it.text)
-                } else if (regex.matches(it.text)) {
-                    onValueChanged(it.text)
-                }
-            },
-            label = label,
-            placeholder = placeholder,
-            trailingIcon = internalTrailingIcon,
-            readOnly = readOnly,
-            isError = isError,
-            supportingText = supportingText,
-            singleLine = true,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions
-        )
-        content()
-    }
-    SideEffect {
-        if (onFocus) {
-            requester.requestFocus()
-        }
-    }
-}
 
 @Composable
 fun MeshOutlinedTextField(

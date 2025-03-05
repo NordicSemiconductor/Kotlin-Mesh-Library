@@ -28,7 +28,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
-import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
+import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
+import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -64,9 +65,10 @@ internal fun ModelRoute(
                 onAddGroupClicked = onAddGroupClicked,
             )
         }
-        if (!model.isConfigurationClient) {
+        if (!model.isConfigurationServer && !model.isConfigurationClient) {
             BoundApplicationKeys(model = model, send = send)
-            ModelPublication(messageState = messageState, model = model, send = send)
+            Publication(messageState = messageState, model = model, send = send)
+            Subscriptions(messageState = messageState, model = model, send = send)
         }
     }
 

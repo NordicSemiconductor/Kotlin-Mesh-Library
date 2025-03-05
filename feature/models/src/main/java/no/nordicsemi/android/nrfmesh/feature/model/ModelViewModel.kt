@@ -20,7 +20,6 @@ import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -45,27 +44,6 @@ internal class ModelViewModel @Inject internal constructor(
 
         }.launchIn(scope = viewModelScope)
     }
-
-    /**
-     * Returns if the NodeIdentityState for this should be updated/refreshed.
-     *
-     * @return true if the NodeIdentityState should be updated, false otherwise.
-     */
-    private fun shouldUpdateNodeIdentityState(): Boolean =
-        _uiState.value.nodeIdentityStates.isEmpty()
-
-    /**
-     * Creates a list of NodeIdentityStatus objects for each network key.
-     *
-     * @return List of NodeIdentityStatus objects.
-     */
-    private fun createNodeIdentityStates() = selectedModel.parentElement?.parentNode?.networkKeys
-        ?.map { key ->
-            NodeIdentityStatus(
-                networkKey = key,
-                nodeIdentityState = null
-            )
-        } ?: emptyList()
 
     /**
      * Sends a message to the node.
@@ -112,58 +90,6 @@ internal class ModelViewModel @Inject internal constructor(
                 )
             }
         }
-    }
-
-    internal fun requestNodeIdentityStates() {
-        job = viewModelScope.launch {
-            val uiState = _uiState.value
-            val nodeIdentityStates = uiState.nodeIdentityStates.toMutableList()
-            val keys = selectedElement.parentNode?.networkKeys ?: emptyList()
-
-            var message: ConfigNodeIdentityGet? = null
-            var response: ConfigNodeIdentityStatus? = null
-            try {
-                keys.forEach { key ->
-                    message = ConfigNodeIdentityGet(index = key.index)
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Sending(message = message!!),
-                    )
-                    response = repository.send(
-                        node = selectedElement.parentNode!!,
-                        message = message!!
-                    ) as ConfigNodeIdentityStatus
-
-                    response?.let { status ->
-                        val index = nodeIdentityStates.indexOfFirst { state ->
-                            state.networkKey.index == status.index
-                        }
-                        nodeIdentityStates[index] = nodeIdentityStates[index]
-                            .copy(nodeIdentityState = status.identity)
-                    }
-                }
-                _uiState.value = _uiState.value.copy(
-                    messageState = Completed(
-                        message = ConfigNodeIdentityGet(index = keys.first().index),
-                        response = response as ConfigNodeIdentityStatus
-                    ),
-                    nodeIdentityStates = nodeIdentityStates.toList()
-                )
-            } catch (ex: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = ex),
-                    isRefreshing = false,
-                )
-            }
-
-        }
-    }
-
-    private fun cancel() {
-        job.cancel()
-    }
-
-    fun resetMessageState() {
-        _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 }
 

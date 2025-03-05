@@ -83,8 +83,4 @@ class NetworkViewModel @Inject constructor(
     fun onAddGroupClicked(group: Group) {
         meshNetwork.add(group)
     }
-
-    private fun save() {
-        viewModelScope.launch { repository.save() }
-    }
 }
