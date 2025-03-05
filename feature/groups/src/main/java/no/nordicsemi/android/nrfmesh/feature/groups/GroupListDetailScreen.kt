@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -12,15 +13,18 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.model.Group
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalStdlibApi::class)
 @Composable
 internal fun GroupListDetailScreen(
+    snackbarHostState: SnackbarHostState,
     @Suppress("UNUSED_PARAMETER") messageState: MessageState,
     uiState: GroupState,
     onModelClicked: (Int) -> Unit,
     send: (UnacknowledgedMeshMessage) -> Unit,
-    save: () -> Unit,
+    deleteGroup: (Group) -> Unit,
+    save: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
@@ -34,6 +38,7 @@ internal fun GroupListDetailScreen(
                 listPane = {
                     AnimatedPane {
                         GroupListPane(
+                            snackbarHostState = snackbarHostState,
                             groupInfo = uiState.groupInfoListData,
                             group = uiState.group,
                             onModelClicked = { modelId, index ->
@@ -47,6 +52,7 @@ internal fun GroupListDetailScreen(
                             },
                             isDetailPaneVisible = navigator.isDetailPaneVisible(),
                             selectedModelIndex = uiState.selectedModelIndex,
+                            deleteGroup = deleteGroup,
                             save = save
                         )
                     }

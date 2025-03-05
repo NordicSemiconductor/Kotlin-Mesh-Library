@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.io.BufferedReader
 import javax.inject.Inject
@@ -72,22 +73,18 @@ class NetworkViewModel @Inject constructor(
         viewModelScope.launch { repository.resetNetwork() }
     }
 
-    fun onAddGroupClicked(): Group {
+    internal fun nextAvailableGroupAddress(): GroupAddress {
         val provisioner = meshNetwork.provisioners.firstOrNull()
         require(provisioner != null) { throw IllegalArgumentException("No provisioner found") }
-        return meshNetwork.nextAvailableGroup(provisioner)?.let { address ->
-            Group(
-                _name = "Group ${meshNetwork.groups.size + 1}",
-                address = address
-            ).also {
-                meshNetwork.add(it)
-                save()
-            }
-        }
+        return meshNetwork.nextAvailableGroup(provisioner)
             ?: throw IllegalArgumentException("No available group address found for ${provisioner.name}")
     }
 
-    internal fun save() {
+    fun onAddGroupClicked(group: Group) {
+        meshNetwork.add(group)
+    }
+
+    private fun save() {
         viewModelScope.launch { repository.save() }
     }
 }

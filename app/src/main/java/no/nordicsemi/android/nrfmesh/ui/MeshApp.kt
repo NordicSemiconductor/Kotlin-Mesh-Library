@@ -14,5 +14,6 @@ fun MeshApp(windowSizeClass: WindowSizeClass) {
         importNetwork = viewModel::importNetwork,
         resetNetwork = viewModel::resetNetwork,
         onAddGroupClicked = viewModel::onAddGroupClicked,
+        nextAvailableGroupAddress = viewModel::nextAvailableGroupAddress
     )
 }

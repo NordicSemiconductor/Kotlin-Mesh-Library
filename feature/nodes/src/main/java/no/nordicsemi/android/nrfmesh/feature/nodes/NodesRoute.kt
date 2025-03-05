@@ -7,9 +7,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Composable
@@ -88,34 +95,80 @@ private fun Nodes(
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit,
 ) {
-    FlowRow(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(all = 8.dp)
-            .verticalScroll(state = rememberScrollState()),
-        maxItemsInEachRow = 5,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        nodes.forEach { node ->
-            MeshItem(
-                icon = {
-                    Image(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = CircleShape
+
+    if (isCompactWidth()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(all = 16.dp),
+            content = {
+                items(items = nodes, key = { it.uuid }) { node ->
+                    MeshItem(
+                        icon = {
+                            Image(
+                                modifier = Modifier
+                                    .size(size = 24.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                                    .padding(all = 2.dp),
+                                painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
+                                contentDescription = null
                             )
-                            .padding(2.dp),
-                        painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
-                        contentDescription = null
+                        },
+                        title = node.name,
+                        subtitle = "0x${
+                            node.primaryUnicastAddress.address
+                                .toHexString(format = HexFormat.UpperCase)
+                        }",
+                        onClick = { navigateToNode(node) },
                     )
-                },
-                title = node.name,
-                subtitle = "0x${node.primaryUnicastAddress.address
-                    .toHexString(format = HexFormat.UpperCase)}",
-                onClick = { navigateToNode(node) },
+                }
+            }
+        )
+    } else {
+        FlowRow(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(state = rememberScrollState()),
+            maxItemsInEachRow = 5,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .height(height = 8.dp)
+                    .fillMaxWidth()
+            )
+            nodes.forEach { node ->
+                MeshItem(
+                    icon = {
+                        Image(
+                            modifier = Modifier
+                                .size(size = 24.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                                .padding(all = 2.dp),
+                            painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
+                            contentDescription = null
+                        )
+                    },
+                    title = node.name,
+                    subtitle = "0x${
+                        node.primaryUnicastAddress.address
+                            .toHexString(format = HexFormat.UpperCase)
+                    }",
+                    onClick = { navigateToNode(node) },
+                )
+            }
+            Spacer(
+                modifier = Modifier
+                    .height(height = 8.dp)
+                    .fillMaxWidth()
             )
         }
     }

@@ -34,6 +34,6 @@ fun NavGraphBuilder.groupsGraph(appState: AppState) {
                 navigateToGroup = { appState.navController.navigateToGroup(address = it) }
             )
         }
-        groupGraph()
+        groupGraph(appState = appState)
     }
 }

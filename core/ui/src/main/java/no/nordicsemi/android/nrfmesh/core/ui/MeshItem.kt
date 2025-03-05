@@ -16,8 +16,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MeshItem(icon: @Composable () -> Unit, title: String, subtitle: String, onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick) {
+fun MeshItem(
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    OutlinedCard(modifier = modifier, onClick = onClick) {
         Row(
             modifier = Modifier.height(height = 80.dp),
             verticalAlignment = Alignment.CenterVertically

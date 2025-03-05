@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.LightMode
@@ -16,10 +18,14 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.common.isSceneServer
@@ -27,19 +33,24 @@ import no.nordicsemi.android.nrfmesh.core.common.isSceneSetupServer
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 
 @Composable
 internal fun GroupListPane(
+    snackbarHostState: SnackbarHostState,
     groupInfo: GroupInfoListData,
     group: Group,
     onModelClicked: (ModelId, Int) -> Unit,
     isDetailPaneVisible: Boolean,
     selectedModelIndex: Int,
+    deleteGroup: (Group) -> Unit,
     save: () -> Unit,
 ) {
     Column(
@@ -60,6 +71,10 @@ internal fun GroupListPane(
             }
         )
         AddressRow(address = group.address)
+        DeleteGroup(
+            snackbarHostState = snackbarHostState,
+            group = group,
+            deleteGroup = { deleteGroup(group) })
         if (groupInfo.models.isNotEmpty()) {
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
             groupInfo.models.forEach { entry ->
@@ -103,8 +118,41 @@ private fun AddressRow(address: PrimaryGroupAddress) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
-        subtitle = "0x${address.address.toHexString(format = HexFormat.UpperCase)}"
+        subtitle = if (address is GroupAddress) {
+            "0x${address.address.toHexString(format = HexFormat.UpperCase)}"
+        } else {
+            (address as VirtualAddress).uuid.toString().uppercase()
+        }
     )
+}
+
+@Composable
+private fun DeleteGroup(
+    snackbarHostState: SnackbarHostState,
+    group: Group,
+    deleteGroup: (Group) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Delete,
+        title = stringResource(id = R.string.label_delete),
+        subtitle = stringResource(id = R.string.label_delete_group_rationale),
+    ) {
+        MeshOutlinedButton(
+            border = BorderStroke(width = 1.dp, color = Color.Red),
+            onClick = {
+                scope.launch {
+                    if (group.isUsed) snackbarHostState.showSnackbar(message = group.name)
+                    else deleteGroup(group)
+                }
+            },
+            text = stringResource(R.string.label_delete),
+            buttonIcon = Icons.Outlined.Delete,
+            buttonIconTint = Color.Red,
+            textColor = Color.Red,
+        )
+    }
 }
 
 @Composable

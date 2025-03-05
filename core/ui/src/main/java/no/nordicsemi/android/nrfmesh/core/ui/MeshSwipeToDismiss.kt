@@ -45,7 +45,7 @@ fun SwipeDismissItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = color, shape = CardDefaults.elevatedShape)
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = 16.dp),
                 contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
                     Alignment.CenterStart
                 else Alignment.CenterEnd

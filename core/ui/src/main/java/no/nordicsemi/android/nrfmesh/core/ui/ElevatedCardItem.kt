@@ -43,7 +43,7 @@ fun ElevatedCardItem(
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String = "",
+    subtitle: String? = null,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
@@ -101,7 +101,7 @@ fun ElevatedCardItem(
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String = "",
+    subtitle: String? = null,
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
@@ -153,7 +153,7 @@ fun ElevatedCardItem(
     image: @Composable () -> Unit,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String = "",
+    subtitle: String? = null,
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {

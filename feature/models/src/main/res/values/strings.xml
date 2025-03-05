@@ -88,4 +88,10 @@
     <string name="label_groups">Groups</string>
     <string name="label_fixed_group_addresses">Fixed Group Addresses</string>
     <string name="label_model">Model</string>
+    <string name="label_model_subscriptions">Model Subscriptions</string>
+    <string name="label_no_subscriptions">No subscriptions</string>
+    <string name="label_no_subscriptions_rationale">Click on Add to subscribe this model to a group or a unicast address,</string>
+    <string name="label_delete_all_subscriptions">Delete all subscriptions</string>
+    <string name="label_delete_all_subscriptions_rationale">This will clear all the groups or unicast addresses this model is subscribed to. Do you wish to continue?</string>
+    <string name="label_send">Send</string>
 </resources>

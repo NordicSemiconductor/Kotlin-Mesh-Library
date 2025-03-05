@@ -165,7 +165,7 @@ fun MeshAlertDialog(
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = true),
         content = {
             Surface(
                 modifier = Modifier

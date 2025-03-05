@@ -104,8 +104,7 @@ fun MeshOutlinedTextField(
 ) {
     val requester = remember { FocusRequester() }
     Row(
-        modifier = modifier
-            .height(height = 80.dp),
+        modifier = modifier.height(height = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         externalLeadingIcon()

@@ -7,15 +7,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
@@ -30,11 +33,13 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +50,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -54,6 +62,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroup
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
@@ -62,14 +71,20 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
 @Composable
 fun NetworkRoute(
     windowSizeClass: WindowSizeClass,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
-    onAddGroupClicked: () -> Group,
+    onAddGroupClicked: (Group) -> Unit,
+    nextAvailableGroupAddress: () -> GroupAddress,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -85,6 +100,7 @@ fun NetworkRoute(
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -106,6 +122,7 @@ fun NetworkRoute(
                 )
             }
         }
+
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -168,21 +185,7 @@ fun NetworkRoute(
                                         contentDescription = null
                                     )
                                 },
-                                onClick = {
-                                    runCatching {
-                                        onAddGroupClicked().also {
-                                            navController.navigateToGroup(address = it.address)
-                                        }
-                                    }.onFailure {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = it.message
-                                                    ?: context.getString(R.string.label_failed_to_add_group),
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    }
-                                },
+                                onClick = { showAddGroupDialog = true },
                                 expanded = true
                             )
                         }
@@ -199,6 +202,132 @@ fun NetworkRoute(
                     .fillMaxSize()
                     .padding(paddingValues)
             )
+
+            if (showAddGroupDialog) {
+                var isError by rememberSaveable { mutableStateOf(false) }
+                var errorMessage by remember { mutableStateOf("") }
+                val initialValue by remember {
+                    mutableStateOf(
+                        nextAvailableGroupAddress()
+                            .address
+                            .toHexString(format = HexFormat.UpperCase)
+                    )
+                }
+                var address by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+                    mutableStateOf(
+                        TextFieldValue(
+                            text = initialValue,
+                            selection = TextRange(initialValue.length)
+                        )
+                    )
+                }
+                MeshAlertDialog(
+                    icon = Icons.Outlined.GroupWork,
+                    title = stringResource(R.string.label_add_group),
+                    text = stringResource(R.string.label_add_group_rationale),
+                    onDismissRequest = { showResetNetworkDialog = false },
+                    content = {
+                        MeshOutlinedTextField(
+                            value = address,
+                            onValueChanged = {
+                                isError = false
+                                address = it
+                                if (it.text.isNotEmpty()) {
+                                    if (UnicastAddress.isValid(it.text.toUShort(16))) {
+                                        isError = false
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                    } else {
+                                        isError = true
+                                        errorMessage =
+                                            context.getString(R.string.label_invalid_group_address)
+                                    }
+                                }
+                            },
+                            label = { Text(text = stringResource(id = R.string.address)) },
+                            supportingText = {
+                                if (isError) {
+                                    Text(text = errorMessage, color = Color.Red)
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Characters
+                            ),
+                            regex = Regex("[0-9A-Fa-f]{0,4}"),
+                            isError = isError,
+                        )
+                        Row(
+                            modifier = Modifier.padding(top = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    runCatching {
+                                        val group = Group(
+                                            address = VirtualAddress(uuid = UUID.randomUUID()),
+                                            _name = "New Group"
+                                        )
+                                        onAddGroupClicked(group)
+                                            .also {
+                                                showAddGroupDialog = false
+                                                navController.navigateToGroup(address = group.address)
+                                            }
+                                    }.onFailure {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = it.message
+                                                    ?: context.getString(R.string.label_failed_to_add_group),
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    }
+                                },
+                                content = {
+                                    Text(text = stringResource(R.string.label_virtual_label))
+                                }
+                            )
+                            Spacer(modifier = Modifier.weight(weight = 1f))
+                            TextButton(
+                                onClick = { showAddGroupDialog = false },
+                                content = { Text(text = stringResource(R.string.label_cancel)) }
+                            )
+                            TextButton(
+                                onClick = {
+                                    if (address.text.isNotEmpty()) {
+                                        if (GroupAddress.isValid(address.text.toUShort(16))) {
+                                            isError = false
+                                            runCatching {
+                                                val group = Group(
+                                                    address = MeshAddress.create(
+                                                        address = address.text.toUShort(radix = 16)
+                                                    ) as GroupAddress,
+                                                    _name = "New Group"
+                                                )
+                                                onAddGroupClicked(group).also {
+                                                    showAddGroupDialog = false
+                                                    navController.navigateToGroup(address = group.address)
+                                                }
+                                            }.onFailure {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = it.message
+                                                            ?: context.getString(R.string.label_failed_to_add_group),
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            isError = true
+                                            errorMessage =
+                                                context.getString(R.string.label_invalid_group_address)
+                                        }
+                                    }
+                                },
+                                content = { Text(text = stringResource(R.string.label_add)) }
+                            )
+                        }
+                    }
+                )
+            }
 
             if (showResetNetworkDialog) {
                 MeshAlertDialog(

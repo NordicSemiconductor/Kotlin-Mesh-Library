@@ -3,7 +3,6 @@ package no.nordicsemi.android.nrfmesh.core.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MeshNoItemsAvailable(
+    modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
     rationale: String = "",
@@ -26,7 +26,7 @@ fun MeshNoItemsAvailable(
     onClick: (() -> Unit)? = null
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

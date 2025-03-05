@@ -692,11 +692,37 @@ data class MeshNetwork internal constructor(
      * @throws [GroupInUse] If the group is already in use.
      */
     @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
-    fun remove(group: Group) {
+    fun remove(group: Group): Boolean {
         require(group.network == this) { throw DoesNotBelongToNetwork }
         require(!group.isUsed) { throw GroupInUse }
-        _groups.remove(group).also { updateTimestamp() }
+        return remove(address = group.address)
     }
+
+    /**
+     * Removes a group with the given address from the network.
+     *
+     * @param address address of the group to be removed.
+     */
+    fun remove(address: GroupAddress) = _groups.find {
+        it.address == address
+    }?.let { group ->
+        _groups.remove(group).also {
+            updateTimestamp()
+        }
+    } ?: false
+
+    /**
+     * Removes a group with the given address from the network.
+     *
+     * @param address address of the group to be removed.
+     */
+    fun remove(address: PrimaryGroupAddress) = _groups.find {
+        it.address == address
+    }?.let { group ->
+        _groups.remove(group).also {
+            updateTimestamp()
+        }
+    } ?: false
 
     /**
      * Returns the Scene key with a given scene number.

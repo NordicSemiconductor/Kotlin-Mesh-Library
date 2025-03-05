@@ -40,4 +40,12 @@
     <string name="label_add_group">Add Group</string>
     <string name="label_reset_network_rationale">Resetting a network will erase the network configuration and will make the network unusable. This will also require you to hard reset the nodes.\n\nDo you wish to continue?</string>
     <string name="label_failed_to_add_group">Failed to add group</string>
+    <string name="label_add_group_rationale">Select the type of Address to create a group with.</string>
+    <string name="label_group_address">Group Address</string>
+    <string name="label_virtual_label">Virtual Label</string>
+    <string name="label_create">Create</string>
+    <string name="label_address">Address</string>
+    <string name="label_add">Add</string>
+    <string name="address">Address</string>
+    <string name="label_invalid_group_address">Invalid group address</string>
 </resources>

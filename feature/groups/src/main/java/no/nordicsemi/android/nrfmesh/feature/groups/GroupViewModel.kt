@@ -17,6 +17,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -96,6 +97,8 @@ internal class GroupViewModel @Inject internal constructor(
         )
     }
 
+    fun deleteGroup(group: Group): Boolean = network.remove(group = group)
+
     @Suppress("UNUSED_PARAMETER")
     fun send(message: UnacknowledgedMeshMessage) {
         viewModelScope.launch {
@@ -114,6 +117,7 @@ internal sealed interface GroupState {
     data class Success(
         val network: MeshNetwork,
         val group: Group,
+        val nextAvailableGroupAddress: GroupAddress? = null,
         val groupInfoListData: GroupInfoListData,
         val selectedModelIndex: Int = -1,
     ) : GroupState
