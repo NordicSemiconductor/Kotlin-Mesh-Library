@@ -48,4 +48,6 @@
     <string name="label_add">Add</string>
     <string name="address">Address</string>
     <string name="label_invalid_group_address">Invalid group address</string>
+    <string name="label_group_in_use">Group in use</string>
+    <string name="label_group_already_exists">Group already exists</string>
 </resources>

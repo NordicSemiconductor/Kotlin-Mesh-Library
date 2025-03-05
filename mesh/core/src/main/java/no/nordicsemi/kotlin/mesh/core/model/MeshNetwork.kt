@@ -672,7 +672,7 @@ data class MeshNetwork internal constructor(
     @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
     fun add(group: Group) {
         require(!_groups.contains(group)) { throw GroupAlreadyExists }
-        require(group.network == null) { throw DoesNotBelongToNetwork }
+        require(group.network == null) { throw GroupInUse }
         _groups.add(group.also { it.network = this }).also { updateTimestamp() }
     }
 

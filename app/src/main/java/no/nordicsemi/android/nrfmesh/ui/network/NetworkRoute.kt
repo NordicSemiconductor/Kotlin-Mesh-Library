@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -69,10 +70,11 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
+import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.util.UUID
 
@@ -232,7 +234,7 @@ fun NetworkRoute(
                                 isError = false
                                 address = it
                                 if (it.text.isNotEmpty()) {
-                                    if (UnicastAddress.isValid(it.text.toUShort(16))) {
+                                    if (GroupAddress.isValid(it.text.toUShort(16))) {
                                         isError = false
                                         snackbarHostState.currentSnackbarData?.dismiss()
                                     } else {
@@ -245,7 +247,10 @@ fun NetworkRoute(
                             label = { Text(text = stringResource(id = R.string.address)) },
                             supportingText = {
                                 if (isError) {
-                                    Text(text = errorMessage, color = Color.Red)
+                                    Text(
+                                        text = errorMessage,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             },
                             keyboardOptions = KeyboardOptions(
@@ -273,8 +278,16 @@ fun NetworkRoute(
                                     }.onFailure {
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                message = it.message
-                                                    ?: context.getString(R.string.label_failed_to_add_group),
+                                                message = when (it) {
+                                                    is GroupAlreadyExists -> context
+                                                        .getString(R.string.label_group_already_exists)
+
+                                                    is GroupInUse -> context
+                                                        .getString(R.string.label_group_in_use)
+
+                                                    else -> it.message ?: context
+                                                        .getString(R.string.label_failed_to_add_group)
+                                                },
                                                 duration = SnackbarDuration.Short
                                             )
                                         }
