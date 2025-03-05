@@ -59,7 +59,7 @@ internal fun ApplicationKeysRoute(
     navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (ApplicationKeyData) -> Unit,
     onUndoClicked: (ApplicationKeyData) -> Unit,
-    remove: (ApplicationKeyData) -> Unit
+    remove: (ApplicationKeyData) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -139,7 +139,7 @@ private fun SwipeToDismissKey(
     onApplicationKeyClicked: (KeyIndex) -> Unit,
     onSwiped: (ApplicationKeyData) -> Unit,
     onUndoClicked: (ApplicationKeyData) -> Unit,
-    remove: (ApplicationKeyData) -> Unit
+    remove: (ApplicationKeyData) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
     val dismissState = rememberSwipeToDismissBoxState(
@@ -167,7 +167,7 @@ private fun SwipeToDismissKey(
                 },
                 imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
-                subtitle = key.key.toHexString()
+                subtitle = "Bound to ${key.boundNetworkKey?.name ?: key.key.toHexString()}"
             )
         }
     )

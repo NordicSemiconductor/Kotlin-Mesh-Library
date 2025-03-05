@@ -28,7 +28,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
@@ -121,7 +120,6 @@ private fun BoundKeys(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun AddedKeyRow(
     model: Model,
@@ -134,7 +132,6 @@ private fun AddedKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = key.name,
-        subtitle = key.key.toHexString(),
         titleAction = {
             Checkbox(
                 checked = isBound,

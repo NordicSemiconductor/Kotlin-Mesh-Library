@@ -47,7 +47,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
@@ -84,11 +83,11 @@ internal fun ConfigNetKeysRoute(
                 expanded = true
             )
         },
-        content = {
+        content = { paddingValues ->
             PullToRefreshBox(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues = it),
+                    .padding(paddingValues = paddingValues),
                 onRefresh = { send(ConfigNetKeyGet()) },
                 isRefreshing = isRefreshing
             ) {
@@ -190,8 +189,7 @@ private fun SwipeToDismissKey(
         content = {
             ElevatedCardItem(
                 imageVector = Icons.Outlined.VpnKey,
-                title = key.name,
-                subtitle = key.key.toHexString()
+                title = key.name
             )
         }
     )

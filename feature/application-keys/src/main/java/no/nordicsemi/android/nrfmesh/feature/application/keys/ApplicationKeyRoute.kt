@@ -110,7 +110,6 @@ internal fun ApplicationKeyRoute(
                     },
                     imageVector = Icons.Outlined.VpnKey,
                     title = networkKey.name,
-                    subtitle = networkKey.key.toHexString(),
                     titleAction = {
                         if (networkKey.index.toInt() == boundNetKeyIndex) {
                             Icon(
