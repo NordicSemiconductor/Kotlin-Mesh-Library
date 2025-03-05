@@ -46,7 +46,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -57,7 +56,7 @@ internal fun ProvisionersRoute(
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
-    navigateToProvisioner: (UUID) -> Unit
+    navigateToProvisioner: (UUID) -> Unit,
 ) {
     Provisioners(
         highlightSelectedItem = highlightSelectedItem,
@@ -78,7 +77,7 @@ private fun Provisioners(
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
-    navigateToProvisioner: (UUID) -> Unit
+    navigateToProvisioner: (UUID) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -143,7 +142,7 @@ private fun SwipeToDismissProvisioner(
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
     isSelected: Boolean = false,
-    isOnlyProvisioner: () -> Boolean
+    isOnlyProvisioner: () -> Boolean,
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
@@ -170,7 +169,9 @@ private fun SwipeToDismissProvisioner(
                 onClick = { navigateToProvisioner(provisioner.uuid) },
                 imageVector = Icons.Outlined.PersonOutline,
                 title = provisioner.name,
-                subtitle = provisioner.uuid.toString().uppercase(Locale.US)
+                subtitle = provisioner.address?.let {
+                    "0x${it.toHexString()}"
+                } ?: context.getString(R.string.label_unassigned),
             )
         }
     )
@@ -204,7 +205,7 @@ private fun handleValueChange(
     scope: CoroutineScope,
     context: Context,
     snackbarHostState: SnackbarHostState,
-    isOnlyProvisioner: () -> Boolean
+    isOnlyProvisioner: () -> Boolean,
 ): Boolean = when {
 
     isOnlyProvisioner() -> {
