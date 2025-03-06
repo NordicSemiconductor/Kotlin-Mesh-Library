@@ -84,7 +84,7 @@ data class Model internal constructor(
     @SerialName(value = "subscribe")
     internal var _subscribe: MutableList<SubscriptionAddress>,
     @SerialName(value = "publish")
-    internal var _publish: Publish? = null
+    internal var _publish: Publish? = null,
 ) {
     val subscribe: List<SubscriptionAddress>
         get() = _subscribe
@@ -204,7 +204,7 @@ data class Model internal constructor(
      * @param index Application key index.
      * @return true if the key index is bound or false if it's already bound.
      */
-    internal fun bind(index: KeyIndex) = when(bind.contains(element = index)) {
+    internal fun bind(index: KeyIndex) = when (bind.contains(element = index)) {
         true -> false
         else -> _bind.add(index)
     }
@@ -216,10 +216,11 @@ data class Model internal constructor(
      * @param index Application key index.
      * @return true if the key index is unbound or false if it's already unbound.
      */
-    internal fun unbind(index: KeyIndex) = when(bind.contains(element = index)) {
+    internal fun unbind(index: KeyIndex) = when (bind.contains(element = index)) {
         true -> _bind.remove(element = index).also {
             if (publish?.index == index) _publish = null
         }
+
         else -> false
     }
 
@@ -228,7 +229,7 @@ data class Model internal constructor(
      *
      * @param publish Publish settings.
      */
-    internal fun set(publish: Publish?){
+    internal fun set(publish: Publish?) {
         this._publish = publish
     }
 
@@ -273,6 +274,47 @@ data class Model internal constructor(
      * @return true if the model is subscribed to the address or false otherwise.
      */
     fun isSubscribedTo(address: PrimaryGroupAddress) = subscribe.any { it == address }
+
+    /**
+     * Subscribes the model to the given group.
+     *
+     * @param group Group to subscribe.
+     */
+    fun subscribe(group: Group) {
+        if (isSubscribedTo(group = group)) {
+            _subscribe.add(group.address as SubscriptionAddress)
+            parentElement?.parentNode?.network?.updateTimestamp()
+        }
+    }
+
+    /**
+     * Removes the given group address from the subscription list.
+     *
+     * @param group Group to remove.
+     */
+    fun unsubscribe(group: Group) {
+        unsubscribe(address = group.address.address)
+    }
+
+    /**
+     * Removes the given address from the subscription list.
+     *
+     * @param address Address to remove.
+     */
+    fun unsubscribe(address: Address) {
+        _subscribe
+            .firstOrNull { it.address == address }
+            ?.takeIf { _subscribe.remove(it) }
+            ?.let { parentElement?.parentNode?.network?.updateTimestamp() }
+    }
+
+    /**
+     * Removes all subscription from this Model.
+     */
+    fun unsubscribeFromAll() {
+        _subscribe.clear()
+        parentElement?.parentNode?.network?.updateTimestamp()
+    }
 
     companion object {
 
@@ -457,7 +499,7 @@ data class Model internal constructor(
             model: Model,
             applicationKeys: List<ApplicationKey>,
             nodes: List<Node>,
-            groups: List<Group>
+            groups: List<Group>,
         ): Model? {
             val bind = model.bind.filter { keyIndex ->
                 applicationKeys.any { it.index == keyIndex }
