@@ -38,7 +38,7 @@ data class Element(
     var name: String?
         get() = _name
         set(value) {
-             name?.let { require(it.isNotBlank()) { "Element name cannot be blank!" } }
+            name?.let { require(it.isNotBlank()) { "Element name cannot be blank!" } }
             MeshNetwork.onChange(oldValue = _name, newValue = value) {
                 parentNode?.network?.updateTimestamp()
             }
@@ -180,6 +180,47 @@ data class Element(
                     // Some of them are supported natively in the library.
                     !model.requiresDeviceKey
         }
+    }
+
+    /**
+     * Returns whether the Element contains a Bluetooth SIG defined Model with the given model ID.
+     *
+     * @param sigModelId Bluetooth SIG defined Model ID.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(sigModelId: SigModelId) = models.any { it.modelId == sigModelId }
+
+    /**
+     * Returns whether the Element contains a Vendor Model with the given model ID.
+     *
+     * @param vendorModelId Vendor Model ID.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(vendorModelId: VendorModelId) = models.any { it.modelId == vendorModelId }
+
+    /**
+     * Returns whether the Element contains the given model.
+     *
+     * @param model Model to be checked.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(model: Model) = models.contains(model)
+
+    /**
+     * Returns whether the Element contains a model bound to the given Application Key.
+     *
+     * @param key Application Key.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(key: ApplicationKey) = models.any { it.isBoundTo(key = key) }
+
+    /**
+     * Returns whether the element contains any model that is subscribed to the given group.
+     *
+     * @param group Group to be checked.
+     */
+    fun contains(group: Group): Boolean = models.any {
+        it.subscribe.contains(group.address as SubscriptionAddress)
     }
 
     internal companion object {
