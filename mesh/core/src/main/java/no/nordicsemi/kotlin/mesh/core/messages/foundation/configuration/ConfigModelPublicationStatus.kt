@@ -55,6 +55,10 @@ data class ConfigModelPublicationStatus(
             return data
         }
 
+    override fun toString() = "ConfigModelPublicationStatus(publish: $publish, status: $status, " +
+            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8019u
         fun init(publish: Publish, model: Model): ConfigModelPublicationStatus? {
@@ -136,7 +140,8 @@ data class ConfigModelPublicationStatus(
                 var companyIdentifier: UShort? = null
 
                 if (params.size == 14) {
-                    companyIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
+                    companyIdentifier =
+                        params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
                     modelIdentifier = params.getUShort(offset = 11, order = ByteOrder.LITTLE_ENDIAN)
                 } else {
                     modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)

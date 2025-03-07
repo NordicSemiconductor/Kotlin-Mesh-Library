@@ -60,6 +60,10 @@ class ConfigModelSubscriptionDelete(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
+    override fun toString() = "ConfigModelSubscriptionDelete(address: $address, " +
+            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Cu
 

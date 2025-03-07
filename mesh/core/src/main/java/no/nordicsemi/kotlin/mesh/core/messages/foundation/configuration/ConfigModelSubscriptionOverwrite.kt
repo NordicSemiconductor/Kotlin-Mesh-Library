@@ -61,6 +61,10 @@ class ConfigModelSubscriptionOverwrite(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
+    override fun toString() = "ConfigModelSubscriptionOverwrite(elementAddress: $elementAddress, " +
+            "address: $address, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Bu
 

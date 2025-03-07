@@ -65,6 +65,10 @@ class ConfigModelSubscriptionVirtualAddressOverwrite(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
+    override fun toString() = "ConfigModelSubscriptionVirtualAddressOverwrite(virtualLabel: " +
+            "$virtualLabel, elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8021u
 

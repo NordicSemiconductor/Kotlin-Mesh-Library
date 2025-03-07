@@ -45,6 +45,10 @@ class ConfigModelSubscriptionStatus(
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
 
+    override fun toString() = "ConfigModelSubscriptionStatus(status: $status, address: $address, " +
+            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Fu
 
