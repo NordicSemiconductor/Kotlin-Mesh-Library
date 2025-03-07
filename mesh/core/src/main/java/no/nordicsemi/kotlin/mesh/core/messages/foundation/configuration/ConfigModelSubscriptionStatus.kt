@@ -2,7 +2,6 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAddressMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer

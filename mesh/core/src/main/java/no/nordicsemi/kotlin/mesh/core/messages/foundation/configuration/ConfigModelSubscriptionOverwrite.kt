@@ -49,6 +49,7 @@ class ConfigModelSubscriptionOverwrite(
      * @param model Model to add the subscription to.
      * @throws IllegalArgumentException If the model does not have a parent element.
      */
+    @Suppress("unused")
     @Throws(IllegalArgumentException::class)
     constructor(group: Group, model: Model) : this(
         address = group.address.address,

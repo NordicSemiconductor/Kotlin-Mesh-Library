@@ -3,11 +3,8 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigAddressMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -41,7 +38,6 @@ class ConfigModelSubscriptionDeleteAll(
     /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.
      *
-     * @param group Group to add the model subscription to.
      * @param model Model to add the subscription to.
      * @throws IllegalArgumentException If the model does not have a parent element.
      */
