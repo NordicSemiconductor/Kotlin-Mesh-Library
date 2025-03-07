@@ -74,6 +74,52 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
  * @property isLargeCompositionDataClient               True if the model is a large composition
  *                                                      data client model.
  * @property requiresDeviceKey                          True if the model requires a device key.
+ * @property supportsModelPublication                   True if the model supports model publication.
+ * @property supportsModelSubscription                  True if the model supports model subscription.
+ * @property directBaseModels                           List of direct base [Model]s to the Model.
+ *                                                      The "Extend" relationship is explained in
+ *                                                      Mesh Profile 1.0.1, chapter 2.3.6.
+ *                                                      Note: Models that operate on bound states
+ *                                                      share a single subscription list per element.
+ *                                                      Note: Model Extension is only defined for
+ *                                                      SIG Models. Currently it is not possible to
+ *                                                      get relationships between Vendor Models, and
+ *                                                      for those this method returns an empty list.
+ * @property baseModels                                 List of all base [Model]s extended by Model,
+ *                                                      directly or indirectly.
+ *                                                      The "Extend" relationship is explained in
+ *                                                      Mesh Profile 1.0.1, chapter 2.3.6.
+ *                                                      Note: Models that operate on bound states
+ *                                                      share a single subscription list per element.
+ *                                                      Note: Model Extension is only defined for
+ *                                                      SIG Models. Currently it is not possible to
+ *                                                      get relationships between Vendor Models, and
+ *                                                      for those this method returns an empty list.
+ * @property directExtendingModels                      List of [Model]s directly extending the
+ *                                                      Model. The "Extend" relationship is
+ *                                                      explained in Mesh Profile 1.0.1, chapter
+ *                                                      2.3.6.
+ * @property extendingModels                            List of all [Model]s extending the Model,
+ *                                                      directly or indirectly. The "Extend"
+ *                                                      The "Extend" relationship is explained in
+ *                                                      Mesh Profile 1.0.1, chapter 2.3.6.
+ *                                                      Note: Models that operate on bound states
+ *                                                      share a single subscription list per element.
+ *                                                      Note: Model Extension is only defined for
+ *                                                      SIG Models. Currently it is not possible to
+ *                                                      get relationships between Vendor Models, and
+ *                                                      for those this method returns an empty list.
+ * @property relatedModels                              Returns all [Model] insurances that are in a
+ *                                                      hierarchy of "Extend" relationship with this
+ *                                                      Model.
+ *                                                      The "Extend" relationship is explained in
+ *                                                      Mesh Profile 1.0.1, chapter 2.3.6.
+ *                                                      Note: Models that operate on bound states
+ *                                                      share a single subscription list per element.
+ *                                                      Note: Model Extension is only defined for
+ *                                                      SIG Models. Currently it is not possible to
+ *                                                      get relationships between Vendor Models, and
+ *                                                      for those this method returns an empty list.
  * @constructor Creates a model object.
  */
 @Serializable
@@ -168,6 +214,282 @@ data class Model internal constructor(
 
     @Transient
     var eventHandler: ModelEventHandler? = null
+
+    val supportsModelPublication: Boolean?
+        get() = when ((modelId as? SigModelId)?.modelIdentifier) {
+            // Foundation
+            CONFIGURATION_SERVER_MODEL_ID,
+            CONFIGURATION_CLIENT_MODEL_ID,
+                -> false
+
+            HEALTH_SERVER_MODEL_ID,
+            HEALTH_CLIENT_MODEL_ID,
+                -> true
+            // Configuration models added in Mesh Protocol 1.1
+            REMOTE_PROVISIONING_SERVER_MODEL_ID,
+            REMOTE_PROVISIONING_CLIENT_MODEL_ID,
+            DIRECTED_FORWARDING_CONFIGURATION_SERVER_MODEL_ID,
+            DIRECTED_FORWARDING_CONFIGURATION_CLIENT_MODEL_ID,
+            BRIDGE_CONFIGURATION_SERVER_MODEL_ID,
+            BRIDGE_CONFIGURATION_CLIENT_MODEL_ID,
+            PRIVATE_BEACON_SERVER_MODEL_ID,
+            PRIVATE_BEACON_CLIENT_MODEL_ID,
+            ON_DEMAND_PRIVATE_PROXY_SERVER_MODEL_ID,
+            ON_DEMAND_PRIVATE_PROXY_CLIENT_MODEL_ID,
+            SAR_CONFIGURATION_SERVER_MODEL_ID,
+            SAR_CONFIGURATION_CLIENT_MODEL_ID,
+            OP_CODES_AGGREGATOR_SERVER_MODEL_ID,
+            OP_CODES_AGGREGATOR_CLIENT_MODEL_ID,
+            LARGE_COMPOSITION_DATA_SERVER_MODEL_ID,
+            LARGE_COMPOSITION_DATA_CLIENT_MODEL_ID,
+            SOLICITATION_PDU_RPL_CONFIGURATION_SERVER_MODEL_ID,
+            SOLICITATION_PDU_RPL_CONFIGURATION_CLIENT_MODEL_ID,
+                -> false
+            // Generics
+            GENERIC_ON_OFF_SERVER_MODEL_ID,
+            GENERIC_ON_OFF_CLIENT_MODEL_ID,
+            GENERIC_LEVEL_SERVER_MODEL_ID,
+            GENERIC_LEVEL_CLIENT_MODEL_ID,
+            GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID,
+            GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID,
+            GENERIC_POWER_ON_OFF_SERVER_MODEL_ID,
+                -> true
+
+            GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID -> false
+            GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID,
+            GENERIC_POWER_LEVEL_SERVER_MODEL_ID,
+                -> true
+
+            GENERIC_POWER_LEVEL_SETUP_SERVER_MODEL_ID -> false
+            GENERIC_POWER_LEVEL_CLIENT_MODEL_ID,
+            GENERIC_BATTERY_SERVER_MODEL_ID,
+            GENERIC_BATTERY_CLIENT_MODEL_ID,
+            GENERIC_LOCATION_SERVER_MODEL_ID,
+                -> true
+
+            GENERIC_LOCATION_SETUP_SERVER_MODEL_ID -> false
+            GENERIC_LOCATION_CLIENT_MODEL_ID,
+            GENERIC_ADMIN_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_MANUFACTURER_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_USER_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_CLIENT_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_PROPERTY_CLIENT_MODEL_ID,
+                -> true
+            // Sensors
+            SENSOR_SERVER_MODEL_ID,
+            SENSOR_SETUP_SERVER_MODEL_ID,
+            SENSOR_CLIENT_MODEL_ID,
+                -> true
+            // Time and Scenes
+            TIME_SERVER_MODEL_ID -> true
+            TIME_SETUP_SERVER_MODEL_ID -> false
+            TIME_CLIENT_MODEL_ID,
+            SCENE_SERVER_MODEL_ID,
+                -> true
+
+            SCENE_SETUP_SERVER_MODEL_ID -> false
+            SCENE_CLIENT_MODEL_ID,
+            SCHEDULER_SERVER_MODEL_ID,
+                -> true
+
+            SCHEDULER_SETUP_SERVER_MODEL_ID -> false
+            SCHEDULER_CLIENT_MODEL_ID -> true
+            // Lighting
+            LIGHT_LIGHTNESS_SERVER_MODEL_ID -> true
+            LIGHT_LIGHTNESS_SETUP_SERVER_MODEL_ID -> false
+            LIGHT_LIGHTNESS_CLIENT_MODEL_ID,
+            LIGHT_CTL_SERVER_MODEL_ID,
+                -> true
+
+            LIGHT_CTL_SETUP_SERVER_MODEL_ID -> false
+            LIGHT_CTL_CLIENT_MODEL_ID,
+            LIGHT_CTL_TEMPERATURE_SERVER_MODEL_ID,
+            LIGHT_HSL_SERVER_MODEL_ID,
+                -> true
+
+            LIGHT_HSL_SETUP_SERVER_MODEL_ID -> false
+            LIGHT_HSL_CLIENT_MODEL_ID,
+            LIGHT_HSL_HUE_SERVER_MODEL_ID,
+            LIGHT_HSL_SATURATION_SERVER_MODEL_ID,
+            LIGHT_XYL_SERVER_MODEL_ID,
+                -> true
+
+            LIGHT_XYL_SETUP_SERVER_MODEL_ID -> false
+            LIGHT_XYL_CLIENT_MODEL_ID,
+            LIGHT_LC_SERVER_MODEL_ID,
+            LIGHT_LC_SETUP_SERVER_MODEL_ID,
+            LIGHT_LC_CLIENT_MODEL_ID,
+                -> true
+
+            else -> null
+        }
+
+    val supportsModelSubscription: Boolean?
+        get() = when ((modelId as? SigModelId)?.modelIdentifier) {
+            // Foundation
+            CONFIGURATION_SERVER_MODEL_ID,
+            CONFIGURATION_CLIENT_MODEL_ID,
+                -> false
+
+            HEALTH_SERVER_MODEL_ID,
+            HEALTH_CLIENT_MODEL_ID,
+                -> true
+            // Configuration models added in Mesh Protocol 1.1
+            REMOTE_PROVISIONING_SERVER_MODEL_ID,
+            REMOTE_PROVISIONING_CLIENT_MODEL_ID,
+            DIRECTED_FORWARDING_CONFIGURATION_SERVER_MODEL_ID,
+            DIRECTED_FORWARDING_CONFIGURATION_CLIENT_MODEL_ID,
+            BRIDGE_CONFIGURATION_SERVER_MODEL_ID,
+            BRIDGE_CONFIGURATION_CLIENT_MODEL_ID,
+            PRIVATE_BEACON_SERVER_MODEL_ID,
+            PRIVATE_BEACON_CLIENT_MODEL_ID,
+            ON_DEMAND_PRIVATE_PROXY_SERVER_MODEL_ID,
+            ON_DEMAND_PRIVATE_PROXY_CLIENT_MODEL_ID,
+            SAR_CONFIGURATION_SERVER_MODEL_ID,
+            SAR_CONFIGURATION_CLIENT_MODEL_ID,
+            OP_CODES_AGGREGATOR_SERVER_MODEL_ID,
+            OP_CODES_AGGREGATOR_CLIENT_MODEL_ID,
+            LARGE_COMPOSITION_DATA_SERVER_MODEL_ID,
+            LARGE_COMPOSITION_DATA_CLIENT_MODEL_ID,
+            SOLICITATION_PDU_RPL_CONFIGURATION_SERVER_MODEL_ID,
+            SOLICITATION_PDU_RPL_CONFIGURATION_CLIENT_MODEL_ID,
+                -> false
+            // Generics
+            GENERIC_ON_OFF_SERVER_MODEL_ID,
+            GENERIC_ON_OFF_CLIENT_MODEL_ID,
+            GENERIC_LEVEL_SERVER_MODEL_ID,
+            GENERIC_LEVEL_CLIENT_MODEL_ID,
+            GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID,
+            GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID,
+            GENERIC_POWER_ON_OFF_SERVER_MODEL_ID,
+            GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID,
+            GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID,
+            GENERIC_POWER_LEVEL_SERVER_MODEL_ID,
+            GENERIC_POWER_LEVEL_SETUP_SERVER_MODEL_ID,
+            GENERIC_POWER_LEVEL_CLIENT_MODEL_ID,
+            GENERIC_BATTERY_SERVER_MODEL_ID,
+            GENERIC_BATTERY_CLIENT_MODEL_ID,
+            GENERIC_LOCATION_SERVER_MODEL_ID,
+            GENERIC_LOCATION_SETUP_SERVER_MODEL_ID,
+            GENERIC_LOCATION_CLIENT_MODEL_ID,
+            GENERIC_ADMIN_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_MANUFACTURER_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_USER_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_CLIENT_PROPERTY_SERVER_MODEL_ID,
+            GENERIC_PROPERTY_CLIENT_MODEL_ID,
+                -> true
+            // Sensors
+            SENSOR_SERVER_MODEL_ID,
+            SENSOR_SETUP_SERVER_MODEL_ID,
+            SENSOR_CLIENT_MODEL_ID,
+                -> true
+            // Time and Scenes
+            TIME_SERVER_MODEL_ID,
+            TIME_SETUP_SERVER_MODEL_ID,
+            TIME_CLIENT_MODEL_ID,
+            SCENE_SERVER_MODEL_ID,
+            SCENE_SETUP_SERVER_MODEL_ID,
+            SCENE_CLIENT_MODEL_ID,
+            SCHEDULER_SERVER_MODEL_ID,
+            SCHEDULER_SETUP_SERVER_MODEL_ID,
+            SCHEDULER_CLIENT_MODEL_ID,
+                -> true
+            // Lighting
+            LIGHT_LIGHTNESS_SERVER_MODEL_ID,
+            LIGHT_LIGHTNESS_SETUP_SERVER_MODEL_ID,
+            LIGHT_LIGHTNESS_CLIENT_MODEL_ID,
+            LIGHT_CTL_SERVER_MODEL_ID,
+            LIGHT_CTL_SETUP_SERVER_MODEL_ID,
+            LIGHT_CTL_CLIENT_MODEL_ID,
+            LIGHT_CTL_TEMPERATURE_SERVER_MODEL_ID,
+            LIGHT_HSL_SERVER_MODEL_ID,
+            LIGHT_HSL_SETUP_SERVER_MODEL_ID,
+            LIGHT_HSL_CLIENT_MODEL_ID,
+            LIGHT_HSL_HUE_SERVER_MODEL_ID,
+            LIGHT_HSL_SATURATION_SERVER_MODEL_ID,
+            LIGHT_XYL_SERVER_MODEL_ID,
+            LIGHT_XYL_SETUP_SERVER_MODEL_ID,
+            LIGHT_XYL_CLIENT_MODEL_ID,
+            LIGHT_LC_SERVER_MODEL_ID,
+            LIGHT_LC_SETUP_SERVER_MODEL_ID,
+            LIGHT_LC_CLIENT_MODEL_ID,
+                -> true
+
+            else -> null
+        }
+
+    val directBaseModels: List<Model>
+        get() = parentElement?.let { parentElement ->
+            // Get all direct base models of this Model.
+            parentElement.parentNode?.elements
+                // Look only on that and previous Elements.
+                // Models can't extend Models on Elements with higher index.
+                ?.filter { it.index < parentElement.index }
+                // Sort in reverse order so that unifying the list will
+                // remove those on Elements with lowest indexes.
+                ?.sortedByDescending { it.index }
+                // Get a list of all models.
+                ?.flatMap { it.models }
+                // Remove duplicates.
+                ?.distinctBy { it.modelId }
+                // Get all direct base models of this Model.
+                ?.filter { extendsDirectly(model = it) }
+                ?: emptyList()
+        } ?: emptyList()
+
+    val baseModels: List<Model>
+        get() = directBaseModels.let { models ->
+            models + models.flatMap { it.baseModels }
+        }
+
+    val directExtendingModels: List<Model>
+        get() = parentElement?.let { parentElement ->
+            // Get all models directly extending this Model.
+            parentElement.parentNode?.elements
+                // Look only on that and next Elements.
+                // Models can't be extended by Models on Elements with lower index.
+                ?.filter { it.index > parentElement.index }
+                // Get a list of all models.
+                ?.flatMap { it.models }
+                // Remove duplicates.
+                ?.distinctBy { it.modelId }
+                // Get all models directly extending this Model.
+                ?.filter { it.extendsDirectly(model = this) }
+                ?: emptyList()
+        } ?: emptyList()
+
+    val extendingModels: List<Model>
+        get() = directExtendingModels.let { models ->
+            models + models.flatMap { it.extendingModels }
+        }
+
+    val relatedModels: List<Model>
+        get() {
+            val node = parentElement?.parentNode ?: return emptyList()
+            val models = node.elements.flatMap { it.models }
+            val result = mutableSetOf<Model>()
+            val queue = mutableListOf(this)
+
+            while (queue.isNotEmpty()) {
+                val currentModel = queue.removeAt(0) // Removes the first element (FIFO)
+                if (result.add(element = currentModel) && currentModel != this) {
+                    queue.addAll(
+                        elements = models
+                            .filter {
+                                it.extendsDirectly(model = currentModel) ||
+                                        currentModel.extendsDirectly(model = it)
+                            }
+                    )
+                }
+            }
+
+            return result.sortedWith(
+                comparator = compareBy(
+                    { it.parentElement?.index },
+                    { (it.modelId as SigModelId).modelIdentifier }
+                )
+            )
+        }
 
     /**
      * Constructs a Model
@@ -316,12 +638,183 @@ data class Model internal constructor(
         parentElement?.parentNode?.network?.updateTimestamp()
     }
 
+    /**
+     * Returns whether a model extends the given model directly or indirectly.
+     *
+     * If a Model A extends B, which extends C, this method will return "true" if checked with A and C.
+     * Base Models may exist on the same Element or on an element with a lower index.
+     *
+     * The "Extends" relationship is defined in the Mesh Profile 1.0.1, chapter 2.3.6
+     *
+     * Note: Models in Extend relationship share their Subscription List if they are on the same
+     * Element.
+     *
+     * Note: Model extension is only defined for SIG Models. Currently it is not possible to get
+     * relationships between Vendor Models and will always return false.
+     *
+     * @param model Model to check if this model extends.
+     * @return true if this model extends the given model, false otherwise.
+     */
+    fun extends(model: Model): Boolean {
+        val parentElement = parentElement ?: return false
+        val otherParentElement = model.parentElement ?: return false
+        val node = parentElement.parentNode ?: return false
+        val otherNode = otherParentElement.parentNode ?: return false
+        if (node.uuid == otherNode.uuid) return false
+        return baseModels.contains(model)
+    }
+
+    /**
+     * Returns whether a model extends the given model.
+     *
+     * This method only checks direct Extend relationship, not hierarchical. If a Model A extends B,
+     * which extends C, this method will return false for A extends C. Base Models may exist on
+     * the same Element or on an element with a lower index.
+     *
+     * The "Extends" relationship is defined in the Mesh Profile 1.0.1, chapter 2.3.6
+     *
+     * Note: Models in Extend relationship share their Subscription List if they are ont eh same
+     * Element.
+     *
+     * Note: Model extension is only defined for SIG Models. Currently it is not possible ot get
+     * relationships between Vendor Models and will always return false.
+     *
+     * @param model Model to check if this model extends.
+     * @return true if this model extends the given model, false otherwise.
+     */
+    fun extendsDirectly(model: Model): Boolean {
+        // Ensure models are on the same node
+        val parentElement = parentElement ?: return false
+        val otherParentElement = model.parentElement ?: return false
+        val node = parentElement.parentNode ?: return false
+        val otherNode = otherParentElement.parentNode ?: return false
+        if (node.uuid == otherNode.uuid) return false
+
+        // Ensure model does not extend itself or any other instance of the same model
+        if (model.modelId == modelId) return false
+
+        // Currently, it is not possible to get relationships between vendor models
+        if (modelId as? SigModelId == null || model.modelId as? SigModelId == null) return false
+
+        return if (model.parentElement == parentElement) {
+            when (modelId.modelIdentifier) {
+                DIRECTED_FORWARDING_CONFIGURATION_SERVER_MODEL_ID,
+                BRIDGE_CONFIGURATION_SERVER_MODEL_ID,
+                PRIVATE_BEACON_SERVER_MODEL_ID,
+                LARGE_COMPOSITION_DATA_SERVER_MODEL_ID,
+                    ->
+                    model.modelId.modelIdentifier == CONFIGURATION_SERVER_MODEL_ID
+
+                ON_DEMAND_PRIVATE_PROXY_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == PRIVATE_BEACON_SERVER_MODEL_ID
+                // Generics
+                GENERIC_POWER_ON_OFF_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_ON_OFF_SERVER_MODEL_ID
+
+                GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID
+
+                GENERIC_POWER_LEVEL_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_LEVEL_SERVER_MODEL_ID
+
+                GENERIC_POWER_LEVEL_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_POWER_LEVEL_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID
+
+                GENERIC_LOCATION_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_LOCATION_SERVER_MODEL_ID
+
+                GENERIC_ADMIN_PROPERTY_SERVER_MODEL_ID, GENERIC_MANUFACTURER_PROPERTY_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_PROPERTY_CLIENT_MODEL_ID
+                // Sensors
+                SENSOR_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == SENSOR_SERVER_MODEL_ID
+                // Time and Scenes
+                TIME_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == TIME_SERVER_MODEL_ID
+
+                SCENE_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == SCENE_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID
+
+                SCHEDULER_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == SCHEDULER_SERVER_MODEL_ID
+                // Lighting
+                LIGHT_LIGHTNESS_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_LEVEL_SERVER_MODEL_ID
+
+                LIGHT_LIGHTNESS_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_LIGHTNESS_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID
+
+                LIGHT_CTL_SERVER_MODEL_ID, LIGHT_HSL_SERVER_MODEL_ID, LIGHT_XYL_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_LIGHTNESS_SERVER_MODEL_ID
+
+                LIGHT_CTL_TEMPERATURE_SERVER_MODEL_ID,
+                LIGHT_HSL_HUE_SERVER_MODEL_ID,
+                LIGHT_HSL_SATURATION_SERVER_MODEL_ID,
+                    ->
+                    model.modelId.modelIdentifier == GENERIC_LEVEL_SERVER_MODEL_ID
+
+                LIGHT_CTL_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_CTL_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID
+
+                LIGHT_HSL_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_HSL_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID
+
+                LIGHT_XYL_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_XYL_SERVER_MODEL_ID ||
+                            model.modelId.modelIdentifier == LIGHT_LIGHTNESS_SETUP_SERVER_MODEL_ID
+
+                LIGHT_LC_SERVER_MODEL_ID ->
+                    // It also extends a Light Lightness Server on another element
+                    model.modelId.modelIdentifier == GENERIC_ON_OFF_SERVER_MODEL_ID
+
+                LIGHT_LC_SETUP_SERVER_MODEL_ID ->
+                    model.modelId.modelIdentifier == LIGHT_LC_SERVER_MODEL_ID
+
+                FIRMWARE_UPDATE_SERVER,
+                FIRMWARE_DISTRIBUTION_SERVER,
+                    ->
+                    model.modelId.modelIdentifier == BLOB_TRANSFER_SERVER
+
+                else -> false
+            }
+        } else {
+            // Some features are split into two elements.
+            when (modelId.modelIdentifier) {
+                // Light LC Server Model extends Light Lightness Server Model that cannot be on the
+                // same Element. Search for a Model on an Element with lower index
+                LIGHT_LC_SERVER_MODEL_ID -> {
+                    val lightLightnessServerModelId = SigModelId(
+                        modelIdentifier = LIGHT_LIGHTNESS_SERVER_MODEL_ID
+                    )
+                    val lightLightnessServer = node.elements
+                        .filter { it.index < parentElement.index }
+                        .sortedWith { first, second -> first.index.compareTo(second.index) }
+                        .firstOrNull {
+                            it.contains(sigModelId = lightLightnessServerModelId)
+                        }?.model(modelId = lightLightnessServerModelId)
+
+                    model == lightLightnessServer
+                }
+
+                else -> false
+            }
+        }
+    }
+
     companion object {
 
         const val CONFIGURATION_SERVER_MODEL_ID: UShort = 0x0000u
         const val CONFIGURATION_CLIENT_MODEL_ID: UShort = 0x0001u
         const val HEALTH_SERVER_MODEL_ID: UShort = 0x0002u
-        const val HEALTH_CLIENT_MODEL_ID: UShort = 0x0002u
+        const val HEALTH_CLIENT_MODEL_ID: UShort = 0x0003u
 
         // Configuration models added in Mesh Protocol 1.1
         const val REMOTE_PROVISIONING_SERVER_MODEL_ID: UShort = 0x0004u
