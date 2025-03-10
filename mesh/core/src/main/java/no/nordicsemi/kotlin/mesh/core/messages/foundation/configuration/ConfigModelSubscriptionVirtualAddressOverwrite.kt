@@ -12,6 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import no.nordicsemi.kotlin.mesh.core.util.Utils.encode
 import java.nio.ByteOrder
 import java.util.UUID
 
@@ -38,7 +39,7 @@ class ConfigModelSubscriptionVirtualAddressOverwrite(
         get() {
             val data = byteArrayOf() +
                     elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    virtualLabel.toString().replace("-", "").toByteArray()
+                    virtualLabel.encode().toByteArray()
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
                 companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                         modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)

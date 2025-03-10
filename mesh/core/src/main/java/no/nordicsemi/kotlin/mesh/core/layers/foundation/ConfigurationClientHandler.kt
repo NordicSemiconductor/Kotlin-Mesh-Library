@@ -24,6 +24,14 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionDeleteAll
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionOverwrite
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressOverwrite
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
@@ -38,12 +46,13 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
+import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
@@ -61,7 +70,7 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
  * @constructor Initialize ConfigurationClientHandler
  */
 internal class ConfigurationClientHandler(
-    override val meshNetwork: MeshNetwork
+    override val meshNetwork: MeshNetwork,
 ) : ModelEventHandler() {
 
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
@@ -80,6 +89,7 @@ internal class ConfigurationClientHandler(
         ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
+        ConfigModelSubscriptionStatus.opCode to ConfigModelSubscriptionStatus,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
     )
     override val isSubscriptionSupported: Boolean = false
@@ -98,7 +108,6 @@ internal class ConfigurationClientHandler(
             )
 
             is ModelEvent.ResponseReceived -> handleResponses(
-                model = event.model,
                 response = event.response,
                 request = event.request,
                 source = event.source
@@ -113,16 +122,14 @@ internal class ConfigurationClientHandler(
     /**
      * Handles the responses received by the client model.
      *
-     * @param model     Model that received the message.
      * @param response  Response that was received by the model.
      * @param request   Request that was sent.
      * @param source    Address of the Element from which the message was sent.
      */
     private fun handleResponses(
-        model: Model,
         response: MeshResponse,
         request: AcknowledgedMeshMessage,
-        source: Address
+        source: Address,
     ) = meshNetwork.run {
         when (response) {
             // Composition Data
@@ -210,7 +217,6 @@ internal class ConfigurationClientHandler(
                     response.isEnabled -> HeartbeatPublication(response)
                     else -> null
                 }
-
             }
 
             is ConfigModelPublicationStatus -> if (response.isSuccess) {
@@ -231,9 +237,11 @@ internal class ConfigurationClientHandler(
                                     else -> model.set(response.publish)
                                 }
                             }
+
                             is ConfigModelPublicationSet -> if (!response.publish.isCanceled)
                                 model.set(response.publish)
                             else model.clearPublication()
+
                             is ConfigModelPublicationVirtualAddressSet -> model.set(response.publish)
                             else -> {}
                         }
@@ -259,6 +267,46 @@ internal class ConfigurationClientHandler(
                             }
                         }
                     }
+            }
+
+            is ConfigModelSubscriptionStatus -> {
+                if (response.isSuccess) {
+                    val element = node(address = source)
+                        ?.element(address = response.elementAddress)
+                    // val model = element?.models?.model(modelId = response.modelId) ?: return
+                    element?.models?.model(modelId = response.modelId)?.let { model ->
+                        // When a Subscription List is modified on a Node, it affects all
+                        // Models with bound state on the same Element.
+                        val models = arrayOf(model) + model.relatedModels
+                            .filter { it.parentElement == model.parentElement }
+                        // The status for delete all request has an invalid address. Lets handle it
+                        // directly here.
+                        if (request is ConfigModelSubscriptionDeleteAll) {
+                            models.forEach { it.unsubscribeFromAll() }
+                            return
+                        }
+
+                        val address = MeshAddress
+                            .create(address = response.address) as SubscriptionAddress
+                        when (request) {
+                            is ConfigModelSubscriptionOverwrite,
+                            is ConfigModelSubscriptionVirtualAddressOverwrite -> {
+                                models.forEach { it.unsubscribeFromAll() }
+                                models.forEach { it.subscribe(address = address) }
+                            }
+
+                            is ConfigModelSubscriptionAdd,
+                            is ConfigModelSubscriptionVirtualAddressAdd ->
+                                models.forEach { it.subscribe(address = address) }
+
+                            is ConfigModelSubscriptionDelete,
+                            is ConfigModelSubscriptionVirtualAddressDelete -> models
+                                .forEach { it.unsubscribe(address = address.address) }
+
+                            else -> {}
+                        }
+                    }
+                }
             }
 
             is ConfigNodeResetStatus -> node(address = source)?.let { remove(it) }
