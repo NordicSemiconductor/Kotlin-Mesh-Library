@@ -37,16 +37,19 @@ class ConfigModelSubscriptionStatus(
         get() {
             val data = byteArrayOf(status.value.toByte()) +
                     elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                    address.toByteArray(ByteOrder.LITTLE_ENDIAN)
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
                 companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                         modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
 
-    override fun toString() = "ConfigModelSubscriptionStatus(status: $status, address: $address, " +
-            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
-            "companyIdentifier: $companyIdentifier)"
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
+            "elementAddress: ${elementAddress.toHexString()}, " +
+            "address: ${address.toHexString()}, " +
+            "modelIdentifier: ${modelIdentifier.toHexString()}, " +
+            "companyIdentifier: ${companyIdentifier?.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Fu
@@ -58,10 +61,7 @@ class ConfigModelSubscriptionStatus(
                 ConfigModelSubscriptionStatus(
                     status = status,
                     elementAddress = UnicastAddress(
-                        address = params.getUShort(
-                            offset = 1,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        )
+                        address = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
                     ),
                     address = params.getUShort(offset = 3, order = ByteOrder.LITTLE_ENDIAN),
                     companyIdentifier = if (params.size == 9) {
