@@ -97,6 +97,7 @@ fun ElevatedCardItem(
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: () -> Unit,
     imageVector: ImageVector,
     title: String,
@@ -108,6 +109,7 @@ fun ElevatedCardItem(
     OutlinedCard(
         modifier = modifier,
         onClick = onClick,
+        enabled = enabled,
         colors = colors
     ) {
         MeshTwoLineListItem(
