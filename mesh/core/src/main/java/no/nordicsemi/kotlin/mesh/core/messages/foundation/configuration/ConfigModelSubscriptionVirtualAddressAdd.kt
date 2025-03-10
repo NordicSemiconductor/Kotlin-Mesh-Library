@@ -12,6 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
 
@@ -32,16 +33,16 @@ class ConfigModelSubscriptionVirtualAddressAdd(
 ) : AcknowledgedConfigMessage, ConfigVirtualLabelMessage, ConfigAnyModelMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
+
+    @OptIn(ExperimentalStdlibApi::class)
     override val parameters: ByteArray
         get() {
             val data = byteArrayOf() +
-                    virtualLabel.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    virtualLabel.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-
-            return data.plus(elements = companyIdentifier?.let {
-                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                        it.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                    virtualLabel.toString().replace("-", "").toByteArray()
+            return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
+                companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                        modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
 

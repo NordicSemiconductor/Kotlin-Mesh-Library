@@ -35,10 +35,9 @@ class ConfigModelSubscriptionOverwrite(
             val data = byteArrayOf() +
                     elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-
-            return data.plus(elements = companyIdentifier?.let {
-                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                        it.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+            return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
+                companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                        modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
 
