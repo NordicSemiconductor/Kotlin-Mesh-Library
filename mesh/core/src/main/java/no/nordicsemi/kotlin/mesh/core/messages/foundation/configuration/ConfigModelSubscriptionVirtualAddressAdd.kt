@@ -33,7 +33,6 @@ class ConfigModelSubscriptionVirtualAddressAdd(
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
 
-    @OptIn(ExperimentalStdlibApi::class)
     override val parameters: ByteArray
         get() {
             val data = byteArrayOf() +
