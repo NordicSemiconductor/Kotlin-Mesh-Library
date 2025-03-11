@@ -10,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
+import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
@@ -45,13 +46,32 @@ class ConfigModelSubscriptionAdd(
     /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.
      *
-     * @param group Group to add the model subscription to.
+     * @param group Group to which the model should subscribe to.
      * @param model Model to add the subscription to.
      * @throws IllegalArgumentException If the model does not have a parent element.
      */
     @Throws(IllegalArgumentException::class)
     constructor(group: Group, model: Model) : this(
         address = group.address.address,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionAdd message.
+     *
+     * @param address Address to which the model should subscribe to.
+     * @param model Model to add the subscription to.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(address: SubscriptionAddress, model: Model) : this(
+        address = address.address,
         elementAddress = model.parentElement?.unicastAddress
             ?: throw IllegalArgumentException("Element address cannot be null"),
         modelIdentifier = when (model.modelId) {
