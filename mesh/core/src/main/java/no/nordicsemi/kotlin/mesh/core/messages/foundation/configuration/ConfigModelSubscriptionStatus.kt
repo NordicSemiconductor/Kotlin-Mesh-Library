@@ -35,7 +35,7 @@ class ConfigModelSubscriptionStatus(
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
         get() {
-            val data = byteArrayOf(status.value.toByte()) +
+            val data = status.value.toByteArray() +
                     elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     address.toByteArray(ByteOrder.LITTLE_ENDIAN)
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
@@ -47,7 +47,7 @@ class ConfigModelSubscriptionStatus(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
             "elementAddress: ${elementAddress.toHexString()}, " +
-            "address: ${address.toHexString()}, " +
+            "address: ${address.toHexString(format = HexFormat.UpperCase)}, " +
             "modelIdentifier: ${modelIdentifier.toHexString()}, " +
             "companyIdentifier: ${companyIdentifier?.toHexString()})"
 
