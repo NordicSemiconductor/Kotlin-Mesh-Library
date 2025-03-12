@@ -45,7 +45,7 @@ class NetworkViewModel @Inject constructor(
     private fun loadNetwork() {
         viewModelScope.launch {
             meshNetwork = repository.load()
-            repository.startAutomaticConnectivity(meshNetwork)
+            // repository.startAutomaticConnectivity(meshNetwork)
         }
     }
 
