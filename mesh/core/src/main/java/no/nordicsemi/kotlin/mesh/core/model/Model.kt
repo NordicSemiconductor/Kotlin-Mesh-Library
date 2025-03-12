@@ -507,20 +507,6 @@ data class Model internal constructor(
     }
 
     /**
-     * Subscribe this model to a given subscription address.
-     *
-     * @param address Subscription address to be added.
-     * @return true if the address is added or false if the address is already exists in the list.
-     */
-    internal fun subscribe(address: SubscriptionAddress) = when {
-        _subscribe.contains(element = address) -> false
-        else -> {
-            _subscribe.add(address)
-            true
-        }
-    }
-
-    /**
      * Binds the given application key index to a model.
      *
      * @param index Application key index.
@@ -582,6 +568,14 @@ data class Model internal constructor(
     fun isBoundTo(key: ApplicationKey) = bind.any { it == key.index }
 
     /**
+     * Checks if the Model is subscribed to the given address.
+     *
+     * @param address Address to check.
+     * @return true if the model is subscribed to the address or false otherwise.
+     */
+    fun isSubscribedTo(address: SubscriptionAddress) = subscribe.any { it == address }
+
+    /**
      * Checks if the Model is subscribed to the given Group.
      *
      * @param group Group to check.
@@ -598,11 +592,28 @@ data class Model internal constructor(
     fun isSubscribedTo(address: PrimaryGroupAddress) = subscribe.any { it == address }
 
     /**
+     * Subscribe this model to a given subscription address.
+     *
+     * @param address Subscription address to be added.
+     * @return true if the address is added or false if the address is already exists in the list.
+     */
+    internal fun subscribe(address: SubscriptionAddress) =
+        when (isSubscribedTo(address = address)) {
+            true -> false
+            false -> {
+                _subscribe.add(address)
+                parentElement?.parentNode?.network?.updateTimestamp()
+                true
+            }
+        }
+
+    /**
      * Subscribes the model to the given group.
      *
      * @param group Group to subscribe.
      */
     fun subscribe(group: Group) {
+        subscribe(address = group.address as SubscriptionAddress)
         if (isSubscribedTo(group = group)) {
             _subscribe.add(group.address as SubscriptionAddress)
             parentElement?.parentNode?.network?.updateTimestamp()
@@ -626,7 +637,7 @@ data class Model internal constructor(
     fun unsubscribe(address: Address) {
         _subscribe
             .firstOrNull { it.address == address }
-            ?.takeIf { _subscribe.remove(it) }
+            ?.takeIf { _subscribe.remove(element = it) }
             ?.let { parentElement?.parentNode?.network?.updateTimestamp() }
     }
 
