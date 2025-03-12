@@ -25,9 +25,17 @@ class ConfigSigModelSubscriptionList(
     override val opCode = Initializer.opCode
     override val modelIdentifier = modelId.modelIdentifier
     override val parameters: ByteArray
-        get() = byteArrayOf() +
+        get() = status.value.toByteArray() +
                 elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                addresses.fold(byteArrayOf()) { acc, address ->
+                    acc + address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigSigModelSubscriptionList(status: $status " +
+            "elementAddress: ${elementAddress.toHexString()} modelId: ${modelId.toHex()} " +
+            "addresses: ${addresses.forEach { it.toHexString() }})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x802Au
@@ -47,7 +55,7 @@ class ConfigSigModelSubscriptionList(
                     addresses = mutableListOf<Address>().apply {
                         var index = 5
                         while (index < params.size) {
-                            add((params.getUShort(offset = index, order = ByteOrder.LITTLE_ENDIAN)))
+                            add(params.getUShort(offset = index, order = ByteOrder.LITTLE_ENDIAN))
                             index += 2
                         }
                     }

@@ -22,8 +22,7 @@ class ConfigSigModelSubscriptionGet(
     override val responseOpCode = ConfigSigModelSubscriptionList.opCode
     override val modelIdentifier = modelId.modelIdentifier
     override val parameters: ByteArray
-        get() = byteArrayOf() +
-                elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+        get() = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     /**
@@ -41,6 +40,9 @@ class ConfigSigModelSubscriptionGet(
             else -> throw IllegalArgumentException("Only SIG models are supported")
         }
     )
+
+    override fun toString() = "ConfigSigModelSubscriptionGet(elementAddress: " +
+            "${elementAddress.toHexString()} modelId: ${modelId.toHex()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8029u

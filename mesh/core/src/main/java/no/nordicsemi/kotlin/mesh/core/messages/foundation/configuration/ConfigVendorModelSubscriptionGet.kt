@@ -42,8 +42,11 @@ class ConfigVendorModelSubscriptionGet(
         }
     )
 
+    override fun toString() = "ConfigVendorModelSubscriptionGet(elementAddress: " +
+            "${elementAddress.toHexString()} modelId: ${modelId.toHex()})"
+
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x8029u
+        override val opCode = 0x802Bu
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 6

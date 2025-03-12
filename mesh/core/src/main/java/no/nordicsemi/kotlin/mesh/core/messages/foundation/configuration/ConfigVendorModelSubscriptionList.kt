@@ -28,12 +28,20 @@ class ConfigVendorModelSubscriptionList(
     override val modelIdentifier = modelId.modelIdentifier
     override val companyIdentifier = modelId.companyIdentifier
     override val parameters: ByteArray
-        get() = byteArrayOf() +
+        get() = status.value.toByteArray() +
                 elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                addresses.fold(byteArrayOf()) { acc, address ->
+                    acc + address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigVendorModelSubscriptionList(status: $status " +
+            "elementAddress: ${elementAddress.toHexString()} modelId: ${modelId.toHex()} " +
+            "addresses: ${addresses.forEach { it.toHexString() }})"
 
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x802Au
+        override val opCode = 0x802Cu
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size >= 7
