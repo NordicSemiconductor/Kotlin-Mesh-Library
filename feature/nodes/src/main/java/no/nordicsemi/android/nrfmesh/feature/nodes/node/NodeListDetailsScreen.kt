@@ -10,11 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
@@ -24,6 +26,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun NodeListDetailsScreen(
+    appState: AppState,
     uiState: NodeScreenUiState,
     onRefresh: () -> Unit,
     onExcluded: (Boolean) -> Unit,
@@ -139,7 +142,8 @@ internal fun NodeListDetailsScreen(
                             content = content,
                             send = send,
                             resetMessageState = resetMessageState,
-                            requestNodeIdentityStates = requestNodeIdentityStates
+                            requestNodeIdentityStates = requestNodeIdentityStates,
+                            navigateToGroups = { appState.navController.navigateToGroups() }
                         )
                     }
                 }

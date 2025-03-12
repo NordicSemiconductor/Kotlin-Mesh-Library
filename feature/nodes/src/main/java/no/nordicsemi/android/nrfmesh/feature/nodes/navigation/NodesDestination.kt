@@ -40,6 +40,6 @@ fun NavGraphBuilder.nodesGraph(appState: AppState, navigateBack: () -> Unit) {
                 remove = { }
             )
         }
-        nodeGraph(navigateBack = navigateBack)
+        nodeGraph(appState = appState, navigateBack = navigateBack)
     }
 }

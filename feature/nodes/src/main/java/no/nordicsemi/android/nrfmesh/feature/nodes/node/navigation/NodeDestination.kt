@@ -8,6 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListDetailsScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -19,7 +20,7 @@ fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null) = n
     route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions
 )
 
-fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
+fun NavGraphBuilder.nodeGraph(appState: AppState, navigateBack: () -> Unit) {
     composable<NodeRoute> {
         val viewModel = hiltViewModel<NodeViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -32,6 +33,7 @@ fun NavGraphBuilder.nodeGraph(navigateBack: () -> Unit) {
             requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
             save = viewModel::save,
             resetMessageState = viewModel::resetMessageState,
+            appState = appState,
             navigateBack = navigateBack
         )
     }

@@ -19,7 +19,7 @@ data object GroupsBaseRoute
 @Serializable
 data object GroupsRoute
 
-fun NavController.navigateToGroups(navOptions: NavOptions) = navigate(
+fun NavController.navigateToGroups(navOptions: NavOptions? = null) = navigate(
     route = GroupsRoute,
     navOptions = navOptions
 )

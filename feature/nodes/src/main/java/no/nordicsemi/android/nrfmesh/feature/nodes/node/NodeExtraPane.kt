@@ -25,6 +25,7 @@ internal fun NodeExtraPane(
     send: (AcknowledgedConfigMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
+    navigateToGroups: () -> Unit
 ) {
     when (content) {
         is ModelRouteKeyKey -> ModelScreenRoute(
@@ -36,6 +37,7 @@ internal fun NodeExtraPane(
             send = send,
             requestNodeIdentityStates = requestNodeIdentityStates,
             resetMessageState = resetMessageState,
+            navigateToGroups = navigateToGroups
         )
 
         is NetworkKeysContent -> NetworkKeysScreenRoute(

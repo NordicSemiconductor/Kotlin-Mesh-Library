@@ -94,4 +94,8 @@
     <string name="label_delete_all_subscriptions">Delete all subscriptions</string>
     <string name="label_delete_all_subscriptions_rationale">This will clear all the groups or unicast addresses this model is subscribed to. Do you wish to continue?</string>
     <string name="label_send">Send</string>
+    <string name="label_subscribe_addresses_rationale">All models on the primary Element are automatically subscribed to the All Nodes address and those of the groups lsted above which have the corresponding feature enabled on the node.\n\nSubscribing to any of the groups will bypass the feature to check so that the model will always recieve messages sent to that group.</string>
+    <string name="label_subscribe">Subscribe</string>
+    <string name="label_add_group">Add Group</string>
+    <string name="label_select_subscribe_group">Select a group to subscribe to</string>
 </resources>

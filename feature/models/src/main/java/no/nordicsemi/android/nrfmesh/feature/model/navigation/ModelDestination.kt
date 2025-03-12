@@ -14,6 +14,7 @@ fun ModelScreenRoute(
     nodeIdentityStates: List<NodeIdentityStatus>,
     requestNodeIdentityStates: (Model) -> Unit = {},
     resetMessageState: () -> Unit,
+    navigateToGroups: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     ModelRoute(
@@ -23,6 +24,7 @@ fun ModelScreenRoute(
         requestNodeIdentityStates = requestNodeIdentityStates,
         onAddGroupClicked = {},
         resetMessageState = resetMessageState,
+        navigateToGroups = navigateToGroups,
         send = send
     )
 }

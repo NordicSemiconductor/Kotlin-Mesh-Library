@@ -45,6 +45,7 @@ internal fun ModelRoute(
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
+    navigateToGroups: () -> Unit,
 ) {
     Column(
         modifier = Modifier.verticalScroll(state = rememberScrollState()),
@@ -65,10 +66,19 @@ internal fun ModelRoute(
                 onAddGroupClicked = onAddGroupClicked,
             )
         }
-        if (!model.isConfigurationServer && !model.isConfigurationClient) {
+        if (model.supportsModelPublication == true || model.supportsModelSubscription == true) {
             BoundApplicationKeys(model = model, send = send)
+        }
+        if (model.supportsModelPublication == true) {
             Publication(messageState = messageState, model = model, send = send)
-            Subscriptions(messageState = messageState, model = model, send = send)
+        }
+        if (model.supportsModelSubscription == true) {
+            Subscriptions(
+                messageState = messageState,
+                model = model,
+                navigateToGroups = navigateToGroups,
+                send = send
+            )
         }
     }
 
