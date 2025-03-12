@@ -80,6 +80,7 @@ class CoreDataRepository @Inject constructor(
     private var isBluetoothEnabled = false
     private var isLocationEnabled = false
     private var bearer: Bearer? = null
+    private var connectionRequested = false
 
     init {
         meshNetworkManager.logger = this
@@ -95,6 +96,11 @@ class CoreDataRepository @Inject constructor(
         locationStateManager.locationState().onEach {
             isLocationEnabled = it is BlePermissionState.Available
         }.launchIn(CoroutineScope(ioDispatcher))
+
+        // Start automatic connectivity when the network changes
+        network.onEach {
+            startAutomaticConnectivity(meshNetwork = it)
+        }
     }
 
     /**
@@ -249,7 +255,7 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
         if (isBluetoothEnabled && isLocationEnabled) {
-            connect(meshNetwork)
+            connectToProxy(meshNetwork)
         }
     }
 
@@ -258,14 +264,19 @@ class CoreDataRepository @Inject constructor(
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
-    private tailrec suspend fun connect(meshNetwork: MeshNetwork?) {
+    private tailrec suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
+        if(connectionRequested) {
+            return
+        }
+        connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
         val autoConnectProxy = _proxyStateFlow.value.autoConnect
         if (autoConnectProxy) {
             val device = scanForProxy(meshNetwork)
             val bearer = connectOverGattBearer(context = context, device = device)
             bearer.state.filter { it is BearerEvent.Closed }.first()
-            connect(meshNetwork)
+            connectionRequested = false
+            connectToProxy(meshNetwork)
         }
     }
 
@@ -287,14 +298,16 @@ class CoreDataRepository @Inject constructor(
                 )
             )
         ).first {
-            val data = it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
-            meshNetwork?.takeIf {
-                data != null
-            }?.let { meshNetwork ->
-                data!!.value.nodeIdentity()?.let { nodeIdentity ->
-                    meshNetwork.matches(nodeIdentity)
-                } ?: false || data.value.networkIdentity()?.let { networkId ->
-                    meshNetwork.matches(networkId)
+            val serviceData = it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
+            serviceData?.takeIf {
+                serviceData.size != 0
+            }?.let { data ->
+                meshNetwork?.let { network ->
+                    data.value.nodeIdentity()?.let { nodeIdentity ->
+                        network.matches(nodeIdentity)
+                    } ?: data.value.networkIdentity()?.let { networkId ->
+                        network.matches(networkId)
+                    } ?: false
                 } ?: false
             } ?: false
         }.device
