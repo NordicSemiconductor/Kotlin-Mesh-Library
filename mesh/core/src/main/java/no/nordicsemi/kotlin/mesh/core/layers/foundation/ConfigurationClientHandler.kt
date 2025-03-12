@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
@@ -41,9 +42,14 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
@@ -90,6 +96,8 @@ internal class ConfigurationClientHandler(
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigModelSubscriptionStatus.opCode to ConfigModelSubscriptionStatus,
+        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionList,
+        ConfigVendorModelSubscriptionList.opCode to ConfigVendorModelSubscriptionList,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
     )
     override val isSubscriptionSupported: Boolean = false
@@ -269,41 +277,77 @@ internal class ConfigurationClientHandler(
                     }
             }
 
-            is ConfigModelSubscriptionStatus -> {
+            is ConfigModelSubscriptionStatus -> if (response.isSuccess) {
+                val element = node(address = source)
+                    ?.element(address = response.elementAddress)
+                // val model = element?.models?.model(modelId = response.modelId) ?: return
+                element?.models?.model(modelId = response.modelId)?.let { model ->
+                    // When a Subscription List is modified on a Node, it affects all
+                    // Models with bound state on the same Element.
+                    val models = arrayOf(model) + model.relatedModels
+                        .filter { it.parentElement == model.parentElement }
+                    // The status for delete all request has an invalid address. Lets handle it
+                    // directly here.
+                    if (request is ConfigModelSubscriptionDeleteAll) {
+                        models.forEach { it.unsubscribeFromAll() }
+                        return
+                    }
+
+                    val address = MeshAddress
+                        .create(address = response.address) as SubscriptionAddress
+                    when (request) {
+                        is ConfigModelSubscriptionOverwrite,
+                        is ConfigModelSubscriptionVirtualAddressOverwrite,
+                            -> {
+                            models.forEach { it.unsubscribeFromAll() }
+                            models.forEach { it.subscribe(address = address) }
+                        }
+
+                        is ConfigModelSubscriptionAdd,
+                        is ConfigModelSubscriptionVirtualAddressAdd,
+                            ->
+                            models.forEach { it.subscribe(address = address) }
+
+                        is ConfigModelSubscriptionDelete,
+                        is ConfigModelSubscriptionVirtualAddressDelete,
+                            -> models
+                            .forEach { it.unsubscribe(address = address.address) }
+
+                        else -> {}
+                    }
+                }
+            }
+
+            is ConfigModelSubscriptionList -> {
                 if (response.isSuccess) {
                     val element = node(address = source)
                         ?.element(address = response.elementAddress)
-                    // val model = element?.models?.model(modelId = response.modelId) ?: return
                     element?.models?.model(modelId = response.modelId)?.let { model ->
                         // When a Subscription List is modified on a Node, it affects all
                         // Models with bound state on the same Element.
                         val models = arrayOf(model) + model.relatedModels
                             .filter { it.parentElement == model.parentElement }
-                        // The status for delete all request has an invalid address. Lets handle it
-                        // directly here.
-                        if (request is ConfigModelSubscriptionDeleteAll) {
-                            models.forEach { it.unsubscribeFromAll() }
-                            return
-                        }
-
-                        val address = MeshAddress
-                            .create(address = response.address) as SubscriptionAddress
-                        when (request) {
-                            is ConfigModelSubscriptionOverwrite,
-                            is ConfigModelSubscriptionVirtualAddressOverwrite -> {
-                                models.forEach { it.unsubscribeFromAll() }
-                                models.forEach { it.subscribe(address = address) }
+                        // A new list will be set Remove existing subscriptions
+                        models.forEach { it.unsubscribeFromAll() }
+                        // For each new address...
+                        response.addresses.forEach {
+                            // ...look for an existing Group.
+                            val address = MeshAddress.create(address = it) as SubscriptionAddress
+                            // Check if address is FixedGroupAddress
+                            if(address is FixedGroupAddress) {
+                                models.forEach { model -> model.subscribe(address = address) }
+                            } else if(address is GroupAddress){
+                                meshNetwork.group(address = address.address)?.let { group ->
+                                    models.forEach { model -> model.subscribe(group = group) }
+                                } ?: run {
+                                    // If the group was not found lets create a new one.
+                                    val group = Group(address = address, _name = "New Group")
+                                    runCatching {
+                                        meshNetwork.add(group = group)
+                                        models.forEach { model -> model.subscribe(group = group) }
+                                    }
+                                }
                             }
-
-                            is ConfigModelSubscriptionAdd,
-                            is ConfigModelSubscriptionVirtualAddressAdd ->
-                                models.forEach { it.subscribe(address = address) }
-
-                            is ConfigModelSubscriptionDelete,
-                            is ConfigModelSubscriptionVirtualAddressDelete -> models
-                                .forEach { it.unsubscribe(address = address.address) }
-
-                            else -> {}
                         }
                     }
                 }
