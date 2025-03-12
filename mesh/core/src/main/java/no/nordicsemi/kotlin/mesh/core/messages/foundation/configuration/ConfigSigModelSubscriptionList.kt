@@ -35,7 +35,8 @@ class ConfigSigModelSubscriptionList(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigSigModelSubscriptionList(status: $status " +
             "elementAddress: ${elementAddress.toHexString()} modelId: ${modelId.toHex()} " +
-            "addresses: ${addresses.forEach { it.toHexString() }})"
+            "addresses: ${addresses.joinToString { it.toHexString(format = HexFormat.UpperCase) }})"
+
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x802Au
