@@ -37,7 +37,7 @@ fun MeshTwoLineListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(weight = 1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,

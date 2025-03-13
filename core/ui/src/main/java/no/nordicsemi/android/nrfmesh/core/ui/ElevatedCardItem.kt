@@ -12,7 +12,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -228,7 +229,7 @@ fun ElevatedCardItemTextField(
                         value = value,
                         onValueChanged = { value = it },
                         label = { Text(text = title) },
-                        placeholder = { Text(text = placeholder) },
+                        placeholder = { Text(text = placeholder, maxLines = 1) },
                         internalTrailingIcon = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
@@ -241,7 +242,7 @@ fun ElevatedCardItemTextField(
                                 },
                                 content = {
                                     Icon(
-                                        imageVector = Icons.Outlined.Clear,
+                                        imageVector = Icons.Outlined.DeleteSweep,
                                         contentDescription = null
                                     )
                                 }
@@ -255,6 +256,25 @@ fun ElevatedCardItemTextField(
                         content = {
                             IconButton(
                                 modifier = Modifier.padding(horizontal = 8.dp),
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = subtitle,
+                                        selection = TextRange(subtitle.length)
+                                    )
+                                    onValueChanged(subtitle)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                modifier = Modifier.padding(end = 8.dp),
                                 enabled = value.text.isNotBlank(),
                                 onClick = {
                                     onEditClick = !onEditClick
@@ -268,7 +288,8 @@ fun ElevatedCardItemTextField(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
                                     )
                                 }
                             )
