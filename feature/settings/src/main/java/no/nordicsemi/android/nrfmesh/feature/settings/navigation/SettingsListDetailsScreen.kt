@@ -142,6 +142,7 @@ internal fun SettingsListDetailsScreen(
                     val content = navigator.currentDestination?.contentKey
                     SettingsExtraPane(
                         network = uiState.networkState.network,
+                        settingsListData = uiState.networkState.settingsListData,
                         content = content,
                         save = save
                     )

@@ -14,15 +14,23 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 @Composable
 internal fun SettingsExtraPane(
     network: MeshNetwork,
+    settingsListData: SettingsListData,
     content: Any?,
     save: () -> Unit,
 ) {
     when (content) {
-        is ProvisionerContent -> ProvisionerScreenRoute(
-            provisioner = network.provisioners.firstOrNull { it.uuid == content.uuid } ?: return,
-            otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
-            save = save
-        )
+        is ProvisionerContent -> {
+            ProvisionerScreenRoute(
+                provisioner = network.provisioners
+                    .firstOrNull { it.uuid == content.uuid }
+                    ?: return,
+                provisionerData = settingsListData.provisioners
+                    .firstOrNull { it.uuid == content.uuid }
+                    ?: return,
+                otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
+                save = save
+            )
+        }
 
         is NetworkKeyContent -> NetworkKeyScreenRoute(
             key = network.networkKeys.first { it.index == content.keyIndex },

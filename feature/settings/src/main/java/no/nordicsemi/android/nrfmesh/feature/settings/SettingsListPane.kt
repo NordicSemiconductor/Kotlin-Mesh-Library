@@ -73,22 +73,22 @@ private fun SettingsScreen(
         )
         NetworkNameRow(name = settingsListData.name, onNameChanged = onNameChanged)
         ProvisionersRow(
-            count = settingsListData.provisionerCount,
+            count = settingsListData.provisioners.size,
             isSelected = selectedSetting == ClickableSetting.Provisioners && highlightSelectedItem,
             onProvisionersClicked = onProvisionersClicked
         )
         NetworkKeysRow(
-            count = settingsListData.networkKeyCount,
+            count = settingsListData.networkKeys.size,
             isSelected = selectedSetting == ClickableSetting.NetworkKeys && highlightSelectedItem,
             onNetworkKeysClicked = onNetworkKeysClicked
         )
         ApplicationKeysRow(
-            count = settingsListData.appKeyCount,
+            count = settingsListData.appKeys.size,
             isSelected = selectedSetting == ClickableSetting.ApplicationKeys && highlightSelectedItem,
             onApplicationKeysClicked = onApplicationKeysClicked
         )
         ScenesRow(
-            count = settingsListData.sceneCount,
+            count = settingsListData.scenes.size,
             isSelected = selectedSetting == ClickableSetting.Scenes && highlightSelectedItem,
             onScenesClicked = onScenesClicked
         )

@@ -17,12 +17,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GppMaybe
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
-import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.RemoveModerator
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +38,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,8 +53,8 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
@@ -83,15 +83,12 @@ import no.nordicsemi.kotlin.mesh.core.model.plus
 @Composable
 internal fun ProvisionerRoute(
     provisioner: Provisioner,
+    provisionerData: ProvisionerData,
     otherProvisioners: List<Provisioner>,
-    onTtlChanged: (Int) -> Unit,
-    save: () -> Unit
+    save: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    val provisionerData by remember(provisioner.uuid) {
-        derivedStateOf { ProvisionerData(provisioner) }
-    }
     var isCurrentlyEditable by rememberSaveable(inputs = arrayOf(provisioner.uuid)) {
         mutableStateOf(true)
     }
@@ -126,14 +123,9 @@ internal fun ProvisionerRoute(
                 onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
                 save = save,
             )
-            Ttl(
-                keyboardController = keyboardController,
-                ttl = provisionerData.ttl,
-                onTtlChanged = onTtlChanged,
-                isCurrentlyEditable = isCurrentlyEditable
-            ) { isCurrentlyEditable = !isCurrentlyEditable }
-
-            DeviceKey(key = provisionerData.deviceKey)
+            if (provisionerData.hasConfigurationCapabilities) {
+                DeviceKey(key = provisionerData.deviceKey)
+            }
             SectionTitle(title = stringResource(R.string.label_allocated_ranges))
             UnicastRanges(
                 snackbarHostState = snackbarHostState,
@@ -201,7 +193,7 @@ fun Name(
     name: String,
     onNameChanged: (String) -> Unit,
     isCurrentlyEditable: Boolean,
-    onEditableStateChanged: () -> Unit
+    onEditableStateChanged: () -> Unit,
 ) {
     ElevatedCardItemTextField(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -223,11 +215,18 @@ private fun UnicastAddress(
     address: UnicastAddress?,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
-    save: () -> Unit
+    save: () -> Unit,
 ) {
     val context = LocalContext.current
-    val initialValue by remember { mutableStateOf(address?.toHexString() ?: "") }
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    val initialValue by remember(key1 = provisioner.uuid) {
+        mutableStateOf(
+            address?.toHexString() ?: ""
+        )
+    }
+    var value by rememberSaveable(
+        stateSaver = TextFieldValue.Saver,
+        inputs = arrayOf(provisioner.uuid)
+    ) {
         mutableStateOf(
             TextFieldValue(text = initialValue, selection = TextRange(initialValue.length))
         )
@@ -264,7 +263,13 @@ private fun UnicastAddress(
                                 }
                             }
                         },
-                        label = { Text(text = stringResource(id = R.string.label_name)) },
+                        label = {
+                            Text(
+                                text = stringResource(id = R.string.label_unicast_address),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
                         internalTrailingIcon = {
                             IconButton(
                                 enabled = value.text.isNotBlank(),
@@ -274,8 +279,9 @@ private fun UnicastAddress(
                                 },
                                 content = {
                                     Icon(
-                                        imageVector = Icons.Outlined.Clear,
-                                        contentDescription = null
+                                        imageVector = Icons.Outlined.DeleteSweep,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
                                     )
                                 }
                             )
@@ -288,20 +294,36 @@ private fun UnicastAddress(
                         content = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
-                                enabled = address != null,
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = initialValue,
+                                        selection = TextRange(initialValue.length)
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
                                 onClick = { onUnassignClick = !onUnassignClick },
                                 content = {
                                     Icon(
-                                        imageVector = Icons.Outlined.GppMaybe,
+                                        imageVector = Icons.Outlined.RemoveModerator,
                                         contentDescription = null,
                                         tint = Color.Red.copy(alpha = 0.6f)
                                     )
                                 }
                             )
                             IconButton(
-                                modifier = Modifier.padding(start = 8.dp),
-                                enabled = !error,
+                                enabled = value.text.isNotEmpty(),
                                 onClick = {
+                                    keyboardController?.hide()
                                     if (value.text.isEmpty()) {
                                         value = TextFieldValue(
                                             text = initialValue,
@@ -314,9 +336,7 @@ private fun UnicastAddress(
                                         runCatching {
                                             provisioner.assign(
                                                 address = UnicastAddress(
-                                                    address = value.text.toInt(
-                                                        radix = 16
-                                                    )
+                                                    address = value.text.toInt(radix = 16)
                                                 )
                                             )
                                         }.onSuccess {
@@ -333,7 +353,8 @@ private fun UnicastAddress(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
                                     )
                                 }
                             )
@@ -341,13 +362,15 @@ private fun UnicastAddress(
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = stringResource(id = R.string.label_unicast_address),
-                        subtitle = address?.let {
-                            "0x${value.text.uppercase()}"
-                        } ?: stringResource(id = R.string.label_not_assigned),
+                        subtitle = value.text
+                            .takeIf { it.isNotEmpty() }
+                            ?.let { "0x${it.uppercase()}" }
+                            ?: stringResource(id = R.string.label_not_assigned),
                         trailingComposable = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = isCurrentlyEditable,
                                 onClick = {
                                     error = false
@@ -373,11 +396,13 @@ private fun UnicastAddress(
         MeshAlertDialog(
             onDismissRequest = { onUnassignClick = !onUnassignClick },
             onConfirmClick = {
-                error = !error
+                error = false
+                if (isCurrentlyEditable && onEditClick)
+                    onEditableStateChanged()
+                onEditClick = false
                 keyboardController?.hide()
+                value = TextFieldValue(text = "", selection = TextRange(0))
                 onUnassignClick = !onUnassignClick
-                onEditClick = !onEditClick
-                onEditableStateChanged()
                 provisioner.disableConfigurationCapabilities()
                 save()
             },
@@ -399,33 +424,6 @@ private fun UnicastAddress(
 }
 
 @Composable
-private fun Ttl(
-    keyboardController: SoftwareKeyboardController?,
-    ttl: Int?,
-    onTtlChanged: (Int) -> Unit,
-    isCurrentlyEditable: Boolean,
-    onEditableStateChanged: () -> Unit,
-) {
-    ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Timer,
-        title = stringResource(id = R.string.label_ttl),
-        subtitle = ttl?.toString() ?: "0",
-        onValueChanged = {
-            keyboardController?.hide()
-            if (it.isNotEmpty()) {
-                onTtlChanged(it.toInt())
-            }
-        },
-        isEditable = isCurrentlyEditable,
-        onEditableStateChanged = onEditableStateChanged,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number
-        )
-    )
-}
-
-@Composable
 private fun DeviceKey(key: String?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -443,7 +441,7 @@ private fun UnicastRanges(
     otherRanges: List<UnicastRange>,
     allocate: (Range) -> Unit,
     updateRange: (Range, Range) -> Unit,
-    onRemoved: (Range) -> Unit
+    onRemoved: (Range) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var showUnicastRanges by rememberSaveable { mutableStateOf(false) }
@@ -502,7 +500,7 @@ private fun GroupRanges(
     otherRanges: List<GroupRange>,
     allocate: (Range) -> Unit,
     updateRange: (Range, Range) -> Unit,
-    onRemoved: (Range) -> Unit
+    onRemoved: (Range) -> Unit,
 ) {
     var showGroupRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
@@ -558,7 +556,7 @@ private fun SceneRanges(
     otherRanges: List<SceneRange>,
     allocate: (Range) -> Unit,
     updateRange: (Range, Range) -> Unit,
-    onRemoved: (Range) -> Unit
+    onRemoved: (Range) -> Unit,
 ) {
     var showSceneRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
