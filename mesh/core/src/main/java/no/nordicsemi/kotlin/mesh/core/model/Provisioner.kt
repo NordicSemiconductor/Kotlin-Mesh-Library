@@ -39,11 +39,11 @@ data class Provisioner internal constructor(
     @SerialName(value = "provisionerName")
     private var _name: String = "nRF Mesh Provisioner",
     @SerialName(value = "allocatedUnicastRange")
-    internal var _allocatedUnicastRanges: MutableList<UnicastRange> = mutableListOf(),
+    internal val _allocatedUnicastRanges: MutableList<UnicastRange> = mutableListOf(),
     @SerialName(value = "allocatedGroupRange")
-    internal var _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
+    internal val _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
     @SerialName(value = "allocatedSceneRange")
-    internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf(),
+    internal val _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf(),
 ) {
     var name: String
         get() = _name
@@ -448,12 +448,9 @@ data class Provisioner internal constructor(
             }
 
             // Is there any other node using the address?
-            require(
-                value = network.isAddressAvailable(
-                    address = address,
-                    node = node
-                )
-            ) { throw AddressAlreadyInUse }
+            require(value = network.isAddressAvailable(address = address, node = node)) {
+                throw AddressAlreadyInUse
+            }
 
             when (isNewNode) {
                 true -> network.add(node = node)
