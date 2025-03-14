@@ -265,19 +265,16 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     private tailrec suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
-        if(connectionRequested) {
-            return
-        }
+        val autoConnectProxy = _proxyStateFlow.value.autoConnect
+        if (!autoConnectProxy) return
+        if (connectionRequested) return
         connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
-        val autoConnectProxy = _proxyStateFlow.value.autoConnect
-        if (autoConnectProxy) {
-            val device = scanForProxy(meshNetwork)
-            val bearer = connectOverGattBearer(context = context, device = device)
-            bearer.state.filter { it is BearerEvent.Closed }.first()
-            connectionRequested = false
-            connectToProxy(meshNetwork)
-        }
+        val device = scanForProxy(meshNetwork)
+        val bearer = connectOverGattBearer(context = context, device = device)
+        bearer.state.filter { it is BearerEvent.Closed }.first()
+        connectionRequested = false
+        connectToProxy(meshNetwork)
     }
 
     /**
@@ -298,7 +295,8 @@ class CoreDataRepository @Inject constructor(
                 )
             )
         ).first {
-            val serviceData = it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
+            val serviceData =
+                it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
             serviceData?.takeIf {
                 serviceData.size != 0
             }?.let { data ->
