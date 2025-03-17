@@ -143,6 +143,7 @@ internal fun Publication(
 
     if (model.publish != null) {
         ElevatedCardItem(
+            modifier = Modifier.padding(horizontal = 16.dp),
             imageVector = Icons.Outlined.SportsScore,
             title = model.publishDestination() ?: stringResource(R.string.label_unknown),
             subtitle = model.publishKey().name
