@@ -88,7 +88,8 @@ internal fun DeviceCapabilities(
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
         SectionTitle(title = stringResource(R.string.title_provisioning_data))
-        UnicastAddressRow(context = context,
+        UnicastAddressRow(
+            context = context,
             scope = scope,
             snackbarHostState = snackbarHostState,
             keyboardController = keyboardController,
@@ -100,7 +101,8 @@ internal fun DeviceCapabilities(
             },
             isValidAddress = isValidAddress,
             isCurrentlyEditable = isCurrentlyEditable,
-            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+        )
         KeyRow(
             state = state,
             name = state.parameters.networkKey.name,
@@ -206,7 +208,8 @@ private fun UnicastAddressRow(
             )
             Crossfade(targetState = onEditClick, label = "UnicastAddress") { state ->
                 when (state) {
-                    true -> MeshOutlinedTextField(modifier = Modifier.padding(vertical = 8.dp),
+                    true -> MeshOutlinedTextField(
+                        modifier = Modifier.padding(vertical = 8.dp),
                         onFocus = onEditClick,
                         externalLeadingIcon = {
                             Icon(
@@ -257,7 +260,8 @@ private fun UnicastAddressRow(
                             )
                         },
                         content = {
-                            IconButton(modifier = Modifier.padding(end = 16.dp),
+                            IconButton(
+                                modifier = Modifier.padding(end = 16.dp),
                                 enabled = value.text.isNotEmpty(),
                                 onClick = {
                                     keyboardController?.hide()
@@ -295,18 +299,13 @@ private fun UnicastAddressRow(
                             }
                         })
 
-                    false -> MeshTwoLineListItem(leadingComposable = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            imageVector = Icons.Outlined.Lan,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
+                    false -> MeshTwoLineListItem(
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = stringResource(id = R.string.label_unicast_address),
                         subtitle = "0x${address.toHexString()}",
                         trailingComposable = {
-                            IconButton(modifier = Modifier.padding(horizontal = 16.dp),
+                            IconButton(
+                                modifier = Modifier.padding(horizontal = 16.dp),
                                 enabled = isCurrentlyEditable,
                                 onClick = {
                                     error = false
@@ -319,7 +318,8 @@ private fun UnicastAddressRow(
                                     tint = LocalContentColor.current.copy(alpha = 0.6f)
                                 )
                             }
-                        })
+                        }
+                    )
                 }
             }
         }
