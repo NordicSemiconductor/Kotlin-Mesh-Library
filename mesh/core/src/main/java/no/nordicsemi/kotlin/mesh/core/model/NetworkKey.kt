@@ -182,7 +182,7 @@ data class NetworkKey internal constructor(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
         return "NetworkKey(index: $index, name: $_name, key: ${_key.toHexString()}, " +
-                "key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
+                "old key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
                 "timestamp: $timestamp)"
     }
 
