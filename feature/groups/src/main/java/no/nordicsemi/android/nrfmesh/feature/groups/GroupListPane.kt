@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QuestionMark
+import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -74,15 +75,14 @@ internal fun GroupListPane(
         DeleteGroup(
             snackbarHostState = snackbarHostState,
             group = group,
-            deleteGroup = { deleteGroup(group) })
+            deleteGroup = { deleteGroup(group) }
+        )
         if (groupInfo.models.isNotEmpty()) {
             SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
             groupInfo.models.forEach { entry ->
                 ModelRow(
                     models = entry.value,
-                    onModelClicked = {
-                        onModelClicked(it, groupInfo.models.keys.indexOf(it))
-                    },
+                    onModelClicked = { onModelClicked(it, groupInfo.models.keys.indexOf(it)) },
                     isSelected = isDetailPaneVisible &&
                             groupInfo.models.keys.indexOf(entry.key) == selectedModelIndex
                 )
@@ -90,10 +90,10 @@ internal fun GroupListPane(
         } else {
             if (!isDetailPaneVisible) {
                 SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
-                MeshNoItemsAvailable(
-                    imageVector = Icons.Outlined.Info,
-                    title = stringResource(id = R.string.label_no_models_subscribed),
-                    rationale = stringResource(id = R.string.label_no_models_subscribed_rationale)
+                ElevatedCardItem(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    imageVector = Icons.Outlined.SportsScore,
+                    title = stringResource(R.string.label_no_models_subscribed)
                 )
             }
         }
