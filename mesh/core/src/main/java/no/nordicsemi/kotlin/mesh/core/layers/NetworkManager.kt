@@ -50,8 +50,9 @@ import kotlin.time.DurationUnit
  * @property manager Mesh network manager
  * @constructor Constructs the network manager.
  */
-internal class NetworkManager internal constructor(private val manager: MeshNetworkManager) :
-        NetworkManagerEventTransmitter {
+internal class NetworkManager internal constructor(
+    private val manager: MeshNetworkManager
+) : NetworkManagerEventTransmitter {
 
     internal val scope: CoroutineScope = manager.scope
     lateinit var proxy: ProxyFilterEventHandler
@@ -246,7 +247,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         element: Element,
         destination: MeshAddress,
         initialTtl: UByte?,
-        applicationKey: ApplicationKey
+        applicationKey: ApplicationKey,
     ): MeshMessage? = if (ensureNotBusy(destination = destination)) accessLayer.send(
         message = message,
         element = element,
@@ -281,7 +282,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         element: Element,
         destination: Address,
         initialTtl: UByte?,
-        applicationKey: ApplicationKey
+        applicationKey: ApplicationKey,
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return }
@@ -319,7 +320,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         configMessage: UnacknowledgedConfigMessage,
         element: Element,
         destination: Address,
-        initialTtl: UByte?
+        initialTtl: UByte?,
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { throw Busy }
@@ -354,7 +355,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         configMessage: AcknowledgedConfigMessage,
         element: Element,
         destination: Address,
-        initialTtl: UByte?
+        initialTtl: UByte?,
     ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return null }
@@ -388,7 +389,7 @@ internal class NetworkManager internal constructor(private val manager: MeshNetw
         message: MeshResponse,
         element: Element,
         destination: Address,
-        keySet: KeySet
+        keySet: KeySet,
     ) {
         accessLayer.reply(
             origin = origin,
