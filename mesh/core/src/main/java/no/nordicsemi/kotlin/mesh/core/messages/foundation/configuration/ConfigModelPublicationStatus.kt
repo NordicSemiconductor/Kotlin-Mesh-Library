@@ -140,11 +140,10 @@ data class ConfigModelPublicationStatus(
                 var companyIdentifier: UShort? = null
 
                 if (params.size == 14) {
-                    companyIdentifier =
-                        params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
-                    modelIdentifier = params.getUShort(offset = 11, order = ByteOrder.LITTLE_ENDIAN)
+                    companyIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
+                    modelIdentifier = params.getUShort(offset = 12, order = ByteOrder.LITTLE_ENDIAN)
                 } else {
-                    modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
+                    modelIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
                 }
                 ConfigModelPublicationStatus(
                     status = status,
