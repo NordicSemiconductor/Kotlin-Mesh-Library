@@ -297,7 +297,7 @@ interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage {
      */
     data class ConfigNetKeyAndAppKeyIndex(
         val networkKeyIndex: KeyIndex,
-        val applicationKeyIndex: KeyIndex
+        val applicationKeyIndex: KeyIndex,
     )
 
     companion object {
@@ -362,8 +362,12 @@ interface ConfigAnyModelMessage : ConfigModelMessage {
     val companyIdentifier: UShort?
 
     override val modelId: ModelId
-        get() = companyIdentifier?.let { VendorModelId(modelIdentifier, it) }
-            ?: SigModelId(modelIdentifier)
+        get() = companyIdentifier?.let {
+            VendorModelId(
+                modelIdentifier = modelIdentifier,
+                companyIdentifier = it
+            )
+        } ?: SigModelId(modelIdentifier = modelIdentifier)
 }
 
 /**

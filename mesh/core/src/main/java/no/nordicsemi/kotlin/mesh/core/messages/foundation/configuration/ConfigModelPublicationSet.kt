@@ -74,9 +74,10 @@ data class ConfigModelPublicationSet(
     )
 
     /**
-     * Convenience constructor to create the ConfigModelPublicationSet message.
+     * Convenience constructor to create the ConfigModelPublicationSet message to remove the
+     * publication.
      *
-     * @param model Model to get the publication state for.
+     * @param model Model from which the publication should be removed from.
      * @throws IllegalArgumentException if the element address is not set.
      */
     @Throws(IllegalArgumentException::class)
