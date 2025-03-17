@@ -19,4 +19,5 @@ val fixedGroupAddressesForSubscriptions =
  */
 fun Model.unsubscribedGroups(): List<Group> =
     parentElement?.parentNode?.network?.groups
-        ?.filter { it.address as SubscriptionAddress !in subscribe }.orEmpty()
+        ?.filter { it.address as SubscriptionAddress !in subscribe }
+        .orEmpty()
