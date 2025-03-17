@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
+import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -64,11 +65,11 @@ data class NodeInfoListData(
 data class ElementListData(
     val name: String?,
     val unicastAddress: UnicastAddress,
-    val modelCount: Int
+    val models: List<ModelData>,
 ) {
     constructor(element: Element) : this(
         name = element.name,
         unicastAddress = element.unicastAddress,
-        modelCount = element.models.size
+        models = element.models.map { ModelData(it) },
     )
 }

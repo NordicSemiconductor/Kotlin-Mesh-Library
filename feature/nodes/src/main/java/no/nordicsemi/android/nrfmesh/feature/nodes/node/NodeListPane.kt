@@ -217,7 +217,7 @@ private fun ElementRow(
         onClick = onElementsClicked,
         imageVector = Icons.Outlined.DeviceHub,
         title = element.name ?: "Unknown",
-        subtitle = "${element.modelCount} ${if (element.modelCount == 1) "model" else "models"}"
+        subtitle = "${element.models.size} ${if (element.models.size == 1) "model" else "models"}"
     )
 }
 

@@ -21,9 +21,9 @@ fun MeshNoItemsAvailable(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
-    rationale: String = "",
+    rationale: String? = null,
     onClickText: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier,
@@ -40,10 +40,11 @@ fun MeshNoItemsAvailable(
             modifier = Modifier.padding(all = 16.dp),
             text = title
         )
-        Text(
-            modifier = Modifier.padding(all = 16.dp),
-            text = rationale
-        )
+        if (!rationale.isNullOrEmpty())
+            Text(
+                modifier = Modifier.padding(all = 16.dp),
+                text = rationale
+            )
         if (onClickText != null && onClick != null) {
             Row(
                 modifier = Modifier
