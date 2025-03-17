@@ -55,7 +55,7 @@ data class ConfigModelPublicationStatus(
             return data
         }
 
-    override fun toString() = "ConfigModelPublicationStatus(publish: $publish, status: $status, " +
+    override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
             "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
             "companyIdentifier: $companyIdentifier)"
 
@@ -112,7 +112,7 @@ data class ConfigModelPublicationStatus(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             (it.size == 12 || it.size == 14)
         }?.let { params ->
-            ConfigMessageStatus.from(params[0].toUByte())?.let {
+            ConfigMessageStatus.from(params[0].toUByte())?.let { status ->
                 val elementAddress = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
                 val address =
                     MeshAddress.create(params.getUShort(3, order = ByteOrder.LITTLE_ENDIAN))
@@ -147,11 +147,11 @@ data class ConfigModelPublicationStatus(
                     modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
                 }
                 ConfigModelPublicationStatus(
+                    status = status,
                     publish = publish,
                     companyIdentifier = companyIdentifier,
                     modelIdentifier = modelIdentifier,
-                    elementAddress = UnicastAddress(elementAddress),
-                    status = it
+                    elementAddress = UnicastAddress(elementAddress)
                 )
             }
         }
