@@ -97,13 +97,21 @@ data class Element(
         }
     }
 
-    fun model(modelId: ModelId): Model? {
-        return _models.firstOrNull { it.modelId == modelId }
-    }
+    /**
+     * Returns the model with the given model ID.
+     *
+     * @param modelId Model ID.
+     * @return Model with the given model ID, or null if not found.
+     */
+    fun model(modelId: ModelId) = _models.firstOrNull { it.modelId == modelId }
 
-    fun model(modelId: UInt): Model? {
-        return _models.firstOrNull { it.modelId.id == modelId }
-    }
+    /**
+     * Returns the model with the given model ID.
+     *
+     * @param modelId Model ID.
+     * @return Model with the given model ID, or null if not found.
+     */
+    fun model(modelId: UInt) = _models.firstOrNull { it.modelId.id == modelId }
 
     /**
      * Adds a model to the element.
