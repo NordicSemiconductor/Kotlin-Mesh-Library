@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,8 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.description
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddressesForSubscriptions
+import no.nordicsemi.android.nrfmesh.core.common.publishDestination
+import no.nordicsemi.android.nrfmesh.core.common.publishKey
 import no.nordicsemi.android.nrfmesh.core.common.unsubscribedGroups
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -101,7 +104,6 @@ internal fun Subscriptions(
             content = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) }
         )
     }
-
     if (model.subscribe.isNotEmpty()) {
         model.subscribe.forEach {
             val dismissState = rememberSwipeToDismissBoxState()
@@ -120,14 +122,11 @@ internal fun Subscriptions(
             )
         }
     } else {
-        OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-            MeshNoItemsAvailable(
-                modifier = Modifier.padding(top = 8.dp),
-                imageVector = Icons.Outlined.Info,
-                title = stringResource(R.string.label_no_subscriptions),
-                rationale = stringResource(R.string.label_no_subscriptions_rationale)
-            )
-        }
+        ElevatedCardItem(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            imageVector = Icons.Outlined.GroupWork,
+            title = stringResource(R.string.label_no_subscriptions)
+        )
     }
 
     if (showDeleteAllDialog) {

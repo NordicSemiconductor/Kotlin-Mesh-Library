@@ -3,27 +3,22 @@ package no.nordicsemi.android.nrfmesh.feature.model.common
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Forum
-import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,9 +28,9 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -53,21 +48,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.publishDestination
+import no.nordicsemi.android.nrfmesh.core.common.publishKey
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.toFloat
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
@@ -101,7 +97,7 @@ internal fun Publication(
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var destination by remember { mutableStateOf(model.publish?.address) }
     var keyIndex by remember { mutableIntStateOf(model.publish?.index?.toInt() ?: 0) }
@@ -114,37 +110,53 @@ internal fun Publication(
     }
     var retransmit by remember { mutableStateOf(model.publish?.retransmit) }
 
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Forum,
-        title = stringResource(R.string.label_publications),
-        titleAction = {
-            IconButton(
-                enabled = !messageState.isInProgress(),
-                onClick = { send(ConfigHeartbeatPublicationSet()) },
-                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
-            )
-        },
-        actions = {
-            MeshOutlinedButton(
-                buttonIcon = Icons.Outlined.Download,
-                text = stringResource(R.string.label_get_state),
-                onClick = { send(ConfigModelPublicationGet(model = model)) },
-                enabled = !messageState.isInProgress(),
-                isOnClickActionInProgress = messageState.isInProgress()
-                        && messageState.message is ConfigModelPublicationGet
-            )
-            Spacer(modifier = Modifier.size(size = 8.dp))
-            MeshOutlinedButton(
-                buttonIcon = Icons.Outlined.Upload,
-                text = stringResource(R.string.label_set_state),
-                onClick = { showBottomSheet = true },
-                enabled = !messageState.isInProgress(),
-                isOnClickActionInProgress = messageState.isInProgress()
-                        && messageState.message is ConfigModelPublicationSet
-            )
-        }
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SectionTitle(
+            modifier = Modifier.weight(weight = 1f),
+            title = stringResource(R.string.label_publication)
+        )
+        MeshIconButton(
+            onClick = { showBottomSheet = true },
+            buttonIcon = Icons.Outlined.Refresh,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigModelPublicationGet,
+        )
+        MeshIconButton(
+            onClick = { send(ConfigModelPublicationSet(model = model)) },
+            buttonIcon = Icons.Outlined.Delete,
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigModelPublicationSet,
+            enabled = !messageState.isInProgress(),
+        )
+        MeshIconButton(
+            onClick = { showBottomSheet = true },
+            buttonIcon = Icons.Outlined.Add,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigModelPublicationSet,
+        )
+    }
+
+    if (model.publish != null) {
+        ElevatedCardItem(
+            imageVector = Icons.Outlined.SportsScore,
+            title = model.publishDestination() ?: stringResource(R.string.label_unknown),
+            subtitle = model.publishKey().name
+        )
+    } else {
+        ElevatedCardItem(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            imageVector = Icons.Outlined.SportsScore,
+            title = stringResource(R.string.label_no_publication)
+        )
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -152,66 +164,68 @@ internal fun Publication(
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
             content = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = {
+                        SectionTitle(
+                            modifier = Modifier.weight(weight = 1f),
+                            title = stringResource(R.string.label_publication)
+                        )
+                        MeshOutlinedButton(
+                            modifier = Modifier.padding(end = 16.dp),
+                            enabled = destination != null && retransmit != null,
+                            onClick = {
+                                send(
+                                    if (destination is VirtualAddress)
+                                        ConfigModelPublicationVirtualAddressSet(
+                                            publish = Publish(
+                                                address = destination!!,
+                                                index = keyIndex.toUShort(),
+                                                ttl = ttl.toUByte(),
+                                                period = publishPeriod,
+                                                credentials = credentials,
+                                                retransmit = retransmit!!
+                                            ),
+                                            model = model
+                                        )
+                                    else
+                                        ConfigModelPublicationSet(
+                                            model = model,
+                                            publish = Publish(
+                                                address = destination!!,
+                                                index = keyIndex.toUShort(),
+                                                ttl = ttl.toUByte(),
+                                                period = publishPeriod,
+                                                credentials = credentials,
+                                                retransmit = retransmit!!
+                                            )
+                                        )
+                                ).also {
+                                    scope
+                                        .launch { bottomSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!bottomSheetState.isVisible) {
+                                                showBottomSheet = false
+                                            }
+                                        }
+                                }
+                            },
+                            buttonIcon = Icons.AutoMirrored.Outlined.Send,
+                            text = stringResource(R.string.label_send),
+                        )
+                    }
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 16.dp)
+                        .padding(bottom = 16.dp)
                         .verticalScroll(state = rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = {
-                            SectionTitle(
-                                modifier = Modifier.weight(weight = 1f),
-                                title = stringResource(R.string.label_publication)
-                            )
-                            MeshOutlinedButton(
-                                modifier = Modifier.padding(end = 16.dp),
-                                enabled = destination != null && retransmit != null,
-                                onClick = {
-                                    send(
-                                        if (destination is VirtualAddress)
-                                            ConfigModelPublicationVirtualAddressSet(
-                                                publish = Publish(
-                                                    address = destination!!,
-                                                    index = keyIndex.toUShort(),
-                                                    ttl = ttl.toUByte(),
-                                                    period = publishPeriod,
-                                                    credentials = credentials,
-                                                    retransmit = retransmit!!
-                                                ),
-                                                model = model
-                                            )
-                                        else
-                                            ConfigModelPublicationSet(
-                                                model = model,
-                                                publish = Publish(
-                                                    address = destination!!,
-                                                    index = keyIndex.toUShort(),
-                                                    ttl = ttl.toUByte(),
-                                                    period = publishPeriod,
-                                                    credentials = credentials,
-                                                    retransmit = retransmit!!
-                                                )
-                                            )
-                                    ).also {
-                                        scope
-                                            .launch { bottomSheetState.hide() }
-                                            .invokeOnCompletion {
-                                                if (!bottomSheetState.isVisible) {
-                                                    showBottomSheet = false
-                                                }
-                                            }
-                                    }
-                                },
-                                buttonIcon = Icons.AutoMirrored.Outlined.Send,
-                                text = stringResource(R.string.label_send),
-                            )
-                        }
-                    )
                     ApplicationKeys(
                         keys = model.parentElement?.parentNode?.applicationKeys.orEmpty(),
                         selectedKeyIndex = keyIndex,
