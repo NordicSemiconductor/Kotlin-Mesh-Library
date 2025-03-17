@@ -60,7 +60,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -230,7 +229,6 @@ internal class ConfigurationClientHandler(
             is ConfigModelPublicationStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
-                    ?.models
                     ?.model(modelId = response.modelId)?.let { model ->
                         when (request) {
                             is ConfigModelPublicationGet -> {
@@ -261,7 +259,6 @@ internal class ConfigurationClientHandler(
             is ConfigModelAppStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
-                    ?.models
                     ?.model(modelId = response.modelId)?.let {
                         when (request) {
                             is ConfigModelAppBind ->
@@ -281,7 +278,7 @@ internal class ConfigurationClientHandler(
                 val element = node(address = source)
                     ?.element(address = response.elementAddress)
                 // val model = element?.models?.model(modelId = response.modelId) ?: return
-                element?.models?.model(modelId = response.modelId)?.let { model ->
+                element?.model(modelId = response.modelId)?.let { model ->
                     // When a Subscription List is modified on a Node, it affects all
                     // Models with bound state on the same Element.
                     val models = arrayOf(model) + model.relatedModels
@@ -322,7 +319,7 @@ internal class ConfigurationClientHandler(
                 if (response.isSuccess) {
                     val element = node(address = source)
                         ?.element(address = response.elementAddress)
-                    element?.models?.model(modelId = response.modelId)?.let { model ->
+                    element?.model(modelId = response.modelId)?.let { model ->
                         // When a Subscription List is modified on a Node, it affects all
                         // Models with bound state on the same Element.
                         val models = arrayOf(model) + model.relatedModels
