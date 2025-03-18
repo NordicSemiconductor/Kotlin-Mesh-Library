@@ -93,6 +93,7 @@ internal fun ApplicationKeysRoute(
             SectionTitle(title = stringResource(id = R.string.label_application_keys))
             when (keys.isEmpty()) {
                 true -> MeshNoItemsAvailable(
+                    modifier = Modifier.fillMaxSize(),
                     imageVector = Icons.Outlined.VpnKey,
                     title = stringResource(R.string.no_application_keys_available),
                 )

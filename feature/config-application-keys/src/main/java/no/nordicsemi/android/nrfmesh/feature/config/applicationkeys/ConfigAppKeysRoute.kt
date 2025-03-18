@@ -130,6 +130,7 @@ internal fun ConfigAppKeysRoute(
                         }
 
                         else -> MeshNoItemsAvailable(
+                            modifier = Modifier.fillMaxSize(),
                             imageVector = Icons.Outlined.VpnKey,
                             title = stringResource(R.string.label_no_app_keys_added),
                             rationale = stringResource(R.string.label_no_app_keys_to_add_rationale)
