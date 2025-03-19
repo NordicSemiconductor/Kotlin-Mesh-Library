@@ -18,6 +18,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
@@ -27,6 +28,7 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.NODES
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.PROXY
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.SETTINGS
+import java.util.UUID
 
 @Composable
 fun rememberMeshAppState(
@@ -108,9 +110,17 @@ class MeshAppState(
         navController.navigateToSettings()
     }
 
-    /**
-     * Navigates back.
-     */
+    override fun navigateToNode(uuid: UUID) {
+        navController.navigateToNode(
+            uuid = uuid,
+            navOptions = navOptions {
+                popUpTo(route = ProvisioningRoute) {
+                    inclusive = true
+                }
+            }
+        )
+    }
+
     override fun onBackPressed() {
         navController.navigateUp()
     }

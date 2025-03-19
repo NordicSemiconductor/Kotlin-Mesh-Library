@@ -5,6 +5,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Stable
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import java.util.UUID
 
 /**
  * AppState is a class that holds the current state of the application.
@@ -23,5 +24,10 @@ abstract class AppState(
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry
 
+    abstract fun navigateToNode(uuid: UUID)
+
+    /**
+     * Navigates back.
+     */
     abstract fun onBackPressed()
 }

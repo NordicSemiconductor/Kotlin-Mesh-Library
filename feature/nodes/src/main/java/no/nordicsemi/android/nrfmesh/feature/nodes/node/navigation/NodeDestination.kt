@@ -12,12 +12,17 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListDetailsScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import java.util.UUID
 
 @Serializable
 data class NodeRoute(val uuid: String)
 
-fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null) = navigate(
-    route = NodeRoute(uuid = node.uuid.toString()), navOptions = navOptions
+fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null) = navigateToNode(
+    uuid = node.uuid, navOptions = navOptions
+)
+
+fun NavController.navigateToNode(uuid: UUID, navOptions: NavOptions? = null) = navigate(
+    route = NodeRoute(uuid = uuid.toString()), navOptions = navOptions
 )
 
 fun NavGraphBuilder.nodeGraph(appState: AppState, navigateBack: () -> Unit) {

@@ -63,6 +63,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
+import java.util.UUID
 
 @Composable
 internal fun ProvisioningRoute(
@@ -74,7 +75,7 @@ internal fun ProvisioningRoute(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
 ) {
@@ -113,7 +114,7 @@ private fun ProvisionerScreen(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
 ) {
@@ -237,7 +238,7 @@ private fun ProvisioningContent(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
     dismissCapabilitiesSheet: () -> Unit,
 ) {
@@ -338,7 +339,7 @@ private fun ProvisioningStateInfo(
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
@@ -414,12 +415,12 @@ private fun ProvisioningStateInfo(
                 MeshAlertDialog(
                     onDismissRequest = {
                         showAlertDialog = !showAlertDialog
-                        onProvisioningComplete()
+                        onProvisioningComplete(unprovisionedDevice.uuid)
                     },
                     confirmButtonText = stringResource(id = R.string.label_ok),
                     onConfirmClick = {
                         showAlertDialog = !showAlertDialog
-                        onProvisioningComplete()
+                        onProvisioningComplete(unprovisionedDevice.uuid)
                     },
                     dismissButtonText = null,
                     icon = Icons.Rounded.CheckCircleOutline,

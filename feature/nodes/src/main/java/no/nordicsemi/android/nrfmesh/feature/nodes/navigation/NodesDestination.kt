@@ -14,6 +14,7 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.nodeGraph
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningGraph
 
 @Serializable
 data object NodesBaseRoute
@@ -21,7 +22,7 @@ data object NodesBaseRoute
 @Serializable
 data object NodesRoute
 
-fun NavController.navigateToNodes(navOptions: NavOptions) = navigate(
+fun NavController.navigateToNodes(navOptions: NavOptions? = null) = navigate(
     route = NodesRoute,
     navOptions = navOptions
 )
@@ -41,5 +42,6 @@ fun NavGraphBuilder.nodesGraph(appState: AppState, navigateBack: () -> Unit) {
             )
         }
         nodeGraph(appState = appState, navigateBack = navigateBack)
+        provisioningGraph(appState = appState, onBackPressed = navigateBack)
     }
 }

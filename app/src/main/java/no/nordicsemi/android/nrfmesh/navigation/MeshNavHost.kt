@@ -7,7 +7,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsGraph
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesBaseRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesGraph
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningGraph
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyFilterGraph
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsListDetailsScreen
 
@@ -26,6 +25,5 @@ fun MeshNavHost(
         groupsGraph(appState = appState)
         proxyFilterGraph()
         settingsListDetailsScreen()
-        provisioningGraph(appState = appState, onBackPressed = onBackPressed)
     }
 }

@@ -40,7 +40,7 @@ fun NavGraphBuilder.provisioningGraph(appState: AppState, onBackPressed: () -> U
             authenticate = viewModel::authenticate,
             onProvisioningComplete = {
                 viewModel.onProvisioningComplete()
-                onBackPressed()
+                appState.navigateToNode(uuid = it)
             },
             onProvisioningFailed = {
                 viewModel.onProvisioningFailed()
