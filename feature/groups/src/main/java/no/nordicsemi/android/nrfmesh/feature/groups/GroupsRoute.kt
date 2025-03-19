@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -48,6 +49,7 @@ internal fun GroupsRoute(
                         modifier = Modifier.fillMaxWidth(),
                         icon = {
                             Icon(
+                                modifier = Modifier.size(size = 32.dp),
                                 imageVector = Icons.Outlined.GroupWork,
                                 tint = Color.White,
                                 contentDescription = null
@@ -85,6 +87,7 @@ internal fun GroupsRoute(
                 MeshItem(
                     icon = {
                         Icon(
+                            modifier = Modifier.size(size = 32.dp),
                             imageVector = Icons.Outlined.GroupWork,
                             tint = Color.White,
                             contentDescription = null

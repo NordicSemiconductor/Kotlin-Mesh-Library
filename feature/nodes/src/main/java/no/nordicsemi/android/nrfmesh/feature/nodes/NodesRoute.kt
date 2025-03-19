@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,11 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -95,7 +92,6 @@ private fun Nodes(
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit,
 ) {
-
     if (isCompactWidth()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -104,16 +100,11 @@ private fun Nodes(
             content = {
                 items(items = nodes, key = { it.uuid }) { node ->
                     MeshItem(
+                        modifier = Modifier.fillMaxWidth(),
                         icon = {
                             Image(
-                                modifier = Modifier
-                                    .size(size = 24.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                                    .padding(all = 2.dp),
-                                painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
+                                modifier = Modifier.size(size = 32.dp),
+                                painter = painterResource(R.drawable.ic_mesh_white),
                                 contentDescription = null
                             )
                         },
@@ -146,14 +137,8 @@ private fun Nodes(
                 MeshItem(
                     icon = {
                         Image(
-                            modifier = Modifier
-                                .size(size = 24.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
-                                .padding(all = 2.dp),
-                            painter = painterResource(no.nordicsemi.android.nrfmesh.core.ui.R.drawable.ic_mesh_white),
+                            modifier = Modifier.size(size = 32.dp),
+                            painter = painterResource(R.drawable.ic_mesh_white),
                             contentDescription = null
                         )
                     },
