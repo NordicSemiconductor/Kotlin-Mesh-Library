@@ -19,6 +19,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -56,6 +57,15 @@ internal class NodeViewModel @Inject internal constructor(
                 nodeState = state
             )
         }.launchIn(scope = viewModelScope)
+
+        // Request the composition data when the network is connected if it has not been requested yet.
+        repository.proxyStateFlow.onEach {
+            if(it.connectionState is NetworkConnectionState.Connected) {
+                if(!selectedNode.isCompositionDataReceived) {
+                    onRefresh()
+                }
+            }
+        }.launchIn(scope = viewModelScope)
     }
 
     /**
@@ -85,9 +95,7 @@ internal class NodeViewModel @Inject internal constructor(
      */
     internal fun onRefresh() {
         _uiState.value = uiState.value.copy(isRefreshing = true)
-        viewModelScope.launch {
-            send(message = ConfigCompositionDataGet(page = 0x00u))
-        }
+        send(message = ConfigCompositionDataGet(page = 0x00u))
     }
 
     /**
