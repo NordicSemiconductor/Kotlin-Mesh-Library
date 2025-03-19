@@ -159,7 +159,7 @@ fun Key(
         onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
-        regex = Regex("[0-9A-Fa-f]{32}]")
+        regex = Regex("[0-9A-Fa-f]{32}")
     )
 }
 
