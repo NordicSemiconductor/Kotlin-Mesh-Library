@@ -46,7 +46,6 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 internal fun ApplicationKeyRoute(
     key: ApplicationKey,
@@ -82,7 +81,7 @@ internal fun ApplicationKeyRoute(
                 onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
             )
             Key(
-                networkKey = applicationKey.key,
+                key = applicationKey.key,
                 onKeyChanged = {
                     key.setKey(key = it)
                     save()
@@ -147,7 +146,7 @@ fun Name(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun Key(
-    networkKey: ByteArray,
+    key: ByteArray,
     onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -156,10 +155,11 @@ fun Key(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = networkKey.toHexString(),
+        subtitle = key.toHexString(),
         onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
+        regex = Regex("[0-9A-Fa-f]{32}]")
     )
 }
 

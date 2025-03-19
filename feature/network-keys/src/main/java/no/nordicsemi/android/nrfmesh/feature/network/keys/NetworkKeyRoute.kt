@@ -64,7 +64,7 @@ internal fun NetworkKeyRoute(
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
         Key(
-            networkKey = key.key,
+            key = key.key,
             onKeyChanged = { },
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
@@ -98,7 +98,7 @@ private fun Name(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun Key(
-    networkKey: ByteArray,
+    key: ByteArray,
     onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -107,10 +107,11 @@ private fun Key(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = networkKey.toHexString(),
+        subtitle = key.toHexString(),
         onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
+        regex = Regex("[0-9A-Fa-f]{32}")
     )
 }
 
