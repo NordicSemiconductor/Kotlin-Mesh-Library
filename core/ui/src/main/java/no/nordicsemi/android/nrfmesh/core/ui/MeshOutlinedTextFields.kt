@@ -51,13 +51,7 @@ fun MeshOutlinedTextField(
                 .focusRequester(requester),
             prefix = prefix,
             value = value,
-            onValueChange = {
-                if (regex == null) {
-                    onValueChanged(it)
-                } else if (regex.matches(it.text)) {
-                    onValueChanged(it)
-                }
-            },
+            onValueChange = onValueChanged,
             label = label,
             placeholder = placeholder,
             trailingIcon = internalTrailingIcon,

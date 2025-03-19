@@ -275,7 +275,7 @@ fun ElevatedCardItemTextField(
                             )
                             IconButton(
                                 modifier = Modifier.padding(end = 8.dp),
-                                enabled = value.text.isNotBlank(),
+                                enabled = value.text.isNotBlank() && regex?.matches(value.text) ?: true,
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
