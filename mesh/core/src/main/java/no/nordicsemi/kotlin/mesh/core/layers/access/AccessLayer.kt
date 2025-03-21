@@ -28,7 +28,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnknownMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
@@ -36,9 +35,10 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
- import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -293,18 +293,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         message: ConfigMessage,
         localElement: Element,
         destination: Address,
-        initialTtl: UByte?
+        initialTtl: UByte?,
+        networkKey: NetworkKey,
     ): MeshMessage? {
         val node = network.node(destination) ?: throw InvalidDestination
-        var networkKey = node.networkKeys.firstOrNull() ?: throw NoNetworkKey
 
-        // ConfigNetKeyDelete must be signed using the key that is being deleted.
-        val netKeyDelete = message as? ConfigNetKeyDelete
-        netKeyDelete?.takeIf { netKeyDeleteMsg ->
-            netKeyDeleteMsg.index == networkKey.index
-        }?.let {
-            networkKey = node.networkKeys.last()
-        }
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node
         ) ?: return null
@@ -352,7 +345,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      * @param keySet       Set of keys that the message was encrypted with.
      */
     @OptIn(ExperimentalStdlibApi::class)
-    suspend fun reply(
+    fun reply(
         origin: Address,
         destination: Address,
         message: MeshMessage,
@@ -473,7 +466,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             accessPdu.destination.address == element.unicastAddress.address ||
                             model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
                         ) {
-                            if (model.isBoundTo(keySet.applicationKey)) {
+                            if (keySet.applicationKey.isBoundTo(model = model)) {
                                 eventHandler.onMeshMessageReceived(
                                     model = model,
                                     message = message,

@@ -78,8 +78,8 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
-    val boundNetworkKey: NetworkKey?
-        get() = network!!.networkKeys.get(boundNetKeyIndex)
+    val boundNetworkKey: NetworkKey
+        get() = network!!.networkKeys.get(boundNetKeyIndex)!!
 
     internal var aid: Byte = Crypto.calculateAid(N = key)
 
@@ -156,6 +156,14 @@ data class ApplicationKey internal constructor(
      */
     fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
 
+    /**
+     * Checks if the given application key is bound to the model.
+     *
+     * @param model Model to check against.
+     * @return true if the key is bound to the model or false otherwise.
+     */
+    fun isBoundTo(model: Model) = model.boundApplicationKeys.any { it.index == index }
+
     private fun regenerateKeyDerivatives() {
         aid = Crypto.calculateAid(N = key)
 
@@ -190,7 +198,7 @@ data class ApplicationKey internal constructor(
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
-        result = 31 * result + (boundNetworkKey?.hashCode() ?: 0)
+        result = 31 * result + boundNetworkKey.hashCode()
         return result
     }
 }

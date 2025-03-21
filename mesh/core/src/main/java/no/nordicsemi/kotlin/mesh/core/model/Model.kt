@@ -152,7 +152,9 @@ data class Model internal constructor(
         internal set
 
     val boundApplicationKeys: List<ApplicationKey>
-        get() = parentElement?.parentNode?.applicationKeys?.filter { isBoundTo(it) } ?: emptyList()
+        get() = parentElement?.parentNode?.applicationKeys
+            ?.filter { it.isBoundTo(this) }
+            ?: emptyList()
 
     val supportsApplicationKeyBinding: Boolean
         get() = !requiresDeviceKey
@@ -558,14 +560,6 @@ data class Model internal constructor(
         _publish = model._publish
         _subscribe = model._subscribe
     }
-
-    /**
-     * Checks if the given application key is bound to the model.
-     *
-     * @param key Application key to check.
-     * @return true if the key is bound to the model or false otherwise.
-     */
-    fun isBoundTo(key: ApplicationKey) = bind.any { it == key.index }
 
     /**
      * Checks if the Model is subscribed to the given address.

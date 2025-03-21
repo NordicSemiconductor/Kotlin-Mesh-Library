@@ -220,7 +220,7 @@ data class Element(
      * @param key Application Key.
      * @return true if the Element contains the Model, false otherwise.
      */
-    fun contains(key: ApplicationKey) = models.any { it.isBoundTo(key = key) }
+    fun contains(key: ApplicationKey) = models.any { key.isBoundTo(model = it) }
 
     /**
      * Returns whether the element contains any model that is subscribed to the given group.

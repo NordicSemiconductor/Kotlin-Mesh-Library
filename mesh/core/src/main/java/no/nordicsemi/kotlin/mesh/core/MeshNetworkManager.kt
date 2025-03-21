@@ -15,11 +15,14 @@ import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotDelete
+import no.nordicsemi.kotlin.mesh.core.layers.access.CannotRelay
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidDestination
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidElement
+import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidKey
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidSource
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidTtl
 import no.nordicsemi.kotlin.mesh.core.layers.access.ModelNotBoundToAppKey
+import no.nordicsemi.kotlin.mesh.core.layers.access.NoAppKeysBoundToModel
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -34,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -59,7 +63,7 @@ import java.util.*
 class MeshNetworkManager(
     private val storage: Storage,
     internal val secureProperties: SecurePropertiesStorage,
-    internal val scope: CoroutineScope
+    internal val scope: CoroutineScope,
 ) {
     private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
@@ -135,7 +139,7 @@ class MeshNetworkManager(
     suspend fun create(
         name: String = "Mesh Network",
         uuid: UUID = UUID.randomUUID(),
-        provisionerName: String = "Mesh Provisioner"
+        provisionerName: String = "Mesh Provisioner",
     ) = create(name = name, uuid = uuid, provisioner = Provisioner(name = provisionerName))
 
     /**
@@ -149,7 +153,7 @@ class MeshNetworkManager(
     suspend fun create(
         name: String = "Mesh Network",
         uuid: UUID = UUID.randomUUID(),
-        provisioner: Provisioner
+        provisioner: Provisioner,
     ) = MeshNetwork(uuid = uuid, _name = name).also {
         it.add(name = "Primary Network Key", index = 0u)
         it.add(provisioner)
@@ -174,7 +178,7 @@ class MeshNetworkManager(
                 _meshNetwork.emit(it)
             }
     }.onFailure {
-        if(it is ImportError) throw it
+        if (it is ImportError) throw it
         else throw ImportError(error = "Error while deserializing the mesh network", throwable = it)
     }
 
@@ -186,7 +190,7 @@ class MeshNetworkManager(
      * @return Bytearray containing the Mesh network configuration.
      */
     suspend fun export(
-        configuration: NetworkConfiguration = NetworkConfiguration.Full
+        configuration: NetworkConfiguration = NetworkConfiguration.Full,
     ) = network?.let {
         serialize(
             network = it,
@@ -273,7 +277,7 @@ class MeshNetworkManager(
         localElement: Element?,
         destination: MeshAddress,
         initialTtl: UByte?,
-        applicationKey: ApplicationKey
+        applicationKey: ApplicationKey,
     ) {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
@@ -342,10 +346,10 @@ class MeshNetworkManager(
     )
     suspend fun send(
         message: MeshMessage,
-        localElement: Element,
+        localElement: Element? = null,
         group: Group,
-        initialTtl: UByte?,
-        key: ApplicationKey
+        initialTtl: UByte? = null,
+        key: ApplicationKey,
     ) {
         send(
             message = message,
@@ -386,31 +390,50 @@ class MeshNetworkManager(
         message: UnacknowledgedMeshMessage,
         localElement: Element,
         model: Model,
-        initialTtl: UByte?
+        initialTtl: UByte? = null,
+        applicationKey: ApplicationKey? = null,
     ) {
-        network?.let { network ->
-            val destination = model.parentElement?.unicastAddress ?: run {
-                println("Error: Element does not belong to a Node")
-                throw InvalidDestination
-            }
+        require(network != null) { throw NoNetwork }
+        val node = model.parentElement?.parentNode ?: run {
+            println("Error: Element does not belong to a Node")
+            throw InvalidDestination
+        }
+        val destination = model.parentElement?.unicastAddress ?: run {
+            println("Error: Element does not belong to a Node")
+            throw InvalidDestination
+        }
 
-            val key = model.bind.firstOrNull()?.let { firstKeyIndex ->
-                network.applicationKeys.get(index = firstKeyIndex)
-            } ?: run {
-                println("Error: Model is not bound to any Application Key.")
+        when {
+            applicationKey != null && !applicationKey.isBoundTo(model = model) -> {
+                println("Error: Model is not bound to this Application Key.")
                 throw ModelNotBoundToAppKey
             }
-            send(
-                message = message,
-                localElement = localElement,
-                destination = destination,
-                initialTtl = initialTtl,
-                applicationKey = key
-            )
-        } ?: {
-            println("Error: Mesh Network not created.")
-            throw NoNetwork
+
+            applicationKey == null && model.boundApplicationKeys.isEmpty() -> {
+                println("Error: Model is not bound to any Application Key.")
+                throw NoAppKeysBoundToModel
+            }
         }
+
+        val selectedAppKey = applicationKey ?: model.boundApplicationKeys
+            .firstOrNull {
+                node.isLocalProvisioner || proxyFilter.proxy?.knows(it.boundNetworkKey) == true
+            }
+
+        if (selectedAppKey == null ||
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) == true)
+        ) {
+            println("Error: No GATT Proxy connected or no common Network Keys")
+            throw CannotRelay
+        }
+
+        send(
+            message = message,
+            localElement = localElement,
+            destination = destination,
+            initialTtl = initialTtl,
+            applicationKey = selectedAppKey
+        )
     }
 
     /**
@@ -444,10 +467,17 @@ class MeshNetworkManager(
         message: UnacknowledgedMeshMessage,
         localModel: Model,
         model: Model,
-        initialTtl: UByte?
+        initialTtl: UByte? = null,
+        applicationKey: ApplicationKey? = null,
     ) {
         localModel.parentElement?.let {
-            send(message = message, localElement = it, model = model, initialTtl = initialTtl)
+            send(
+                message = message,
+                localElement = it,
+                model = model,
+                initialTtl = initialTtl,
+                applicationKey = applicationKey
+            )
         } ?: {
             println("Error: Source Model does not belong to an Element")
             throw InvalidSource
@@ -487,9 +517,10 @@ class MeshNetworkManager(
     )
     suspend fun send(
         message: AcknowledgedMeshMessage,
-        localElement: Element?,
+        localElement: Element? = null,
         model: Model,
-        initialTtl: UByte?,
+        initialTtl: UByte? = null,
+        applicationKey: ApplicationKey? = null,
     ): MeshMessage? {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
@@ -503,12 +534,36 @@ class MeshNetworkManager(
             println("Error: Model does not belong to an Element.")
             throw InvalidDestination
         }
-        val key = model.bind.firstOrNull()?.let { firstKeyIndex ->
-            network.applicationKeys.get(index = firstKeyIndex)
-        } ?: run {
-            println("Error: Model is not bound to any Application Key.")
-            throw ModelNotBoundToAppKey
+        val node = model.parentElement?.parentNode ?: run {
+            println("Error: Element does not belong to a Node")
+            throw InvalidDestination
         }
+
+        when {
+            applicationKey != null && !applicationKey.isBoundTo(model = model) -> {
+                println("Error: Model is not bound to this Application Key.")
+                throw ModelNotBoundToAppKey
+            }
+
+            applicationKey == null && model.boundApplicationKeys.isEmpty() -> {
+                println("Error: Model is not bound to any Application Key.")
+                throw NoAppKeysBoundToModel
+            }
+        }
+        // Check if the application Key is known to the Proxy Node, or the message is sent to the local
+        // Node.
+        val selectedAppKey = applicationKey ?: model.boundApplicationKeys
+            .firstOrNull {
+                node.isLocalProvisioner || proxyFilter.proxy?.knows(it.boundNetworkKey) == true
+            }
+
+        if (selectedAppKey == null ||
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) == true)
+        ) {
+            println("Error: No GATT Proxy connected or no common Network Keys")
+            throw CannotRelay
+        }
+
         val localNode = requireNotNull(network.localProvisioner?.node) {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
@@ -532,7 +587,7 @@ class MeshNetworkManager(
             element = source,
             destination = destination,
             initialTtl = initialTtl,
-            applicationKey = key
+            applicationKey = selectedAppKey
         )
     }
 
@@ -610,7 +665,8 @@ class MeshNetworkManager(
     suspend fun send(
         message: UnacknowledgedConfigMessage,
         destination: Address,
-        initialTtl: UByte?
+        initialTtl: UByte? = null,
+        networkKey: NetworkKey? = null,
     ) {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
@@ -637,6 +693,28 @@ class MeshNetworkManager(
             println("Fatal Error: The target Node does not have a Network Key.")
             throw InvalidDestination
         }
+
+        when {
+            networkKey != null && !node.knows(key = networkKey) -> {
+                println("Error: Node does not know the given Network Key.")
+                throw InvalidKey
+            }
+        }
+        // Check if the application Key is known to the Proxy Node, or the message is sent to the
+        // local Node.
+        val selectedNetKey = networkKey ?: node.networkKeys
+            .firstOrNull {
+                // Unless the message is sent locally, take only keys known to the Proxy Node.
+                node.isLocalProvisioner || proxyFilter.proxy?.knows(it) == true
+            }
+
+        if (selectedNetKey == null ||
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetKey) == true)
+        ) {
+            println("Error: No GATT Proxy connected or no common Network Keys")
+            throw CannotRelay
+        }
+
         requireNotNull(node.deviceKey) {
             println("Fatal Error: Node's device key is unknown.")
             throw InvalidDestination
@@ -649,7 +727,8 @@ class MeshNetworkManager(
             configMessage = message,
             element = element,
             destination = destination,
-            initialTtl = initialTtl
+            initialTtl = initialTtl,
+            networkKey = selectedNetKey
         )
     }
 
@@ -716,7 +795,8 @@ class MeshNetworkManager(
     suspend fun send(
         message: AcknowledgedConfigMessage,
         destination: Address,
-        initialTtl: UByte? = null
+        initialTtl: UByte? = null,
+        networkKey: NetworkKey? = null,
     ): MeshMessage? {
         val networkManager = requireNotNull(networkManager) {
             println("Error: Mesh Network not created.")
@@ -743,6 +823,36 @@ class MeshNetworkManager(
             println("Fatal Error: The target Node does not have a Network Key.")
             throw InvalidDestination
         }
+
+        when {
+            networkKey != null && !node.knows(key = networkKey) -> {
+                println("Error: Node does not know the given Network Key.")
+                throw InvalidKey
+            }
+        }
+        // Check if the application Key is known to the Proxy Node, or the message is sent to the
+        // local Node.
+        val selectedNetworkKey = (networkKey ?: node.networkKeys
+            .firstOrNull { candidateKey ->
+                // A key that is being deleted cannot be used to send a message.
+                (message !is ConfigNetKeyDelete || message.index != candidateKey.index) &&
+                        // Unless the message is sent locally, take only keys known to the Proxy Node.
+                        (node.isLocalProvisioner || proxyFilter.proxy?.knows(candidateKey) == true)
+            })
+            ?.takeIf {
+                node.isLocalProvisioner || proxyFilter.proxy?.knows(it) == true
+            } ?: run {
+            if (message is ConfigNetKeyDelete &&
+                (networkKey == null || networkKey.index == message.index)
+            ) {
+                println("Error: Cannot delete the last Network Key or a key used to secure the message")
+                throw CannotDelete
+            }
+
+            println("Error: No GATT Proxy connected or no common Network Keys")
+            throw CannotRelay
+        }
+
         requireNotNull(node.deviceKey) {
             println("Fatal Error: Node's device key is unknown.")
             throw InvalidDestination
@@ -761,7 +871,8 @@ class MeshNetworkManager(
             configMessage = message,
             element = element,
             destination = destination,
-            initialTtl = initialTtl
+            initialTtl = initialTtl,
+            networkKey = selectedNetworkKey
         )
     }
 

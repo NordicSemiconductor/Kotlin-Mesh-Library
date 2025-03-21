@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -321,6 +322,7 @@ internal class NetworkManager internal constructor(
         element: Element,
         destination: Address,
         initialTtl: UByte?,
+        networkKey: NetworkKey
     ) {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { throw Busy }
@@ -328,7 +330,8 @@ internal class NetworkManager internal constructor(
             message = configMessage,
             localElement = element,
             destination = destination,
-            initialTtl = initialTtl
+            initialTtl = initialTtl,
+            networkKey = networkKey
         )
     }
 
@@ -356,6 +359,7 @@ internal class NetworkManager internal constructor(
         element: Element,
         destination: Address,
         initialTtl: UByte?,
+        networkKey: NetworkKey
     ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
         require(!ensureNotBusy(destination = meshAddress)) { return null }
@@ -363,7 +367,8 @@ internal class NetworkManager internal constructor(
             message = configMessage,
             localElement = element,
             destination = destination,
-            initialTtl = initialTtl
+            initialTtl = initialTtl,
+            networkKey = networkKey
         )
     }
 
@@ -384,7 +389,7 @@ internal class NetworkManager internal constructor(
      * @param message     Response message to be sent.
      * @param element     Source Element.
      */
-    suspend fun reply(
+    fun reply(
         origin: Address,
         message: MeshResponse,
         element: Element,

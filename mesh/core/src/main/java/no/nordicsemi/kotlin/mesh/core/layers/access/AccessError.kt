@@ -21,11 +21,24 @@ sealed class AccessError : Exception() {
         Timeout -> "Request timed out."
         Cancelled -> "Message cancelled."
         is MessageSendingFailed -> "Message sending failed: ${error.message}"
+        CannotRelay -> "Network Key not known to the connected GATT Proxy."
+        InvalidKey -> "Cannot decrypt message with the given Key."
+        NoAppKeysBoundToModel -> TODO()
     }
 
     protected fun readResolve(): Any = InvalidSource
 }
 
+/**
+ * Thrown when a message is sent that is encrypted with a Network Key that is not known to the
+ * connected GATT Proxy, or no GATT Proxy is connected.
+ */
+data object CannotRelay : AccessError()
+
+/**
+ * Thrown when the target node cannot decrypt messages sent with the given Network Key.
+ */
+data object InvalidKey : AccessError()
 /**
  * Error thrown when the local Provisioner does not have a Unicast Address specified and is not able
  * to send requested message.
@@ -54,6 +67,13 @@ data object InvalidDestination : AccessError()
  * it.
  */
 data object ModelNotBoundToAppKey : AccessError()
+
+/**
+ * Thrown when trying to send a message from a Model that does not have any Application Key bound to
+ * it. This is invoked when sending a message without specifying the Application Key. The library in
+ * this situation would use the first application key bound to the model.
+ */
+data object NoAppKeysBoundToModel : AccessError()
 
 /**
  * Thrown if no Device Key was found, when trying to send a config message to a Node.
@@ -98,5 +118,5 @@ data class MessageSendingFailed(
     val msg: MeshMessage,
     val localElement: Element,
     val destination: MeshAddress,
-    val error: Exception
+    val error: Exception,
 ) : AccessError()
