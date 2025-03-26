@@ -154,7 +154,11 @@ data class NetworkKey internal constructor(
             else -> derivatives
         }
 
-    val isPrimary: Boolean by lazy { index == 0.toUShort() }
+    val isPrimary: Boolean
+        get() = index == 0.toUShort()
+
+    val isSecondary: Boolean
+        get() = !isPrimary
 
     @Transient
     var network: MeshNetwork? = null
