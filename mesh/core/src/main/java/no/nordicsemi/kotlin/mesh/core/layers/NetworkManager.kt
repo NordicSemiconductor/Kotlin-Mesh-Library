@@ -398,9 +398,8 @@ internal class NetworkManager internal constructor(
      *
      * @param message Proxy Configuration message to be sent.
      */
-    suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage? {
-        return networkLayer.send(message = message)
-    }
+    suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage? =
+        networkLayer.send(message = message)
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given
