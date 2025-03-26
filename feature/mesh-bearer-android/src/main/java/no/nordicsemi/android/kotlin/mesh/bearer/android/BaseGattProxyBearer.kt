@@ -72,7 +72,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     private var client: ClientBleGatt? = null
 
-    var logger: Logger? = null
+    private var logger: Logger? = null
 
     abstract suspend fun configureGatt(services: ClientBleGattServices)
 
@@ -84,8 +84,8 @@ abstract class BaseGattProxyBearer<MeshService>(
             observeConnectionState(client)
             // Discover services on the Bluetooth LE Device.
             val services = client.discoverServices()
-            configureGatt(services)
             mtu = client.requestMtu(517) - 3
+            configureGatt(services) // Request MTU first before enabling notifications
             client
         }
     }
@@ -143,7 +143,9 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     protected suspend fun awaitNotifications() {
         dataOutCharacteristic.getNotifications().onEach { data ->
-            proxyProtocolHandler.reassemble(data.value)?.let { reassembledPdu ->
+            println("Notification received....")
+            proxyProtocolHandler.reassemble(data = data.value)?.let { reassembledPdu ->
+                println("Emitting received Notification $reassembledPdu")
                 _pdus.emit(reassembledPdu)
             }
         }.launchIn(scope)
