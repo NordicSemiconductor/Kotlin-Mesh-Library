@@ -12,8 +12,8 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
  *
  * @property addresses List of addresses.
  */
-data class AddAddressesToFilter(
-    val addresses: List<ProxyFilterAddress>
+class AddAddressesToFilter(
+    val addresses: List<ProxyFilterAddress>,
 ) : AcknowledgedProxyConfigurationMessage {
     override val opCode: UByte = Initializer.opCode
     override val responseOpCode: UByte = FilterStatus.opCode
@@ -28,18 +28,19 @@ data class AddAddressesToFilter(
             return byteArray
         }
 
+    override fun toString() = "AddAddressesToFilter(opcode: $opCode, " +
+            "addresses:${addresses.joinToString(separator = ", ")})"
+
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x01u
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size % 2 == 0
-        }?.let {
+        }?.let { params ->
             val addresses = mutableListOf<UnicastAddress>()
-            var i = 0
-            while (i < it.size) {
-                addresses.add(UnicastAddress(it.getUShort(i)))
-                i += 2
+            for(i in params.indices step 2) {
+                addresses.add(element = UnicastAddress(params.getUShort(offset = i)))
             }
-            AddAddressesToFilter(addresses)
+            AddAddressesToFilter(addresses = addresses)
         }
     }
 }
