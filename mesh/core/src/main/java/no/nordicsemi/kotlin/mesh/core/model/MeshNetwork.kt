@@ -1128,9 +1128,7 @@ data class MeshNetwork internal constructor(
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
             _applicationKeys = _applicationKeys.filter { applicationKey ->
-                applicationKey.boundNetworkKey?.let {
-                    it in networkKeys
-                } ?: false
+                applicationKey.boundNetworkKey in networkKeys
             }.toMutableList()
         }
     }
@@ -1167,7 +1165,7 @@ data class MeshNetwork internal constructor(
                 // TODO should the device key be included for such a node?
                 provisioners.forEach { provisioner ->
                     if (!has(provisioner)) {
-                        provisioner.node?.let { it -> add(it) }
+                        provisioner.node?.let { add(it) }
                     }
                 }
                 nodes
