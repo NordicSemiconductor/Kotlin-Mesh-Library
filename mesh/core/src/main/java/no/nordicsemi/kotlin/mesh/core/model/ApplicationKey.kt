@@ -157,12 +157,12 @@ data class ApplicationKey internal constructor(
     fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
 
     /**
-     * Checks if the given application key is bound to the model.
+     * Checks if the given model is bound to this key.
      *
      * @param model Model to check against.
      * @return true if the key is bound to the model or false otherwise.
      */
-    fun isBoundTo(model: Model) = model.boundApplicationKeys.any { it.index == index }
+    fun isBoundTo(model: Model) = model.bind.any { it == index }
 
     private fun regenerateKeyDerivatives() {
         aid = Crypto.calculateAid(N = key)
