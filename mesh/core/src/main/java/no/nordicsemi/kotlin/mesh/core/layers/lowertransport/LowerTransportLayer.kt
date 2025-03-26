@@ -95,7 +95,6 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      */
     suspend fun handle(networkPdu: NetworkPdu): MeshMessage? {
         require(networkPdu.transportPdu.size > 1) { return null }
-
         mutex.withLock {
             require(checkAgainstReplayAttack(networkPdu)) { throw SecurityError.ReplayAttack }
             val segmented = networkPdu.isSegmented

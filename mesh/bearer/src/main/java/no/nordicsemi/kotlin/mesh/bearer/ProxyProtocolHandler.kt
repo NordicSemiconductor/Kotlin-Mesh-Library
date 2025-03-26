@@ -162,4 +162,8 @@ class ProxyProtocolHandler {
  * @property data  Reassembled PDU.
  * @property type  Type of the message.
  */
-data class Pdu(val data: ByteArray, val type: PduType)
+data class Pdu(val data: ByteArray, val type: PduType) {
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "Pdu(type: $type, " +
+            "data: ${data.toHexString(format = HexFormat.UpperCase)})"
+}

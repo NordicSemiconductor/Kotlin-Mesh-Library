@@ -59,7 +59,7 @@ enum class ProxyFilterType(val type: UByte) {
          * @throws IllegalArgumentException if the filter type is invalid.
          */
         @Throws(IllegalArgumentException::class)
-        fun from(filterType: UByte) = ProxyFilterType.values().find {
+        fun from(filterType: UByte) = entries.find {
             it.type == filterType
         } ?: throw IllegalArgumentException("Illegal filter type")
     }
@@ -83,7 +83,7 @@ sealed class ProxyFilterState {
      */
     data class ProxyFilterUpdated internal constructor(
         val type: ProxyFilterType,
-        val addresses: List<ProxyFilterAddress>
+        val addresses: List<ProxyFilterAddress>,
     ) : ProxyFilterState()
 
     /**
@@ -94,7 +94,18 @@ sealed class ProxyFilterState {
      */
     data class ProxyFilterUpdateAcknowledged internal constructor(
         val type: ProxyFilterType,
-        val listSize: UShort
+        val listSize: UShort,
+    ) : ProxyFilterState()
+
+    /**
+     * State defining when the Proxy filter limit has been reached.
+     *
+     * @property type     Filter type.
+     * @property listSize List of addresses.
+     */
+    data class ProxyFilterLimitReached internal constructor(
+        val type: ProxyFilterType,
+        val listSize: UShort,
     ) : ProxyFilterState()
 
     /**
@@ -137,7 +148,7 @@ internal sealed interface ProxyFilterEventHandler {
     /**
      * Clears the current proxy filter state.
      */
-    fun onNewNetworkCreated()
+    suspend fun onNewNetworkCreated()
 
     /**
      * Invoked when a possible change of Proxy Node have been discovered.
@@ -173,7 +184,7 @@ internal sealed interface ProxyFilterEventHandler {
      */
     suspend fun onManagerFailedToDeliverMessage(
         message: ProxyConfigurationMessage,
-        error: Throwable
+        error: Throwable,
     )
 
     /**
@@ -206,14 +217,14 @@ internal sealed interface ProxyFilterEventHandler {
  * @property mutex Mutex for internal synchronization
  * @property manager Mesh network manager
  */
-class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterEventHandler {
+class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: MeshNetworkManager) :
+    ProxyFilterEventHandler {
 
     private val _proxyFilterStateFlow = MutableSharedFlow<ProxyFilterState>()
     val proxyFilterStateFlow = _proxyFilterStateFlow.asSharedFlow()
-    internal var manager: MeshNetworkManager? = null
 
     // A mutex for internal synchronization.
-    private val mutex = Mutex(locked = true)
+    private val mutex = Mutex()
 
     // The counter is used to prevent from refreshing the filter in a loop when the Proxy Server
     // responds with an unexpected list size.
@@ -225,8 +236,12 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
 
     // A queue of proxy configuration messages enqueued to be sent.
     private var buffer = mutableListOf<ProxyConfigurationMessage>()
+
+    // The last Proxy Configuration message that was sent
+    private var request: ProxyConfigurationMessage? = null
+
     private val logger: Logger?
-        get() = manager?.logger
+        get() = manager.logger
 
     var state: ProxyFilterState? = null
     var initializeState: ProxyFilterSetup = ProxyFilterSetup.AUTOMATIC
@@ -240,31 +255,29 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
     var proxy: Node? = null
         private set
 
-    internal fun use(manager: MeshNetworkManager) {
-        this.manager = manager
-    }
-
     /**
      * Sets the Filter Type on the connected GATT Proxy node. The filter will be emptied.
      *
      * @param type Filter type.
      */
     suspend fun setType(type: ProxyFilterType) {
-        send(SetFilterType(type))
+        println("Sending message to set filter type")
+        val message = send(message = SetFilterType(filterType = type))
+        println("received Filter status message: $message")
     }
 
     /**
      * Resets the filter to an empty inclusion list filter.
      */
     suspend fun reset() {
-        send(SetFilterType(ProxyFilterType.INCLUSION_LIST))
+        send(message = SetFilterType(filterType = ProxyFilterType.INCLUSION_LIST))
     }
 
     /**
      * Clears the current filter
      */
     suspend fun clear() {
-        send(SetFilterType(type))
+        send(message = SetFilterType(filterType = type))
     }
 
     /**
@@ -273,7 +286,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param address Address to be added to the filter.
      */
     suspend fun add(address: ProxyFilterAddress) {
-        send(AddAddressesToFilter(listOf(address)))
+        send(message = AddAddressesToFilter(addresses = listOf(element = address)))
     }
 
     /**
@@ -285,7 +298,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      */
     suspend fun add(addresses: List<ProxyFilterAddress>) {
         addresses.chunked(5).forEach { chunk ->
-            send(AddAddressesToFilter(chunk))
+            send(message = AddAddressesToFilter(addresses = chunk))
         }
     }
 
@@ -295,7 +308,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param group Group to be added to the filter.
      */
     suspend fun add(group: Group) {
-        addGroups(listOf(group))
+        addGroups(groups = listOf(element = group))
     }
 
     /**
@@ -304,7 +317,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param groups Group to be added to the filter.
      */
     suspend fun addGroups(groups: List<Group>) {
-        add(groups.map { it.address as ProxyFilterAddress })
+        add(addresses = groups.map { it.address as ProxyFilterAddress })
     }
 
     /**
@@ -313,7 +326,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param address Address to be removed from the filter.
      */
     suspend fun remove(address: ProxyFilterAddress) {
-        send(RemoveAddressesFromFilter(listOf(address)))
+        send(message = RemoveAddressesFromFilter(addresses = listOf(element = address)))
     }
 
     /**
@@ -323,7 +336,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      */
     suspend fun remove(addresses: List<ProxyFilterAddress>) {
         addresses.chunked(5).forEach { chunk ->
-            send(RemoveAddressesFromFilter(chunk))
+            send(message = RemoveAddressesFromFilter(addresses = chunk))
         }
     }
 
@@ -333,22 +346,42 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      * @param provisioner Provisioner to be added to the filter.
      */
     suspend fun setup(provisioner: Provisioner) = provisioner.node?.run {
+        // Reset the proxy filter to an empty inclusion list filter.
+        setType(type = ProxyFilterType.INCLUSION_LIST)
         val addresses = mutableListOf<ProxyFilterAddress>()
+        // Add all the unicast addresses of all elements of the provisioner's Node
         addresses.addAll(elements.map { it.unicastAddress })
-        addresses.addAll(elements
-            .flatMap { it.models }
-            .flatMap { it.subscribe }
-            .filter { it is ProxyFilterAddress }.map { it as ProxyFilterAddress })
-
+        // Add all the addresses that the Node's Models are subscribed to
+        addresses.addAll(
+            elements
+                .flatMap { it.models }
+                .flatMap { it.subscribe }
+                .filter { it is ProxyFilterAddress }
+                .map { it as ProxyFilterAddress }
+        )
+        // Add the All Nodes address
         addresses.add(AllNodes)
-
+        // Add all the above addresses to the filter.
         add(addresses.distinct())
     }
 
     suspend fun proxyDidDisconnect() {
+        onNewNetworkCreated()
         mutex.withLock {
-            busy = false
-            proxy = null
+            scope.launch {
+                _proxyFilterStateFlow.emit(
+                    value = ProxyFilterState.ProxyFilterUpdated(
+                        type = ProxyFilterType.INCLUSION_LIST,
+                        addresses = listOf()
+                    )
+                )
+                _proxyFilterStateFlow.emit(
+                    value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
+                        type = ProxyFilterType.INCLUSION_LIST,
+                        listSize = 0u
+                    )
+                )
+            }
         }
     }
 
@@ -358,39 +391,40 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
      *
      * @param message Message to be sent.
      */
-    private suspend fun send(message: ProxyConfigurationMessage) {
-        manager?.let { manager ->
+    private suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage {
+        /*manager?.let { manager ->
             val wasBusy = mutex.withLock { busy }
 
             require(!wasBusy) {
-                mutex.withLock { buffer.add(message) }
-                return
+                mutex.withLock { buffer.add(element = message) }
+                return null
             }
             mutex.withLock { busy = true }
 
             try {
-                manager.send(message)
+                return manager.send(message = message)
             } catch (e: Exception) {
                 mutex.withLock { busy = false }
             }
+        }*/
+        return manager.send(message = message)
+    }
+
+    override suspend fun onNewNetworkCreated() {
+        mutex.withLock {
+            type = ProxyFilterType.INCLUSION_LIST
+            _addresses.clear()
+            buffer.clear()
+            busy = false
+            proxy = null
         }
     }
 
-    override fun onNewNetworkCreated() {
-        type = ProxyFilterType.INCLUSION_LIST
-        _addresses.clear()
-        buffer.clear()
-        busy = false
-        counter = 0
-        proxy = null
-    }
-
     override suspend fun newProxyDidConnect() {
-        manager?.let {
-            proxyDidDisconnect()
+        scope.launch {
+            onNewNetworkCreated()
             logger?.i(LogCategory.PROXY) { "New Proxy connected." }
-
-            manager?.network?.localProvisioner?.let { provisioner ->
+            manager.network?.localProvisioner?.let { provisioner ->
                 when (initializeState) {
                     ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
                     ProxyFilterSetup.EXCLUSION_LIST -> {
@@ -405,133 +439,111 @@ class ProxyFilter internal constructor(val scope: CoroutineScope) : ProxyFilterE
     }
 
     override suspend fun onManagerDidDeliverMessage(message: ProxyConfigurationMessage) {
-        mutex.withLock {
-            when (message) {
-                is AddAddressesToFilter -> {
-                    _addresses = _addresses.distinctBy { message.addresses }.toMutableList()
-                }
-
-                is RemoveAddressesFromFilter -> {
-                    _addresses.removeAll { message.addresses.contains(it) }
-                }
-
-                is SetFilterType -> {
-                    type = message.filterType
-                    _addresses.clear()
-                }
-
-                else -> {
-
-                }
-            }
-
-            // Notify the app about the current state
-            scope.launch {
-                _proxyFilterStateFlow.emit(
-                    value = ProxyFilterState.ProxyFilterUpdated(type = type, addresses = addresses)
-                )
-            }
-        }
+        mutex.withLock { request = message }
     }
 
     override suspend fun onManagerFailedToDeliverMessage(
         message: ProxyConfigurationMessage,
-        error: Throwable
+        error: Throwable,
     ) {
-        mutex.withLock {
-            type = ProxyFilterType.INCLUSION_LIST
-            _addresses.clear()
-            buffer.clear()
-            busy = false
-        }
+        mutex.withLock { busy = false }
 
-        if (error is BearerError.Closed) proxy = null
-        // Notify the app about the current state
-        scope.launch {
-            _proxyFilterStateFlow.emit(
-                value = ProxyFilterState.ProxyFilterUpdated(type = type, addresses = addresses)
-            )
-        }
+        if (error is BearerError.Closed) proxyDidDisconnect()
     }
 
     override suspend fun handle(message: ProxyConfigurationMessage, proxy: Node?) {
-        manager?.let { manager ->
-            when (message) {
-                is FilterStatus -> {
+        when (message) {
+            is FilterStatus -> {
+                var expectedListSize = addresses.size
+                mutex.withLock {
                     this.proxy = proxy
-                    mutex.withLock {
-                        buffer.takeIf {
-                            it.isNotEmpty()
-                        }?.let { it ->
-                            try {
-                                manager.send(it.removeFirst())
-                            } catch (e: Exception) {
-                                // Handle send error if needed
+                    request?.let { request ->
+                        when (request) {
+                            is AddAddressesToFilter -> {
+                                expectedListSize = addresses.size + request.addresses.size
+                                val addedAddresses = listOf(
+                                    message.listSize.toInt() - addresses.size
+                                ) + request.addresses.sortedBy { it.address }
+                                _addresses.union(addedAddresses)
                             }
-                            busy = false
+
+                            is RemoveAddressesFromFilter -> {
+                                _addresses.removeAll { it in request.addresses }
+                                expectedListSize = addresses.size
+                            }
+
+                            is SetFilterType -> {
+                                type = request.filterType
+                                _addresses.clear()
+                                expectedListSize = 0
+                            }
+
+                            else -> { /* Ignore */
+                            }
                         }
+                        this.request = null
                     }
 
-                    require(type == message.filterType && addresses.count() == message.listSize.toInt()) {
-                        // The counter is used to prevent from refreshing the filter in a loop when
-                        // the Proxy Server responds with an unexpected list size.
-                        require(counter == 0) {
-                            logger?.e(LogCategory.PROXY) {
-                                "Proxy Filter lost track of devices"
-                            }
-                            counter = 0
-                            return
-                        }
-                        counter += 1
+                    // Handle buffered messages.
+                    // val nextMessage = when (buffer.isNotEmpty()) {
+                    //     true -> buffer.removeAt(index = 0)
+                    //     false -> null
+                    // }
+                    // if (nextMessage != null) {
+                    //     // Add more addresses only when we're below the limit.
+                    //     if (expectedListSize == addresses.size) {
+                    //         try {
+                    //             manager.send(nextMessage)
+                    //         } catch (ex: Exception) {
+                    //             logger?.e(LogCategory.PROXY) {
+                    //                 "Failed to send the next message from the buffer $ex"
+                    //             }
+                    //         }
+                    //         return
+                    //     } else {
+                    //         buffer.clear()
+                    //     }
+                    // }
+                    // busy = false
 
-                        // Some devices support just a single address in Proxy Filter. After adding
-                        // 2+ devices they will reply with list size = 1. In that case we could
-                        // either switch to an exclusion list to get all the traffic, or add only 1
-                        // address. By default, this library will add the 0th Element's Unicast
-                        // Address to allow configuration, as this is the most common use case. If
-                        // you need to receive messages sent to group addresses or other Elements,
-                        // switch to exclusion list filter.
-                        when (message.listSize.toInt() == 1) {
-                            true -> {
-                                logger?.w(LogCategory.PROXY) { "Limited Proxy Filter detected." }
-                                reset()
-                                this.manager?.network?.localProvisioner?.primaryUnicastAddress?.let {
-                                    mutex.withLock {
-                                        _addresses.add(it)
-                                    }
-                                    add(addresses = addresses)
-                                }
-                                setType(type = ProxyFilterType.EXCLUSION_LIST)
-                                add(addresses = listOf(addresses[0]))
-                                _proxyFilterStateFlow.emit(
-                                    ProxyFilterState.LimitedProxyFilterDetected(maxSize = 1)
-                                )
-                            }
-
-                            false -> {
-                                logger?.e(LogCategory.PROXY) { "Refreshing Proxy Filter..." }
-                                val addresses = addresses
-                                reset()
-                                add(addresses = addresses)
-                            }
-                        }
-                        return
-                    }
-                    counter = 0
+                    // Notify the app about the current state
                     scope.launch {
                         _proxyFilterStateFlow.emit(
-                            value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
+                            value = ProxyFilterState.ProxyFilterUpdated(
                                 type = type,
-                                listSize = message.listSize
+                                addresses = addresses
                             )
                         )
                     }
                 }
 
-                else -> {
-                    // Ignore
+                // Ensure the current information about the filter is up to date.
+                if (type != message.filterType || expectedListSize != message.listSize.toInt()) {
+                    logger?.w(LogCategory.PROXY) {
+                        "Proxy Filter limit reached: ${message.listSize} (expected: $expectedListSize)"
+                    }
+                    scope.launch {
+                        _proxyFilterStateFlow.emit(
+                            value = ProxyFilterState.ProxyFilterLimitReached(
+                                type = message.filterType,
+                                listSize = message.listSize
+                            )
+                        )
+                    }
+                    return
+                }
+
+                scope.launch {
+                    _proxyFilterStateFlow.emit(
+                        value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
+                            type = type,
+                            listSize = message.listSize
+                        )
+                    )
                 }
             }
+
+            else -> { /* Ignore */ }
         }
     }
 }

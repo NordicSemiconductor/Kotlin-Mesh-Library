@@ -82,11 +82,7 @@ class MeshNetworkManager(
 
     var logger: Logger? = null
 
-    var meshBearer: MeshBearer? = null
-        set(value) {
-            field = value
-            networkManager?.bearer = value
-        }
+     private var meshBearer: MeshBearer? = null
 
     internal var proxyFilter: ProxyFilter
 
@@ -98,7 +94,12 @@ class MeshNetworkManager(
         }
 
     init {
-        proxyFilter = ProxyFilter(scope = scope).also { it.use(this) }
+        proxyFilter = ProxyFilter(scope = scope, manager = this)
+    }
+
+    fun setMeshBearerType(meshBearer: MeshBearer) {
+        this.meshBearer = meshBearer
+        networkManager?.setMeshBearerType(bearer = meshBearer)
     }
 
     /**
@@ -109,8 +110,8 @@ class MeshNetworkManager(
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it)
         this@MeshNetworkManager.network = meshNetwork
-        networkManager = NetworkManager(this)
         _meshNetwork.emit(meshNetwork)
+        networkManager = NetworkManager(this)
         true
     } ?: false
 
@@ -835,7 +836,7 @@ class MeshNetworkManager(
         val selectedNetworkKey = (networkKey ?: node.networkKeys
             .firstOrNull { candidateKey ->
                 // A key that is being deleted cannot be used to send a message.
-                (message !is ConfigNetKeyDelete || message.index != candidateKey.index) &&
+                ((message as? ConfigNetKeyDelete)?.index != candidateKey.index) &&
                         // Unless the message is sent locally, take only keys known to the Proxy Node.
                         (node.isLocalProvisioner || proxyFilter.proxy?.knows(candidateKey) == true)
             })
@@ -941,9 +942,7 @@ class MeshNetworkManager(
      */
     @Throws(IllegalStateException::class)
     suspend fun send(message: ProxyConfigurationMessage) = networkManager?.send(message) ?: run {
-        logger?.e(LogCategory.PROXY) {
-            "Error: Mesh Network not created"
-        }
+        logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
         throw IllegalStateException("Network manager is not initialized")
     }
 
@@ -963,7 +962,7 @@ class MeshNetworkManager(
                     }
                 }
             }
-        }?.launchIn(scope)
+        }?.launchIn(scope = scope)
     }
 }
 

@@ -8,6 +8,7 @@ import no.nordicsemi.kotlin.data.hasBitSet
 import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
@@ -88,14 +89,18 @@ internal class NetworkPdu internal constructor(
         } else sequence
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() =
-        "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
+    override fun toString(): String {
+        val micSize = type.netMicSize
+        val encryptedDataSie = pdu.size - micSize - 9
+        val encryptedData = pdu.copyOfRange(fromIndex = 9, toIndex = 9 + encryptedDataSie)
+        val mic = pdu.copyOfRange(fromIndex= 9 + encryptedDataSie, pdu.size)
+        return "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
                 "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
                 "dst: ${destination.toHexString()}, " +
-                "transportPdu: 0x${
-                    pdu.copyOfRange(0, pdu.size - type.netMicSize).toHexString()
-                }, " +
-                "netMic: 0x${pdu.copyOfRange(pdu.size - type.netMicSize, pdu.size).toHexString()})"
+                "transportPdu: ${encryptedData.toHexString(prefixOx = true)}, " +
+                "netMic: ${mic.toHexString(prefixOx = true)})"
+    }
+
 }
 
 /**

@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -90,7 +89,7 @@ private class AcknowledgmentContext(
     val delay: Duration, // Duration in seconds
     val repeatBlock: () -> Unit,
     val timeout: Duration, // Duration in seconds
-    val timeoutBlock: () -> Unit
+    val timeoutBlock: () -> Unit,
 ) {
 
     var timeoutTimer = Timer()
@@ -233,7 +232,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         destination: MeshAddress,
         ttl: UByte?,
         applicationKey: ApplicationKey,
-        retransmit: Boolean
+        retransmit: Boolean,
     ): MeshMessage {
         var msg = message
         val transactionMessage = message as? TransactionMessage
@@ -274,7 +273,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
 
-        return awaitResponse(destination = destination)
+        return networkManager.awaitMeshMessageResponse(destination = destination) as MeshMessage
     }
 
     /**
@@ -302,7 +301,9 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             networkKey = networkKey, node = node
         ) ?: return null
 
-        logger?.i(LogCategory.FOUNDATION_MODEL) { "Sending $message to ${destination.toHexString()})" }
+        logger?.i(LogCategory.FOUNDATION_MODEL) {
+            "Sending $message to ${destination.toHexString()})"
+        }
         val pdu = AccessPdu.init(
             message = message,
             source = localElement.unicastAddress.address,
@@ -318,21 +319,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             keySet = keySet
         )
 
-        networkManager.upperTransportLayer.send(
-            accessPdu = pdu,
-            ttl = initialTtl,
-            keySet = keySet
-        )
+        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
 
-        return awaitResponse(destination = destination)
+        return networkManager.awaitMeshMessageResponse(destination = destination) as? MeshMessage
     }
-
-    suspend fun awaitResponse(destination: Address) =
-        awaitResponse(destination = MeshAddress.create(destination))
-
-    suspend fun awaitResponse(destination: MeshAddress) = networkManager.incomingMessages.first {
-        it.address == destination
-    }.message
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given
@@ -350,7 +340,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         destination: Address,
         message: MeshMessage,
         element: Element,
-        keySet: KeySet
+        keySet: KeySet,
     ) {
         val category =
             if (message is ConfigMessage) LogCategory.FOUNDATION_MODEL else LogCategory.MODEL
@@ -423,7 +413,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     private suspend fun handle(
         accessPdu: AccessPdu,
         keySet: KeySet,
-        request: AcknowledgedMeshMessage?
+        request: AcknowledgedMeshMessage?,
     ): MeshMessage? {
         val localNode = network.localProvisioner?.node ?: return null
 
@@ -608,7 +598,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         pdu: AccessPdu,
         element: Element,
         initialTtl: UByte?,
-        keySet: KeySet
+        keySet: KeySet,
     ) {
         val request = pdu.message as? AcknowledgedMeshMessage ?: return
         require(pdu.destination is UnicastAddress) { return }
@@ -706,7 +696,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     message: MeshMessage,
     source: Address,
     destination: Address,
-    request: AcknowledgedMeshMessage?
+    request: AcknowledgedMeshMessage?,
 ): MeshResponse? {
     if (request != null) {
         val response = message as? MeshResponse
