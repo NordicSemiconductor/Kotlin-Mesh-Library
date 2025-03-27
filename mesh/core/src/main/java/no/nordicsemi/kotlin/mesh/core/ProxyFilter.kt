@@ -226,16 +226,9 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
     // A mutex for internal synchronization.
     private val mutex = Mutex()
 
-    // The counter is used to prevent from refreshing the filter in a loop when the Proxy Server
-    // responds with an unexpected list size.
-    private var counter = 0
-
     // The flag is set to 'true' when a request has been sent to the connected proxy. It is cleared
     // when a response was received, or in case of an error.
     private var busy = false
-
-    // A queue of proxy configuration messages enqueued to be sent.
-    private var buffer = mutableListOf<ProxyConfigurationMessage>()
 
     // The last Proxy Configuration message that was sent
     private var request: ProxyConfigurationMessage? = null
@@ -261,9 +254,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
      * @param type Filter type.
      */
     suspend fun setType(type: ProxyFilterType) {
-        println("Sending message to set filter type")
-        val message = send(message = SetFilterType(filterType = type))
-        println("received Filter status message: $message")
+        send(message = SetFilterType(filterType = type))
     }
 
     /**
@@ -391,30 +382,12 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
      *
      * @param message Message to be sent.
      */
-    private suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage {
-        /*manager?.let { manager ->
-            val wasBusy = mutex.withLock { busy }
-
-            require(!wasBusy) {
-                mutex.withLock { buffer.add(element = message) }
-                return null
-            }
-            mutex.withLock { busy = true }
-
-            try {
-                return manager.send(message = message)
-            } catch (e: Exception) {
-                mutex.withLock { busy = false }
-            }
-        }*/
-        return manager.send(message = message)
-    }
+    private suspend fun send(message: ProxyConfigurationMessage) = manager.send(message = message)
 
     override suspend fun onNewNetworkCreated() {
         mutex.withLock {
             type = ProxyFilterType.INCLUSION_LIST
             _addresses.clear()
-            buffer.clear()
             busy = false
             proxy = null
         }
@@ -483,28 +456,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                         }
                         this.request = null
                     }
-
-                    // Handle buffered messages.
-                    // val nextMessage = when (buffer.isNotEmpty()) {
-                    //     true -> buffer.removeAt(index = 0)
-                    //     false -> null
-                    // }
-                    // if (nextMessage != null) {
-                    //     // Add more addresses only when we're below the limit.
-                    //     if (expectedListSize == addresses.size) {
-                    //         try {
-                    //             manager.send(nextMessage)
-                    //         } catch (ex: Exception) {
-                    //             logger?.e(LogCategory.PROXY) {
-                    //                 "Failed to send the next message from the buffer $ex"
-                    //             }
-                    //         }
-                    //         return
-                    //     } else {
-                    //         buffer.clear()
-                    //     }
-                    // }
-                    // busy = false
 
                     // Notify the app about the current state
                     scope.launch {
