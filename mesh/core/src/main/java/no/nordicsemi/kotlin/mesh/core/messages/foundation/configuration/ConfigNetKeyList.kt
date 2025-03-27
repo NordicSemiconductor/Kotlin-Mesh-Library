@@ -29,7 +29,7 @@ class ConfigNetKeyList(
         }.toTypedArray()
     )
 
-    override fun toString() = "ConfigNetKeyList(networkKeyIndex: ${
+    override fun toString() = "ConfigNetKeyList(opCode: $opCode, networkKeyIndex: ${
         networkKeyIndexes.joinToString(separator = ", ", transform = { it.toString() })
     })"
 
