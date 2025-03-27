@@ -143,9 +143,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     protected suspend fun awaitNotifications() {
         dataOutCharacteristic.getNotifications().onEach { data ->
-            println("Notification received....")
             proxyProtocolHandler.reassemble(data = data.value)?.let { reassembledPdu ->
-                println("Emitting received Notification $reassembledPdu")
                 _pdus.emit(reassembledPdu)
             }
         }.launchIn(scope)
