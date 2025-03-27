@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
 import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
@@ -98,8 +99,10 @@ class CoreDataRepository @Inject constructor(
         }.launchIn(CoroutineScope(ioDispatcher))
 
         // Start automatic connectivity when the network changes
+
+        // TODO need to check this on
         network.onEach {
-            startAutomaticConnectivity(meshNetwork = it)
+            // startAutomaticConnectivity(meshNetwork = it)
         }
     }
 
@@ -152,8 +155,10 @@ class CoreDataRepository @Inject constructor(
     /**
      * Saves the mesh network.
      */
-    suspend fun save() = withContext(ioDispatcher) {
-        meshNetworkManager.save()
+    fun save() {
+        CoroutineScope(context = ioDispatcher).launch {
+            meshNetworkManager.save()
+        }
     }
 
     /**
@@ -203,12 +208,12 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun connectOverGattBearer(context: Context, device: ServerDevice) =
         withContext(ioDispatcher) {
-            if (bearer is PbGattBearer) bearer?.close()
+            if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
             _proxyStateFlow.value = _proxyStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(device = device)
             )
             GattBearer(context = context, device = device).also {
-                meshNetworkManager.meshBearer = it
+                meshNetworkManager.setMeshBearerType(meshBearer = it)
                 bearer = it
                 it.open()
                 if (it.isOpen) {

@@ -82,7 +82,7 @@ class MeshNetworkManager(
 
     var logger: Logger? = null
 
-     private var meshBearer: MeshBearer? = null
+    private var meshBearer: MeshBearer? = null
 
     internal var proxyFilter: ProxyFilter
 
