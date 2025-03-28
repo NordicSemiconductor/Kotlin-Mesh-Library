@@ -34,7 +34,7 @@ data class ApplicationKey internal constructor(
     val index: KeyIndex,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
-    private var _key: ByteArray = Crypto.generateRandomKey()
+    private var _key: ByteArray = Crypto.generateRandomKey(),
 ) {
     var name: String
         get() = _name
@@ -85,13 +85,11 @@ data class ApplicationKey internal constructor(
 
     internal var oldAid: Byte? = null
 
-    val isInUse :Boolean
+    val isInUse: Boolean
         get() = network?.run {
             // The application key in used when it is known by any of the nodes in the network.
             _nodes.any { node ->
-                node.appKeys.any { nodeKey ->
-                    nodeKey.index == index
-                }
+                node.elements.flatMap { it.models }.any { it.bind.contains(element = index) }
             }
         } ?: false
 
