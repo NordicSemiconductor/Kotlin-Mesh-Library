@@ -10,24 +10,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.BottomSheetApplicationKeys
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
@@ -38,28 +33,10 @@ import java.util.UUID
 @Composable
 fun BindAppKeysRoute(
     model: Model,
-    navigateToConfigApplicationKeys: (UUID) -> Unit = {},
-    send: (AcknowledgedConfigMessage) -> Unit,
-) {
-    BoundKeys(
-        model = model,
-        addedKeys = model.parentElement?.parentNode?.applicationKeys ?: emptyList(),
-        navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-        send = send
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BoundKeys(
-    model: Model,
-    addedKeys: List<ApplicationKey>,
+    addedKeys: List<ApplicationKey> = model.parentElement?.parentNode?.applicationKeys.orEmpty(),
     navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
@@ -68,46 +45,39 @@ private fun BoundKeys(
             title = stringResource(R.string.label_bound_app_keys),
             modifier = Modifier.padding(top = 8.dp)
         )
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-        ) {
-            if (addedKeys.isEmpty()) {
-                item {
-                    MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = stringResource(R.string.label_no_bound_app_keys),
-                        rationale = stringResource(R.string.label_bind_an_app_key_rationale)
-                    )
-                }
-            } else {
+        when (addedKeys.isNotEmpty()) {
+            true -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            ) {
                 items(items = addedKeys, key = { it.index.toInt() + 1 }) { key ->
                     AddedKeyRow(model = model, key = key, send = send)
                 }
             }
-        }
-    }
-    if (showBottomSheet) {
-        BottomSheetApplicationKeys(
-            bottomSheetState = bottomSheetState,
-            title = stringResource(R.string.label_bind_key),
-            keys = addedKeys,
-            onAppKeyClicked = {
-                scope.launch { bottomSheetState.hide() }
-                    .invokeOnCompletion {
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
-                    }
-                }
-                send(ConfigModelAppBind(model = model, applicationKey = it))
-            },
-            onDismissClick = { showBottomSheet = false },
-            emptyKeysContent = {
-                MeshNoItemsAvailable(
+
+            false -> {
+                model.parentElement?.parentNode?.network?.takeIf {
+                    it.applicationKeys.isNotEmpty()
+                }?.let {
+                    MeshNoItemsAvailable(
+                        modifier = Modifier.fillMaxSize(),
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_bound_app_keys),
+                        rationale = stringResource(R.string.label_bind_an_app_key_rationale),
+                        onClickText = stringResource(R.string.label_add_app_key),
+                        onClick = {
+                            navigateToConfigApplicationKeys(
+                                model.parentElement?.parentNode?.uuid
+                                    ?: throw IllegalArgumentException("Parent node UUID is null")
+                            )
+                        }
+                    )
+                } ?: MeshNoItemsAvailable(
+                    modifier = Modifier.fillMaxSize(),
                     imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_app_keys_to_bind),
-                    onClickText = stringResource(R.string.label_add_key),
+                    title = stringResource(R.string.label_no_added_app_keys),
+                    rationale = stringResource(R.string.label_add_an_app_key_rationale),
+                    onClickText = stringResource(R.string.label_add_app_key),
                     onClick = {
                         navigateToConfigApplicationKeys(
                             model.parentElement?.parentNode?.uuid
@@ -116,7 +86,7 @@ private fun BoundKeys(
                     }
                 )
             }
-        )
+        }
     }
 }
 
@@ -126,7 +96,7 @@ private fun AddedKeyRow(
     key: ApplicationKey,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    var isBound by rememberSaveable { mutableStateOf(model.isBoundTo(key = key)) }
+    var isBound by rememberSaveable { mutableStateOf(key.isBoundTo(model = model)) }
     var displayWarningDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),

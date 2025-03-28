@@ -120,7 +120,7 @@ internal fun BoundApplicationKeys(
     navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
