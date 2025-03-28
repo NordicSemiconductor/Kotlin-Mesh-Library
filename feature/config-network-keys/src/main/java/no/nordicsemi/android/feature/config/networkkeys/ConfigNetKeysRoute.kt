@@ -1,6 +1,5 @@
 package no.nordicsemi.android.feature.config.networkkeys
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -100,7 +99,6 @@ internal fun ConfigNetKeysRoute(
                                     KeyRow(
                                         node = node,
                                         key = key,
-                                        context = context,
                                         scope = scope,
                                         snackbarHostState = snackbarHostState,
                                         send = send
@@ -146,7 +144,6 @@ internal fun ConfigNetKeysRoute(
 private fun KeyRow(
     node: Node,
     key: NetworkKey,
-    context: Context,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     send: (AcknowledgedConfigMessage) -> Unit,
@@ -163,17 +160,6 @@ private fun KeyRow(
                     if (!isAdded) {
                         send(ConfigNetKeyAdd(key = key))
                     } else {
-                        // Check if the key is in use before unbinding.
-                        if (node.networkKeys.size == 1 && key.isInUse) {
-                            showSnackbar(
-                                scope = scope,
-                                snackbarHostState = snackbarHostState,
-                                message = context.getString(
-                                    R.string.error_cannot_last_network_key_or_key_in_use
-                                ),
-                                duration = SnackbarDuration.Short
-                            )
-                        }
                         runCatching {
                             send(ConfigNetKeyDelete(key = key))
                         }.onFailure { throwable ->
@@ -182,7 +168,7 @@ private fun KeyRow(
                                 scope = scope,
                                 snackbarHostState = snackbarHostState,
                                 message = throwable.message
-                                    ?: context.getString(R.string.unknown_error),
+                                    ?: throwable.toString(),
                                 duration = SnackbarDuration.Short
                             )
                         }

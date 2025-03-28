@@ -54,7 +54,6 @@ internal fun NetworkKeysRoute(
     onAddKeyClicked: () -> NetworkKey,
     keys: List<NetworkKeyData>,
     onNetworkKeyClicked: (KeyIndex) -> Unit,
-    navigateToKey: (KeyIndex) -> Unit,
     onSwiped: (NetworkKeyData) -> Unit,
     onUndoClicked: (NetworkKeyData) -> Unit,
     remove: (NetworkKeyData) -> Unit,
@@ -77,7 +76,7 @@ internal fun NetworkKeysRoute(
                         onAddKeyClicked()
                     }.onSuccess {
                         selectedKeyIndex = it.index.toInt()
-                        navigateToKey(it.index)
+                        onNetworkKeyClicked(it.index)
                     }
                 },
                 expanded = true
@@ -101,7 +100,6 @@ internal fun NetworkKeysRoute(
                     onNetworkKeyClicked = {
                         selectedKeyIndex = it.toInt()
                         onNetworkKeyClicked(it)
-                        navigateToKey(it)
                     },
                     onSwiped = onSwiped,
                     onUndoClicked = onUndoClicked,

@@ -54,7 +54,7 @@ internal fun NodeDetailsPane(
         )
 
         is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysScreenRoute(
-            networkKeys = node.networkKeys,
+            node = node,
             messageState = messageState,
             navigateToNetworkKeys = navigateToNetworkKeys,
             resetMessageState = resetMessageState,
@@ -62,9 +62,7 @@ internal fun NodeDetailsPane(
         )
 
         is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
-            elements = node.elements,
-            networkKeys = node.networkKeys,
-            applicationKeys = node.applicationKeys,
+            node = node,
             messageState = messageState,
             onApplicationKeyClicked = navigateToApplicationKeys,
             resetMessageState = resetMessageState,

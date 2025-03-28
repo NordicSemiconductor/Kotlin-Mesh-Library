@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import java.util.UUID
 
 
 @Composable
@@ -25,7 +26,8 @@ internal fun NodeExtraPane(
     send: (AcknowledgedConfigMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
-    navigateToGroups: () -> Unit
+    navigateToGroups: () -> Unit,
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
 ) {
     when (content) {
         is ModelRouteKeyKey -> ModelScreenRoute(
@@ -37,7 +39,8 @@ internal fun NodeExtraPane(
             send = send,
             requestNodeIdentityStates = requestNodeIdentityStates,
             resetMessageState = resetMessageState,
-            navigateToGroups = navigateToGroups
+            navigateToGroups = navigateToGroups,
+            navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
         )
 
         is NetworkKeysContent -> NetworkKeysScreenRoute(
@@ -51,7 +54,6 @@ internal fun NodeExtraPane(
                     )
                 )
             },
-            navigateToKey = {},
             navigateUp = {}
         )
 

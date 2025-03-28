@@ -35,6 +35,7 @@ import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import java.util.UUID
 
 @Composable
 internal fun ModelRoute(
@@ -46,6 +47,7 @@ internal fun ModelRoute(
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
     navigateToGroups: () -> Unit,
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
 ) {
     Column(
         modifier = Modifier.verticalScroll(state = rememberScrollState()),
@@ -67,7 +69,11 @@ internal fun ModelRoute(
             )
         }
         if (model.supportsModelPublication == true || model.supportsModelSubscription == true) {
-            BoundApplicationKeys(model = model, send = send)
+            BoundApplicationKeys(
+                model = model,
+                navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
+                send = send
+            )
         }
         if (model.supportsModelPublication == true) {
             Publication(messageState = messageState, model = model, send = send)
@@ -111,6 +117,7 @@ internal fun ModelRoute(
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -127,7 +134,13 @@ internal fun BoundApplicationKeys(
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
-            content = { BindAppKeysRoute(model = model, send = send) }
+            content = {
+                BindAppKeysRoute(
+                    model = model,
+                    send = send,
+                    navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
+                )
+            }
         )
     }
 }

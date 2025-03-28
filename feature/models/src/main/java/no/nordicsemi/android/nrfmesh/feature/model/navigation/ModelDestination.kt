@@ -6,6 +6,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import java.util.UUID
 
 @Composable
 fun ModelScreenRoute(
@@ -15,6 +16,7 @@ fun ModelScreenRoute(
     requestNodeIdentityStates: (Model) -> Unit = {},
     resetMessageState: () -> Unit,
     navigateToGroups: () -> Unit,
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit
 ) {
     ModelRoute(
@@ -25,6 +27,7 @@ fun ModelScreenRoute(
         onAddGroupClicked = {},
         resetMessageState = resetMessageState,
         navigateToGroups = navigateToGroups,
+        navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
         send = send
     )
 }

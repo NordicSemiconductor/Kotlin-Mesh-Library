@@ -17,7 +17,6 @@ data object NetworkKeysContent : Parcelable
 fun NetworkKeysScreenRoute(
     highlightSelectedItem: Boolean,
     onNetworkKeyClicked: (KeyIndex) -> Unit,
-    navigateToKey: (KeyIndex) -> Unit,
     navigateUp: () -> Unit
 ) {
     val viewModel = hiltViewModel<NetworkKeysViewModel>()
@@ -30,7 +29,6 @@ fun NetworkKeysScreenRoute(
             viewModel.selectKeyIndex(it)
             onNetworkKeyClicked(it)
         },
-        navigateToKey = navigateToKey,
         onSwiped = {
             viewModel.onSwiped(it)
             if(viewModel.isCurrentlySelectedKey(it.index)) {

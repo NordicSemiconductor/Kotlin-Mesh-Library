@@ -11,13 +11,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -37,11 +36,11 @@ internal fun NodeListDetailsScreen(
     resetMessageState: () -> Unit,
     navigateBack: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
 
     when (uiState.nodeState) {
         is NodeState.Success -> {
+            val scope = rememberCoroutineScope()
+            val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
             NavigableListDetailPaneScaffold(
                 navigator = navigator,
                 defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
@@ -98,20 +97,14 @@ internal fun NodeListDetailsScreen(
                             highlightSelectedItem = navigator.isDetailPaneVisible() &&
                                     navigator.isExtraPaneVisible(),
                             navigateToNetworkKeys = {
-                                scope.launch {
-                                    navigator.navigateTo(
-                                        pane = ListDetailPaneScaffoldRole.Extra,
-                                        contentKey = NetworkKeysContent
-                                    )
-                                }
+                                appState.navigateToSettings(
+                                    listItem = ClickableSetting.NETWORK_KEYS
+                                )
                             },
                             navigateToApplicationKeys = {
-                                scope.launch {
-                                    navigator.navigateTo(
-                                        pane = ListDetailPaneScaffoldRole.Extra,
-                                        contentKey = ApplicationKeysContent
-                                    )
-                                }
+                                appState.navigateToSettings(
+                                    listItem = ClickableSetting.APPLICATION_KEYS
+                                )
                             },
                             navigateToModel = {
                                 scope.launch {
@@ -143,7 +136,17 @@ internal fun NodeListDetailsScreen(
                             send = send,
                             resetMessageState = resetMessageState,
                             requestNodeIdentityStates = requestNodeIdentityStates,
-                            navigateToGroups = { appState.navController.navigateToGroups() }
+                            navigateToGroups = { appState.navController.navigateToGroups() },
+                            navigateToConfigApplicationKeys = {
+
+                                //appState.navigateToNode()
+                                //scope.launch {
+                                //    navigator.navigateTo(
+                                //        pane = ListDetailPaneScaffoldRole.Detail,
+                                //        contentKey = ApplicationKeysContent
+                                //    )
+                                //}
+                            }
                         )
                     }
                 }
