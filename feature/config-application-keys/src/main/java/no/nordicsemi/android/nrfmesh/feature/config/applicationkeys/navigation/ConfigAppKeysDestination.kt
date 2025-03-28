@@ -10,27 +10,23 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Parcelize
 data object ConfigAppKeysRoute : Parcelable
 
 @Composable
 fun ConfigAppKeysScreenRoute(
-    elements: List<Element>,
-    networkKeys: List<NetworkKey>,
-    applicationKeys: List<ApplicationKey>,
+    node: Node,
     messageState: MessageState,
     onApplicationKeyClicked: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
     ConfigAppKeysRoute(
-        elements = elements,
-        networkKeys = networkKeys,
-        applicationKeys = applicationKeys,
+        node = node,
         messageState = messageState,
-        onApplicationKeysClicked = onApplicationKeyClicked,
-        onAddKeyClicked = { send(ConfigAppKeyAdd(key = it)) },
+        navigateToApplicationKeys = onApplicationKeyClicked,
         send = send,
         resetMessageState = resetMessageState
     )
