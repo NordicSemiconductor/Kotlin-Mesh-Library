@@ -10,26 +10,48 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun NetworkKey.Row(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
+) {
+    NetworkKeyRow(
+        modifier = modifier,
+        colors = colors,
+        onClick = onClick,
+        imageVector = imageVector,
+        title = name,
+        subtitle = "Index: ${index.toHexString()}",
+    )
+}
+
+@Composable
+fun NetworkKeyRow(
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    onClick: (() -> Unit)? = null,
+    imageVector: ImageVector = Icons.Outlined.VpnKey,
+    title: String,
+    subtitle: String? = null,
 ) = when (onClick != null) {
     true -> ElevatedCardItem(
         modifier = modifier,
         colors = colors,
         onClick = onClick,
         imageVector = imageVector,
-        title = name,
+        title = title,
+        subtitle = subtitle
     )
 
     else -> ElevatedCardItem(
         modifier = modifier,
         colors = colors,
         imageVector = imageVector,
-        title = name,
+        title = title,
+        subtitle = subtitle
     )
 }
 
@@ -39,8 +61,8 @@ fun ApplicationKey.Row(
     colors: CardColors = CardDefaults.outlinedCardColors(),
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
-) = when (onClick != null) {
-    true -> ElevatedCardItem(
+) {
+    ApplicationKeyRow(
         modifier = modifier,
         colors = colors,
         onClick = onClick,
@@ -48,12 +70,31 @@ fun ApplicationKey.Row(
         title = name,
         subtitle = "Bound to: ${boundNetworkKey.name}",
     )
+}
+
+@Composable
+fun ApplicationKeyRow(
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    onClick: (() -> Unit)? = null,
+    imageVector: ImageVector = Icons.Outlined.VpnKey,
+    title: String,
+    subtitle: String? = null,
+) = when (onClick != null) {
+    true -> ElevatedCardItem(
+        modifier = modifier,
+        colors = colors,
+        onClick = onClick,
+        imageVector = imageVector,
+        title = title,
+        subtitle = subtitle
+    )
 
     else -> ElevatedCardItem(
         modifier = modifier,
         colors = colors,
         imageVector = imageVector,
-        title = name,
-        subtitle = "Bound to: ${boundNetworkKey.name}"
+        title = title,
+        subtitle = subtitle
     )
 }

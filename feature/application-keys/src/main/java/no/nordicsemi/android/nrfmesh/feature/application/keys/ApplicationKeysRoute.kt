@@ -41,7 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
-import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
@@ -157,7 +157,7 @@ private fun SwipeToDismissKey(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            ElevatedCardItem(
+            ApplicationKeyRow(
                 onClick = { onApplicationKeyClicked(key.index) },
                 colors = when (isSelected) {
                     true -> CardDefaults.outlinedCardColors(
@@ -166,7 +166,6 @@ private fun SwipeToDismissKey(
 
                     else -> CardDefaults.outlinedCardColors()
                 },
-                imageVector = Icons.Outlined.VpnKey,
                 title = key.name,
                 subtitle = "Bound to ${key.boundNetworkKey?.name ?: key.key.toHexString()}"
             )

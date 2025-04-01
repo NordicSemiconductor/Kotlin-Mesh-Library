@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.NetworkKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
@@ -118,12 +119,11 @@ private fun Key(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun OldKey(oldKey: ByteArray?) {
-    ElevatedCardItem(
+    NetworkKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
-        subtitle = oldKey?.toHexString()
-            ?: stringResource(id = R.string.label_na)
+        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na)
     )
 }
 

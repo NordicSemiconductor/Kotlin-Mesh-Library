@@ -38,11 +38,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
-import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.NetworkKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
@@ -107,7 +106,7 @@ internal fun NetworkKeysRoute(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
     scope: CoroutineScope,
@@ -135,7 +134,7 @@ private fun SwipeToDismissKey(
     SwipeDismissItem(
         dismissState = dismissState,
         content = {
-            ElevatedCardItem(
+            NetworkKeyRow(
                 onClick = { onNetworkKeyClicked(key.index) },
                 colors = when (isSelected) {
                     true -> CardDefaults.outlinedCardColors(
@@ -145,8 +144,7 @@ private fun SwipeToDismissKey(
                     else -> CardDefaults.outlinedCardColors()
                 },
                 imageVector = Icons.Outlined.VpnKey,
-                title = key.name,
-                subtitle = key.key.toHexString()
+                title = key.name
             )
         }
     )
@@ -181,22 +179,18 @@ private fun handleValueChange(
     scope: CoroutineScope,
     context: Context,
     snackbarHostState: SnackbarHostState,
-    key: NetworkKeyData
+    key: NetworkKeyData,
 ) = when {
     key.isPrimary -> {
         scope.launch {
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.error_cannot_delete_primary_network_key)
-            )
+            snackbarHostState.showSnackbar(message = context.getString(R.string.error_cannot_delete_primary_network_key))
         }
         false
     }
 
     key.isInUse -> {
         scope.launch {
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.error_cannot_delete_key_in_use)
-            )
+            snackbarHostState.showSnackbar(message = context.getString(R.string.error_cannot_delete_key_in_use))
         }
         false
     }

@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
+import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -166,7 +167,7 @@ fun Key(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun OldKey(oldKey: ByteArray?) {
-    ElevatedCardItem(
+    ApplicationKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
