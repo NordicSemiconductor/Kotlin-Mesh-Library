@@ -206,12 +206,7 @@ private fun SwipeToDismissKey(
         },
         positionalThreshold = { it * 0.5f }
     )
-    SwipeDismissItem(
-        dismissState = dismissState,
-        content = {
-            key.Row(onClick = {})
-        }
-    )
+    SwipeDismissItem(dismissState = dismissState, content = { key.Row(onClick = {}) })
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
