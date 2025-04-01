@@ -1,6 +1,12 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
@@ -48,6 +54,10 @@ internal fun SettingsExtraPane(
             save = save
         )
 
-        else -> SettingsPlaceHolder()
+        else -> PlaceHolder(
+            modifier = Modifier.fillMaxSize(),
+            imageVector = Icons.Outlined.Settings,
+            text = stringResource(R.string.label_select_settings_item_rationale)
+        )
     }
 }

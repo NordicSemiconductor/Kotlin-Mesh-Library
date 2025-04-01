@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
@@ -83,40 +84,10 @@ internal fun NodeDetailsPane(
             send = send
         )
 
-        else -> NodeInfoPlaceHolder()
-    }
-}
-
-@Composable
-internal fun NodeInfoPlaceHolder(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.padding(top = 48.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 24.dp,
-            bottomEnd = 0.dp,
-            bottomStart = 0.dp
-        ),
-    ) {
-        Column(
+        else -> PlaceHolder(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(
-                20.dp,
-                alignment = Alignment.CenterVertically,
-            ),
-        ) {
-            Icon(
-                modifier = Modifier.size(96.dp),
-                imageVector = Icons.Outlined.Info,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = stringResource(R.string.label_select_node_item_rationale),
-                style = MaterialTheme.typography.titleLarge,
-            )
-        }
+            imageVector = Icons.Outlined.Info,
+            text = stringResource(R.string.label_select_node_item_rationale)
+        )
     }
 }

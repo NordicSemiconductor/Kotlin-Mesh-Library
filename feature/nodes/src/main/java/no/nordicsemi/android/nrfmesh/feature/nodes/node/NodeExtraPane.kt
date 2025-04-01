@@ -1,11 +1,18 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
+import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
@@ -56,6 +63,10 @@ internal fun NodeExtraPane(
             navigateUp = {}
         )
 
-        else -> NodeInfoPlaceHolder()
+        else -> PlaceHolder(
+            modifier = Modifier.fillMaxSize(),
+            imageVector = Icons.Outlined.Info,
+            text = stringResource(R.string.label_select_node_item_rationale)
+        )
     }
 }

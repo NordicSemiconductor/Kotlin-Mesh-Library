@@ -15,13 +15,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation("androidx.compose.material3:material3:1.4.0-alpha09")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha09")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha09")
+    implementation("androidx.compose.material3:material3:1.4.0-alpha11")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha11")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha11")
 
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-rc01")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-rc01")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
 
 
     testImplementation(libs.junit4)
