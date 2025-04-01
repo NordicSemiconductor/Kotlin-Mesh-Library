@@ -36,6 +36,7 @@ fun NavGraphBuilder.nodeGraph(appState: AppState, navigateBack: () -> Unit) {
             onItemSelected = viewModel::onItemSelected,
             send = viewModel::send,
             requestNodeIdentityStates = viewModel::requestNodeIdentityStates,
+            onAddNetworkKeyClicked = viewModel::addNetworkKey,
             save = viewModel::save,
             resetMessageState = viewModel::resetMessageState,
             appState = appState,

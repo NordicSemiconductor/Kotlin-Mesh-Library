@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navOptions
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+ import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
@@ -119,6 +120,10 @@ class MeshAppState(
                 }
             }
         )
+    }
+
+    override fun navigateToSettings(listItem: ClickableSetting?) {
+        navController.navigateToSettings(listItem = listItem)
     }
 
     override fun onBackPressed() {

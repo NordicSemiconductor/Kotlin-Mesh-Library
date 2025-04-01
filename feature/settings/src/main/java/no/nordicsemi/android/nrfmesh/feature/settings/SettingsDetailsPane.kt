@@ -54,7 +54,6 @@ internal fun SettingsDetailsPane(
         is NetworkKeysContent, is NetworkKeyContent -> NetworkKeysScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
             onNetworkKeyClicked = navigateToNetworkKey,
-            navigateToKey = navigateToNetworkKey,
             navigateUp = navigateUp
         )
 

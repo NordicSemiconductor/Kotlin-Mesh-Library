@@ -7,8 +7,10 @@ import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
@@ -20,11 +22,10 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.Provisioner
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContent
-import no.nordicsemi.android.nrfmesh.feature.settings.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.settings.MeshNetworkState
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDetailsPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsExtraPane
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreenUiState
 
 
@@ -37,121 +38,141 @@ internal fun SettingsListDetailsScreen(
     save: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val navigator = rememberListDetailPaneScaffoldNavigator<Any>(isDestinationHistoryAware = false)
+    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
     when (uiState.networkState) {
-        is MeshNetworkState.Success -> NavigableListDetailPaneScaffold(
-            navigator = navigator,
-            defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
-            listPane = {
-                AnimatedPane {
-                    SettingsListPane(
-                        settingsListData = uiState.networkState.settingsListData,
-                        selectedSetting = uiState.selectedSetting,
-                        highlightSelectedItem = navigator.isListPaneVisible(),
-                        onNameChanged = onNameChanged,
-                        navigateToProvisioners = {
-                            onItemSelected(ClickableSetting.Provisioners)
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ProvisionersContent
-                                )
-                            }
-                        },
-                        navigateToNetworkKeys = {
-                            onItemSelected(ClickableSetting.NetworkKeys)
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = NetworkKeysContent
-                                )
-                            }
-                        },
-                        navigateToApplicationKeys = {
-                            onItemSelected(ClickableSetting.ApplicationKeys)
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ApplicationKeysContent
-                                )
-                            }
-                        },
-                        navigateToScenes = {
-                            onItemSelected(ClickableSetting.Scenes)
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Detail,
-                                    contentKey = ScenesContent
-                                )
-                            }
-                        },
-                    )
-                }
-            },
-            detailPane = {
-                AnimatedPane {
-                    val content = navigator.currentDestination?.contentKey
-                    SettingsDetailsPane(
-                        content = content,
-                        highlightSelectedItem = navigator.isDetailPaneVisible() &&
-                                navigator.isExtraPaneVisible(),
-                        navigateToProvisioner = {
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = ProvisionerContent(uuid = it)
-                                )
-                            }
-                        },
-                        navigateToNetworkKey = {
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = NetworkKeyContent(keyIndex = it)
-                                )
-                            }
-                        },
-                        navigateToApplicationKey = {
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = ApplicationKeyContent(keyIndex = it)
-                                )
-                            }
-                        },
-                        navigateToScene = {
-                            scope.launch {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = SceneContent(number = it)
-                                )
-                            }
-                        },
-                        navigateUp = {
-                            scope.launch {
-                                if (navigator.isExtraPaneVisible()) {
-                                    navigator.navigateBack()
+        is MeshNetworkState.Success -> {
+            NavigableListDetailPaneScaffold(
+                navigator = navigator,
+                defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
+                listPane = {
+                    AnimatedPane {
+                        SettingsListPane(
+                            settingsListData = uiState.networkState.settingsListData,
+                            selectedSetting = uiState.selectedSetting,
+                            highlightSelectedItem = navigator.isListPaneVisible(),
+                            onNameChanged = onNameChanged,
+                            navigateToProvisioners = {
+                                onItemSelected(ClickableSetting.PROVISIONERS)
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = ProvisionersContent
+                                    )
+                                }
+                            },
+                            navigateToNetworkKeys = {
+                                onItemSelected(ClickableSetting.NETWORK_KEYS)
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = NetworkKeysContent
+                                    )
+                                }
+                            },
+                            navigateToApplicationKeys = {
+                                onItemSelected(ClickableSetting.APPLICATION_KEYS)
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = ApplicationKeysContent
+                                    )
+                                }
+                            },
+                            navigateToScenes = {
+                                onItemSelected(ClickableSetting.SCENES)
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = ScenesContent
+                                    )
+                                }
+                            },
+                        )
+                    }
+                },
+                detailPane = {
+                    AnimatedPane {
+                        val content = navigator.currentDestination?.contentKey
+                        SettingsDetailsPane(
+                            content = content,
+                            highlightSelectedItem = navigator.isDetailPaneVisible() &&
+                                    navigator.isExtraPaneVisible(),
+                            navigateToProvisioner = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = ProvisionerContent(uuid = it)
+                                    )
+                                }
+                            },
+                            navigateToNetworkKey = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = NetworkKeyContent(keyIndex = it)
+                                    )
+                                }
+                            },
+                            navigateToApplicationKey = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = ApplicationKeyContent(keyIndex = it)
+                                    )
+                                }
+                            },
+                            navigateToScene = {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Extra,
+                                        contentKey = SceneContent(number = it)
+                                    )
+                                }
+                            },
+                            navigateUp = {
+                                scope.launch {
+                                    if (navigator.isExtraPaneVisible()) {
+                                        navigator.navigateBack()
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
+                },
+                extraPane = {
+                    AnimatedPane {
+                        val content = navigator.currentDestination?.contentKey
+                        SettingsExtraPane(
+                            network = uiState.networkState.network,
+                            settingsListData = uiState.networkState.settingsListData,
+                            content = content,
+                            save = save
+                        )
+                    }
                 }
-            },
-            extraPane = {
-                AnimatedPane {
-                    val content = navigator.currentDestination?.contentKey
-                    SettingsExtraPane(
-                        network = uiState.networkState.network,
-                        settingsListData = uiState.networkState.settingsListData,
-                        content = content,
-                        save = save
+            )
+
+            if (uiState.selectedSetting != null) {
+                LaunchedEffect(uiState.selectedSetting) {
+                    navigator.navigateTo(
+                        pane = ListDetailPaneScaffoldRole.Detail,
+                        contentKey = uiState.selectedSetting.contentKey()
                     )
                 }
             }
-        )
+        }
 
         else -> {
             // Do something else
         }
+    }
+}
+
+private fun ClickableSetting.contentKey(): Any {
+    return when (this) {
+        ClickableSetting.PROVISIONERS -> ProvisionersContent
+        ClickableSetting.NETWORK_KEYS -> NetworkKeysContent
+        ClickableSetting.APPLICATION_KEYS -> ApplicationKeysContent
+        ClickableSetting.SCENES -> ScenesContent
     }
 }

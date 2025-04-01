@@ -25,9 +25,7 @@ internal fun NavGraphBuilder.netKeySelectorGraph(appState: AppState) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         // The previousBackStackEntry is used to set the result back to the previous screen.
         // https://stackoverflow.com/questions/76892268/jetpack-compose-sending-result-back-with-savedstatehandle-does-not-work-with-sav/76901998#76901998
-        val previousBackStackEntry = remember(it) {
-            appState.previousBackStackEntry!!
-        }
+        val previousBackStackEntry = remember(it) { appState.previousBackStackEntry!! }
         val previousViewModel = hiltViewModel<ProvisioningViewModel>(previousBackStackEntry)
         NetKeySelectorRoute(
             uiState = uiState,

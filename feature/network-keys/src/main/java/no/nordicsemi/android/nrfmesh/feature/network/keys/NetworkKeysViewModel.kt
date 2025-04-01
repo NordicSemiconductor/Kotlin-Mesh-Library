@@ -11,7 +11,6 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,9 +45,7 @@ class NetworkKeysViewModel @Inject internal constructor(
     /**
      * Adds a network key to the network.
      */
-    internal fun addNetworkKey(): NetworkKey = network
-        .add(name = "nRF Network Key ${network.networkKeys.size}")
-        .also { save() }
+    internal fun addNetworkKey() = repository.addNetworkKey()
 
     /**
      * Invoked when a key is swiped to be deleted. The given key is added to a list of keys that

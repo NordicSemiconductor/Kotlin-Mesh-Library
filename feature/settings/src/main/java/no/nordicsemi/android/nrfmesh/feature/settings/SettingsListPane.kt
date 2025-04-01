@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Instant
+import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -74,22 +75,22 @@ private fun SettingsScreen(
         NetworkNameRow(name = settingsListData.name, onNameChanged = onNameChanged)
         ProvisionersRow(
             count = settingsListData.provisioners.size,
-            isSelected = selectedSetting == ClickableSetting.Provisioners && highlightSelectedItem,
+            isSelected = selectedSetting == ClickableSetting.PROVISIONERS && highlightSelectedItem,
             onProvisionersClicked = onProvisionersClicked
         )
         NetworkKeysRow(
             count = settingsListData.networkKeys.size,
-            isSelected = selectedSetting == ClickableSetting.NetworkKeys && highlightSelectedItem,
+            isSelected = selectedSetting == ClickableSetting.NETWORK_KEYS && highlightSelectedItem,
             onNetworkKeysClicked = onNetworkKeysClicked
         )
         ApplicationKeysRow(
             count = settingsListData.appKeys.size,
-            isSelected = selectedSetting == ClickableSetting.ApplicationKeys && highlightSelectedItem,
+            isSelected = selectedSetting == ClickableSetting.APPLICATION_KEYS && highlightSelectedItem,
             onApplicationKeysClicked = onApplicationKeysClicked
         )
         ScenesRow(
             count = settingsListData.scenes.size,
-            isSelected = selectedSetting == ClickableSetting.Scenes && highlightSelectedItem,
+            isSelected = selectedSetting == ClickableSetting.SCENES && highlightSelectedItem,
             onScenesClicked = onScenesClicked
         )
         IvIndexRow(ivIndex = settingsListData.ivIndex)

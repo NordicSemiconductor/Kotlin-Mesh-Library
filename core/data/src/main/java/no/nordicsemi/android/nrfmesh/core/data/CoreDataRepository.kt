@@ -45,6 +45,7 @@ import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
@@ -78,6 +79,7 @@ class CoreDataRepository @Inject constructor(
 
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
+    private lateinit var meshNetwork: MeshNetwork
     private var isBluetoothEnabled = false
     private var isLocationEnabled = false
     private var bearer: Bearer? = null
@@ -102,8 +104,8 @@ class CoreDataRepository @Inject constructor(
 
         // TODO need to check this on
         network.onEach {
-            // startAutomaticConnectivity(meshNetwork = it)
-        }
+            meshNetwork = it
+        }.launchIn(scope = CoroutineScope(ioDispatcher))
     }
 
     /**
@@ -151,6 +153,13 @@ class CoreDataRepository @Inject constructor(
         onMeshNetworkChanged()
         save()
     }
+
+    /**
+     * Adds a network key to the network.
+     */
+    fun addNetworkKey(): NetworkKey = meshNetwork
+        .add(name = "nRF Network Key ${meshNetwork.networkKeys.size}")
+        .also { save() }
 
     /**
      * Saves the mesh network.

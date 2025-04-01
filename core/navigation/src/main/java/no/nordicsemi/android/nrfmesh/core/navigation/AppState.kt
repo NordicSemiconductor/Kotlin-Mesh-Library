@@ -26,6 +26,8 @@ abstract class AppState(
 
     abstract fun navigateToNode(uuid: UUID)
 
+    abstract fun navigateToSettings(listItem: ClickableSetting? = null)
+
     /**
      * Navigates back.
      */

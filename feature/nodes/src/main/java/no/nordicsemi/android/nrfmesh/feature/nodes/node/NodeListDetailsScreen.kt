@@ -12,9 +12,8 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
-import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
-import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
@@ -32,6 +31,7 @@ internal fun NodeListDetailsScreen(
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
+    onAddNetworkKeyClicked: () -> Unit,
     save: () -> Unit,
     resetMessageState: () -> Unit,
     navigateBack: () -> Unit,
@@ -90,21 +90,17 @@ internal fun NodeListDetailsScreen(
                 },
                 detailPane = {
                     AnimatedPane {
-                        val content = navigator.currentDestination?.contentKey
                         NodeDetailsPane(
-                            content = content,
+                            navigator = navigator,
                             node = uiState.nodeState.node,
-                            highlightSelectedItem = navigator.isDetailPaneVisible() &&
-                                    navigator.isExtraPaneVisible(),
+                            availableNetworkKeys = uiState.availableNetworkKeys,
+                            onAddNetworkKeyClicked = onAddNetworkKeyClicked,
                             navigateToNetworkKeys = {
-                                appState.navigateToSettings(
-                                    listItem = ClickableSetting.NETWORK_KEYS
-                                )
+                                appState.navigateToSettings(ClickableSetting.NETWORK_KEYS)
                             },
+                            availableApplicationKeys = uiState.availableAppKeys,
                             navigateToApplicationKeys = {
-                                appState.navigateToSettings(
-                                    listItem = ClickableSetting.APPLICATION_KEYS
-                                )
+                                appState.navigateToSettings(ClickableSetting.APPLICATION_KEYS)
                             },
                             navigateToModel = {
                                 scope.launch {
@@ -138,14 +134,13 @@ internal fun NodeListDetailsScreen(
                             requestNodeIdentityStates = requestNodeIdentityStates,
                             navigateToGroups = { appState.navController.navigateToGroups() },
                             navigateToConfigApplicationKeys = {
-
-                                //appState.navigateToNode()
-                                //scope.launch {
-                                //    navigator.navigateTo(
-                                //        pane = ListDetailPaneScaffoldRole.Detail,
-                                //        contentKey = ApplicationKeysContent
-                                //    )
-                                //}
+                                scope.launch {
+                                    onItemSelected(ClickableNodeInfoItem.ApplicationKeys)
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.List,
+                                        contentKey = ApplicationKeysContent
+                                    )
+                                }
                             }
                         )
                     }

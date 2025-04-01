@@ -13,31 +13,39 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
+import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun NodeDetailsPane(
-    content: Any?,
+    navigator: ThreePaneScaffoldNavigator<Any>,
     node: Node,
+    availableNetworkKeys: List<NetworkKey>,
+    availableApplicationKeys: List<ApplicationKey>,
     messageState: MessageState,
-    highlightSelectedItem: Boolean,
+    onAddNetworkKeyClicked: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToModel: (Model) -> Unit,
@@ -45,17 +53,20 @@ internal fun NodeDetailsPane(
     resetMessageState: () -> Unit,
     save: () -> Unit,
 ) {
-    when (content) {
-        is ElementModelRouteKey -> ElementScreenRoute(
+    when (val content = navigator.currentDestination?.contentKey) {
+        is ElementModelRouteKey -> ElementScreen(
             element = node.element(address = content.address) ?: return,
-            highlightSelectedItem = highlightSelectedItem,
+            highlightSelectedItem = navigator.isDetailPaneVisible() &&
+                    navigator.isExtraPaneVisible(),
             navigateToModel = navigateToModel,
             save = save
         )
 
-        is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysScreenRoute(
-            node = node,
+        is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysRoute(
+            addedNetworkKeys = node.networkKeys,
+            availableNetworkKeys = availableNetworkKeys,
             messageState = messageState,
+            onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
             resetMessageState = resetMessageState,
             send = send

@@ -18,6 +18,8 @@ import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
+import no.nordicsemi.android.nrfmesh.core.common.unknownApplicationKeys
+import no.nordicsemi.android.nrfmesh.core.common.unknownNetworkKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
@@ -26,8 +28,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import java.util.UUID
 import javax.inject.Inject
@@ -48,20 +52,25 @@ internal class NodeViewModel @Inject internal constructor(
 
     init {
         repository.network.onEach {
-            meshNetwork = it
             val state = it.node(nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
-                NodeState.Success(node = node, nodeInfoListData = NodeInfoListData(node = node))
+                NodeState.Success(
+                    node = node,
+                    nodeInfoListData = NodeInfoListData(node = node)
+                )
             } ?: NodeState.Error(Throwable("Node not found"))
             _uiState.value = _uiState.value.copy(
-                nodeState = state
+                nodeState = state,
+                availableNetworkKeys = selectedNode.unknownNetworkKeys(),
+                availableAppKeys = selectedNode.unknownApplicationKeys()
             )
+            meshNetwork = it // update the local network instance
         }.launchIn(scope = viewModelScope)
 
         // Request the composition data when the network is connected if it has not been requested yet.
         repository.proxyStateFlow.onEach {
-            if(it.connectionState is NetworkConnectionState.Connected) {
-                if(!selectedNode.isCompositionDataReceived) {
+            if (it.connectionState is NetworkConnectionState.Connected) {
+                if (!selectedNode.isCompositionDataReceived) {
                     onRefresh()
                 }
             }
@@ -196,9 +205,11 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
-    fun resetMessageState() {
+    internal fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
+
+    internal fun addNetworkKey() = repository.addNetworkKey()
 
     fun save() {
         viewModelScope.launch {
@@ -226,4 +237,6 @@ internal data class NodeScreenUiState internal constructor(
     val messageState: MessageState = NotStarted,
     val selectedNodeInfoItem: ClickableNodeInfoItem? = null,
     val nodeIdentityStates: List<NodeIdentityStatus> = emptyList(),
+    val availableNetworkKeys: List<NetworkKey> = emptyList(),
+    val availableAppKeys: List<ApplicationKey> = emptyList(),
 )

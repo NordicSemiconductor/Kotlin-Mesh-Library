@@ -38,7 +38,7 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
-internal fun ElementRoute(
+internal fun ElementScreen(
     element: Element,
     highlightSelectedItem: Boolean,
     navigateToModel: (Model) -> Unit,
