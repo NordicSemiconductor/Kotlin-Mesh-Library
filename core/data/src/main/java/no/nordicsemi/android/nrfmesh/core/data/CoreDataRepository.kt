@@ -39,6 +39,7 @@ import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
@@ -160,6 +161,19 @@ class CoreDataRepository @Inject constructor(
     fun addNetworkKey(): NetworkKey = meshNetwork
         .add(name = "nRF Network Key ${meshNetwork.networkKeys.size}")
         .also { save() }
+
+    /**
+     * Adds an application key to the network.
+     */
+    fun addApplicationKey(
+        name: String = "nRF Application Key ${meshNetwork.applicationKeys.size}",
+        boundNetworkKey: NetworkKey
+    ): ApplicationKey = meshNetwork.add(
+        name = name,
+        boundNetworkKey = boundNetworkKey
+    ).also {
+        save()
+    }
 
     /**
      * Saves the mesh network.

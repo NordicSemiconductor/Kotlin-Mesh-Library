@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,8 +51,8 @@ fun BottomSheetNetworkKeys(
             )
             MeshOutlinedButton(
                 onClick = onAddNetworkKeyClicked,
-                buttonIcon = Icons.Outlined.Add,
-                text = stringResource(R.string.label_add_key)
+                buttonIcon = Icons.Outlined.AutoFixHigh,
+                text = stringResource(R.string.label_generate_key)
             )
             MeshOutlinedButton(
                 onClick = navigateToNetworkKeys,
@@ -60,7 +60,6 @@ fun BottomSheetNetworkKeys(
                 text = stringResource(R.string.label_settings)
             )
         }
-
         when (keys.isEmpty()) {
             true -> MeshNoItemsAvailable(
                 modifier = Modifier.fillMaxSize(),

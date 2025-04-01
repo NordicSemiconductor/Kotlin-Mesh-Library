@@ -122,7 +122,6 @@ internal fun NodeListPane(
                             && highlightSelectedItem,
                     onElementsClicked = { onElementClicked(element.unicastAddress.address) }
                 )
-                if (index != nodeData.elements.size - 1) Spacer(modifier = Modifier.size(8.dp))
             }
             SectionTitle(title = stringResource(id = R.string.title_node_information))
             NodeInformationRow(nodeData)

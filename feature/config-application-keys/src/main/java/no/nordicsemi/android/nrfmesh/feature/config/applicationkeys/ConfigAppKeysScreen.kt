@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
 import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -10,8 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,7 +21,10 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +36,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
@@ -51,9 +56,11 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ConfigAppKeysRoute(
+internal fun ConfigAppKeysScreen(
     node: Node,
     messageState: MessageState,
+    availableApplicationKeys: List<ApplicationKey>,
+    onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -64,17 +71,21 @@ internal fun ConfigAppKeysRoute(
     val isRefreshing by rememberSaveable {
         mutableStateOf(messageState.isInProgress() && messageState.message is ConfigAppKeyGet)
     }
+    val bottomSheetState = rememberModalBottomSheetState()
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         contentWindowInsets = WindowInsets(top = 0.dp),
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                text = { Text(text = stringResource(R.string.label_application_keys)) },
-                icon = { Icon(imageVector = Icons.Outlined.VpnKey, contentDescription = null) },
-                onClick = navigateToApplicationKeys,
-                expanded = true
-            )
+            AnimatedVisibility(visible = !showBottomSheet) {
+                ExtendedFloatingActionButton(
+                    modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                    text = { Text(text = stringResource(R.string.label_add_key)) },
+                    icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+                    onClick = { showBottomSheet = true },
+                    expanded = true
+                )
+            }
         },
         content = { paddingValues ->
             PullToRefreshBox(
@@ -96,29 +107,23 @@ internal fun ConfigAppKeysRoute(
                         modifier = Modifier.padding(vertical = 8.dp),
                         title = stringResource(R.string.label_added_application_keys)
                     )
-                    node.network?.applicationKeys.orEmpty().let { keys ->
-                        when (keys.isNotEmpty()) {
-                            true -> LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                            ) {
-                                items(items = keys, key = { it.index.toInt() + 1 }) { key ->
-                                    KeyRow(
-                                        context = context,
-                                        scope = scope,
-                                        snackbarHostState = snackbarHostState,
-                                        key = key,
-                                        node = node,
-                                        send = send
-                                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    ) {
+                        items(
+                            items = node.applicationKeys,
+                            key = { it.index.toInt() + 1 }
+                        ) { key ->
+                            SwipeToDismissKey(
+                                key = key,
+                                context = context,
+                                scope = scope,
+                                snackbarHostState = snackbarHostState,
+                                onSwiped = {
+                                    if (!messageState.isInProgress())
+                                        send(ConfigAppKeyDelete(key = key))
                                 }
-                            }
-
-                            false -> MeshNoItemsAvailable(
-                                modifier = Modifier.fillMaxSize(),
-                                imageVector = Icons.Outlined.VpnKey,
-                                title = stringResource(R.string.label_no_app_keys_added),
-                                rationale = stringResource(R.string.label_no_app_keys_to_add_rationale)
                             )
                         }
                     }
@@ -128,6 +133,42 @@ internal fun ConfigAppKeysRoute(
         }
     )
 
+    if (showBottomSheet) {
+        BottomSheetApplicationKeys(
+            bottomSheetState = bottomSheetState,
+            keys = availableApplicationKeys,
+            onAppKeyClicked = {
+                send(ConfigAppKeyAdd(key = it))
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
+            },
+            onAddApplicationKeyClicked = onAddAppKeyClicked,
+            navigateToApplicationKeys = {
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
+                navigateToApplicationKeys()
+            },
+            onDismissClick = {
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
+            }
+        )
+    }
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
             text = messageState.error.message ?: stringResource(R.string.unknown_error),
@@ -151,55 +192,45 @@ internal fun ConfigAppKeysRoute(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KeyRow(
+private fun SwipeToDismissKey(
+    key: ApplicationKey,
     context: Context,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    key: ApplicationKey,
-    node: Node,
-    send: (AcknowledgedConfigMessage) -> Unit,
+    onSwiped: (ApplicationKey) -> Unit,
 ) {
-    var isAdded by rememberSaveable { mutableStateOf(node.knows(key = key)) }
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.VpnKey,
-        title = key.name,
-        titleAction = {
-            Checkbox(
-                checked = isAdded,
-                onCheckedChange = {
-                    if (!isAdded) {
-                        send(ConfigAppKeyAdd(key = key))
-                    } else {
-                        // Check if the key is in use before unbinding.
-                        if (key.isInUse) {
-                            showSnackbar(
-                                scope = scope,
-                                snackbarHostState = snackbarHostState,
-                                message = context.getString(
-                                    R.string.error_cannot_delete_key_in_use
-                                ),
-                                duration = SnackbarDuration.Short
-                            )
-                        } else {
-                            runCatching {
-                                send(ConfigAppKeyDelete(key = key))
-                            }.onFailure { throwable ->
-                                isAdded = node.knows(key = key)
-                                showSnackbar(
-                                    scope = scope,
-                                    snackbarHostState = snackbarHostState,
-                                    message = throwable.message
-                                        ?: throwable.toString(),
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        }
-                    }
-                    isAdded = it
-                }
+    // Hold the current state from the Swipe to Dismiss composable
+    var shouldNotDismiss by remember { mutableStateOf(false) }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            onSwiped(key)
+            true
+        },
+        positionalThreshold = { it * 0.5f }
+    )
+    SwipeDismissItem(dismissState = dismissState, content = { key.Row() })
+
+    if (shouldNotDismiss) {
+        LaunchedEffect(snackbarHostState) {
+            showSnackbar(
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                message = context.getString(R.string.error_cannot_delete_key_in_use),
+                duration = SnackbarDuration.Short,
+                onDismissed = { shouldNotDismiss = false }
             )
         }
-    )
+    }
+    if (dismissState.isDismissed()) {
+        LaunchedEffect(snackbarHostState) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.label_application_key_deleted),
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
 }

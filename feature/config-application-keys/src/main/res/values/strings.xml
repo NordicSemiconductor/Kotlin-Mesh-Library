@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="label_no_app_keys_added">No Application Keys are added.</string>
-    <string name="label_no_app_keys_to_add">No Application Keys are available</string>
+    <string name="label_no_app_keys_available">No Application Keys available</string>
     <string name="label_no_app_keys_to_add_rationale">Go to settings and add an application key to
         the network.</string>
     <string name="action_undo">Undo</string>
@@ -19,7 +18,10 @@
     <string name="label_ok">OK</string>
     <string name="label_cancel">Cancel</string>
     <string name="label_application_keys">Application Keys</string>
-    <string name="label_added_application_keys">Application Keys added to this Node</string>
+    <string name="label_added_application_keys">Added Application Keys</string>
     <string name="label_application_key_deleted">Application key deleted.</string>
     <string name="label_undo">Undo</string>
+    <string name="label_settings">Settings</string>
+    <string name="label_no_app_keys_added">No application keys added</string>
+    <string name="label_generate_key">Generate Key</string>
 </resources>

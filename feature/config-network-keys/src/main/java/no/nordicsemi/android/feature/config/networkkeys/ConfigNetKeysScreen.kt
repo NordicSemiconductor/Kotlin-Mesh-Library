@@ -132,14 +132,19 @@ internal fun ConfigNetKeysScreen(
         }
     )
 
-
     if (showBottomSheet) {
         BottomSheetNetworkKeys(
             bottomSheetState = bottomSheetState,
             keys = availableNetworkKeys,
             onNetworkKeyClicked = {
                 send(ConfigNetKeyAdd(key = it))
-                showBottomSheet = false
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
             },
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = {
@@ -187,7 +192,6 @@ internal fun ConfigNetKeysScreen(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
@@ -206,7 +210,7 @@ private fun SwipeToDismissKey(
         },
         positionalThreshold = { it * 0.5f }
     )
-    SwipeDismissItem(dismissState = dismissState, content = { key.Row(onClick = {}) })
+    SwipeDismissItem(dismissState = dismissState, content = { key.Row() })
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {

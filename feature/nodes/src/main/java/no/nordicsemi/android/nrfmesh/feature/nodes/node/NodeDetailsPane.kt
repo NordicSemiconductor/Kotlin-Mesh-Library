@@ -43,13 +43,14 @@ internal fun NodeDetailsPane(
     navigator: ThreePaneScaffoldNavigator<Any>,
     node: Node,
     availableNetworkKeys: List<NetworkKey>,
-    availableApplicationKeys: List<ApplicationKey>,
-    messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
+    availableApplicationKeys: List<ApplicationKey>,
+    onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     navigateToModel: (Model) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
+    messageState: MessageState,
     resetMessageState: () -> Unit,
     save: () -> Unit,
 ) {
@@ -65,17 +66,19 @@ internal fun NodeDetailsPane(
         is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysRoute(
             addedNetworkKeys = node.networkKeys,
             availableNetworkKeys = availableNetworkKeys,
-            messageState = messageState,
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
+            messageState = messageState,
             resetMessageState = resetMessageState,
             send = send
         )
 
         is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
             node = node,
+            availableAppKeys = availableApplicationKeys,
+            onAddAppKeyClicked = onAddAppKeyClicked,
+            navigateToApplicationKeys = navigateToApplicationKeys,
             messageState = messageState,
-            onApplicationKeyClicked = navigateToApplicationKeys,
             resetMessageState = resetMessageState,
             send = send
         )

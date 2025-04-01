@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -51,14 +50,9 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Adds an application key to the network.
      */
     internal fun addApplicationKey(
-        name: String = "nRF Application Key",
+        name: String = "nRF Application Key ${network.networkKeys.size}",
         boundNetworkKey: NetworkKey = network.networkKeys.first()
-    ): ApplicationKey = network.add(
-        name = name,
-        boundNetworkKey = boundNetworkKey
-    ).also {
-        save()
-    }
+    ) = repository.addApplicationKey(name = name, boundNetworkKey = boundNetworkKey)
 
     /**
      * Invoked when a key is swiped to be deleted. The given key is added to a list of keys to be

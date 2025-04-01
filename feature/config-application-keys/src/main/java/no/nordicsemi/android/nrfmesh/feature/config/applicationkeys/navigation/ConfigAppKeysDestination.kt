@@ -4,12 +4,9 @@ import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.Element
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Parcelize
@@ -18,15 +15,19 @@ data object ConfigAppKeysRoute : Parcelable
 @Composable
 fun ConfigAppKeysScreenRoute(
     node: Node,
+    availableAppKeys: List<ApplicationKey>,
+    onAddAppKeyClicked: () -> Unit,
+    navigateToApplicationKeys: () -> Unit,
     messageState: MessageState,
-    onApplicationKeyClicked: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
-    ConfigAppKeysRoute(
+    ConfigAppKeysScreen(
         node = node,
+        availableApplicationKeys = availableAppKeys,
+        onAddAppKeyClicked = onAddAppKeyClicked,
+        navigateToApplicationKeys = navigateToApplicationKeys,
         messageState = messageState,
-        navigateToApplicationKeys = onApplicationKeyClicked,
         send = send,
         resetMessageState = resetMessageState
     )

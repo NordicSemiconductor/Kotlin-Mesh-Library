@@ -211,6 +211,10 @@ internal class NodeViewModel @Inject internal constructor(
 
     internal fun addNetworkKey() = repository.addNetworkKey()
 
+    internal fun addApplicationKey() = repository.addApplicationKey(
+        boundNetworkKey = meshNetwork.networkKeys.first()
+    )
+
     fun save() {
         viewModelScope.launch {
             repository.save()

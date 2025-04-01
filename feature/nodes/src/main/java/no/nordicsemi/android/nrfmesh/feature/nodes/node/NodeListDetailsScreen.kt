@@ -29,11 +29,12 @@ internal fun NodeListDetailsScreen(
     onRefresh: () -> Unit,
     onExcluded: (Boolean) -> Unit,
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    requestNodeIdentityStates: (Model) -> Unit,
     onAddNetworkKeyClicked: () -> Unit,
-    save: () -> Unit,
+    onAddAppKeyClicked: () -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
+    save: () -> Unit,
     navigateBack: () -> Unit,
 ) {
 
@@ -96,11 +97,16 @@ internal fun NodeListDetailsScreen(
                             availableNetworkKeys = uiState.availableNetworkKeys,
                             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
                             navigateToNetworkKeys = {
-                                appState.navigateToSettings(ClickableSetting.NETWORK_KEYS)
+                                appState.navigateToSettings(
+                                    listItem = ClickableSetting.NETWORK_KEYS
+                                )
                             },
                             availableApplicationKeys = uiState.availableAppKeys,
+                            onAddAppKeyClicked = onAddAppKeyClicked,
                             navigateToApplicationKeys = {
-                                appState.navigateToSettings(ClickableSetting.APPLICATION_KEYS)
+                                appState.navigateToSettings(
+                                    listItem = ClickableSetting.APPLICATION_KEYS
+                                )
                             },
                             navigateToModel = {
                                 scope.launch {
@@ -114,10 +120,10 @@ internal fun NodeListDetailsScreen(
                                     )
                                 }
                             },
-                            save = save,
                             send = send,
                             messageState = uiState.messageState,
-                            resetMessageState = resetMessageState
+                            resetMessageState = resetMessageState,
+                            save = save
                         )
                     }
                 },

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
     elevation: CardElevation = CardDefaults.elevatedCardElevation(),
+    colors: CardColors = CardDefaults.outlinedCardColors(),
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
@@ -49,7 +50,7 @@ fun ElevatedCardItem(
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    OutlinedCard(modifier = modifier, elevation = elevation) {
+    OutlinedCard(modifier = modifier, elevation = elevation, colors = colors) {
         MeshTwoLineListItem(
             modifier = Modifier.padding(horizontal = 16.dp),
             leadingComposable = {
