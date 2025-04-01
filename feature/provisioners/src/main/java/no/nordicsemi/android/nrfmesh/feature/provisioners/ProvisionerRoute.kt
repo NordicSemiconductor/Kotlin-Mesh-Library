@@ -219,9 +219,7 @@ private fun UnicastAddress(
 ) {
     val context = LocalContext.current
     val initialValue by remember(key1 = provisioner.uuid) {
-        mutableStateOf(
-            address?.toHexString() ?: ""
-        )
+        mutableStateOf(address?.toHexString() ?: "")
     }
     var value by rememberSaveable(
         stateSaver = TextFieldValue.Saver,

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
@@ -107,28 +109,37 @@ internal fun ConfigAppKeysScreen(
                         modifier = Modifier.padding(vertical = 8.dp),
                         title = stringResource(R.string.label_added_application_keys)
                     )
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                    ) {
-                        items(
-                            items = node.applicationKeys,
-                            key = { it.index.toInt() + 1 }
-                        ) { key ->
-                            SwipeToDismissKey(
-                                key = key,
-                                context = context,
-                                scope = scope,
-                                snackbarHostState = snackbarHostState,
-                                onSwiped = {
-                                    if (!messageState.isInProgress())
-                                        send(ConfigAppKeyDelete(key = key))
-                                }
-                            )
+
+                    when (node.applicationKeys.isNotEmpty()) {
+                        true -> LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                        ) {
+                            items(
+                                items = node.applicationKeys,
+                                key = { it.index.toInt() + 1 }
+                            ) { key ->
+                                SwipeToDismissKey(
+                                    key = key,
+                                    context = context,
+                                    scope = scope,
+                                    snackbarHostState = snackbarHostState,
+                                    onSwiped = {
+                                        if (!messageState.isInProgress())
+                                            send(ConfigAppKeyDelete(key = key))
+                                    }
+                                )
+                            }
                         }
+
+                        false -> MeshNoItemsAvailable(
+                            modifier = Modifier.fillMaxSize(),
+                            imageVector = Icons.Outlined.VpnKey,
+                            title = stringResource(R.string.label_no_app_keys_added),
+                            rationale = stringResource(R.string.label_no_app_keys_added_rationale)
+                        )
                     }
                 }
-
             }
         }
     )

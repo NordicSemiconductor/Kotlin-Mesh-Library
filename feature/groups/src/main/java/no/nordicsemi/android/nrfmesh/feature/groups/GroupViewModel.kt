@@ -80,7 +80,7 @@ internal class GroupViewModel @Inject internal constructor(
                 nodes.filter { it.knows(key = key) }
                     .flatMap { it.elements }
                     .flatMap { it.models }
-                    .filter { it.isBoundTo(key = key) }
+                    .filter { key.isBoundTo(model = it) }
                     .forEach { model ->
                         modelsMap[model.modelId] = modelsMap[model.modelId]?.let {
                             it + model
@@ -107,7 +107,7 @@ internal class GroupViewModel @Inject internal constructor(
     }
 }
 
-internal data class GroupScreenUiState internal constructor(
+internal data class GroupScreenUiState(
     val groupState: GroupState = GroupState.Loading,
     val messageState: MessageState = NotStarted,
 )

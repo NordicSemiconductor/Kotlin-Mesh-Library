@@ -181,7 +181,6 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onNameChanged(name: String) {
         unprovisionedDevice?.name = name
-        //_uiState.value = _uiState.value.copy(unprovisionedDevice = unprovisionedDevice)
     }
 
     /**
@@ -299,7 +298,7 @@ sealed class ProvisionerState {
     data class Disconnected(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
 }
 
-internal data class ProvisioningScreenUiState internal constructor(
+internal data class ProvisioningScreenUiState(
     val provisionerState: ProvisionerState,
     val keyIndex: KeyIndex = 0u
 )

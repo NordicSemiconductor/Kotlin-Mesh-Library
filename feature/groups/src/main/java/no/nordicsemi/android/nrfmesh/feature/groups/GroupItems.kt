@@ -75,7 +75,7 @@ internal fun GroupItems(
         ) {
             network.applicationKeys.forEach { key ->
                 models[modelId]?.firstOrNull {
-                    it.isBoundTo(key = key)
+                    key.isBoundTo(model = it)
                 }?.let { model ->
                     when {
                         model.isGenericOnOffServer() -> GenericOnOffItem(key = key, send = send)
