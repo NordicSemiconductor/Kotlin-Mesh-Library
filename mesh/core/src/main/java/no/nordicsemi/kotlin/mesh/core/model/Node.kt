@@ -503,7 +503,7 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addAppKey(index: KeyIndex) {
-        _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
+        _appKeys.get(index = index) ?: _appKeys.add(NodeKey(index, false))
         network?.updateTimestamp()
     }
 
@@ -550,9 +550,9 @@ data class Node internal constructor(
     internal fun setAppKeys(appKeyIndexes: List<KeyIndex>, netKeyIndex: KeyIndex) {
         // Replace only the keys that are bound to the given network key.
         _appKeys = _appKeys.filter { nodeKey ->
-            applicationKeys.get(nodeKey.index)?.boundNetKeyIndex == netKeyIndex
+            applicationKeys.get(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
         }.toMutableList()
-        _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(it, false) })
+        _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(index = it, _updated = false) })
         _appKeys.sortBy { it.index }
         network?.updateTimestamp()
     }
