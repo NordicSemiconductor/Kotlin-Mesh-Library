@@ -15,6 +15,6 @@
     <string name="label_ok">OK</string>
     <string name="label_bound_app_keys">Bound Application Keys</string>
     <string name="label_no_added_app_keys">No app keys added</string>
-    <string name="label_add_an_app_key_rationale">Add an application key to this Network.</string>
+    <string name="label_add_an_app_key_rationale">Add an application key to this node.</string>
     <string name="label_add_app_key">Add Application Key</string>
 </resources>

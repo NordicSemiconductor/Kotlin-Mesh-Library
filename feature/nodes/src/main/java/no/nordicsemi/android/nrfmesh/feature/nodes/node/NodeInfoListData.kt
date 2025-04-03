@@ -60,7 +60,7 @@ data class NodeInfoListData(
  *
  * @property name                Name of the element.
  * @property unicastAddress      Unicast address of the element.
- * @property modelCount          Number of models in the element.
+ * @property models              Models in the element.
  */
 data class ElementListData(
     val name: String?,

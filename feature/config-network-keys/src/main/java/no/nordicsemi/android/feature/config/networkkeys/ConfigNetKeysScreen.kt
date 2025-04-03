@@ -47,7 +47,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -135,17 +134,9 @@ internal fun ConfigNetKeysScreen(
     if (showBottomSheet) {
         BottomSheetNetworkKeys(
             bottomSheetState = bottomSheetState,
+            messageState = messageState,
             keys = availableNetworkKeys,
-            onNetworkKeyClicked = {
-                send(ConfigNetKeyAdd(key = it))
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
-                    }
-                }
-            },
+            onNetworkKeyClicked = { send(ConfigNetKeyAdd(key = it)) },
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = {
                 scope.launch {
@@ -176,19 +167,33 @@ internal fun ConfigNetKeysScreen(
             onDismissRequest = resetMessageState,
         )
 
-        is Completed -> {
-            messageState.response?.takeIf {
-                (it is ConfigStatusMessage && !it.isSuccess)
-            }?.let {
-                MeshMessageStatusDialog(
-                    text = (messageState.response as ConfigStatusMessage).message,
+        is Completed -> messageState.response?.takeIf {
+            it is ConfigStatusMessage
+        }?.let {
+            when (!(it as ConfigStatusMessage).isSuccess) {
+                true -> MeshMessageStatusDialog(
+                    text = it.message,
                     showDismissButton = true,
                     onDismissRequest = resetMessageState,
                 )
+
+                false -> LaunchedEffect(snackbarHostState) {
+                    if (messageState.message is ConfigNetKeyDelete) {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.label_network_key_deleted),
+                            duration = SnackbarDuration.Short,
+                        )
+                    } else if (messageState.message is ConfigNetKeyAdd) {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.label_network_key_added),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                }
             }
         }
 
-        else -> {}
+        else -> { /* Do nothing */ }
     }
 }
 
@@ -205,37 +210,29 @@ private fun SwipeToDismissKey(
     var shouldNotDismiss by remember { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            onSwiped(key)
-            true
+            if (key.index.toUInt() == 0.toUInt()) {
+                shouldNotDismiss = true
+                false
+            } else {
+                onSwiped(key)
+                true
+            }
         },
         positionalThreshold = { it * 0.5f }
     )
-    SwipeDismissItem(dismissState = dismissState, content = { key.Row() })
+    SwipeDismissItem(
+        dismissState = dismissState, content = { key.Row() }
+    )
 
     if (shouldNotDismiss) {
         LaunchedEffect(snackbarHostState) {
             showSnackbar(
                 scope = scope,
                 snackbarHostState = snackbarHostState,
-                message = context.getString(
-                    if (key.index.toUInt() == 0.toUInt())
-                        R.string.error_cannot_delete_primary_network_key
-                    else
-                        R.string.error_cannot_delete_key_in_use
-                ),
+                message = context.getString(R.string.error_cannot_delete_primary_network_key),
                 duration = SnackbarDuration.Short,
                 onDismissed = { shouldNotDismiss = false }
             )
-        }
-    }
-    if (dismissState.isDismissed()) {
-        LaunchedEffect(snackbarHostState) {
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.label_network_key_deleted),
-                    duration = SnackbarDuration.Short,
-                )
-            }
         }
     }
 }

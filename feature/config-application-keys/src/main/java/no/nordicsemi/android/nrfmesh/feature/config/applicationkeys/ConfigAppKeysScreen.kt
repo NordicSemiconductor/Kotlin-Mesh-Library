@@ -53,6 +53,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
@@ -147,17 +149,9 @@ internal fun ConfigAppKeysScreen(
     if (showBottomSheet) {
         BottomSheetApplicationKeys(
             bottomSheetState = bottomSheetState,
+            messageState = messageState,
             keys = availableApplicationKeys,
-            onAppKeyClicked = {
-                send(ConfigAppKeyAdd(key = it))
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
-                    }
-                }
-            },
+            onAppKeyClicked = { send(ConfigAppKeyAdd(key = it)) },
             onAddApplicationKeyClicked = onAddAppKeyClicked,
             navigateToApplicationKeys = {
                 scope.launch {
@@ -186,16 +180,29 @@ internal fun ConfigAppKeysScreen(
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
-
-        is Completed -> {
-            messageState.response?.takeIf {
-                (it is ConfigStatusMessage && !it.isSuccess)
-            }?.let {
-                MeshMessageStatusDialog(
-                    text = (messageState.response as ConfigStatusMessage).message,
+        is Completed -> messageState.response?.takeIf {
+            it is ConfigStatusMessage
+        }?.let {
+            when (!(it as ConfigStatusMessage).isSuccess) {
+                true -> MeshMessageStatusDialog(
+                    text = it.message,
                     showDismissButton = true,
                     onDismissRequest = resetMessageState,
                 )
+
+                false -> LaunchedEffect(snackbarHostState) {
+                    if (messageState.message is ConfigNetKeyDelete) {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.label_application_key_deleted),
+                            duration = SnackbarDuration.Short,
+                        )
+                    } else if (messageState.message is ConfigNetKeyAdd) {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.label_application_key_added),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                }
             }
         }
 
@@ -216,8 +223,14 @@ private fun SwipeToDismissKey(
     var shouldNotDismiss by remember { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            onSwiped(key)
-            true
+            if(key.isInUse){
+                shouldNotDismiss = true
+                false
+            } else {
+                shouldNotDismiss = false
+                onSwiped(key)
+                true
+            }
         },
         positionalThreshold = { it * 0.5f }
     )

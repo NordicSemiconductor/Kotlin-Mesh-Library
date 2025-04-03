@@ -15,16 +15,19 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 fun NetworkKey.Row(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
+    titleAction: @Composable () -> Unit = {},
 ) {
     NetworkKeyRow(
         modifier = modifier,
         colors = colors,
+        enabled = enabled,
         onClick = onClick,
         imageVector = imageVector,
         title = name,
-        subtitle = "Index: ${index.toHexString()}",
+        titleAction = titleAction,
     )
 }
 
@@ -32,42 +35,53 @@ fun NetworkKey.Row(
 fun NetworkKeyRow(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
     title: String,
+    titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
-) = when (onClick != null) {
-    true -> ElevatedCardItem(
-        modifier = modifier,
-        colors = colors,
-        onClick = onClick,
-        imageVector = imageVector,
-        title = title,
-        subtitle = subtitle
-    )
+) {
+    when (onClick != null) {
+        true -> ElevatedCardItem(
+            modifier = modifier,
+            colors = colors,
+            enabled = enabled,
+            onClick = onClick,
+            imageVector = imageVector,
+            title = title,
+            titleAction = titleAction,
+            subtitle = subtitle
+        )
 
-    else -> ElevatedCardItem(
-        modifier = modifier,
-        colors = colors,
-        imageVector = imageVector,
-        title = title,
-        subtitle = subtitle
-    )
+        else -> ElevatedCardItem(
+            modifier = modifier,
+            colors = colors,
+            imageVector = imageVector,
+            title = title,
+            titleAction = titleAction,
+            subtitle = subtitle
+        )
+    }
 }
 
 @Composable
 fun ApplicationKey.Row(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
+    titleAction: @Composable () -> Unit = {},
 ) {
     ApplicationKeyRow(
         modifier = modifier,
         colors = colors,
+        enabled = enabled,
         onClick = onClick,
         imageVector = imageVector,
         title = name,
+        titleAction = titleAction,
         subtitle = "Bound to: ${boundNetworkKey.name}",
     )
 }
@@ -76,17 +90,21 @@ fun ApplicationKey.Row(
 fun ApplicationKeyRow(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     imageVector: ImageVector = Icons.Outlined.VpnKey,
     title: String,
+    titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
 ) = when (onClick != null) {
     true -> ElevatedCardItem(
         modifier = modifier,
         colors = colors,
+        enabled = enabled,
         onClick = onClick,
         imageVector = imageVector,
         title = title,
+        titleAction = titleAction,
         subtitle = subtitle
     )
 
@@ -95,6 +113,7 @@ fun ApplicationKeyRow(
         colors = colors,
         imageVector = imageVector,
         title = title,
+        titleAction = titleAction,
         subtitle = subtitle
     )
 }

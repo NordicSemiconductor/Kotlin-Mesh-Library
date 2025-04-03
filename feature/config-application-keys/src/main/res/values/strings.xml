@@ -25,4 +25,5 @@
     <string name="label_no_app_keys_added">No application keys added</string>
     <string name="label_no_app_keys_added_rationale">Add an Application Key to a node and bind to a model to send application messages.</string>
     <string name="label_generate_key">Generate Key</string>
+    <string name="label_application_key_added">Application Key added</string>
 </resources>

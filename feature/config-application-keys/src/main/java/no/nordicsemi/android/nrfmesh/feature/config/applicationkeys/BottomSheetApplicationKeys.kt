@@ -5,12 +5,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -19,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 
 
@@ -30,6 +34,7 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 @Composable
 fun BottomSheetApplicationKeys(
     bottomSheetState: SheetState,
+    messageState: MessageState,
     keys: List<ApplicationKey>,
     onAddApplicationKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
@@ -52,11 +57,13 @@ fun BottomSheetApplicationKeys(
                 title = stringResource(R.string.label_application_keys)
             )
             MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
                 onClick = onAddApplicationKeyClicked,
                 buttonIcon = Icons.Outlined.AutoFixHigh,
                 text = stringResource(R.string.label_generate_key)
             )
             MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
                 onClick = navigateToApplicationKeys,
                 buttonIcon = Icons.Outlined.Settings,
                 text = stringResource(R.string.label_settings)
@@ -77,11 +84,17 @@ fun BottomSheetApplicationKeys(
                 verticalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {
                 items(items = keys) { key ->
+                    val showProgress =
+                        (messageState.message as? ConfigAppKeyAdd)?.keyIndex == key.index &&
+                                messageState.isInProgress()
                     key.Row(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        onClick = {
-                            onDismissClick()
-                            onAppKeyClicked(key)
+                        enabled = !messageState.isInProgress(),
+                        onClick = { onAppKeyClicked(key) },
+                        titleAction = {
+                            if (showProgress) {
+                                CircularProgressIndicator(modifier = Modifier.size(size = 24.dp))
+                            }
                         }
                     )
                 }

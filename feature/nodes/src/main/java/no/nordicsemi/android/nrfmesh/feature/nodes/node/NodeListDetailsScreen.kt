@@ -144,7 +144,7 @@ internal fun NodeListDetailsScreen(
                                     onItemSelected(ClickableNodeInfoItem.ApplicationKeys)
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.List,
-                                        contentKey = ApplicationKeysContent
+                                        contentKey = ConfigAppKeysRoute
                                     )
                                 }
                             }

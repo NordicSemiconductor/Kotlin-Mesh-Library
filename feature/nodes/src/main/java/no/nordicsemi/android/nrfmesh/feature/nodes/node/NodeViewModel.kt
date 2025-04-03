@@ -124,32 +124,30 @@ internal class NodeViewModel @Inject internal constructor(
     }
 
     internal fun send(message: AcknowledgedConfigMessage) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            _uiState.value = _uiState.value.copy(
-                messageState = Failed(message = message, error = throwable),
-                isRefreshing = false,
-                showProgress = false
-            )
-        }
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
-        viewModelScope.launch(context = handler) {
-            repository.send(selectedNode, message)?.let { response ->
+        viewModelScope.launch {
+            try {
+                repository.send(selectedNode, message)?.let { response ->
+                    _uiState.value = _uiState.value.copy(
+                        messageState = Completed(
+                            message = message,
+                            response = response as ConfigResponse
+                        ),
+                        isRefreshing = false
+                    )
+                } ?: run {
+                    _uiState.value = _uiState.value.copy(
+                        messageState = Failed(
+                            message = message,
+                            error = IllegalStateException("No response received")
+                        ),
+                        isRefreshing = false
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    messageState = Completed(
-                        message = message,
-                        response = response as ConfigResponse
-                    ),
-                    isRefreshing = false,
-                    showProgress = false
-                )
-            } ?: run {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(
-                        message = message,
-                        error = IllegalStateException("No response received")
-                    ),
-                    isRefreshing = false,
-                    showProgress = false
+                    messageState = Failed(message = message, error = e),
+                    isRefreshing = false
                 )
             }
         }
@@ -172,15 +170,13 @@ internal class NodeViewModel @Inject internal constructor(
             try {
                 keys.forEach { key ->
                     message = ConfigNodeIdentityGet(index = key.index)
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Sending(message = message!!),
-                    )
+                    _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
                     response = repository.send(
                         node = element.parentNode!!,
-                        message = message!!
+                        message = message
                     ) as ConfigNodeIdentityStatus
 
-                    response?.let { status ->
+                    response.let { status ->
                         val index = nodeIdentityStates.indexOfFirst { state ->
                             state.networkKey.index == status.index
                         }
@@ -201,7 +197,6 @@ internal class NodeViewModel @Inject internal constructor(
                     isRefreshing = false,
                 )
             }
-
         }
     }
 
@@ -234,10 +229,9 @@ sealed interface NodeState {
     data class Error(val throwable: Throwable) : NodeState
 }
 
-internal data class NodeScreenUiState internal constructor(
+internal data class NodeScreenUiState(
     val nodeState: NodeState = NodeState.Loading,
     val isRefreshing: Boolean = false,
-    val showProgress: Boolean = false,
     val messageState: MessageState = NotStarted,
     val selectedNodeInfoItem: ClickableNodeInfoItem? = null,
     val nodeIdentityStates: List<NodeIdentityStatus> = emptyList(),
