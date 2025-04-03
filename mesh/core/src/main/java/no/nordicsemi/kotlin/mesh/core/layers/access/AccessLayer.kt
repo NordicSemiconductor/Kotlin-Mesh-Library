@@ -134,7 +134,7 @@ internal class AcknowledgmentContext(
  *
  * @property networkManager  Network manager.
  */
-internal class AccessLayer(private val networkManager: NetworkManager) {
+internal class AccessLayer(private val networkManager: NetworkManager) : AutoCloseable {
 
     val mutex = Mutex()
     val network = networkManager.meshNetwork
@@ -152,7 +152,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         reinitializePublishers()
     }
 
-    protected fun finalize() {
+    private fun finalize() {
         transactions.clear()
         reliableMessageContexts.forEach {
             it.timeoutTimer.cancel()
@@ -164,6 +164,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             it.value.cancel()
         }
         publishers.clear()
+    }
+
+    override fun close() {
+        finalize()
     }
 
     /**

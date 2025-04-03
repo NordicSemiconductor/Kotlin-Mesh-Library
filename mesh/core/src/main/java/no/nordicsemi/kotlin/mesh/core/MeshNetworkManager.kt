@@ -178,7 +178,7 @@ class MeshNetworkManager(
                 networkManager = NetworkManager(this)
                 _meshNetwork.emit(it)
             }
-    }.onFailure {
+    }.getOrElse {
         if (it is ImportError) throw it
         else throw ImportError(error = "Error while deserializing the mesh network", throwable = it)
     }
