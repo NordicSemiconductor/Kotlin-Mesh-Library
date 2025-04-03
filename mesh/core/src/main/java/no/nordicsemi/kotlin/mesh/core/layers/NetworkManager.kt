@@ -4,14 +4,16 @@ package no.nordicsemi.kotlin.mesh.core.layers
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,6 +30,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportLayer
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
@@ -89,7 +92,7 @@ internal class NetworkManager internal constructor(
         get() = _incomingProxyMessages.asSharedFlow()
 
     private val _incomingMeshMessages = MutableSharedFlow<ReceivedMessage>()
-    private val incomingMeshMessages
+    internal val incomingMeshMessages
         get() = _incomingMeshMessages.asSharedFlow()
 
     private val _networkManagerEventFlow = MutableSharedFlow<NetworkManagerEvent>(
@@ -148,18 +151,35 @@ internal class NetworkManager internal constructor(
      * Await a response to the sent message.
      *
      * @param destination Destination address of the message.
+     * @param timeout     Timeout duration.
      */
-    suspend fun awaitMeshMessageResponse(destination: Address) =
-        awaitMeshMessageResponse(destination = MeshAddress.create(destination))
+    suspend fun awaitMeshMessageResponse(
+        destination: Address,
+        responseOpcode: UInt,
+        timeout: Duration,
+    ) =
+        awaitMeshMessageResponse(
+            destination = MeshAddress.create(destination),
+            responseOpcode = responseOpcode,
+            timeout = timeout
+        )
 
     /**
      * Awaits for a response to a sent message.
      *
      * @param destination Destination address of the message.
+     * @param timeout     Timeout duration.
      */
-    suspend fun awaitMeshMessageResponse(destination: MeshAddress) = incomingMeshMessages.first {
-        it.address == destination
-    }.message
+    @OptIn(FlowPreview::class)
+    suspend fun awaitMeshMessageResponse(
+        destination: MeshAddress,
+        responseOpcode: UInt,
+        timeout: Duration,
+    ): ReceivedMessage? = incomingMeshMessages.timeout(timeout = timeout).catch {
+        logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
+    }.firstOrNull {
+        destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
+    }
 
     /**
      * Awaits for a response to a sent message.
@@ -305,11 +325,11 @@ internal class NetworkManager internal constructor(
         destination: Address,
         initialTtl: UByte?,
         applicationKey: ApplicationKey,
-    ) {
+    ): MeshMessage? {
         val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return }
+        require(!ensureNotBusy(destination = meshAddress)) { return null }
 
-        accessLayer.send(
+        return accessLayer.send(
             message = message,
             element = element,
             destination = meshAddress,

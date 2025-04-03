@@ -62,7 +62,7 @@ import kotlin.time.toDuration
  */
 private data class Transaction(
     var lastTid: UByte = Random.nextInt(0, UByte.MAX_VALUE.toInt()).toUByte(),
-    var timestamp: Instant = Clock.System.now()
+    var timestamp: Instant = Clock.System.now(),
 ) {
 
     val currentTid: UByte
@@ -82,7 +82,7 @@ private data class Transaction(
         get() = Clock.System.now() - timestamp > 6.toDuration(DurationUnit.SECONDS)
 }
 
-private class AcknowledgmentContext(
+internal class AcknowledgmentContext(
     val request: AcknowledgedMeshMessage,
     val source: Address,
     val destination: Address,
@@ -144,6 +144,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
     private var transactions = mutableMapOf<Int, Transaction>()
     private var reliableMessageContexts = mutableListOf<AcknowledgmentContext>()
+    internal val contexts: List<AcknowledgmentContext>
+        get() = reliableMessageContexts
     private var publishers = mutableMapOf<Model, TimerTask>()
 
     init {
@@ -233,7 +235,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         ttl: UByte?,
         applicationKey: ApplicationKey,
         retransmit: Boolean,
-    ): MeshMessage {
+    ): MeshMessage? {
         var msg = message
         val transactionMessage = message as? TransactionMessage
 
@@ -265,15 +267,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
 
         // Set timers for the acknowledged messages.
-        // Acknowledged messages sent to a Group address won;t await a Status.
-
-        if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
+        // Acknowledged messages sent to a Group address won't await a Status.
+        val ack = if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
-        }
+        } else null
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
 
-        return networkManager.awaitMeshMessageResponse(destination = destination) as MeshMessage
+        return if (ack == null) {
+            null
+        } else networkManager.awaitMeshMessageResponse(
+            destination = destination,
+            responseOpcode = ack.request.responseOpCode,
+            timeout = ack.timeout
+        )?.message as? MeshMessage
     }
 
     /**
@@ -312,7 +319,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         )
         logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
 
-        createReliableContext(
+        val ack = createReliableContext(
             pdu = pdu,
             element = localElement,
             initialTtl = initialTtl,
@@ -321,7 +328,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
 
-        return networkManager.awaitMeshMessageResponse(destination = destination) as? MeshMessage
+        return networkManager.awaitMeshMessageResponse(
+            destination = destination,
+            responseOpcode = ack.request.responseOpCode,
+            timeout = ack.timeout
+        )?.message as? MeshMessage
     }
 
     /**
@@ -599,9 +610,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         element: Element,
         initialTtl: UByte?,
         keySet: KeySet,
-    ) {
-        val request = pdu.message as? AcknowledgedMeshMessage ?: return
-        require(pdu.destination is UnicastAddress) { return }
+    ): AcknowledgmentContext {
+        val request = pdu.message as AcknowledgedMeshMessage
+        /*val request = pdu.message as? AcknowledgedMeshMessage ?: return null
+        require(pdu.destination is UnicastAddress) { return null }*/
 
         // The ttl with which the request will be sent.
         val ttl = element.parentNode?.defaultTTL ?: networkManager.networkParameters.defaultTtl
@@ -647,6 +659,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         mutex.withLock {
             reliableMessageContexts.add(ack)
         }
+        return ack
     }
 
     /**
