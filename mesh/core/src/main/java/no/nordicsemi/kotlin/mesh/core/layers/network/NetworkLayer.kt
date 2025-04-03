@@ -73,7 +73,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 return if (networkPdu != null) {
                     logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
                     networkManager.lowerTransportLayer.handle(networkPdu)?.let {
-                        return ReceivedMessage(address = networkPdu.source, message = it)
+                        ReceivedMessage(address = networkPdu.source, message = it)
                     }
                 } else {
                     logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
