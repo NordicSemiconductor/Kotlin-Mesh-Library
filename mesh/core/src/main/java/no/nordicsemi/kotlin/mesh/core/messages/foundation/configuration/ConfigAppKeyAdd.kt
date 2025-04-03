@@ -14,8 +14,8 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 /**
  * This message is used to add an Application Key to a mesh node.
  *
- * @property keyIndex  Index of the application key to be added.
- * @property index      Index of the bound network key.
+ * @property keyIndex             Index of the application key to be added.
+ * @property index                Index of the bound network key.
  * @property key                  The application key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
