@@ -73,10 +73,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 return if (networkPdu != null) {
                     logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
                     networkManager.lowerTransportLayer.handle(networkPdu)?.let {
-                        ReceivedMessage(
-                            address = networkPdu.source,
-                            message = it
-                        )
+                        ReceivedMessage(address = networkPdu.source, message = it)
                     }
                 } else {
                     logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
@@ -85,19 +82,21 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
 
             PduType.MESH_BEACON -> {
-                NetworkBeaconPduDecoder.decode(incomingPdu, meshNetwork)?.let {
-                    logger?.i(LogCategory.NETWORK) { "$it received" }
+                NetworkBeaconPduDecoder.decode(pdu = incomingPdu, meshNetwork = meshNetwork)?.let {
+                    logger?.i(LogCategory.NETWORK) {
+                        "$it received, authenticated using key: ${it.networkKey}"
+                    }
                     // TODO possible late init property initialization error
                     try {
-                        handle(it)
+                        handle(networkBeacon = it)
                     } catch (e: Exception) {
-                        logger?.e(LogCategory.NETWORK) { "Failed to handle beacon" }
+                        logger?.e(LogCategory.NETWORK) { "Failed to handle beacon $e" }
                     }
                     return null
                 }
                 UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let {
                     logger?.i(LogCategory.NETWORK) { "$it received." }
-                    handle(it)
+                    handle(beacon = it)
                     return null
                 }
                 logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
@@ -107,11 +106,11 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             PduType.PROXY_CONFIGURATION -> {
                 NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let {
                     logger?.i(LogCategory.NETWORK) { "$it received." }
-                    handle(it)
+                    return handle(it)
+                } ?: run {
+                    logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
                     return null
                 }
-                logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-                return null
             }
 
             else -> return null
@@ -231,7 +230,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      *
      * @param message The Proxy Configuration message to be sent.
      */
-    suspend fun send(message: ProxyConfigurationMessage) {
+    suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage? {
         proxyNetworkKey?.let { networkKey ->
             val source = meshNetwork.localProvisioner?.node?.primaryUnicastAddress
                 ?: UnicastAddress(address = maxUnicastAddress)
@@ -249,14 +248,15 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             try {
                 send(pdu = pdu, type = PduType.PROXY_CONFIGURATION, ttl = pdu.ttl)
                 networkManager.proxy.onManagerDidDeliverMessage(message)
+                return networkManager.awaitProxyMessageResponse()?.message as ProxyConfigurationMessage
             } catch (exception: Exception) {
                 if (exception is BearerError.Closed) {
                     proxyNetworkKey = null
                 }
                 networkManager.proxy.onManagerFailedToDeliverMessage(message, exception)
             }
-        }
-        networkManager.proxy.onManagerFailedToDeliverMessage(message, BearerError.Closed)
+        } ?: networkManager.proxy.onManagerFailedToDeliverMessage(message, BearerError.Closed)
+        return null
     }
 
     /**
@@ -289,7 +289,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         // The network key the beacon was authenticated with.
         val networkKey = networkBeacon.networkKey
 
-        if (meshNetwork.primaryNetworkKey != null && !networkKey.isPrimary) {
+        if (meshNetwork.primaryNetworkKey != null && networkKey.isSecondary) {
             logger?.w(LogCategory.NETWORK) {
                 "Discarding beacon for secondary network (key index: ${networkKey.index})"
             }
@@ -360,7 +360,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                 // Revoke the old network key
                 networkKey.oldKey = null // This will set the phase to NormalOperation
                 // ...and old application keys bound to it
-                meshNetwork._applicationKeys.boundTo(networkKey).forEach { it.oldKey = null }
+                meshNetwork.applicationKeys.boundTo(networkKey).forEach { it.oldKey = null }
             }
 
         } else if (networkBeacon.ivIndex != lastIvIndex.previous) {
@@ -375,7 +375,6 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
 
         // The beacon was sent by a Node with a previous IV Index, that was not yet transition to
         // the one the local node has. Such an IV Index is still valid, at least for sometime.
-
         updateProxyFilter(networkKey)
     }
 
@@ -407,32 +406,36 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      *
      * @param proxyPdu Received Proxy Configuration PDU.
      */
-    private suspend fun handle(proxyPdu: NetworkPdu) {
+    private suspend fun handle(proxyPdu: NetworkPdu): ReceivedMessage? {
         val payload = proxyPdu.transportPdu
-        require(payload.size > 1) { return }
+        require(payload.size > 1) { return null }
 
         val controlMessage = runCatching { ControlMessage.init(proxyPdu) }.getOrElse {
             logger?.w(LogCategory.NETWORK) { "Failed to decrypt proxy PDU: $it" }
-            return
+            return null
         }
         logger?.i(LogCategory.NETWORK) {
             "$controlMessage received (decrypted using key: ${controlMessage.networkKey}"
         }
 
-        when (controlMessage.opCode) {
-            FilterStatus.opCode -> FilterStatus.Initializer
-            else -> null
-        }?.let { decoder ->
-            decoder.init(parameters = controlMessage.upperTransportPdu)?.also { message ->
-                logger?.i(LogCategory.PROXY) {
-                    "$message received from: ${proxyPdu.source.toHexString()}, dest: ${proxyPdu.destination.toHexString()}"
+        return when (controlMessage.opCode) {
+            FilterStatus.opCode -> {
+                FilterStatus.init(parameters = controlMessage.upperTransportPdu)?.let { message ->
+                    logger?.i(LogCategory.PROXY) {
+                        "$message received from: ${proxyPdu.source.toHexString()}, " +
+                                "dest: ${proxyPdu.destination.toHexString()}"
+                    }
+                    // Look for the proxy Node.
+                    val proxyNode = meshNetwork.node(proxyPdu.source as UnicastAddress)
+                    networkManager.proxy.handle(message = message, proxy = proxyNode)
+                    ReceivedMessage(address = proxyPdu.source, message = message)
                 }
-                // Look for the proxy Node.
-                val proxyNode = meshNetwork.node(proxyPdu.source as UnicastAddress)
-                networkManager.proxy.handle(message = message, proxy = proxyNode)
             }
-        } ?: run {
-            logger?.w(LogCategory.PROXY) { "Unknown Proxy Configuration message (opcode: ${controlMessage.opCode})" }
+
+            else -> {
+                logger?.w(LogCategory.PROXY) { "Unknown Proxy Configuration message (opcode: ${controlMessage.opCode})" }
+                null
+            }
         }
     }
 
@@ -451,8 +454,11 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param networkPdu Network PDU to check.
      * @return `true` if the PDU should be looped back or `false` otherwise.
      */
-    private fun shouldLoopback(networkPdu: NetworkPdu) = networkPdu.destination.let {
-        it is GroupAddress || it is VirtualAddress || isLocalUnicastAddress(it as UnicastAddress)
-    }
+    private fun shouldLoopback(networkPdu: NetworkPdu) = networkPdu.destination is GroupAddress ||
+            networkPdu.destination is VirtualAddress ||
+            networkPdu.destination.takeIf { it is UnicastAddress }?.let { address ->
+                isLocalUnicastAddress(address as UnicastAddress)
+            } ?: false
+
 }
 

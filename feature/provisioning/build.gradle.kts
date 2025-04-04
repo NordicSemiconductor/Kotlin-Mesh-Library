@@ -1,6 +1,8 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -9,7 +11,10 @@ android {
 
 dependencies {
 
+    implementation(libs.nordic.theme)
     implementation(libs.nordic.kotlin.data)
+    implementation(libs.kotlinx.serialization.json)
+
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)
     implementation(libs.nordic.blek.scanner)

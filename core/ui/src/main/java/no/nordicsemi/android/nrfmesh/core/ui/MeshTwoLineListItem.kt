@@ -25,7 +25,7 @@ fun MeshTwoLineListItem(
     leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
-    subtitle: String = "",
+    subtitle: String? = null,
     trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
@@ -37,14 +37,14 @@ fun MeshTwoLineListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(weight = 1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
-            if (subtitle.isNotEmpty())
+            if (!subtitle.isNullOrEmpty())
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
@@ -61,7 +61,7 @@ fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
-    subtitle: String = "",
+    subtitle: String? = null,
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip
 ) {
@@ -84,7 +84,7 @@ fun MeshTwoLineListItem(
                 .padding(vertical = 28.dp)
         ) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-            if (subtitle.isNotEmpty())
+            if (!subtitle.isNullOrEmpty())
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,

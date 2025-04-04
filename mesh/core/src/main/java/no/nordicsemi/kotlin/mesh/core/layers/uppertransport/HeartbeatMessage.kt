@@ -3,18 +3,14 @@
 package no.nordicsemi.kotlin.mesh.core.layers.uppertransport
 
 import no.nordicsemi.kotlin.data.getUShort
-import no.nordicsemi.kotlin.data.hasBitCleared
-import no.nordicsemi.kotlin.data.hasBitSet
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
-import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import java.nio.ByteOrder
 
 /**

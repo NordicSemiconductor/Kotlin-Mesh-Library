@@ -29,7 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
 data class Group(
     @SerialName(value = "name")
     private var _name: String,
-    val address: PrimaryGroupAddress
+    val address: PrimaryGroupAddress,
 ) {
     var name: String
         get() = _name
@@ -49,7 +49,8 @@ data class Group(
         }
 
     @Transient
-    internal var network: MeshNetwork? = null
+    var network: MeshNetwork? = null
+        internal set
 
     var parent: Group?
         get() = when (parentAddress.address) {

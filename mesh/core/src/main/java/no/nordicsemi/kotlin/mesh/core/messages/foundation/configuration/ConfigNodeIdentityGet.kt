@@ -12,7 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
  * will be the response to this message.
  */
 class ConfigNodeIdentityGet(
-    override val networkKeyIndex: KeyIndex
+    override val index: KeyIndex
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
     override val parameters = encodeNetKeyIndex()

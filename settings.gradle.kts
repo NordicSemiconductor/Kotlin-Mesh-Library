@@ -7,11 +7,10 @@ pluginManagement {
     }
 
     plugins {
-        id("org.jetbrains.dokka") version "1.9.20"
+        id("org.jetbrains.dokka") version "2.0.0"
         id("org.jetbrains.kotlin.jvm") version "2.1.0"
         id("org.jetbrains.kotlin.android") version "2.1.0"
         id("com.android.library") version "8.5.2"
-        // id("org.jetbrains.kotlin.android") version "2.0.0"
     }
 }
 dependencyResolutionManagement {
@@ -25,7 +24,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.5-3")
+            from("no.nordicsemi.android.gradle:version-catalog:2.5-4")
         }
     }
 }
@@ -36,7 +35,6 @@ include(":core:common")
 include(":core:data")
 include(":core:navigation")
 include(":feature:nodes")
-include(":feature:elements")
 include(":feature:models")
 include(":feature:groups")
 include(":feature:settings")
@@ -64,7 +62,6 @@ include(":mesh:lighting")
 include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
-include(":mesh:foundation")
 
 // if (file("../Android-Common-Libraries").exists()) {
 //     includeBuild("../Android-Common-Libraries")

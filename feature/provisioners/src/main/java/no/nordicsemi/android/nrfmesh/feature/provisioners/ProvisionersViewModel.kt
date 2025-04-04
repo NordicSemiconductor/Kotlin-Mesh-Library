@@ -6,38 +6,34 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ProvisionersViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
+    private var selectedProvisioner: UUID? = null
 
-    private val _uiState = MutableStateFlow(ProvisionersScreenUiState(listOf()))
+    private val _uiState = MutableStateFlow(ProvisionersScreenUiState())
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            repository.network.collect { network ->
-                this@ProvisionersViewModel.network = network
-                _uiState.update { state ->
-                    val provisioners = network.provisioners.toList()
-                    state.copy(
-                        provisioners = provisioners,
-                        provisionersToBeRemoved = provisioners.filter {
-                            it in state.provisionersToBeRemoved
-                        }
-                    )
-                }
-            }
-        }
+        repository.network.onEach { network ->
+            this.network = network
+            val provisioners = network.provisioners.map { ProvisionerData(it) }
+            _uiState.value = ProvisionersScreenUiState(provisioners = provisioners)
+        }.launchIn(viewModelScope)
     }
 
     override fun onCleared() {
@@ -46,7 +42,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     }
 
     /**
-     * Adds a scene to the network.
+     * Adds a provisioner to the network.
      */
     internal fun addProvisioner() = Provisioner().apply {
         name = repository.createProvisionerName()
@@ -62,6 +58,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
                 provisioner.allocate(range)
             }
             add(provisioner = provisioner, address = null)
+            save()
         }
     }
 
@@ -72,10 +69,13 @@ internal class ProvisionersViewModel @Inject internal constructor(
      *
      * @param provisioner Provisioner to be deleted.
      */
-    internal fun onSwiped(provisioner: Provisioner) {
+    internal fun onSwiped(provisioner: ProvisionerData) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner)
+                it.copy(
+                    provisioners = it.provisioners - provisioner,
+                    provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner
+                )
             }
         }
     }
@@ -86,31 +86,55 @@ internal class ProvisionersViewModel @Inject internal constructor(
      *
      * @param provisioner Scene to be reverted.
      */
-    internal fun onUndoSwipe(provisioner: Provisioner) {
-        _uiState.update {
-            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved - provisioner)
+    internal fun onUndoSwipe(provisioner: ProvisionerData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            network.provisioners
+                .indexOfFirst { it.uuid == provisioner.uuid }
+                .takeIf { it >= 0 }
+                ?.let { index ->
+                    val provisioners = state.provisioners
+                        .toMutableList()
+                        .also { it.add(index, provisioner) }
+                        .toList()
+                    _uiState.value = state.copy(
+                        provisioners = provisioners,
+                        provisionersToBeRemoved = state.provisionersToBeRemoved - provisioner
+                    )
+                }
         }
     }
 
     /**
      * Remove a given scene from the network.
      *
-     * @param provisioner Scene to be removed.
+     * @param item Scene to be removed.
      */
-    internal fun remove(provisioner: Provisioner) {
-        _uiState.update {
-            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved - provisioner)
+    internal fun remove(item: ProvisionerData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            network.run {
+                provisioner(uuid = item.uuid)?.let { provisioner ->
+                    remove(provisioner)
+                    save()
+                }
+            }
+            _uiState.value = state.copy(
+                provisionersToBeRemoved = state.provisionersToBeRemoved - item
+            )
         }
-        network.remove(provisioner)
-        save()
     }
 
     /**
      * Removes the provisioners that are queued for deletion.
      */
     private fun removeProvisioners() {
-        _uiState.value.provisionersToBeRemoved.forEach {
-            network.remove(it)
+        _uiState.value.provisionersToBeRemoved.forEach { item ->
+            network.run {
+                provisioner(uuid = item.uuid)?.let { provisioner ->
+                    remove(provisioner)
+                }
+            }
         }
         save()
     }
@@ -121,9 +145,15 @@ internal class ProvisionersViewModel @Inject internal constructor(
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
+
+    fun selectProvisioner(uuid: UUID) {
+        selectedProvisioner = uuid
+    }
+
+    fun isCurrentlySelectedProvisioner(uuid: UUID) = selectedProvisioner == uuid
 }
 
 data class ProvisionersScreenUiState internal constructor(
-    val provisioners: List<Provisioner> = listOf(),
-    val provisionersToBeRemoved: List<Provisioner> = listOf()
+    val provisioners: List<ProvisionerData> = listOf(),
+    val provisionersToBeRemoved: List<ProvisionerData> = listOf(),
 )

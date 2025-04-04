@@ -18,9 +18,6 @@ import kotlin.math.pow
  *                                                 [UnassignedAddress]. Setting an unassigned
  *                                                 address as destination will stop sending
  *                                                 heartbeat messages.
- * @property countLog                              Heartbeat Publication Count Log is a
- *                                                 representation of the Heartbeat Publication Count
- *                                                 value.
  * @property periodLog                             Heartbeat Publication Period Log state is an
  *                                                 8-bit value that controls the cadence of
  *                                                 periodical Heartbeat transport control messages.
@@ -49,28 +46,17 @@ import kotlin.math.pow
 @Serializable
 data class HeartbeatPublication internal constructor(
     val address: HeartbeatPublicationDestination,
-    private var _countLog: UByte,
-    val periodLog: UByte,
+    val period: UShort,
     val ttl: UByte,
     val index: KeyIndex,
-    val features: List<Feature>
+    val features: List<Feature>,
 ) {
-    val period: UShort by lazy {
-        2.toDouble().pow(periodLog.toInt() - 1).toInt().toUShort()
-    }
-
-    var countLog: UByte
-        get() = _countLog
-        internal set(value) {
-            _countLog = value
-        }
-
-    val count: UShort by lazy {
-        2.toDouble().pow(_countLog.toInt() - 1).toInt().toUShort()
-    }
 
     @Transient
     internal var state: PeriodicHeartbeatState? = null
+
+    var periodLog: UByte = 0u
+        internal set
 
     val isEnabled: Boolean
         get() = address != UnassignedAddress
@@ -81,32 +67,9 @@ data class HeartbeatPublication internal constructor(
     val isFeatureTriggeredPublishingEnabled: Boolean
         get() = isEnabled && features.isNotEmpty()
 
-    internal constructor(
-        address: HeartbeatPublicationDestination,
-        period: UShort,
-        ttl: UByte,
-        index: KeyIndex,
-        features: List<Feature>
-    ) : this(
-        address = address,
-        _countLog = 0x00.toUByte(),
-        periodLog = (log2(period.toDouble()).toInt() + 1).toUByte(),
-        ttl = ttl.dec(),
-        index = index,
-        features = features
-    ) {
-        require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
-            "Period must range from $MIN_PERIOD to $MAX_PERIOD!"
-        }
-        require(ttl.toInt() in MIN_TTL..MAX_TTL) {
-            "TTL must range from $MIN_TTL to $MAX_TTL!"
-        }
-    }
-
     internal constructor(status: ConfigHeartbeatPublicationStatus) : this(
         address = status.destination,
-        _countLog = status.countLog,
-        periodLog = status.periodLog,
+        period = periodLog2Period(periodLog = status.periodLog),
         ttl = status.ttl,
         index = status.networkKeyIndex,
         features = status.features
@@ -117,6 +80,7 @@ data class HeartbeatPublication internal constructor(
         require(ttl.toInt() in MIN_TTL..MAX_TTL) {
             "TTL must range from $MIN_TTL to $MAX_TTL!"
         }
+        periodLog = status.periodLog
     }
 
     /**
@@ -125,12 +89,12 @@ data class HeartbeatPublication internal constructor(
      * @param request ConfigHeartbeatPublicationSet
      */
     internal constructor(request: ConfigHeartbeatPublicationSet) : this(
-        address = MeshAddress
-            .create(address = request.destination.address) as HeartbeatPublicationDestination,
-        _countLog = request.countLog,
-        periodLog = request.periodLog,
+        address = MeshAddress.create(
+            address = request.destination.address
+        ) as HeartbeatPublicationDestination,
+        period = periodLog2Period(periodLog = request.periodLog),
         ttl = request.ttl,
-        index = request.networkKeyIndex,
+        index = request.index,
         features = request.features
     ) {
         require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {
@@ -139,10 +103,11 @@ data class HeartbeatPublication internal constructor(
         require(ttl.toInt() in MIN_TTL..MAX_TTL) {
             "TTL must range from $MIN_TTL to $MAX_TTL!"
         }
+        periodLog = request.periodLog
         // Here, the state is stored for purpose of publication. This method is called only for the
         // local Node. The value is not persistent and publications will stop when the app gets
         // restarted.
-        state = PeriodicHeartbeatState.init(_countLog)
+        state = PeriodicHeartbeatState.init(request.countLog)
     }
 
     companion object {
@@ -169,6 +134,7 @@ data class HeartbeatPublication internal constructor(
                 throw IllegalArgumentException(
                     "CountLog out of range $countLog (required: 0x00-0x11)"
                 )
+
             countLog == 0x11.toUByte() -> (2.0.pow(countLog.toInt() - 1).toInt() - 2).toUShort()
 
             else -> 2.0.pow(countLog.toInt() - 1).toInt().toUShort()

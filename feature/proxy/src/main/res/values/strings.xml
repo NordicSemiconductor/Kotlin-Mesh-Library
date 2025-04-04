@@ -10,9 +10,10 @@
     <string name="label_disconnected_rationale">Connect to network manually</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_empty" />
-    <string name="label_automatic_connection_rationale">Enable to connect to the mesh network automatically.</string>
+    <string name="label_automatic_connection_rationale">Enabling automatic connection will automatically connect to a proxy node.</string>
     <string name="label_proxy_rationale">Disable automatic connection to connect manually.</string>
     <string name="label_disabled">Disabled</string>
     <string name="label_disconnect">Disconnect</string>
     <string name="label_connect">Connect</string>
+    <string name="label_proxies">Proxies</string>
 </resources>

@@ -18,12 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.description
+import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
-import no.nordicsemi.kotlin.mesh.core.model.AllFriends
-import no.nordicsemi.kotlin.mesh.core.model.AllNodes
-import no.nordicsemi.kotlin.mesh.core.model.AllProxies
-import no.nordicsemi.kotlin.mesh.core.model.AllRelays
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 
@@ -34,11 +32,10 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
     expanded: Boolean,
     onDismissed: () -> Unit,
     onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     val elements = network?.nodes.orEmpty().flatMap { it.elements }
     val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
-    val fixedGroupAddresses = listOf(AllRelays, AllFriends, AllProxies, AllNodes)
     DropdownMenu(
         modifier = Modifier
             .exposedDropdownSize()
@@ -142,17 +139,10 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                                     contentDescription = null
                                 )
                             },
-                            title = when (destination) {
-                                is AllRelays -> stringResource(R.string.label_all_relays)
-                                is AllFriends -> stringResource(R.string.label_all_friends)
-                                is AllProxies -> stringResource(R.string.label_all_proxies)
-                                is AllNodes -> stringResource(R.string.label_all_nodes)
-                            },
+                            title = destination.description(),
                         )
                     },
-                    onClick = {
-                        onDestinationSelected(destination)
-                    }
+                    onClick = { onDestinationSelected(destination) }
                 )
             }
         }

@@ -77,7 +77,7 @@ data class NetworkKey internal constructor(
     internal constructor(
         name: String = "Primary Network Key",
         index: KeyIndex = 0u,
-        key: ByteArray = Crypto.generateRandomKey()
+        key: ByteArray = Crypto.generateRandomKey(),
     ) : this(index = index, _name = name, _key = key)
 
     var name: String
@@ -154,10 +154,15 @@ data class NetworkKey internal constructor(
             else -> derivatives
         }
 
-    val isPrimary: Boolean by lazy { index == 0.toUShort() }
+    val isPrimary: Boolean
+        get() = index == 0.toUShort()
+
+    val isSecondary: Boolean
+        get() = !isPrimary
 
     @Transient
-    internal var network: MeshNetwork? = null
+    var network: MeshNetwork? = null
+        internal set
 
     val isInUse: Boolean
         get() = network?.run {
@@ -181,7 +186,7 @@ data class NetworkKey internal constructor(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
         return "NetworkKey(index: $index, name: $_name, key: ${_key.toHexString()}, " +
-                "key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
+                "old key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
                 "timestamp: $timestamp)"
     }
 
@@ -291,7 +296,7 @@ internal data class NetworkKeyDerivatives(
     val privateBeaconKey: ByteArray,
     val encryptionKey: ByteArray,
     val privacyKey: ByteArray,
-    val nid: Byte
+    val nid: Byte,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -326,7 +331,9 @@ internal data class NetworkKeyDerivatives(
  * @param node Node to check.
  * @return List of network keys known to the node.
  */
-fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter { node.knows(it) }
+fun List<NetworkKey>.knownTo(node: Node): List<NetworkKey> = filter {
+    node.knows(key = it)
+}
 
 /**
  * Returns an Network Key with the given KeyIndex.

@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
@@ -24,6 +25,14 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionDeleteAll
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionOverwrite
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressDelete
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionVirtualAddressOverwrite
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyList
@@ -33,19 +42,24 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Friend
+import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
+import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.util.ModelError
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
@@ -61,7 +75,7 @@ import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
  * @constructor Initialize ConfigurationClientHandler
  */
 internal class ConfigurationClientHandler(
-    override val meshNetwork: MeshNetwork
+    override val meshNetwork: MeshNetwork,
 ) : ModelEventHandler() {
 
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
@@ -80,6 +94,9 @@ internal class ConfigurationClientHandler(
         ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
         ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
+        ConfigModelSubscriptionStatus.opCode to ConfigModelSubscriptionStatus,
+        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionList,
+        ConfigVendorModelSubscriptionList.opCode to ConfigVendorModelSubscriptionList,
         ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
     )
     override val isSubscriptionSupported: Boolean = false
@@ -98,7 +115,6 @@ internal class ConfigurationClientHandler(
             )
 
             is ModelEvent.ResponseReceived -> handleResponses(
-                model = event.model,
                 response = event.response,
                 request = event.request,
                 source = event.source
@@ -113,16 +129,14 @@ internal class ConfigurationClientHandler(
     /**
      * Handles the responses received by the client model.
      *
-     * @param model     Model that received the message.
      * @param response  Response that was received by the model.
      * @param request   Request that was sent.
      * @param source    Address of the Element from which the message was sent.
      */
     private fun handleResponses(
-        model: Model,
         response: MeshResponse,
         request: AcknowledgedMeshMessage,
-        source: Address
+        source: Address,
     ) = meshNetwork.run {
         when (response) {
             // Composition Data
@@ -136,9 +150,9 @@ internal class ConfigurationClientHandler(
             is ConfigNetKeyStatus -> if (response.isSuccess) {
                 node(address = source)?.apply {
                     when (request as ConfigNetKeyMessage) {
-                        is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
-                        is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
-                        is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyAdd -> addNetKey(response.index)
+                        is ConfigNetKeyDelete -> removeNetKey(response.index)
+                        is ConfigNetKeyUpdate -> updateNetKey(response.index)
                     }
                 }
             }
@@ -150,16 +164,16 @@ internal class ConfigurationClientHandler(
             // Application Keys Management
             is ConfigAppKeyStatus -> if (response.isSuccess) node(address = source)?.apply {
                 when (request as ConfigNetKeyMessage) {
-                    is ConfigAppKeyAdd -> addAppKey(index = response.applicationKeyIndex)
-                    is ConfigAppKeyUpdate -> updateAppKey(index = response.applicationKeyIndex)
-                    is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
+                    is ConfigAppKeyAdd -> addAppKey(index = response.keyIndex)
+                    is ConfigAppKeyUpdate -> updateAppKey(index = response.keyIndex)
+                    is ConfigAppKeyDelete -> removeAppKey(response.keyIndex)
                 }
             }
 
             is ConfigAppKeyList -> node(address = source)?.apply {
                 setAppKeys(
                     appKeyIndexes = response.applicationKeyIndexes.toList(),
-                    netKeyIndex = response.networkKeyIndex
+                    netKeyIndex = response.index
                 )
             }
 
@@ -210,13 +224,11 @@ internal class ConfigurationClientHandler(
                     response.isEnabled -> HeartbeatPublication(response)
                     else -> null
                 }
-
             }
 
             is ConfigModelPublicationStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
-                    ?.models
                     ?.model(modelId = response.modelId)?.let { model ->
                         when (request) {
                             is ConfigModelPublicationGet -> {
@@ -231,9 +243,11 @@ internal class ConfigurationClientHandler(
                                     else -> model.set(response.publish)
                                 }
                             }
+
                             is ConfigModelPublicationSet -> if (!response.publish.isCanceled)
                                 model.set(response.publish)
                             else model.clearPublication()
+
                             is ConfigModelPublicationVirtualAddressSet -> model.set(response.publish)
                             else -> {}
                         }
@@ -245,20 +259,95 @@ internal class ConfigurationClientHandler(
             is ConfigModelAppStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
-                    ?.models
                     ?.model(modelId = response.modelId)?.let {
                         when (request) {
                             is ConfigModelAppBind ->
-                                it.bind(index = request.applicationKeyIndex)
+                                it.bind(index = request.keyIndex)
 
                             is ConfigModelAppUnbind ->
-                                it.unbind(index = request.applicationKeyIndex)
+                                it.unbind(index = request.keyIndex)
 
                             else -> {
 
                             }
                         }
                     }
+            }
+
+            is ConfigModelSubscriptionStatus -> if (response.isSuccess) {
+                val element = node(address = source)
+                    ?.element(address = response.elementAddress)
+                // val model = element?.models?.model(modelId = response.modelId) ?: return
+                element?.model(modelId = response.modelId)?.let { model ->
+                    // When a Subscription List is modified on a Node, it affects all
+                    // Models with bound state on the same Element.
+                    val models = arrayOf(model) + model.relatedModels
+                        .filter { it.parentElement == model.parentElement }
+                    // The status for delete all request has an invalid address. Lets handle it
+                    // directly here.
+                    if (request is ConfigModelSubscriptionDeleteAll) {
+                        models.forEach { it.unsubscribeFromAll() }
+                        return
+                    }
+
+                    val address = MeshAddress
+                        .create(address = response.address) as SubscriptionAddress
+                    when (request) {
+                        is ConfigModelSubscriptionOverwrite,
+                        is ConfigModelSubscriptionVirtualAddressOverwrite,
+                            -> {
+                            models.forEach { it.unsubscribeFromAll() }
+                            models.forEach { it.subscribe(address = address) }
+                        }
+
+                        is ConfigModelSubscriptionAdd,
+                        is ConfigModelSubscriptionVirtualAddressAdd,
+                            ->
+                            models.forEach { it.subscribe(address = address) }
+
+                        is ConfigModelSubscriptionDelete,
+                        is ConfigModelSubscriptionVirtualAddressDelete,
+                            -> models
+                            .forEach { it.unsubscribe(address = address.address) }
+
+                        else -> {}
+                    }
+                }
+            }
+
+            is ConfigModelSubscriptionList -> {
+                if (response.isSuccess) {
+                    val element = node(address = source)
+                        ?.element(address = response.elementAddress)
+                    element?.model(modelId = response.modelId)?.let { model ->
+                        // When a Subscription List is modified on a Node, it affects all
+                        // Models with bound state on the same Element.
+                        val models = arrayOf(model) + model.relatedModels
+                            .filter { it.parentElement == model.parentElement }
+                        // A new list will be set Remove existing subscriptions
+                        models.forEach { it.unsubscribeFromAll() }
+                        // For each new address...
+                        response.addresses.forEach {
+                            // ...look for an existing Group.
+                            val address = MeshAddress.create(address = it) as SubscriptionAddress
+                            // Check if address is FixedGroupAddress
+                            if(address is FixedGroupAddress) {
+                                models.forEach { model -> model.subscribe(address = address) }
+                            } else if(address is GroupAddress){
+                                meshNetwork.group(address = address.address)?.let { group ->
+                                    models.forEach { model -> model.subscribe(group = group) }
+                                } ?: run {
+                                    // If the group was not found lets create a new one.
+                                    val group = Group(address = address, _name = "New Group")
+                                    runCatching {
+                                        meshNetwork.add(group = group)
+                                        models.forEach { model -> model.subscribe(group = group) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             is ConfigNodeResetStatus -> node(address = source)?.let { remove(it) }

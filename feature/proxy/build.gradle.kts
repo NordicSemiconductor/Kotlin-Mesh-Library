@@ -1,6 +1,8 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -8,6 +10,8 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.nordic.blek.core)
     implementation(libs.nordic.blek.client)
@@ -33,6 +37,4 @@ dependencies {
 
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:mesh-bearer-gatt"))
-    implementation("androidx.test:monitor:1.7.1")
-    implementation("androidx.test.ext:junit-ktx:1.2.1")
 }

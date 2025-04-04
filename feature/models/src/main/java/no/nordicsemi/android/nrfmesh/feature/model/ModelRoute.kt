@@ -1,112 +1,65 @@
 package no.nordicsemi.android.nrfmesh.feature.model
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.didFail
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted.isInProgress
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
-import no.nordicsemi.android.nrfmesh.feature.model.common.ModelPublication
-import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServerModel
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreen
+import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
+import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
+import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import java.util.UUID
 
 @Composable
 internal fun ModelRoute(
-    appState: AppState,
-    uiState: ModelScreenUiState,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit,
-    onBackPressed: () -> Unit
-) {
-    val screen = appState.currentScreen as? ModelScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach {
-            when (it) {
-                ModelScreen.Actions.BACK -> onBackPressed()
-            }
-        }?.launchIn(this)
-    }
-
-    ModelScreen(
-        uiState = uiState,
-        send = send,
-        navigateToBoundAppKeys = navigateToBoundAppKeys,
-        requestNodeIdentityStates = requestNodeIdentityStates,
-        resetMessageState = resetMessageState,
-        onAddGroupClicked = onAddGroupClicked
-    )
-}
-
-@Composable
-internal fun ModelScreen(
-    uiState: ModelScreenUiState,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
-    resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit
-) {
-    when (uiState.modelState) {
-        ModelState.Loading -> {}
-        is ModelState.Success -> ModelInformation(
-            messageState = uiState.messageState,
-            nodeIdentityStates = uiState.nodeIdentityStates,
-            model = uiState.modelState.model,
-            send = send,
-            navigateToBoundAppKeys = navigateToBoundAppKeys,
-            requestNodeIdentityStates = requestNodeIdentityStates,
-            resetMessageState = resetMessageState,
-            onAddGroupClicked = onAddGroupClicked
-        )
-
-        is ModelState.Error -> {}
-    }
-}
-
-@Composable
-internal fun ModelInformation(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
-    navigateToBoundAppKeys: (Model) -> Unit,
-    requestNodeIdentityStates: () -> Unit,
+    requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
+    navigateToGroups: () -> Unit,
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
 ) {
-    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
-        AnimatedVisibility(visible = messageState.isInProgress()) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
+    Column(
+        modifier = Modifier.verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+        SectionTitle(
+            modifier = Modifier.padding(top = 8.dp),
+            title = stringResource(R.string.label_model)
+        )
         CommonInformation(model = model)
-        when {
-            model.isConfigurationServer -> ConfigurationServerModel(
+        if (model.isConfigurationServer) {
+            ConfigurationServer(
                 messageState = messageState,
                 model = model,
                 nodeIdentityStates = nodeIdentityStates,
@@ -114,54 +67,81 @@ internal fun ModelInformation(
                 requestNodeIdentityStates = requestNodeIdentityStates,
                 onAddGroupClicked = onAddGroupClicked,
             )
-
-            else -> {
-                BoundApplicationKeys(model = model, navigateToBoundAppKeys = navigateToBoundAppKeys)
-                ModelPublication(model = model, send = send)
-            }
+        }
+        if (model.supportsModelPublication == true || model.supportsModelSubscription == true) {
+            BoundApplicationKeys(
+                model = model,
+                navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
+                send = send
+            )
+        }
+        if (model.supportsModelPublication == true) {
+            Publication(messageState = messageState, model = model, send = send)
+        }
+        if (model.supportsModelSubscription == true) {
+            Subscriptions(
+                messageState = messageState,
+                model = model,
+                navigateToGroups = navigateToGroups,
+                send = send
+            )
         }
     }
 
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
-            text = messageState.error.message ?: stringResource(R.string.label_unknown_error),
+            text = messageState.error.toString(),
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
 
-        is Completed -> messageState.response?.let {
-            when (it is ConfigStatusMessage) {
-                true -> {
-                    MeshMessageStatusDialog(
-                        text = it.message,
-                        showDismissButton = messageState.didFail(),
-                        onDismissRequest = resetMessageState,
-                    )
-                }
-
-                else -> { /* Do nothing */
-                }
+        is Completed -> {
+            messageState.response?.takeIf {
+                (it is ConfigStatusMessage && !it.isSuccess)
+            }?.let {
+                MeshMessageStatusDialog(
+                    text = (messageState.response as ConfigStatusMessage).message,
+                    showDismissButton = true,
+                    onDismissRequest = resetMessageState,
+                )
             }
         }
 
-        else -> {}
+        else -> {
+
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
-    navigateToBoundAppKeys: (Model) -> Unit
+    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
 ) {
+    val bottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = model.boundApplicationKeys.isEmpty())
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
         subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
-        onClick = {
-            navigateToBoundAppKeys(model)
-        }
+        onClick = { showBottomSheet = !showBottomSheet }
     )
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = bottomSheetState,
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
+            content = {
+                BindAppKeysRoute(
+                    model = model,
+                    send = send,
+                    navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
+                )
+            }
+        )
+    }
 }

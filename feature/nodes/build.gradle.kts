@@ -1,6 +1,8 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -10,7 +12,17 @@ android {
 dependencies {
 
     implementation(libs.nordic.kotlin.data)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    implementation("androidx.compose.material3:material3:1.4.0-alpha11")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha11")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha11")
+
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
+
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -28,8 +40,12 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:config-network-keys"))
     implementation(project(":feature:config-application-keys"))
-    implementation(project(":feature:elements"))
+    implementation(project(":feature:application-keys"))
+    implementation(project(":feature:models"))
+    implementation(project(":feature:network-keys"))
     implementation(project(":feature:provisioning"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:groups"))
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":mesh:core"))
 }

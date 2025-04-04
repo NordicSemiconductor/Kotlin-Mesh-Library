@@ -1,6 +1,11 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -13,19 +18,20 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MeshNoItemsAvailable(
+    modifier: Modifier = Modifier,
     imageVector: ImageVector,
     title: String,
-    rationale: String = "",
+    rationale: String? = null,
     onClickText: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            modifier = Modifier.size(128.dp),
+            modifier = Modifier.size(96.dp),
             imageVector = imageVector,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.surfaceTint
@@ -34,10 +40,11 @@ fun MeshNoItemsAvailable(
             modifier = Modifier.padding(all = 16.dp),
             text = title
         )
-        Text(
-            modifier = Modifier.padding(all = 16.dp),
-            text = rationale
-        )
+        if (!rationale.isNullOrEmpty())
+            Text(
+                modifier = Modifier.padding(all = 16.dp),
+                text = rationale
+            )
         if (onClickText != null && onClick != null) {
             Row(
                 modifier = Modifier

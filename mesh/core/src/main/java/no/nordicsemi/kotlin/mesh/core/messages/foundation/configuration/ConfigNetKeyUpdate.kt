@@ -13,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 /**
  * This message is used to add a network key to a mesh node.
  *
- * @property networkKeyIndex      Index of the network key to be added.
+ * @property index      Index of the network key to be added.
  * @property newKey               The new network key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
@@ -21,7 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * @constructor Constructs the ConfigNetKeyDelete message.
  */
 data class ConfigNetKeyUpdate(
-    override val networkKeyIndex: KeyIndex,
+    override val index: KeyIndex,
     val newKey: ByteArray
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
@@ -37,7 +37,7 @@ data class ConfigNetKeyUpdate(
      * @param networkKey Network key to be added.
      */
     constructor(networkKey: NetworkKey, newKey: ByteArray) : this(
-        networkKeyIndex = networkKey.index,
+        index = networkKey.index,
         newKey = newKey
     )
 
@@ -51,7 +51,7 @@ data class ConfigNetKeyUpdate(
 
         other as ConfigNetKeyUpdate
 
-        if (networkKeyIndex != other.networkKeyIndex) return false
+        if (index != other.index) return false
         if (!newKey.contentEquals(other.newKey)) return false
         if (opCode != other.opCode) return false
         if (!parameters.contentEquals(other.parameters)) return false
@@ -61,7 +61,7 @@ data class ConfigNetKeyUpdate(
     }
 
     override fun hashCode(): Int {
-        var result = networkKeyIndex.hashCode()
+        var result = index.hashCode()
         result = 31 * result + newKey.contentHashCode()
         result = 31 * result + opCode.hashCode()
         result = 31 * result + parameters.contentHashCode()
@@ -82,7 +82,7 @@ data class ConfigNetKeyUpdate(
         }?.let {
             val netKeyIndex = decodeNetKeyIndex(data = it, offset = 0)
             val key = it.copyOfRange(2, 18)
-            ConfigNetKeyUpdate(networkKeyIndex = netKeyIndex, newKey = key)
+            ConfigNetKeyUpdate(index = netKeyIndex, newKey = key)
         }
     }
 }

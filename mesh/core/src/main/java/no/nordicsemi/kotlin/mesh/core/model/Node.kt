@@ -8,9 +8,9 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyStatus
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
@@ -89,6 +89,8 @@ data class Node internal constructor(
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
+    @SerialName(value = "name")
+    private var _name:String = "nRF Mesh Node",
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray?,
     @SerialName(value = "unicastAddress")
@@ -98,17 +100,20 @@ data class Node internal constructor(
     @SerialName(value = "netKeys")
     private var _netKeys: MutableList<NodeKey>,
     @SerialName(value = "appKeys")
-    private var _appKeys: MutableList<NodeKey>
+    private var _appKeys: MutableList<NodeKey>,
 ) {
 
     val primaryUnicastAddress: UnicastAddress
         get() = _primaryUnicastAddress
 
-    var name: String = "nRF Mesh Node"
+    var name: String
+        get() = _name
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            network?.updateTimestamp()
-            field = value
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
+                _name = value
+                network?.updateTimestamp()
+            }
         }
 
     val netKeys: List<NodeKey>
@@ -130,10 +135,10 @@ data class Node internal constructor(
         }
 
     val networkKeys: List<NetworkKey>
-        get() = network?.networkKeys?.knownTo(this) ?: emptyList()
+        get() = network?.networkKeys?.knownTo(node = this) ?: emptyList()
 
     val applicationKeys: List<ApplicationKey>
-        get() = network?.applicationKeys?.knownTo(this) ?: emptyList()
+        get() = network?.applicationKeys?.knownTo(node = this) ?: emptyList()
 
     @Serializable(UShortAsStringSerializer::class)
     @SerialName(value = "cid")
@@ -208,9 +213,7 @@ data class Node internal constructor(
         }
 
     val primaryElement: Element?
-        get() = companyIdentifier?.let {
-            elements.firstOrNull()
-        }
+        get() = elements.firstOrNull()
 
     val elementsCount: Int
         get() = elements.size
@@ -247,7 +250,7 @@ data class Node internal constructor(
      */
     internal constructor(
         provisioner: Provisioner,
-        unicastAddress: UnicastAddress
+        unicastAddress: UnicastAddress,
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = Crypto.generateRandomKey(),
@@ -271,9 +274,9 @@ data class Node internal constructor(
         provisioner: Provisioner,
         unicastAddress: UnicastAddress,
         deviceKey: ByteArray = Crypto.generateRandomKey(),
-        elements: List<Element>,
+        elements: List<Element> = emptyList(),
         netKeys: List<NetworkKey>,
-        appKeys: List<ApplicationKey>
+        appKeys: List<ApplicationKey>,
     ) : this(
         uuid = provisioner.uuid,
         deviceKey = deviceKey,
@@ -317,14 +320,16 @@ data class Node internal constructor(
      */
     @Throws(SecurityException::class)
     constructor(
+        name: String = "nRF Mesh Node",
         uuid: UUID,
         deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
         elementCount: Int,
         assignedNetworkKey: NetworkKey,
-        security: Security
+        security: Security,
     ) : this(
         uuid = uuid,
+        _name = name,
         deviceKey = deviceKey,
         _primaryUnicastAddress = unicastAddress,
         _elements = MutableList(elementCount) {
@@ -498,7 +503,7 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addAppKey(index: KeyIndex) {
-        _appKeys.get(index) ?: _appKeys.add(NodeKey(index, false))
+        _appKeys.get(index = index) ?: _appKeys.add(NodeKey(index, false))
         network?.updateTimestamp()
     }
 
@@ -545,9 +550,9 @@ data class Node internal constructor(
     internal fun setAppKeys(appKeyIndexes: List<KeyIndex>, netKeyIndex: KeyIndex) {
         // Replace only the keys that are bound to the given network key.
         _appKeys = _appKeys.filter { nodeKey ->
-            applicationKeys.get(nodeKey.index)?.boundNetKeyIndex == netKeyIndex
+            applicationKeys.get(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
         }.toMutableList()
-        _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(it, false) })
+        _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(index = it, _updated = false) })
         _appKeys.sortBy { it.index }
         network?.updateTimestamp()
     }
@@ -739,10 +744,10 @@ data class Node internal constructor(
      *
      * Note: This is based on the key index.
      *
-     * @param applicationKey Application Key.
+     * @param key Application Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knows(applicationKey: ApplicationKey) = knowsApplicationKeyIndex(applicationKey.index)
+    fun knows(key: ApplicationKey) = knowsApplicationKeyIndex(index = key.index)
 
     /**
      * Checks if the given Application Key index known by the node.
@@ -757,10 +762,10 @@ data class Node internal constructor(
      *
      * Note: This is based on the key index.
      *
-     * @param networkKey Network Key.
+     * @param key Network Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knows(networkKey: NetworkKey) = knowsNetworkKeyIndex(networkKey.index)
+    fun knows(key: NetworkKey) = knowsNetworkKeyIndex(index = key.index)
 
     /**
      * Checks if the given Network Key index known by the node.

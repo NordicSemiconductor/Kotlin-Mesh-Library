@@ -28,4 +28,12 @@
     <string name="unassign_address_rationale">Unassigning the address of the provisioner will
         disable it\'s configuration capabilities and delete the corresponding node. However you will
         still be able to provision a nodes in the network. Do you want to continue?</string>
+    <string name="label_add_provisioner">Add Provisioner</string>
+    <string name="label_unicast_ranges">Unicast Ranges</string>
+    <string name="label_group_ranges">Group Ranges</string>
+    <string name="label_scene_ranges">Scene Ranges</string>
+    <string name="label_provisioner">Provisioner</string>
+    <string name="error_cannot_delete_last_provisioner">Cannot delete, a mesh network must have at least one provisioner</string>
+    <string name="error_cannot_delete_selected_provisioner">Switch to a different provisioner to delete the currently selected provisioner</string>
+    <string name="label_unassigned">Configuration capabilities disabled</string>
 </resources>

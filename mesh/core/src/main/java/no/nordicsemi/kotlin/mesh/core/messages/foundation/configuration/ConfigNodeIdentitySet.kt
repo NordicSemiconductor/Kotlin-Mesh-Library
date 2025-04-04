@@ -12,11 +12,11 @@ import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
  * Defines message sent to set the current Node Identity state. [ConfigNodeIdentityStatus]
  * will be the response to this message.
  *
- * @property networkKeyIndex   Network Key Index of the Node Identity state.
+ * @property index   Network Key Index of the Node Identity state.
  * @property identityState     Expected node Identity state [NodeIdentityState].
  */
 class ConfigNodeIdentitySet(
-    override val networkKeyIndex: KeyIndex,
+    override val index: KeyIndex,
     val identityState: NodeIdentityState
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
@@ -31,7 +31,7 @@ class ConfigNodeIdentitySet(
      *                        [NodeIdentityState.STOPPED] otherwise.
      */
     constructor(networkKeyIndex: KeyIndex, start: Boolean) : this(
-        networkKeyIndex = networkKeyIndex,
+        index = networkKeyIndex,
         identityState = if (start) NodeIdentityState.RUNNING else NodeIdentityState.STOPPED
     )
 
@@ -46,7 +46,7 @@ class ConfigNodeIdentitySet(
             ?.takeIf { it.size == 3 }
             ?.let {
                 ConfigNodeIdentitySet(
-                    networkKeyIndex = decodeNetKeyIndex(data = it, offset = 0),
+                    index = decodeNetKeyIndex(data = it, offset = 0),
                     identityState = NodeIdentityState.from(it[2].toUByte())
                 )
             }

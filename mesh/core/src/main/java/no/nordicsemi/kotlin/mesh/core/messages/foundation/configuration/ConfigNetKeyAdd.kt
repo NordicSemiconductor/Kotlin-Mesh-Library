@@ -13,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 /**
  * This message is used to add a network key to a mesh node.
  *
- * @property networkKeyIndex      Index of the network key to be added.
+ * @property index      Index of the network key to be added.
  * @property key                  The network key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
@@ -21,24 +21,19 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * @constructor Constructs the ConfigNetKeyDelete message.
  */
 data class ConfigNetKeyAdd(
-    override val networkKeyIndex: KeyIndex,
-    val key: ByteArray
+    override val index: KeyIndex,
+    val key: ByteArray,
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
-
     override val parameters = encodeNetKeyIndex() + key
-
     override val responseOpCode = ConfigNetKeyStatus.opCode
 
     /**
      * Convenience constructor to create a ConfigNetKeyAdd message.
      *
-     * @param networkKey Network key to be added.
+     * @param key Network key to be added.
      */
-    constructor(networkKey: NetworkKey) : this(
-        networkKeyIndex = networkKey.index,
-        key = networkKey.key
-    )
+    constructor(key: NetworkKey) : this(index = key.index, key = key.key)
 
     init {
         require(key.size == 16) { throw InvalidKeyLength }
@@ -52,7 +47,7 @@ data class ConfigNetKeyAdd(
         }?.let {
             val netKeyIndex = decodeNetKeyIndex(data = it, offset = 0)
             val key = it.copyOfRange(2, 18)
-            ConfigNetKeyAdd(networkKeyIndex = netKeyIndex, key = key)
+            ConfigNetKeyAdd(index = netKeyIndex, key = key)
         }
     }
 
@@ -62,7 +57,7 @@ data class ConfigNetKeyAdd(
 
         other as ConfigNetKeyAdd
 
-        if (networkKeyIndex != other.networkKeyIndex) return false
+        if (index != other.index) return false
         if (!key.contentEquals(other.key)) return false
         if (opCode != other.opCode) return false
         if (!parameters.contentEquals(other.parameters)) return false
@@ -72,7 +67,7 @@ data class ConfigNetKeyAdd(
     }
 
     override fun hashCode(): Int {
-        var result = networkKeyIndex.hashCode()
+        var result = index.hashCode()
         result = 31 * result + key.contentHashCode()
         result = 31 * result + opCode.hashCode()
         result = 31 * result + parameters.contentHashCode()

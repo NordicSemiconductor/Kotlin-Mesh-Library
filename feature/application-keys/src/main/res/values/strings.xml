@@ -25,8 +25,12 @@
     <string name="error_cannot_delete_last_net_key">Unable to delete, the last network key cannot be
         deleted.</string>
     <string name="error_cannot_delete_key_in_use">Unable to delete, key is in use.</string>
+    <string name="error_cannot_delete_selected_key">Switch to a different key to delete the currently selected key.</string>
     <string name="label_bound_network_key">Bound Network Key</string>
     <string name="error_cannot_change_bound_net_key">Cannot change, application key is in
         use.</string>
     <string name="label_no_keys_added">No Keys currently added.</string>
+    <string name="label_add_key">Add Key</string>
+    <string name="label_application_key">Application Key</string>
+    <string name="no_application_keys_available">No Application Keys currently added</string>
 </resources>

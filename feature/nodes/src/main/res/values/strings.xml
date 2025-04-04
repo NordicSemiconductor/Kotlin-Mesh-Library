@@ -41,4 +41,14 @@
     <string name="label_product_version">Product Version</string>
     <string name="label_replay_protection_count">Replay Protection Count</string>
     <string name="label_security">Security</string>
+    <string name="label_node">Node</string>
+    <string name="label_select_node_item_rationale">Select Network Keys, Application Keys or an Element to configure.</string>
+
+    <string name="label_placeholder_element_name">Element name</string>
+    <string name="label_location">Location</string>
+    <string name="label_models">Models</string>
+    <string name="label_address">Address</string>
+    <string name="label_unknown_vendor">Unknown Vendor</string>
+    <string name="label_element">Element</string>
+    <string name="label_add_node">Add Node</string>
 </resources>

@@ -11,7 +11,17 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Mail
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -56,11 +66,12 @@ fun MeshAlertDialog(
     iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
     error: Boolean = false,
+    properties: DialogProperties = DialogProperties(usePlatformDefaultWidth = false),
     content: @Composable () -> Unit = {}
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = properties,
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             TextButton(
@@ -116,7 +127,7 @@ fun MeshAlertDialog(
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        // properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             TextButton(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
@@ -154,7 +165,7 @@ fun MeshAlertDialog(
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = true),
         content = {
             Surface(
                 modifier = Modifier

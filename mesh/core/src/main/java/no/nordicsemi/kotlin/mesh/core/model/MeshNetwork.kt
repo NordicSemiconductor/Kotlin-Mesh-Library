@@ -45,22 +45,29 @@ import java.util.*
  * @constructor                     Creates a mesh network.
  */
 @Serializable
-class MeshNetwork internal constructor(
+data class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)
     @SerialName(value = "meshUUID")
     val uuid: UUID = UUID.randomUUID(),
     @SerialName(value = "meshName")
-    private var _name: String
+    private var _name: String,
+    @SerialName("provisioners")
+    internal var _provisioners: MutableList<Provisioner> = mutableListOf(),
+    @SerialName("netKeys")
+    internal var _networkKeys: MutableList<NetworkKey> = mutableListOf(),
+    @SerialName("appKeys")
+    internal var _applicationKeys: MutableList<ApplicationKey> = mutableListOf(),
+    @SerialName("nodes")
+    internal var _nodes: MutableList<Node> = mutableListOf(),
+    @SerialName("groups")
+    internal var _groups: MutableList<Group> = mutableListOf(),
+    @SerialName("scenes")
+    internal var _scenes: MutableList<Scene> = mutableListOf(),
+    @SerialName("networkExclusions")
+    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf(),
+    @SerialName("timestamp")
+    internal var _timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
 ) {
-    /**
-     * Convenience constructor to create a network for tests
-     *
-     * @param name The name of the network
-     */
-    internal constructor(name: String) : this(UUID.randomUUID(), name) {
-        add(name = "Primary Network Key", index = 0u)
-    }
-
     var name: String
         get() = _name
         set(value) {
@@ -68,8 +75,10 @@ class MeshNetwork internal constructor(
             onChange(oldValue = _name, newValue = value) { updateTimestamp() }
             _name = value
         }
-    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        internal set
+
+    val timestamp: Instant
+        get() = _timestamp
+
 
     var partial: Boolean = false
         internal set(value) {
@@ -77,38 +86,24 @@ class MeshNetwork internal constructor(
             field = value
         }
 
-    @SerialName("provisioners")
-    internal var _provisioners: MutableList<Provisioner> = mutableListOf()
     val provisioners: List<Provisioner>
         get() = _provisioners
 
-    @SerialName("netKeys")
-    internal var _networkKeys: MutableList<NetworkKey> = mutableListOf()
     val networkKeys: List<NetworkKey>
         get() = _networkKeys
 
-    @SerialName("appKeys")
-    internal var _applicationKeys: MutableList<ApplicationKey> = mutableListOf()
     val applicationKeys: List<ApplicationKey>
         get() = _applicationKeys
 
-    @SerialName("nodes")
-    internal var _nodes: MutableList<Node> = mutableListOf()
     val nodes: List<Node>
         get() = _nodes
 
-    @SerialName("groups")
-    internal var _groups: MutableList<Group> = mutableListOf()
     val groups: List<Group>
         get() = _groups
 
-    @SerialName("scenes")
-    internal var _scenes: MutableList<Scene> = mutableListOf()
     val scenes: List<Scene>
         get() = _scenes
 
-    @SerialName("networkExclusions")
-    internal var _networkExclusions: MutableList<ExclusionList> = mutableListOf()
     internal val networkExclusions: List<ExclusionList>
         get() = _networkExclusions
 
@@ -147,7 +142,7 @@ class MeshNetwork internal constructor(
             return null
         }
 
-    internal var _localElements = mutableListOf<Element>()
+    internal var _localElements = mutableListOf(Element(location = Location.MAIN))
         set(value) {
             var elements = value
             elements.forEach {
@@ -155,7 +150,7 @@ class MeshNetwork internal constructor(
             }
             elements = elements.filter { it.models.isEmpty() }.toMutableList()
             if (elements.isEmpty()) {
-                elements.add(Element(Location.UNKNOWN))
+                elements.add(Element(location = Location.UNKNOWN))
             }
             elements.first().addPrimaryElementModels(this)
 
@@ -190,10 +185,28 @@ class MeshNetwork internal constructor(
         get() = _localElements
 
     /**
+     * Convenience constructor to create a network for tests
+     *
+     * @param name The name of the network
+     */
+    internal constructor(name: String) : this(name = name, uuid = UUID.randomUUID())
+
+    /**
+     * Convenience constructor to create a network.
+     *
+     * @param name The name of the network
+     * @param uuid The UUID of the network
+     */
+    internal constructor(name: String, uuid: UUID = UUID.randomUUID()) : this(
+        uuid = uuid,
+        _name = name
+    )
+
+    /**
      * Updates timestamp to the current time in milliseconds.
      */
     internal fun updateTimestamp() {
-        this.timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        this._timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
     }
 
     /**
@@ -231,9 +244,8 @@ class MeshNetwork internal constructor(
     fun add(provisioner: Provisioner) {
         add(
             provisioner = provisioner,
-            address = nextAvailableUnicastAddress(
-                elementCount = 1, provisioner = provisioner
-            ) ?: throw NoAddressesAvailable
+            address = nextAvailableUnicastAddress(elementCount = 1, provisioner = provisioner)
+                ?: throw NoAddressesAvailable
         )
     }
 
@@ -281,24 +293,23 @@ class MeshNetwork internal constructor(
             val node = Node(
                 provisioner = provisioner,
                 unicastAddress = unicastAddress,
-                elements = if (provisioners.isEmpty()) {
-                    localElements
-                } else {
-                    listOf(Element.primaryElement)
-                },
                 netKeys = networkKeys,
                 appKeys = applicationKeys
             ).apply {
-                companyIdentifier = 0x00E0u //Google
-                replayProtectionCount = maxUnicastAddress
-                name = provisioner.name
+                if (provisioners.isEmpty()) {
+                    add(elements = localElements)
+                    companyIdentifier = 0x00E0u //Google
+                    replayProtectionCount = maxUnicastAddress
+                    name = provisioner.name
+                } else {
+                    add(element = Element.primaryElement)
+                }
             }
             add(node)
         }
         // And finally, add the Provisioner.
         provisioner.network = this
         _provisioners.add(provisioner).also { updateTimestamp() }
-
     }
 
     /**
@@ -425,7 +436,7 @@ class MeshNetwork internal constructor(
     fun add(
         name: String,
         key: ByteArray = Crypto.generateRandomKey(),
-        index: KeyIndex? = null
+        index: KeyIndex? = null,
     ): NetworkKey {
         if (index != null) {
             // Check if the network key index is not already in use to avoid duplicates.
@@ -439,9 +450,7 @@ class MeshNetwork internal constructor(
             network = this@MeshNetwork
         }.also { networkKey ->
             // Add the new network key to the network keys and sort them by index.
-            _networkKeys.apply {
-                add(networkKey)
-            }.sortBy { it.index }
+            _networkKeys.apply { add(element = networkKey) }.sortBy { it.index }
             updateTimestamp()
         }
     }
@@ -485,7 +494,7 @@ class MeshNetwork internal constructor(
         name: String,
         key: ByteArray = Crypto.generateRandomKey(),
         index: KeyIndex? = null,
-        boundNetworkKey: NetworkKey
+        boundNetworkKey: NetworkKey,
     ): ApplicationKey {
         // Check if the network key belongs to the same network.
         require(boundNetworkKey.network == this) {
@@ -536,8 +545,8 @@ class MeshNetwork internal constructor(
      */
     fun node(provisioner: Provisioner) = try {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork }
-        require(has(provisioner)) { return null }
-        node(provisioner.uuid)
+        require(has(provisioner = provisioner)) { return null }
+        node(uuid = provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
         null
     }
@@ -613,12 +622,9 @@ class MeshNetwork internal constructor(
         // Ensure the node does not exists already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists }
         // Verify if the address range is available for the new Node.
-        require(
-            isAddressAvailable(
-                node.primaryUnicastAddress,
-                node
-            )
-        ) { throw NoAddressesAvailable }
+        require(isAddressAvailable(address = node.primaryUnicastAddress, node = node)) {
+            throw NoAddressesAvailable
+        }
         // Ensure the Network Key exists.
         require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded }
         // Make sure the network contains a Network Key with he same Key Index.
@@ -666,7 +672,7 @@ class MeshNetwork internal constructor(
     @Throws(GroupAlreadyExists::class, DoesNotBelongToNetwork::class)
     fun add(group: Group) {
         require(!_groups.contains(group)) { throw GroupAlreadyExists }
-        require(group.network == null) { throw DoesNotBelongToNetwork }
+        require(group.network == null) { throw GroupInUse }
         _groups.add(group.also { it.network = this }).also { updateTimestamp() }
     }
 
@@ -686,11 +692,37 @@ class MeshNetwork internal constructor(
      * @throws [GroupInUse] If the group is already in use.
      */
     @Throws(DoesNotBelongToNetwork::class, GroupInUse::class)
-    fun remove(group: Group) {
+    fun remove(group: Group): Boolean {
         require(group.network == this) { throw DoesNotBelongToNetwork }
         require(!group.isUsed) { throw GroupInUse }
-        _groups.remove(group).also { updateTimestamp() }
+        return remove(address = group.address)
     }
+
+    /**
+     * Removes a group with the given address from the network.
+     *
+     * @param address address of the group to be removed.
+     */
+    fun remove(address: GroupAddress) = _groups.find {
+        it.address == address
+    }?.let { group ->
+        _groups.remove(group).also {
+            updateTimestamp()
+        }
+    } ?: false
+
+    /**
+     * Removes a group with the given address from the network.
+     *
+     * @param address address of the group to be removed.
+     */
+    fun remove(address: PrimaryGroupAddress) = _groups.find {
+        it.address == address
+    }?.let { group ->
+        _groups.remove(group).also {
+            updateTimestamp()
+        }
+    } ?: false
 
     /**
      * Returns the Scene key with a given scene number.
@@ -772,7 +804,9 @@ class MeshNetwork internal constructor(
      */
     fun isAddressAvailable(address: UnicastAddress, elementCount: Int) =
         isAddressRangeAvailable(
-            UnicastRange(address, elementCount)
+            range = UnicastRange(
+                address = address, elementsCount = elementCount
+            )
         )
 
     /**
@@ -781,14 +815,10 @@ class MeshNetwork internal constructor(
      *
      * @param address         Possible address of the primary element of the node.
      * @param node            Node
-     * @return true if the address is assignable to the given node or false otherwise.
+     * @return true if the address is assignable to the given `node or false otherwise.
      */
-    fun isAddressAvailable(address: UnicastAddress, node: Node): Boolean {
-        val range = UnicastRange(address, (address + node.elementsCount))
-        return nodes.filter { it.uuid != node.uuid }
-            .none { it.containsElementsWithAddress(range) } &&
-                !_networkExclusions.contains(range, ivIndex)
-    }
+    fun isAddressAvailable(address: UnicastAddress, node: Node) =
+        isAddressAvailable(address = address, elementCount = node.elementsCount)
 
     /**
      * Returns the next available unicast address from the provisioner's range that can be assigned
@@ -806,7 +836,7 @@ class MeshNetwork internal constructor(
     fun nextAvailableUnicastAddress(
         offset: UnicastAddress = UnicastAddress(minUnicastAddress),
         elementCount: Int,
-        provisioner: Provisioner
+        provisioner: Provisioner,
     ): UnicastAddress? {
         require(provisioner._allocatedUnicastRanges.isNotEmpty()) { throw NoUnicastRangeAllocated }
 
@@ -983,7 +1013,7 @@ class MeshNetwork internal constructor(
      * @param ranges Allocated ranges.
      */
     private fun getNextAvailableRange(
-        size: Int, bound: Range, ranges: List<Range>
+        size: Int, bound: Range, ranges: List<Range>,
     ): Range? {
         var bestRange: Range? = null
         var lastUpperBound = (bound.low - 1u).toInt()
@@ -1098,9 +1128,7 @@ class MeshNetwork internal constructor(
             // List of application keys set in the configuration, but we must only export the
             // keys that are bound to that network key.
             _applicationKeys = _applicationKeys.filter { applicationKey ->
-                applicationKey.boundNetworkKey?.let {
-                    it in networkKeys
-                } ?: false
+                applicationKey.boundNetworkKey in networkKeys
             }.toMutableList()
         }
     }
@@ -1137,7 +1165,7 @@ class MeshNetwork internal constructor(
                 // TODO should the device key be included for such a node?
                 provisioners.forEach { provisioner ->
                     if (!has(provisioner)) {
-                        provisioner.node?.let { it -> add(it) }
+                        provisioner.node?.let { add(it) }
                     }
                 }
                 nodes

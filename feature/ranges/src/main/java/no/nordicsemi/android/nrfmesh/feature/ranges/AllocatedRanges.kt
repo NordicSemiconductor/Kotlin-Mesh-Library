@@ -82,7 +82,6 @@ internal fun AllocatedRange(
     otherRanges: List<Range>,
     onClick: (Range) -> Unit
 ) {
-    1..2
     TwoLineRangeListItem(
         modifier = Modifier.clickable { onClick(range) },
         leadingComposable = {

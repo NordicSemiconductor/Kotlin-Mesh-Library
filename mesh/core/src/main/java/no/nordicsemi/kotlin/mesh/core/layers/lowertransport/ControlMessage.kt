@@ -4,7 +4,6 @@ package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
-import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -12,7 +11,6 @@ import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
-import kotlin.experimental.and
 
 /**
  * Data class defining a Control Message.
@@ -38,6 +36,11 @@ internal open class ControlMessage(
 
     override val type = LowerTransportPduType.CONTROL_MESSAGE
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String = "ControlMessage(opCode: ${opCode.toHexString()}, " +
+            "source: $source, destination: $destination,  networkKey: ${networkKey.index}, " +
+            "ivIndex: $ivIndex, ttl: $ttl)"
+
     /**
      * Creates a Control Message.
      *
@@ -47,7 +50,7 @@ internal open class ControlMessage(
      */
     constructor(
         heartbeatMessage: HeartbeatMessage,
-        networkKey: NetworkKey
+        networkKey: NetworkKey,
     ) : this(
         opCode = HeartbeatMessage.OP_CODE,
         upperTransportPdu = heartbeatMessage.transportPdu,
@@ -122,7 +125,7 @@ internal open class ControlMessage(
             message: ProxyConfigurationMessage,
             source: MeshAddress,
             networkKey: NetworkKey,
-            ivIndex: IvIndex
+            ivIndex: IvIndex,
         ) = ControlMessage(
             opCode = message.opCode,
             upperTransportPdu = message.parameters ?: byteArrayOf(),

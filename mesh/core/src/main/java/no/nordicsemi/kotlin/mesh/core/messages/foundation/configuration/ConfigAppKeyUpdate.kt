@@ -19,8 +19,8 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
  *
  * To transition to the next phases of the Key Refresh Procedure use [ConfigKeyRefreshPhaseSet].
  *
- * @property applicationKeyIndex  Index of the application key to be added.
- * @property networkKeyIndex      Index of the bound network key.
+ * @property keyIndex  Index of the application key to be added.
+ * @property index      Index of the bound network key.
  * @property key                  The application key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
@@ -28,15 +28,15 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
  * @constructor Constructs the ConfigAppKeyAdd message.
  */
 class ConfigAppKeyUpdate(
-    override val applicationKeyIndex: KeyIndex,
-    override val networkKeyIndex: KeyIndex,
+    override val keyIndex: KeyIndex,
+    override val index: KeyIndex,
     val key: ByteArray
 ) : AcknowledgedConfigMessage, ConfigNetAndAppKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
     override val parameters = encodeNetAndAppKeyIndex(
-        appKeyIndex = applicationKeyIndex,
-        netKeyIndex = networkKeyIndex
+        appKeyIndex = keyIndex,
+        netKeyIndex = index
     ) + key
 
     override val responseOpCode = ConfigAppKeyStatus.opCode
@@ -49,9 +49,9 @@ class ConfigAppKeyUpdate(
      * @constructor Constructs the ConfigAppKeyAdd message.
      */
     constructor(applicationKey: ApplicationKey, newKey: ByteArray) : this(
-        applicationKeyIndex = applicationKey.index,
+        keyIndex = applicationKey.index,
         key = newKey,
-        networkKeyIndex = applicationKey.boundNetKeyIndex
+        index = applicationKey.boundNetKeyIndex
     )
 
     init {
@@ -59,8 +59,8 @@ class ConfigAppKeyUpdate(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigAppKeyUpdate(applicationKeyIndex: $applicationKeyIndex, " +
-            "networkKeyIndex: $networkKeyIndex, key: ${key.toHexString()})"
+    override fun toString() = "ConfigAppKeyUpdate(applicationKeyIndex: $keyIndex, " +
+            "networkKeyIndex: $index, key: ${key.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x01u
@@ -76,8 +76,8 @@ class ConfigAppKeyUpdate(
         }?.let {
             val decodedIndexes = decodeNetAndAppKeyIndex(data = it, offset = 0)
             ConfigAppKeyUpdate(
-                networkKeyIndex = decodedIndexes.networkKeyIndex,
-                applicationKeyIndex = decodedIndexes.applicationKeyIndex,
+                index = decodedIndexes.networkKeyIndex,
+                keyIndex = decodedIndexes.applicationKeyIndex,
                 key = it.copyOfRange(3, 19)
             )
         }

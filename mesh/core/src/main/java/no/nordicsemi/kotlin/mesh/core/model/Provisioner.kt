@@ -36,19 +36,23 @@ data class Provisioner internal constructor(
     @SerialName(value = "UUID")
     @Serializable(with = UUIDSerializer::class)
     val uuid: UUID,
-    @SerialName(value = "allocatedUnicastRange")
-    internal var _allocatedUnicastRanges: MutableList<UnicastRange> = mutableListOf(),
-    @SerialName(value = "allocatedGroupRange")
-    internal var _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
-    @SerialName(value = "allocatedSceneRange")
-    internal var _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf()
-) {
     @SerialName(value = "provisionerName")
-    var name: String = "nRF Mesh Provisioner"
+    private var _name: String = "nRF Mesh Provisioner",
+    @SerialName(value = "allocatedUnicastRange")
+    internal val _allocatedUnicastRanges: MutableList<UnicastRange> = mutableListOf(),
+    @SerialName(value = "allocatedGroupRange")
+    internal val _allocatedGroupRanges: MutableList<GroupRange> = mutableListOf(),
+    @SerialName(value = "allocatedSceneRange")
+    internal val _allocatedSceneRanges: MutableList<SceneRange> = mutableListOf(),
+) {
+    var name: String
+        get() = _name
         set(value) {
             require(value = value.isNotBlank()) { "Name cannot be empty!" }
-            MeshNetwork.onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
-            field = value
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
+                _name = value
+                network?.updateTimestamp()
+            }
         }
 
     val allocatedUnicastRanges: List<UnicastRange>
@@ -84,7 +88,8 @@ data class Provisioner internal constructor(
         uuid = uuid,
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>()
+        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _name = "nRF Mesh Provisioner"
     )
 
     /**
@@ -97,10 +102,9 @@ data class Provisioner internal constructor(
         uuid = uuid,
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>()
-    ) {
-        this.name = name
-    }
+        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _name = name
+    )
 
     /**
      * Creates a Provisioner with the given name.
@@ -111,10 +115,9 @@ data class Provisioner internal constructor(
         uuid = UUID.randomUUID(),
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>()
-    ) {
-        this.name = name
-    }
+        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _name = name
+    )
 
     /**
      * Convenience constructor for tests
@@ -129,15 +132,14 @@ data class Provisioner internal constructor(
         name: String,
         allocatedUnicastRanges: List<UnicastRange> = mutableListOf(),
         allocatedGroupRanges: List<GroupRange> = mutableListOf(),
-        allocatedSceneRanges: List<SceneRange> = mutableListOf()
+        allocatedSceneRanges: List<SceneRange> = mutableListOf(),
     ) : this(
-        UUID.randomUUID(),
-        allocatedUnicastRanges.toMutableList(),
-        allocatedGroupRanges.toMutableList(),
-        allocatedSceneRanges.toMutableList()
-    ) {
-        this.name = name
-    }
+        uuid = UUID.randomUUID(),
+        _allocatedUnicastRanges = allocatedUnicastRanges.toMutableList(),
+        _allocatedGroupRanges = allocatedGroupRanges.toMutableList(),
+        _allocatedSceneRanges = allocatedSceneRanges.toMutableList(),
+        _name = name
+    )
 
     /**
      * Allocates the given range to a provisioner.
@@ -419,9 +421,9 @@ data class Provisioner internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
         network?.let { network ->
-            require(network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
+            require(value = network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
             var isNewNode = false
-            val node = network.node(this@Provisioner) ?: Node(
+            val node = network.node(provisioner = this@Provisioner) ?: Node(
                 provisioner = this@Provisioner,
                 unicastAddress = address
             ).apply {
@@ -440,14 +442,18 @@ data class Provisioner internal constructor(
             }.also { isNewNode = true }
 
             // Is it in Provisioner's range?
-            val newRange = UnicastRange(address, node.elementsCount)
-            require(hasAllocatedRange(newRange)) { throw AddressNotInAllocatedRanges }
+            val newRange = UnicastRange(address = address, elementsCount = node.elementsCount)
+            require(value = hasAllocatedRange(range = newRange)) {
+                throw AddressNotInAllocatedRanges
+            }
 
             // Is there any other node using the address?
-            require(network.isAddressAvailable(address, node)) { throw AddressAlreadyInUse }
+            require(value = network.isAddressAvailable(address = address, node = node)) {
+                throw AddressAlreadyInUse
+            }
 
             when (isNewNode) {
-                true -> network.add(node)
+                true -> network.add(node = node)
                 else -> node._primaryUnicastAddress = address
             }
             network.updateTimestamp()

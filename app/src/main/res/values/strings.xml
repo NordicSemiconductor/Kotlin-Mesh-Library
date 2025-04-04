@@ -6,7 +6,7 @@
     <string name="label_nav_bar_proxy">Proxy</string>
     <string name="label_nav_bar_settings">Settings</string>
     <string name="label_import">Import</string>
-    <string name="label_reset">Reset</string>
+    <string name="label_reset_network">Reset</string>
     <string name="title_scanning">Scanning</string>
     <string name="label_model_id">Name</string>
     <string name="label_placeholder_provisioner_name">nRF Mesh Provisioner</string>
@@ -26,7 +26,7 @@
     <string name="label_connected">Connected to %s</string>
     <string name="label_identifying">Identifying %s…</string>
     <string name="label_disconnected">%s disconnected</string>
-    <string name="title_network_key">Network Key</string>
+    <string name="label_network_key">Network Key</string>
     <string name="label_unknown_error">Unknown Error</string>
     <string name="error_invalid_address">Invalid address.</string>
     <string name="action_add_node">Add Node</string>
@@ -34,4 +34,20 @@
     <string name="label_ok">OK</string>
     <string name="label_cancel">Cancel</string>
     <string name="label_status">Status</string>
+    <string name="label_unknown">Unknown</string>
+    <string name="label_empty" />
+    <string name="label_add_node">Add Node</string>
+    <string name="label_add_group">Add Group</string>
+    <string name="label_reset_network_rationale">Resetting a network will erase the network configuration and will make the network unusable. This will also require you to hard reset the nodes.\n\nDo you wish to continue?</string>
+    <string name="label_failed_to_add_group">Failed to add group</string>
+    <string name="label_add_group_rationale">Select the type of Address to create a group with.</string>
+    <string name="label_group_address">Group Address</string>
+    <string name="label_virtual_label">Virtual Label</string>
+    <string name="label_create">Create</string>
+    <string name="label_address">Address</string>
+    <string name="label_add">Add</string>
+    <string name="address">Address</string>
+    <string name="label_invalid_group_address">Invalid group address</string>
+    <string name="label_group_in_use">Group in use</string>
+    <string name="label_group_already_exists">Group already exists</string>
 </resources>

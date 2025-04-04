@@ -11,7 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import java.util.*
+import java.util.UUID
 
 /**
  * Custom serializer/deserializer for UUID. Mesh Configuration Database contains certain UUIDs

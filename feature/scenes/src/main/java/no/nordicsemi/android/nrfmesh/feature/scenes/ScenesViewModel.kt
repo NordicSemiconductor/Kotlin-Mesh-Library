@@ -9,16 +9,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.models.SceneData
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Scene
+import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ScenesViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
+    private var selectedSceneNumber: SceneNumber? = null
 
     private val _uiState = MutableStateFlow(ScenesScreenUiState())
     val uiState: StateFlow<ScenesScreenUiState> = _uiState.asStateFlow()
@@ -28,7 +30,7 @@ internal class ScenesViewModel @Inject internal constructor(
             repository.network.collect { network ->
                 this@ScenesViewModel.network = network
                 _uiState.update { state ->
-                    val scenes = network.scenes.toList()
+                    val scenes = network.scenes.map { SceneData(scene = it) }
                     state.copy(
                         scenes = scenes,
                         scenesToBeRemoved = scenes.filter { it in state.scenesToBeRemoved }
@@ -39,7 +41,7 @@ internal class ScenesViewModel @Inject internal constructor(
     }
 
     override fun onCleared() {
-        removeScenes()
+        removeAllScenes()
         super.onCleared()
     }
 
@@ -58,23 +60,30 @@ internal class ScenesViewModel @Inject internal constructor(
      *
      * @param scene Scene to be deleted.
      */
-    internal fun onSwiped(scene: Scene) {
+    internal fun onSwiped(scene: SceneData) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(scenesToBeRemoved = it.scenesToBeRemoved + scene)
-            }
+            val state = _uiState.value
+            _uiState.value = state.copy(
+                scenes = state.scenes - scene,
+                scenesToBeRemoved = state.scenesToBeRemoved + scene
+            )
         }
     }
 
     /**
-     * Invoked when a scene is swiped to be deleted is undone. When invoked the given scene
-     * is removed from the list of scenes to be deleted.
+     * Invoked when a scene is swiped to be deleted is undone. When invoked the given scene is
+     * removed from the list of scenes to be deleted.
      *
      * @param scene Scene to be reverted.
      */
-    internal fun onUndoSwipe(scene: Scene) {
-        _uiState.update {
-            it.copy(scenesToBeRemoved = it.scenesToBeRemoved - scene)
+    internal fun onUndoSwipe(scene: SceneData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            _uiState.value = state.copy(
+                scenes = (state.scenes + scene)
+                    .sortedBy { it.number },
+                scenesToBeRemoved = state.scenesToBeRemoved - scene
+            )
         }
     }
 
@@ -83,20 +92,29 @@ internal class ScenesViewModel @Inject internal constructor(
      *
      * @param scene Scene to be removed.
      */
-    internal fun remove(scene: Scene) {
-        _uiState.update {
-            it.copy(scenesToBeRemoved = it.scenesToBeRemoved - scene)
+    internal fun remove(scene: SceneData) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            network.run {
+                runCatching {
+                    remove(scene = scene(number = scene.number))
+                    save()
+                }
+            }
+            _uiState.value = state.copy(scenesToBeRemoved = state.scenesToBeRemoved - scene)
         }
-        network.remove(scene)
-        save()
     }
 
     /**
      * Removes the scene from a network.
      */
-    private fun removeScenes() {
+    private fun removeAllScenes() {
         _uiState.value.scenesToBeRemoved.forEach {
-            network.remove(it)
+            network.run {
+                runCatching {
+                    remove(scene = scene(number = it.number))
+                }
+            }
         }
         save()
     }
@@ -107,9 +125,17 @@ internal class ScenesViewModel @Inject internal constructor(
     private fun save() {
         viewModelScope.launch { repository.save() }
     }
+
+    internal fun selectScene(number: SceneNumber) {
+        selectedSceneNumber = number
+    }
+
+    internal fun isCurrentlySelectedScene(number: SceneNumber): Boolean {
+        return selectedSceneNumber == number
+    }
 }
 
 data class ScenesScreenUiState internal constructor(
-    val scenes: List<Scene> = listOf(),
-    val scenesToBeRemoved: List<Scene> = listOf()
+    val scenes: List<SceneData> = listOf(),
+    val scenesToBeRemoved: List<SceneData> = listOf(),
 )

@@ -14,12 +14,13 @@ object Utils {
      *
      * @return a UUID string without dashes.
      */
-    fun encode(uuid: UUID) = uuid.toString().uppercase().filter { it.isLetterOrDigit() }
+    fun UUID.encode() = toString().uppercase().filter { it.isLetterOrDigit() }
 
     /**
      * Formats a UUID string to a standard UUID format.
      */
-    fun decode(uuid: String): UUID = UUID.fromString(uuid
+    fun decode(uuid: String): UUID = UUID.fromString(
+        uuid
         .uppercase()
         .takeIf { HEX_UUID_PATTERN.matches(it) }
         ?.run {

@@ -7,12 +7,16 @@ import android.os.ParcelUuid
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SyncLock
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
@@ -24,16 +28,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,8 +44,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
@@ -51,11 +52,10 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.ui.BottomSheetTopAppBar
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningScreen
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -63,10 +63,10 @@ import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
+import java.util.UUID
 
 @Composable
 internal fun ProvisioningRoute(
-    appState: AppState,
     uiState: ProvisioningScreenUiState,
     beginProvisioning: (Context, BleScanResults) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -75,19 +75,10 @@ internal fun ProvisioningRoute(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
-    disconnect: () -> Unit
+    disconnect: () -> Unit,
 ) {
-    val screen = appState.currentScreen as? ProvisioningScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { button ->
-            when (button) {
-                ProvisioningScreen.Actions.BACK -> disconnect()
-            }
-        }?.launchIn(this)
-    }
-
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
                 uiState.provisionerState is ProvisionerState.Connected ||
@@ -112,6 +103,7 @@ internal fun ProvisioningRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
@@ -122,9 +114,9 @@ private fun ProvisionerScreen(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
-    disconnect: () -> Unit
+    disconnect: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -147,12 +139,24 @@ private fun ProvisionerScreen(
             },
             sheetState = capabilitiesSheetState
         ) {
-            BottomSheetTopAppBar(
-                title = stringResource(R.string.label_device_information),
-                titleStyle = MaterialTheme.typography.titleLarge,
-                actions = {
-                    Spacer(modifier = Modifier.size(16.dp))
-                    TextButton(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(state = rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionTitle(
+                        modifier = Modifier.weight(weight = 1f),
+                        title = stringResource(R.string.label_device_information),
+                    )
+                    MeshOutlinedButton(
+                        modifier = Modifier.padding(end = 16.dp),
                         enabled = uiState.provisionerState is ProvisionerState.Provisioning,
                         onClick = {
                             runCatching { showAuthenticationDialog = true }
@@ -163,33 +167,28 @@ private fun ProvisionerScreen(
                                                 ?: context.getString(R.string.label_unknown_error)
                                         )
                                     }
-                                }//.onSuccess {}
-                        }) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            text = stringResource(id = R.string.label_provision).uppercase(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+                                }
+                        },
+                        buttonIcon = Icons.Outlined.SyncLock,
+                        text = stringResource(id = R.string.label_provision)
+                    )
                 }
-            )
-            ProvisioningContent(
-                provisionerState = uiState.provisionerState,
-                snackbarHostState = snackbarHostState,
-                showAuthenticationDialog = showAuthenticationDialog,
-                onAuthenticationDialogDismissed = {
-                    showAuthenticationDialog = false
-                },
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                onNetworkKeyClick = onNetworkKeyClick,
-                startProvisioning = startProvisioning,
-                authenticate = authenticate,
-                onProvisioningComplete = onProvisioningComplete,
-                onProvisioningFailed = onProvisioningFailed,
-                dismissCapabilitiesSheet = { scope.launch { capabilitiesSheetState.hide() } }
-            )
+                ProvisioningContent(
+                    provisionerState = uiState.provisionerState,
+                    snackbarHostState = snackbarHostState,
+                    showAuthenticationDialog = showAuthenticationDialog,
+                    onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
+                    onNameChanged = onNameChanged,
+                    onAddressChanged = onAddressChanged,
+                    isValidAddress = isValidAddress,
+                    onNetworkKeyClick = onNetworkKeyClick,
+                    startProvisioning = startProvisioning,
+                    authenticate = authenticate,
+                    onProvisioningComplete = onProvisioningComplete,
+                    onProvisioningFailed = onProvisioningFailed,
+                    dismissCapabilitiesSheet = { scope.launch { capabilitiesSheetState.hide() } }
+                )
+            }
         }
     }
 }
@@ -239,9 +238,9 @@ private fun ProvisioningContent(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
-    dismissCapabilitiesSheet: () -> Unit
+    dismissCapabilitiesSheet: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -340,11 +339,11 @@ private fun ProvisioningStateInfo(
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: () -> Unit,
+    onProvisioningComplete: (UUID) -> Unit,
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
-    dismissCapabilitiesSheet: () -> Unit
+    dismissCapabilitiesSheet: () -> Unit,
 ) {
     when (state) {
         is ProvisioningState.RequestingCapabilities -> ProvisionerStateInfo(
@@ -416,12 +415,12 @@ private fun ProvisioningStateInfo(
                 MeshAlertDialog(
                     onDismissRequest = {
                         showAlertDialog = !showAlertDialog
-                        onProvisioningComplete()
+                        onProvisioningComplete(unprovisionedDevice.uuid)
                     },
                     confirmButtonText = stringResource(id = R.string.label_ok),
                     onConfirmClick = {
                         showAlertDialog = !showAlertDialog
-                        onProvisioningComplete()
+                        onProvisioningComplete(unprovisionedDevice.uuid)
                     },
                     dismissButtonText = null,
                     icon = Icons.Rounded.CheckCircleOutline,
@@ -440,12 +439,10 @@ private fun ProvisionerStateInfo(
     shouldShowProgress: Boolean = true,
     isError: Boolean = false,
     imageVector: ImageVector = Icons.Rounded.Error,
-    errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+    errorTint: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(fraction = 0.5f),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

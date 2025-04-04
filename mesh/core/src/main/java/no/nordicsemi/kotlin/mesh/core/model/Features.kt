@@ -5,7 +5,6 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
-import kotlin.jvm.Throws
 
 /**
  * Features represents the functionality of a [Node] that is determined by the set features that the

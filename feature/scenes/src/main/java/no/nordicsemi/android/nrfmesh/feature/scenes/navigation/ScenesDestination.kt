@@ -1,45 +1,41 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes.navigation
 
+import android.os.Parcelable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesRoute
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
+import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
-object ScenesDestination : MeshNavigationDestination {
-    override val route: String = "scenes_route"
-    override val destination: String = "scenes_destination"
-}
+@Parcelize
+data object ScenesContent : Parcelable
 
-fun NavGraphBuilder.scenesGraph(
-    appState: AppState,
-    onNavigateToScene: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit
+@Composable
+fun ScenesScreenRoute(
+    highlightSelectedItem: Boolean,
+    navigateToScene: (SceneNumber) -> Unit,
+    navigateUp: () -> Unit,
 ) {
-    composable(route = ScenesDestination.route) {
-        val viewModel = hiltViewModel<ScenesViewModel>()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        ScenesRoute(
-            appState = appState,
-            uiState = uiState,
-            navigateToScene = { sceneNumber ->
-                onNavigateToScene(
-                    SceneDestination,
-                    SceneDestination.createNavigationRoute(
-                        sceneNumberArg = sceneNumber
-                    )
-                )
-            },
-            onAddSceneClicked = viewModel::addScene,
-            onSwiped = viewModel::onSwiped,
-            onUndoClicked = viewModel::onUndoSwipe,
-            remove = viewModel::remove,
-            onBackPressed = onBackPressed
-        )
-    }
-    sceneGraph(appState = appState, onBackPressed = onBackPressed)
+    val viewModel = hiltViewModel<ScenesViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ScenesRoute(
+        highlightSelectedItem = highlightSelectedItem,
+        scenes = uiState.scenes,
+        onAddSceneClicked = viewModel::addScene,
+        navigateToScene = {
+            viewModel.selectScene(it)
+            navigateToScene(it)
+        },
+        onSwiped = {
+            viewModel.onSwiped(it)
+            if(viewModel.isCurrentlySelectedScene(it.number)) {
+                navigateUp()
+            }
+        },
+        onUndoClicked = viewModel::onUndoSwipe,
+        remove = viewModel::remove
+    )
 }

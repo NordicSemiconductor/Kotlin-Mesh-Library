@@ -3,6 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import no.nordicsemi.kotlin.data.getUInt
+import no.nordicsemi.kotlin.data.hasBitSet
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -16,10 +18,17 @@ internal class SecureNetworkBeacon(
     override val networkKey: NetworkKey,
     override val validForKeyRefreshProcedure: Boolean,
     override val keyRefreshFlag: Boolean,
-    override val ivIndex: IvIndex
+    override val ivIndex: IvIndex,
 ) : NetworkBeaconPdu {
 
     override val beaconType: BeaconType = BeaconType.SECURE_NETWORK
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "SecureNetworkBeacon(pdu: ${pdu.toHexString()}, Network Key Index: ${networkKey.index}, " +
+                "validForKeyRefreshProcedure: $validForKeyRefreshProcedure, " +
+                "keyRefreshFlag: $keyRefreshFlag, ivIndex=$ivIndex)"
+    }
 }
 
 internal object SecureNetworkBeaconDecoder {
@@ -28,11 +37,11 @@ internal object SecureNetworkBeaconDecoder {
 
         require(pdu.size == 22 && pdu[0].toInt() == 1) { return null }
 
-        val keyRefreshFlag = pdu[1].toInt() and 0x01 != 0
-        val updateActive = pdu[1].toInt() and 0x02 != 0
-        val networkId = pdu.copyOfRange(2, 10)
+        val keyRefreshFlag = pdu[1].hasBitSet(bit = 0)
+        val updateActive = pdu[1].hasBitSet(bit = 1)
+        val networkId = pdu.copyOfRange(fromIndex = 2, toIndex = 10)
         val index = pdu.getUInt(offset = 10)
-        val ivIndex = IvIndex(index, updateActive)
+        val ivIndex = IvIndex(index = index, isIvUpdateActive = updateActive)
         val validForKeyRefreshProcedure = networkKey.oldKey != null
 
         when {

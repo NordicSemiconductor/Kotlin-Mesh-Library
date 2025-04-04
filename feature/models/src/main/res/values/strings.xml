@@ -2,6 +2,7 @@
 <resources>
     <string name="label_gatt_proxy">GATT Proxy</string>
     <string name="label_get_state">Get State</string>
+    <string name="label_set_state">Set State</string>
     <string name="label_off">Off</string>
     <string name="label_proxy_state_rationale">"Turning off the proxy feature will set this node to
         a non-connectable state and disable the proxy server."</string>
@@ -35,7 +36,6 @@
     <string name="label_count">Count</string>
     <string name="label_min_hops">Min Hops</string>
     <string name="label_max_hops">Max Hops</string>
-    <string name="label_set_state">Set State</string>
     <string name="label_heartbeat_subscription">Heartbeat Subscription</string>
     <string name="label_heartbeat_subscription_period_seconds">%1$s seconds</string>
     <string name="label_all_relays">All Relays</string>
@@ -63,6 +63,7 @@
     <string name="label_low_power">Low Power</string>
     <string name="label_publication_triggers">Publication Triggers</string>
     <string name="label_bind">Bind</string>
+    <string name="label_bound_application_keys">Bound Application Keys</string>
     <string name="label_bind_application_keys">Bind Application Keys</string>
     <string name="label_bind_key">Bind Key</string>
     <string name="label_settings">Settings</string>
@@ -86,4 +87,16 @@
     <string name="label_elements">Elements</string>
     <string name="label_groups">Groups</string>
     <string name="label_fixed_group_addresses">Fixed Group Addresses</string>
+    <string name="label_model">Model</string>
+    <string name="label_model_subscriptions">Model Subscriptions</string>
+    <string name="label_no_subscriptions">No subscriptions</string>
+    <string name="label_delete_all_subscriptions">Delete all subscriptions</string>
+    <string name="label_delete_all_subscriptions_rationale">This will clear all the groups or unicast addresses this model is subscribed to. Do you wish to continue?</string>
+    <string name="label_send">Send</string>
+    <string name="label_subscribe_addresses_rationale">All models on the primary Element are automatically subscribed to the All Nodes address and those of the groups lsted above which have the corresponding feature enabled on the node.\n\nSubscribing to any of the groups will bypass the feature to check so that the model will always recieve messages sent to that group.</string>
+    <string name="label_subscribe">Subscribe</string>
+    <string name="label_add_group">Add Group</string>
+    <string name="label_select_subscribe_group">Select a group to subscribe to</string>
+
+    <string name="label_no_publication">No publications</string>
 </resources>

@@ -24,7 +24,13 @@ import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
 import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
-import no.nordicsemi.kotlin.mesh.bearer.*
+import no.nordicsemi.kotlin.mesh.bearer.Bearer
+import no.nordicsemi.kotlin.mesh.bearer.BearerError
+import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
+import no.nordicsemi.kotlin.mesh.bearer.Pdu
+import no.nordicsemi.kotlin.mesh.bearer.PduType
+import no.nordicsemi.kotlin.mesh.bearer.PduTypes
+import no.nordicsemi.kotlin.mesh.bearer.ProxyProtocolHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 
@@ -66,7 +72,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     private var client: ClientBleGatt? = null
 
-    var logger: Logger? = null
+    private var logger: Logger? = null
 
     abstract suspend fun configureGatt(services: ClientBleGattServices)
 
@@ -78,8 +84,8 @@ abstract class BaseGattProxyBearer<MeshService>(
             observeConnectionState(client)
             // Discover services on the Bluetooth LE Device.
             val services = client.discoverServices()
-            configureGatt(services)
             mtu = client.requestMtu(517) - 3
+            configureGatt(services) // Request MTU first before enabling notifications
             client
         }
     }
@@ -137,7 +143,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     protected suspend fun awaitNotifications() {
         dataOutCharacteristic.getNotifications().onEach { data ->
-            proxyProtocolHandler.reassemble(data.value)?.let { reassembledPdu ->
+            proxyProtocolHandler.reassemble(data = data.value)?.let { reassembledPdu ->
                 _pdus.emit(reassembledPdu)
             }
         }.launchIn(scope)

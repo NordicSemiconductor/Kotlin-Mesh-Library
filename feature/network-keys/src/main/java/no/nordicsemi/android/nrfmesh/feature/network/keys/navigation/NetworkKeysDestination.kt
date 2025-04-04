@@ -1,45 +1,41 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys.navigation
 
+import android.os.Parcelable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysViewModel
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
-object NetworkKeysDestination : MeshNavigationDestination {
-    override val route: String = "network_keys_route"
-    override val destination: String = "network_keys_destination"
-}
+@Parcelize
+data object NetworkKeysContent : Parcelable
 
-fun NavGraphBuilder.networkKeysGraph(
-    appState: AppState,
-    onNavigateToKey: (MeshNavigationDestination, String) -> Unit,
-    onBackPressed: () -> Unit,
+@Composable
+fun NetworkKeysScreenRoute(
+    highlightSelectedItem: Boolean,
+    onNetworkKeyClicked: (KeyIndex) -> Unit,
+    navigateUp: () -> Unit
 ) {
-    composable(route = NetworkKeysDestination.route) {
-        val viewModel = hiltViewModel<NetworkKeysViewModel>()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        NetworkKeysRoute(
-            appState = appState,
-            uiState = uiState,
-            navigateToKey = { netKeyIndex ->
-                onNavigateToKey(
-                    NetworkKeyDestination,
-                    NetworkKeyDestination.createNavigationRoute(
-                        netKeyIndexArg = netKeyIndex
-                    )
-                )
-            },
-            onAddKeyClicked = viewModel::addNetworkKey,
-            onSwiped = viewModel::onSwiped,
-            onUndoClicked = viewModel::onUndoSwipe,
-            remove = viewModel::remove,
-            onBackPressed = onBackPressed
-        )
-    }
-    networkKeyGraph(appState = appState, onBackPressed = onBackPressed)
+    val viewModel = hiltViewModel<NetworkKeysViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    NetworkKeysRoute(
+        highlightSelectedItem = highlightSelectedItem,
+        keys = uiState.keys,
+        onAddKeyClicked = viewModel::addNetworkKey,
+        onNetworkKeyClicked = {
+            viewModel.selectKeyIndex(it)
+            onNetworkKeyClicked(it)
+        },
+        onSwiped = {
+            viewModel.onSwiped(it)
+            if(viewModel.isCurrentlySelectedKey(it.index)) {
+                navigateUp()
+            }
+        },
+        onUndoClicked = viewModel::onUndoSwipe,
+        remove = viewModel::remove
+    )
 }

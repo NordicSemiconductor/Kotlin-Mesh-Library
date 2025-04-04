@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.proxy
 
+import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 
@@ -12,23 +13,26 @@ import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
  * @property listSize   Size of the filter list.
  */
 
-data class FilterStatus(
+class FilterStatus(
     val filterType: ProxyFilterType,
     val listSize: UShort
 ) : ProxyConfigurationMessage {
-
     override val opCode: UByte = Initializer.opCode
-
     override val parameters: ByteArray
         get() = byteArrayOf(filterType.type.toByte()) + listSize.toByteArray()
+
+    override fun toString(): String {
+        return "FilterStatus(opcode: $opCode, filterType: $filterType, listSize: $listSize)"
+    }
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x03u
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 1
+            it.size == 3
         }?.let {
-            SetFilterType(ProxyFilterType.from(it[0].toUByte()))
+            val type = ProxyFilterType.from(it[0].toUByte())
+            FilterStatus(filterType = type, listSize = it.getUShort(offset = 1))
         }
     }
 }

@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.nordic.application.compose)
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidHiltConventionPlugin.kt
     alias(libs.plugins.nordic.hilt)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -29,13 +31,22 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
 
     implementation(libs.timber)
+    // implementation(libs.kotlinx.coroutines)
+
+    // Material3
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha09")
+
+    // Adaptive layouts
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-rc01")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha09")
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:nodes"))
-    implementation(project(":feature:elements"))
     implementation(project(":feature:models"))
     implementation(project(":feature:groups"))
     implementation(project(":feature:proxy"))
@@ -54,8 +65,6 @@ dependencies {
     implementation(project(":feature:export"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
-
-     // debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

@@ -1,6 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,22 +13,22 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Forum
-import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material.icons.outlined.Start
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,19 +39,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.configurationserver.R
 import no.nordicsemi.android.nrfmesh.feature.model.utils.periodToTime
+import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionSet
@@ -71,9 +75,10 @@ import kotlin.math.roundToInt
 @Composable
 internal fun HeartBeatSubscriptionContent(
     model: Model,
+    messageState: MessageState,
     subscription: HeartbeatSubscription?,
     send: (AcknowledgedConfigMessage) -> Unit,
-    onAddGroupClicked:() -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -87,17 +92,16 @@ internal fun HeartBeatSubscriptionContent(
         imageVector = Icons.Outlined.Forum,
         title = stringResource(R.string.label_subscriptions),
         titleAction = {
-            IconButton(
-                onClick = { send(ConfigHeartbeatSubscriptionSet()) },
-                content = { Icon(imageVector = Icons.Outlined.Delete, contentDescription = null) }
-            )
+            AnimatedVisibility(visible = subscription != null) {
+                IconButton(
+                    enabled = !messageState.isInProgress(),
+                    onClick = { send(ConfigHeartbeatSubscriptionSet()) },
+                    content = {
+                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                    }
+                )
+            }
         },
-        subtitle = "Subscriptions are ${
-            if (subscription == null ||
-                subscription.source is UnassignedAddress ||
-                subscription.destination is UnassignedAddress
-            ) "disabled" else "enabled"
-        }",
         body = {
             if (subscription != null &&
                 subscription.source !is UnassignedAddress &&
@@ -165,14 +169,22 @@ internal fun HeartBeatSubscriptionContent(
             }
         },
         actions = {
-            OutlinedButton(
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                buttonIcon = Icons.Outlined.Download,
+                text = stringResource(R.string.label_get_state),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatSubscriptionGet,
                 onClick = { send(ConfigHeartbeatSubscriptionGet()) },
-                content = { Text(text = stringResource(R.string.label_get_state)) }
             )
-            OutlinedButton(
-                modifier = Modifier.padding(start = 8.dp),
-                onClick = { showBottomSheet = true },
-                content = { Text(text = stringResource(R.string.label_set_state)) }
+            Spacer(modifier = Modifier.size(8.dp))
+            MeshOutlinedButton(
+                enabled = !messageState.isInProgress(),
+                buttonIcon = Icons.Outlined.Upload,
+                text = stringResource(R.string.label_set_state),
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is ConfigHeartbeatSubscriptionSet,
+                onClick = { showBottomSheet = true }
             )
         }
     )
@@ -181,73 +193,57 @@ internal fun HeartBeatSubscriptionContent(
         ModalBottomSheet(
             containerColor = MaterialTheme.colorScheme.surface,
             sheetState = bottomSheetState,
-            onDismissRequest = {
-                showBottomSheet = !showBottomSheet
-            },
-            dragHandle = {
-                NordicAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.label_heartbeat_subscription),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    onNavigationButtonClick = {
-                        scope
-                            .launch { bottomSheetState.hide() }
-                            .invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
-                            }
-                    },
-                    backButtonIcon = Icons.Outlined.Close,
-                    actions = {
-                        IconButton(
-                            enabled = source != null || destination != null,
-                            onClick = {
-                                send(
-                                    ConfigHeartbeatSubscriptionSet(
-                                        source = source!!,
-                                        destination = destination!!,
-                                        periodLog = periodLog
-                                    )
-                                ).also {
-                                    scope
-                                        .launch { bottomSheetState.hide() }
-                                        .invokeOnCompletion {
-                                            if (!bottomSheetState.isVisible)
-                                                showBottomSheet = false
-                                        }
-                                }
-                            },
-                            content = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Save,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                    }
-                )
-            },
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
             content = {
                 Column(
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
                         .fillMaxWidth()
-                        .verticalScroll(state = rememberScrollState())
+                        .padding(vertical = 16.dp)
+                        .verticalScroll(state = rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = {
+                            SectionTitle(
+                                modifier = Modifier.weight(weight = 1f),
+                                title = stringResource(R.string.label_heartbeat_subscription)
+                            )
+                            MeshOutlinedButton(
+                                onClick = {
+                                    send(
+                                        ConfigHeartbeatSubscriptionSet(
+                                            source = source!!,
+                                            destination = destination!!,
+                                            periodLog = periodLog
+                                        )
+                                    ).also {
+                                        scope
+                                            .launch { bottomSheetState.hide() }
+                                            .invokeOnCompletion {
+                                                if (!bottomSheetState.isVisible)
+                                                    showBottomSheet = false
+                                            }
+                                    }
+                                },
+                                buttonIcon = Icons.AutoMirrored.Outlined.Send,
+                                text = stringResource(R.string.label_send),
+                            )
+                        }
+                    )
                     PeriodRow(
                         periodLog = periodLog,
                         onPeriodLogChanged = { periodLog = it }
                     )
+                    SectionTitle(title = stringResource(R.string.label_source))
                     SourceRow(
                         model = model,
                         source = source,
                         onSourceSelected = { source = it }
                     )
+                    SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
                         model = model,
                         destination = destination,
@@ -256,8 +252,10 @@ internal fun HeartBeatSubscriptionContent(
                             scope
                                 .launch { bottomSheetState.hide() }
                                 .invokeOnCompletion {
-                                    if (!bottomSheetState.isVisible)
+                                    if (!bottomSheetState.isVisible) {
+                                        showBottomSheet = false
                                         onAddGroupClicked()
+                                    }
                                 }
                             //onAddGroupClicked()
                         }
@@ -271,7 +269,7 @@ internal fun HeartBeatSubscriptionContent(
 @Composable
 private fun PeriodRow(
     periodLog: PeriodLog,
-    onPeriodLogChanged: (PeriodLog) -> Unit
+    onPeriodLogChanged: (PeriodLog) -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -306,19 +304,18 @@ private fun PeriodRow(
 private fun SourceRow(
     model: Model,
     source: HeartbeatSubscriptionSource?,
-    onSourceSelected: (HeartbeatSubscriptionSource) -> Unit
+    onSourceSelected: (HeartbeatSubscriptionSource) -> Unit,
 ) {
     val network = model.parentElement?.parentNode?.network
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    SectionTitle(title = stringResource(R.string.label_source))
     ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.Start,
             title = when (source) {
@@ -350,12 +347,11 @@ private fun DestinationRow(
     model: Model,
     destination: HeartbeatSubscriptionDestination?,
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
-    onAddGroupClicked:() -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     val network = model.parentElement?.parentNode?.network ?: return
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    SectionTitle(title = stringResource(R.string.label_destination))
     ExposedDropdownMenuBox(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -364,7 +360,7 @@ private fun DestinationRow(
         onExpandedChange = { expanded = it },
     ) {
         ElevatedCardItem(
-            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             onClick = { expanded = true },
             imageVector = Icons.Outlined.SportsScore,
             title = when (destination) {

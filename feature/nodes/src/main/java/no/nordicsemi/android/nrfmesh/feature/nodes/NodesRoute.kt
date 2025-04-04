@@ -2,21 +2,37 @@
 
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNodeItem
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 @Composable
 internal fun NodesRoute(
@@ -25,7 +41,7 @@ internal fun NodesRoute(
     navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit
+    remove: (Node) -> Unit,
 ) {
     NodesScreen(
         uiState = uiState,
@@ -42,7 +58,7 @@ private fun NodesScreen(
     navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit
+    remove: (Node) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -65,6 +81,7 @@ private fun NodesScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class)
 @Composable
 private fun Nodes(
     coroutineScope: CoroutineScope,
@@ -73,42 +90,71 @@ private fun Nodes(
     navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit
+    remove: (Node) -> Unit,
 ) {
-    LazyColumn {
-        items(items = nodes, key = { it.uuid }) { node ->
-            NodeItem(
-                node = node,
-                navigateToNode = navigateToNode,
-                onSwiped = onSwiped,
-                onUndoClicked = onUndoClicked,
-                remove = remove,
-                coroutineScope = coroutineScope,
-                snackbarHostState = snackbarHostState
+    if (isCompactWidth()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(all = 16.dp),
+            content = {
+                items(items = nodes, key = { it.uuid }) { node ->
+                    MeshItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = {
+                            Image(
+                                modifier = Modifier.size(size = 32.dp),
+                                painter = painterResource(R.drawable.ic_mesh_white),
+                                contentDescription = null
+                            )
+                        },
+                        title = node.name,
+                        subtitle = "0x${
+                            node.primaryUnicastAddress.address
+                                .toHexString(format = HexFormat.UpperCase)
+                        }",
+                        onClick = { navigateToNode(node) },
+                    )
+                }
+            }
+        )
+    } else {
+        FlowRow(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(state = rememberScrollState()),
+            maxItemsInEachRow = 5,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .height(height = 8.dp)
+                    .fillMaxWidth()
+            )
+            nodes.forEach { node ->
+                MeshItem(
+                    icon = {
+                        Image(
+                            modifier = Modifier.size(size = 32.dp),
+                            painter = painterResource(R.drawable.ic_mesh_white),
+                            contentDescription = null
+                        )
+                    },
+                    title = node.name,
+                    subtitle = "0x${
+                        node.primaryUnicastAddress.address
+                            .toHexString(format = HexFormat.UpperCase)
+                    }",
+                    onClick = { navigateToNode(node) },
+                )
+            }
+            Spacer(
+                modifier = Modifier
+                    .height(height = 8.dp)
+                    .fillMaxWidth()
             )
         }
     }
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-@Composable
-private fun NodeItem(
-    node: Node,
-    navigateToNode: (Node) -> Unit,
-    onSwiped: (Node) -> Unit,
-    onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit,
-    snackbarHostState: SnackbarHostState,
-    coroutineScope: CoroutineScope
-) {
-    MeshNodeItem(
-        nodeName = node.name,
-        addressHex = "0x${node.primaryUnicastAddress.address.toHexString()}",
-        companyName = node.companyIdentifier?.let {
-            CompanyIdentifier.name(it) ?: "Unknown"
-        } ?: "Unknown",
-        elements = node.elementsCount,
-        models = node.elements.flatMap { it.models }.size,
-        onClick = { navigateToNode(node) },
-    )
 }

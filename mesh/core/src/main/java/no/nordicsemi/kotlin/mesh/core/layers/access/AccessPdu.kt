@@ -32,7 +32,7 @@ internal data class AccessPdu(
     val destination: MeshAddress,
     val opCode: UInt,
     val parameters: ByteArray,
-    val accessPdu: ByteArray
+    val accessPdu: ByteArray,
 ) {
     val isSegmented: Boolean
         get() = message?.let { accessPdu.size > 11 || it.isSegmented } ?: false
@@ -47,8 +47,9 @@ internal data class AccessPdu(
         } ?: 0
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "Access PDU (opcode: 0x${opCode.toHexString()}, " +
-            "parameters: 0x${parameters.toHexString()})"
+    override fun toString() = "Access PDU (opcode: " +
+            "0x${opCode.toHexString(format = HexFormat.UpperCase)}, " +
+                "parameters: 0x${parameters.toHexString()})"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -159,7 +160,7 @@ internal data class AccessPdu(
             message: MeshMessage,
             source: Address,
             destination: MeshAddress,
-            userInitiated: Boolean
+            userInitiated: Boolean,
         ): AccessPdu {
             val opCode = message.opCode
             val parameters = message.parameters ?: byteArrayOf()

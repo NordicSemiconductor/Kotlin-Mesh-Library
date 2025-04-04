@@ -219,12 +219,12 @@ interface ConfigStatusMessage : ConfigMessage, StatusMessage {
 /**
  * A base interface for Network Key configuration messages.
  *
- * @property networkKeyIndex The Network Key Index.
+ * @property index The Network Key Index.
  */
 interface ConfigNetKeyMessage : ConfigMessage {
-    val networkKeyIndex: KeyIndex
+    val index: KeyIndex
 
-    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(keyIndex = networkKeyIndex)
+    fun encodeNetKeyIndex(): ByteArray = encodeNetKeyIndex(keyIndex = index)
 
     fun decodeNetKeyIndex(data: ByteArray, offset: Int): KeyIndex =
         Companion.decodeNetKeyIndex(data = data, offset = offset)
@@ -252,10 +252,10 @@ interface ConfigNetKeyMessage : ConfigMessage {
 /**
  * A base interface for Application Key configuration messages.
  *
- * @property applicationKeyIndex The Application Key Index.
+ * @property keyIndex The Application Key Index.
  */
 interface ConfigAppKeyMessage : ConfigMessage {
-    val applicationKeyIndex: KeyIndex
+    val keyIndex: KeyIndex
 
     fun encodeAppKeyIndex(applicationKeyIndex: KeyIndex): ByteArray =
         encodeAppKeyIndex(keyIndex = applicationKeyIndex)
@@ -297,7 +297,7 @@ interface ConfigNetAndAppKeyMessage : ConfigNetKeyMessage, ConfigAppKeyMessage {
      */
     data class ConfigNetKeyAndAppKeyIndex(
         val networkKeyIndex: KeyIndex,
-        val applicationKeyIndex: KeyIndex
+        val applicationKeyIndex: KeyIndex,
     )
 
     companion object {
@@ -362,8 +362,12 @@ interface ConfigAnyModelMessage : ConfigModelMessage {
     val companyIdentifier: UShort?
 
     override val modelId: ModelId
-        get() = companyIdentifier?.let { VendorModelId(modelIdentifier, it) }
-            ?: SigModelId(modelIdentifier)
+        get() = companyIdentifier?.let {
+            VendorModelId(
+                modelIdentifier = modelIdentifier,
+                companyIdentifier = it
+            )
+        } ?: SigModelId(modelIdentifier = modelIdentifier)
 }
 
 /**

@@ -1,34 +1,39 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners
 
-import android.content.Context
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GppMaybe
-import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
-import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.RemoveModerator
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,189 +53,136 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerScreen
 import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
-import no.nordicsemi.kotlin.data.toHexString
-import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.android.nrfmesh.feature.ranges.RangesScreen
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.Range
+import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import java.util.UUID
+import no.nordicsemi.kotlin.mesh.core.model.minus
+import no.nordicsemi.kotlin.mesh.core.model.overlaps
+import no.nordicsemi.kotlin.mesh.core.model.plus
 
 @Composable
 internal fun ProvisionerRoute(
-    appState: AppState,
-    uiState: ProvisionerScreenUiState,
-    onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Unit,
-    disableConfigurationCapabilities: () -> Unit,
-    onTtlChanged: (Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
-    navigateToUnicastRanges: (UUID) -> Unit,
-    navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit,
-    onBackPressed: () -> Unit
-) {
-    val screen = appState.currentScreen as? ProvisionerScreen
-    LaunchedEffect(key1 = screen) {
-        screen?.buttons?.onEach { buttons ->
-            when(buttons){
-                ProvisionerScreen.Actions.BACK -> onBackPressed()
-            }
-        }?.launchIn(this)
-    }
-    ProvisionerScreen(
-        provisionerState = uiState.provisionerState,
-        onNameChanged = onNameChanged,
-        onAddressChanged = onAddressChanged,
-        disableConfigurationCapabilities = disableConfigurationCapabilities,
-        onTtlChanged = onTtlChanged,
-        isValidAddress = isValidAddress,
-        navigateToUnicastRanges = navigateToUnicastRanges,
-        navigateToGroupRanges = navigateToGroupRanges,
-        navigateToSceneRanges = navigateToSceneRanges
-    )
-}
-
-@Composable
-private fun ProvisionerScreen(
-    provisionerState: ProvisionerState,
-    onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Unit,
-    onTtlChanged: (Int) -> Unit,
-    navigateToUnicastRanges: (UUID) -> Unit,
-    navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit
+    provisioner: Provisioner,
+    provisionerData: ProvisionerData,
+    otherProvisioners: List<Provisioner>,
+    save: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-
-    when (provisionerState) {
-        ProvisionerState.Loading -> { /* Do nothing */
-        }
-
-        is ProvisionerState.Success -> {
-            ProvisionerInfo(
-                snackbarHostState = snackbarHostState,
-                provisioner = provisionerState.provisioner,
-                otherProvisioners = provisionerState.otherProvisioners,
-                onNameChanged = onNameChanged,
-                onAddressChanged = onAddressChanged,
-                isValidAddress = isValidAddress,
-                disableConfigurationCapabilities = disableConfigurationCapabilities,
-                onTtlChanged = onTtlChanged,
-                navigateToUnicastRanges = navigateToUnicastRanges,
-                navigateToGroupRanges = navigateToGroupRanges,
-                navigateToSceneRanges = navigateToSceneRanges
-            )
-        }
-
-        is ProvisionerState.Error -> {
-            MeshNoItemsAvailable(
-                imageVector = Icons.Outlined.Group,
-                title = provisionerState.throwable.message ?: "Unknown error"
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProvisionerInfo(
-    snackbarHostState: SnackbarHostState,
-    provisioner: Provisioner,
-    otherProvisioners: List<Provisioner>,
-    onNameChanged: (String) -> Unit,
-    onAddressChanged: (Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Unit,
-    onTtlChanged: (Int) -> Unit,
-    navigateToUnicastRanges: (UUID) -> Unit,
-    navigateToGroupRanges: (UUID) -> Unit,
-    navigateToSceneRanges: (UUID) -> Unit
-) {
-    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-    ) {
-        provisioner.run {
-            item {
-                Name(
-                    name = name,
-                    onNameChanged = onNameChanged,
-                    isCurrentlyEditable = isCurrentlyEditable,
-                    onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable })
+    var isCurrentlyEditable by rememberSaveable(inputs = arrayOf(provisioner.uuid)) {
+        mutableStateOf(true)
+    }
+    Scaffold(
+        modifier = Modifier.background(color = Color.Red),
+        contentWindowInsets = WindowInsets(top = 8.dp),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues = paddingValues)
+                .verticalScroll(state = rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        ) {
+            SectionTitle(title = stringResource(id = R.string.label_provisioner))
+            Name(
+                name = provisionerData.name,
+                onNameChanged = {
+                    provisioner.name = it
+                    save()
+                },
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+            )
+            UnicastAddress(
+                snackbarHostState = snackbarHostState,
+                keyboardController = keyboardController,
+                provisioner = provisioner,
+                address = provisionerData.address,
+                isCurrentlyEditable = isCurrentlyEditable,
+                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+                save = save,
+            )
+            if (provisionerData.hasConfigurationCapabilities) {
+                DeviceKey(key = provisionerData.deviceKey)
             }
-            item {
-                UnicastAddress(
-                    context = context,
-                    snackbarHostState = snackbarHostState,
-                    keyboardController = keyboardController,
-                    address = node?.primaryUnicastAddress?.address,
-                    onAddressChanged = onAddressChanged,
-                    isValidAddress = isValidAddress,
-                    disableConfigurationCapabilities = disableConfigurationCapabilities,
-                    isCurrentlyEditable = isCurrentlyEditable
-                ) { isCurrentlyEditable = !isCurrentlyEditable }
-            }
-            item {
-                Ttl(
-                    keyboardController = keyboardController,
-                    ttl = node?.defaultTTL?.toInt(),
-                    onTtlChanged = onTtlChanged,
-                    isCurrentlyEditable = isCurrentlyEditable
-                ) { isCurrentlyEditable = !isCurrentlyEditable }
-            }
-            item { DeviceKey(key = provisioner.node?.deviceKey) }
-            item { SectionTitle(title = stringResource(R.string.label_allocated_ranges)) }
-            item {
-                UnicastRange(
-                    ranges = provisioner.allocatedUnicastRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
-                    navigateToRanges = { navigateToUnicastRanges(provisioner.uuid) }
-                )
-            }
-            item {
-                GroupRange(
-                    ranges = provisioner.allocatedGroupRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
-                    navigateToRanges = { navigateToGroupRanges(provisioner.uuid) }
-                )
-            }
-            item {
-                SceneRange(
-                    ranges = provisioner.allocatedSceneRanges,
-                    otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
-                    navigateToRanges = { navigateToSceneRanges(provisioner.uuid) }
-                )
-            }
-            item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
-                AddressRangeLegendsForProvisioner()
-                Spacer(modifier = Modifier.size(16.dp))
-            }
+            SectionTitle(title = stringResource(R.string.label_allocated_ranges))
+            UnicastRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            GroupRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(range = it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            SceneRanges(
+                snackbarHostState = snackbarHostState,
+                provisionerData = provisionerData,
+                otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
+                allocate = {
+                    runCatching { provisioner.allocate(it) }
+                        .onSuccess { save() }
+                },
+                updateRange = { range, newRange ->
+                    runCatching { provisioner.update(range = range, newRange = newRange) }
+                        .onSuccess { save() }
+                },
+                onRemoved = {
+                    // TODO show snackbar
+                    runCatching { provisioner.remove(range = it) }
+                        .onSuccess { save() }
+                }
+            )
+            AddressRangeLegendsForProvisioner()
+            Spacer(modifier = Modifier.size(16.dp))
         }
     }
 }
@@ -254,21 +207,24 @@ fun Name(
     )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun UnicastAddress(
-    context: Context,
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
-    address: Address?,
-    onAddressChanged: (Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
-    disableConfigurationCapabilities: () -> Unit,
+    provisioner: Provisioner,
+    address: UnicastAddress?,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
+    save: () -> Unit,
 ) {
-    val initialValue by remember { mutableStateOf(address?.toHexString() ?: "") }
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    val context = LocalContext.current
+    val initialValue by remember(key1 = provisioner.uuid) {
+        mutableStateOf(address?.toHexString() ?: "")
+    }
+    var value by rememberSaveable(
+        stateSaver = TextFieldValue.Saver,
+        inputs = arrayOf(provisioner.uuid)
+    ) {
         mutableStateOf(
             TextFieldValue(text = initialValue, selection = TextRange(initialValue.length))
         )
@@ -278,7 +234,7 @@ private fun UnicastAddress(
     var onEditClick by rememberSaveable { mutableStateOf(false) }
     var onUnassignClick by remember { mutableStateOf(false) }
 
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
@@ -296,7 +252,7 @@ private fun UnicastAddress(
                             error = false
                             value = it
                             if (it.text.isNotEmpty()) {
-                                if (isValidAddress(it.text.toUShort(16))) {
+                                if (UnicastAddress.isValid(it.text.toUShort(16))) {
                                     error = false
                                     snackbarHostState.currentSnackbarData?.dismiss()
                                 } else {
@@ -306,7 +262,11 @@ private fun UnicastAddress(
                             }
                         },
                         label = {
-                            Text(text = stringResource(id = R.string.label_name))
+                            Text(
+                                text = stringResource(id = R.string.label_unicast_address),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         },
                         internalTrailingIcon = {
                             IconButton(
@@ -314,10 +274,15 @@ private fun UnicastAddress(
                                 onClick = {
                                     value = TextFieldValue("", TextRange(0))
                                     error = false
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.DeleteSweep,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
                                 }
-                            ) {
-                                Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
-                            }
+                            )
                         },
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Characters
@@ -327,19 +292,36 @@ private fun UnicastAddress(
                         content = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
-                                enabled = address != null,
-                                onClick = { onUnassignClick = !onUnassignClick }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.GppMaybe,
-                                    contentDescription = null,
-                                    tint = Color.Red.copy(alpha = 0.6f)
-                                )
-                            }
-                            IconButton(
-                                modifier = Modifier.padding(start = 8.dp),
-                                enabled = !error,
                                 onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = initialValue,
+                                        selection = TextRange(initialValue.length)
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                onClick = { onUnassignClick = !onUnassignClick },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.RemoveModerator,
+                                        contentDescription = null,
+                                        tint = Color.Red.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                enabled = value.text.isNotEmpty(),
+                                onClick = {
+                                    keyboardController?.hide()
                                     if (value.text.isEmpty()) {
                                         value = TextFieldValue(
                                             text = initialValue,
@@ -350,44 +332,57 @@ private fun UnicastAddress(
                                         onEditableStateChanged()
                                     } else {
                                         runCatching {
-                                            onAddressChanged(value.text.toInt(radix = 16))
+                                            provisioner.assign(
+                                                address = UnicastAddress(
+                                                    address = value.text.toInt(radix = 16)
+                                                )
+                                            )
                                         }.onSuccess {
                                             error = false
                                             onEditClick = false
                                             onEditableStateChanged()
+                                            save()
                                         }.onFailure { t ->
                                             error = true
                                             errorMessage = t.convertToString(context = context)
                                         }
                                     }
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
                                 }
-                            ) {
-                                Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
-                            }
+                            )
                         }
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = stringResource(id = R.string.label_unicast_address),
-                        subtitle = address?.let {
-                            "0x${it.toHexString()}"
-                        } ?: stringResource(id = R.string.label_not_assigned),
+                        subtitle = value.text
+                            .takeIf { it.isNotEmpty() }
+                            ?.let { "0x${it.uppercase()}" }
+                            ?: stringResource(id = R.string.label_not_assigned),
                         trailingComposable = {
                             IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
                                 enabled = isCurrentlyEditable,
                                 onClick = {
                                     error = false
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                )
-                            }
+                            )
                         }
                     )
                 }
@@ -399,12 +394,15 @@ private fun UnicastAddress(
         MeshAlertDialog(
             onDismissRequest = { onUnassignClick = !onUnassignClick },
             onConfirmClick = {
-                error = !error
+                error = false
+                if (isCurrentlyEditable && onEditClick)
+                    onEditableStateChanged()
+                onEditClick = false
                 keyboardController?.hide()
+                value = TextFieldValue(text = "", selection = TextRange(0))
                 onUnassignClick = !onUnassignClick
-                onEditClick = !onEditClick
-                onEditableStateChanged()
-                disableConfigurationCapabilities()
+                provisioner.disableConfigurationCapabilities()
+                save()
             },
             onDismissClick = { onUnassignClick = !onUnassignClick },
             icon = Icons.Outlined.GppMaybe,
@@ -424,90 +422,184 @@ private fun UnicastAddress(
 }
 
 @Composable
-private fun Ttl(
-    keyboardController: SoftwareKeyboardController?,
-    ttl: Int?,
-    onTtlChanged: (Int) -> Unit,
-    isCurrentlyEditable: Boolean,
-    onEditableStateChanged: () -> Unit,
-) {
-    ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Timer,
-        title = stringResource(id = R.string.label_ttl),
-        subtitle = ttl?.toString() ?: "0",
-        onValueChanged = {
-            keyboardController?.hide()
-            if (it.isNotEmpty()) {
-                onTtlChanged(it.toInt())
-            }
-        },
-        isEditable = isCurrentlyEditable,
-        onEditableStateChanged = onEditableStateChanged,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number
-        )
-    )
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-@Composable
-private fun DeviceKey(key: ByteArray?) {
+private fun DeviceKey(key: String?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
-        subtitle = key?.toHexString() ?: stringResource(R.string.label_not_applicable)
+        subtitle = key ?: stringResource(R.string.label_not_applicable)
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun UnicastRange(
-    ranges: List<UnicastRange>,
+private fun UnicastRanges(
+    snackbarHostState: SnackbarHostState,
+    provisionerData: ProvisionerData,
     otherRanges: List<UnicastRange>,
-    navigateToRanges: () -> Unit
+    allocate: (Range) -> Unit,
+    updateRange: (Range, Range) -> Unit,
+    onRemoved: (Range) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    val scope = rememberCoroutineScope()
+    var showUnicastRanges by rememberSaveable { mutableStateOf(false) }
+    var ranges by remember(key1 = provisionerData.uuid) {
+        mutableStateOf<List<Range>>(provisionerData.unicastRanges)
+    }
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.Lan,
             title = stringResource(id = R.string.label_unicast_range),
             ranges = ranges,
             otherRanges = otherRanges,
-            onClick = navigateToRanges
+            onClick = { showUnicastRanges = true }
+        )
+    }
+    if (showUnicastRanges) {
+        ModalBottomSheet(
+            onDismissRequest = { showUnicastRanges = false },
+            content = {
+                RangesScreen(
+                    snackbarHostState = snackbarHostState,
+                    title = stringResource(id = R.string.label_unicast_ranges),
+                    ranges = ranges,
+                    otherRanges = otherRanges,
+                    addRange = { start, end ->
+                        scope.launch {
+                            val range = (UnicastAddress(start)..UnicastAddress(end))
+                            ranges = ranges + range
+                            if (!ranges.overlaps(otherRanges)) {
+                                allocate(range)
+                            }
+                        }
+                    },
+                    onRangeUpdated = { range, start, end ->
+                        updateRange(range, (UnicastAddress(start)..UnicastAddress(end)))
+                    },
+                    onSwiped = { range ->
+                        ranges = ranges - range as UnicastRange
+                        onRemoved(range)
+                    },
+                    onUndoClicked = {},
+                    remove = onRemoved,
+                    isValidBound = { UnicastAddress.isValid(address = it) },
+                    resolve = { ranges = ranges - otherRanges }
+                )
+            }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GroupRange(
-    ranges: List<GroupRange>,
+private fun GroupRanges(
+    snackbarHostState: SnackbarHostState,
+    provisionerData: ProvisionerData,
     otherRanges: List<GroupRange>,
-    navigateToRanges: () -> Unit
+    allocate: (Range) -> Unit,
+    updateRange: (Range, Range) -> Unit,
+    onRemoved: (Range) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    var showGroupRanges by rememberSaveable { mutableStateOf(false) }
+    var ranges by remember(key1 = provisionerData.uuid) {
+        mutableStateOf<List<Range>>(provisionerData.groupRanges)
+    }
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.GroupWork,
             title = stringResource(id = R.string.label_group_range),
             ranges = ranges,
             otherRanges = otherRanges,
-            onClick = navigateToRanges
+            onClick = { showGroupRanges = true }
+        )
+    }
+    if (showGroupRanges) {
+        ModalBottomSheet(
+            onDismissRequest = { showGroupRanges = false },
+            content = {
+                RangesScreen(
+                    snackbarHostState = snackbarHostState,
+                    title = stringResource(id = R.string.label_group_ranges),
+                    ranges = ranges,
+                    otherRanges = otherRanges,
+                    addRange = { start, end ->
+                        val range = (GroupAddress(start)..GroupAddress(end))
+                        ranges = ranges + range
+                        if (!ranges.overlaps(otherRanges)) {
+                            allocate(range)
+                        }
+                    },
+                    onRangeUpdated = { range, start, end ->
+                        updateRange(range, (GroupAddress(start)..GroupAddress(end)))
+                    },
+                    onSwiped = { range ->
+                        ranges = ranges - range as GroupRange
+                        onRemoved(range)
+                    },
+                    onUndoClicked = {},
+                    remove = onRemoved,
+                    isValidBound = { GroupAddress.isValid(address = it) },
+                    resolve = { ranges = ranges - otherRanges }
+                )
+            }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SceneRange(
-    ranges: List<SceneRange>,
+private fun SceneRanges(
+    snackbarHostState: SnackbarHostState,
+    provisionerData: ProvisionerData,
     otherRanges: List<SceneRange>,
-    navigateToRanges: () -> Unit
+    allocate: (Range) -> Unit,
+    updateRange: (Range, Range) -> Unit,
+    onRemoved: (Range) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+    var showSceneRanges by rememberSaveable { mutableStateOf(false) }
+    var ranges by remember(key1 = provisionerData.uuid) {
+        mutableStateOf<List<Range>>(
+            provisionerData.sceneRanges
+        )
+    }
+    OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.AutoAwesome,
             title = stringResource(id = R.string.label_scene_range),
             ranges = ranges,
             otherRanges = otherRanges,
-            onClick = navigateToRanges
+            onClick = { showSceneRanges = true }
+        )
+    }
+    if (showSceneRanges) {
+        ModalBottomSheet(
+            onDismissRequest = { showSceneRanges = false },
+            content = {
+                RangesScreen(
+                    snackbarHostState = snackbarHostState,
+                    title = stringResource(id = R.string.label_scene_ranges),
+                    ranges = ranges,
+                    otherRanges = otherRanges,
+                    addRange = { start, end ->
+                        val range = SceneRange(firstScene = start, lastScene = end)
+                        ranges = ranges + range
+                        if (!ranges.overlaps(otherRanges)) {
+                            allocate(range)
+                        }
+                    },
+                    onRangeUpdated = { range, start, end ->
+                        updateRange(range, SceneRange(firstScene = start, lastScene = end))
+                    },
+                    onSwiped = { range ->
+                        ranges = ranges - range as SceneRange
+                        onRemoved(range)
+                    },
+                    onUndoClicked = {},
+                    remove = onRemoved,
+                    isValidBound = { Scene.isValid(sceneNumber = it) },
+                    resolve = { ranges = ranges - otherRanges }
+                )
+            }
         )
     }
 }

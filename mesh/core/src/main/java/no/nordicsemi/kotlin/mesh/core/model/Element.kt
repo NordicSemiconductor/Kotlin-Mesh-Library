@@ -28,20 +28,21 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
  */
 @Serializable
 data class Element(
+    @SerialName(value = "name")
+    private var _name: String? = null,
     @Serializable(with = LocationAsStringSerializer::class)
     val location: Location,
     @SerialName(value = "models")
-    private var _models: MutableList<Model> = mutableListOf()
+    private var _models: MutableList<Model> = mutableListOf(),
 ) {
-    var name: String? = null
+    var name: String?
+        get() = _name
         set(value) {
-            name?.let {
-                require(it.isNotBlank()) { "Element name cannot be blank!" }
-            }
-            MeshNetwork.onChange(oldValue = field, newValue = value) {
+            name?.let { require(it.isNotBlank()) { "Element name cannot be blank!" } }
+            MeshNetwork.onChange(oldValue = _name, newValue = value) {
                 parentNode?.network?.updateTimestamp()
             }
-            field = value
+            _name = value
         }
 
     // Final index will be set when Element is added to the Node.
@@ -95,6 +96,22 @@ data class Element(
             " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
         }
     }
+
+    /**
+     * Returns the model with the given model ID.
+     *
+     * @param modelId Model ID.
+     * @return Model with the given model ID, or null if not found.
+     */
+    fun model(modelId: ModelId) = _models.firstOrNull { it.modelId == modelId }
+
+    /**
+     * Returns the model with the given model ID.
+     *
+     * @param modelId Model ID.
+     * @return Model with the given model ID, or null if not found.
+     */
+    fun model(modelId: UInt) = _models.firstOrNull { it.modelId.id == modelId }
 
     /**
      * Adds a model to the element.
@@ -171,6 +188,47 @@ data class Element(
                     // Some of them are supported natively in the library.
                     !model.requiresDeviceKey
         }
+    }
+
+    /**
+     * Returns whether the Element contains a Bluetooth SIG defined Model with the given model ID.
+     *
+     * @param sigModelId Bluetooth SIG defined Model ID.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(sigModelId: SigModelId) = models.any { it.modelId == sigModelId }
+
+    /**
+     * Returns whether the Element contains a Vendor Model with the given model ID.
+     *
+     * @param vendorModelId Vendor Model ID.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(vendorModelId: VendorModelId) = models.any { it.modelId == vendorModelId }
+
+    /**
+     * Returns whether the Element contains the given model.
+     *
+     * @param model Model to be checked.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(model: Model) = models.contains(model)
+
+    /**
+     * Returns whether the Element contains a model bound to the given Application Key.
+     *
+     * @param key Application Key.
+     * @return true if the Element contains the Model, false otherwise.
+     */
+    fun contains(key: ApplicationKey) = models.any { key.isBoundTo(model = it) }
+
+    /**
+     * Returns whether the element contains any model that is subscribed to the given group.
+     *
+     * @param group Group to be checked.
+     */
+    fun contains(group: Group): Boolean = models.any {
+        it.subscribe.contains(group.address as SubscriptionAddress)
     }
 
     internal companion object {

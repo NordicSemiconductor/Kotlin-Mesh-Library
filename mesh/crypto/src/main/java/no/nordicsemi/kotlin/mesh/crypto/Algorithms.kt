@@ -88,16 +88,19 @@ sealed class Algorithms(val rawValue: UShort) {
     object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0) {
         override fun toString(): String = "FIPS P256 ELLIPTIC CURVE"
     }
+
     object BtmEcdhP256CmacAes128AesCcm : Algorithms(rawValue = 1 shl 0) {
         override fun toString(): String = "BTM ECDH P256 CMAC AES128 AES CCM"
     }
+
     object BtmEcdhP256HmacSha256AesCcm : Algorithms(rawValue = 1 shl 1) {
         override fun toString(): String = "BTM ECDH P256 HMAC SHA256 AES CCM"
     }
 
     companion object {
 
-        private val algorithms = listOf(BtmEcdhP256CmacAes128AesCcm, BtmEcdhP256HmacSha256AesCcm)
+        val algorithms =
+            listOf(FipsP256EllipticCurve, BtmEcdhP256CmacAes128AesCcm, BtmEcdhP256HmacSha256AesCcm)
 
         /**
          * Returns the list supported algorithms.

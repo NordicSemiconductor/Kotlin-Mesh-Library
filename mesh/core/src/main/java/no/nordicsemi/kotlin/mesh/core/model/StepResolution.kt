@@ -1,6 +1,5 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlin.jvm.Throws
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration

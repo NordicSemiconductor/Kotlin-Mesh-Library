@@ -104,7 +104,7 @@ class ProvisioningManager(
                 throw BearerError.Closed
             }
             // Emit the current state.
-            emit(ProvisioningState.RequestingCapabilities)
+            emit(value = ProvisioningState.RequestingCapabilities)
 
             // Initialize Provisioning data.
             val provisioningData = ProvisioningData()
@@ -129,7 +129,7 @@ class ProvisioningManager(
             }
 
             // We use a mutex here to wait for the user to either start or cancel the provisioning.
-            val mutex = Mutex(true)
+            val mutex = Mutex(locked = true)
             // Emit to the user that the capabilities have been received.
             emit(
                 value = ProvisioningState.CapabilitiesReceived(
@@ -144,22 +144,19 @@ class ProvisioningManager(
             )
             mutex.lock()
 
-            // Checks if the device supports the required algorithms.
-            require(
-                capabilities.algorithms.containsAll(
-                    listOf(
-                        Algorithms.BtmEcdhP256HmacSha256AesCcm,
-                        Algorithms.BtmEcdhP256HmacSha256AesCcm
-                    )
-                )
-            ) { throw UnsupportedDevice }
-
+            // Checks if the device supports the required algorithms
+            require(capabilities.algorithms.any { Algorithms.algorithms.contains(element = it) }) {
+                throw UnsupportedDevice
+            }
 
             require(configuration.unicastAddress != null) { throw NoAddressAvailable }
 
             // Is the Unicast address valid?
             require(
-                isUnicastAddressValid(configuration.unicastAddress!!, capabilities.numberOfElements)
+                isUnicastAddressValid(
+                    unicastAddress = configuration.unicastAddress!!,
+                    numberOfElements = capabilities.numberOfElements
+                )
             ) {
                 logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
                 throw InvalidAddress
@@ -167,18 +164,18 @@ class ProvisioningManager(
 
             // Try generating Private and Public keys. This may fail if the given algorithm is not
             // supported.
-            provisioningData.generateKeys(configuration.algorithm)
+            provisioningData.generateKeys(algorithm = configuration.algorithm)
 
-            emit(ProvisioningState.Provisioning)
+            emit(value = ProvisioningState.Provisioning)
             provisioningData.prepare(
                 networkKey = configuration.networkKey,
                 ivIndex = meshNetwork.ivIndex,
                 unicastAddress = configuration.unicastAddress!!
             )
 
-            ProvisioningRequest.Start(configuration).also { start ->
+            ProvisioningRequest.Start(configuration = configuration).also { start ->
                 logger?.v(LogCategory.PROVISIONING) { "Sending $start" }
-                send(start).also { provisioningData.accumulate(it) }
+                send(request = start).also { provisioningData.accumulate(data = it) }
             }
 
             // If the device's Public Key was obtained OOB, we are now ready to calculate the device's
@@ -194,8 +191,11 @@ class ProvisioningManager(
                 }
             }
             provisioningData.apply {
-                onDevicePublicKeyReceived(key, configuration.publicKey is PublicKey.OobPublicKey)
-                accumulate(key)
+                onDevicePublicKeyReceived(
+                    key = key,
+                    usingOob = configuration.publicKey is PublicKey.OobPublicKey
+                )
+                accumulate(data = key)
             }
 
             requestAuthentication(
@@ -204,17 +204,18 @@ class ProvisioningManager(
                 onAuthValueReceived = provisioningData::onAuthValueReceived,
                 mutex = mutex
             )?.also { action ->
-                emit(ProvisioningState.AuthActionRequired(action))
+                emit(value = ProvisioningState.AuthActionRequired(action = action))
                 when (action) {
                     is AuthAction.DisplayNumber, is AuthAction.DisplayAlphaNumeric -> {
                         mutex.unlock()
                         awaitInputComplete()
-                        emit(ProvisioningState.InputComplete)
+                        emit(value = ProvisioningState.InputComplete)
                     }
 
                     is AuthAction.ProvideStaticKey,
                     is AuthAction.ProvideNumeric,
-                    is AuthAction.ProvideAlphaNumeric -> mutex.lock()
+                    is AuthAction.ProvideAlphaNumeric,
+                        -> mutex.lock()
                 }
             }
 
@@ -234,18 +235,21 @@ class ProvisioningManager(
 
             require(provisioningData.checkIfConfirmationsMatch()) {
                 logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
-                emit(ProvisioningState.Failed(ConfirmationFailed))
+                emit(value = ProvisioningState.Failed(error = ConfirmationFailed))
                 throw ConfirmationFailed
             }
 
-            val data = ProvisioningRequest.Data(provisioningData.encryptedProvisioningDataWithMic)
+            val data = ProvisioningRequest.Data(
+                encryptedDataWithMic = provisioningData.encryptedProvisioningDataWithMic
+            )
             logger?.v(LogCategory.PROVISIONING) { "Sending $data" }
-            send(data)
+            send(request = data)
 
             awaitComplete().also {
-                emit(ProvisioningState.Complete)
+                emit(value = ProvisioningState.Complete)
                 meshNetwork.add(
                     node = Node(
+                        name = unprovisionedDevice.name,
                         uuid = unprovisionedDevice.uuid,
                         deviceKey = provisioningData.deviceKey,
                         unicastAddress = configuration.unicastAddress!!,
@@ -272,43 +276,42 @@ class ProvisioningManager(
     @Throws(InvalidPdu::class, NoAddressAvailable::class)
     private suspend fun awaitCapabilities(
         invite: ProvisioningRequest.Invite,
-        provisioningData: ProvisioningData
+        provisioningData: ProvisioningData,
     ): ProvisioningCapabilities {
         logger?.v(LogCategory.PROVISIONING) { "Sending $invite" }
         send(invite).also { provisioningData.accumulate(it) }
-        val response = ProvisioningResponse.from(
-            pdu = awaitBearerPdu().data
-        ).apply {
-            logger?.v(LogCategory.PROVISIONING) { "Received $this" }
-            require(this is ProvisioningResponse.Capabilities) {
-                logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: $InvalidPdu"
+        val response = ProvisioningResponse.from(pdu = awaitBearerPdu().data)
+            .apply {
+                logger?.v(LogCategory.PROVISIONING) { "Received $this" }
+                require(this is ProvisioningResponse.Capabilities) {
+                    logger?.e(LogCategory.PROVISIONING) {
+                        "Provisioning failed with error: $InvalidPdu"
+                    }
+                    throw InvalidPdu
                 }
-                throw InvalidPdu
-            }
-            provisioningData.accumulate(pdu.sliceArray(1 until pdu.size))
-            configuration = ProvisioningParameters(meshNetwork, capabilities)
-            meshNetwork.localProvisioner?.let {
-                // Calculates the unicast address automatically based ont he number of elements.
-                if (configuration.unicastAddress == null) {
-                    val count = capabilities.numberOfElements
-                    configuration.unicastAddress =
-                        meshNetwork.nextAvailableUnicastAddress(
-                            elementCount = count,
-                            provisioner = it
-                        )?.apply {
-                            suggestedUnicastAddress = this
-                        }
+                provisioningData.accumulate(data = pdu.sliceArray(indices = 1 until pdu.size))
+                configuration = ProvisioningParameters(meshNetwork, capabilities)
+                meshNetwork.localProvisioner?.let {
+                    // Calculates the unicast address automatically based ont he number of elements.
+                    if (configuration.unicastAddress == null) {
+                        val count = capabilities.numberOfElements
+                        configuration.unicastAddress =
+                            meshNetwork.nextAvailableUnicastAddress(
+                                elementCount = count,
+                                provisioner = it
+                            )?.apply {
+                                suggestedUnicastAddress = this
+                            }
+                    }
                 }
-            }
-            require(configuration.unicastAddress != null) {
-                logger?.e(LogCategory.PROVISIONING) {
-                    "Provisioning failed with error: $NoAddressAvailable"
+                require(configuration.unicastAddress != null) {
+                    logger?.e(LogCategory.PROVISIONING) {
+                        "Provisioning failed with error: $NoAddressAvailable"
+                    }
+                    throw NoAddressAvailable
                 }
-                throw NoAddressAvailable
-            }
-            suggestedUnicastAddress = configuration.unicastAddress
-        } as ProvisioningResponse.Capabilities
+                suggestedUnicastAddress = configuration.unicastAddress
+            } as ProvisioningResponse.Capabilities
         return response.capabilities
     }
 
@@ -324,7 +327,7 @@ class ProvisioningManager(
     @Throws(InvalidPdu::class, RemoteError::class, InvalidPublicKey::class)
     private suspend fun awaitProvisioneePublicKey(
         request: ProvisioningRequest.PublicKey,
-        provisioningData: ProvisioningData
+        provisioningData: ProvisioningData,
     ): ByteArray {
         logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
         send(request).also { provisioningData.accumulate(it) }
@@ -363,7 +366,7 @@ class ProvisioningManager(
         method: AuthenticationMethod,
         sizeInBytes: Int,
         onAuthValueReceived: (authValue: ByteArray) -> Unit,
-        mutex: Mutex
+        mutex: Mutex,
     ): AuthAction? = when (method) {
         AuthenticationMethod.NoOob -> {
             onAuthValueReceived(ByteArray(sizeInBytes) { 0x00 })

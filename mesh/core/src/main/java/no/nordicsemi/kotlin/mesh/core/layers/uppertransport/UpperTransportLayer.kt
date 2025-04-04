@@ -177,7 +177,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         mutex.withLock {
             require(queue[destination]?.isNotEmpty() ?: false) { return }
             // Remove the PDU that has just been sent.
-            queue[destination]?.removeFirst()
+            queue[destination]?.removeAt(index = 0)
         }
 
         // Try to send the next one

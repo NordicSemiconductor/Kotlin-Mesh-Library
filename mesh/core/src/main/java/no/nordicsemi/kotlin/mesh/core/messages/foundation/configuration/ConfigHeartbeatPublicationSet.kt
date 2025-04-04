@@ -8,19 +8,19 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.CountLog
 import no.nordicsemi.kotlin.mesh.core.model.Feature
 import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
+import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.toFeatures
 import no.nordicsemi.kotlin.mesh.core.model.toUShort
-import no.nordicsemi.kotlin.mesh.core.model.CountLog
-import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.PeriodLog
-import no.nordicsemi.kotlin.mesh.core.model.RemainingHeartbeatPublicationCount
 import java.nio.ByteOrder
 import kotlin.math.pow
 
@@ -36,7 +36,7 @@ import kotlin.math.pow
  * @constructor Creates a ConfigHeartbeatPublicationSet message.
  */
 class ConfigHeartbeatPublicationSet(
-    override val networkKeyIndex: KeyIndex,
+    override val index: KeyIndex,
     val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog,
     val periodLog: PeriodLog,
@@ -50,7 +50,7 @@ class ConfigHeartbeatPublicationSet(
                 periodLog.toByte() +
                 ttl.toByte() +
                 features.toUShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                networkKeyIndex.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                index.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     val count: RemainingHeartbeatPublicationCount
         get() = when {
@@ -98,7 +98,7 @@ class ConfigHeartbeatPublicationSet(
      * Convenience constructor to disable heartbeat publications.
      */
     constructor() : this(
-        networkKeyIndex = 0u,
+        index = 0u,
         destination = UnassignedAddress,
         countLog = 0u,
         periodLog = 0u,
@@ -125,7 +125,7 @@ class ConfigHeartbeatPublicationSet(
                         order = ByteOrder.LITTLE_ENDIAN
                     )
                 ).toList(),
-                networkKeyIndex = params.getUShort(offset = 7, order = ByteOrder.LITTLE_ENDIAN)
+                index = params.getUShort(offset = 7, order = ByteOrder.LITTLE_ENDIAN)
             )
         }
 
@@ -163,7 +163,7 @@ class ConfigHeartbeatPublicationSet(
                 periodLog = periodLog,
                 ttl = ttl,
                 features = features.toList(),
-                networkKeyIndex = networkKey.index
+                index = networkKey.index
             )
         }
     }

@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,7 +27,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnknownMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
@@ -36,9 +34,9 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.model
 import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
@@ -64,7 +62,7 @@ import kotlin.time.toDuration
  */
 private data class Transaction(
     var lastTid: UByte = Random.nextInt(0, UByte.MAX_VALUE.toInt()).toUByte(),
-    var timestamp: Instant = Clock.System.now()
+    var timestamp: Instant = Clock.System.now(),
 ) {
 
     val currentTid: UByte
@@ -84,14 +82,14 @@ private data class Transaction(
         get() = Clock.System.now() - timestamp > 6.toDuration(DurationUnit.SECONDS)
 }
 
-private class AcknowledgmentContext(
+internal class AcknowledgmentContext(
     val request: AcknowledgedMeshMessage,
     val source: Address,
     val destination: Address,
     val delay: Duration, // Duration in seconds
     val repeatBlock: () -> Unit,
     val timeout: Duration, // Duration in seconds
-    val timeoutBlock: () -> Unit
+    val timeoutBlock: () -> Unit,
 ) {
 
     var timeoutTimer = Timer()
@@ -136,7 +134,7 @@ private class AcknowledgmentContext(
  *
  * @property networkManager  Network manager.
  */
-internal class AccessLayer(private val networkManager: NetworkManager) {
+internal class AccessLayer(private val networkManager: NetworkManager) : AutoCloseable {
 
     val mutex = Mutex()
     val network = networkManager.meshNetwork
@@ -146,13 +144,15 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
 
     private var transactions = mutableMapOf<Int, Transaction>()
     private var reliableMessageContexts = mutableListOf<AcknowledgmentContext>()
+    internal val contexts: List<AcknowledgmentContext>
+        get() = reliableMessageContexts
     private var publishers = mutableMapOf<Model, TimerTask>()
 
     init {
         reinitializePublishers()
     }
 
-    protected fun finalize() {
+    private fun finalize() {
         transactions.clear()
         reliableMessageContexts.forEach {
             it.timeoutTimer.cancel()
@@ -164,6 +164,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             it.value.cancel()
         }
         publishers.clear()
+    }
+
+    override fun close() {
+        finalize()
     }
 
     /**
@@ -234,8 +238,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         destination: MeshAddress,
         ttl: UByte?,
         applicationKey: ApplicationKey,
-        retransmit: Boolean
-    ): MeshMessage {
+        retransmit: Boolean,
+    ): MeshMessage? {
         var msg = message
         val transactionMessage = message as? TransactionMessage
 
@@ -267,15 +271,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
 
         // Set timers for the acknowledged messages.
-        // Acknowledged messages sent to a Group address won;t await a Status.
-
-        if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
+        // Acknowledged messages sent to a Group address won't await a Status.
+        val ack = if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
             createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
-        }
+        } else null
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
 
-        return awaitResponse(destination = destination)
+        return if (ack == null) {
+            null
+        } else networkManager.awaitMeshMessageResponse(
+            destination = destination,
+            responseOpcode = ack.request.responseOpCode,
+            timeout = ack.timeout
+        )?.message as? MeshMessage
     }
 
     /**
@@ -294,23 +303,18 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         message: ConfigMessage,
         localElement: Element,
         destination: Address,
-        initialTtl: UByte?
+        initialTtl: UByte?,
+        networkKey: NetworkKey,
     ): MeshMessage? {
         val node = network.node(destination) ?: throw InvalidDestination
-        var networkKey = node.networkKeys.firstOrNull() ?: throw NoNetworkKey
 
-        // ConfigNetKeyDelete must be signed using the key that is being deleted.
-        val netKeyDelete = message as? ConfigNetKeyDelete
-        netKeyDelete?.takeIf { netKeyDeleteMsg ->
-            netKeyDeleteMsg.networkKeyIndex == networkKey.index
-        }?.let {
-            networkKey = node.networkKeys.last()
-        }
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node
         ) ?: return null
 
-        logger?.i(LogCategory.FOUNDATION_MODEL) { "Sending $message to ${destination.toHexString()})" }
+        logger?.i(LogCategory.FOUNDATION_MODEL) {
+            "Sending $message to ${destination.toHexString()})"
+        }
         val pdu = AccessPdu.init(
             message = message,
             source = localElement.unicastAddress.address,
@@ -319,28 +323,21 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         )
         logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
 
-        createReliableContext(
+        val ack = createReliableContext(
             pdu = pdu,
             element = localElement,
             initialTtl = initialTtl,
             keySet = keySet
         )
 
-        networkManager.upperTransportLayer.send(
-            accessPdu = pdu,
-            ttl = initialTtl,
-            keySet = keySet
-        )
+        networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
 
-        return awaitResponse(destination = destination)
+        return networkManager.awaitMeshMessageResponse(
+            destination = destination,
+            responseOpcode = ack.request.responseOpCode,
+            timeout = ack.timeout
+        )?.message as? MeshMessage
     }
-
-    suspend fun awaitResponse(destination: Address) =
-        awaitResponse(destination = MeshAddress.create(destination))
-
-    suspend fun awaitResponse(destination: MeshAddress) = networkManager.incomingMessages.first {
-        it.address == destination
-    }.message
 
     /**
      * Replies to the received message, which was sent with the given key set, with the given
@@ -353,12 +350,12 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
      * @param keySet       Set of keys that the message was encrypted with.
      */
     @OptIn(ExperimentalStdlibApi::class)
-    suspend fun reply(
+    fun reply(
         origin: Address,
         destination: Address,
         message: MeshMessage,
         element: Element,
-        keySet: KeySet
+        keySet: KeySet,
     ) {
         val category =
             if (message is ConfigMessage) LogCategory.FOUNDATION_MODEL else LogCategory.MODEL
@@ -431,7 +428,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
     private suspend fun handle(
         accessPdu: AccessPdu,
         keySet: KeySet,
-        request: AcknowledgedMeshMessage?
+        request: AcknowledgedMeshMessage?,
     ): MeshMessage? {
         val localNode = network.localProvisioner?.node ?: return null
 
@@ -474,7 +471,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
                             accessPdu.destination.address == element.unicastAddress.address ||
                             model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
                         ) {
-                            if (model.isBoundTo(keySet.applicationKey)) {
+                            if (keySet.applicationKey.isBoundTo(model = model)) {
                                 eventHandler.onMeshMessageReceived(
                                     model = model,
                                     message = message,
@@ -578,7 +575,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
             request?.let { req ->
                 network.localProvisioner?.node?.let { localNode ->
                     localNode.element(req.elementAddress)?.let { element ->
-                        element.models.model(message.modelId)?.let {
+                        element.model(message.modelId)?.let {
                             refreshPeriodicPublisher(it)
                         }
                     }
@@ -616,10 +613,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         pdu: AccessPdu,
         element: Element,
         initialTtl: UByte?,
-        keySet: KeySet
-    ) {
-        val request = pdu.message as? AcknowledgedMeshMessage ?: return
-        require(pdu.destination is UnicastAddress) { return }
+        keySet: KeySet,
+    ): AcknowledgmentContext {
+        val request = pdu.message as AcknowledgedMeshMessage
+        /*val request = pdu.message as? AcknowledgedMeshMessage ?: return null
+        require(pdu.destination is UnicastAddress) { return null }*/
 
         // The ttl with which the request will be sent.
         val ttl = element.parentNode?.defaultTTL ?: networkManager.networkParameters.defaultTtl
@@ -665,6 +663,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) {
         mutex.withLock {
             reliableMessageContexts.add(ack)
         }
+        return ack
     }
 
     /**
@@ -714,7 +713,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     message: MeshMessage,
     source: Address,
     destination: Address,
-    request: AcknowledgedMeshMessage?
+    request: AcknowledgedMeshMessage?,
 ): MeshResponse? {
     if (request != null) {
         val response = message as? MeshResponse

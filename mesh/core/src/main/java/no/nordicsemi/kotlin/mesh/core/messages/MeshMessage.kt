@@ -77,9 +77,7 @@ interface HasOpCode {
  * @property parameters Access layer payload, including the Op Code.
  */
 interface BaseMeshMessage {
-
     val parameters: ByteArray?
-
 }
 
 /**

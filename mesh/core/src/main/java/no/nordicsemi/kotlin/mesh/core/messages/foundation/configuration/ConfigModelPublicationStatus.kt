@@ -33,7 +33,7 @@ data class ConfigModelPublicationStatus(
     override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
-    val publish: Publish
+    val publish: Publish,
 ) : ConfigResponse, ConfigStatusMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
 
@@ -54,6 +54,10 @@ data class ConfigModelPublicationStatus(
                 ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
             return data
         }
+
+    override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
+            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+            "companyIdentifier: $companyIdentifier)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8019u
@@ -108,7 +112,7 @@ data class ConfigModelPublicationStatus(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             (it.size == 12 || it.size == 14)
         }?.let { params ->
-            ConfigMessageStatus.from(params[0].toUByte())?.let {
+            ConfigMessageStatus.from(params[0].toUByte())?.let { status ->
                 val elementAddress = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
                 val address =
                     MeshAddress.create(params.getUShort(3, order = ByteOrder.LITTLE_ENDIAN))
@@ -131,32 +135,23 @@ data class ConfigModelPublicationStatus(
                     period = period,
                     retransmit = retransmit
                 )
+
+                val modelIdentifier: UShort
+                var companyIdentifier: UShort? = null
+
                 if (params.size == 14) {
-                    ConfigModelPublicationStatus(
-                        publish = publish,
-                        companyIdentifier = params.getUShort(
-                            offset = 9,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        modelIdentifier = params.getUShort(
-                            offset = 11,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        elementAddress = UnicastAddress(elementAddress),
-                        status = it
-                    )
+                    companyIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
+                    modelIdentifier = params.getUShort(offset = 12, order = ByteOrder.LITTLE_ENDIAN)
                 } else {
-                    ConfigModelPublicationStatus(
-                        publish = publish,
-                        companyIdentifier = null,
-                        modelIdentifier = params.getUShort(
-                            offset = 9,
-                            order = ByteOrder.LITTLE_ENDIAN
-                        ),
-                        elementAddress = UnicastAddress(elementAddress),
-                        status = it
-                    )
+                    modelIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
                 }
+                ConfigModelPublicationStatus(
+                    status = status,
+                    publish = publish,
+                    companyIdentifier = companyIdentifier,
+                    modelIdentifier = modelIdentifier,
+                    elementAddress = UnicastAddress(elementAddress)
+                )
             }
         }
     }

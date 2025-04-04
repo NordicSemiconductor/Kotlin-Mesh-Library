@@ -13,39 +13,37 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 /**
  * This message is used to delete an application key from a mesh node.
  *
- * @property applicationKeyIndex  Index of the application key to be deleted.
- * @property networkKeyIndex      Index of the bound network key.
+ * @property keyIndex  Index of the application key to be deleted.
+ * @property index      Index of the bound network key.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
  * @property responseOpCode       Op Code of the response message.
  * @constructor Constructs the ConfigAppKeyAdd message.
  */
 class ConfigAppKeyDelete(
-    override val applicationKeyIndex: KeyIndex,
-    override val networkKeyIndex: KeyIndex
+    override val keyIndex: KeyIndex,
+    override val index: KeyIndex
 ) : AcknowledgedConfigMessage, ConfigNetAndAppKeyMessage {
     override val opCode: UInt = Initializer.opCode
-
-    override val parameters = encodeNetAndAppKeyIndex(
-        appKeyIndex = applicationKeyIndex,
-        netKeyIndex = networkKeyIndex
-    )
-
     override val responseOpCode = ConfigAppKeyStatus.opCode
+    override val parameters = encodeNetAndAppKeyIndex(
+        appKeyIndex = keyIndex,
+        netKeyIndex = index
+    )
 
     /**
      * Convenience constructor to create a [ConfigAppKeyDelete] message.
      *
-     * @param applicationKey Application key to be added.
+     * @param key Application key to be added.
      * @constructor Constructs the [ConfigAppKeyDelete] message.
      */
-    constructor(applicationKey: ApplicationKey) : this(
-        applicationKeyIndex = applicationKey.index,
-        networkKeyIndex = applicationKey.boundNetKeyIndex
+    constructor(key: ApplicationKey) : this(
+        keyIndex = key.index,
+        index = key.boundNetKeyIndex
     )
 
-    override fun toString() = "ConfigAppKeyDelete(applicationKeyIndex: $applicationKeyIndex, " +
-            "networkKeyIndex: $networkKeyIndex)"
+    override fun toString() = "ConfigAppKeyDelete(applicationKeyIndex: $keyIndex, " +
+            "networkKeyIndex: $index)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8000u
@@ -61,8 +59,8 @@ class ConfigAppKeyDelete(
         }?.let {
             val decodedIndexes = decodeNetAndAppKeyIndex(data = it, offset = 0)
             ConfigAppKeyDelete(
-                networkKeyIndex = decodedIndexes.networkKeyIndex,
-                applicationKeyIndex = decodedIndexes.applicationKeyIndex
+                index = decodedIndexes.networkKeyIndex,
+                keyIndex = decodedIndexes.applicationKeyIndex
             )
         }
     }

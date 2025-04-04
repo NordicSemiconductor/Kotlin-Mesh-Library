@@ -34,7 +34,7 @@ data class ApplicationKey internal constructor(
     val index: KeyIndex,
     @Serializable(with = KeySerializer::class)
     @SerialName("key")
-    private var _key: ByteArray = Crypto.generateRandomKey()
+    private var _key: ByteArray = Crypto.generateRandomKey(),
 ) {
     var name: String
         get() = _name
@@ -46,6 +46,11 @@ data class ApplicationKey internal constructor(
 
     @SerialName("boundNetKey")
     var boundNetKeyIndex: KeyIndex = 0u
+        set(value) {
+            require(value.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
+            onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
+            field = value
+        }
 
     var key: ByteArray
         get() = _key
@@ -73,20 +78,18 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
-    val boundNetworkKey: NetworkKey?
-        get() = network!!.networkKeys.get(boundNetKeyIndex)
+    val boundNetworkKey: NetworkKey
+        get() = network!!.networkKeys.get(boundNetKeyIndex)!!
 
     internal var aid: Byte = Crypto.calculateAid(N = key)
 
     internal var oldAid: Byte? = null
 
-    val isInUse :Boolean
+    val isInUse: Boolean
         get() = network?.run {
             // The application key in used when it is known by any of the nodes in the network.
             _nodes.any { node ->
-                node.appKeys.any { nodeKey ->
-                    nodeKey.index == index
-                }
+                node.elements.flatMap { it.models }.any { it.bind.contains(element = index) }
             }
         } ?: false
 
@@ -151,6 +154,14 @@ data class ApplicationKey internal constructor(
      */
     fun isBoundTo(networkKeys: List<NetworkKey>) = networkKeys.any { isBoundTo(it) }
 
+    /**
+     * Checks if the given model is bound to this key.
+     *
+     * @param model Model to check against.
+     * @return true if the key is bound to the model or false otherwise.
+     */
+    fun isBoundTo(model: Model) = model.bind.any { it == index }
+
     private fun regenerateKeyDerivatives() {
         aid = Crypto.calculateAid(N = key)
 
@@ -185,7 +196,7 @@ data class ApplicationKey internal constructor(
         result = 31 * result + _key.contentHashCode()
         result = 31 * result + boundNetKeyIndex.hashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
-        result = 31 * result + (boundNetworkKey?.hashCode() ?: 0)
+        result = 31 * result + boundNetworkKey.hashCode()
         return result
     }
 }

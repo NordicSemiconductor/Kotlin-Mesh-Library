@@ -95,7 +95,6 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      */
     suspend fun handle(networkPdu: NetworkPdu): MeshMessage? {
         require(networkPdu.transportPdu.size > 1) { return null }
-
         mutex.withLock {
             require(checkAgainstReplayAttack(networkPdu)) { throw SecurityError.ReplayAttack }
             val segmented = networkPdu.isSegmented
@@ -829,7 +828,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      *
      * @param sequenceZero The key to get segments from the map.
      */
-    private suspend fun startUnicastRetransmissionsTimer(sequenceZero: UShort) {
+    private fun startUnicastRetransmissionsTimer(sequenceZero: UShort) {
         val remainingNumberOfUnicastRetransmissions =
             requireNotNull(remainingNumberOfUnicastRetransmissions[sequenceZero]) { return }
         val (destination, segments) = requireNotNull(outgoingSegments[sequenceZero]) { return }
@@ -909,7 +908,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      *
      * @param sequenceZero The key to get segments from the map.
      */
-    private suspend fun startMulticastRetransmissionTimer(sequenceZero: UShort) {
+    private fun startMulticastRetransmissionTimer(sequenceZero: UShort) {
         val remainingNumberOfRetransmissions =
             requireNotNull(remainingNumberOfMulticastRetransmissions[sequenceZero]) { return }
         val (destination, segments) = requireNotNull(outgoingSegments[sequenceZero]) { return }

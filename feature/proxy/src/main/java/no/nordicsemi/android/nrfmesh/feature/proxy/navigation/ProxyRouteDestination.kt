@@ -1,35 +1,39 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy.navigation
 
+import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyRoute
-import no.nordicsemi.android.nrfmesh.feature.proxy.viewmodel.ProxyViewModel
+import no.nordicsemi.android.nrfmesh.feature.proxy.ProxyViewModel
 
-object ProxyDestination : MeshNavigationDestination {
-    override val route: String = "proxy_route"
-    override val destination: String = "proxy_destination"
-}
+@Serializable
+@Parcelize
+data object ProxyRoute : Parcelable
+
+fun NavController.navigateToProxy(navOptions: NavOptions? = null) = navigate(
+    route = ProxyRoute,
+    navOptions = navOptions
+)
 
 fun NavGraphBuilder.proxyFilterGraph() {
-    composable(route = ProxyDestination.route) {
+    composable<ProxyRoute> {
         val viewModel = hiltViewModel<ProxyViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProxyRoute(
             uiState = uiState,
-            onBluetoothEnabled = {
-
-            },
-            onLocationEnabled = {
-
-            },
+            onBluetoothEnabled = viewModel::onBluetoothEnabled,
+            onLocationEnabled = viewModel::onLocationEnabled,
             onAutoConnectToggled = viewModel::onAutoConnectToggled,
             onDisconnectClicked = viewModel::disconnect,
-            onDeviceFound = { _, _ ->
-
+            onDeviceFound = { context, results ->
+                viewModel.connect(context = context, results = results)
             }
         )
     }

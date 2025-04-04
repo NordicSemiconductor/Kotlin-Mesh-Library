@@ -12,8 +12,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
@@ -39,15 +41,16 @@ import androidx.compose.ui.unit.dp
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
     elevation: CardElevation = CardDefaults.elevatedCardElevation(),
+    colors: CardColors = CardDefaults.outlinedCardColors(),
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String = "",
+    subtitle: String? = null,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    OutlinedCard(modifier = modifier, elevation = elevation) {
+    OutlinedCard(modifier = modifier, elevation = elevation, colors = colors) {
         MeshTwoLineListItem(
             modifier = Modifier.padding(horizontal = 16.dp),
             leadingComposable = {
@@ -95,17 +98,21 @@ fun ElevatedCardItem(
 @Composable
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
     onClick: () -> Unit,
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
-    subtitle: String = "",
+    subtitle: String? = null,
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    OutlinedCard (
+    OutlinedCard(
         modifier = modifier,
         onClick = onClick,
+        enabled = enabled,
+        colors = colors
     ) {
         MeshTwoLineListItem(
             modifier = Modifier
@@ -118,6 +125,51 @@ fun ElevatedCardItem(
                     tint = LocalContentColor.current.copy(alpha = 0.6f)
                 )
             },
+            title = title,
+            subtitle = subtitle,
+            trailingComposable = titleAction
+        )
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
+            }
+        }
+    }
+}
+
+@Composable
+fun ElevatedCardItem(
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    onClick: () -> Unit,
+    image: @Composable () -> Unit,
+    title: String,
+    titleAction: @Composable () -> Unit = {},
+    subtitle: String? = null,
+    supportingText: String? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
+) {
+    OutlinedCard(
+        modifier = modifier,
+        onClick = onClick,
+        colors = colors
+    ) {
+        MeshTwoLineListItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            leadingComposable = { image() },
             title = title,
             subtitle = subtitle,
             trailingComposable = titleAction
@@ -156,13 +208,13 @@ fun ElevatedCardItemTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
-    isError: Boolean = regex != null && !regex.matches(subtitle)
+    isError: Boolean = regex != null && !regex.matches(subtitle),
 ) {
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
     }
     var onEditClick by rememberSaveable { mutableStateOf(false) }
-    OutlinedCard (modifier = modifier) {
+    OutlinedCard(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 modifier = Modifier.padding(start = 12.dp),
@@ -178,7 +230,7 @@ fun ElevatedCardItemTextField(
                         value = value,
                         onValueChanged = { value = it },
                         label = { Text(text = title) },
-                        placeholder = { Text(text = placeholder) },
+                        placeholder = { Text(text = placeholder, maxLines = 1) },
                         internalTrailingIcon = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
@@ -191,7 +243,7 @@ fun ElevatedCardItemTextField(
                                 },
                                 content = {
                                     Icon(
-                                        imageVector = Icons.Outlined.Clear,
+                                        imageVector = Icons.Outlined.DeleteSweep,
                                         contentDescription = null
                                     )
                                 }
@@ -205,7 +257,26 @@ fun ElevatedCardItemTextField(
                         content = {
                             IconButton(
                                 modifier = Modifier.padding(horizontal = 8.dp),
-                                enabled = value.text.isNotBlank(),
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = subtitle,
+                                        selection = TextRange(subtitle.length)
+                                    )
+                                    onValueChanged(subtitle)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                modifier = Modifier.padding(end = 8.dp),
+                                enabled = value.text.isNotBlank() && regex?.matches(value.text) ?: true,
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
@@ -218,7 +289,8 @@ fun ElevatedCardItemTextField(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
                                     )
                                 }
                             )
