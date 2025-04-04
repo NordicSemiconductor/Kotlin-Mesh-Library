@@ -84,7 +84,8 @@ class MeshNetworkManager(
 
     private var meshBearer: MeshBearer? = null
 
-    internal var proxyFilter: ProxyFilter
+    var proxyFilter: ProxyFilter
+        internal set
 
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
@@ -112,6 +113,7 @@ class MeshNetworkManager(
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
+        proxyFilter.onNewNetworkCreated()
         true
     } ?: false
 
@@ -176,6 +178,7 @@ class MeshNetworkManager(
             .also {
                 network = it
                 networkManager = NetworkManager(this)
+                proxyFilter.onNewNetworkCreated()
                 _meshNetwork.emit(it)
             }
     }.getOrElse {
