@@ -84,18 +84,9 @@ sealed class ProxyFilterState {
     data class ProxyFilterUpdated internal constructor(
         val type: ProxyFilterType,
         val addresses: List<ProxyFilterAddress>,
-    ) : ProxyFilterState()
-
-    /**
-     * State defining when the Proxy filter has been acknowledged by the proxy.
-     *
-     * @property type     Filter type.
-     * @property listSize List of addresses.
-     */
-    data class ProxyFilterUpdateAcknowledged internal constructor(
-        val type: ProxyFilterType,
-        val listSize: UShort,
-    ) : ProxyFilterState()
+    ) : ProxyFilterState() {
+        override fun toString() = "Proxy Filter Updated(filter : $type, addresses: $addresses)"
+    }
 
     /**
      * State defining when the Proxy filter limit has been reached.
@@ -106,16 +97,9 @@ sealed class ProxyFilterState {
     data class ProxyFilterLimitReached internal constructor(
         val type: ProxyFilterType,
         val listSize: UShort,
-    ) : ProxyFilterState()
-
-    /**
-     * Defines a state where the connected proxy defines supports only one single address in the
-     * Proxy Filter list.
-     *
-     * @property maxSize Number of addresses that can be added to the proxy filter list of the Proxy
-     *                   node.
-     */
-    data class LimitedProxyFilterDetected(val maxSize: Int) : ProxyFilterState()
+    ) : ProxyFilterState() {
+        override fun toString() = "Proxy Filter Limit Reached(filter : $type, listSize: $listSize)"
+    }
 }
 
 /**
@@ -236,7 +220,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
     private val logger: Logger?
         get() = manager.logger
 
-    var state: ProxyFilterState? = null
     var initializeState: ProxyFilterSetup = ProxyFilterSetup.AUTOMATIC
 
     private var _addresses = mutableListOf<ProxyFilterAddress>()
@@ -353,7 +336,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
         // Add the All Nodes address
         addresses.add(AllNodes)
         // Add all the above addresses to the filter.
-        add(addresses.distinct())
+        add(addresses = addresses.distinct())
     }
 
     suspend fun proxyDidDisconnect() {
@@ -364,12 +347,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                     value = ProxyFilterState.ProxyFilterUpdated(
                         type = ProxyFilterType.INCLUSION_LIST,
                         addresses = listOf()
-                    )
-                )
-                _proxyFilterStateFlow.emit(
-                    value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
-                        type = ProxyFilterType.INCLUSION_LIST,
-                        listSize = 0u
                     )
                 )
             }
@@ -433,11 +410,16 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                     request?.let { request ->
                         when (request) {
                             is AddAddressesToFilter -> {
+                                // Addresses were sent in ascending order (primary unicast address
+                                // first). On every device there's an upper limit of the size of
+                                // Proxy Filter List. Assuming that devices are added in the order
+                                // they were sent (as they should), we must remove the addresses at
+                                // the end.
                                 expectedListSize = addresses.size + request.addresses.size
-                                val addedAddresses = listOf(
-                                    message.listSize.toInt() - addresses.size
-                                ) + request.addresses.sortedBy { it.address }
-                                _addresses.union(addedAddresses)
+                                val addedAddresses = request.addresses
+                                    .sortedBy { it.address }
+                                    .take(message.listSize.toInt())
+                                _addresses.addAll(addedAddresses)
                             }
 
                             is RemoveAddressesFromFilter -> {
@@ -456,16 +438,13 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                         }
                         this.request = null
                     }
-
                     // Notify the app about the current state
-                    scope.launch {
-                        _proxyFilterStateFlow.emit(
-                            value = ProxyFilterState.ProxyFilterUpdated(
-                                type = type,
-                                addresses = addresses
-                            )
+                    _proxyFilterStateFlow.emit(
+                        value = ProxyFilterState.ProxyFilterUpdated(
+                            type = type,
+                            addresses = addresses
                         )
-                    }
+                    )
                 }
 
                 // Ensure the current information about the filter is up to date.
@@ -473,28 +452,18 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                     logger?.w(LogCategory.PROXY) {
                         "Proxy Filter limit reached: ${message.listSize} (expected: $expectedListSize)"
                     }
-                    scope.launch {
-                        _proxyFilterStateFlow.emit(
-                            value = ProxyFilterState.ProxyFilterLimitReached(
-                                type = message.filterType,
-                                listSize = message.listSize
-                            )
-                        )
-                    }
-                    return
-                }
-
-                scope.launch {
                     _proxyFilterStateFlow.emit(
-                        value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
-                            type = type,
+                        value = ProxyFilterState.ProxyFilterLimitReached(
+                            type = message.filterType,
                             listSize = message.listSize
                         )
                     )
+                    return
                 }
             }
 
-            else -> { /* Ignore */ }
+            else -> { /* Ignore */
+            }
         }
     }
 }

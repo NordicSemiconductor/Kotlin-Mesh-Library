@@ -71,7 +71,6 @@ class MeshNetworkManager(
     internal var network: MeshNetwork? = null
         private set
 
-
     internal var networkManager: NetworkManager? = null
         private set(value) {
             field = value
@@ -944,10 +943,11 @@ class MeshNetworkManager(
      * @throws IllegalStateException This method throws when the mesh network has not been created.
      */
     @Throws(IllegalStateException::class)
-    suspend fun send(message: ProxyConfigurationMessage) = networkManager?.send(message) ?: run {
-        logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
-        throw IllegalStateException("Network manager is not initialized")
-    }
+    suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage? =
+        networkManager?.send(message) ?: run {
+            logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
+            throw IllegalStateException("Network manager is not initialized")
+        }
 
     /**
      * Observes network manager events.
