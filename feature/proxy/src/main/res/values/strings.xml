@@ -16,4 +16,6 @@
     <string name="label_disconnect">Disconnect</string>
     <string name="label_connect">Connect</string>
     <string name="label_proxies">Proxies</string>
+    <string name="label_filter_type">Filter Type</string>
+    <string name="label_proxy_filter_limit_reached">Proxy filter limit reached</string>
 </resources>

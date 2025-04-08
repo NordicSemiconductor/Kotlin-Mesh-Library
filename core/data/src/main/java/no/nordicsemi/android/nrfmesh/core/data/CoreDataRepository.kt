@@ -38,7 +38,9 @@ import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
+import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
@@ -75,8 +77,8 @@ class CoreDataRepository @Inject constructor(
     private val scanner: BleScanner,
     @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : Logger {
-    private var _proxyStateFlow = MutableStateFlow(ProxyState())
-    val proxyStateFlow = _proxyStateFlow.asStateFlow()
+    private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
+    val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()
 
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
@@ -86,10 +88,13 @@ class CoreDataRepository @Inject constructor(
     private var bearer: Bearer? = null
     private var connectionRequested = false
 
+    val proxyFilter: ProxyFilter
+        get() = meshNetworkManager.proxyFilter
+
     init {
         meshNetworkManager.logger = this
         preferences.data.onEach {
-            _proxyStateFlow.value = _proxyStateFlow.value.copy(
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] ?: false
             )
         }.launchIn(CoroutineScope(ioDispatcher))
@@ -167,7 +172,7 @@ class CoreDataRepository @Inject constructor(
      */
     fun addApplicationKey(
         name: String = "nRF Application Key ${meshNetwork.applicationKeys.size}",
-        boundNetworkKey: NetworkKey
+        boundNetworkKey: NetworkKey,
     ): ApplicationKey = meshNetwork.add(
         name = name,
         boundNetworkKey = boundNetworkKey
@@ -232,7 +237,7 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverGattBearer(context: Context, device: ServerDevice) =
         withContext(ioDispatcher) {
             if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
-            _proxyStateFlow.value = _proxyStateFlow.value.copy(
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(device = device)
             )
             GattBearer(context = context, device = device).also {
@@ -240,7 +245,7 @@ class CoreDataRepository @Inject constructor(
                 bearer = it
                 it.open()
                 if (it.isOpen) {
-                    _proxyStateFlow.value = _proxyStateFlow.value.copy(
+                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                         connectionState = NetworkConnectionState.Connected(device = device)
                     )
                 }
@@ -255,7 +260,7 @@ class CoreDataRepository @Inject constructor(
             if (bearer.isOpen) {
                 bearer.close()
                 bearer.state.first { it is BearerEvent.Closed }
-                _proxyStateFlow.value = _proxyStateFlow.value.copy(
+                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                     connectionState = NetworkConnectionState.Disconnected
                 )
             }
@@ -293,7 +298,7 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     private tailrec suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
-        val autoConnectProxy = _proxyStateFlow.value.autoConnect
+        val autoConnectProxy = _proxyConnectionStateFlow.value.autoConnect
         if (!autoConnectProxy) return
         if (connectionRequested) return
         connectionRequested = true
@@ -313,7 +318,7 @@ class CoreDataRepository @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     suspend fun scanForProxy(meshNetwork: MeshNetwork?): ServerDevice {
-        _proxyStateFlow.value = _proxyStateFlow.value.copy(
+        _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
             connectionState = NetworkConnectionState.Scanning
         )
         return scanner.scan(
@@ -346,11 +351,19 @@ class CoreDataRepository @Inject constructor(
      * @param enabled     True to enable, false to disable.
      */
     suspend fun enableAutoConnectProxy(meshNetwork: MeshNetwork?, enabled: Boolean) {
-        _proxyStateFlow.value = _proxyStateFlow.value.copy(autoConnect = enabled)
+        _proxyConnectionStateFlow.value =
+            _proxyConnectionStateFlow.value.copy(autoConnect = enabled)
         preferences.edit { preferences ->
             preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
         }
         if (enabled) startAutomaticConnectivity(meshNetwork)
+    }
+
+    /**
+     * Sends a proxy configuration message to the proxy node.
+     */
+    suspend fun send(message: ProxyConfigurationMessage) = withContext(ioDispatcher) {
+        meshNetworkManager.send(message)
     }
 
     /**
@@ -396,7 +409,7 @@ sealed class NetworkConnectionState {
     data object Disconnected : NetworkConnectionState()
 }
 
-data class ProxyState(
+data class ProxyConnectionState(
     val autoConnect: Boolean = false,
     val connectionState: NetworkConnectionState = NetworkConnectionState.Disconnected,
 )

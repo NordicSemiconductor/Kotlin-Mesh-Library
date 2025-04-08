@@ -67,7 +67,7 @@ internal class NodeViewModel @Inject internal constructor(
         }.launchIn(scope = viewModelScope)
 
         // Request the composition data when the network is connected if it has not been requested yet.
-        repository.proxyStateFlow.onEach {
+        repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
                 if (!selectedNode.isCompositionDataReceived) {
                     onRefresh()
