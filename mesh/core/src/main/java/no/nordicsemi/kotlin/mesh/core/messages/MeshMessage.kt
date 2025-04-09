@@ -134,7 +134,7 @@ interface UnacknowledgedMeshMessage : MeshMessage
 /**
  * The base interface for response messages.
  */
-sealed interface MeshResponse : MeshMessage
+interface MeshResponse : MeshMessage
 
 /**
  * The base interface for acknowledged messages. An acknowledged message is transmitted and
@@ -189,6 +189,7 @@ interface TransactionMessage : MeshMessage {
     var tid: UByte?
 
     val continueTransaction: Boolean
+        get() = false
 
     /**
      * Checks whether this message is a continuation of another transaction message sent before at
@@ -224,7 +225,7 @@ interface TransitionMessage : MeshMessage {
 
     val transitionTime: TransitionTime?
 
-    val delay: UByte
+    val delay: UByte?
 }
 
 /**
