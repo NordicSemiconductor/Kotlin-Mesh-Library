@@ -7,7 +7,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 
 /**
- * This message is used to set the current status of a GenericOnOffServer model.
+ * This message is used to set the current status of a GenericOnOffServer model. Response received
+ * to the message is [GenericOnOffStatus].
  *
  * @property tid              Defines a unique Transaction identifier that each message must have.
  * @property transitionTime   Defines the time interval an element will take to transition to the
@@ -42,6 +43,7 @@ class GenericOnOffSet(
      *
      * @param on Desired state of Generic OnOff Server.
      */
+    @Suppress("unused")
     constructor(on: Boolean) : this(on = on, tid = null, transitionTime = null, delay = null)
 
     companion object Initializer : GenericMessageInitializer {
