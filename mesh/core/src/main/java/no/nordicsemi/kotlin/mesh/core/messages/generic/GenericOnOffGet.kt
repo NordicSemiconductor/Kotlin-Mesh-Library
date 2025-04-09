@@ -4,7 +4,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 
 /**
- * This message is used to request the status og GenericOnOffServer model
+ * This message is used to request the current status of a GenericOnOffServer model
  */
 class GenericOnOffGet : AcknowledgedMeshMessage {
     override val opCode = Initializer.opCode
