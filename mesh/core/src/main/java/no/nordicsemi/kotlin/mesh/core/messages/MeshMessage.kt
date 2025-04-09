@@ -129,7 +129,7 @@ interface MeshMessage : BaseMeshMessage, HasOpCode {
 /**
  * The base interface for unacknowledged unacknowledged messages.
  */
-sealed interface UnacknowledgedMeshMessage : MeshMessage
+interface UnacknowledgedMeshMessage : MeshMessage
 
 /**
  * The base interface for response messages.
@@ -144,7 +144,7 @@ sealed interface MeshResponse : MeshMessage
  *
  * @property responseOpCode Op Code of the response message.
  */
-sealed interface AcknowledgedMeshMessage : MeshMessage {
+interface AcknowledgedMeshMessage : MeshMessage {
     val responseOpCode: UInt
 }
 
@@ -229,6 +229,9 @@ interface TransitionMessage : MeshMessage {
 
 /**
  * The base interface for a message that's sent as a response to a [TransitionMessage].
+ *
+ * @property remainingTime Defines the time that an element will take to transition to the target
+ *                         state from the present state.
  */
 interface TransitionStatusMessage : MeshMessage {
 
