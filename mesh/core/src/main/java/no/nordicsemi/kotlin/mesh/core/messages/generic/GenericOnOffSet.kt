@@ -5,6 +5,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
+import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 
 /**
  * This message is used to set the current status of a GenericOnOffServer model. Response received
@@ -18,15 +19,14 @@ import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
  */
 class GenericOnOffSet(
     override var tid: UByte?,
-    override val transitionTime: TransitionTime?,
-    override val delay: UByte?,
-    val on: Boolean
+    val on: Boolean,
+    transitionParams: TransitionParameters? = null
 ) : AcknowledgedMeshMessage, TransactionMessage, TransitionMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = GenericOnOffStatus.opCode
     override val parameters: ByteArray
         get() {
-            val data = byteArrayOf(if (on) 0x01 else 0x00)
+            val data = byteArrayOf(if (on) 0x01 else 0x00, tid!!.toByte())
             return when (transitionTime != null && delay != null) {
                 true -> data + byteArrayOf(
                     transitionTime.rawValue.toByte(),
@@ -36,6 +36,8 @@ class GenericOnOffSet(
                 else -> data
             }
         }
+    override val transitionTime = transitionParams?.transitionTime
+    override val delay = transitionParams?.delay
 
     /**
      * Convenience constructor to create a GenericOnOffSet message without any transition time,
@@ -44,7 +46,10 @@ class GenericOnOffSet(
      * @param on Desired state of Generic OnOff Server.
      */
     @Suppress("unused")
-    constructor(on: Boolean) : this(on = on, tid = null, transitionTime = null, delay = null)
+    constructor(on: Boolean) : this(on = on, tid = null)
+
+    @Suppress("unused")
+    constructor(on: Boolean, tid: UByte) : this(on = on, tid = tid, transitionParams = null)
 
     companion object Initializer : GenericMessageInitializer {
         override val opCode = 0x8202u
@@ -55,10 +60,10 @@ class GenericOnOffSet(
             GenericOnOffSet(
                 on = params[0] == 0x01.toByte(),
                 tid = params[1].toUByte(),
-                transitionTime = if (params.size == 4)
-                    TransitionTime(rawValue = params[2].toUByte())
-                else null,
-                delay = if (params.size == 4) params[3].toUByte() else null
+                transitionParams = if (params.size == 4) TransitionParameters(
+                    transitionTime = TransitionTime(rawValue = params[2].toUByte()),
+                    delay = params[3].toUByte()
+                ) else null
             )
         }
     }
