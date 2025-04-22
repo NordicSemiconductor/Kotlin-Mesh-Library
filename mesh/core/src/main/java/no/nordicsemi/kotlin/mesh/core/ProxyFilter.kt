@@ -419,7 +419,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 val addedAddresses = request.addresses
                                     .sortedBy { it.address }
                                     .take(message.listSize.toInt())
-                                _addresses.addAll(addedAddresses.subtract(_addresses))
+                                _addresses = addedAddresses.union(_addresses).toMutableList()
                             }
 
                             is RemoveAddressesFromFilter -> {
