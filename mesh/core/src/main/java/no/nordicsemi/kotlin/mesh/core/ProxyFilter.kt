@@ -3,8 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -204,8 +204,8 @@ internal sealed interface ProxyFilterEventHandler {
 class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: MeshNetworkManager) :
     ProxyFilterEventHandler {
 
-    private val _proxyFilterStateFlow = MutableSharedFlow<ProxyFilterState>()
-    val proxyFilterStateFlow = _proxyFilterStateFlow.asSharedFlow()
+    private val _proxyFilterStateFlow = MutableStateFlow<ProxyFilterState?>(value = null)
+    val proxyFilterStateFlow = _proxyFilterStateFlow.asStateFlow()
 
     // A mutex for internal synchronization.
     private val mutex = Mutex()
@@ -419,11 +419,13 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 val addedAddresses = request.addresses
                                     .sortedBy { it.address }
                                     .take(message.listSize.toInt())
-                                _addresses.addAll(addedAddresses)
+                                _addresses.addAll(addedAddresses.subtract(_addresses))
                             }
 
                             is RemoveAddressesFromFilter -> {
-                                _addresses.removeAll { it in request.addresses }
+                                request.addresses.forEach {
+                                    _addresses.remove(element = it)
+                                }
                                 expectedListSize = addresses.size
                             }
 
