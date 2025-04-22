@@ -3,7 +3,10 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,7 +50,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import java.util.*
+import java.util.UUID
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
