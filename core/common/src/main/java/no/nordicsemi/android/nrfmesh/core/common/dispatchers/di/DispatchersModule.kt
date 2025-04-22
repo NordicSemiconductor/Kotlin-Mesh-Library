@@ -30,5 +30,9 @@ import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
 object DispatchersModule {
     @Provides
     @Dispatcher(MeshDispatchers.IO)
-    fun providesIODispatcher(): CoroutineDispatcher = Dispatchers.IO
+    fun providesIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Dispatcher(MeshDispatchers.DEFAULT)
+    fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }

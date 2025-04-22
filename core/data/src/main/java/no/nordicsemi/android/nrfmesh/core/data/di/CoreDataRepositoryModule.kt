@@ -30,7 +30,8 @@ object CoreDataRepositoryModule {
         bluetoothStateManager: BluetoothStateManager,
         locationStateManager: LocationStateManager,
         meshNetworkManager: MeshNetworkManager,
-        @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
+        @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher,
+        @Dispatcher(MeshDispatchers.DEFAULT) defaultDispatcher: CoroutineDispatcher
     ) = CoreDataRepository(
         context = context,
         preferences = preferences,
@@ -38,6 +39,7 @@ object CoreDataRepositoryModule {
         locationStateManager = locationStateManager,
         scanner = BleScanner(context),
         meshNetworkManager = meshNetworkManager,
-        ioDispatcher = ioDispatcher
+        ioDispatcher = ioDispatcher,
+        defaultDispatcher = defaultDispatcher
     )
 }

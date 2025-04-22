@@ -76,6 +76,7 @@ class CoreDataRepository @Inject constructor(
     private val meshNetworkManager: MeshNetworkManager,
     private val scanner: BleScanner,
     @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(MeshDispatchers.DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
     val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()
@@ -97,21 +98,21 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] ?: false
             )
-        }.launchIn(CoroutineScope(ioDispatcher))
+        }.launchIn(CoroutineScope(defaultDispatcher))
 
         bluetoothStateManager.bluetoothState().onEach {
             isBluetoothEnabled = it is BlePermissionState.Available
-        }.launchIn(CoroutineScope(ioDispatcher))
+        }.launchIn(CoroutineScope(defaultDispatcher))
         locationStateManager.locationState().onEach {
             isLocationEnabled = it is BlePermissionState.Available
-        }.launchIn(CoroutineScope(ioDispatcher))
+        }.launchIn(CoroutineScope(defaultDispatcher))
 
         // Start automatic connectivity when the network changes
 
         // TODO need to check this on
         network.onEach {
             meshNetwork = it
-        }.launchIn(scope = CoroutineScope(ioDispatcher))
+        }.launchIn(scope = CoroutineScope(defaultDispatcher))
     }
 
     /**
@@ -219,7 +220,7 @@ class CoreDataRepository @Inject constructor(
      * @return [PbGattBearer] instance
      */
     suspend fun connectOverPbGattBearer(context: Context, device: ServerDevice) =
-        withContext(ioDispatcher) {
+        withContext(defaultDispatcher) {
             if (bearer is GattBearer) bearer?.close()
             PbGattBearer(context = context, device = device).also {
                 it.open()
@@ -235,7 +236,7 @@ class CoreDataRepository @Inject constructor(
      * @return [PbGattBearer] instance
      */
     suspend fun connectOverGattBearer(context: Context, device: ServerDevice) =
-        withContext(ioDispatcher) {
+        withContext(defaultDispatcher) {
             if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(device = device)
@@ -255,7 +256,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Disconnects from the proxy node.
      */
-    suspend fun disconnect() = withContext(ioDispatcher) {
+    suspend fun disconnect() = withContext(defaultDispatcher) {
         bearer?.let { bearer ->
             if (bearer.isOpen) {
                 bearer.close()
@@ -362,7 +363,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Sends a proxy configuration message to the proxy node.
      */
-    suspend fun send(message: ProxyConfigurationMessage) = withContext(ioDispatcher) {
+    suspend fun send(message: ProxyConfigurationMessage) = withContext(defaultDispatcher) {
         meshNetworkManager.send(message)
     }
 
@@ -373,7 +374,7 @@ class CoreDataRepository @Inject constructor(
      * @param message Message to be sent.
      */
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
-        context = ioDispatcher
+        context = defaultDispatcher
     ) {
         if (bearer != null && bearer!!.isOpen) {
             meshNetworkManager.send(message = message, node = node, initialTtl = null)
