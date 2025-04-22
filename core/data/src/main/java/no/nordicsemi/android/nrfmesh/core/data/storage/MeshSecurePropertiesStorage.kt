@@ -14,8 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.ProtoIvIndex
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecureProperties
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecurePropertiesMap
@@ -31,10 +30,10 @@ import javax.inject.Inject
 class MeshSecurePropertiesStorage @Inject constructor(
     @ApplicationContext private val context: Context,
     private val securePropertiesStore: DataStore<ProtoSecurePropertiesMap>,
-    @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SecurePropertiesStorage {
 
-    private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
+    private val scope = CoroutineScope(defaultDispatcher + SupervisorJob())
 
     /**
      * Creates a default [ProtoSecurePropertiesMap] with a single entry for the given [uuid].
@@ -108,7 +107,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
     override suspend fun storeNextSequenceNumber(
         uuid: UUID,
         address: UnicastAddress,
-        sequenceNumber: UInt
+        sequenceNumber: UInt,
     ) {
         scope.launch {
             securePropertiesStore.updateData { securePropertiesMap ->
@@ -143,7 +142,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
     override suspend fun storeLastSeqAuthValue(
         uuid: UUID,
         source: UnicastAddress,
-        lastSeqAuth: ULong
+        lastSeqAuth: ULong,
     ) {
         scope.launch {
             securePropertiesStore.updateData { securePropertiesMap ->
@@ -174,7 +173,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
     override suspend fun storePreviousSeqAuthValue(
         uuid: UUID,
         source: UnicastAddress,
-        seqAuth: ULong
+        seqAuth: ULong,
     ) {
         scope.launch {
             securePropertiesStore.updateData { securePropertiesMap ->

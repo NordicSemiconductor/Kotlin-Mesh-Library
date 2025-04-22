@@ -32,8 +32,8 @@ import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
@@ -75,8 +75,8 @@ class CoreDataRepository @Inject constructor(
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     private val scanner: BleScanner,
-    @Dispatcher(MeshDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
-    @Dispatcher(MeshDispatchers.DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
     val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()

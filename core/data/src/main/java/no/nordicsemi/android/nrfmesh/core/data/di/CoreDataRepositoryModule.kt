@@ -12,8 +12,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
 import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
 import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
@@ -30,8 +30,8 @@ object CoreDataRepositoryModule {
         bluetoothStateManager: BluetoothStateManager,
         locationStateManager: LocationStateManager,
         meshNetworkManager: MeshNetworkManager,
-        @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher,
-        @Dispatcher(MeshDispatchers.DEFAULT) defaultDispatcher: CoroutineDispatcher
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
     ) = CoreDataRepository(
         context = context,
         preferences = preferences,
