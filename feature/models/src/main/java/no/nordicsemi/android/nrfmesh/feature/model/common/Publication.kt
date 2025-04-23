@@ -119,7 +119,7 @@ internal fun Publication(
             title = stringResource(R.string.label_publication)
         )
         MeshIconButton(
-            onClick = { showBottomSheet = true },
+            onClick = { send(ConfigModelPublicationGet(model = model)) },
             buttonIcon = Icons.Outlined.Refresh,
             enabled = !messageState.isInProgress(),
             isOnClickActionInProgress = messageState.isInProgress() &&

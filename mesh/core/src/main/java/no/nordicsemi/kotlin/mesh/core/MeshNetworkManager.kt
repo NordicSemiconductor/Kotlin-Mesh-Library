@@ -3,7 +3,10 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,7 +50,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import java.util.*
+import java.util.UUID
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
@@ -71,7 +74,6 @@ class MeshNetworkManager(
     internal var network: MeshNetwork? = null
         private set
 
-
     internal var networkManager: NetworkManager? = null
         private set(value) {
             field = value
@@ -84,7 +86,8 @@ class MeshNetworkManager(
 
     private var meshBearer: MeshBearer? = null
 
-    internal var proxyFilter: ProxyFilter
+    var proxyFilter: ProxyFilter
+        internal set
 
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
@@ -112,6 +115,7 @@ class MeshNetworkManager(
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
+        proxyFilter.onNewNetworkCreated()
         true
     } ?: false
 
@@ -176,6 +180,7 @@ class MeshNetworkManager(
             .also {
                 network = it
                 networkManager = NetworkManager(this)
+                proxyFilter.onNewNetworkCreated()
                 _meshNetwork.emit(it)
             }
     }.getOrElse {
@@ -941,10 +946,11 @@ class MeshNetworkManager(
      * @throws IllegalStateException This method throws when the mesh network has not been created.
      */
     @Throws(IllegalStateException::class)
-    suspend fun send(message: ProxyConfigurationMessage) = networkManager?.send(message) ?: run {
-        logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
-        throw IllegalStateException("Network manager is not initialized")
-    }
+    suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage? =
+        networkManager?.send(message) ?: run {
+            logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
+            throw IllegalStateException("Network manager is not initialized")
+        }
 
     /**
      * Observes network manager events.
@@ -965,5 +971,3 @@ class MeshNetworkManager(
         }?.launchIn(scope = scope)
     }
 }
-
-

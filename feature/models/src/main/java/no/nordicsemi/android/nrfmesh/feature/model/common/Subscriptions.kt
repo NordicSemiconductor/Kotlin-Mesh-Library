@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.description
+import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddressesForSubscriptions
 import no.nordicsemi.android.nrfmesh.core.common.unsubscribedGroups
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -109,7 +109,7 @@ internal fun Subscriptions(
                         title = model.parentElement?.parentNode?.network
                             ?.group(address = it.address)
                             ?.name
-                            ?: (it as? FixedGroupAddress)?.description()
+                            ?: (it as? FixedGroupAddress)?.name()
                             ?: it.toHexString(),
                     )
                 }
@@ -199,7 +199,7 @@ internal fun Subscriptions(
                         ElevatedCardItem(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             imageVector = Icons.Outlined.GroupWork,
-                            title = address.description(),
+                            title = address.name(),
                             onClick = {
                                 scope.launch {
                                     bottomSheetState.hide()

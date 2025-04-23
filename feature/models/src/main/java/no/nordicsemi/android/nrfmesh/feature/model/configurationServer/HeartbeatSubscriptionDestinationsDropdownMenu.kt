@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.core.common.description
+import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
@@ -139,7 +139,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                                     contentDescription = null
                                 )
                             },
-                            title = destination.description(),
+                            title = destination.name(),
                         )
                     },
                     onClick = {

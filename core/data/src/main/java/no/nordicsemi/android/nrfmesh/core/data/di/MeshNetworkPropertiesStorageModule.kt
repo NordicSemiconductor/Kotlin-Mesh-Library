@@ -11,8 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.Dispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.MeshDispatchers
+import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoSecurePropertiesMapSerializer
 import javax.inject.Singleton
 
@@ -26,7 +25,7 @@ object MeshNetworkPropertiesStorageModule {
     @Provides
     fun provideMeshSecurePropertiesStorage(
         @ApplicationContext context: Context,
-        @Dispatcher(MeshDispatchers.IO) ioDispatcher: CoroutineDispatcher
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
     ) = DataStoreFactory.create(
         serializer = ProtoSecurePropertiesMapSerializer,
         produceFile = { context.dataStoreFile(DATA_STORE_FILE_NAME) },

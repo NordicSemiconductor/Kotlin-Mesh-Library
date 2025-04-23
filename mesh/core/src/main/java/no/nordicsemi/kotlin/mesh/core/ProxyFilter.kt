@@ -3,8 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -106,16 +106,9 @@ sealed class ProxyFilterState {
     data class ProxyFilterLimitReached internal constructor(
         val type: ProxyFilterType,
         val listSize: UShort,
-    ) : ProxyFilterState()
-
-    /**
-     * Defines a state where the connected proxy defines supports only one single address in the
-     * Proxy Filter list.
-     *
-     * @property maxSize Number of addresses that can be added to the proxy filter list of the Proxy
-     *                   node.
-     */
-    data class LimitedProxyFilterDetected(val maxSize: Int) : ProxyFilterState()
+    ) : ProxyFilterState() {
+        override fun toString() = "Proxy Filter Limit Reached(filter : $type, listSize: $listSize)"
+    }
 }
 
 /**
@@ -220,8 +213,8 @@ internal sealed interface ProxyFilterEventHandler {
 class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: MeshNetworkManager) :
     ProxyFilterEventHandler {
 
-    private val _proxyFilterStateFlow = MutableSharedFlow<ProxyFilterState>()
-    val proxyFilterStateFlow = _proxyFilterStateFlow.asSharedFlow()
+    private val _proxyFilterStateFlow = MutableStateFlow<ProxyFilterState?>(value = null)
+    val proxyFilterStateFlow = _proxyFilterStateFlow.asStateFlow()
 
     // A mutex for internal synchronization.
     private val mutex = Mutex()
@@ -236,7 +229,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
     private val logger: Logger?
         get() = manager.logger
 
-    var state: ProxyFilterState? = null
     var initializeState: ProxyFilterSetup = ProxyFilterSetup.AUTOMATIC
 
     private var _addresses = mutableListOf<ProxyFilterAddress>()
@@ -353,7 +345,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
         // Add the All Nodes address
         addresses.add(AllNodes)
         // Add all the above addresses to the filter.
-        add(addresses.distinct())
+        add(addresses = addresses.distinct())
     }
 
     suspend fun proxyDidDisconnect() {
@@ -364,12 +356,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                     value = ProxyFilterState.ProxyFilterUpdated(
                         type = ProxyFilterType.INCLUSION_LIST,
                         addresses = listOf()
-                    )
-                )
-                _proxyFilterStateFlow.emit(
-                    value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
-                        type = ProxyFilterType.INCLUSION_LIST,
-                        listSize = 0u
                     )
                 )
             }
@@ -433,15 +419,21 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                     request?.let { request ->
                         when (request) {
                             is AddAddressesToFilter -> {
+                                // Addresses were sent in ascending order (primary unicast address
+                                // first). On every device there's an upper limit of the size of
+                                // Proxy Filter List. Assuming that devices are added in the order
+                                // they were sent (as they should), we must remove the addresses at
+                                // the end.
                                 expectedListSize = addresses.size + request.addresses.size
-                                val addedAddresses = listOf(
-                                    message.listSize.toInt() - addresses.size
-                                ) + request.addresses.sortedBy { it.address }
-                                _addresses.union(addedAddresses)
+                                val addedAddresses = request.addresses
+                                    .sortedBy { it.address }
+                                    .take(message.listSize.toInt() - addresses.size)
+                                _addresses = addedAddresses.union(_addresses).toMutableList()
                             }
 
                             is RemoveAddressesFromFilter -> {
-                                _addresses.removeAll { it in request.addresses }
+                                _addresses.removeAll(request.addresses)
+                                //_addresses = request.addresses.subtract(_addresses).toMutableList()
                                 expectedListSize = addresses.size
                             }
 
@@ -451,50 +443,43 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 expectedListSize = 0
                             }
 
-                            else -> { /* Ignore */
-                            }
+                            else -> { /* Ignore */ }
                         }
                         this.request = null
                     }
-
                     // Notify the app about the current state
-                    scope.launch {
-                        _proxyFilterStateFlow.emit(
-                            value = ProxyFilterState.ProxyFilterUpdated(
-                                type = type,
-                                addresses = addresses
-                            )
+                    _proxyFilterStateFlow.emit(
+                        value = ProxyFilterState.ProxyFilterUpdated(
+                            type = type,
+                            addresses = addresses
                         )
-                    }
+                    )
                 }
 
                 // Ensure the current information about the filter is up to date.
                 if (type != message.filterType || expectedListSize != message.listSize.toInt()) {
                     logger?.w(LogCategory.PROXY) {
-                        "Proxy Filter limit reached: ${message.listSize} (expected: $expectedListSize)"
+                        "Proxy Filter limit reached: ${message.listSize} " +
+                                "(expected: $expectedListSize)"
                     }
-                    scope.launch {
-                        _proxyFilterStateFlow.emit(
-                            value = ProxyFilterState.ProxyFilterLimitReached(
-                                type = message.filterType,
-                                listSize = message.listSize
-                            )
+                    _proxyFilterStateFlow.emit(
+                        value = ProxyFilterState.ProxyFilterLimitReached(
+                            type = message.filterType,
+                            listSize = message.listSize
                         )
-                    }
-                    return
-                }
-
-                scope.launch {
+                    )
+                } else {
                     _proxyFilterStateFlow.emit(
                         value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
-                            type = type,
+                            type = message.filterType,
                             listSize = message.listSize
                         )
                     )
                 }
             }
 
-            else -> { /* Ignore */ }
+            else -> { /* Ignore */
+            }
         }
     }
 }

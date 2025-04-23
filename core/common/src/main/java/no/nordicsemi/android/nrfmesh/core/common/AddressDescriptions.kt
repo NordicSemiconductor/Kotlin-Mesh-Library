@@ -11,7 +11,7 @@ val fixedGroupAddresses = listOf(AllRelays, AllFriends, AllProxies, AllNodes)
 /**
  * Returns a human readable description of the [FixedGroupAddress].
  */
-fun FixedGroupAddress.description() = when (this) {
+fun FixedGroupAddress.name() = when (this) {
     is AllProxies -> "All Proxies"
     is AllNodes -> "All Nodes"
     is AllRelays -> "All Relays"
