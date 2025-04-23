@@ -18,4 +18,8 @@
     <string name="label_proxies">Proxies</string>
     <string name="label_filter_type">Filter Type</string>
     <string name="label_proxy_filter_limit_reached">Proxy filter limit reached</string>
+    <string name="label_add_address">Add Address</string>
+    <string name="label_elements">Elements</string>
+    <string name="label_groups">Groups</string>
+    <string name="label_fixed_group_addresses">Fixed Groups</string>
 </resources>

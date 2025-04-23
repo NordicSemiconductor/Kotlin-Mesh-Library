@@ -12,9 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
@@ -47,14 +50,20 @@ import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
 import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
 import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
+import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.core.data.ProxyConnectionState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.AddAddressesToFilter
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.RemoveAddressesFromFilter
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.SetFilterType
@@ -79,7 +88,10 @@ internal fun ProxyRoute(
 ) {
     RequireBluetooth(onChanged = onBluetoothEnabled) {
         RequireLocation(onChanged = onLocationEnabled) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(state = rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 ProxyFilterInfo(
                     proxyConnectionState = uiState.proxyConnectionState,
                     onAutoConnectToggled = onAutoConnectToggled,
@@ -90,9 +102,10 @@ internal fun ProxyRoute(
                     network = uiState.network,
                     type = uiState.filterType,
                     addresses = uiState.addresses,
-                    isEnabled = uiState.proxyConnectionState.connectionState is NetworkConnectionState.Connected,
+                    isConnected = uiState.proxyConnectionState.connectionState is NetworkConnectionState.Connected,
                     limitReached = uiState.isProxyLimitReached,
                     send = send,
+                    messageState = uiState.messageState,
                     resetMessageState = resetMessageState
                 )
             }
@@ -207,63 +220,120 @@ private fun NetworkConnectionState.describe() = when (this) {
     NetworkConnectionState.Disconnected -> stringResource(R.string.label_proxy_disconnected)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterSection(
     network: MeshNetwork?,
     type: ProxyFilterType?,
     addresses: List<ProxyFilterAddress> = emptyList(),
     limitReached: Boolean,
-    isEnabled: Boolean,
+    isConnected: Boolean,
     send: (ProxyConfigurationMessage) -> Unit,
+    messageState: MessageState,
     resetMessageState: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
     val options =
         listOf<ProxyFilterType>(ProxyFilterType.INCLUSION_LIST, ProxyFilterType.EXCLUSION_LIST)
     var selectedIndex by remember {
         mutableIntStateOf(if (type == null) 0 else options.indexOf(type))
     }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(end = 16.dp)
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SectionTitle(
-            modifier = Modifier.weight(weight = 1f),
-            title = stringResource(R.string.label_filter_type)
-        )
-        SingleChoiceSegmentedButtonRow {
-            options.forEachIndexed { index, label ->
-                SegmentedButton(
-                    modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = options.size
-                    ),
-                    onClick = {
-                        selectedIndex = index
-                        send(SetFilterType(options[selectedIndex]))
-                    },
-                    selected = index == selectedIndex,
-                    label = { Text(text = label.toString()) },
-                    enabled = isEnabled
-                )
+    var showBottomSheet by remember { mutableStateOf(false) }
+    if (isCompactWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp)
+                .padding(vertical = 8.dp),
+        ) {
+            SectionTitle(title = stringResource(R.string.label_filter_type))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                if (isConnected) {
+                    MeshIconButton(
+                        isOnClickActionInProgress = messageState.isInProgress()
+                                && messageState.message is AddAddressesToFilter,
+                        buttonIcon = Icons.Outlined.Add,
+                        onClick = { showBottomSheet = true },
+                        enabled = !messageState.isInProgress()
+                    )
+                }
+                SingleChoiceSegmentedButtonRow {
+                    options.forEachIndexed { index, label ->
+                        SegmentedButton(
+                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = options.size
+                            ),
+                            onClick = {
+                                selectedIndex = index
+                                send(SetFilterType(options[selectedIndex]))
+                            },
+                            selected = index == selectedIndex,
+                            label = { Text(text = label.toString()) },
+                            enabled = isConnected
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp)
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionTitle(
+                modifier = Modifier.weight(weight = 1f),
+                title = stringResource(R.string.label_filter_type)
+            )
+            MeshOutlinedButton(
+                isOnClickActionInProgress = messageState.isInProgress()
+                        && messageState.message is AddAddressesToFilter,
+                buttonIcon = Icons.Outlined.Add,
+                text = stringResource(R.string.label_add_address),
+                onClick = { showBottomSheet = true },
+                enabled = isConnected && !messageState.isInProgress()
+            )
+            SingleChoiceSegmentedButtonRow {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            send(SetFilterType(options[selectedIndex]))
+                        },
+                        selected = index == selectedIndex,
+                        label = { Text(text = label.toString()) },
+                        enabled = isConnected
+                    )
+                }
             }
         }
     }
-    LazyColumn(
+    Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(items = addresses, key = { it.address.toInt() }) { address ->
+        addresses.forEach {
             SwipeToDismissAddress(
                 network = network,
-                address = address,
+                address = it,
                 onSwiped = {
-                    send(RemoveAddressesFromFilter(listOf(address)))
+                    send(RemoveAddressesFromFilter(addresses = listOf(it)))
                 }
             )
         }
@@ -274,6 +344,29 @@ private fun FilterSection(
             text = stringResource(R.string.label_proxy_filter_limit_reached),
             showDismissButton = true,
             onDismissRequest = resetMessageState,
+        )
+    }
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            content = {
+                network?.let { network ->
+                    Addresses(
+                        network = network,
+                        onAddressClicked = {
+                            send(AddAddressesToFilter(addresses = listOf(it)))
+                            scope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
+                        }
+                    )
+                }
+            }
         )
     }
 }
@@ -293,35 +386,82 @@ private fun SwipeToDismissAddress(
     )
     SwipeDismissItem(
         dismissState = dismissState,
-        content = {
-            println(
-                "address ${
-                    when (address) {
-                        is UnicastAddress -> "Unicast"
-                        is VirtualAddress -> "Virtual"
-                        is GroupAddress -> "Group"
-                        is FixedGroupAddress -> "Group"
-                    }
-                }"
-            )
-            ElevatedCardItem(
-                imageVector = Icons.Outlined.Lan,
-                title = when (address) {
-                    is UnicastAddress -> network?.element(address.address)?.name
-                        ?: stringResource(R.string.label_unknown)
+        content = { AddressRow(address = address, network = network) }
+    )
+}
 
-                    is VirtualAddress -> network?.group(address.address)?.name
-                        ?: stringResource(R.string.label_unknown)
-
-                    is GroupAddress -> network?.group(address.address)?.name
-                        ?: stringResource(R.string.label_unknown)
-
-                    is FixedGroupAddress -> address.name()
-                },
-                subtitle = if (address is UnicastAddress) {
-                    "${network?.node(address.address)?.name ?: "Unknown"} : 0x${address.toHexString()}"
-                } else null
+@Composable
+private fun Addresses(
+    network: MeshNetwork,
+    onAddressClicked: ((ProxyFilterAddress) -> Unit),
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = stringResource(R.string.label_elements)
+        )
+        network.nodes.flatMap { it.elements }.forEach { element ->
+            AddressRow(
+                network = network,
+                address = element.unicastAddress,
+                onClick = { onAddressClicked(element.unicastAddress as ProxyFilterAddress) }
             )
         }
+        if (network.groups.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(R.string.label_groups)
+            )
+        }
+        network.groups.forEach { group ->
+            AddressRow(
+                address = group.address as ProxyFilterAddress,
+                network = network,
+                onClick = { onAddressClicked(group.address as ProxyFilterAddress) }
+            )
+        }
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = stringResource(R.string.label_fixed_group_addresses)
+        )
+        fixedGroupAddresses.forEach { destination ->
+            AddressRow(
+                address = destination as ProxyFilterAddress,
+                network = network,
+                onClick = { onAddressClicked(destination) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddressRow(
+    address: ProxyFilterAddress,
+    network: MeshNetwork?,
+    onClick: (() -> Unit)? = null,
+) {
+    ElevatedCardItem(
+        imageVector = Icons.Outlined.Lan,
+        title = when (address) {
+            is UnicastAddress -> network?.element(address.address)?.name
+                ?: stringResource(R.string.label_unknown)
+
+            is VirtualAddress -> network?.group(address.address)?.name
+                ?: stringResource(R.string.label_unknown)
+
+            is GroupAddress -> network?.group(address.address)?.name
+                ?: stringResource(R.string.label_unknown)
+
+            is FixedGroupAddress -> address.name()
+        },
+        subtitle = if (address is UnicastAddress) {
+            "${network?.node(address.address)?.name ?: "Unknown"} : 0x${address.toHexString()}"
+        } else null,
+        onClick = onClick
     )
 }

@@ -59,11 +59,13 @@ internal class ProxyViewModel @Inject internal constructor(
                     )
                 }
 
-                is ProxyFilterState.ProxyFilterLimitReached -> {
+                is ProxyFilterState.ProxyFilterLimitReached ->
                     _uiState.value = _uiState.value.copy(
                         filterType = it.type,
                         isProxyLimitReached = true
                     )
+                else -> {
+
                 }
             }
         }.launchIn(scope = viewModelScope)
