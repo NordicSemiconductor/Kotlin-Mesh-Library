@@ -84,9 +84,18 @@ sealed class ProxyFilterState {
     data class ProxyFilterUpdated internal constructor(
         val type: ProxyFilterType,
         val addresses: List<ProxyFilterAddress>,
-    ) : ProxyFilterState() {
-        override fun toString() = "Proxy Filter Updated(filter : $type, addresses: $addresses)"
-    }
+    ) : ProxyFilterState()
+
+    /**
+     * State defining when the Proxy filter has been acknowledged by the proxy.
+     *
+     * @property type     Filter type.
+     * @property listSize List of addresses.
+     */
+    data class ProxyFilterUpdateAcknowledged internal constructor(
+        val type: ProxyFilterType,
+        val listSize: UShort,
+    ) : ProxyFilterState()
 
     /**
      * State defining when the Proxy filter limit has been reached.
@@ -418,14 +427,13 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 expectedListSize = addresses.size + request.addresses.size
                                 val addedAddresses = request.addresses
                                     .sortedBy { it.address }
-                                    .take(message.listSize.toInt())
+                                    .take(message.listSize.toInt() - addresses.size)
                                 _addresses = addedAddresses.union(_addresses).toMutableList()
                             }
 
                             is RemoveAddressesFromFilter -> {
-                                request.addresses.forEach {
-                                    _addresses.remove(element = it)
-                                }
+                                _addresses.removeAll(request.addresses)
+                                //_addresses = request.addresses.subtract(_addresses).toMutableList()
                                 expectedListSize = addresses.size
                             }
 
@@ -435,8 +443,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 expectedListSize = 0
                             }
 
-                            else -> { /* Ignore */
-                            }
+                            else -> { /* Ignore */ }
                         }
                         this.request = null
                     }
@@ -452,7 +459,8 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                 // Ensure the current information about the filter is up to date.
                 if (type != message.filterType || expectedListSize != message.listSize.toInt()) {
                     logger?.w(LogCategory.PROXY) {
-                        "Proxy Filter limit reached: ${message.listSize} (expected: $expectedListSize)"
+                        "Proxy Filter limit reached: ${message.listSize} " +
+                                "(expected: $expectedListSize)"
                     }
                     _proxyFilterStateFlow.emit(
                         value = ProxyFilterState.ProxyFilterLimitReached(
@@ -460,7 +468,13 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                             listSize = message.listSize
                         )
                     )
-                    return
+                } else {
+                    _proxyFilterStateFlow.emit(
+                        value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
+                            type = message.filterType,
+                            listSize = message.listSize
+                        )
+                    )
                 }
             }
 
