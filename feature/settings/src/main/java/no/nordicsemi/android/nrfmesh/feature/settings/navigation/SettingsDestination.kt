@@ -30,6 +30,7 @@ fun NavGraphBuilder.settingsListDetailsScreen() {
             uiState = uiState,
             onItemSelected = viewModel::onItemSelected,
             onNameChanged = viewModel::onNameChanged,
+            moveProvisioner = viewModel::moveProvisioner,
             save = viewModel::save
         )
     }

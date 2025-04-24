@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -34,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -109,14 +113,29 @@ private fun Provisioners(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            item { SectionTitle(title = stringResource(id = R.string.label_provisioners)) }
-            items(items = provisioners, key = { it.uuid }) { provisioner ->
+            itemsIndexed(
+                items = provisioners,
+                key = { _, item -> item.uuid }
+            ) { index, item ->
+                if (index == 0) {
+                    SectionTitle(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        title = stringResource(id = R.string.label_this_provisioner)
+                    )
+                }
+                if (index == 1) {
+                    SectionTitle(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        title = stringResource(id = R.string.label_other_provisioner)
+                    )
+                }
                 SwipeToDismissProvisioner(
-                    provisioner = provisioner,
+                    index = index,
+                    provisioner = item,
                     scope = scope,
                     context = context,
                     snackbarHostState = snackbarHostState,
-                    isSelected = selectedUuid == provisioner.uuid && highlightSelectedItem,
+                    isSelected = selectedUuid == item.uuid && highlightSelectedItem,
                     navigateToProvisioner = {
                         selectedUuid = it
                         navigateToProvisioner(it)
@@ -143,6 +162,7 @@ private fun SwipeToDismissProvisioner(
     remove: (ProvisionerData) -> Unit,
     isSelected: Boolean = false,
     isOnlyProvisioner: () -> Boolean,
+    index: Int,
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
@@ -159,15 +179,9 @@ private fun SwipeToDismissProvisioner(
         dismissState = dismissState,
         content = {
             ElevatedCardItem(
-                colors = when (isSelected) {
-                    true -> CardDefaults.outlinedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-
-                    else -> CardDefaults.outlinedCardColors()
-                },
+                colors = isSelected.selectedColor(),
                 onClick = { navigateToProvisioner(provisioner.uuid) },
-                imageVector = Icons.Outlined.PersonOutline,
+                imageVector = index.toImageVector(),
                 title = provisioner.name,
                 subtitle = provisioner.address?.let {
                     "0x${it.toHexString()}"
@@ -207,7 +221,6 @@ private fun handleValueChange(
     snackbarHostState: SnackbarHostState,
     isOnlyProvisioner: () -> Boolean,
 ): Boolean = when {
-
     isOnlyProvisioner() -> {
         scope.launch {
             snackbarHostState.showSnackbar(
@@ -218,4 +231,21 @@ private fun handleValueChange(
     }
 
     else -> true
+}
+
+@Composable
+private fun Boolean.selectedColor(): CardColors {
+    return when (this) {
+        true -> CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+
+        else -> CardDefaults.outlinedCardColors()
+    }
+}
+
+@Composable
+private fun Int.toImageVector(): ImageVector = when (this.toInt() == 0) {
+    true -> Icons.Filled.PersonPin
+    false -> Icons.Outlined.PersonOutline
 }

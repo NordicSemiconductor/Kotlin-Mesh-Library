@@ -27,6 +27,7 @@ import no.nordicsemi.android.nrfmesh.feature.settings.SettingsDetailsPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsExtraPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreenUiState
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -35,6 +36,7 @@ internal fun SettingsListDetailsScreen(
     uiState: SettingsScreenUiState,
     onItemSelected: (ClickableSetting) -> Unit,
     onNameChanged: (String) -> Unit,
+    moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -146,6 +148,7 @@ internal fun SettingsListDetailsScreen(
                             network = uiState.networkState.network,
                             settingsListData = uiState.networkState.settingsListData,
                             content = content,
+                            moveProvisioner = moveProvisioner,
                             save = save
                         )
                     }

@@ -13,6 +13,7 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,8 +59,15 @@ class SettingsViewModel @Inject constructor(
         save()
     }
 
+    fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
+        viewModelScope.launch {
+            network.move(provisioner, newIndex)
+            repository.save()
+        }
+    }
+
     fun save() {
-        viewModelScope.launch { repository.save() }
+        repository.save()
     }
 }
 
