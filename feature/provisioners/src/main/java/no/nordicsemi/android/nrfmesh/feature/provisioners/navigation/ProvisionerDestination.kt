@@ -13,15 +13,19 @@ data class ProvisionerContent(val uuid: UUID) : Parcelable
 
 @Composable
 fun ProvisionerScreenRoute(
+    index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherProvisioners: List<Provisioner>,
+    moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit
 ) {
     ProvisionerRoute(
+        index = index,
         provisioner = provisioner,
         provisionerData = provisionerData,
         otherProvisioners = otherProvisioners,
+        moveProvisioner = moveProvisioner,
         save = save
     )
 }

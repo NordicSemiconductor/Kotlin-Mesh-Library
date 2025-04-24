@@ -16,24 +16,29 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.Provisioner
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreenRoute
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 @Composable
 internal fun SettingsExtraPane(
     network: MeshNetwork,
     settingsListData: SettingsListData,
     content: Any?,
+    moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit,
 ) {
     when (content) {
         is ProvisionerContent -> {
+            val provisioner = network.provisioners
+                .firstOrNull { it.uuid == content.uuid }
+                ?: return
             ProvisionerScreenRoute(
-                provisioner = network.provisioners
-                    .firstOrNull { it.uuid == content.uuid }
-                    ?: return,
+                index = network.provisioners.indexOf(element = provisioner),
+                provisioner = provisioner,
                 provisionerData = settingsListData.provisioners
                     .firstOrNull { it.uuid == content.uuid }
                     ?: return,
                 otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
+                moveProvisioner = moveProvisioner,
                 save = save
             )
         }

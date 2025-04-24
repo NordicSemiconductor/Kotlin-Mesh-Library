@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.RemoveModerator
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,9 +83,11 @@ import no.nordicsemi.kotlin.mesh.core.model.plus
 
 @Composable
 internal fun ProvisionerRoute(
+    index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherProvisioners: List<Provisioner>,
+    moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -125,6 +128,9 @@ internal fun ProvisionerRoute(
             )
             if (provisionerData.hasConfigurationCapabilities) {
                 DeviceKey(key = provisionerData.deviceKey)
+            }
+            if(index != 0) {
+                MoveProvisioner(index = index, provisioner = provisioner, moveProvisioner = moveProvisioner)
             }
             SectionTitle(title = stringResource(R.string.label_allocated_ranges))
             UnicastRanges(
@@ -186,7 +192,6 @@ internal fun ProvisionerRoute(
         }
     }
 }
-
 
 @Composable
 fun Name(
@@ -428,6 +433,28 @@ private fun DeviceKey(key: String?) {
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
         subtitle = key ?: stringResource(R.string.label_not_applicable)
+    )
+}
+
+@Composable
+fun MoveProvisioner(
+    index: Int,
+    provisioner: Provisioner,
+    moveProvisioner: (Provisioner, Int) -> Unit,
+) {
+    var checked by remember { mutableStateOf(index == 0) }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = "Set as Local Provisioner",
+        titleAction = {
+            Checkbox(
+                checked = checked,
+                onCheckedChange = {
+                    moveProvisioner(provisioner, if(it) 0 else index)
+                }
+            )
+        }
     )
 }
 
