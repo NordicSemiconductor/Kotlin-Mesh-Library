@@ -18,10 +18,6 @@ android {
 dependencies {
 
     implementation(libs.nordic.theme)
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
-    implementation(libs.nordic.blek.scanner)
-    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -34,13 +30,13 @@ dependencies {
     // implementation(libs.kotlinx.coroutines)
 
     // Material3
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha09")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha13")
 
     // Adaptive layouts
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0-rc01")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0-rc01")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-rc01")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha09")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha13")
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))

@@ -2,7 +2,8 @@
 
 package no.nordicsemi.android.kotlin.mesh.bearer.android.utils
 
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Base interface for Mesh service objects.
@@ -11,10 +12,11 @@ import java.util.UUID
  * @property dataInUuid      UUID of the Data In characteristic
  * @property dataOutUuid     UUID of the Data Out characteristic.
  */
+@OptIn(ExperimentalUuidApi::class)
 interface MeshService {
-    var uuid: UUID
-    var dataInUuid: UUID
-    var dataOutUuid: UUID
+    var uuid: Uuid
+    var dataInUuid: Uuid
+    var dataOutUuid: Uuid
 }
 
 /**
@@ -23,10 +25,11 @@ interface MeshService {
  *
  * This is used to send provisioning messages over gatt.
  */
+@OptIn(ExperimentalUuidApi::class)
 object MeshProvisioningService : MeshService {
-    override var uuid: UUID = UUID.fromString("00001827-0000-1000-8000-00805f9b34fb")
-    override var dataInUuid: UUID = UUID.fromString("00002adb-0000-1000-8000-00805f9b34fb")
-    override var dataOutUuid: UUID = UUID.fromString("00002adc-0000-1000-8000-00805f9b34fb")
+    override var uuid: Uuid = Uuid.parse("00001827-0000-1000-8000-00805f9b34fb")
+    override var dataInUuid: Uuid = Uuid.parse("00002adb-0000-1000-8000-00805f9b34fb")
+    override var dataOutUuid: Uuid = Uuid.parse("00002adc-0000-1000-8000-00805f9b34fb")
 }
 
 /**
@@ -35,8 +38,9 @@ object MeshProvisioningService : MeshService {
  *
  * This is used to send mesh messages over gatt.
  */
+@OptIn(ExperimentalUuidApi::class)
 object MeshProxyService : MeshService {
-    override var uuid: UUID = UUID.fromString("00001828-0000-1000-8000-00805f9b34fb")
-    override var dataInUuid: UUID = UUID.fromString("00002add-0000-1000-8000-00805f9b34fb")
-    override var dataOutUuid: UUID = UUID.fromString("00002ade-0000-1000-8000-00805f9b34fb")
+    override var uuid: Uuid = Uuid.parse("00001828-0000-1000-8000-00805f9b34fb")
+    override var dataInUuid: Uuid = Uuid.parse("00002add-0000-1000-8000-00805f9b34fb")
+    override var dataOutUuid: Uuid = Uuid.parse("00002ade-0000-1000-8000-00805f9b34fb")
 }

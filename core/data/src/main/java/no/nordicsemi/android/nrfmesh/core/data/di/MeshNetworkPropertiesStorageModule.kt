@@ -11,7 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoSecurePropertiesMapSerializer
 import javax.inject.Singleton
 

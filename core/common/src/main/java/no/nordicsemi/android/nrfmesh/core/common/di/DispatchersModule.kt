@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package no.nordicsemi.android.nrfmesh.core.common.dispatchers.di
+package no.nordicsemi.android.nrfmesh.core.common.di
 
 import dagger.Module
 import dagger.Provides

@@ -45,10 +45,11 @@ include(":feature:config-network-keys")
 include(":feature:application-keys")
 include(":feature:bind-app-keys")
 include(":feature:config-application-keys")
-include(":feature:scenes")
 include(":feature:provisioners")
-include(":feature:ranges")
 include(":feature:provisioning")
+include(":feature:ranges")
+include(":feature:scenes")
+include(":feature:scanner")
 include(":feature:mesh-bearer-android")
 include(":feature:mesh-bearer-gatt")
 include(":feature:mesh-bearer-pbgatt")
@@ -72,3 +73,8 @@ include(":mesh:bearer-provisioning")
 // if (file("../Kotlin-Util-Library").exists()) {
 //     includeBuild("../Kotlin-Util-Library")
 // }
+
+if (file("../Kotlin-BLE-Library").exists()) {
+    includeBuild("../Kotlin-BLE-Library")
+}
+

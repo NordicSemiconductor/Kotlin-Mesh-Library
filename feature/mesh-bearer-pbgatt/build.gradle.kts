@@ -9,13 +9,11 @@ android {
 
 dependencies {
     api(project(":feature:mesh-bearer-android"))
-    api(project(":mesh:bearer-provisioning"))
-    implementation(project(":mesh:provisioning"))
-    implementation("androidx.test.ext:junit-ktx:1.2.1")
-    implementation(libs.nordic.kotlin.data)
+    api(project(":mesh:provisioning"))
 
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
+    implementation("androidx.test.ext:junit-ktx:1.2.1")
+
+    implementation(libs.nordic.kotlin.data)
 
     testImplementation("junit:junit:4.13.2")
 }

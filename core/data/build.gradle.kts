@@ -14,10 +14,6 @@ wire {
 }
 
 dependencies {
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
-    implementation(libs.nordic.blek.scanner)
-    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
     // implementation(libs.nordic.scanner)
@@ -38,7 +34,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.rules)
 
     implementation(project(":core:ui"))
-    implementation(project(":core:common"))
+    api(project(":core:common"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
     implementation(project(":feature:mesh-bearer-android"))

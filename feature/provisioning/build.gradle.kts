@@ -15,10 +15,6 @@ dependencies {
     implementation(libs.nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
-    implementation(libs.nordic.blek.scanner)
-    implementation(libs.nordic.blek.uiscanner)
     implementation(libs.nordic.permissions.ble)
 
     testImplementation(libs.junit4)
@@ -35,6 +31,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:scanner"))
     implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:mesh-bearer-pbgatt"))
     implementation(project(":mesh:core"))
