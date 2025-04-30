@@ -8,11 +8,12 @@ android {
 }
 
 dependencies {
+
+    api(project(":core:common"))
     api(project(":mesh:bearer"))
+    // api("no.nordicsemi.kotlin.ble:client-android")
 
     implementation(libs.androidx.core)
-    implementation(libs.nordic.blek.core)
-    implementation(libs.nordic.blek.client)
     implementation(libs.nordic.kotlin.data)
 
     testImplementation("junit:junit:4.13.2")

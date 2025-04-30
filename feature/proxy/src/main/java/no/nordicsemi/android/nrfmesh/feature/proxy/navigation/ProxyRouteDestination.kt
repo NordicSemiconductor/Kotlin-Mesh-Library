@@ -32,8 +32,8 @@ fun NavGraphBuilder.proxyFilterGraph() {
             onLocationEnabled = viewModel::onLocationEnabled,
             onAutoConnectToggled = viewModel::onAutoConnectToggled,
             onDisconnectClicked = viewModel::disconnect,
-            onDeviceFound = { context, results ->
-                viewModel.connect(context = context, results = results)
+            onScanResultSelected = { context, result ->
+                viewModel.connect(context = context, result = result)
             },
             send = viewModel::send,
             resetMessageState = viewModel::resetMessageState,

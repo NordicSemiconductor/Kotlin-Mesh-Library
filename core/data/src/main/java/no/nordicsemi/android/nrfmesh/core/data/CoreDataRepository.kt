@@ -3,7 +3,6 @@ package no.nordicsemi.android.nrfmesh.core.data
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import android.os.ParcelUuid
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -24,16 +23,13 @@ import kotlinx.coroutines.withContext
 import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
 import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
 import no.nordicsemi.android.common.permissions.ble.util.BlePermissionState
-import no.nordicsemi.android.kotlin.ble.core.ServerDevice
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanFilter
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
-import no.nordicsemi.android.kotlin.ble.core.scanner.FilteredServiceUuid
-import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.DefaultDispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
+import no.nordicsemi.kotlin.ble.client.android.CentralManager
+import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
@@ -63,6 +59,7 @@ import no.nordicsemi.kotlin.mesh.logger.LogLevel
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
 private object PreferenceKeys {
     val PROXY_AUTO_CONNECT = booleanPreferencesKey("proxy_auto_connect")
@@ -74,8 +71,8 @@ class CoreDataRepository @Inject constructor(
     locationStateManager: LocationStateManager,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
-    private val scanner: BleScanner,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val centralManager: CentralManager,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
@@ -93,10 +90,11 @@ class CoreDataRepository @Inject constructor(
         get() = meshNetworkManager.proxyFilter
 
     init {
+        println("CoreDataRepository init: $centralManager")
         meshNetworkManager.logger = this
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] ?: false
+                autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
         }.launchIn(CoroutineScope(defaultDispatcher))
 
@@ -110,9 +108,8 @@ class CoreDataRepository @Inject constructor(
         // Start automatic connectivity when the network changes
 
         // TODO need to check this on
-        network.onEach {
-            meshNetwork = it
-        }.launchIn(scope = CoroutineScope(defaultDispatcher))
+        network.onEach { meshNetwork = it }
+            .launchIn(scope = CoroutineScope(defaultDispatcher))
     }
 
     /**
@@ -185,9 +182,8 @@ class CoreDataRepository @Inject constructor(
      * Saves the mesh network.
      */
     fun save() {
-        CoroutineScope(context = ioDispatcher).launch {
-            meshNetworkManager.save()
-        }
+        CoroutineScope(context = ioDispatcher)
+            .launch { meshNetworkManager.save() }
     }
 
     /**
@@ -219,38 +215,42 @@ class CoreDataRepository @Inject constructor(
      * @param device  Server device
      * @return [PbGattBearer] instance
      */
-    suspend fun connectOverPbGattBearer(context: Context, device: ServerDevice) =
+    suspend fun connectOverPbGattBearer(context: Context, device: Peripheral) =
         withContext(defaultDispatcher) {
             if (bearer is GattBearer) bearer?.close()
-            PbGattBearer(context = context, device = device).also {
-                it.open()
-                bearer = it
-            }
+            PbGattBearer(context = context, centralManager = centralManager, peripheral = device)
+                .also {
+                    it.open()
+                    bearer = it
+                }
         }
 
     /**
      * Connects to the provisioned node over Gatt bearer.
      *
-     * @param context Android context
-     * @param device  Server device
-     * @return [PbGattBearer] instance
+     * @param context          Android context
+     * @param peripheral       Server device
+     * @return [PbGattBearer]  instance
      */
-    suspend fun connectOverGattBearer(context: Context, device: ServerDevice) =
+    suspend fun connectOverGattBearer(context: Context, peripheral: Peripheral) =
         withContext(defaultDispatcher) {
             if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Connecting(device = device)
+                connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
-            GattBearer(context = context, device = device).also {
-                meshNetworkManager.setMeshBearerType(meshBearer = it)
-                bearer = it
-                it.open()
-                if (it.isOpen) {
-                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                        connectionState = NetworkConnectionState.Connected(device = device)
-                    )
+            GattBearer(context = context, centralManager = centralManager, peripheral = peripheral)
+                .also {
+                    meshNetworkManager.setMeshBearerType(meshBearer = it)
+                    bearer = it
+                    it.open()
+                    if (it.isOpen) {
+                        _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
+                            .value.copy(connectionState = NetworkConnectionState.Connected(
+                                peripheral = peripheral
+                            )
+                        )
+                    }
                 }
-            }
         }
 
     /**
@@ -304,10 +304,11 @@ class CoreDataRepository @Inject constructor(
         if (connectionRequested) return
         connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
-        val device = scanForProxy(meshNetwork)
-        val bearer = connectOverGattBearer(context = context, device = device)
+        val peripheral = scanForProxy(meshNetwork)
+        val bearer = connectOverGattBearer(context = context, peripheral = peripheral)
         bearer.state.filter { it is BearerEvent.Closed }.first()
         connectionRequested = false
+        // Retry connecting
         connectToProxy(meshNetwork)
     }
 
@@ -315,34 +316,32 @@ class CoreDataRepository @Inject constructor(
      * Scans for the proxy node.
      *
      * @param meshNetwork Mesh network required to match the proxy node.
-     * @return [BleScanResult] containing the proxy node.
+     * @return the peripheral containing the proxy node.
      */
+    @OptIn(ExperimentalUuidApi::class)
     @SuppressLint("MissingPermission")
-    suspend fun scanForProxy(meshNetwork: MeshNetwork?): ServerDevice {
+    suspend fun scanForProxy(meshNetwork: MeshNetwork?): Peripheral {
         _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
             connectionState = NetworkConnectionState.Scanning
         )
-        return scanner.scan(
-            filters = listOf(
-                BleScanFilter(
-                    serviceUuid = FilteredServiceUuid(uuid = ParcelUuid(MeshProxyService.uuid))
-                )
-            )
-        ).first {
-            val serviceData =
-                it.data?.scanRecord?.serviceData?.get(ParcelUuid(MeshProxyService.uuid))
-            serviceData?.takeIf {
-                serviceData.size != 0
-            }?.let { data ->
-                meshNetwork?.let { network ->
-                    data.value.nodeIdentity()?.let { nodeIdentity ->
-                        network.matches(nodeIdentity)
-                    } ?: data.value.networkIdentity()?.let { networkId ->
-                        network.matches(networkId)
-                    } ?: false
-                } ?: false
-            } ?: false
-        }.device
+        return centralManager
+            .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
+            .first {
+                val serviceData = it.advertisingData.serviceData[MeshProxyService.uuid]
+                serviceData?.takeIf {
+                    serviceData.isNotEmpty()
+                }?.let { data ->
+                    meshNetwork?.let { network ->
+                        data.run {
+                            when {
+                                nodeIdentity() != null -> network.matches(nodeIdentity()!!)
+                                networkIdentity() != null -> network.matches(networkIdentity()!!)
+                                else -> false
+                            }
+                        }
+                    } == false
+                } == false
+            }.peripheral
     }
 
     /**
@@ -405,8 +404,8 @@ class CoreDataRepository @Inject constructor(
 
 sealed class NetworkConnectionState {
     data object Scanning : NetworkConnectionState()
-    data class Connecting(val device: ServerDevice) : NetworkConnectionState()
-    data class Connected(val device: ServerDevice) : NetworkConnectionState()
+    data class Connecting(val peripheral: Peripheral) : NetworkConnectionState()
+    data class Connected(val peripheral: Peripheral) : NetworkConnectionState()
     data object Disconnected : NetworkConnectionState()
 }
 

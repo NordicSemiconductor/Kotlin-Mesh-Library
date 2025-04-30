@@ -11,10 +11,10 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
 import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
-import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.DefaultDispatcher
-import no.nordicsemi.android.nrfmesh.core.common.dispatchers.di.IoDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
 
@@ -29,6 +29,7 @@ object CoreDataRepositoryModule {
         preferences: DataStore<Preferences>,
         bluetoothStateManager: BluetoothStateManager,
         locationStateManager: LocationStateManager,
+        centralManager: CentralManager,
         meshNetworkManager: MeshNetworkManager,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
@@ -37,7 +38,7 @@ object CoreDataRepositoryModule {
         preferences = preferences,
         bluetoothStateManager = bluetoothStateManager,
         locationStateManager = locationStateManager,
-        scanner = BleScanner(context),
+        centralManager = centralManager,
         meshNetworkManager = meshNetworkManager,
         ioDispatcher = ioDispatcher,
         defaultDispatcher = defaultDispatcher

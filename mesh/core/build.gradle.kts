@@ -4,9 +4,9 @@ plugins {
 }
 
 dependencies {
+    api(project(":mesh:bearer"))
     api(project(":mesh:crypto"))
     api(project(":mesh:logger"))
-    implementation(project(":mesh:bearer"))
     implementation(libs.nordic.kotlin.data)
 
     implementation(libs.kotlinx.serialization.json)

@@ -3,7 +3,6 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import android.content.Context
-import android.os.ParcelUuid
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,15 +46,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicLightGray
 import no.nordicsemi.android.common.theme.nordicRed
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
-import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
-import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
-import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
+import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
@@ -64,11 +61,12 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
 
 @Composable
 internal fun ProvisioningRoute(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Context, BleScanResults) -> Unit,
+    beginProvisioning: (Context, ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -107,7 +105,7 @@ internal fun ProvisioningRoute(
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Context, BleScanResults) -> Unit,
+    beginProvisioning: (Context, ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -126,7 +124,7 @@ private fun ProvisionerScreen(
     var showAuthenticationDialog by remember { mutableStateOf(false) }
 
     ScannerSection(
-        onDeviceFound = {
+        onScanResultSelected = {
             beginProvisioning(context, it)
             openDeviceCapabilitiesSheet = true
         }
@@ -193,36 +191,12 @@ private fun ProvisionerScreen(
     }
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
-private fun ScannerSection(onDeviceFound: (BleScanResults) -> Unit) {
-    var unprovisionedDevice by remember {
-        mutableStateOf<UnprovisionedDevice?>(null)
-    }
-    val filters = listOf(
-        WithServiceUuid(
-            title = "Unprovisioned",
-            uuid = ParcelUuid(MeshProvisioningService.uuid),
-            initiallySelected = false
-        )
-    )
-    ScannerView(
-        filters = filters,
-        onResult = { result ->
-            result.lastScanResult?.scanRecord?.bytes?.let { bytes ->
-                unprovisionedDevice = UnprovisionedDevice.from(bytes.value)
-            }?.let {
-                onDeviceFound(result)
-            }
-        },
-        deviceItem = {
-            DeviceListItem(
-                modifier = Modifier.padding(vertical = 16.dp),
-                name = it.device.name,
-                address = /*it.lastScanResult?.scanRecord?.bytes?.let { bytes ->
-                    UnprovisionedDevice.from(bytes.value).uuid.toString().uppercase()
-                } ?:*/ it.device.address
-            )
-        },
+private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
+    ScannerScreenRoute(
+        uuid = MeshProvisioningService.uuid,
+        onScanResultSelected = onScanResultSelected
     )
 }
 

@@ -45,7 +45,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 fun AuthenticationDialog(
     action: AuthAction,
     onOkClicked: (AuthAction, String) -> Unit,
-    onCancelClicked: () -> Unit
+    onCancelClicked: () -> Unit,
 ) {
     var showAuthDialog by rememberSaveable { mutableStateOf(true) }
     var authValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -106,7 +106,8 @@ fun AuthenticationDialog(
 private fun shouldEnable(action: AuthAction, authValue: String): Boolean {
     return when (action) {
         is AuthAction.DisplayAlphaNumeric,
-        is AuthAction.DisplayNumber -> true
+        is AuthAction.DisplayNumber,
+            -> true
 
         is AuthAction.ProvideAlphaNumeric -> authValue.length <= action.maxNumberOfCharacters.toInt()
         is AuthAction.ProvideNumeric -> authValue.length <= action.maxNumberOfDigits.toInt()
@@ -123,7 +124,7 @@ private fun shouldEnable(action: AuthAction, authValue: String): Boolean {
 private fun AuthRow(
     action: AuthAction,
     authValue: TextFieldValue,
-    onValueChanged: (TextFieldValue) -> Unit
+    onValueChanged: (TextFieldValue) -> Unit,
 ) {
     val context = LocalContext.current
     when (action) {
@@ -156,7 +157,7 @@ private fun AuthRow(
 
 @Composable
 private fun DisplayAlphaNumeric(
-    action: AuthAction.DisplayAlphaNumeric
+    action: AuthAction.DisplayAlphaNumeric,
 ) {
     val message = stringResource(id = R.string.label_display_alpha_numeric_rationale, action.text)
     val start = message.indexOf(action.text)
@@ -175,7 +176,7 @@ private fun DisplayAlphaNumeric(
 
 @Composable
 private fun DisplayNumber(
-    action: AuthAction.DisplayNumber
+    action: AuthAction.DisplayNumber,
 ) {
     val number = action.number.toString()
     val message = stringResource(id = R.string.label_display_alpha_numeric_rationale, number)
@@ -198,7 +199,7 @@ private fun ProvideAlphaNumeric(
     context: Context,
     length: Int,
     authValue: TextFieldValue,
-    onValueChanged: (TextFieldValue) -> Unit
+    onValueChanged: (TextFieldValue) -> Unit,
 ) {
     Text(
         text = stringResource(id = R.string.label_provide_alpha_numeric_rationale),
@@ -241,7 +242,7 @@ private fun ProvideNumeric(
     context: Context,
     length: Int,
     authValue: TextFieldValue,
-    onValueChanged: (TextFieldValue) -> Unit
+    onValueChanged: (TextFieldValue) -> Unit,
 ) {
     Text(
         text = stringResource(id = R.string.label_provide_numeric_rationale),
@@ -284,7 +285,7 @@ private fun ProvideStaticKey(
     context: Context,
     length: Int,
     authValue: TextFieldValue,
-    onValueChanged: (TextFieldValue) -> Unit
+    onValueChanged: (TextFieldValue) -> Unit,
 ) {
     Text(
         text = stringResource(id = R.string.label_provide_static_key_rationale, length * 2),
@@ -307,7 +308,7 @@ private fun ProvideStaticKey(
         },
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Characters,
-            autoCorrect = false
+            autoCorrectEnabled = false,
         ),
         placeholder = { TextFieldValue(text = "") },
         supportingText = {

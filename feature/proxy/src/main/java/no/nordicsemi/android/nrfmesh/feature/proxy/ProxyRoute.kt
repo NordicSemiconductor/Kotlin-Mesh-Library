@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import android.content.Context
-import android.os.ParcelUuid
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
@@ -45,10 +43,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
-import no.nordicsemi.android.kotlin.ble.ui.scanner.ScannerView
-import no.nordicsemi.android.kotlin.ble.ui.scanner.WithServiceUuid
-import no.nordicsemi.android.kotlin.ble.ui.scanner.main.DeviceListItem
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
@@ -62,6 +56,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
+import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.AddAddressesToFilter
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -73,6 +69,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -81,7 +78,7 @@ internal fun ProxyRoute(
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     onAutoConnectToggled: (Boolean) -> Unit,
-    onDeviceFound: (Context, BleScanResults) -> Unit,
+    onScanResultSelected: (Context, ScanResult) -> Unit,
     onDisconnectClicked: () -> Unit,
     send: (ProxyConfigurationMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -95,7 +92,7 @@ internal fun ProxyRoute(
                 ProxyFilterInfo(
                     proxyConnectionState = uiState.proxyConnectionState,
                     onAutoConnectToggled = onAutoConnectToggled,
-                    onDeviceFound = onDeviceFound,
+                    onScanResultSelected = onScanResultSelected,
                     onDisconnectClicked = onDisconnectClicked
                 )
                 FilterSection(
@@ -119,8 +116,10 @@ private fun ProxyFilterInfo(
     proxyConnectionState: ProxyConnectionState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
-    onDeviceFound: (Context, BleScanResults) -> Unit,
+    onScanResultSelected: (Context, ScanResult) -> Unit,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
     val proxyScannerSheetState = rememberModalBottomSheetState()
     AutomaticConnectionRow(
@@ -136,9 +135,16 @@ private fun ProxyFilterInfo(
         ) {
             SectionTitle(title = stringResource(R.string.label_proxies))
             ScannerSection(
-                onDeviceFound = { context, results ->
+                onScanResultSelected = { result ->
                     showProxyScannerSheet = false
-                    onDeviceFound(context, results)
+                    onScanResultSelected(context, result)
+                    scope.launch {
+                        proxyScannerSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!proxyScannerSheetState.isVisible) {
+                            showProxyScannerSheet = false
+                        }
+                    }
                 }
             )
         }
@@ -184,25 +190,12 @@ private fun AutomaticConnectionRow(
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
-private fun ScannerSection(
-    onDeviceFound: (Context, BleScanResults) -> Unit,
-) {
-    val context = LocalContext.current
-    val filters = listOf(
-        WithServiceUuid(title = "Provisioned", uuid = ParcelUuid(MeshProxyService.uuid))
-    )
-    ScannerView(
-        filters = filters,
-        onResult = { onDeviceFound(context, it) },
-        filterShape = MaterialTheme.shapes.small,
-        deviceItem = {
-            DeviceListItem(
-                modifier = Modifier.padding(vertical = 16.dp),
-                name = it.device.name,
-                address = it.device.address
-            )
-        },
+private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
+    ScannerScreenRoute(
+        uuid = MeshProxyService.uuid,
+        onScanResultSelected = onScanResultSelected
     )
 }
 
@@ -210,11 +203,11 @@ private fun ScannerSection(
 private fun NetworkConnectionState.describe() = when (this) {
     NetworkConnectionState.Scanning -> stringResource(R.string.label_scanning)
     is NetworkConnectionState.Connecting -> stringResource(
-        R.string.label_connecting_to, device.name ?: R.string.label_unknown
+        R.string.label_connecting_to, peripheral.name ?: R.string.label_unknown
     )
 
     is NetworkConnectionState.Connected -> stringResource(
-        R.string.label_connected_to, device.name ?: R.string.label_unknown
+        R.string.label_connected_to, peripheral.name ?: R.string.label_unknown
     )
 
     NetworkConnectionState.Disconnected -> stringResource(R.string.label_proxy_disconnected)

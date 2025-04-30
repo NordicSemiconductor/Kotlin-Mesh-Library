@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResults
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
@@ -17,6 +16,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.ProxyConnectionState
+import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterState
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -77,19 +77,17 @@ internal class ProxyViewModel @Inject internal constructor(
         }
     }
 
-    internal fun connect(context: Context, results: BleScanResults) {
+    internal fun connect(context: Context, result: ScanResult) {
         viewModelScope.launch {
             repository.run {
                 disconnect()
-                connectOverGattBearer(context = context, device = results.device)
+                connectOverGattBearer(context = context, peripheral = result.peripheral)
             }
         }
     }
 
     internal fun disconnect() {
-        viewModelScope.launch {
-            repository.disconnect()
-        }
+        viewModelScope.launch { repository.disconnect() }
     }
 
     internal fun onBluetoothEnabled(enabled: Boolean) {

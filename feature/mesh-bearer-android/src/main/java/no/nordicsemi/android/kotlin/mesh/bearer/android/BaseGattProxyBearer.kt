@@ -13,17 +13,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
-import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
-import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattCharacteristic
-import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
-import no.nordicsemi.android.kotlin.ble.core.ServerDevice
-import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
-import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
-import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
+import no.nordicsemi.kotlin.ble.client.RemoteCharacteristic
+import no.nordicsemi.kotlin.ble.client.RemoteService
+import no.nordicsemi.kotlin.ble.client.android.CentralManager
+import no.nordicsemi.kotlin.ble.client.android.Peripheral
+import no.nordicsemi.kotlin.ble.core.ConnectionState
+import no.nordicsemi.kotlin.ble.core.WriteType
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
@@ -33,6 +33,7 @@ import no.nordicsemi.kotlin.mesh.bearer.PduTypes
 import no.nordicsemi.kotlin.mesh.bearer.ProxyProtocolHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Base implementation of the GATT Proxy Bearer.
@@ -46,7 +47,8 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
  */
 abstract class BaseGattProxyBearer<MeshService>(
     protected val context: Context,
-    protected val device: ServerDevice
+    protected val centralManager: CentralManager,
+    protected val peripheral: Peripheral,
 ) : Bearer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _pdus = MutableSharedFlow<Pdu>()
@@ -67,43 +69,41 @@ abstract class BaseGattProxyBearer<MeshService>(
     override val isGatt: Boolean = true
     private var isOpened = false
     private lateinit var queue: Array<ByteArray>
-    protected lateinit var dataInCharacteristic: ClientBleGattCharacteristic
-    protected lateinit var dataOutCharacteristic: ClientBleGattCharacteristic
-
-    private var client: ClientBleGatt? = null
+    protected lateinit var dataInCharacteristic: RemoteCharacteristic
 
     private var logger: Logger? = null
 
-    abstract suspend fun configureGatt(services: ClientBleGattServices)
+    abstract suspend fun configureGatt(services: List<RemoteService>)
 
+    @OptIn(ExperimentalUuidApi::class)
     @SuppressLint("MissingPermission")
     override suspend fun open() {
-        client = ClientBleGatt.connect(context = context, device = device, scope = scope).takeIf {
-            it.isConnected
-        }?.let { client ->
-            observeConnectionState(client)
-            // Discover services on the Bluetooth LE Device.
-            val services = client.discoverServices()
-            mtu = client.requestMtu(517) - 3
-            configureGatt(services) // Request MTU first before enabling notifications
-            client
-        }
+        // Observe the connection state
+        observeConnectionState(peripheral)
+        // Connect to the peripheral
+        centralManager.connect(peripheral = peripheral)
+        // Request the maximum transmission unit (MTU) size.
+        peripheral.requestHighestValueLength()
+        // Start observing the discovered services
+        peripheral.services()
+            .first { it.isNotEmpty() }
+            .let { configureGatt(services = it) }
     }
 
     override suspend fun close() {
-        client?.disconnect()
+        peripheral.disconnect()
     }
 
     /**
      * Observes the connection state of the GATT client and the bearer state.
      *
-     * @param client the GATT client.
+     * @param peripheral Peripheral to observe.
      */
-    private fun observeConnectionState(client: ClientBleGatt) {
-        client.connectionState.takeWhile {
-            it != GattConnectionState.STATE_DISCONNECTED
-        }.onEach { state ->
-            if (state == GattConnectionState.STATE_CONNECTED) onConnected()
+    private fun observeConnectionState(peripheral: Peripheral) {
+        peripheral.state.takeWhile {
+            it !is ConnectionState.Disconnected
+        }.onEach {
+            if (it is ConnectionState.Connected) onConnected()
         }.onCompletion { throwable ->
             throwable?.let { logger?.e(LogCategory.BEARER) { "Something went wrong $it" } }
             onDisconnected()
@@ -128,7 +128,6 @@ abstract class BaseGattProxyBearer<MeshService>(
             isOpened = false
             _state.value = BearerEvent.Closed(BearerError.Closed)
             logger?.v(LogCategory.BEARER) { "Bearer closed." }
-            client = null
         }
     }
 
@@ -136,17 +135,19 @@ abstract class BaseGattProxyBearer<MeshService>(
     override suspend fun send(pdu: ByteArray, type: PduType) {
         require(supports(type)) { throw BearerError.PduTypeNotSupported }
         require(isOpen) { throw BearerError.Closed }
-        proxyProtocolHandler.segment(pdu, type, mtu).forEach {
-            dataInCharacteristic.write(DataByteArray(it), BleWriteType.NO_RESPONSE)
-        }
+        proxyProtocolHandler.segment(pdu, type, mtu)
+            .forEach { dataInCharacteristic.write(it, WriteType.WITHOUT_RESPONSE) }
     }
 
-    protected suspend fun awaitNotifications() {
-        dataOutCharacteristic.getNotifications().onEach { data ->
-            proxyProtocolHandler.reassemble(data = data.value)?.let { reassembledPdu ->
-                _pdus.emit(reassembledPdu)
+    protected suspend fun awaitNotifications(dataOutCharacteristic: RemoteCharacteristic) {
+        dataOutCharacteristic.subscribe()
+            .onEach {
+                proxyProtocolHandler.reassemble(data = it)?.let { pdu ->
+                    _pdus.emit(pdu)
+                }
             }
-        }.launchIn(scope)
+            .onCompletion { logger?.v(LogCategory.BEARER) { "AAA Device disconnected" } }
+            .launchIn(scope)
     }
 
     companion object {
