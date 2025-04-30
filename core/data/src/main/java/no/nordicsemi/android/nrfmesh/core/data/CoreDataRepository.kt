@@ -235,6 +235,9 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverGattBearer(context: Context, peripheral: Peripheral) =
         withContext(defaultDispatcher) {
             if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
+            )
             GattBearer(context = context, centralManager = centralManager, peripheral = peripheral)
                 .also {
                     meshNetworkManager.setMeshBearerType(meshBearer = it)
