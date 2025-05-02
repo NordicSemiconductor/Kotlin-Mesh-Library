@@ -61,9 +61,9 @@ include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 
-// if (file("../Android-Common-Libraries").exists()) {
-//     includeBuild("../Android-Common-Libraries")
-// }
+if (file("../Android-Common-Libraries").exists()) {
+    includeBuild("../Android-Common-Libraries")
+}
 // if (file("../Android-Gradle-Plugins").exists()) {
 //     includeBuild("../Android-Gradle-Plugins")
 // }
