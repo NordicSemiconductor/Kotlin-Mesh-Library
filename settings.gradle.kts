@@ -8,8 +8,8 @@ pluginManagement {
 
     plugins {
         id("org.jetbrains.dokka") version "2.0.0"
-        id("org.jetbrains.kotlin.jvm") version "2.1.0"
-        id("org.jetbrains.kotlin.android") version "2.1.0"
+        kotlin("jvm") version "2.1.10"
+        kotlin("android") version "2.1.10"
         id("com.android.library") version "8.5.2"
     }
 }
@@ -24,7 +24,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.5-4")
+            from("no.nordicsemi.android.gradle:version-catalog:2.7")
         }
     }
 }
@@ -57,9 +57,6 @@ include(":feature:mesh-bearer-pbgatt")
 include(":mesh:core")
 include(":mesh:crypto")
 include(":mesh:provisioning")
-include(":mesh:configuration")
-include(":mesh:generic")
-include(":mesh:lighting")
 include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
