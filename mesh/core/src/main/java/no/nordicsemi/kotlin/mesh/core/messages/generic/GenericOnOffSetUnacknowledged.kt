@@ -4,6 +4,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 
@@ -20,10 +21,9 @@ import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 class GenericOnOffSetUnacknowledged(
     override var tid: UByte?,
     val on: Boolean,
-    transitionParams: TransitionParameters? = null
-) : AcknowledgedMeshMessage, TransactionMessage, TransitionMessage {
+    transitionParams: TransitionParameters? = null,
+) : UnacknowledgedMeshMessage, TransactionMessage, TransitionMessage {
     override val opCode = Initializer.opCode
-    override val responseOpCode = GenericOnOffStatus.opCode
     override val parameters: ByteArray
         get() {
             val data = byteArrayOf(if (on) 0x01 else 0x00, tid!!.toByte())
