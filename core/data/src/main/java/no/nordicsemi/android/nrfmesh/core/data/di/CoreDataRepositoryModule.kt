@@ -9,8 +9,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
-import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -27,8 +25,8 @@ object CoreDataRepositoryModule {
     fun provideCoreDataRepository(
         @ApplicationContext context: Context,
         preferences: DataStore<Preferences>,
-        bluetoothStateManager: BluetoothStateManager,
-        locationStateManager: LocationStateManager,
+        // bluetoothStateManager: BluetoothStateManager,
+        // locationStateManager: LocationStateManager,
         centralManager: CentralManager,
         meshNetworkManager: MeshNetworkManager,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
@@ -36,8 +34,8 @@ object CoreDataRepositoryModule {
     ) = CoreDataRepository(
         context = context,
         preferences = preferences,
-        bluetoothStateManager = bluetoothStateManager,
-        locationStateManager = locationStateManager,
+        //bluetoothStateManager = bluetoothStateManager,
+        //locationStateManager = locationStateManager,
         centralManager = centralManager,
         meshNetworkManager = meshNetworkManager,
         ioDispatcher = ioDispatcher,

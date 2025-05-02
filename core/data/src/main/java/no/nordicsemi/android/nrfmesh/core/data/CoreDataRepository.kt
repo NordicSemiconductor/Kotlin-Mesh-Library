@@ -20,9 +20,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
-import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
-import no.nordicsemi.android.common.permissions.ble.util.BlePermissionState
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
@@ -67,8 +64,8 @@ private object PreferenceKeys {
 
 class CoreDataRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    bluetoothStateManager: BluetoothStateManager,
-    locationStateManager: LocationStateManager,
+    // bluetoothStateManager: BluetoothStateManager,
+    // locationStateManager: LocationStateManager,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -90,7 +87,6 @@ class CoreDataRepository @Inject constructor(
         get() = meshNetworkManager.proxyFilter
 
     init {
-        println("CoreDataRepository init: $centralManager")
         meshNetworkManager.logger = this
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
@@ -98,12 +94,12 @@ class CoreDataRepository @Inject constructor(
             )
         }.launchIn(CoroutineScope(defaultDispatcher))
 
-        bluetoothStateManager.bluetoothState().onEach {
-            isBluetoothEnabled = it is BlePermissionState.Available
-        }.launchIn(CoroutineScope(defaultDispatcher))
-        locationStateManager.locationState().onEach {
-            isLocationEnabled = it is BlePermissionState.Available
-        }.launchIn(CoroutineScope(defaultDispatcher))
+ //       bluetoothStateManager.bluetoothState().onEach {
+ //           isBluetoothEnabled = it is BlePermissionState.Available
+ //       }.launchIn(CoroutineScope(defaultDispatcher))
+ //       locationStateManager.locationState().onEach {
+ //           isLocationEnabled = it is BlePermissionState.Available
+ //       }.launchIn(CoroutineScope(defaultDispatcher))
 
         // Start automatic connectivity when the network changes
 
