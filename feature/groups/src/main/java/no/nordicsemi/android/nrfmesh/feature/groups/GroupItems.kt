@@ -19,7 +19,6 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.SensorOccupied
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -112,11 +111,12 @@ private fun GenericOnOffItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+
                 Icon(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.Lightbulb,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicGrass
+                    tint = nordicLake
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -160,7 +160,7 @@ private fun GenericLevelItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.LightMode,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicSun
+                    tint = nordicSun
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -204,7 +204,7 @@ private fun SceneServerGroupItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.Palette,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicSky
+                    tint = nordicSky
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -239,7 +239,7 @@ private fun SceneSetupServerGroupItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.Palette,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicLake
+                    tint = nordicLake
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -274,7 +274,7 @@ private fun LightLCModeGroupItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicGrass
+                    tint = nordicGrass
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -318,7 +318,7 @@ private fun LightLCOccupancyModeGroupItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicGrass
+                    tint = nordicGrass
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -362,7 +362,7 @@ private fun LightLCLightOnOffGroupItem(
                     modifier = Modifier.size(60.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.nordicGrass
+                    tint = nordicGrass
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
