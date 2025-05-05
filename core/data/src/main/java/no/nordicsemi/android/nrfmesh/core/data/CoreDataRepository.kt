@@ -64,8 +64,6 @@ private object PreferenceKeys {
 
 class CoreDataRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    // bluetoothStateManager: BluetoothStateManager,
-    // locationStateManager: LocationStateManager,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -93,13 +91,6 @@ class CoreDataRepository @Inject constructor(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
         }.launchIn(CoroutineScope(defaultDispatcher))
-
- //       bluetoothStateManager.bluetoothState().onEach {
- //           isBluetoothEnabled = it is BlePermissionState.Available
- //       }.launchIn(CoroutineScope(defaultDispatcher))
- //       locationStateManager.locationState().onEach {
- //           isLocationEnabled = it is BlePermissionState.Available
- //       }.launchIn(CoroutineScope(defaultDispatcher))
 
         // Start automatic connectivity when the network changes
 
