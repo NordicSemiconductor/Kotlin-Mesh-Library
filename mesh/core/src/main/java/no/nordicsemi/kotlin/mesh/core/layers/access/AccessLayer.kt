@@ -244,7 +244,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         val transactionMessage = message as? TransactionMessage
 
         transactionMessage?.takeIf {
-            it.tid != null
+            it.tid == null
         }?.let {
             val k = key(element = element, destination = destination)
             mutex.withLock {
