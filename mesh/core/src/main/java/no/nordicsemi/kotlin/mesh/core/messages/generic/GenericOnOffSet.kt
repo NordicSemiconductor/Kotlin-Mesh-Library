@@ -51,6 +51,9 @@ class GenericOnOffSet(
     @Suppress("unused")
     constructor(on: Boolean, tid: UByte) : this(on = on, tid = tid, transitionParams = null)
 
+    override fun toString() = "GenericOnOffSet(tid: $tid, on: $on, " +
+            "transitionTime: $transitionTime, delay: $delay)"
+
     companion object Initializer : GenericMessageInitializer {
         override val opCode = 0x8202u
 
