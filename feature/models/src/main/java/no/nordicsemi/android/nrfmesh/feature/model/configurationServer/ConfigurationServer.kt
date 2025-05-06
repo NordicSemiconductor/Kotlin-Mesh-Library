@@ -143,9 +143,7 @@ private fun RelayFeature(
             Slider(
                 enabled = relay?.state?.isSupported == true && !messageState.isInProgress(),
                 value = retransmissions,
-                onValueChange = {
-                    retransmissions = it
-                },
+                onValueChange = { retransmissions = it },
                 valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
                 steps = 6,
                 colors = NordicSliderDefaults.colors()
