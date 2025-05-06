@@ -39,6 +39,11 @@ data class TransitionTime(val steps: UByte, val stepResolution: StepResolution) 
      */
     constructor() : this(steps = 0x3Fu, stepResolution = StepResolution.HUNDREDS_OF_MILLISECONDS)
 
+    /**
+     * Creates a new transition time object for the given raw value.
+     *
+     * @param rawValue The raw value of the transition time.
+     */
     constructor(rawValue: UByte) : this(
         steps = rawValue and 0x3Fu,
         stepResolution = StepResolution.from(rawValue.toInt() shr 6)
