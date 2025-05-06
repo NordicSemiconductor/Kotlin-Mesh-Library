@@ -290,7 +290,7 @@ internal class NetworkManager internal constructor(
         destination: MeshAddress,
         initialTtl: UByte?,
         applicationKey: ApplicationKey,
-    ): MeshMessage? = if (ensureNotBusy(destination = destination)) accessLayer.send(
+    ): MeshMessage? = if (!ensureNotBusy(destination = destination)) accessLayer.send(
         message = message,
         element = element,
         destination = destination,
