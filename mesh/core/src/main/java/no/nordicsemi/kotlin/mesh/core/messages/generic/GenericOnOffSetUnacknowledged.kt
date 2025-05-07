@@ -1,6 +1,5 @@
 package no.nordicsemi.kotlin.mesh.core.messages.generic
 
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
@@ -28,10 +27,7 @@ class GenericOnOffSetUnacknowledged(
         get() {
             val data = byteArrayOf(if (on) 0x01 else 0x00, tid!!.toByte())
             return when (transitionTime != null && delay != null) {
-                true -> data + byteArrayOf(
-                    transitionTime.rawValue.toByte(),
-                    delay.toByte()
-                )
+                true -> data + byteArrayOf(transitionTime.rawValue.toByte(), delay.toByte())
 
                 else -> data
             }
