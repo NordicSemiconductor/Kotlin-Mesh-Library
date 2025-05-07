@@ -33,6 +33,9 @@ import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
@@ -371,6 +374,32 @@ class CoreDataRepository @Inject constructor(
                         level = LogLevel.INFO
                     )
                 }
+        } else {
+            throw IllegalStateException("Bearer is not open")
+        }
+    }
+
+    /**
+     * Sends a mesh message to the given model.
+     *
+     * @param model
+     * @param message Message to be sent.
+     */
+    suspend fun send(model: Model, message: MeshMessage) = withContext(
+        context = defaultDispatcher
+    ) {
+        if (bearer != null && bearer!!.isOpen) {
+            if(message is AcknowledgedMeshMessage){
+                meshNetworkManager.send(
+                    model = model,
+                    message = message
+                )
+            } else if(message is UnacknowledgedMeshMessage){
+                meshNetworkManager.send(
+                    model = model,
+                    message = message
+                )
+            }
         } else {
             throw IllegalStateException("Bearer is not open")
         }
