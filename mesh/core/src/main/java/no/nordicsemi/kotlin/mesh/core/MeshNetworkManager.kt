@@ -294,22 +294,48 @@ class MeshNetworkManager(
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        val element = localElement ?: localNode.elements.firstOrNull() ?: run {
+        val source = localElement ?: localNode.elements.firstOrNull() ?: run {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        require(element.parentNode == localNode) {
+        require(source.parentNode == localNode) {
             println("Error: The given Element does not belong to the local Node.")
             throw InvalidElement
         }
-
         require(initialTtl == null || initialTtl <= 127u) {
             println("Error: TTL value $initialTtl is invalid.")
             throw InvalidTtl
         }
+        // A message may be sent to a local Node, or using a GATT Proxy Node. Check if the message
+        // can be relayed to the destination using a Proxy Node. The Proxy Node must know the
+        // Network Key; otherwise it will not be able to decode the destination and decrement TTL.
+
+        if (destination is UnicastAddress) {
+            if (!localNode.containsElementWithAddress(destination.address) &&
+                proxyFilter.proxy?.knows(applicationKey.boundNetworkKey) != true
+            ) {
+                println(
+                    "Error: The GATT Proxy Node is not connected or it cannot decrypt " +
+                            "${applicationKey.boundNetworkKey}"
+                )
+                throw CannotRelay
+            }
+        } else {
+            proxyFilter.proxy?.takeIf {
+                !it.knows(applicationKey.boundNetworkKey)
+            }?.let { proxy ->
+                logger?.w(category = LogCategory.PROXY) {
+                    "${proxy.name} cannot relay messages using " +
+                            "${applicationKey.boundNetworkKey}, message will be sent only to " +
+                            "the local Node."
+                }
+            } ?: logger?.w(category = LogCategory.PROXY) {
+                "No GATT Proxy connected, message will be sent only to the local Node."
+            }
+        }
         networkManager.send(
             message = message,
-            element = element,
+            element = source,
             destination = destination,
             initialTtl = initialTtl,
             applicationKey = applicationKey
@@ -416,7 +442,8 @@ class MeshNetworkManager(
             }
 
         if (selectedAppKey == null || (!node.isLocalProvisioner &&
-                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)) {
+                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)
+        ) {
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
         }
@@ -545,7 +572,8 @@ class MeshNetworkManager(
             }
 
         if (selectedAppKey == null || (!node.isLocalProvisioner &&
-                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)) {
+                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)
+        ) {
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
         }
@@ -554,7 +582,7 @@ class MeshNetworkManager(
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        val source = localElement ?: localNode.elements.firstOrNull() ?: run {
+        val source = requireNotNull(localElement ?: localNode.elements.firstOrNull()) {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
@@ -569,7 +597,7 @@ class MeshNetworkManager(
         }
 
         return networkManager.send(
-            message = message,
+            ackMessage = message,
             element = source,
             destination = destination,
             initialTtl = initialTtl,
@@ -813,9 +841,11 @@ class MeshNetworkManager(
         }
 
         if (selectedNetworkKey == null ||
-            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetworkKey) != true)) {
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetworkKey) != true)
+        ) {
             if (configNetKeyDelete != null &&
-                (networkKey == null || networkKey.index == configNetKeyDelete.index)) {
+                (networkKey == null || networkKey.index == configNetKeyDelete.index)
+            ) {
                 println("Error: Cannot delete the last Network Key or a key used to secure the message")
                 throw CannotDelete
             }
