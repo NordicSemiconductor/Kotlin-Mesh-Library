@@ -122,9 +122,21 @@ class CoreDataRepository @Inject constructor(
      */
     private fun onMeshNetworkChanged() {
         // TODO Implement scene model event handler related stuff
+        // Sets up the local Elements on the phone
         val element0 = Element(
             location = Location.FIRST, _models = mutableListOf(
-                Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID))
+                Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.SCENE_SETUP_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.SENSOR_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID)),
+                // Generic OnOff and Generic Level models defined by SIG
+                Model(modelId = SigModelId(Model.GENERIC_ON_OFF_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_ON_OFF_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_LEVEL_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.LIGHT_LC_CLIENT_MODEL_ID)),
             )
         ).apply { name = "Primary Element" }
         meshNetworkManager.localElements = listOf(element0)
