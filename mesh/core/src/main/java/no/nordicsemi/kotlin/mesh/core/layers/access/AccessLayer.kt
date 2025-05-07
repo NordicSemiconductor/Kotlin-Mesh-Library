@@ -273,7 +273,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         // Set timers for the acknowledged messages.
         // Acknowledged messages sent to a Group address won't await a Status.
         val ack = if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
-            createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
+            createReliableContext(pdu = pdu, element = element, initialTtl = ttl, keySet = keySet)
         } else null
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
