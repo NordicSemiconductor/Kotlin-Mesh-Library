@@ -53,12 +53,10 @@ class GenericOnOffStatus(
             ?.let { params ->
                 GenericOnOffStatus(
                     isOn = params[0] == 0x01.toByte(),
-                    targetState = if (params.size == 3) {
-                        params[1] == 0x01.toByte()
-                    } else null,
-                    remainingTime = if (params.size == 3) {
+                    targetState = if (params.size == 3) params[1] == 0x01.toByte() else null,
+                    remainingTime = if (params.size == 3)
                         TransitionTime(rawValue = params[2].toUByte())
-                    } else null,
+                    else null,
                 )
             }
     }
