@@ -43,6 +43,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -320,24 +321,24 @@ internal class NetworkManager internal constructor(
      */
     @Throws(Busy::class)
     suspend fun send(
-        message: AcknowledgedMeshMessage,
+        ackMessage: AcknowledgedMeshMessage,
         element: Element,
-        destination: Address,
+        destination: UnicastAddress,
         initialTtl: UByte?,
         applicationKey: ApplicationKey,
     ): MeshMessage? {
-        val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return null }
+        //val meshAddress = MeshAddress.create(address = destination)
+        require(!ensureNotBusy(destination = destination)) { return null }
 
         return accessLayer.send(
-            message = message,
+            message = ackMessage,
             element = element,
-            destination = meshAddress,
+            destination = destination,
             ttl = initialTtl,
             applicationKey = applicationKey,
             retransmit = true
         ).also {
-            mutex.withLock { outgoingMessages.remove(meshAddress) }
+            mutex.withLock { outgoingMessages.remove(destination) }
         }
     }
 
