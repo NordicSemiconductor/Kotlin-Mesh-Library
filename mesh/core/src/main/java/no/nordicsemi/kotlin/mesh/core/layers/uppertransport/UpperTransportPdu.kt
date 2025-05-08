@@ -81,7 +81,7 @@ internal class UpperTransportPdu(
 
             // The nonce type is 0x01 for messages signed with Application Key and 0x02 for messages
             // signed with Device Key (Configuration Messages).
-            val type = message.aid?.let { 0x01 } ?: 0x02
+            val type = if (message.aid != null) 0x01 else 0x02
             // ASZMIC is set to 1 for messages sent with high security(64-bit TransMIC). This is
             // allowed only for Segmented Access Messages.
             val aszmic: Byte = if (micSize == 4) 0 else 1
@@ -194,7 +194,7 @@ internal class UpperTransportPdu(
                     network.groups.filter { group ->
                         group.address == message.destination
                     }.toMutableList()
-                } else emptyList()
+                } else listOf<Group?>(null)
 
                 // Go through all the application keys bound to the network key that the message was
                 // decoded with.
