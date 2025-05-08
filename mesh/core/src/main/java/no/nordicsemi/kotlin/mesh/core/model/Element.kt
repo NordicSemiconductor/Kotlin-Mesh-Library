@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.mesh.core.Publisher
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareDistributionClientHandler
@@ -101,6 +102,8 @@ data class Element(
         require(index in LOWER_BOUND..HIGHER_BOUND) {
             " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
         }
+        // Assign the parent element to all models.
+        _models.forEach { it.parentElement = this }
     }
 
     /**
@@ -146,8 +149,12 @@ data class Element(
      * Note: This is only to be called for the primary element of the Local Node.
      *
      * @param meshNetwork Mesh network.
+     * @param publisher Publisher to be used for the models.
      */
-    internal fun addPrimaryElementModels(meshNetwork: MeshNetwork) {
+    internal fun addPrimaryElementModels(
+        meshNetwork: MeshNetwork,
+        publisher: Publisher,
+    ) {
         require(isPrimary) { return }
         insert(
             model = Model(
@@ -231,7 +238,7 @@ data class Element(
                     model.isSceneClient ||
                     // The models that require Device Key should not be managed by users.
                     // Some of them are supported natively in the library.
-                    !model.requiresDeviceKey
+                    model.requiresDeviceKey
         }
     }
 
