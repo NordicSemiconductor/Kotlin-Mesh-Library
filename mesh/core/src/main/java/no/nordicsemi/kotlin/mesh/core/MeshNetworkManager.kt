@@ -92,7 +92,20 @@ class MeshNetworkManager(
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
         set(value) {
-            network?._localElements = value.toMutableList()
+            // Some models, which are supported by the library, will be added automatically.
+            // Let's make sure they are not in the array.
+            var elements = value.onEach {
+                it.removePrimaryElementModels()
+            }
+            // Remove all empty elements
+            elements = elements.filter { it.models.isNotEmpty() }
+
+            // Add the required Models in the Primary Element.
+            if (elements.isEmpty()) elements = elements + Element(location = Location.UNKNOWN)
+
+            elements.first().addPrimaryElementModels(meshNetwork = network!!, publisher = this)
+
+            network?._localElements = elements.toMutableList()
             networkManager?.accessLayer?.reinitializePublishers()
         }
 
@@ -597,7 +610,7 @@ class MeshNetworkManager(
         }
 
         return networkManager.send(
-            ackMessage = message,
+            message = message,
             element = source,
             destination = destination,
             initialTtl = initialTtl,
