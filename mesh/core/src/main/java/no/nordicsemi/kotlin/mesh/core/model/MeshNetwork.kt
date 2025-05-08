@@ -143,27 +143,16 @@ data class MeshNetwork internal constructor(
         }
 
     internal var _localElements = mutableListOf(Element(location = Location.MAIN))
-        set(value) {
-            var elements = value
-            elements.forEach {
-                it.removePrimaryElementModels()
-            }
-            elements = elements.filter { it.models.isEmpty() }.toMutableList()
-            if (elements.isEmpty()) {
-                elements.add(Element(location = Location.UNKNOWN))
-            }
-            elements.first().addPrimaryElementModels(this)
-
+        set(elements) {
             // Ensures the indexes are correct
             elements.forEachIndexed { index, element ->
                 element.index = index
                 element.parentNode = localProvisioner?.node
             }
             field = elements
-
             // Ensure there is enough address space for all the Elements that are nto taken by other
-            // Nodes and are in the local Provisioner's address range. If required,
-            // cut the element array.
+            // Nodes and are in the local Provisioner's address range. If required, cut the element
+            // array.
             localProvisioner?.let { provisioner ->
                 provisioner.node?.let { node ->
                     var availableElements = elements
