@@ -698,7 +698,7 @@ data class MeshNetwork internal constructor(
         _groups.remove(group).also {
             updateTimestamp()
         }
-    } ?: false
+    } == true
 
     /**
      * Removes a group with the given address from the network.
@@ -711,7 +711,7 @@ data class MeshNetwork internal constructor(
         _groups.remove(group).also {
             updateTimestamp()
         }
-    } ?: false
+    } == true
 
     /**
      * Returns the Scene key with a given scene number.
