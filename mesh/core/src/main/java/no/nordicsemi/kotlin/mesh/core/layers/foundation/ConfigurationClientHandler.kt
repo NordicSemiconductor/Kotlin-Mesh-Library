@@ -60,10 +60,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.util.MessageComposer
-import no.nordicsemi.kotlin.mesh.core.util.ModelError
-import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.MessageComposer
+import no.nordicsemi.kotlin.mesh.core.ModelError
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
 /**
  * ConfigurationClientHandler class handles the configuration messages sent from the provisioner

@@ -11,8 +11,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
 /**
  * TODO

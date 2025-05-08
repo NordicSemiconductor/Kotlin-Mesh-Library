@@ -1,11 +1,10 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
-package no.nordicsemi.kotlin.mesh.core.util
+package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Instant
-import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
@@ -45,7 +44,7 @@ sealed class ModelEvent {
         val request: AcknowledgedMeshMessage,
         val source: Address,
         val destination: MeshAddress,
-        val reply: suspend (MeshResponse) -> Unit
+        val reply: suspend (MeshResponse) -> Unit,
     ) : ModelEvent()
 
     /**
@@ -60,7 +59,7 @@ sealed class ModelEvent {
         val model: Model,
         val message: UnacknowledgedMeshMessage,
         val source: Address,
-        val destination: MeshAddress
+        val destination: MeshAddress,
     ) : ModelEvent()
 
     /**
@@ -75,7 +74,7 @@ sealed class ModelEvent {
         val model: Model,
         val response: MeshResponse,
         val request: AcknowledgedMeshMessage,
-        val source: Address
+        val source: Address,
     ) : ModelEvent()
 }
 
@@ -122,7 +121,7 @@ abstract class ModelEventHandler {
         ?.let { manager.publish(message, it) }
 
     /**
-     * Publishes a single message created by Model;s message composer using the Publish information
+     * Publishes a single message created by Model's message composer using the Publish information
      * set in the underlying model.
      *
      * @param manager Mesh network manager.
@@ -212,7 +211,7 @@ private data class Transaction(
     val source: Address,
     val destination: MeshAddress,
     val tid: UByte,
-    val timestamp: Instant
+    val timestamp: Instant,
 )
 
 class TransactionHelper {
@@ -233,7 +232,7 @@ class TransactionHelper {
     suspend fun isNewTransaction(
         message: TransactionMessage,
         source: Address,
-        destination: MeshAddress
+        destination: MeshAddress,
     ) = mutex.withLock {
         val lastTransaction = lastTransactions[source]
         (lastTransaction == null) || (lastTransaction.source != source) ||
@@ -256,6 +255,6 @@ class TransactionHelper {
     suspend fun isTransactionContinuation(
         message: TransactionMessage,
         source: Address,
-        destination: MeshAddress
+        destination: MeshAddress,
     ) = !isNewTransaction(message, source, destination)
 }
