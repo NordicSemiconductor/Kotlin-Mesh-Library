@@ -168,7 +168,7 @@ data class Element(
         )
         insert(
             model = Model(
-                modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
+                modelId = SigModelId(Model.SAR_CONFIGURATION_CLIENT_MODEL_ID),
                 handler = SceneClientHandler(meshNetwork = meshNetwork)
             ),
             index = 5
