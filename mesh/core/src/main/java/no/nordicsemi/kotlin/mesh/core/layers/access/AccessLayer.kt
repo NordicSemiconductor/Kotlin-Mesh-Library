@@ -37,8 +37,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
@@ -437,7 +437,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         if (keySet is AccessKeySet) {
             for (element in localNode.elements) {
-                val models = element.models.filter { it.requiresDeviceKey }
+                val models = element.models.filter { !it.requiresDeviceKey }
 
                 for (model in models) {
                     val eventHandler = model.eventHandler ?: continue
