@@ -8,7 +8,13 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareDistributionClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareUpdateClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.HealthClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.HealthServerHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.PrivateBeaconHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.RemoteProvisioningClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.SarConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
 
@@ -157,8 +163,19 @@ data class Element(
             ),
             index = 1
         )
-        insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), index = 2)
-        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID)), index = 3)
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID),
+                handler = HealthServerHandler(meshNetwork = meshNetwork)
+            ),
+            index = 2
+        )
+        insert(
+            Model(
+                modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID),
+                handler = HealthClientHandler(meshNetwork = meshNetwork)
+            ), index = 3
+        )
         insert(
             model = Model(
                 modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID),
@@ -169,9 +186,37 @@ data class Element(
         insert(
             model = Model(
                 modelId = SigModelId(Model.SAR_CONFIGURATION_CLIENT_MODEL_ID),
-                handler = SceneClientHandler(meshNetwork = meshNetwork)
+                handler = SarConfigurationClientHandler(meshNetwork = meshNetwork)
             ),
             index = 5
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.REMOTE_PROVISIONING_CLIENT_MODEL_ID),
+                handler = RemoteProvisioningClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 6
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
+                handler = SceneClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 7
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.FIRMWARE_UPDATE_CLIENT_MODEL_ID),
+                handler = FirmwareUpdateClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 8
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID),
+                handler = FirmwareDistributionClientHandler(meshNetwork = meshNetwork)
+            ),
+            index = 9
         )
     }
 
@@ -181,9 +226,9 @@ data class Element(
     internal fun removePrimaryElementModels() {
         _models.removeAll { model ->
             // Health models are not yet supported.
-            !model.isHealthServer && !model.isHealthClient &&
+            model.isHealthServer || model.isHealthClient ||
                     // The library supports Scene Client model natively.
-                    !model.isSceneClient &&
+                    model.isSceneClient ||
                     // The models that require Device Key should not be managed by users.
                     // Some of them are supported natively in the library.
                     !model.requiresDeviceKey
