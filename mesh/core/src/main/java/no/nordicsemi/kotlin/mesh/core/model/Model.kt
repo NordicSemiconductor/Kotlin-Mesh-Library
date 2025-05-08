@@ -5,7 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
 /**
  * Represents Bluetooth mesh model contained in an element in a node.
@@ -783,10 +783,10 @@ data class Model internal constructor(
                 LIGHT_LC_SETUP_SERVER_MODEL_ID ->
                     model.modelId.modelIdentifier == LIGHT_LC_SERVER_MODEL_ID
 
-                FIRMWARE_UPDATE_SERVER,
-                FIRMWARE_DISTRIBUTION_SERVER,
+                FIRMWARE_UPDATE_SERVER_MODEL_ID,
+                FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID,
                     ->
-                    model.modelId.modelIdentifier == BLOB_TRANSFER_SERVER
+                    model.modelId.modelIdentifier == BLOB_TRANSFER_SERVER_MODEL_ID
 
                 else -> false
             }
@@ -901,14 +901,14 @@ data class Model internal constructor(
         const val LIGHT_LC_CLIENT_MODEL_ID: UShort = 0x1311u
 
         // BLOB Transfer
-        const val BLOB_TRANSFER_SERVER: UShort = 0x1400u
-        const val BLOB_TRANSFER_CLIENT: UShort = 0x1401u
+        const val BLOB_TRANSFER_SERVER_MODEL_ID: UShort = 0x1400u
+        const val BLOB_TRANSFER_CLIENT_MODEL_ID: UShort = 0x1401u
 
         // Device Firmware Update
-        const val FIRMWARE_UPDATE_SERVER: UShort = 0x1402u
-        const val FIRMWARE_UPDATE_CLIENT: UShort = 0x1403u
-        const val FIRMWARE_DISTRIBUTION_SERVER: UShort = 0x1404u
-        const val FIRMWARE_DISTRIBUTION_CLIENT: UShort = 0x1405u
+        const val FIRMWARE_UPDATE_SERVER_MODEL_ID: UShort = 0x1402u
+        const val FIRMWARE_UPDATE_CLIENT_MODEL_ID: UShort = 0x1403u
+        const val FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID: UShort = 0x1404u
+        const val FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID: UShort = 0x1405u
 
         /**
          * Returns the name of the model for a given model id.
