@@ -51,6 +51,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
@@ -121,25 +122,57 @@ class CoreDataRepository @Inject constructor(
      * the correct network.
      */
     private fun onMeshNetworkChanged() {
-        // TODO Implement scene model event handler related stuff
+        // TODO(implement model event handlers for both elements)
         // Sets up the local Elements on the phone
         val element0 = Element(
-            location = Location.FIRST, _models = mutableListOf(
-                Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID)),
-                Model(modelId = SigModelId(Model.SCENE_SETUP_SERVER_MODEL_ID)),
-                Model(modelId = SigModelId(Model.SENSOR_CLIENT_MODEL_ID)),
-                Model(modelId = SigModelId(Model.GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID)),
-                Model(modelId = SigModelId(Model.GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID)),
-                Model(modelId = SigModelId(Model.GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID)),
+            _name = "Primary Element",
+            location = Location.FIRST,
+            _models = mutableListOf(
+                Model(modelId = SigModelId(modelIdentifier = Model.SCENE_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.SCENE_SETUP_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.SENSOR_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID)),
                 // Generic OnOff and Generic Level models defined by SIG
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
+                Model(
+                    modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_CLIENT_MODEL_ID),
+                    handler = GenericOnOffClientEventHandler(
+                        publisher = meshNetworkManager,
+                        meshNetwork = meshNetwork
+                    )
+                ),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.LIGHT_LC_CLIENT_MODEL_ID)),
+                // Nordic Pairing Initiator model
+                Model(
+                    modelId = VendorModelId(
+                        modelIdentifier = LE_PAIRING_INITIATOR,
+                        companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
+                    )
+                ),
+                // A simple vendor model
+                Model(
+                    modelId = VendorModelId(
+                        modelIdentifier = VendorModelIds.SIMPLE_ON_OFF_SERVER_MODEL_ID,
+                        companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
+                    )
+                )
+            )
+        )
+        val element1 = Element(
+            _name = "Secondary Element",
+            location = Location.SECOND,
+            _models = mutableListOf(
                 Model(modelId = SigModelId(Model.GENERIC_ON_OFF_SERVER_MODEL_ID)),
                 Model(modelId = SigModelId(Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
                 Model(modelId = SigModelId(Model.GENERIC_ON_OFF_CLIENT_MODEL_ID)),
-                Model(modelId = SigModelId(Model.GENERIC_LEVEL_CLIENT_MODEL_ID)),
-                Model(modelId = SigModelId(Model.LIGHT_LC_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_LEVEL_CLIENT_MODEL_ID))
             )
-        ).apply { name = "Primary Element" }
-        meshNetworkManager.localElements = listOf(element0)
+        )
+        meshNetworkManager.localElements = listOf(element0, element1)
     }
 
     /**
