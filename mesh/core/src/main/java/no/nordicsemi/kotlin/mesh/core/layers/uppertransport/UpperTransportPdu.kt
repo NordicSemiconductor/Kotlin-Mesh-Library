@@ -191,10 +191,12 @@ internal class UpperTransportPdu(
                 // When the message was sent to a Virtual Address, the message must be decoded with
                 // the Virtual Label as Additional Data.
                 val matchingGroups = if (message.destination is VirtualAddress) {
-                    network.groups.filter { group ->
-                        group.address == message.destination
-                    }.toMutableList()
-                } else listOf<Group?>(null)
+                    network.groups.filter { it.address == message.destination }
+                } else {
+                    // If the message was not sent to a Virtual Address, just add nil to the
+                    // matching groups. That way it will be decoded once with group = nil.
+                    listOf<Group?>(null)
+                }
 
                 // Go through all the application keys bound to the network key that the message was
                 // decoded with.
@@ -210,8 +212,8 @@ internal class UpperTransportPdu(
                                 virtualGroup = group
                             )?.let {
                                 return Pair(
-                                    it,
-                                    AccessKeySet(applicationKey = applicationKey)
+                                    first = it,
+                                    second = AccessKeySet(applicationKey = applicationKey)
                                 )
                             }
                         }
@@ -234,7 +236,6 @@ internal class UpperTransportPdu(
                 // On the other hand, if another Provisioner is sending a Config Messages, they will
                 // be signed using the target node Device Key instead.
                 decode(network = network, address = message.destination, message = message)
-
             }
             return null
         }
