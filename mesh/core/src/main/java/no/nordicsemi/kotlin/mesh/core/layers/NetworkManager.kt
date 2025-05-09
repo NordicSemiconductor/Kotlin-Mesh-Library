@@ -115,11 +115,8 @@ internal class NetworkManager internal constructor(
      */
     private fun awaitBearerPdus() {
         bearer?.pdus?.onEach {
-            try {
-                handle(incomingPdu = it.data, type = it.type)
-            } catch (e: Exception) {
-                logger?.e(LogCategory.BEARER) { "Bearer error : $e" }
-            }
+            runCatching { handle(incomingPdu = it.data, type = it.type) }
+                .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error : $it" } }
         }?.launchIn(scope = scope)
     }
 
@@ -139,13 +136,14 @@ internal class NetworkManager internal constructor(
      * @param type        PDU type.
      */
     suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        networkLayer.handle(incomingPdu = incomingPdu, type = type)?.let {
-            if (it.message is ProxyConfigurationMessage) {
-                _incomingProxyMessages.emit(value = it)
-            } else {
-                _incomingMeshMessages.emit(value = it)
+        networkLayer.handle(incomingPdu = incomingPdu, type = type)
+            ?.let {
+                if (it.message is ProxyConfigurationMessage) {
+                    _incomingProxyMessages.emit(value = it)
+                } else {
+                    _incomingMeshMessages.emit(value = it)
+                }
             }
-        }
     }
 
     /**
@@ -158,12 +156,11 @@ internal class NetworkManager internal constructor(
         destination: Address,
         responseOpcode: UInt,
         timeout: Duration,
-    ) =
-        awaitMeshMessageResponse(
-            destination = MeshAddress.create(destination),
-            responseOpcode = responseOpcode,
-            timeout = timeout
-        )
+    ) = awaitMeshMessageResponse(
+        destination = MeshAddress.create(destination),
+        responseOpcode = responseOpcode,
+        timeout = timeout
+    )
 
     /**
      * Awaits for a response to a sent message.
@@ -176,11 +173,12 @@ internal class NetworkManager internal constructor(
         destination: MeshAddress,
         responseOpcode: UInt,
         timeout: Duration,
-    ): ReceivedMessage? = incomingMeshMessages.timeout(timeout = timeout).catch {
-        logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
-    }.firstOrNull {
-        destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
-    }
+    ): ReceivedMessage? = incomingMeshMessages
+        .timeout(timeout = timeout)
+        .catch { logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" } }
+        .firstOrNull {
+            destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
+        }
 
     /**
      * Awaits for a response to a sent message.
@@ -311,7 +309,7 @@ internal class NetworkManager internal constructor(
      * is in order to support retransmission in case a packet was lost and needs to be sent again
      * after block acknowledgment was received.
      *
-     * @param message         Message to be sent.
+     * @param ackMessage         Message to be sent.
      * @param element         Source Element.
      * @param destination     Destination Unicast Address.
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
@@ -321,7 +319,7 @@ internal class NetworkManager internal constructor(
      */
     @Throws(Busy::class)
     suspend fun send(
-        ackMessage: AcknowledgedMeshMessage,
+        message: AcknowledgedMeshMessage,
         element: Element,
         destination: UnicastAddress,
         initialTtl: UByte?,
@@ -331,7 +329,7 @@ internal class NetworkManager internal constructor(
         require(!ensureNotBusy(destination = destination)) { return null }
 
         return accessLayer.send(
-            message = ackMessage,
+            message = message,
             element = element,
             destination = destination,
             ttl = initialTtl,

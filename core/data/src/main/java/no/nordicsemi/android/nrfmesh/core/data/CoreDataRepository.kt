@@ -71,8 +71,8 @@ class CoreDataRepository @Inject constructor(
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val centralManager: CentralManager,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    private val centralManager: CentralManager,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
     val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()
@@ -122,7 +122,7 @@ class CoreDataRepository @Inject constructor(
      * the correct network.
      */
     private fun onMeshNetworkChanged() {
-        // TODO(implement model event handlers for both elements)
+        // TODO(implement missing model event handlers for both elements)
         // Sets up the local Elements on the phone
         val element0 = Element(
             _name = "Primary Element",
@@ -253,7 +253,12 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverPbGattBearer(context: Context, device: Peripheral) =
         withContext(defaultDispatcher) {
             if (bearer is GattBearer) bearer?.close()
-            PbGattBearer(context = context, centralManager = centralManager, peripheral = device)
+            PbGattBearer(
+                dispatcher = defaultDispatcher,
+                context = context,
+                centralManager = centralManager,
+                peripheral = device
+            )
                 .also {
                     it.open()
                     bearer = it
@@ -273,19 +278,24 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
-            GattBearer(context = context, centralManager = centralManager, peripheral = peripheral)
-                .also {
-                    meshNetworkManager.setMeshBearerType(meshBearer = it)
-                    bearer = it
-                    it.open()
-                    if (it.isOpen) {
-                        _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
-                            .value.copy(connectionState = NetworkConnectionState.Connected(
+            GattBearer(
+                dispatcher = defaultDispatcher,
+                context = context,
+                centralManager = centralManager,
+                peripheral = peripheral
+            ).also {
+                meshNetworkManager.setMeshBearerType(meshBearer = it)
+                bearer = it
+                it.open()
+                if (it.isOpen) {
+                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
+                        .value.copy(
+                            connectionState = NetworkConnectionState.Connected(
                                 peripheral = peripheral
                             )
                         )
-                    }
                 }
+            }
         }
 
     /**

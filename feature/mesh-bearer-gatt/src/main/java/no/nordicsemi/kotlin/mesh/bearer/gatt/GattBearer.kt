@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.bearer.gatt
 
 import android.annotation.SuppressLint
 import android.content.Context
+import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.android.kotlin.mesh.bearer.android.BaseGattProxyBearer
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.kotlin.ble.client.RemoteService
@@ -18,10 +19,12 @@ import kotlin.uuid.ExperimentalUuidApi
  * Responsible for receiving and sending mesh messages to and from the GATT Proxy Node.
  */
 class GattBearer(
+    dispatcher: CoroutineDispatcher,
     context: Context,
     centralManager: CentralManager,
     peripheral: Peripheral
 ) : BaseGattProxyBearer<MeshProxyService>(
+    dispatcher = dispatcher,
     context = context,
     centralManager = centralManager,
     peripheral = peripheral
