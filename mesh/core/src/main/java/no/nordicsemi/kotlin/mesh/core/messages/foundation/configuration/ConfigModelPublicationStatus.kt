@@ -121,7 +121,7 @@ data class ConfigModelPublicationStatus(
                 val flag = (params[6].toUByte() and 0x10u) shr 4
                 val ttl = params[7].toUByte()
                 val periodSteps = params[8].toUByte() and 0x3Fu
-                val periodResolution = StepResolution.from((params[8].toUByte() shr 6))
+                val periodResolution = StepResolution.from(value = (params[8].toUByte() shr 6))
                 val period = PublishPeriod(periodSteps, periodResolution)
                 val count = params[9].toUByte() and 0x07u
                 val intervalSteps = params[9].toUByte() shr 3

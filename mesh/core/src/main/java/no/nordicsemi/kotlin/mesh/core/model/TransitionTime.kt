@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.immediate
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.unknown
 import kotlin.time.Duration
@@ -46,7 +47,7 @@ data class TransitionTime(val steps: UByte, val stepResolution: StepResolution) 
      */
     constructor(rawValue: UByte) : this(
         steps = rawValue and 0x3Fu,
-        stepResolution = StepResolution.from(rawValue.toInt() shr 6)
+        stepResolution = StepResolution.from(value = rawValue.toUByte() shr 6)
     )
 
     val milliseconds: Int?
