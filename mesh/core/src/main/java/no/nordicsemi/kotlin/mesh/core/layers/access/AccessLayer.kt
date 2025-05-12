@@ -503,6 +503,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                             }
                         }
                     }
+                    break
                 }
             }
         } else {
