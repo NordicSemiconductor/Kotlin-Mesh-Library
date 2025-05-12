@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -175,7 +176,13 @@ internal class NetworkManager internal constructor(
         timeout: Duration,
     ): ReceivedMessage? = incomingMeshMessages
         .timeout(timeout = timeout)
-        .catch { logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" } }
+        .catch {
+            // If its a timeout exception that's thrown we should log it in the bearer
+            if (it is TimeoutCancellationException) {
+                logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
+            }
+            throw it
+        }
         .firstOrNull {
             destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
         }
