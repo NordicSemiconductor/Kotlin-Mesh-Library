@@ -6,7 +6,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.Publisher
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareDistributionClientHandler
@@ -147,8 +146,6 @@ data class Element(
      * Adds the natively supported Models to the Element.
      *
      * Note: This is only to be called for the primary element of the Local Node.
-     *
-     * @param meshNetwork Mesh network.
      */
     internal fun addPrimaryElementModels() {
         require(isPrimary) { return }

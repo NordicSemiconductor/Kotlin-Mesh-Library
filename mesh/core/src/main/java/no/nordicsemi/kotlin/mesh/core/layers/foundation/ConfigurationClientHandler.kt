@@ -2,6 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
+import no.nordicsemi.kotlin.mesh.core.MessageComposer
+import no.nordicsemi.kotlin.mesh.core.ModelError
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -53,17 +57,12 @@ import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import no.nordicsemi.kotlin.mesh.core.MessageComposer
-import no.nordicsemi.kotlin.mesh.core.ModelError
-import no.nordicsemi.kotlin.mesh.core.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
 /**
  * ConfigurationClientHandler class handles the configuration messages sent from the provisioner

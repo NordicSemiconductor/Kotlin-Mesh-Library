@@ -1,10 +1,9 @@
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
-import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
 
 class HealthServerHandler : ModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer> = mapOf()
