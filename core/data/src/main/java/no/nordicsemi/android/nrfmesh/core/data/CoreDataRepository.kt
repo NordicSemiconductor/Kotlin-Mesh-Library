@@ -25,6 +25,7 @@ import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
+import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
@@ -34,7 +35,6 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -139,10 +139,7 @@ class CoreDataRepository @Inject constructor(
                 Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
                 Model(
                     modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_CLIENT_MODEL_ID),
-                    handler = GenericOnOffClientEventHandler(
-                        publisher = meshNetworkManager,
-                        meshNetwork = meshNetwork
-                    )
+                    handler = GenericOnOffClientEventHandler()
                 ),
                 Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_CLIENT_MODEL_ID)),
                 Model(modelId = SigModelId(modelIdentifier = Model.LIGHT_LC_CLIENT_MODEL_ID)),
@@ -435,29 +432,33 @@ class CoreDataRepository @Inject constructor(
     }
 
     /**
-     * Sends a mesh message to the given model.
+     * Sends an unacknowledged mesh message to the given model.
      *
-     * @param model
-     * @param message Message to be sent.
+     * @param model          Destination model.
+     * @param unackedMessage Unacknowledged mesh message to be sent.
      */
-    suspend fun send(model: Model, message: MeshMessage) = withContext(
+    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) = withContext(
         context = defaultDispatcher
     ) {
-        if (bearer != null && bearer!!.isOpen) {
-            if(message is AcknowledgedMeshMessage){
-                meshNetworkManager.send(
-                    model = model,
-                    message = message
-                )
-            } else if(message is UnacknowledgedMeshMessage){
-                meshNetworkManager.send(
-                    model = model,
-                    message = message
-                )
-            }
-        } else {
-            throw IllegalStateException("Bearer is not open")
-        }
+        bearer
+            ?.takeIf { it.isOpen }
+            ?.let { meshNetworkManager.send(model = model, message = unackedMessage) }
+            ?: throw IllegalStateException("Bearer is not open")
+    }
+
+    /**
+     * Sends an acknowledged mesh message to the given model.
+     *
+     * @param model        Destination model.
+     * @param ackedMessage Unacknowledged mesh message to be sent.
+     */
+    suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
+        context = defaultDispatcher
+    ) {
+        bearer
+            ?.takeIf { it.isOpen }
+            ?.let { meshNetworkManager.send(model = model, message = ackedMessage) }
+            ?: throw IllegalStateException("Bearer is not open")
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
