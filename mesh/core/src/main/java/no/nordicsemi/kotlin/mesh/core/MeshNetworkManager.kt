@@ -113,9 +113,7 @@ class MeshNetworkManager(
             if (elements.isEmpty()) elements = elements + Element(location = Location.UNKNOWN)
 
             elements.first().addPrimaryElementModels()
-
-            // Set the publisher for all [ModelEventHandler]
-            //
+            
             elements.forEach { element ->
                 element.models.forEach { model ->
                     model.eventHandler?.let {
