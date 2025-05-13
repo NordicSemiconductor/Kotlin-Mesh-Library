@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,7 +15,6 @@ import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
-import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotDelete
@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -66,8 +67,9 @@ import java.util.UUID
 class MeshNetworkManager(
     private val storage: Storage,
     internal val secureProperties: SecurePropertiesStorage,
-    internal val scope: CoroutineScope,
-) {
+    internal val dispatcher: CoroutineDispatcher,
+) : Publisher {
+    internal val scope = CoroutineScope(dispatcher)
     private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
@@ -92,6 +94,13 @@ class MeshNetworkManager(
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
         set(value) {
+            val network = requireNotNull(network) {
+                logger?.e(category = LogCategory.MODEL) {
+                    "Error: Mesh Network must be created or imported before setting up local " +
+                            "elements."
+                }
+                throw NoNetwork
+            }
             // Some models, which are supported by the library, will be added automatically.
             // Let's make sure they are not in the array.
             var elements = value.onEach {
@@ -103,9 +112,24 @@ class MeshNetworkManager(
             // Add the required Models in the Primary Element.
             if (elements.isEmpty()) elements = elements + Element(location = Location.UNKNOWN)
 
-            elements.first().addPrimaryElementModels(meshNetwork = network!!, publisher = this)
+            elements.first().addPrimaryElementModels()
 
-            network?._localElements = elements.toMutableList()
+            // Set the publisher for all [ModelEventHandler]
+            //
+            elements.forEach { element ->
+                element.models.forEach { model ->
+                    model.eventHandler?.let {
+                        // Set the mesh network for all [ModelEventHandler]
+                        it.meshNetwork = network
+                        // Set the model for all [ModelEventHandler]
+                        it.model = model
+                        // Set the publisher for all [ModelEventHandler]
+                        it.publisher = this
+                    }
+                }
+            }
+
+            network._localElements = elements.toMutableList()
             networkManager?.accessLayer?.reinitializePublishers()
         }
 
@@ -217,43 +241,22 @@ class MeshNetworkManager(
         ).toString().toByteArray()
     }
 
-    /**
-     * This method tries to publish the given message using the publication information set in the
-     * [Model].
-     *
-     * If the retransmission is set to a value greater than 0, and the message is unacknowledged,
-     * this method will retransmit it number of times with the count and interval specified in the
-     * retransmission object.
-     *
-     * If the publication is not configured for the given Model, this method does nothing.
-     *
-     * Note: This method does not check whether the given Model does support the given message. It
-     *       will publish whatever message is given using the publication configuration of the given
-     *       Model.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
-     * the message has been sent successfully or a problem occurred.
-     *
-     * @param message: The message to be sent.
-     * @param model:   The model from which to send the message.
-     * @returns Message handle that can be used to cancel sending.
-     */
-    suspend fun publish(message: MeshMessage, model: Model) = networkManager?.let {
-        model.let {
-            val element = it.parentElement ?: return null
-            it.publish?.let { publish ->
-                val address = publish.address
-                network?.applicationKeys?.get(index = publish.index)?.let {
-                    networkManager?.let { networkManager ->
-                        scope.launch {
-                            networkManager.publish(message = message, from = model)
+    override fun publish(message: UnacknowledgedMeshMessage, model: Model) {
+        networkManager?.let {
+            model.let {
+                requireNotNull(it.parentElement) {
+                    logger?.e(category = LogCategory.MODEL) {
+                        "Error: Model does not belong to an Element."
+                    }
+                    throw IllegalStateException("Error: Model does not belong to an Element.")
+                }
+                it.publish?.let { publish ->
+                    network?.applicationKeys?.get(index = publish.index)?.let {
+                        networkManager?.let { networkManager ->
+                            scope.launch {
+                                networkManager.publish(message = message, from = model)
+                            }
                         }
-                        MessageHandle(
-                            message = message,
-                            source = element.unicastAddress,
-                            destination = address as MeshAddress,
-                            manager = networkManager
-                        )
                     }
                 }
             }

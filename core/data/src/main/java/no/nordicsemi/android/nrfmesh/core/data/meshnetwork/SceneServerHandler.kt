@@ -6,7 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.SceneServerModelEventHandler
 
-class SceneServerHandler(override val meshNetwork: MeshNetwork) : SceneServerModelEventHandler() {
+class SceneServerHandler : SceneServerModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer>
         get() = TODO("Not yet implemented")
     override val isSubscriptionSupported: Boolean

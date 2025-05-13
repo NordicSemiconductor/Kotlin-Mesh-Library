@@ -23,7 +23,10 @@ sealed class ModelError : Exception() {
     data class InvalidMessage(val msg: MeshMessage) : ModelError()
 }
 
-typealias MessageComposer = () -> MeshMessage
+/**
+ * A functional interface containing a message composer for an [UnacknowledgedMeshMessage].
+ */
+typealias MessageComposer = () -> UnacknowledgedMeshMessage
 
 /**
  * Defines a set of events that are handled by the [ModelEventHandler].
@@ -78,6 +81,30 @@ sealed class ModelEvent {
     ) : ModelEvent()
 }
 
+interface Publisher {
+    /**
+     * This method tries to publish the given message using the publication information set in the
+     * [Model].
+     *
+     * If the retransmission is set to a value greater than 0, and the message is unacknowledged,
+     * this method will retransmit it number of times with the count and interval specified in the
+     * retransmission object.
+     *
+     * If the publication is not configured for the given Model, this method does nothing.
+     *
+     * Note: This method does not check whether the given Model does support the given message. It
+     *       will publish whatever message is given using the publication configuration of the given
+     *       Model.
+     *
+     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
+     * the message has been sent successfully or a problem occurred.
+     *
+     * @param message: The message to be sent.
+     * @param model:   The model from which to send the message.
+     */
+    fun publish(message: UnacknowledgedMeshMessage, model: Model)
+}
+
 /**
  * Defines the functionality of a [Model] on the Local Node.
  *
@@ -94,10 +121,12 @@ sealed class ModelEvent {
  * @property isSubscriptionSupported      Defines the model supports subscription.
  * @property publicationMessageComposer   Lambda function that returns a [MeshMessage] to be
  *                                        published.
+ * @property meshNetwork                  Mesh network to which the model belongs.
+ * @property model                        Model to which the event handler is assigned.
+ * @property publisher                    Publisher used to publish messages.
+ * @property mutex                        Mutex used to synchronize access to the model.
  */
 abstract class ModelEventHandler {
-
-    abstract val meshNetwork: MeshNetwork
 
     abstract val messageTypes: Map<UInt, HasInitializer>
 
@@ -105,30 +134,22 @@ abstract class ModelEventHandler {
 
     abstract val publicationMessageComposer: MessageComposer?
 
-    internal val mutex = Mutex()
+    internal lateinit var meshNetwork: MeshNetwork
 
-    /**
-     * Publishes a single message given as a parameter using the Publish information set in the
-     * underlying model.
-     *
-     * @param message Message to be published.
-     * @param manager Mesh network manager.
-     * @return a nullable [MessageHandle] that can be used to cancel the message.
-     */
-    suspend fun publish(message: MeshMessage, manager: MeshNetworkManager) = manager.localElements
-        .flatMap { it.models }
-        .firstOrNull { it.eventHandler === this }
-        ?.let { manager.publish(message, it) }
+    internal lateinit var model: Model
+
+    internal lateinit var publisher: Publisher
+
+    internal val mutex = Mutex()
 
     /**
      * Publishes a single message created by Model's message composer using the Publish information
      * set in the underlying model.
      *
-     * @param manager Mesh network manager.
      * @return a nullable [MessageHandle] that can be used to cancel the message.
      */
-    suspend fun publish(manager: MeshNetworkManager) = publicationMessageComposer?.let { composer ->
-        publish(message = composer(), manager = manager)
+    fun publish() = publicationMessageComposer?.let { composer ->
+        publisher.publish(message = composer(), model = model)
     }
 
     /**

@@ -149,79 +149,75 @@ data class Element(
      * Note: This is only to be called for the primary element of the Local Node.
      *
      * @param meshNetwork Mesh network.
-     * @param publisher Publisher to be used for the models.
      */
-    internal fun addPrimaryElementModels(
-        meshNetwork: MeshNetwork,
-        publisher: Publisher,
-    ) {
+    internal fun addPrimaryElementModels() {
         require(isPrimary) { return }
         insert(
             model = Model(
                 modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID),
-                handler = ConfigurationServerHandler(meshNetwork = meshNetwork)
+                handler = ConfigurationServerHandler()
             ),
             index = 0
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID),
-                handler = ConfigurationClientHandler(meshNetwork = meshNetwork)
+                handler = ConfigurationClientHandler()
             ),
             index = 1
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID),
-                handler = HealthServerHandler(meshNetwork = meshNetwork)
+                handler = HealthServerHandler()
             ),
             index = 2
         )
         insert(
             Model(
                 modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID),
-                handler = HealthClientHandler(meshNetwork = meshNetwork)
+                handler = HealthClientHandler()
             ), index = 3
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID),
-                handler = PrivateBeaconHandler(meshNetwork = meshNetwork)
+                handler = PrivateBeaconHandler()
             ),
             index = 4
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.SAR_CONFIGURATION_CLIENT_MODEL_ID),
-                handler = SarConfigurationClientHandler(meshNetwork = meshNetwork)
+                handler = SarConfigurationClientHandler()
             ),
             index = 5
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.REMOTE_PROVISIONING_CLIENT_MODEL_ID),
-                handler = RemoteProvisioningClientHandler(meshNetwork = meshNetwork)
+                handler = RemoteProvisioningClientHandler()
             ),
             index = 6
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
-                handler = SceneClientHandler(meshNetwork = meshNetwork)
+                handler = SceneClientHandler()
             ),
             index = 7
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.FIRMWARE_UPDATE_CLIENT_MODEL_ID),
-                handler = FirmwareUpdateClientHandler(meshNetwork = meshNetwork)
+                handler = FirmwareUpdateClientHandler()
             ),
             index = 8
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID),
-                handler = FirmwareDistributionClientHandler(meshNetwork = meshNetwork)
+                handler = FirmwareDistributionClientHandler()
             ),
             index = 9
         )

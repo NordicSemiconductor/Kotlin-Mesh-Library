@@ -17,9 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 /**
  * TODO
  */
-internal class ConfigurationServerHandler(
-    override val meshNetwork: MeshNetwork
-) : ModelEventHandler() {
+internal class ConfigurationServerHandler : ModelEventHandler() {
     override val messageTypes = mapOf(
         ConfigCompositionDataGet.opCode to ConfigCompositionDataGet,
         ConfigNetKeyDelete.opCode to ConfigNetKeyDelete,

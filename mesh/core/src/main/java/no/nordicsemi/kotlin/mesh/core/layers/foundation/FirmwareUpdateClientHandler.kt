@@ -6,7 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
-class FirmwareUpdateClientHandler(override val meshNetwork: MeshNetwork) : ModelEventHandler() {
+class FirmwareUpdateClientHandler : ModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer> = mapOf()
     override val isSubscriptionSupported: Boolean = false
     override val publicationMessageComposer: MessageComposer? = null

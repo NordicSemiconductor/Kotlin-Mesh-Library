@@ -68,15 +68,12 @@ import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 /**
  * ConfigurationClientHandler class handles the configuration messages sent from the provisioner
  *
- * @property meshNetwork                   Mesh network.
  * @property messageTypes                  Message types supported by the handler.
  * @property isSubscriptionSupported       True if the model supports subscription.
  * @property publicationMessageComposer    Message composer for publication messages.
  * @constructor Initialize ConfigurationClientHandler
  */
-internal class ConfigurationClientHandler(
-    override val meshNetwork: MeshNetwork,
-) : ModelEventHandler() {
+internal class ConfigurationClientHandler() : ModelEventHandler() {
 
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,

@@ -6,7 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 
-class SceneClientHandler(override val meshNetwork: MeshNetwork) : ModelEventHandler() {
+class SceneClientHandler : ModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer> = mapOf()
     override val isSubscriptionSupported: Boolean = true
     override val publicationMessageComposer: MessageComposer? = null
