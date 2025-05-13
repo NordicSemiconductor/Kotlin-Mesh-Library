@@ -26,6 +26,6 @@ object MeshNetworkManagerModule {
     ) = MeshNetworkManager(
         storage = meshNetworkStorage,
         secureProperties = meshNetworkPropertiesStorage,
-        scope = CoroutineScope(defaultDispatcher + Job())
+        dispatcher = defaultDispatcher
     )
 }
