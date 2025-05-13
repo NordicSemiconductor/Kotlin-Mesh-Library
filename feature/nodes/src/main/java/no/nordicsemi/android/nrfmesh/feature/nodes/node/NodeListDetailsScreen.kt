@@ -18,6 +18,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementRouteKeyKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -32,6 +33,7 @@ internal fun NodeListDetailsScreen(
     onAddAppKeyClicked: () -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
     resetMessageState: () -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
@@ -135,6 +137,7 @@ internal fun NodeListDetailsScreen(
                             nodeIdentityStatus = uiState.nodeIdentityStates,
                             content = content,
                             send = send,
+                            sendApplicationMessage = sendApplicationMessage,
                             resetMessageState = resetMessageState,
                             requestNodeIdentityStates = requestNodeIdentityStates,
                             navigateToGroups = { appState.navController.navigateToGroups() },

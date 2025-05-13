@@ -15,6 +15,7 @@ import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -28,6 +29,7 @@ internal fun NodeExtraPane(
     messageState: MessageState,
     nodeIdentityStatus: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     navigateToGroups: () -> Unit,
@@ -41,6 +43,7 @@ internal fun NodeExtraPane(
             messageState = messageState,
             nodeIdentityStates = nodeIdentityStatus,
             send = send,
+            sendApplicationMessage = sendApplicationMessage,
             requestNodeIdentityStates = requestNodeIdentityStates,
             resetMessageState = resetMessageState,
             navigateToGroups = navigateToGroups,

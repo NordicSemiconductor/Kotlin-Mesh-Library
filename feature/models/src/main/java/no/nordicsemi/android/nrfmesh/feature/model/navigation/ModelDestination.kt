@@ -3,8 +3,9 @@ package no.nordicsemi.android.nrfmesh.feature.model.navigation
 import androidx.compose.runtime.Composable
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
-import no.nordicsemi.android.nrfmesh.feature.model.ModelRoute
+import no.nordicsemi.android.nrfmesh.feature.model.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import java.util.UUID
 
@@ -17,9 +18,10 @@ fun ModelScreenRoute(
     resetMessageState: () -> Unit,
     navigateToGroups: () -> Unit,
     navigateToConfigApplicationKeys: (UUID) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit
+    send: (AcknowledgedConfigMessage) -> Unit,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
 ) {
-    ModelRoute(
+    ModelScreen(
         model = model,
         messageState = messageState,
         nodeIdentityStates = nodeIdentityStates,
@@ -28,6 +30,7 @@ fun ModelScreenRoute(
         resetMessageState = resetMessageState,
         navigateToGroups = navigateToGroups,
         navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-        send = send
+        send = send,
+        sendApplicationMessage = sendApplicationMessage
     )
 }

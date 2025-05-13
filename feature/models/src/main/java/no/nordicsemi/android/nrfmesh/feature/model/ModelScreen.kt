@@ -23,6 +23,8 @@ import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
+import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
+import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -31,18 +33,21 @@ import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
 import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
 import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
+import no.nordicsemi.android.nrfmesh.feature.model.generic.GenericOnOffServer
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import java.util.UUID
 
 @Composable
-internal fun ModelRoute(
+internal fun ModelScreen(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
     send: (AcknowledgedConfigMessage) -> Unit,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
@@ -86,11 +91,18 @@ internal fun ModelRoute(
                 send = send
             )
         }
+        if (model.isGenericOnOffServer()) {
+            GenericOnOffServer(
+                model = model,
+                messageState = messageState,
+                sendApplicationMessage = sendApplicationMessage
+            )
+        }
     }
 
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
-            text = messageState.error.toString(),
+            text = messageState.error.describe(),
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
