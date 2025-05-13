@@ -3,7 +3,6 @@
     <string name="label_gatt_proxy">GATT Proxy</string>
     <string name="label_get_state">Get State</string>
     <string name="label_set_state">Set State</string>
-    <string name="label_off">Off</string>
     <string name="label_proxy_state_rationale">"Turning off the proxy feature will set this node to
         a non-connectable state and disable the proxy server."</string>
     <string name="label_disable_proxy_feature">Disable Proxy</string>
@@ -99,4 +98,18 @@
     <string name="label_select_subscribe_group">Select a group to subscribe to</string>
 
     <string name="label_no_publication">No publications</string>
+    <string name="label_generic_on_off_server">Generic On Off Server</string>
+    <string name="label_controls">Controls</string>
+    <string name="label_default_transition_delay">Default Transition Time and Delay</string>
+    <string name="label_acknowledged">Acknowledged</string>
+    <string name="label_default">Default</string>
+    <string name="label_no_delay">No Delay</string>
+    <string name="delay_ms">Delay %d ms</string>
+    <string name="label_on">On</string>
+    <string name="label_off">Off</string>
+    <string name="label_status">Status</string>
+    <string name="label_current">Current</string>
+    <string name="label_target">Target</string>
+    <string name="label_on_with_remaining_time">ON in %s</string>
+    <string name="label_off_with_remaining_time">OFF in %s</string>
 </resources>
