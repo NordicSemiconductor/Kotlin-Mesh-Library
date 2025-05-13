@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.common
 
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 
 /**
