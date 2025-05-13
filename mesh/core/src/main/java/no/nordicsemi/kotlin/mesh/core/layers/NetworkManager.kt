@@ -316,7 +316,7 @@ internal class NetworkManager internal constructor(
      * is in order to support retransmission in case a packet was lost and needs to be sent again
      * after block acknowledgment was received.
      *
-     * @param ackMessage         Message to be sent.
+     * @param message         Message to be sent.
      * @param element         Source Element.
      * @param destination     Destination Unicast Address.
      * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
