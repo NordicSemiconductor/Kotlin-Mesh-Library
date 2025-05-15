@@ -134,9 +134,11 @@ abstract class ModelEventHandler {
 
     abstract val publicationMessageComposer: MessageComposer?
 
-    internal lateinit var meshNetwork: MeshNetwork
+    lateinit var meshNetwork: MeshNetwork
+        internal set
 
-    internal lateinit var model: Model
+    lateinit var model: Model
+        internal set
 
     internal lateinit var publisher: Publisher
 
@@ -163,11 +165,11 @@ abstract class ModelEventHandler {
 /**
  * This event handler should be used when defining Scene Server model. In addition to handling
  * messages, the Scene Server delegate should also clear the current whenever
- * [StoredWithSceneModelDelegate.store] and
- * [StoredWithSceneModelDelegate.recall] are called.
+ * [StoredWithSceneModelEventHandler.store] and
+ * [StoredWithSceneModelEventHandler.recall] are called.
  *
  * Whenever the state changes due toa ny other reason than receiving a Scene Recall message, the
- * delegate should call [StoredWithSceneModelDelegate.networkDidExitStoredWithSceneState] to clear
+ * delegate should call [StoredWithSceneModelEventHandler.networkDidExitStoredWithSceneState] to clear
  * the current scene.
  */
 abstract class SceneServerModelEventHandler : ModelEventHandler() {
@@ -182,7 +184,7 @@ abstract class SceneServerModelEventHandler : ModelEventHandler() {
     abstract fun networkDidExitStoredWithSceneState()
 }
 
-abstract class StoredWithSceneModelDelegate : ModelEventHandler() {
+abstract class StoredWithSceneModelEventHandler : ModelEventHandler() {
 
     /**
      * This method should store the current States of the Model and associate them with the given
