@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.ProtoIvIndex
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecureProperties
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecurePropertiesMap
@@ -30,10 +31,10 @@ import javax.inject.Inject
 class MeshSecurePropertiesStorage @Inject constructor(
     @ApplicationContext private val context: Context,
     private val securePropertiesStore: DataStore<ProtoSecurePropertiesMap>,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SecurePropertiesStorage {
 
-    private val scope = CoroutineScope(defaultDispatcher + SupervisorJob())
+    private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
 
     /**
      * Creates a default [ProtoSecurePropertiesMap] with a single entry for the given [uuid].
