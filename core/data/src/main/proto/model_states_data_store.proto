@@ -3,11 +3,11 @@ option java_package = "no.nordicsemi.android.nrfmesh.core.data";
 option java_multiple_files = true;
 
 // Stores the state of the generic OnOff or Level model to be used with Scene Server
-message ProtoModelStatePropertiesMap {
-  map<string, ProtoModelStateProperties> properties = 1;
+message ProtoModelStatesMap {
+  map<string, ProtoModelStates> properties = 1;
 }
 
-message ProtoModelStateProperties {
+message ProtoModelStates {
   // Map uses the element index of the parent element of the given model as the key and GenericOnOffState as value
   map<uint32, GenericOnOffState> genericOnOffState = 1;
   // Map uses the element index of the parent element of the given model as the key and GenericLevelState as value
