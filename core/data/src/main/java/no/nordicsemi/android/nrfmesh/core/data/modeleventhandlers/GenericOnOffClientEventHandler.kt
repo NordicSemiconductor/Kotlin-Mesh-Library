@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.core.data
+package no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers
 
 import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelError
@@ -10,7 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffStatus
 
 class GenericOnOffClientEventHandler() : ModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
-        GenericOnOffStatus.opCode to GenericOnOffStatus,
+        GenericOnOffStatus.Initializer.opCode to GenericOnOffStatus.Initializer,
     )
     override val isSubscriptionSupported = true
     override val publicationMessageComposer: MessageComposer?
@@ -22,7 +22,7 @@ class GenericOnOffClientEventHandler() : ModelEventHandler() {
             publish()
         }
 
-    override fun handle(event: ModelEvent) {
+    override suspend fun handle(event: ModelEvent) {
         when (event) {
             is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
                 msg = event.request
