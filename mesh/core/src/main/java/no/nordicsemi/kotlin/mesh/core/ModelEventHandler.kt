@@ -159,7 +159,7 @@ abstract class ModelEventHandler {
      *
      * @param event Model event.
      */
-    abstract fun handle(event: ModelEvent)
+    abstract suspend fun handle(event: ModelEvent)
 }
 
 /**

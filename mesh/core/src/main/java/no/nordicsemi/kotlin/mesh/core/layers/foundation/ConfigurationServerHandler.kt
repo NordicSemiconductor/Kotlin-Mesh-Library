@@ -29,7 +29,7 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
     )
     override val isSubscriptionSupported = false
     override val publicationMessageComposer = null
-    override fun handle(event: ModelEvent) {
+    override suspend fun handle(event: ModelEvent) {
         // TODO("Not yet implemented")
     }
 }

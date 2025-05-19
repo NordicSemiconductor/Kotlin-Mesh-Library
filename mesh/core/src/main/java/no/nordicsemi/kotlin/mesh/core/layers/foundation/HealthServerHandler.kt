@@ -10,7 +10,7 @@ class HealthServerHandler : ModelEventHandler() {
     override val isSubscriptionSupported: Boolean = false
     override val publicationMessageComposer: MessageComposer? = null
 
-    override fun handle(event: ModelEvent) {
+    override suspend fun handle(event: ModelEvent) {
         // TODO("Not yet implemented")
     }
 }
