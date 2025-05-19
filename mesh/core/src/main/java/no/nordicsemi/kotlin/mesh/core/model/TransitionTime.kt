@@ -149,3 +149,14 @@ data class TransitionTime(val steps: UByte, val stepResolution: StepResolution) 
         }
     }
 }
+
+/**
+ * Returns this Transition Time value, if it's known, or the default value. If default value is
+ * null, instantaneous transition is returned.
+ *
+ * @param defaultTransitionTime The optional default value of the transition time.
+ */
+fun TransitionTime?.or(defaultTransitionTime: TransitionTime?) = when {
+    this != null && this.isKnown -> this
+    else -> defaultTransitionTime ?: immediate
+}
