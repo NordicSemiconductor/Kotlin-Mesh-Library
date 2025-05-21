@@ -430,7 +430,8 @@ class MeshNetworkManager(
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        require(network != null) { throw NoNetwork }
+        val network =  requireNotNull(network) { throw NoNetwork }
+
         val node = model.parentElement?.parentNode ?: run {
             println("Error: Element does not belong to a Node")
             throw InvalidDestination
@@ -444,6 +445,12 @@ class MeshNetworkManager(
             println("Error: Model is not bound to this Application Key.")
             throw ModelNotBoundToAppKey
         }
+
+        // Uncomment to emulate sending messages to the local node
+        // network.applicationKeys.firstOrNull()?.let {
+        //     model.parentElement?.parentNode?.addAppKey(it.index)
+        //     model.bind(it.index)
+        // }
 
         if (applicationKey == null && model.boundApplicationKeys.isEmpty()) {
             println("Error: Model is not bound to any Application Key.")
@@ -466,7 +473,7 @@ class MeshNetworkManager(
             message = message,
             localElement = localElement,
             destination = destination,
-            initialTtl = initialTtl,
+            initialTtl = initialTtl, // ?: 1u, uncomment to emulate sending messages with TTL = 1 to local node
             applicationKey = selectedAppKey
         )
     }
@@ -568,6 +575,13 @@ class MeshNetworkManager(
             throw InvalidDestination
         }
 
+
+        // Uncomment to emulate sending messages to the local node
+        // network.applicationKeys.firstOrNull()?.let {
+        //     model.parentElement?.parentNode?.addAppKey(it.index)
+        //     model.bind(it.index)
+        // }
+
         if (applicationKey != null && !applicationKey.isBoundTo(model = model)) {
             println("Error: Model is not bound to this Application Key.")
             throw ModelNotBoundToAppKey
@@ -614,7 +628,7 @@ class MeshNetworkManager(
             message = message,
             element = source,
             destination = destination,
-            initialTtl = initialTtl,
+            initialTtl = initialTtl, // ?: 1u, uncomment to emulate sending messages with TTL = 1 to local node
             applicationKey = selectedAppKey
         )
     }
