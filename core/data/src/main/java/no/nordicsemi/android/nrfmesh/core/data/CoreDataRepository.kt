@@ -26,6 +26,10 @@ import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffServer
+import no.nordicsemi.android.nrfmesh.core.data.storage.SceneStatesDataStoreStorage
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
@@ -72,6 +76,7 @@ class CoreDataRepository @Inject constructor(
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    private val storage: SceneStatesDataStoreStorage,
     private val centralManager: CentralManager,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
@@ -123,6 +128,7 @@ class CoreDataRepository @Inject constructor(
      */
     private fun onMeshNetworkChanged() {
         // TODO(implement missing model event handlers for both elements)
+        val defaultTransitionTimeServer = GenericDefaultTransitionTimeServer()
         // Sets up the local Elements on the phone
         val element0 = Element(
             _name = "Primary Element",
@@ -135,7 +141,14 @@ class CoreDataRepository @Inject constructor(
                 Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID)),
                 Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID)),
                 // Generic OnOff and Generic Level models defined by SIG
-                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_SERVER_MODEL_ID)),
+                Model(
+                    modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_SERVER_MODEL_ID),
+                    handler = GenericOnOffServer(
+                        dispatcher = defaultDispatcher,
+                        storage = storage,
+                        defaultTransitionTimeServer = defaultTransitionTimeServer
+                    )
+                ),
                 Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
                 Model(
                     modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_CLIENT_MODEL_ID),
@@ -414,10 +427,8 @@ class CoreDataRepository @Inject constructor(
      * @param node    Destination node.
      * @param message Message to be sent.
      */
-    suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
-        context = defaultDispatcher
-    ) {
-        if (bearer != null && bearer!!.isOpen) {
+    suspend fun send(node: Node, message: AcknowledgedConfigMessage) =
+        withContext(context = defaultDispatcher) {
             meshNetworkManager.send(message = message, node = node, initialTtl = null)
                 .also {
                     log(
