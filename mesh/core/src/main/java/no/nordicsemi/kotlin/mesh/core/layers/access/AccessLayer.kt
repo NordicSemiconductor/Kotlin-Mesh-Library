@@ -454,52 +454,51 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         // log this with a warning. This other type will be delivered to the
                         // delegate, but not to the global network delegate.
                         logger?.w(LogCategory.MODEL) { "$message already decoded as $newMessage." }
+                    }
+                    // Deliver the message to the Model if it was signed with an Application Key
+                    // bound to this Model and the message is targeting this Element, or the
+                    // Model is subscribed to the destination address.
+                    //
+                    // Note:   Messages sent to .allNodes address shall be processed only by
+                    //         Models on the Primary Element. See Bluetooth Mesh Profile 1.0.1,
+                    //         chapter 3.4.2.4.
+                    // Note 2: As the iOS implementation does not support Relay, Proxy or Friend
+                    //         Features, the messages sent to those addresses shall only be
+                    //         processed if the Model is explicitly subscribed to these
+                    //         addresses.
 
-                        // Deliver the message to the Model if it was signed with an Application Key
-                        // bound to this Model and the message is targeting this Element, or the
-                        // Model is subscribed to the destination address.
-                        //
-                        // Note:   Messages sent to .allNodes address shall be processed only by
-                        //         Models on the Primary Element. See Bluetooth Mesh Profile 1.0.1,
-                        //         chapter 3.4.2.4.
-                        // Note 2: As the iOS implementation does not support Relay, Proxy or Friend
-                        //         Features, the messages sent to those addresses shall only be
-                        //         processed if the Model is explicitly subscribed to these
-                        //         addresses.
+                    if ((accessPdu.destination is AllNodes && element.isPrimary) ||
+                        accessPdu.destination.address == element.unicastAddress.address ||
+                        model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
+                    ) {
+                        if (keySet.applicationKey.isBoundTo(model = model)) {
+                            eventHandler.onMeshMessageReceived(
+                                model = model,
+                                message = message,
+                                source = accessPdu.source,
+                                destination = accessPdu.destination.address,
+                                request = request
+                            )?.let { response ->
+                                networkManager.reply(
+                                    origin = accessPdu.destination.address,
+                                    destination = accessPdu.source,
+                                    message = response,
+                                    element = element,
+                                    keySet = keySet
+                                )
 
-                        if ((accessPdu.destination is AllNodes && element.isPrimary) ||
-                            accessPdu.destination.address == element.unicastAddress.address ||
-                            model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
-                        ) {
-                            if (keySet.applicationKey.isBoundTo(model = model)) {
-                                eventHandler.onMeshMessageReceived(
-                                    model = model,
-                                    message = message,
-                                    source = accessPdu.source,
-                                    destination = accessPdu.destination.address,
-                                    request = request
-                                )?.let { response ->
-                                    networkManager.reply(
-                                        origin = accessPdu.destination.address,
-                                        destination = accessPdu.source,
-                                        message = response,
-                                        element = element,
-                                        keySet = keySet
+                                if (eventHandler is SceneClientHandler) {
+                                    networkManager.emitNetworkManagerEvent(
+                                        NetworkManagerEvent.NetworkDidChange
                                     )
-
-                                    if (eventHandler is SceneClientHandler) {
-                                        networkManager.emitNetworkManagerEvent(
-                                            NetworkManagerEvent.NetworkDidChange
-                                        )
-                                    }
-                                    mutex.unlock()
                                 }
-                                mutex.lock()
-                            } else {
-                                logger?.w(LogCategory.MODEL) {
-                                    "Local ${model.name} model on ${model.parentElement!!} " +
-                                            "not bound to key ${keySet.applicationKey}"
-                                }
+                                mutex.unlock()
+                            }
+                            mutex.lock()
+                        } else {
+                            logger?.w(LogCategory.MODEL) {
+                                "Local ${model.name} model on ${model.parentElement!!} " +
+                                        "not bound to key ${keySet.applicationKey}"
                             }
                         }
                     }
