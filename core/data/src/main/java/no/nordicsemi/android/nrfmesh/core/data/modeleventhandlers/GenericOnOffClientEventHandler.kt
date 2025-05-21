@@ -22,20 +22,20 @@ class GenericOnOffClientEventHandler() : ModelEventHandler() {
             publish()
         }
 
-    override suspend fun handle(event: ModelEvent) {
-        when (event) {
-            is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
-                msg = event.request
-            )
+    override suspend fun handle(event: ModelEvent) = when (event) {
+        is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
+            msg = event.request
+        )
 
-            is ModelEvent.ResponseReceived -> {
-                // Ignore do nothing
-            }
+        is ModelEvent.ResponseReceived -> {
+            // Ignore do nothing
+            null
+        }
 
-            is ModelEvent.UnacknowledgedMessageReceived -> {
-                // The status message may be received here if the Generic OnOff Server model
-                // has been configured to publish. Ignore this message.
-            }
+        is ModelEvent.UnacknowledgedMessageReceived -> {
+            // The status message may be received here if the Generic OnOff Server model
+            // has been configured to publish. Ignore this message.
+            null
         }
     }
 }
