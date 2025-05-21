@@ -58,7 +58,7 @@ class GenericOnOffSetUnacknowledged(
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 4 || it.size == 2
         }?.let { params ->
-            GenericOnOffSet(
+            GenericOnOffSetUnacknowledged(
                 on = params[0] == 0x01.toByte(),
                 tid = params[1].toUByte(),
                 transitionParams = if (params.size == 4) TransitionParameters(
