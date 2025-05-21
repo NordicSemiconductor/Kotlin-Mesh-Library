@@ -104,7 +104,7 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
      * @param event Event to be handled.
      * @throws ModelError if an acknowledged message is received.
      */
-    override suspend fun handle(event: ModelEvent) {
+    override suspend fun handle(event: ModelEvent): MeshResponse? {
         when (event) {
             is ModelEvent.AcknowledgedMessageReceived -> throw ModelError.InvalidMessage(
                 msg = event.request
@@ -120,6 +120,7 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                 // Ignore do nothing
             }
         }
+        return null
     }
 
     /**

@@ -159,7 +159,7 @@ abstract class ModelEventHandler {
      *
      * @param event Model event.
      */
-    abstract suspend fun handle(event: ModelEvent)
+    abstract suspend fun handle(event: ModelEvent) : MeshResponse?
 }
 
 /**
@@ -203,7 +203,7 @@ abstract class StoredWithSceneModelEventHandler : ModelEventHandler() {
      *                       from the present state.
      * @param delay          Message execution delay in 5 millisecond steps.
      */
-    abstract fun recall(scene: SceneNumber, transitionTime: TransitionTime?, delay: UByte)
+    abstract fun recall(scene: SceneNumber, transitionTime: TransitionTime?, delay: UByte?)
 
     /**
      * This method should be called whenever the State of a local model changes due to a different
@@ -216,9 +216,8 @@ abstract class StoredWithSceneModelEventHandler : ModelEventHandler() {
     fun networkDidExitStoredWithSceneState(network: MeshNetwork) {
         network.localElements
             .flatMap { it.models }
-            .map {
-                it.eventHandler as SceneServerModelEventHandler
-            }.forEach { it.networkDidExitStoredWithSceneState() }
+            .map { model -> model.eventHandler as? SceneServerModelEventHandler }
+            .forEach { handler -> handler?.networkDidExitStoredWithSceneState() }
     }
 }
 

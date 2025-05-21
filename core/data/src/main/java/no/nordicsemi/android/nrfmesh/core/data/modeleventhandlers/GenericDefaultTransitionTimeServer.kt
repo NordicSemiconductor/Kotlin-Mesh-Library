@@ -4,6 +4,7 @@ import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
+import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 
 class GenericDefaultTransitionTimeServer() : ModelEventHandler() {
@@ -14,7 +15,9 @@ class GenericDefaultTransitionTimeServer() : ModelEventHandler() {
         set(value) {
             field = if (value.isKnown) value else TransitionTime(rawValue = 0u)
         }
-    override suspend fun handle(event: ModelEvent) {
+
+    override suspend fun handle(event: ModelEvent): MeshResponse? {
         TODO("Not yet implemented")
+        return null
     }
 }
