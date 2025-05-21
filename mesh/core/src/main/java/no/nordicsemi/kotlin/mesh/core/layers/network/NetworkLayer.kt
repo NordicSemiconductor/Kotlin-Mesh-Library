@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -445,8 +446,18 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param address Address to check.
      * @return `true` if the address belongs to an element in the local Node or `false` otherwise.
      */
-    private fun isLocalUnicastAddress(address: UnicastAddress) =
-        meshNetwork.localProvisioner?.node?.containsElementWithAddress(address) ?: false
+    internal fun isLocalUnicastAddress(address: UnicastAddress) = isLocalUnicastAddress(
+        address = address.address
+    ) == true
+
+    /**
+     * Check whether the given address is an address of an element belonging to the local Node.
+     *
+     * @param address Address to check.
+     * @return `true` if the address belongs to an element in the local Node or `false` otherwise.
+     */
+    internal fun isLocalUnicastAddress(address: Address) =
+        meshNetwork.localProvisioner?.node?.containsElementWithAddress(address) == true
 
     /**
      * Check if the given [NetworkPdu] should loop back for local processing.
