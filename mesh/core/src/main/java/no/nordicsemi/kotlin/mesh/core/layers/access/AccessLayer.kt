@@ -2,11 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.AccessKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.DeviceKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
@@ -700,57 +703,39 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     source: Address,
     destination: Address,
     request: AcknowledgedMeshMessage?,
-): MeshResponse? {
-    if (request != null) {
+) = when {
+    request != null -> {
         val response = message as? MeshResponse
-        if (response != null) {
-            handle(
-                event = ModelEvent.ResponseReceived(
-                    model = model,
-                    response = response,
-                    request = request,
-                    source = source
-                )
+            ?: error("$message is not MeshResponse")
+        handle(
+            ModelEvent.ResponseReceived(
+                model = model,
+                response = response,
+                request = request,
+                source = source
             )
-            return null
-        } else {
-            throw Error("$message is not MeshResponse")
-        }
-    }
-    val acknowledgedRequest = message as? AcknowledgedMeshMessage
-    if (acknowledgedRequest != null) {
-        try {
-            var response: MeshResponse? = null
-            handle(
-                event = ModelEvent.AcknowledgedMessageReceived(
-                    model = model,
-                    request = acknowledgedRequest,
-                    source = source,
-                    destination = MeshAddress.create(destination),
-                    reply = {
-                        response = it
-                        mutex.unlock()
-                    }
-                )
-            )
-            mutex.lock()
-            return response
-        } catch (e: Exception) {
-            return null
-        }
+        )
     }
 
-    val unacknowledgedMessage = message as? UnacknowledgedMeshMessage
-    if (unacknowledgedMessage != null) {
+    message is AcknowledgedMeshMessage -> runCatching {
         handle(
-            event = ModelEvent.UnacknowledgedMessageReceived(
+            ModelEvent.AcknowledgedMessageReceived(
                 model = model,
-                message = unacknowledgedMessage,
+                request = message,
                 source = source,
                 destination = MeshAddress.create(destination)
             )
         )
-        return null
-    }
-    throw Error("$message is neither Acknowledged nor Unacknowledged.")
+    }.getOrNull()
+
+    message is UnacknowledgedMeshMessage -> handle(
+        ModelEvent.UnacknowledgedMessageReceived(
+            model = model,
+            message = message,
+            source = source,
+            destination = MeshAddress.create(destination)
+        )
+    )
+
+    else -> error("$message is neither Acknowledged nor Unacknowledged.")
 }
