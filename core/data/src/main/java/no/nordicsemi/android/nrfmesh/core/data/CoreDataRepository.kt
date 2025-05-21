@@ -426,10 +426,7 @@ class CoreDataRepository @Inject constructor(
                         level = LogLevel.INFO
                     )
                 }
-        } else {
-            throw IllegalStateException("Bearer is not open")
         }
-    }
 
     /**
      * Sends an unacknowledged mesh message to the given model.
@@ -437,14 +434,10 @@ class CoreDataRepository @Inject constructor(
      * @param model          Destination model.
      * @param unackedMessage Unacknowledged mesh message to be sent.
      */
-    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) = withContext(
-        context = defaultDispatcher
-    ) {
-        bearer
-            ?.takeIf { it.isOpen }
-            ?.let { meshNetworkManager.send(model = model, message = unackedMessage) }
-            ?: throw IllegalStateException("Bearer is not open")
-    }
+    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) =
+        withContext(context = defaultDispatcher) {
+            meshNetworkManager.send(model = model, message = unackedMessage)
+        }
 
     /**
      * Sends an acknowledged mesh message to the given model.
@@ -455,10 +448,7 @@ class CoreDataRepository @Inject constructor(
     suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
         context = defaultDispatcher
     ) {
-        bearer
-            ?.takeIf { it.isOpen }
-            ?.let { meshNetworkManager.send(model = model, message = ackedMessage) }
-            ?: throw IllegalStateException("Bearer is not open")
+        meshNetworkManager.send(model = model, message = ackedMessage)
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
