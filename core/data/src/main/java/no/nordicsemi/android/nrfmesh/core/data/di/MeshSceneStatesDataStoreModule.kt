@@ -12,22 +12,22 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
-import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoModelStatesMapSerializer
+import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoSceneStatesDataStoreSerializer
 import javax.inject.Singleton
 
-private const val DATA_STORE_FILE_NAME = "model_state_properties.pb"
+private const val DATA_STORE_FILE_NAME = "scene_states_proto.pb"
 
 @InstallIn(SingletonComponent::class)
 @Module
-object MeshModelStatesStorageModule {
+object MeshSceneStatesDataStoreModule {
 
     @Singleton
     @Provides
-    fun provideMeshModelStatesStorage(
+    fun provideSceneStatesDataStore(
         @ApplicationContext context: Context,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
     ) = DataStoreFactory.create(
-        serializer = ProtoModelStatesMapSerializer,
+        serializer = ProtoSceneStatesDataStoreSerializer,
         produceFile = { context.dataStoreFile(DATA_STORE_FILE_NAME) },
         corruptionHandler = null,
         scope = CoroutineScope(ioDispatcher + SupervisorJob())
