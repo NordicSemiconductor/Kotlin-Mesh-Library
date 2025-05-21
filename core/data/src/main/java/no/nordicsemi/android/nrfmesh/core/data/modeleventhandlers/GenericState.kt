@@ -78,6 +78,7 @@ data class GenericState<T>(
             animation = null
         )
 
+        @Suppress("unused")
         fun <T> continueTransitionFrom(
             state: GenericState<T>,
             targetValue: T,
@@ -124,6 +125,7 @@ data class GenericState<T>(
          * Creates a new [GenericState] object with the specified value that will transition from a
          * given state..
          */
+        @Suppress("unused")
         fun <Int> transitionFromInt(
             transitionFrom: GenericState<out Int>,
             to: Int,
@@ -140,6 +142,7 @@ data class GenericState<T>(
             animation = null
         )
 
+        @Suppress("unused")
         fun <Int> continueTransitionFromInt(
             state: GenericState<out Int>,
             targetValue: Int,
@@ -182,9 +185,8 @@ data class GenericState<T>(
             )
         }
 
+        @Suppress("unused")
         fun <T> GenericState<Int>.currentValue(): Int {
-// Extension for Number-like types (replacing BinaryInteger logic)
-            val now = Clock.System.now()
 
             animation?.let { anim ->
                 val timeDiff = (anim.startTime - Clock.System.now())
@@ -209,9 +211,6 @@ data class GenericState<T>(
                     }
                 }
             }
-
-            return value
-
             return value
         }
     }
