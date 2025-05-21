@@ -37,14 +37,11 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.schedule
-import kotlin.concurrent.timer
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -382,19 +379,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         } else {
             Random.nextInt(20, 500).toDuration(DurationUnit.MILLISECONDS)
         }
-        timer(
-            name = "ReplyTimer",
-            initialDelay = 0L,
-            period = delay.inWholeMilliseconds
-        ) {
+        scope.launch {
+            delay(delay)
             logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
-            scope.launch {
-                networkManager.upperTransportLayer.send(
-                    accessPdu = pdu,
-                    ttl = null,
-                    keySet = keySet
-                )
-            }
+            networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = null, keySet = keySet)
         }
     }
 
