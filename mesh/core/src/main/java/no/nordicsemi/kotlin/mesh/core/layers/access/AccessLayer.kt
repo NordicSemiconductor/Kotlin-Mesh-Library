@@ -492,9 +492,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                                         NetworkManagerEvent.NetworkDidChange
                                     )
                                 }
-                                mutex.unlock()
                             }
-                            mutex.lock()
                         } else {
                             logger?.w(LogCategory.MODEL) {
                                 "Local ${model.name} model on ${model.parentElement!!} " +
