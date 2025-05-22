@@ -13,12 +13,12 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 /**
  * This message is used to add a network key to a mesh node.
  *
- * @property index      Index of the network key to be added.
+ * @property index                Index of the network key to be added.
  * @property newKey               The new network key to be added.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
  * @property responseOpCode       Op Code of the response message.
- * @constructor Constructs the ConfigNetKeyDelete message.
+ * @constructor Constructs the ConfigNetKeyUpdate message.
  */
 data class ConfigNetKeyUpdate(
     override val index: KeyIndex,
@@ -32,7 +32,7 @@ data class ConfigNetKeyUpdate(
     override val responseOpCode = ConfigNetKeyStatus.opCode
 
     /**
-     * Convenience constructor to create a ConfigNetKeyAdd message.
+     * Convenience constructor to create a ConfigNetKeyUpdate message.
      *
      * @param networkKey Network key to be added.
      */
