@@ -63,6 +63,42 @@ data object KeyDistribution : KeyRefreshPhase(phase = KEY_DISTRIBUTION)
  */
 data object UsingNewKeys : KeyRefreshPhase(phase = USING_NEW_KEYS)
 
+/**
+ * Represents the transition between the Key Refresh phases.
+ */
+sealed class KeyRefreshPhaseTransition(val rawValue: Int) {
+    /**
+     * The Node will start encoding messages using the new keys, but will continue to decode using
+     * the old and new keys. The Node will only accept beacons secured using the new Network Key.
+     */
+    data object UseNewKeys : KeyRefreshPhaseTransition(rawValue = 2)
+
+    /**
+     * The old keys will be revoked and the Node will go back to Normal Operation state for the
+     * given Network Key.
+     */
+    data object RevokeOldKeys : KeyRefreshPhaseTransition(rawValue = 3)
+
+    companion object {
+
+        /**
+         * Initializes the [KeyRefreshPhaseTransition] based on the given raw value.
+         *
+         * @param rawValue The raw value of the transition.
+         * @return [KeyRefreshPhaseTransition] or throws an [IllegalArgumentException] if the raw
+         * value is invalid.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun init(rawValue: Int) = when (rawValue) {
+            2 -> UseNewKeys
+            3 -> RevokeOldKeys
+            else -> throw IllegalArgumentException("Invalid value, key refresh phase transition " +
+                    "phase must be an integer of value 2 or 3!"
+            )
+        }
+    }
+}
+
 private const val NORMAL_OPERATION = 0
 private const val KEY_DISTRIBUTION = 1
 private const val USING_NEW_KEYS = 2
