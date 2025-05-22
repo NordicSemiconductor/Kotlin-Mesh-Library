@@ -3,13 +3,8 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage.Companion.decodeNetKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 /**
  * This is the response message to [ConfigDefaultTtlGet] and [ConfigDefaultTtlSet] messages.
