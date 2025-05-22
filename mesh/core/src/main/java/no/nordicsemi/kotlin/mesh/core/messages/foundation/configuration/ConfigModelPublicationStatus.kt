@@ -55,6 +55,34 @@ data class ConfigModelPublicationStatus(
             return data
         }
 
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
+     * @param request [ConfigAnyModelMessage] message that this is a response to.
+     * @param publish Publication state.
+     */
+    constructor(request: ConfigAnyModelMessage, publish: Publish?) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        elementAddress = request.elementAddress,
+        modelIdentifier = request.modelIdentifier,
+        companyIdentifier = request.companyIdentifier,
+        publish = publish ?: Publish()
+    )
+
+    /**
+     * Constructs the ConfigModelPublicationStatus message using the given parameters.
+     *
+     * @param request [ConfigAnyModelMessage] message that this is a response to.
+     * @param status  Status of the request.
+     */
+    constructor(request: ConfigAnyModelMessage, status: ConfigMessageStatus) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        elementAddress = request.elementAddress,
+        modelIdentifier = request.modelIdentifier,
+        companyIdentifier = request.companyIdentifier,
+        publish = Publish()
+    )
+
     override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
             "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
             "companyIdentifier: $companyIdentifier)"
@@ -140,7 +168,8 @@ data class ConfigModelPublicationStatus(
                 var companyIdentifier: UShort? = null
 
                 if (params.size == 14) {
-                    companyIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
+                    companyIdentifier =
+                        params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
                     modelIdentifier = params.getUShort(offset = 12, order = ByteOrder.LITTLE_ENDIAN)
                 } else {
                     modelIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
