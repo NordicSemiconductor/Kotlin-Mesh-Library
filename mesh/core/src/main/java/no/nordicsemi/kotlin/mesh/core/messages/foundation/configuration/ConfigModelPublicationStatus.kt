@@ -58,6 +58,13 @@ data class ConfigModelPublicationStatus(
     /**
      * Convenience constructor to create the ConfigModelPublicationStatus message.
      *
+     * @param request The [ConfigAnyModelMessage] message that this is a response to.
+     */
+    constructor(request: ConfigAnyModelMessage) : this(request = request, publish = null)
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
      * @param request [ConfigAnyModelMessage] message that this is a response to.
      * @param publish Publication state.
      */
