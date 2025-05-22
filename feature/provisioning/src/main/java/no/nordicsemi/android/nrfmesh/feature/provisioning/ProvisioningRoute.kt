@@ -44,8 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.theme.nordicLightGray
-import no.nordicsemi.android.common.theme.nordicRed
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -375,7 +373,7 @@ private fun ProvisioningStateInfo(
                     },
                     dismissButtonText = null,
                     icon = Icons.Rounded.ErrorOutline,
-                    iconColor = MaterialTheme.colorScheme.nordicRed,
+                    iconColor = MaterialTheme.colorScheme.error,
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_failed, state.error)
                 )
@@ -398,7 +396,6 @@ private fun ProvisioningStateInfo(
                     },
                     dismissButtonText = null,
                     icon = Icons.Rounded.CheckCircleOutline,
-                    iconColor = MaterialTheme.colorScheme.nordicLightGray,
                     title = stringResource(R.string.label_status),
                     text = stringResource(R.string.label_provisioning_completed)
                 )

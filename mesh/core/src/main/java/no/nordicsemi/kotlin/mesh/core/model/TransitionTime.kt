@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
+import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.immediate
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime.Companion.unknown
 import kotlin.time.Duration
@@ -39,9 +40,14 @@ data class TransitionTime(val steps: UByte, val stepResolution: StepResolution) 
      */
     constructor() : this(steps = 0x3Fu, stepResolution = StepResolution.HUNDREDS_OF_MILLISECONDS)
 
+    /**
+     * Creates a new transition time object for the given raw value.
+     *
+     * @param rawValue The raw value of the transition time.
+     */
     constructor(rawValue: UByte) : this(
         steps = rawValue and 0x3Fu,
-        stepResolution = StepResolution.from(rawValue.toInt() shr 6)
+        stepResolution = StepResolution.from(value = rawValue.toUByte() shr 6)
     )
 
     val milliseconds: Int?
@@ -142,4 +148,15 @@ data class TransitionTime(val steps: UByte, val stepResolution: StepResolution) 
             )
         }
     }
+}
+
+/**
+ * Returns this Transition Time value, if it's known, or the default value. If default value is
+ * null, instantaneous transition is returned.
+ *
+ * @param defaultTransitionTime The optional default value of the transition time.
+ */
+fun TransitionTime?.or(defaultTransitionTime: TransitionTime?) = when {
+    this != null && this.isKnown -> this
+    else -> defaultTransitionTime ?: immediate
 }

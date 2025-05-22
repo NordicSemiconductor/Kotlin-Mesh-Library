@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
@@ -176,10 +177,11 @@ internal fun ConfigAppKeysScreen(
     }
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
-            text = messageState.error.message ?: stringResource(R.string.unknown_error),
+            text = messageState.error.describe(),
             showDismissButton = !messageState.didFail(),
             onDismissRequest = resetMessageState,
         )
+
         is Completed -> messageState.response?.takeIf {
             it is ConfigStatusMessage
         }?.let {
@@ -223,7 +225,7 @@ private fun SwipeToDismissKey(
     var shouldNotDismiss by remember { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            if(key.isInUse){
+            if (key.isInUse) {
                 shouldNotDismiss = true
                 false
             } else {

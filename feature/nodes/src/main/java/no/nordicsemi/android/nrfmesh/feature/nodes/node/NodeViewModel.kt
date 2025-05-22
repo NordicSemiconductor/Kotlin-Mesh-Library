@@ -23,7 +23,11 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
@@ -146,6 +150,36 @@ internal class NodeViewModel @Inject internal constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     messageState = Failed(message = message, error = e),
+                    isRefreshing = false
+                )
+            }
+        }
+    }
+
+    internal fun send(model: Model, message: MeshMessage) {
+        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
+        viewModelScope.launch {
+            runCatching {
+                if (message is AcknowledgedMeshMessage) {
+                    val response = repository.send(model = model, ackedMessage = message)
+                    _uiState.value = _uiState.value.copy(
+                        messageState = Completed(
+                            message = message,
+                            response = response as? MeshResponse
+                        )
+                    )
+
+                } else {
+                    repository.send(
+                        model = model,
+                        unackedMessage = message as UnacknowledgedMeshMessage
+                    )
+                    _uiState.value =
+                        _uiState.value.copy(messageState = Completed(message = message))
+                }
+            }.getOrElse {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(message = message, error = it),
                     isRefreshing = false
                 )
             }

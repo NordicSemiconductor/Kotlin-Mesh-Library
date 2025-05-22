@@ -20,8 +20,12 @@ dependencies {
 
     implementation(libs.kotlinx.datetime)
 
-    implementation(libs.androidx.dataStore.core)
-    implementation(libs.androidx.dataStore.preferences)
+    // implementation(libs.androidx.dataStore.core)
+    // implementation(libs.androidx.dataStore.preferences)
+
+    implementation("androidx.datastore:datastore-core:1.2.0-alpha01")
+    implementation("androidx.datastore:datastore-preferences:1.2.0-alpha01")
+    implementation("androidx.datastore:datastore-preferences-proto:1.2.0-alpha01")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

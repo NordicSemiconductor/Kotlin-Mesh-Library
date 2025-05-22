@@ -36,10 +36,6 @@ internal class ScannerViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private var job: Job? = null
 
-    init {
-        println("ScannerViewModel init: $centralManager")
-    }
-
     /**
      * Starts scanning for BLE devices.
      */

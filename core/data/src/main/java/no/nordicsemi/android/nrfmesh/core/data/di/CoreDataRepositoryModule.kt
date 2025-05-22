@@ -9,11 +9,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
-import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.storage.SceneStatesDataStoreStorage
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import javax.inject.Singleton
@@ -27,19 +26,17 @@ object CoreDataRepositoryModule {
     fun provideCoreDataRepository(
         @ApplicationContext context: Context,
         preferences: DataStore<Preferences>,
-        bluetoothStateManager: BluetoothStateManager,
-        locationStateManager: LocationStateManager,
         centralManager: CentralManager,
         meshNetworkManager: MeshNetworkManager,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
+        storage: SceneStatesDataStoreStorage
     ) = CoreDataRepository(
         context = context,
         preferences = preferences,
-        bluetoothStateManager = bluetoothStateManager,
-        locationStateManager = locationStateManager,
         centralManager = centralManager,
         meshNetworkManager = meshNetworkManager,
+        storage = storage,
         ioDispatcher = ioDispatcher,
         defaultDispatcher = defaultDispatcher
     )

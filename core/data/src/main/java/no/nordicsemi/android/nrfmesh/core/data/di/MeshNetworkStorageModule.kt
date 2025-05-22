@@ -19,5 +19,4 @@ object MeshNetworkStorageModule {
     ): MeshNetworkStorage {
         return MeshNetworkStorage(context = context)
     }
-
 }

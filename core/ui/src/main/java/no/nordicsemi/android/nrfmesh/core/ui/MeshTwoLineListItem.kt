@@ -24,11 +24,11 @@ fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
     leadingComposable: @Composable () -> Unit = {},
     title: String,
-    titleTextOverflow: TextOverflow = TextOverflow.Clip,
+    titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     subtitle: String? = null,
     trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
+    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
 ) {
     Row(
         modifier = modifier
@@ -63,7 +63,7 @@ fun MeshTwoLineListItem(
     title: String,
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Clip
+    subtitleTextOverflow: TextOverflow = TextOverflow.Clip,
 ) {
     Row(
         modifier = modifier
@@ -101,7 +101,7 @@ fun TwoLineRangeListItem(
     leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
-    lineTwo: @Composable () -> Unit = {}
+    lineTwo: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -134,7 +134,7 @@ fun SingleLineRangeListItem(
     leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Clip,
-    trailingComposable: @Composable () -> Unit = {}
+    trailingComposable: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = modifier

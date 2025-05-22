@@ -11,7 +11,6 @@ dependencies {
 
     api(project(":core:common"))
     api(project(":mesh:bearer"))
-    // api("no.nordicsemi.kotlin.ble:client-android")
 
     implementation(libs.androidx.core)
     implementation(libs.nordic.kotlin.data)

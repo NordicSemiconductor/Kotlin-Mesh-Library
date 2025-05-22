@@ -5,7 +5,8 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
+import kotlin.UShort
 
 /**
  * Represents Bluetooth mesh model contained in an element in a node.
@@ -783,10 +784,10 @@ data class Model internal constructor(
                 LIGHT_LC_SETUP_SERVER_MODEL_ID ->
                     model.modelId.modelIdentifier == LIGHT_LC_SERVER_MODEL_ID
 
-                FIRMWARE_UPDATE_SERVER,
-                FIRMWARE_DISTRIBUTION_SERVER,
+                FIRMWARE_UPDATE_SERVER_MODEL_ID,
+                FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID,
                     ->
-                    model.modelId.modelIdentifier == BLOB_TRANSFER_SERVER
+                    model.modelId.modelIdentifier == BLOB_TRANSFER_SERVER_MODEL_ID
 
                 else -> false
             }
@@ -865,6 +866,7 @@ data class Model internal constructor(
         const val GENERIC_CLIENT_PROPERTY_SERVER_MODEL_ID: UShort = 0x1014u
         const val GENERIC_PROPERTY_CLIENT_MODEL_ID: UShort = 0x1015u
 
+        // Sensors
         const val SENSOR_SERVER_MODEL_ID: UShort = 0x1100u
         const val SENSOR_SETUP_SERVER_MODEL_ID: UShort = 0x1101u
         const val SENSOR_CLIENT_MODEL_ID: UShort = 0x1102u
@@ -901,14 +903,14 @@ data class Model internal constructor(
         const val LIGHT_LC_CLIENT_MODEL_ID: UShort = 0x1311u
 
         // BLOB Transfer
-        const val BLOB_TRANSFER_SERVER: UShort = 0x1400u
-        const val BLOB_TRANSFER_CLIENT: UShort = 0x1401u
+        const val BLOB_TRANSFER_SERVER_MODEL_ID: UShort = 0x1400u
+        const val BLOB_TRANSFER_CLIENT_MODEL_ID: UShort = 0x1401u
 
         // Device Firmware Update
-        const val FIRMWARE_UPDATE_SERVER: UShort = 0x1402u
-        const val FIRMWARE_UPDATE_CLIENT: UShort = 0x1403u
-        const val FIRMWARE_DISTRIBUTION_SERVER: UShort = 0x1404u
-        const val FIRMWARE_DISTRIBUTION_CLIENT: UShort = 0x1405u
+        const val FIRMWARE_UPDATE_SERVER_MODEL_ID: UShort = 0x1402u
+        const val FIRMWARE_UPDATE_CLIENT_MODEL_ID: UShort = 0x1403u
+        const val FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID: UShort = 0x1404u
+        const val FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID: UShort = 0x1405u
 
         /**
          * Returns the name of the model for a given model id.
@@ -920,67 +922,93 @@ data class Model internal constructor(
             if (!modelId.isBluetoothSigAssigned) "Vendor Model"
             else when (modelId.id) {
                 // Foundation
-                0x0000.toUInt() -> "Configuration Server"
-                0x0001.toUInt() -> "Configuration Client"
-                0x0002.toUInt() -> "Health Server"
-                0x0003.toUInt() -> "Health Client"
-                0x0004.toUInt() -> "Remote Provisioning Server"
+                CONFIGURATION_SERVER_MODEL_ID.toUInt() -> "Configuration Server"
+                CONFIGURATION_CLIENT_MODEL_ID.toUInt() -> "Configuration Client"
+                HEALTH_SERVER_MODEL_ID.toUInt() -> "Health Server"
+                HEALTH_CLIENT_MODEL_ID.toUInt() -> "Health Client"
+                // Configuration models added in Mesh Protocol 1.1
+                REMOTE_PROVISIONING_SERVER_MODEL_ID.toUInt() -> "Remote Provisioning Server"
+                REMOTE_PROVISIONING_CLIENT_MODEL_ID.toUInt() -> "Remote Provisioning Client"
+                DIRECTED_FORWARDING_CONFIGURATION_SERVER_MODEL_ID.toUInt() -> "Directed Forwarding Configuration Server"
+                DIRECTED_FORWARDING_CONFIGURATION_CLIENT_MODEL_ID.toUInt() -> "Directed Forwarding Configuration Client"
+                BRIDGE_CONFIGURATION_SERVER_MODEL_ID.toUInt() -> "Bridge Configuration Server"
+                BRIDGE_CONFIGURATION_CLIENT_MODEL_ID.toUInt() -> "Bridge Configuration Client"
+                PRIVATE_BEACON_SERVER_MODEL_ID.toUInt() -> "Private Beacon Server"
+                PRIVATE_BEACON_CLIENT_MODEL_ID.toUInt() -> "Private Beacon Client"
+                ON_DEMAND_PRIVATE_PROXY_SERVER_MODEL_ID.toUInt() -> "On-Demand Private Proxy Server"
+                ON_DEMAND_PRIVATE_PROXY_CLIENT_MODEL_ID.toUInt() -> "On-Demand Private Proxy Client"
+                SAR_CONFIGURATION_SERVER_MODEL_ID.toUInt() -> "SAR Configuration Server"
+                SAR_CONFIGURATION_CLIENT_MODEL_ID.toUInt() -> "SAR Configuration Client"
+                OP_CODES_AGGREGATOR_SERVER_MODEL_ID.toUInt() -> "Op Codes Aggregator Server"
+                OP_CODES_AGGREGATOR_CLIENT_MODEL_ID.toUInt() -> "Op Codes Aggregator Client"
+                LARGE_COMPOSITION_DATA_SERVER_MODEL_ID.toUInt() -> "Large Composition Data Server"
+                LARGE_COMPOSITION_DATA_CLIENT_MODEL_ID.toUInt() -> "Large Composition Data Client"
+                SOLICITATION_PDU_RPL_CONFIGURATION_SERVER_MODEL_ID.toUInt() -> "Solicitation PDU RPL Configuration Server"
+                SOLICITATION_PDU_RPL_CONFIGURATION_CLIENT_MODEL_ID.toUInt() -> "Solicitation PDU RPL Configuration Client"
                 // Generic
-                0x1000.toUInt() -> "Generic OnOff Server"
-                0x1001.toUInt() -> "Generic OnOff Client"
-                0x1002.toUInt() -> "Generic Level Server"
-                0x1003.toUInt() -> "Generic Level Client"
-                0x1004.toUInt() -> "Generic Default Transition Time Server"
-                0x1005.toUInt() -> "Generic Default Transition Time Client"
-                0x1006.toUInt() -> "Generic Power OnOff Server"
-                0x1007.toUInt() -> "Generic Power OnOff Setup Server"
-                0x1008.toUInt() -> "Generic Power OnOff Client"
-                0x1009.toUInt() -> "Generic Power Level Server"
-                0x100A.toUInt() -> "Generic Power Level Setup Server"
-                0x100B.toUInt() -> "Generic Power Level Client"
-                0x100C.toUInt() -> "Generic Battery Server"
-                0x100D.toUInt() -> "Generic Battery Client"
-                0x100E.toUInt() -> "Generic Location Server"
-                0x100F.toUInt() -> "Generic Location Setup Server"
-                0x1010.toUInt() -> "Generic Location Client"
-                0x1011.toUInt() -> "Generic Admin Property Server"
-                0x1012.toUInt() -> "Generic Manufacturer Property Server"
-                0x1013.toUInt() -> "Generic User Property Server"
-                0x1014.toUInt() -> "Generic Client Property Server"
-                0x1015.toUInt() -> "Generic Property Client"
+                GENERIC_ON_OFF_SERVER_MODEL_ID.toUInt() -> "Generic OnOff Server"
+                GENERIC_ON_OFF_CLIENT_MODEL_ID.toUInt() -> "Generic OnOff Client"
+                GENERIC_LEVEL_SERVER_MODEL_ID.toUInt() -> "Generic Level Server"
+                GENERIC_LEVEL_CLIENT_MODEL_ID.toUInt() -> "Generic Level Client"
+                GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID.toUInt() -> "Generic Default Transition Time Server"
+                GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID.toUInt() -> "Generic Default Transition Time Client"
+                GENERIC_POWER_ON_OFF_SERVER_MODEL_ID.toUInt() -> "Generic Power OnOff Server"
+                GENERIC_POWER_ON_OFF_SETUP_SERVER_MODEL_ID.toUInt() -> "Generic Power OnOff Setup Server"
+                GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID.toUInt() -> "Generic Power OnOff Client"
+                GENERIC_POWER_LEVEL_SERVER_MODEL_ID.toUInt() -> "Generic Power Level Server"
+                GENERIC_POWER_LEVEL_SETUP_SERVER_MODEL_ID.toUInt() -> "Generic Power Level Setup Server"
+                GENERIC_POWER_LEVEL_CLIENT_MODEL_ID.toUInt() -> "Generic Power Level Client"
+                GENERIC_BATTERY_SERVER_MODEL_ID.toUInt() -> "Generic Battery Server"
+                GENERIC_BATTERY_CLIENT_MODEL_ID.toUInt() -> "Generic Battery Client"
+                GENERIC_LOCATION_SERVER_MODEL_ID.toUInt() -> "Generic Location Server"
+                GENERIC_LOCATION_SETUP_SERVER_MODEL_ID.toUInt() -> "Generic Location Setup Server"
+                GENERIC_LOCATION_CLIENT_MODEL_ID.toUInt() -> "Generic Location Client"
+                GENERIC_ADMIN_PROPERTY_SERVER_MODEL_ID.toUInt() -> "Generic Admin Property Server"
+                GENERIC_MANUFACTURER_PROPERTY_SERVER_MODEL_ID.toUInt() -> "Generic Manufacturer Property Server"
+                GENERIC_USER_PROPERTY_SERVER_MODEL_ID.toUInt() -> "Generic User Property Server"
+                GENERIC_CLIENT_PROPERTY_SERVER_MODEL_ID.toUInt() -> "Generic Client Property Server"
+                GENERIC_PROPERTY_CLIENT_MODEL_ID.toUInt() -> "Generic Property Client"
                 // Sensors
-                0x1100.toUInt() -> "Sensor Server"
-                0x1101.toUInt() -> "Sensor Setup Server"
-                0x1102.toUInt() -> "Sensor Client"
+                SENSOR_SERVER_MODEL_ID.toUInt() -> "Sensor Server"
+                SENSOR_SETUP_SERVER_MODEL_ID.toUInt() -> "Sensor Setup Server"
+                SENSOR_CLIENT_MODEL_ID.toUInt() -> "Sensor Client"
                 // Time and Scenes
-                0x1200.toUInt() -> "Time Server"
-                0x1201.toUInt() -> "Time Setup Server"
-                0x1202.toUInt() -> "Time Client"
-                0x1203.toUInt() -> "Scene Server"
-                0x1204.toUInt() -> "Scene Setup Server"
-                0x1205.toUInt() -> "Scene Client"
-                0x1206.toUInt() -> "Scheduler Server"
-                0x1207.toUInt() -> "Scheduler Setup Server"
-                0x1208.toUInt() -> "Scheduler Client"
+                TIME_SERVER_MODEL_ID.toUInt() -> "Time Server"
+                TIME_SETUP_SERVER_MODEL_ID.toUInt() -> "Time Setup Server"
+                TIME_CLIENT_MODEL_ID.toUInt() -> "Time Client"
+                SCENE_SERVER_MODEL_ID.toUInt() -> "Scene Server"
+                SCENE_SETUP_SERVER_MODEL_ID.toUInt() -> "Scene Setup Server"
+                SCENE_CLIENT_MODEL_ID.toUInt() -> "Scene Client"
+                SCHEDULER_SERVER_MODEL_ID.toUInt() -> "Scheduler Server"
+                SCHEDULER_SETUP_SERVER_MODEL_ID.toUInt() -> "Scheduler Setup Server"
+                SCHEDULER_CLIENT_MODEL_ID.toUInt() -> "Scheduler Client"
                 // Lighting
-                0x1300.toUInt() -> "Light Lightness Server"
-                0x1301.toUInt() -> "Light Lightness Setup Server"
-                0x1302.toUInt() -> "Light Lightness Client"
-                0x1303.toUInt() -> "Light CTL Server"
-                0x1304.toUInt() -> "Light CTL Setup Server"
-                0x1305.toUInt() -> "Light CTL Client"
-                0x1306.toUInt() -> "Light CTL Temperature Server"
-                0x1307.toUInt() -> "Light HSL Server"
-                0x1308.toUInt() -> "Light HSL Setup Server "
-                0x1309.toUInt() -> "Light HSL Client"
-                0x130A.toUInt() -> "Light HSL Hue Server"
-                0x130B.toUInt() -> "Light HSL Saturation Server"
-                0x130C.toUInt() -> "Light xyL Server"
-                0x130D.toUInt() -> "Light xyL Setup Server"
-                0x130E.toUInt() -> "Light xyL Client"
-                0x130F.toUInt() -> "Light LC Server"
-                0x1310.toUInt() -> "Light LC Setup Server"
-                0x1311.toUInt() -> "Light LC Client"
+                LIGHT_LIGHTNESS_SERVER_MODEL_ID.toUInt() -> "Light Lightness Server"
+                LIGHT_LIGHTNESS_SETUP_SERVER_MODEL_ID.toUInt() -> "Light Lightness Setup Server"
+                LIGHT_LIGHTNESS_CLIENT_MODEL_ID.toUInt() -> "Light Lightness Client"
+                LIGHT_CTL_SERVER_MODEL_ID.toUInt() -> "Light CTL Server"
+                LIGHT_CTL_SETUP_SERVER_MODEL_ID.toUInt() -> "Light CTL Setup Server"
+                LIGHT_CTL_CLIENT_MODEL_ID.toUInt() -> "Light CTL Client"
+                LIGHT_CTL_TEMPERATURE_SERVER_MODEL_ID.toUInt() -> "Light CTL Temperature Server"
+                LIGHT_HSL_SERVER_MODEL_ID.toUInt() -> "Light HSL Server"
+                LIGHT_HSL_SETUP_SERVER_MODEL_ID.toUInt() -> "Light HSL Setup Server "
+                LIGHT_HSL_CLIENT_MODEL_ID.toUInt() -> "Light HSL Client"
+                LIGHT_HSL_HUE_SERVER_MODEL_ID.toUInt() -> "Light HSL Hue Server"
+                LIGHT_HSL_SATURATION_SERVER_MODEL_ID.toUInt() -> "Light HSL Saturation Server"
+                LIGHT_XYL_SERVER_MODEL_ID.toUInt() -> "Light xyL Server"
+                LIGHT_XYL_SETUP_SERVER_MODEL_ID.toUInt() -> "Light xyL Setup Server"
+                LIGHT_XYL_CLIENT_MODEL_ID.toUInt() -> "Light xyL Client"
+                LIGHT_LC_SERVER_MODEL_ID.toUInt() -> "Light LC Server"
+                LIGHT_LC_SETUP_SERVER_MODEL_ID.toUInt() -> "Light LC Setup Server"
+                LIGHT_LC_CLIENT_MODEL_ID.toUInt() -> "Light LC Client"
+                // BLOB Transfer
+                BLOB_TRANSFER_SERVER_MODEL_ID.toUInt() -> "BLOB Transfer Server"
+                BLOB_TRANSFER_CLIENT_MODEL_ID.toUInt() -> "BLOB Transfer Client"
+                // Firmware Update
+                FIRMWARE_UPDATE_SERVER_MODEL_ID.toUInt() -> "Firmware Update Server"
+                FIRMWARE_UPDATE_CLIENT_MODEL_ID.toUInt() -> "Firmware Update Client"
+                FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID.toUInt() -> "Firmware Distribution Server"
+                FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID.toUInt() -> "Firmware Distribution Client"
                 else -> "Unknown"
             }
 

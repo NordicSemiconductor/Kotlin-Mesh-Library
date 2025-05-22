@@ -2,11 +2,14 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.AccessKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.DeviceKeySet
 import no.nordicsemi.kotlin.mesh.core.layers.KeySet
@@ -37,14 +40,11 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.schedule
-import kotlin.concurrent.timer
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -244,7 +244,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         val transactionMessage = message as? TransactionMessage
 
         transactionMessage?.takeIf {
-            it.tid != null
+            it.tid == null
         }?.let {
             val k = key(element = element, destination = destination)
             mutex.withLock {
@@ -273,18 +273,24 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         // Set timers for the acknowledged messages.
         // Acknowledged messages sent to a Group address won't await a Status.
         val ack = if (message is AcknowledgedMeshMessage && destination is UnicastAddress) {
-            createReliableContext(pdu = pdu, element = element, initialTtl = ttl!!, keySet = keySet)
+            createReliableContext(pdu = pdu, element = element, initialTtl = ttl, keySet = keySet)
         } else null
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
 
-        return if (ack == null) {
-            null
-        } else networkManager.awaitMeshMessageResponse(
-            destination = destination,
-            responseOpcode = ack.request.responseOpCode,
-            timeout = ack.timeout
-        )?.message as? MeshMessage
+        return when {
+            // If ack is null, the message is not acknowledged, hence return null
+            // if message is destined to the local node, return null without waiting for the bearer
+            ack == null || networkManager.networkLayer.isLocalUnicastAddress(
+                address = destination as UnicastAddress
+            ) == true -> null
+
+            else -> networkManager.awaitMeshMessageResponse(
+                destination = destination,
+                responseOpcode = ack.request.responseOpCode,
+                timeout = ack.timeout
+            )?.message as? MeshMessage
+        }
     }
 
     /**
@@ -332,11 +338,16 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
 
-        return networkManager.awaitMeshMessageResponse(
-            destination = destination,
-            responseOpcode = ack.request.responseOpCode,
-            timeout = ack.timeout
-        )?.message as? MeshMessage
+        return when {
+            // if message is destined to the local node, return null without waiting for the bearer
+            networkManager.networkLayer.isLocalUnicastAddress(address = destination) == true -> null
+
+            else -> networkManager.awaitMeshMessageResponse(
+                destination = destination,
+                responseOpcode = ack.request.responseOpCode,
+                timeout = ack.timeout
+            )?.message as? MeshMessage
+        }
     }
 
     /**
@@ -382,19 +393,10 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         } else {
             Random.nextInt(20, 500).toDuration(DurationUnit.MILLISECONDS)
         }
-        timer(
-            name = "ReplyTimer",
-            initialDelay = 0L,
-            period = delay.inWholeMilliseconds
-        ) {
+        scope.launch {
+            delay(delay)
             logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
-            scope.launch {
-                networkManager.upperTransportLayer.send(
-                    accessPdu = pdu,
-                    ttl = null,
-                    keySet = keySet
-                )
-            }
+            networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = null, keySet = keySet)
         }
     }
 
@@ -437,7 +439,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         if (keySet is AccessKeySet) {
             for (element in localNode.elements) {
-                val models = element.models.filter { it.requiresDeviceKey }
+                val models = element.models.filter { !it.requiresDeviceKey }
 
                 for (model in models) {
                     val eventHandler = model.eventHandler ?: continue
@@ -454,55 +456,53 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         // log this with a warning. This other type will be delivered to the
                         // delegate, but not to the global network delegate.
                         logger?.w(LogCategory.MODEL) { "$message already decoded as $newMessage." }
+                    }
+                    // Deliver the message to the Model if it was signed with an Application Key
+                    // bound to this Model and the message is targeting this Element, or the
+                    // Model is subscribed to the destination address.
+                    //
+                    // Note:   Messages sent to .allNodes address shall be processed only by
+                    //         Models on the Primary Element. See Bluetooth Mesh Profile 1.0.1,
+                    //         chapter 3.4.2.4.
+                    // Note 2: As the iOS implementation does not support Relay, Proxy or Friend
+                    //         Features, the messages sent to those addresses shall only be
+                    //         processed if the Model is explicitly subscribed to these
+                    //         addresses.
 
-                        // Deliver the message to the Model if it was signed with an Application Key
-                        // bound to this Model and the message is targeting this Element, or the
-                        // Model is subscribed to the destination address.
-                        //
-                        // Note:   Messages sent to .allNodes address shall be processed only by
-                        //         Models on the Primary Element. See Bluetooth Mesh Profile 1.0.1,
-                        //         chapter 3.4.2.4.
-                        // Note 2: As the iOS implementation does not support Relay, Proxy or Friend
-                        //         Features, the messages sent to those addresses shall only be
-                        //         processed if the Model is explicitly subscribed to these
-                        //         addresses.
+                    if ((accessPdu.destination is AllNodes && element.isPrimary) ||
+                        accessPdu.destination.address == element.unicastAddress.address ||
+                        model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
+                    ) {
+                        if (keySet.applicationKey.isBoundTo(model = model)) {
+                            eventHandler.onMeshMessageReceived(
+                                model = model,
+                                message = message,
+                                source = accessPdu.source,
+                                destination = accessPdu.destination.address,
+                                request = request
+                            )?.let { response ->
+                                networkManager.reply(
+                                    origin = accessPdu.destination.address,
+                                    destination = accessPdu.source,
+                                    message = response,
+                                    element = element,
+                                    keySet = keySet
+                                )
 
-                        if ((accessPdu.destination is AllNodes && element.isPrimary) ||
-                            accessPdu.destination.address == element.unicastAddress.address ||
-                            model.isSubscribedTo(accessPdu.destination as PrimaryGroupAddress)
-                        ) {
-                            if (keySet.applicationKey.isBoundTo(model = model)) {
-                                eventHandler.onMeshMessageReceived(
-                                    model = model,
-                                    message = message,
-                                    source = accessPdu.source,
-                                    destination = accessPdu.destination.address,
-                                    request = request
-                                )?.let { response ->
-                                    networkManager.reply(
-                                        origin = accessPdu.destination.address,
-                                        destination = accessPdu.source,
-                                        message = response,
-                                        element = element,
-                                        keySet = keySet
+                                if (eventHandler is SceneClientHandler) {
+                                    networkManager.emitNetworkManagerEvent(
+                                        NetworkManagerEvent.NetworkDidChange
                                     )
-
-                                    if (eventHandler is SceneClientHandler) {
-                                        networkManager.emitNetworkManagerEvent(
-                                            NetworkManagerEvent.NetworkDidChange
-                                        )
-                                    }
-                                    mutex.unlock()
                                 }
-                                mutex.lock()
-                            } else {
-                                logger?.w(LogCategory.MODEL) {
-                                    "Local ${model.name} model on ${model.parentElement!!} " +
-                                            "not bound to key ${keySet.applicationKey}"
-                                }
+                            }
+                        } else {
+                            logger?.w(LogCategory.MODEL) {
+                                "Local ${model.name} model on ${model.parentElement!!} " +
+                                        "not bound to key ${keySet.applicationKey}"
                             }
                         }
                     }
+                    break
                 }
             }
         } else {
@@ -714,57 +714,39 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     source: Address,
     destination: Address,
     request: AcknowledgedMeshMessage?,
-): MeshResponse? {
-    if (request != null) {
+) = when {
+    request != null -> {
         val response = message as? MeshResponse
-        if (response != null) {
-            handle(
-                event = ModelEvent.ResponseReceived(
-                    model = model,
-                    response = response,
-                    request = request,
-                    source = source
-                )
+            ?: error("$message is not MeshResponse")
+        handle(
+            ModelEvent.ResponseReceived(
+                model = model,
+                response = response,
+                request = request,
+                source = source
             )
-            return null
-        } else {
-            throw Error("$message is not MeshResponse")
-        }
-    }
-    val acknowledgedRequest = message as? AcknowledgedMeshMessage
-    if (acknowledgedRequest != null) {
-        try {
-            var response: MeshResponse? = null
-            handle(
-                event = ModelEvent.AcknowledgedMessageReceived(
-                    model = model,
-                    request = acknowledgedRequest,
-                    source = source,
-                    destination = MeshAddress.create(destination),
-                    reply = {
-                        response = it
-                        mutex.unlock()
-                    }
-                )
-            )
-            mutex.lock()
-            return response
-        } catch (e: Exception) {
-            return null
-        }
+        )
     }
 
-    val unacknowledgedMessage = message as? UnacknowledgedMeshMessage
-    if (unacknowledgedMessage != null) {
+    message is AcknowledgedMeshMessage -> runCatching {
         handle(
-            event = ModelEvent.UnacknowledgedMessageReceived(
+            ModelEvent.AcknowledgedMessageReceived(
                 model = model,
-                message = unacknowledgedMessage,
+                request = message,
                 source = source,
                 destination = MeshAddress.create(destination)
             )
         )
-        return null
-    }
-    throw Error("$message is neither Acknowledged nor Unacknowledged.")
+    }.getOrNull()
+
+    message is UnacknowledgedMeshMessage -> handle(
+        ModelEvent.UnacknowledgedMessageReceived(
+            model = model,
+            message = message,
+            source = source,
+            destination = MeshAddress.create(destination)
+        )
+    )
+
+    else -> error("$message is neither Acknowledged nor Unacknowledged.")
 }

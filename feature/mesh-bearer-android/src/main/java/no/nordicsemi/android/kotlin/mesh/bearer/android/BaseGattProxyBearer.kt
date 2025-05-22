@@ -4,9 +4,11 @@ package no.nordicsemi.android.kotlin.mesh.bearer.android
 
 import android.annotation.SuppressLint
 import android.content.Context
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +48,7 @@ import kotlin.uuid.ExperimentalUuidApi
  * @property isOpen            Returns true if the bearer is open, false otherwise.
  */
 abstract class BaseGattProxyBearer<MeshService>(
+    protected val dispatcher: CoroutineDispatcher,
     protected val context: Context,
     protected val centralManager: CentralManager,
     protected val peripheral: Peripheral,
@@ -92,6 +95,7 @@ abstract class BaseGattProxyBearer<MeshService>(
 
     override suspend fun close() {
         peripheral.disconnect()
+        dispatcher.cancel()
     }
 
     /**

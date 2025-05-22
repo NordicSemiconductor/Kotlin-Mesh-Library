@@ -1,11 +1,10 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused", "PropertyName")
 
-package no.nordicsemi.kotlin.mesh.core.util
+package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Instant
-import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
@@ -24,7 +23,10 @@ sealed class ModelError : Exception() {
     data class InvalidMessage(val msg: MeshMessage) : ModelError()
 }
 
-typealias MessageComposer = () -> MeshMessage
+/**
+ * A functional interface containing a message composer for an [UnacknowledgedMeshMessage].
+ */
+typealias MessageComposer = () -> UnacknowledgedMeshMessage
 
 /**
  * Defines a set of events that are handled by the [ModelEventHandler].
@@ -45,7 +47,7 @@ sealed class ModelEvent {
         val request: AcknowledgedMeshMessage,
         val source: Address,
         val destination: MeshAddress,
-        val reply: suspend (MeshResponse) -> Unit
+        // val reply: suspend (MeshResponse) -> Unit,
     ) : ModelEvent()
 
     /**
@@ -60,7 +62,7 @@ sealed class ModelEvent {
         val model: Model,
         val message: UnacknowledgedMeshMessage,
         val source: Address,
-        val destination: MeshAddress
+        val destination: MeshAddress,
     ) : ModelEvent()
 
     /**
@@ -75,8 +77,32 @@ sealed class ModelEvent {
         val model: Model,
         val response: MeshResponse,
         val request: AcknowledgedMeshMessage,
-        val source: Address
+        val source: Address,
     ) : ModelEvent()
+}
+
+interface Publisher {
+    /**
+     * This method tries to publish the given message using the publication information set in the
+     * [Model].
+     *
+     * If the retransmission is set to a value greater than 0, and the message is unacknowledged,
+     * this method will retransmit it number of times with the count and interval specified in the
+     * retransmission object.
+     *
+     * If the publication is not configured for the given Model, this method does nothing.
+     *
+     * Note: This method does not check whether the given Model does support the given message. It
+     *       will publish whatever message is given using the publication configuration of the given
+     *       Model.
+     *
+     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
+     * the message has been sent successfully or a problem occurred.
+     *
+     * @param message: The message to be sent.
+     * @param model:   The model from which to send the message.
+     */
+    fun publish(message: UnacknowledgedMeshMessage, model: Model)
 }
 
 /**
@@ -95,10 +121,12 @@ sealed class ModelEvent {
  * @property isSubscriptionSupported      Defines the model supports subscription.
  * @property publicationMessageComposer   Lambda function that returns a [MeshMessage] to be
  *                                        published.
+ * @property meshNetwork                  Mesh network to which the model belongs.
+ * @property model                        Model to which the event handler is assigned.
+ * @property publisher                    Publisher used to publish messages.
+ * @property mutex                        Mutex used to synchronize access to the model.
  */
 abstract class ModelEventHandler {
-
-    abstract val meshNetwork: MeshNetwork
 
     abstract val messageTypes: Map<UInt, HasInitializer>
 
@@ -106,30 +134,24 @@ abstract class ModelEventHandler {
 
     abstract val publicationMessageComposer: MessageComposer?
 
+    lateinit var meshNetwork: MeshNetwork
+        internal set
+
+    lateinit var model: Model
+        internal set
+
+    internal lateinit var publisher: Publisher
+
     internal val mutex = Mutex()
 
     /**
-     * Publishes a single message given as a parameter using the Publish information set in the
-     * underlying model.
-     *
-     * @param message Message to be published.
-     * @param manager Mesh network manager.
-     * @return a nullable [MessageHandle] that can be used to cancel the message.
-     */
-    suspend fun publish(message: MeshMessage, manager: MeshNetworkManager) = manager.localElements
-        .flatMap { it.models }
-        .firstOrNull { it.eventHandler === this }
-        ?.let { manager.publish(message, it) }
-
-    /**
-     * Publishes a single message created by Model;s message composer using the Publish information
+     * Publishes a single message created by Model's message composer using the Publish information
      * set in the underlying model.
      *
-     * @param manager Mesh network manager.
      * @return a nullable [MessageHandle] that can be used to cancel the message.
      */
-    suspend fun publish(manager: MeshNetworkManager) = publicationMessageComposer?.let { composer ->
-        publish(message = composer(), manager = manager)
+    fun publish() = publicationMessageComposer?.let { composer ->
+        publisher.publish(message = composer(), model = model)
     }
 
     /**
@@ -137,17 +159,17 @@ abstract class ModelEventHandler {
      *
      * @param event Model event.
      */
-    abstract fun handle(event: ModelEvent)
+    abstract suspend fun handle(event: ModelEvent) : MeshResponse?
 }
 
 /**
  * This event handler should be used when defining Scene Server model. In addition to handling
  * messages, the Scene Server delegate should also clear the current whenever
- * [StoredWithSceneModelDelegate.store] and
- * [StoredWithSceneModelDelegate.recall] are called.
+ * [StoredWithSceneModelEventHandler.store] and
+ * [StoredWithSceneModelEventHandler.recall] are called.
  *
  * Whenever the state changes due toa ny other reason than receiving a Scene Recall message, the
- * delegate should call [StoredWithSceneModelDelegate.networkDidExitStoredWithSceneState] to clear
+ * delegate should call [StoredWithSceneModelEventHandler.networkDidExitStoredWithSceneState] to clear
  * the current scene.
  */
 abstract class SceneServerModelEventHandler : ModelEventHandler() {
@@ -162,7 +184,7 @@ abstract class SceneServerModelEventHandler : ModelEventHandler() {
     abstract fun networkDidExitStoredWithSceneState()
 }
 
-abstract class StoredWithSceneModelDelegate : ModelEventHandler() {
+abstract class StoredWithSceneModelEventHandler : ModelEventHandler() {
 
     /**
      * This method should store the current States of the Model and associate them with the given
@@ -181,7 +203,7 @@ abstract class StoredWithSceneModelDelegate : ModelEventHandler() {
      *                       from the present state.
      * @param delay          Message execution delay in 5 millisecond steps.
      */
-    abstract fun recall(scene: SceneNumber, transitionTime: TransitionTime?, delay: UByte)
+    abstract fun recall(scene: SceneNumber, transitionTime: TransitionTime?, delay: UByte?)
 
     /**
      * This method should be called whenever the State of a local model changes due to a different
@@ -194,9 +216,8 @@ abstract class StoredWithSceneModelDelegate : ModelEventHandler() {
     fun networkDidExitStoredWithSceneState(network: MeshNetwork) {
         network.localElements
             .flatMap { it.models }
-            .map {
-                it.eventHandler as SceneServerModelEventHandler
-            }.forEach { it.networkDidExitStoredWithSceneState() }
+            .map { model -> model.eventHandler as? SceneServerModelEventHandler }
+            .forEach { handler -> handler?.networkDidExitStoredWithSceneState() }
     }
 }
 
@@ -212,7 +233,7 @@ private data class Transaction(
     val source: Address,
     val destination: MeshAddress,
     val tid: UByte,
-    val timestamp: Instant
+    val timestamp: Instant,
 )
 
 class TransactionHelper {
@@ -233,7 +254,7 @@ class TransactionHelper {
     suspend fun isNewTransaction(
         message: TransactionMessage,
         source: Address,
-        destination: MeshAddress
+        destination: MeshAddress,
     ) = mutex.withLock {
         val lastTransaction = lastTransactions[source]
         (lastTransaction == null) || (lastTransaction.source != source) ||
@@ -256,6 +277,6 @@ class TransactionHelper {
     suspend fun isTransactionContinuation(
         message: TransactionMessage,
         source: Address,
-        destination: MeshAddress
+        destination: MeshAddress,
     ) = !isNewTransaction(message, source, destination)
 }

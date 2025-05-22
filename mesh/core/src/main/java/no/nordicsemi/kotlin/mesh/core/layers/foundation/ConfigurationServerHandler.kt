@@ -2,6 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.foundation
 
+import no.nordicsemi.kotlin.mesh.core.ModelEvent
+import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
+import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationGet
@@ -10,16 +13,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.util.ModelEvent
-import no.nordicsemi.kotlin.mesh.core.util.ModelEventHandler
 
 /**
  * TODO
  */
-internal class ConfigurationServerHandler(
-    override val meshNetwork: MeshNetwork
-) : ModelEventHandler() {
+internal class ConfigurationServerHandler : ModelEventHandler() {
     override val messageTypes = mapOf(
         ConfigCompositionDataGet.opCode to ConfigCompositionDataGet,
         ConfigNetKeyDelete.opCode to ConfigNetKeyDelete,
@@ -32,7 +30,8 @@ internal class ConfigurationServerHandler(
     )
     override val isSubscriptionSupported = false
     override val publicationMessageComposer = null
-    override fun handle(event: ModelEvent) {
+    override suspend fun handle(event: ModelEvent): MeshResponse? {
         // TODO("Not yet implemented")
+        return null
     }
 }

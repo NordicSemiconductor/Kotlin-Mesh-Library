@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,7 +15,6 @@ import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
-import no.nordicsemi.kotlin.mesh.core.layers.MessageHandle
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotDelete
@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -66,8 +67,9 @@ import java.util.UUID
 class MeshNetworkManager(
     private val storage: Storage,
     internal val secureProperties: SecurePropertiesStorage,
-    internal val scope: CoroutineScope,
-) {
+    internal val dispatcher: CoroutineDispatcher,
+) : Publisher {
+    internal val scope = CoroutineScope(dispatcher)
     private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
@@ -92,7 +94,40 @@ class MeshNetworkManager(
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
         set(value) {
-            network?._localElements = value.toMutableList()
+            val network = requireNotNull(network) {
+                logger?.e(category = LogCategory.MODEL) {
+                    "Error: Mesh Network must be created or imported before setting up local " +
+                            "elements."
+                }
+                throw NoNetwork
+            }
+            // Some models, which are supported by the library, will be added automatically.
+            // Let's make sure they are not in the array.
+            var elements = value.onEach {
+                it.removePrimaryElementModels()
+            }
+            // Remove all empty elements
+            elements = elements.filter { it.models.isNotEmpty() }
+
+            // Add the required Models in the Primary Element.
+            if (elements.isEmpty()) elements = elements + Element(location = Location.UNKNOWN)
+
+            elements.first().addPrimaryElementModels()
+
+            elements.forEach { element ->
+                element.models.forEach { model ->
+                    model.eventHandler?.let {
+                        // Set the mesh network for all [ModelEventHandler]
+                        it.meshNetwork = network
+                        // Set the model for all [ModelEventHandler]
+                        it.model = model
+                        // Set the publisher for all [ModelEventHandler]
+                        it.publisher = this
+                    }
+                }
+            }
+
+            network._localElements = elements.toMutableList()
             networkManager?.accessLayer?.reinitializePublishers()
         }
 
@@ -204,43 +239,22 @@ class MeshNetworkManager(
         ).toString().toByteArray()
     }
 
-    /**
-     * This method tries to publish the given message using the publication information set in the
-     * [Model].
-     *
-     * If the retransmission is set to a value greater than 0, and the message is unacknowledged,
-     * this method will retransmit it number of times with the count and interval specified in the
-     * retransmission object.
-     *
-     * If the publication is not configured for the given Model, this method does nothing.
-     *
-     * Note: This method does not check whether the given Model does support the given message. It
-     *       will publish whatever message is given using the publication configuration of the given
-     *       Model.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
-     * the message has been sent successfully or a problem occurred.
-     *
-     * @param message: The message to be sent.
-     * @param model:   The model from which to send the message.
-     * @returns Message handle that can be used to cancel sending.
-     */
-    suspend fun publish(message: MeshMessage, model: Model) = networkManager?.let {
-        model.let {
-            val element = it.parentElement ?: return null
-            it.publish?.let { publish ->
-                val address = publish.address
-                network?.applicationKeys?.get(index = publish.index)?.let {
-                    networkManager?.let { networkManager ->
-                        scope.launch {
-                            networkManager.publish(message = message, from = model)
+    override fun publish(message: UnacknowledgedMeshMessage, model: Model) {
+        networkManager?.let {
+            model.let {
+                requireNotNull(it.parentElement) {
+                    logger?.e(category = LogCategory.MODEL) {
+                        "Error: Model does not belong to an Element."
+                    }
+                    throw IllegalStateException("Error: Model does not belong to an Element.")
+                }
+                it.publish?.let { publish ->
+                    network?.applicationKeys?.get(index = publish.index)?.let {
+                        networkManager?.let { networkManager ->
+                            scope.launch {
+                                networkManager.publish(message = message, from = model)
+                            }
                         }
-                        MessageHandle(
-                            message = message,
-                            source = element.unicastAddress,
-                            destination = address as MeshAddress,
-                            manager = networkManager
-                        )
                     }
                 }
             }
@@ -252,9 +266,6 @@ class MeshNetworkManager(
      * the given destination address.
      *
      * The method completes when the message has been sent or an error occurred.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message              Message to be sent.
      * @param localElement         Source Element. If `nil`, the primary Element will be used. The
@@ -297,22 +308,48 @@ class MeshNetworkManager(
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        val element = localElement ?: localNode.elements.firstOrNull() ?: run {
+        val source = localElement ?: localNode.elements.firstOrNull() ?: run {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        require(element.parentNode == localNode) {
+        require(source.parentNode == localNode) {
             println("Error: The given Element does not belong to the local Node.")
             throw InvalidElement
         }
-
         require(initialTtl == null || initialTtl <= 127u) {
             println("Error: TTL value $initialTtl is invalid.")
             throw InvalidTtl
         }
+        // A message may be sent to a local Node, or using a GATT Proxy Node. Check if the message
+        // can be relayed to the destination using a Proxy Node. The Proxy Node must know the
+        // Network Key; otherwise it will not be able to decode the destination and decrement TTL.
+
+        if (destination is UnicastAddress) {
+            if (!localNode.containsElementWithAddress(destination.address) &&
+                proxyFilter.proxy?.knows(applicationKey.boundNetworkKey) != true
+            ) {
+                println(
+                    "Error: The GATT Proxy Node is not connected or it cannot decrypt " +
+                            "${applicationKey.boundNetworkKey}"
+                )
+                throw CannotRelay
+            }
+        } else {
+            proxyFilter.proxy?.takeIf {
+                !it.knows(applicationKey.boundNetworkKey)
+            }?.let { proxy ->
+                logger?.w(category = LogCategory.PROXY) {
+                    "${proxy.name} cannot relay messages using " +
+                            "${applicationKey.boundNetworkKey}, message will be sent only to " +
+                            "the local Node."
+                }
+            } ?: logger?.w(category = LogCategory.PROXY) {
+                "No GATT Proxy connected, message will be sent only to the local Node."
+            }
+        }
         networkManager.send(
             message = message,
-            element = element,
+            element = source,
             destination = destination,
             initialTtl = initialTtl,
             applicationKey = applicationKey
@@ -324,9 +361,6 @@ class MeshNetworkManager(
      * given [Group].
      *
      * The method completes when the message has been sent or an error occurred.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message        Message to be sent.
      * @param localElement   Source Element. If null, the primary Element will be used. The Element
@@ -372,9 +406,6 @@ class MeshNetworkManager(
      *
      * The method completes when the message has been sent or an error occurred.
      *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when th message has
-     * been sent successfully or a problem occurred.
-     *
      * @param message        Message to be sent.
      * @param localElement   Source Element. If `nil`, the primary Element will be used. The
      *                       Element must belong to the local Provisioner's Node.
@@ -394,12 +425,13 @@ class MeshNetworkManager(
     )
     suspend fun send(
         message: UnacknowledgedMeshMessage,
-        localElement: Element,
+        localElement: Element? = null,
         model: Model,
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        require(network != null) { throw NoNetwork }
+        val network =  requireNotNull(network) { throw NoNetwork }
+
         val node = model.parentElement?.parentNode ?: run {
             println("Error: Element does not belong to a Node")
             throw InvalidDestination
@@ -409,16 +441,20 @@ class MeshNetworkManager(
             throw InvalidDestination
         }
 
-        when {
-            applicationKey != null && !applicationKey.isBoundTo(model = model) -> {
-                println("Error: Model is not bound to this Application Key.")
-                throw ModelNotBoundToAppKey
-            }
+        if (applicationKey != null && !applicationKey.isBoundTo(model = model)) {
+            println("Error: Model is not bound to this Application Key.")
+            throw ModelNotBoundToAppKey
+        }
 
-            applicationKey == null && model.boundApplicationKeys.isEmpty() -> {
-                println("Error: Model is not bound to any Application Key.")
-                throw NoAppKeysBoundToModel
-            }
+        // Uncomment to emulate sending messages to the local node
+        // network.applicationKeys.firstOrNull()?.let {
+        //     model.parentElement?.parentNode?.addAppKey(it.index)
+        //     model.bind(it.index)
+        // }
+
+        if (applicationKey == null && model.boundApplicationKeys.isEmpty()) {
+            println("Error: Model is not bound to any Application Key.")
+            throw NoAppKeysBoundToModel
         }
 
         val selectedAppKey = applicationKey ?: model.boundApplicationKeys
@@ -426,8 +462,8 @@ class MeshNetworkManager(
                 node.isLocalProvisioner || proxyFilter.proxy?.knows(it.boundNetworkKey) == true
             }
 
-        if (selectedAppKey == null ||
-            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) == true)
+        if (selectedAppKey == null || (!node.isLocalProvisioner &&
+                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)
         ) {
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
@@ -437,7 +473,7 @@ class MeshNetworkManager(
             message = message,
             localElement = localElement,
             destination = destination,
-            initialTtl = initialTtl,
+            initialTtl = initialTtl, // ?: 1u, uncomment to emulate sending messages with TTL = 1 to local node
             applicationKey = selectedAppKey
         )
     }
@@ -447,9 +483,6 @@ class MeshNetworkManager(
      * Network Key bound to it, and sends it to the Node to which the target Model belongs to.
      *
      * The method completes when the message has been sent or an error occurred.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message      Message to be sent.
      * @param localModel   Source Model who's primary Element will be used.
@@ -494,9 +527,6 @@ class MeshNetworkManager(
      * Encrypts the message with the first Application Key bound to the given [Model] and a Network
      * Key bound to it, and sends it to the Node to which the Model belongs to and returns the
      * response.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message        Message to be sent.
      * @param localElement   Source Element. If `nil`, the primary Element will be used. The Element
@@ -545,17 +575,23 @@ class MeshNetworkManager(
             throw InvalidDestination
         }
 
-        when {
-            applicationKey != null && !applicationKey.isBoundTo(model = model) -> {
-                println("Error: Model is not bound to this Application Key.")
-                throw ModelNotBoundToAppKey
-            }
 
-            applicationKey == null && model.boundApplicationKeys.isEmpty() -> {
-                println("Error: Model is not bound to any Application Key.")
-                throw NoAppKeysBoundToModel
-            }
+        // Uncomment to emulate sending messages to the local node
+        // network.applicationKeys.firstOrNull()?.let {
+        //     model.parentElement?.parentNode?.addAppKey(it.index)
+        //     model.bind(it.index)
+        // }
+
+        if (applicationKey != null && !applicationKey.isBoundTo(model = model)) {
+            println("Error: Model is not bound to this Application Key.")
+            throw ModelNotBoundToAppKey
         }
+
+        if (applicationKey == null && model.boundApplicationKeys.isEmpty()) {
+            println("Error: Model is not bound to any Application Key.")
+            throw NoAppKeysBoundToModel
+        }
+
         // Check if the application Key is known to the Proxy Node, or the message is sent to the local
         // Node.
         val selectedAppKey = applicationKey ?: model.boundApplicationKeys
@@ -563,8 +599,8 @@ class MeshNetworkManager(
                 node.isLocalProvisioner || proxyFilter.proxy?.knows(it.boundNetworkKey) == true
             }
 
-        if (selectedAppKey == null ||
-            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) == true)
+        if (selectedAppKey == null || (!node.isLocalProvisioner &&
+                    proxyFilter.proxy?.knows(selectedAppKey.boundNetworkKey) != true)
         ) {
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
@@ -574,7 +610,7 @@ class MeshNetworkManager(
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
-        val source = localElement ?: localNode.elements.firstOrNull() ?: run {
+        val source = requireNotNull(localElement ?: localNode.elements.firstOrNull()) {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }
@@ -592,7 +628,7 @@ class MeshNetworkManager(
             message = message,
             element = source,
             destination = destination,
-            initialTtl = initialTtl,
+            initialTtl = initialTtl, // ?: 1u, uncomment to emulate sending messages with TTL = 1 to local node
             applicationKey = selectedAppKey
         )
     }
@@ -600,9 +636,6 @@ class MeshNetworkManager(
     /**
      * Encrypts the message with the common Application Key bound to both given [Model]s and a
      * Network Key bound to it, and sends it to the Node to which the target Model belongs to.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message         Message to be sent.
      * @param localModel      Source Model who's primary element will be used.
@@ -631,9 +664,10 @@ class MeshNetworkManager(
         localModel: Model,
         model: Model,
         initialTtl: UByte?,
-    ): MeshMessage = localModel.parentElement?.let {
-        send(message = message, localElement = it, model = model, initialTtl = initialTtl)
-    } ?: run {
+    ): MeshMessage = localModel.parentElement
+        ?.let {
+            send(message = message, localElement = it, model = model, initialTtl = initialTtl)
+        } ?: run {
         println("Error: Source Model does not belong to an Element.")
         throw InvalidSource
     }
@@ -644,9 +678,6 @@ class MeshNetworkManager(
      *
      * The `destination` must be a Unicast Address, otherwise the method throws an
      * [InvalidDestination] error.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message         Message to be sent.
      * @param destination     Destination Unicast Address.
@@ -700,12 +731,11 @@ class MeshNetworkManager(
             throw InvalidDestination
         }
 
-        when {
-            networkKey != null && !node.knows(key = networkKey) -> {
-                println("Error: Node does not know the given Network Key.")
-                throw InvalidKey
-            }
+        if (networkKey != null && !node.knows(key = networkKey)) {
+            println("Error: Node does not know the given Network Key.")
+            throw InvalidKey
         }
+
         // Check if the application Key is known to the Proxy Node, or the message is sent to the
         // local Node.
         val selectedNetKey = networkKey ?: node.networkKeys
@@ -715,7 +745,7 @@ class MeshNetworkManager(
             }
 
         if (selectedNetKey == null ||
-            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetKey) == true)
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetKey) != true)
         ) {
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
@@ -740,9 +770,6 @@ class MeshNetworkManager(
 
     /**
      * Sends a Configuration Message to the primary Element on the given [Node].
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
-     * the message has been sent successfully or a problem occurred.
      *
      * @param message                Message to be sent.
      * @param node                   Destination Node.
@@ -774,9 +801,6 @@ class MeshNetworkManager(
      *
      * The [destination] must be a [UnicastAddress], otherwise the method throws an
      * [InvalidDestination] error.
-     *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when the message has
-     * been sent successfully or a problem occurred.
      *
      * @param message         Message to be sent.
      * @param destination     Destination Unicast Address.
@@ -830,31 +854,29 @@ class MeshNetworkManager(
             throw InvalidDestination
         }
 
-        when {
-            networkKey != null && !node.knows(key = networkKey) -> {
-                println("Error: Node does not know the given Network Key.")
-                throw InvalidKey
-            }
+        if (networkKey != null && !node.knows(key = networkKey)) {
+            println("Error: Node does not know the given Network Key.")
+            throw InvalidKey
         }
+
         // Check if the application Key is known to the Proxy Node, or the message is sent to the
         // local Node.
-        val selectedNetworkKey = (networkKey ?: node.networkKeys
-            .firstOrNull { candidateKey ->
-                // A key that is being deleted cannot be used to send a message.
-                ((message as? ConfigNetKeyDelete)?.index != candidateKey.index) &&
-                        // Unless the message is sent locally, take only keys known to the Proxy Node.
-                        (node.isLocalProvisioner || proxyFilter.proxy?.knows(candidateKey) == true)
-            })
-            ?.takeIf {
-                node.isLocalProvisioner || proxyFilter.proxy?.knows(it) == true
-            } ?: run {
-            if (message is ConfigNetKeyDelete &&
-                (networkKey == null || networkKey.index == message.index)
+        val configNetKeyDelete = message as? ConfigNetKeyDelete
+
+        val selectedNetworkKey = networkKey ?: node.networkKeys.firstOrNull {
+            (configNetKeyDelete?.index != it.index) &&
+                    (node.isLocalProvisioner || proxyFilter.proxy?.knows(it) == true)
+        }
+
+        if (selectedNetworkKey == null ||
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetworkKey) != true)
+        ) {
+            if (configNetKeyDelete != null &&
+                (networkKey == null || networkKey.index == configNetKeyDelete.index)
             ) {
                 println("Error: Cannot delete the last Network Key or a key used to secure the message")
                 throw CannotDelete
             }
-
             println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay
         }
@@ -886,9 +908,6 @@ class MeshNetworkManager(
      * Sends a Configuration Message to the primary Element on the given [Node] and returns the
      * received response.
      *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will be called when
-     * the message has been sent successfully or a problem occurred.
-     *
      * @param message     Message to be sent.
      * @param node        Destination Node.
      * @param initialTtl  Initial TTL (Time To Live) value of the message. If `nil`, the default
@@ -912,9 +931,6 @@ class MeshNetworkManager(
      * Sends the Configuration Message to the primary Element of the local [Node] and returns the
      * received response.
      *
-     * An appropriate callback of the ``MeshNetworkDelegate`` will also be called when the message
-     * has been sent successfully or a problem occurred.
-     *
      * @param message The acknowledged configuration message to be sent.
      * @return The response associated with the message.
      * @throws NoNetwork when the mesh network has not been created
@@ -927,9 +943,7 @@ class MeshNetworkManager(
             throw NoNetwork
         }
 
-        val destination = requireNotNull(
-            network.localProvisioner?.node?.primaryUnicastAddress
-        ) {
+        val destination = requireNotNull(network.localProvisioner?.node?.primaryUnicastAddress) {
             println("Error: Local Provisioner has no Unicast Address assigned.")
             throw InvalidSource
         }

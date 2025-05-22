@@ -64,6 +64,7 @@ internal class ProxyViewModel @Inject internal constructor(
                         filterType = it.type,
                         isProxyLimitReached = true
                     )
+
                 else -> {
 
                 }
@@ -79,7 +80,9 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun connect(context: Context, result: ScanResult) {
         viewModelScope.launch {
-            repository.run {
+            with(repository) {
+                onBluetoothEnabled(enabled = true)
+                onLocationEnabled(enabled = true)
                 disconnect()
                 connectOverGattBearer(context = context, peripheral = result.peripheral)
             }

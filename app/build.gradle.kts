@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.activity.compose)
 
-    implementation(libs.accompanist.systemuicontroller)
+    // implementation(libs.accompanist.systemuicontroller)
 
     implementation(libs.timber)
     // implementation(libs.kotlinx.coroutines)

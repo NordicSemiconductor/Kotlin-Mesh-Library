@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -43,6 +44,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
@@ -114,11 +116,8 @@ internal class NetworkManager internal constructor(
      */
     private fun awaitBearerPdus() {
         bearer?.pdus?.onEach {
-            try {
-                handle(incomingPdu = it.data, type = it.type)
-            } catch (e: Exception) {
-                logger?.e(LogCategory.BEARER) { "Bearer error : $e" }
-            }
+            runCatching { handle(incomingPdu = it.data, type = it.type) }
+                .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error : $it" } }
         }?.launchIn(scope = scope)
     }
 
@@ -138,13 +137,14 @@ internal class NetworkManager internal constructor(
      * @param type        PDU type.
      */
     suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        networkLayer.handle(incomingPdu = incomingPdu, type = type)?.let {
-            if (it.message is ProxyConfigurationMessage) {
-                _incomingProxyMessages.emit(value = it)
-            } else {
-                _incomingMeshMessages.emit(value = it)
+        networkLayer.handle(incomingPdu = incomingPdu, type = type)
+            ?.let {
+                if (it.message is ProxyConfigurationMessage) {
+                    _incomingProxyMessages.emit(value = it)
+                } else {
+                    _incomingMeshMessages.emit(value = it)
+                }
             }
-        }
     }
 
     /**
@@ -157,12 +157,11 @@ internal class NetworkManager internal constructor(
         destination: Address,
         responseOpcode: UInt,
         timeout: Duration,
-    ) =
-        awaitMeshMessageResponse(
-            destination = MeshAddress.create(destination),
-            responseOpcode = responseOpcode,
-            timeout = timeout
-        )
+    ) = awaitMeshMessageResponse(
+        destination = MeshAddress.create(destination),
+        responseOpcode = responseOpcode,
+        timeout = timeout
+    )
 
     /**
      * Awaits for a response to a sent message.
@@ -175,11 +174,18 @@ internal class NetworkManager internal constructor(
         destination: MeshAddress,
         responseOpcode: UInt,
         timeout: Duration,
-    ): ReceivedMessage? = incomingMeshMessages.timeout(timeout = timeout).catch {
-        logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
-    }.firstOrNull {
-        destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
-    }
+    ): ReceivedMessage? = incomingMeshMessages
+        .timeout(timeout = timeout)
+        .catch {
+            // If its a timeout exception that's thrown we should log it in the bearer
+            if (it is TimeoutCancellationException) {
+                logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
+            }
+            throw it
+        }
+        .firstOrNull {
+            destination == it.address && responseOpcode == (it.message as? HasOpCode)?.opCode
+        }
 
     /**
      * Awaits for a response to a sent message.
@@ -290,7 +296,7 @@ internal class NetworkManager internal constructor(
         destination: MeshAddress,
         initialTtl: UByte?,
         applicationKey: ApplicationKey,
-    ): MeshMessage? = if (ensureNotBusy(destination = destination)) accessLayer.send(
+    ): MeshMessage? = if (!ensureNotBusy(destination = destination)) accessLayer.send(
         message = message,
         element = element,
         destination = destination,
@@ -322,22 +328,22 @@ internal class NetworkManager internal constructor(
     suspend fun send(
         message: AcknowledgedMeshMessage,
         element: Element,
-        destination: Address,
+        destination: UnicastAddress,
         initialTtl: UByte?,
         applicationKey: ApplicationKey,
     ): MeshMessage? {
-        val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { return null }
+        //val meshAddress = MeshAddress.create(address = destination)
+        require(!ensureNotBusy(destination = destination)) { return null }
 
         return accessLayer.send(
             message = message,
             element = element,
-            destination = meshAddress,
+            destination = destination,
             ttl = initialTtl,
             applicationKey = applicationKey,
             retransmit = true
         ).also {
-            mutex.withLock { outgoingMessages.remove(meshAddress) }
+            mutex.withLock { outgoingMessages.remove(destination) }
         }
     }
 

@@ -8,7 +8,13 @@ import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.ConfigurationServerHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareDistributionClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.FirmwareUpdateClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.HealthClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.HealthServerHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.PrivateBeaconHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.RemoteProvisioningClientHandler
+import no.nordicsemi.kotlin.mesh.core.layers.foundation.SarConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
 
@@ -95,6 +101,8 @@ data class Element(
         require(index in LOWER_BOUND..HIGHER_BOUND) {
             " Index must be a value ranging from $LOWER_BOUND to $HIGHER_BOUND!"
         }
+        // Assign the parent element to all models.
+        _models.forEach { it.parentElement = this }
     }
 
     /**
@@ -138,40 +146,77 @@ data class Element(
      * Adds the natively supported Models to the Element.
      *
      * Note: This is only to be called for the primary element of the Local Node.
-     *
-     * @param meshNetwork Mesh network.
      */
-    internal fun addPrimaryElementModels(meshNetwork: MeshNetwork) {
+    internal fun addPrimaryElementModels() {
         require(isPrimary) { return }
         insert(
             model = Model(
                 modelId = SigModelId(Model.CONFIGURATION_SERVER_MODEL_ID),
-                handler = ConfigurationServerHandler(meshNetwork = meshNetwork)
+                handler = ConfigurationServerHandler()
             ),
             index = 0
         )
         insert(
             model = Model(
                 modelId = SigModelId(Model.CONFIGURATION_CLIENT_MODEL_ID),
-                handler = ConfigurationClientHandler(meshNetwork = meshNetwork)
+                handler = ConfigurationClientHandler()
             ),
             index = 1
         )
-        insert(Model(modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID)), index = 2)
-        insert(Model(modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID)), index = 3)
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.HEALTH_SERVER_MODEL_ID),
+                handler = HealthServerHandler()
+            ),
+            index = 2
+        )
+        insert(
+            Model(
+                modelId = SigModelId(Model.HEALTH_CLIENT_MODEL_ID),
+                handler = HealthClientHandler()
+            ), index = 3
+        )
         insert(
             model = Model(
                 modelId = SigModelId(Model.PRIVATE_BEACON_CLIENT_MODEL_ID),
-                handler = PrivateBeaconHandler(meshNetwork = meshNetwork)
+                handler = PrivateBeaconHandler()
             ),
             index = 4
         )
         insert(
             model = Model(
-                modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
-                handler = SceneClientHandler(meshNetwork = meshNetwork)
+                modelId = SigModelId(Model.SAR_CONFIGURATION_CLIENT_MODEL_ID),
+                handler = SarConfigurationClientHandler()
             ),
             index = 5
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.REMOTE_PROVISIONING_CLIENT_MODEL_ID),
+                handler = RemoteProvisioningClientHandler()
+            ),
+            index = 6
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.SCENE_CLIENT_MODEL_ID),
+                handler = SceneClientHandler()
+            ),
+            index = 7
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.FIRMWARE_UPDATE_CLIENT_MODEL_ID),
+                handler = FirmwareUpdateClientHandler()
+            ),
+            index = 8
+        )
+        insert(
+            model = Model(
+                modelId = SigModelId(Model.FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID),
+                handler = FirmwareDistributionClientHandler()
+            ),
+            index = 9
         )
     }
 
@@ -181,12 +226,12 @@ data class Element(
     internal fun removePrimaryElementModels() {
         _models.removeAll { model ->
             // Health models are not yet supported.
-            !model.isHealthServer && !model.isHealthClient &&
+            model.isHealthServer || model.isHealthClient ||
                     // The library supports Scene Client model natively.
-                    !model.isSceneClient &&
+                    model.isSceneClient ||
                     // The models that require Device Key should not be managed by users.
                     // Some of them are supported natively in the library.
-                    !model.requiresDeviceKey
+                    model.requiresDeviceKey
         }
     }
 

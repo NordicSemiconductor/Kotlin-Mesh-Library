@@ -1,0 +1,30 @@
+syntax = "proto3";
+option java_package = "no.nordicsemi.android.nrfmesh.core.data";
+option java_multiple_files = true;
+
+// Stores the state of the generic OnOff or Level model to be used with Scene Server
+message ProtoSceneStatesDataStore {
+  // Map uses network uuid as key and SceneStates as value
+  map<string, SceneStates> sceneStates = 1;
+}
+
+message SceneStates {
+  // Scene number as a hex string
+  map<uint32, SceneState> states = 1;
+}
+
+message SceneState {
+  // Map uses the element index of the parent element of the given model as the key and GenericOnOffState as value
+  map<uint32, GenericOnOffState> genericOnOffStates = 1;
+  // Map uses the element index of the parent element of the given model as the key and GenericLevelState as value
+  map<uint32, GenericLevelState> genericLevelStates = 2;
+}
+// Defines the state of the GenericOnOff
+message GenericOnOffState {
+  // State of the GenericOnOffServer
+  bool on = 1;
+}
+
+message GenericLevelState {
+  sint32 level = 1;
+}

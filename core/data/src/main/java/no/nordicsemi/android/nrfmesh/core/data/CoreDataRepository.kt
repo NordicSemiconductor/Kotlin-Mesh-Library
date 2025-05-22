@@ -20,14 +20,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.android.common.permissions.ble.bluetooth.BluetoothStateManager
-import no.nordicsemi.android.common.permissions.ble.location.LocationStateManager
-import no.nordicsemi.android.common.permissions.ble.util.BlePermissionState
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
+import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
+import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffServer
+import no.nordicsemi.android.nrfmesh.core.data.storage.SceneStatesDataStoreStorage
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
@@ -36,6 +38,8 @@ import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
@@ -51,6 +55,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
@@ -67,13 +72,12 @@ private object PreferenceKeys {
 
 class CoreDataRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    bluetoothStateManager: BluetoothStateManager,
-    locationStateManager: LocationStateManager,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val centralManager: CentralManager,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    private val storage: SceneStatesDataStoreStorage,
+    private val centralManager: CentralManager,
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
     val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()
@@ -90,19 +94,11 @@ class CoreDataRepository @Inject constructor(
         get() = meshNetworkManager.proxyFilter
 
     init {
-        println("CoreDataRepository init: $centralManager")
         meshNetworkManager.logger = this
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
-        }.launchIn(CoroutineScope(defaultDispatcher))
-
-        bluetoothStateManager.bluetoothState().onEach {
-            isBluetoothEnabled = it is BlePermissionState.Available
-        }.launchIn(CoroutineScope(defaultDispatcher))
-        locationStateManager.locationState().onEach {
-            isLocationEnabled = it is BlePermissionState.Available
         }.launchIn(CoroutineScope(defaultDispatcher))
 
         // Start automatic connectivity when the network changes
@@ -131,13 +127,62 @@ class CoreDataRepository @Inject constructor(
      * the correct network.
      */
     private fun onMeshNetworkChanged() {
-        // TODO Implement scene model event handler related stuff
+        // TODO(implement missing model event handlers for both elements)
+        val defaultTransitionTimeServer = GenericDefaultTransitionTimeServer()
+        // Sets up the local Elements on the phone
         val element0 = Element(
-            location = Location.FIRST, _models = mutableListOf(
-                Model(modelId = SigModelId(Model.SCENE_SERVER_MODEL_ID))
+            _name = "Primary Element",
+            location = Location.FIRST,
+            _models = mutableListOf(
+                Model(modelId = SigModelId(modelIdentifier = Model.SCENE_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.SCENE_SETUP_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.SENSOR_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_POWER_ON_OFF_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_DEFAULT_TRANSITION_TIME_CLIENT_MODEL_ID)),
+                // Generic OnOff and Generic Level models defined by SIG
+                Model(
+                    modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_SERVER_MODEL_ID),
+                    handler = GenericOnOffServer(
+                        dispatcher = defaultDispatcher,
+                        storage = storage,
+                        defaultTransitionTimeServer = defaultTransitionTimeServer
+                    )
+                ),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
+                Model(
+                    modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_CLIENT_MODEL_ID),
+                    handler = GenericOnOffClientEventHandler()
+                ),
+                Model(modelId = SigModelId(modelIdentifier = Model.GENERIC_LEVEL_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(modelIdentifier = Model.LIGHT_LC_CLIENT_MODEL_ID)),
+                // Nordic Pairing Initiator model
+                Model(
+                    modelId = VendorModelId(
+                        modelIdentifier = LE_PAIRING_INITIATOR,
+                        companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
+                    )
+                ),
+                // A simple vendor model
+                Model(
+                    modelId = VendorModelId(
+                        modelIdentifier = VendorModelIds.SIMPLE_ON_OFF_SERVER_MODEL_ID,
+                        companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
+                    )
+                )
             )
-        ).apply { name = "Primary Element" }
-        meshNetworkManager.localElements = listOf(element0)
+        )
+        val element1 = Element(
+            _name = "Secondary Element",
+            location = Location.SECOND,
+            _models = mutableListOf(
+                Model(modelId = SigModelId(Model.GENERIC_ON_OFF_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_LEVEL_SERVER_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_ON_OFF_CLIENT_MODEL_ID)),
+                Model(modelId = SigModelId(Model.GENERIC_LEVEL_CLIENT_MODEL_ID))
+            )
+        )
+        meshNetworkManager.localElements = listOf(element0, element1)
     }
 
     /**
@@ -218,7 +263,12 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverPbGattBearer(context: Context, device: Peripheral) =
         withContext(defaultDispatcher) {
             if (bearer is GattBearer) bearer?.close()
-            PbGattBearer(context = context, centralManager = centralManager, peripheral = device)
+            PbGattBearer(
+                dispatcher = defaultDispatcher,
+                context = context,
+                centralManager = centralManager,
+                peripheral = device
+            )
                 .also {
                     it.open()
                     bearer = it
@@ -238,19 +288,24 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
-            GattBearer(context = context, centralManager = centralManager, peripheral = peripheral)
-                .also {
-                    meshNetworkManager.setMeshBearerType(meshBearer = it)
-                    bearer = it
-                    it.open()
-                    if (it.isOpen) {
-                        _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
-                            .value.copy(connectionState = NetworkConnectionState.Connected(
+            GattBearer(
+                dispatcher = defaultDispatcher,
+                context = context,
+                centralManager = centralManager,
+                peripheral = peripheral
+            ).also {
+                meshNetworkManager.setMeshBearerType(meshBearer = it)
+                bearer = it
+                it.open()
+                if (it.isOpen) {
+                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
+                        .value.copy(
+                            connectionState = NetworkConnectionState.Connected(
                                 peripheral = peripheral
                             )
                         )
-                    }
                 }
+            }
         }
 
     /**
@@ -372,10 +427,8 @@ class CoreDataRepository @Inject constructor(
      * @param node    Destination node.
      * @param message Message to be sent.
      */
-    suspend fun send(node: Node, message: AcknowledgedConfigMessage) = withContext(
-        context = defaultDispatcher
-    ) {
-        if (bearer != null && bearer!!.isOpen) {
+    suspend fun send(node: Node, message: AcknowledgedConfigMessage) =
+        withContext(context = defaultDispatcher) {
             meshNetworkManager.send(message = message, node = node, initialTtl = null)
                 .also {
                     log(
@@ -384,9 +437,29 @@ class CoreDataRepository @Inject constructor(
                         level = LogLevel.INFO
                     )
                 }
-        } else {
-            throw IllegalStateException("Bearer is not open")
         }
+
+    /**
+     * Sends an unacknowledged mesh message to the given model.
+     *
+     * @param model          Destination model.
+     * @param unackedMessage Unacknowledged mesh message to be sent.
+     */
+    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) =
+        withContext(context = defaultDispatcher) {
+            meshNetworkManager.send(model = model, message = unackedMessage)
+        }
+
+    /**
+     * Sends an acknowledged mesh message to the given model.
+     *
+     * @param model        Destination model.
+     * @param ackedMessage Unacknowledged mesh message to be sent.
+     */
+    suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
+        context = defaultDispatcher
+    ) {
+        meshNetworkManager.send(model = model, message = ackedMessage)
     }
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
