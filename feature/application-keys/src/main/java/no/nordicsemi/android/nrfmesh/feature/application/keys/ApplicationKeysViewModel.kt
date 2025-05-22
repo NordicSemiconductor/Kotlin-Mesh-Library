@@ -96,7 +96,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         viewModelScope.launch {
             val state = _uiState.value
             network.run {
-                remove(key = applicationKey(keyIndex = key.index))
+                remove(key = applicationKey(index = key.index))
                 save()
             }
             _uiState.value = state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
@@ -110,7 +110,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         _uiState.value.keysToBeRemoved.forEach { keyData ->
             network.run {
                 runCatching {
-                    remove(applicationKey(keyIndex = keyData.index))
+                    remove(applicationKey(index = keyData.index))
                 }
             }
         }

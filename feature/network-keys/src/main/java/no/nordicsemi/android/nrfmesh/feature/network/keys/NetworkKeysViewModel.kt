@@ -91,7 +91,7 @@ class NetworkKeysViewModel @Inject internal constructor(
             val state = _uiState.value
             network.run {
                 runCatching {
-                    remove(key = networkKey(keyIndex = key.index))
+                    remove(key = networkKey(index = key.index))
                     save()
                 }
             }
@@ -106,7 +106,7 @@ class NetworkKeysViewModel @Inject internal constructor(
         _uiState.value.keysToBeRemoved.forEach { keyData ->
             network.run {
                 runCatching {
-                    remove(key = networkKey(keyIndex = keyData.index))
+                    remove(key = networkKey(index = keyData.index))
                 }
             }
         }
