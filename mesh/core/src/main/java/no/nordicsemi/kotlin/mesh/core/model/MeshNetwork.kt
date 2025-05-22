@@ -543,10 +543,36 @@ data class MeshNetwork internal constructor(
      * @throws [KeyInUse] if the key is known to any node in the network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
-    fun remove(key: ApplicationKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse) { throw KeyInUse }
-        _applicationKeys.remove(key).also { updateTimestamp() }
+    fun remove(key: ApplicationKey, force: Boolean = false) {
+        removeApplicationKeyWithIndex(index = key.index, force = force)
+    }
+
+    /**
+     * Removes an Application Key with the given [KeyIndex].
+     *
+     * @param index KeyIndex of the Application Key to be removed.
+     * @param force If true, the Application Key will be removed even if it is in use.
+     */
+    fun removeApplicationKeyWithIndex(index: KeyIndex, force: Boolean = false) {
+        removeApplicationKeyAtIndex(
+            index = applicationKeys.indexOfFirst { it.index == index },
+            force = force
+        )
+    }
+
+    /**
+     * Removes a Application Key at the given index from the list of Application Keys in the mesh
+     * network.
+     *
+     * @param index index of the Application Key in the list of Application Keys.
+     * @param force If true, the Application Key will be removed even if it is in use.
+     */
+    fun removeApplicationKeyAtIndex(index: Int, force: Boolean = false) {
+        // Return as no op if the key does not exist
+        val key = applicationKeys.getOrNull(index) ?: return
+        require(force || key.network == this) { throw DoesNotBelongToNetwork }
+        require(force || !key.isInUse) { throw KeyInUse }
+        _applicationKeys.removeAt(index = index)
     }
 
     /**
