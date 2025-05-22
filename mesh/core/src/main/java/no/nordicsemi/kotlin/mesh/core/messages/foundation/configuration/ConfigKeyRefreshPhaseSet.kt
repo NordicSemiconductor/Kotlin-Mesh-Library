@@ -8,7 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage.Companion.decodeNetKeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
-import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
 import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhaseTransition
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 

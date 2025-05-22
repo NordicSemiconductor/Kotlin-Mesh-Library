@@ -2,7 +2,6 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -12,10 +11,8 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
-import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
-import org.intellij.lang.annotations.Identifier
 import java.nio.ByteOrder
 
 /**
@@ -43,6 +40,7 @@ class ConfigVendorModelAppList(
      * @param request [ConfigSigModelAppGet] message that this is a response to.
      * @param keys    List of application keys bound to the model.
      */
+    @Suppress("unused")
     constructor(request: ConfigVendorModelAppGet, keys: List<ApplicationKey>) : this(
         status = ConfigMessageStatus.SUCCESS,
         modelId = request.modelId,
@@ -56,6 +54,7 @@ class ConfigVendorModelAppList(
      * @param request [ConfigSigModelAppGet] message that this is a response to.
      * @param status  Status of the request.
      */
+    @Suppress("unused")
     constructor(request: ConfigVendorModelAppGet, status: ConfigMessageStatus) : this(
         status = status,
         modelId = request.modelId,
