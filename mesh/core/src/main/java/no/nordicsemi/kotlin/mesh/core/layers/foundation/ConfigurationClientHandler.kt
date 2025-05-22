@@ -79,7 +79,7 @@ import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
  * @constructor Initialize ConfigurationClientHandler
  */
 internal class ConfigurationClientHandler() : ModelEventHandler() {
-    // TODO commented messages to be added
+
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
         ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
