@@ -18,10 +18,13 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyUpdate
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigFriendStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatPublicationStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHeartbeatSubscriptionStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigKeyRefreshPhaseStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigLowPowerNodePollTimeoutStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
@@ -46,7 +49,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelAppList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionList
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelAppList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
@@ -73,27 +79,32 @@ import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
  * @constructor Initialize ConfigurationClientHandler
  */
 internal class ConfigurationClientHandler() : ModelEventHandler() {
-
+    // TODO commented messages to be added
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         ConfigCompositionDataStatus.opCode to ConfigCompositionDataStatus,
         ConfigNetKeyStatus.opCode to ConfigNetKeyStatus,
         ConfigNetKeyList.opCode to ConfigNetKeyList,
         ConfigAppKeyStatus.opCode to ConfigAppKeyStatus,
         ConfigAppKeyList.opCode to ConfigAppKeyList,
-        ConfigBeaconStatus.opCode to ConfigBeaconStatus,
-        ConfigFriendStatus.opCode to ConfigFriendStatus,
-        ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
-        ConfigRelayStatus.opCode to ConfigRelayStatus,
         ConfigModelAppStatus.opCode to ConfigModelAppStatus,
-        ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
-        ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
-        ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
-        ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
+        ConfigSigModelAppList.opCode to ConfigSigModelAppList,
+        ConfigVendorModelAppList.opCode to ConfigVendorModelAppList,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigModelSubscriptionStatus.opCode to ConfigModelSubscriptionStatus,
-        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionList,
+        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionGet,
         ConfigVendorModelSubscriptionList.opCode to ConfigVendorModelSubscriptionList,
-        ConfigNodeResetStatus.opCode to ConfigNodeResetStatus
+        ConfigDefaultTtlStatus.opCode to ConfigDefaultTtlStatus,
+        ConfigRelayStatus.opCode to ConfigRelayStatus,
+        ConfigGattProxyStatus.opCode to ConfigGattProxyStatus,
+        ConfigFriendStatus.opCode to ConfigFriendStatus,
+        ConfigBeaconStatus.opCode to ConfigBeaconStatus,
+        ConfigNetworkTransmitStatus.opCode to ConfigNetworkTransmitStatus,
+        ConfigNodeIdentityStatus.opCode to ConfigNodeIdentityStatus,
+        ConfigNodeResetStatus.opCode to ConfigNodeResetStatus,
+        ConfigHeartbeatPublicationStatus.opCode to ConfigHeartbeatPublicationStatus,
+        ConfigHeartbeatSubscriptionStatus.opCode to ConfigHeartbeatSubscriptionStatus,
+        ConfigKeyRefreshPhaseStatus.opCode to ConfigKeyRefreshPhaseStatus,
+        ConfigLowPowerNodePollTimeoutStatus.opCode to ConfigLowPowerNodePollTimeoutStatus
     )
     override val isSubscriptionSupported: Boolean = false
     override val publicationMessageComposer: MessageComposer? = null
@@ -174,53 +185,22 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                 )
             }
 
-            is ConfigFriendStatus -> node(address = source)?.apply {
-                features._friend = Friend(state = response.state)
-                updateTimestamp()
-            }
+            is ConfigModelAppStatus -> if (response.isSuccess) {
+                node(address = source)
+                    ?.element(address = response.elementAddress)
+                    ?.model(modelId = response.modelId)?.let {
+                        when (request) {
+                            is ConfigModelAppBind ->
+                                it.bind(index = request.keyIndex)
 
-            is ConfigGattProxyStatus -> node(address = source)?.apply {
-                features._proxy = Proxy(state = response.state)
-                updateTimestamp()
-            }
+                            is ConfigModelAppUnbind ->
+                                it.unbind(index = request.keyIndex)
 
-            is ConfigRelayStatus -> node(address = source)?.apply {
-                features._relay = Relay(state = response.state)
-                relayRetransmit = when (response.state) {
-                    FeatureState.Unsupported -> null
-                    FeatureState.Disabled, FeatureState.Enabled -> RelayRetransmit(response)
-                }
-                updateTimestamp()
-            }
+                            else -> {
 
-            is ConfigBeaconStatus -> node(address = source)?.apply {
-                secureNetworkBeacon = response.isEnabled
-            }
-
-            is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
-                networkTransmit = NetworkTransmit(response)
-            }
-
-            is ConfigNodeIdentityStatus -> {
-                // Do nothing here as we don't store the NodeIdentityState in the CDB.
-            }
-
-            is ConfigHeartbeatSubscriptionStatus -> node(address = source)?.takeIf {
-                !it.isLocalProvisioner
-            }?.let {
-                it.heartbeatSubscription = when {
-                    response.isEnabled -> HeartbeatSubscription(response)
-                    else -> null
-                }
-            }
-
-            is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
-                !it.isLocalProvisioner
-            }?.let {
-                it.heartbeatPublication = when {
-                    response.isEnabled -> HeartbeatPublication(response)
-                    else -> null
-                }
+                            }
+                        }
+                    }
             }
 
             is ConfigModelPublicationStatus -> if (response.isSuccess) {
@@ -251,24 +231,6 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                     }
             } else {
                 // Do nothing
-            }
-
-            is ConfigModelAppStatus -> if (response.isSuccess) {
-                node(address = source)
-                    ?.element(address = response.elementAddress)
-                    ?.model(modelId = response.modelId)?.let {
-                        when (request) {
-                            is ConfigModelAppBind ->
-                                it.bind(index = request.keyIndex)
-
-                            is ConfigModelAppUnbind ->
-                                it.unbind(index = request.keyIndex)
-
-                            else -> {
-
-                            }
-                        }
-                    }
             }
 
             is ConfigModelSubscriptionStatus -> if (response.isSuccess) {
@@ -312,6 +274,7 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                 }
             }
 
+
             is ConfigModelSubscriptionList -> {
                 if (response.isSuccess) {
                     val element = node(address = source)
@@ -328,9 +291,9 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                             // ...look for an existing Group.
                             val address = MeshAddress.create(address = it) as SubscriptionAddress
                             // Check if address is FixedGroupAddress
-                            if(address is FixedGroupAddress) {
+                            if (address is FixedGroupAddress) {
                                 models.forEach { model -> model.subscribe(address = address) }
-                            } else if(address is GroupAddress){
+                            } else if (address is GroupAddress) {
                                 meshNetwork.group(address = address.address)?.let { group ->
                                     models.forEach { model -> model.subscribe(group = group) }
                                 } ?: run {
@@ -347,10 +310,67 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                 }
             }
 
+            is ConfigDefaultTtlStatus -> node(address = source)
+                ?.apply { defaultTTL = response.ttl }
+
+            is ConfigRelayStatus -> node(address = source)?.apply {
+                features._relay = Relay(state = response.state)
+                relayRetransmit = when (response.state) {
+                    FeatureState.Unsupported -> null
+                    FeatureState.Disabled, FeatureState.Enabled -> RelayRetransmit(response)
+                }
+                updateTimestamp()
+            }
+
+            is ConfigGattProxyStatus -> node(address = source)?.apply {
+                features._proxy = Proxy(state = response.state)
+                updateTimestamp()
+            }
+
+            is ConfigFriendStatus -> node(address = source)?.apply {
+                features._friend = Friend(state = response.state)
+                updateTimestamp()
+            }
+
+            is ConfigBeaconStatus -> node(address = source)?.apply {
+                secureNetworkBeacon = response.isEnabled
+            }
+
+            is ConfigNetworkTransmitStatus -> node(address = source)?.apply {
+                networkTransmit = NetworkTransmit(response)
+            }
+
             is ConfigNodeResetStatus -> node(address = source)?.let { remove(it) }
 
-            else -> {}
+            is ConfigHeartbeatPublicationStatus -> node(address = source)?.takeIf {
+                !it.isLocalProvisioner
+            }?.let {
+                it.heartbeatPublication = when {
+                    response.isEnabled -> HeartbeatPublication(response)
+                    else -> null
+                }
+            }
+
+            is ConfigHeartbeatSubscriptionStatus -> node(address = source)?.takeIf {
+                !it.isLocalProvisioner
+            }?.let {
+                it.heartbeatSubscription = when {
+                    response.isEnabled -> HeartbeatSubscription(response)
+                    else -> null
+                }
+            }
+
+            is ConfigNodeIdentityStatus -> {
+                // Do nothing here as we don't store the NodeIdentityState in the CDB.
+            }
+
+            is ConfigKeyRefreshPhaseStatus -> {
+                // Do nothing. The model does not need to be updated.
+            }
+
+            is ConfigLowPowerNodePollTimeoutStatus -> {
+                // Do nothing. The model does not need to be updated.
+            }
         }
-        Unit
     }
 }
