@@ -453,10 +453,35 @@ data class MeshNetwork internal constructor(
      *                    key in this network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
-    fun remove(key: NetworkKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse) { throw KeyInUse }
-        _networkKeys.remove(key).also { updateTimestamp() }
+    fun remove(key: NetworkKey, force: Boolean = false) {
+        removeNetworkKeyWithIndex(index = key.index, force = force)
+    }
+
+    /**
+     * Removes a given [NetworkKey] from the list of network keys in the mesh network.
+     *
+     * @param index KeyIndex of the network key to be removed.
+     * @param force If true, the network key will be removed even if it is in use.
+     */
+    fun removeNetworkKeyWithIndex(index: KeyIndex, force: Boolean = false) {
+        removeNetworkKeyAtIndex(
+            index = networkKeys.indexOfFirst { it.index == index },
+            force = force
+        )
+    }
+
+    /**
+     * Removes a Network Key at the given index from the list of network keys in the mesh network.
+     *
+     * @param index index of the network key in the list of network keys.
+     * @param force If true, the network key will be removed even if it is in use.
+     */
+    fun removeNetworkKeyAtIndex(index: Int, force: Boolean = false) {
+        // Return as no op if the key does not exist
+        val key = networkKeys.getOrNull(index) ?: return
+        require(force || key.network == this) { throw DoesNotBelongToNetwork }
+        require(force || !key.isInUse) { throw KeyInUse }
+        _networkKeys.removeAt(index = index)
     }
 
     /**
