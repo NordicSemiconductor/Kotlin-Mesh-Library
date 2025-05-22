@@ -47,7 +47,7 @@ class ConfigHeartbeatSubscriptionSet(
     override fun toString() = "ConfigHeartbeatSubscriptionSet opCode ${opCode.toHexString()}, " +
             "parameters: ${parameters.toHexString()}"
 
-    object Initializer : ConfigMessageInitializer {
+    companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x803Bu
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
