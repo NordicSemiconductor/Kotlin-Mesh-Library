@@ -3,8 +3,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigAddressMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelAddressMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.Group
@@ -27,7 +26,7 @@ class ConfigModelSubscriptionOverwrite(
     override val address: Address,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
-) : AcknowledgedConfigMessage, ConfigAddressMessage, ConfigAnyModelMessage {
+) : AcknowledgedConfigMessage, ConfigAnyModelAddressMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
     override val parameters: ByteArray
