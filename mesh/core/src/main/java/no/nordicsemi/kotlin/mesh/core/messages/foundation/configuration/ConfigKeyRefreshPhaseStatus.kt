@@ -26,7 +26,8 @@ class ConfigKeyRefreshPhaseStatus(
     val refreshPhase: KeyRefreshPhase,
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
-    override val parameters: ByteArray = encodeNetKeyIndex() +
+    override val parameters: ByteArray = status.value.toByteArray() +
+            encodeNetKeyIndex() +
             refreshPhase.phase
                 .toByte()
                 .toByteArray()
@@ -36,11 +37,21 @@ class ConfigKeyRefreshPhaseStatus(
      *
      * @param networkKey The [NetworkKey] to be used.
      */
-    constructor(
-        networkKey: NetworkKey,
-    ) : this(
+    constructor(networkKey: NetworkKey) : this(
         status = ConfigMessageStatus.SUCCESS,
         index = networkKey.index,
+        refreshPhase = NormalOperation
+    )
+
+    /**
+     * Convenience constructor to create the [ConfigKeyRefreshPhaseStatus] message.
+     *
+     * @param request  [ConfigNetKeyMessage] message that this is a response to.
+     * @param status   status of the message.
+     */
+    constructor(request: ConfigNetKeyMessage, status: ConfigMessageStatus) : this(
+        status = status,
+        index = request.index,
         refreshPhase = NormalOperation
     )
 

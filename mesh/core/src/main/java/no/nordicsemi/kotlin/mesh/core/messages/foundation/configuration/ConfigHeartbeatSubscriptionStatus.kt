@@ -43,17 +43,17 @@ class ConfigHeartbeatSubscriptionStatus(
     val periodLog: PeriodLog,
     val countLog: CountLog,
     val minHops: UByte,
-    val maxHops: UByte
+    val maxHops: UByte,
 ) : ConfigResponse, ConfigStatusMessage {
     override val opCode: UInt = Initializer.opCode
 
-    override val parameters: ByteArray = byteArrayOf(status.value.toByte()) +
-                source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                periodLog.toByte() +
-                countLog.toByte() +
-                minHops.toByte() +
-                maxHops.toByte()
+    override val parameters: ByteArray = status.value.toByteArray() +
+            source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            periodLog.toByte() +
+            countLog.toByte() +
+            minHops.toByte() +
+            maxHops.toByte()
 
     val count: HeartbeatSubscriptionCount
         get() = countLog.toHeartbeatSubscriptionCount()
@@ -83,11 +83,14 @@ class ConfigHeartbeatSubscriptionStatus(
         status = ConfigMessageStatus.SUCCESS
     )
 
-    constructor(
-        request: ConfigHeartbeatSubscriptionSet,
-        response: ConfigHeartbeatSubscriptionStatus
-    ) : this(
-        status = response.status,
+    /**
+     * Convenience constructor to create the ConfigHeartbeatSubscriptionStatus message.
+     *
+     * @param request The [ConfigHeartbeatSubscriptionSet] message that this is a response to.
+     * @param status  Status of the request.
+     */
+    constructor(request: ConfigHeartbeatSubscriptionSet, status: ConfigMessageStatus) : this(
+        status = status,
         source = request.source,
         destination = request.destination,
         periodLog = request.periodLog,
