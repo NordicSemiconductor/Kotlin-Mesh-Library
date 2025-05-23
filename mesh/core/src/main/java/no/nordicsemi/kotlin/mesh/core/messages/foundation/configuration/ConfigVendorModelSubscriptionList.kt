@@ -35,6 +35,32 @@ class ConfigVendorModelSubscriptionList(
                     acc + address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
                 }
 
+    /**
+     * Convenience constructor to create a ConfigSigModelSubscriptionList message.
+     *
+     * @param request   [ConfigVendorModelSubscriptionGet] message that this is a response to.
+     * @param addresses List of addresses of the subscription.
+     */
+    constructor(request: ConfigVendorModelSubscriptionGet, addresses: List<Address>) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        elementAddress = request.elementAddress,
+        modelId = request.modelId,
+        addresses = addresses
+    )
+
+    /**
+     * Convenience constructor to create a ConfigSigModelSubscriptionList message.
+     *
+     * @param request [ConfigVendorModelSubscriptionGet] message that this is a response to.
+     * @param status  Status of the message.
+     */
+    constructor(request: ConfigVendorModelSubscriptionGet, status: ConfigMessageStatus) : this(
+        status = status,
+        elementAddress = request.elementAddress,
+        modelId = request.modelId,
+        addresses = emptyList()
+    )
+
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigVendorModelSubscriptionList(status: $status " +
             "elementAddress: ${elementAddress.toHexString()} modelId: ${modelId.toHex()} " +
