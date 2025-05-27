@@ -17,7 +17,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
@@ -221,9 +220,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     }
                     // Check if the network key exists.
                     val networkKey = requireNotNull(
-                        localNode.networkKeys.get(
-                            heartbeatPublication.index
-                        )
+                        localNode.networkKey(index = heartbeatPublication.index)
                     ) {
                         layer.heartbeatPublisher?.cancel()
                         layer.heartbeatPublisher?.purge()

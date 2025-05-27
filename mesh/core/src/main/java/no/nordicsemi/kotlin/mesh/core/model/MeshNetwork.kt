@@ -408,7 +408,7 @@ data class MeshNetwork internal constructor(
      * @return Network key.
      * @throws NoSuchElementException if a key for a given key index ws not found.
      */
-    fun networkKey(index: KeyIndex) = networkKeys.first { key ->
+    fun networkKey(index: KeyIndex) = networkKeys.firstOrNull { key ->
         key.index == index
     }
 
@@ -491,7 +491,7 @@ data class MeshNetwork internal constructor(
      * @return Application key.
      * @throws NoSuchElementException if a key for a given key index ws not found.
      */
-    fun applicationKey(index: KeyIndex) = applicationKeys.first { key -> key.index == index }
+    fun applicationKey(index: KeyIndex) = applicationKeys.firstOrNull { key -> key.index == index }
 
     /**
      * Adds the given [ApplicationKey] to the list of network keys in the network.

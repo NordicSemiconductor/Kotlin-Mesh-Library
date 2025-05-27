@@ -96,8 +96,10 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         viewModelScope.launch {
             val state = _uiState.value
             network.run {
-                remove(key = applicationKey(index = key.index))
-                save()
+                applicationKey(index = key.index)?.let {
+                    remove(key = it)
+                    save()
+                }
             }
             _uiState.value = state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
         }
@@ -107,10 +109,12 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Removes all keys that are queued for deletion.
      */
     private fun removeKeys() {
-        _uiState.value.keysToBeRemoved.forEach { keyData ->
-            network.run {
-                runCatching {
-                    remove(applicationKey(index = keyData.index))
+        runCatching {
+            _uiState.value.keysToBeRemoved.forEach { keyData ->
+                network.run {
+                    applicationKey(index = keyData.index)?.let {
+                        remove(key = it)
+                    }
                 }
             }
         }

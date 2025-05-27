@@ -45,7 +45,6 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
@@ -214,7 +213,7 @@ internal class NetworkManager internal constructor(
     suspend fun publish(message: MeshMessage, from: Model) {
         val publish = from.publish ?: return
         val localElement = from.parentElement ?: return
-        val applicationKey = meshNetwork.applicationKeys.get(publish.index) ?: return
+        val applicationKey = meshNetwork.applicationKey(index = publish.index) ?: return
 
         // calculate the TTL to be used
         val ttl = when (publish.ttl != 0xFF.toUByte()) {

@@ -365,6 +365,16 @@ data class Node internal constructor(
         internal set
 
     /**
+     * Returns the network key with the given index added to the node.
+     *
+     * @param index Network Key index.
+     * @return Network Key with the given index or null if not found.
+     */
+    fun networkKey(index: KeyIndex) = networkKeys.firstOrNull {
+        it.index == index
+    }
+
+    /**
      * Adds a network key to a node.
      *
      * @param key     Network key to be added.
@@ -391,7 +401,7 @@ data class Node internal constructor(
         _netKeys.get(index) ?: _netKeys.add(NodeKey(index, false))
         network?.let {
             if (security is Insecure) {
-                it.networkKeys.get(index)?.lowerSecurity()
+                it.networkKey(index = index)?.lowerSecurity()
             }
             it.updateTimestamp()
         }
@@ -550,7 +560,7 @@ data class Node internal constructor(
     internal fun setAppKeys(appKeyIndexes: List<KeyIndex>, netKeyIndex: KeyIndex) {
         // Replace only the keys that are bound to the given network key.
         _appKeys = _appKeys.filter { nodeKey ->
-            applicationKeys.get(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
+            applicationKey(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
         }.toMutableList()
         _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(index = it, _updated = false) })
         _appKeys.sortBy { it.index }
