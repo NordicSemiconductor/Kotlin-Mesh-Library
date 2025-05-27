@@ -205,8 +205,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     )
                     clearOutgoingMessages(destination = pdu.destination)
                 }
-            } catch (ex: Exception) {
-                logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+            } catch (e: Exception) {
+                logger?.e(LogCategory.LOWER_TRANSPORT) { "$e" }
                 pdu.message!!.takeIf {
                     it.isAcknowledged
                 }?.let {
@@ -268,7 +268,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * Sends a Heartbeat message.
      *
      * @param heartbeat   Heartbeat message to be sent.
-     * @param networkKey         Network key to be used to encrypt the message.
+     * @param networkKey  Network key to be used to encrypt the message.
      */
     suspend fun send(heartbeat: HeartbeatMessage, networkKey: NetworkKey) {
         val message = ControlMessage(heartbeatMessage = heartbeat, networkKey = networkKey)
@@ -279,8 +279,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 type = PduType.NETWORK_PDU,
                 ttl = heartbeat.initialTtl
             )
-        } catch (ex: Exception) {
-            logger?.e(LogCategory.LOWER_TRANSPORT) { "$ex" }
+        } catch (e: Exception) {
+            logger?.e(LogCategory.LOWER_TRANSPORT) { "$e" }
         }
     }
 
@@ -325,7 +325,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
             networkPdu.destination !is UnicastAddress ||
                     network.localProvisioner?.node?.containsElementWithAddress(
                         address = networkPdu.destination
-                    ) ?: false
+                    ) == true
         ) { return true }
 
         // The SeqAuth value of the message.
@@ -743,9 +743,9 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
     private suspend fun sendAck(ack: SegmentAcknowledgementMessage, ttl: UByte) {
         logger?.d(LogCategory.LOWER_TRANSPORT) { "Sending $ack" }
         try {
-            networkManager.networkLayer.sendAck(pdu = ack, type = PduType.NETWORK_PDU, ttl = ttl)
-        } catch (ex: Exception) {
-            logger?.w(LogCategory.LOWER_TRANSPORT) { "$ex" }
+            networkManager.networkLayer.send(pdu = ack, type = PduType.NETWORK_PDU, ttl = ttl)
+        } catch (e: Exception) {
+            logger?.w(LogCategory.LOWER_TRANSPORT) { "$e" }
         }
     }
 
@@ -813,8 +813,8 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     ttl = ttl
                 )
                 delay(segmentTransmissionInterval)
-            } catch (ex: Exception) {
-                logger?.w(LogCategory.LOWER_TRANSPORT) { "$ex" }
+            } catch (e: Exception) {
+                logger?.w(LogCategory.LOWER_TRANSPORT) { "$e" }
                 break
             }
         }
