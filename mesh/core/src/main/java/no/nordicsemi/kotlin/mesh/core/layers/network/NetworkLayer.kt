@@ -147,7 +147,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             if (shouldLoopback(networkPdu = networkPdu)) {
                 handle(incomingPdu = networkPdu.pdu, type = type)
                 // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return }
+                require(ttl != 1.toUByte()) { return }
                 if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) {
                     // No need to send messages targeting local Unicast Addresses.
                     return
