@@ -429,14 +429,17 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) =
         withContext(context = defaultDispatcher) {
-            meshNetworkManager.send(message = message, node = node, initialTtl = null)
-                .also {
-                    log(
-                        message = it?.toString() ?: "",
-                        category = LogCategory.ACCESS,
-                        level = LogLevel.INFO
-                    )
-                }
+            if (node.primaryUnicastAddress == meshNetwork.localProvisioner?.node?.primaryUnicastAddress)
+                meshNetworkManager.sendToLocalNode(message = message)
+            else
+                meshNetworkManager.send(message = message, node = node, initialTtl = null)
+                    .also {
+                        log(
+                            message = it?.toString() ?: "",
+                            category = LogCategory.ACCESS,
+                            level = LogLevel.INFO
+                        )
+                    }
         }
 
     /**
@@ -445,10 +448,19 @@ class CoreDataRepository @Inject constructor(
      * @param model          Destination model.
      * @param unackedMessage Unacknowledged mesh message to be sent.
      */
-    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) =
-        withContext(context = defaultDispatcher) {
-            meshNetworkManager.send(model = model, message = unackedMessage)
-        }
+    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) = withContext(
+        context = defaultDispatcher
+    ) {
+        meshNetworkManager.send(
+            model = model,
+            message = unackedMessage,
+            initialTtl = if (isDestinedToLocalNode(model.parentElement?.unicastAddress)) {
+                1.toUByte() // Use TTL 1 for messages destined to the local node
+            } else {
+                null
+            }
+        )
+    }
 
     /**
      * Sends an acknowledged mesh message to the given model.
@@ -459,8 +471,19 @@ class CoreDataRepository @Inject constructor(
     suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
         context = defaultDispatcher
     ) {
-        meshNetworkManager.send(model = model, message = ackedMessage)
+        meshNetworkManager.send(
+            model = model,
+            message = ackedMessage,
+            initialTtl = if (isDestinedToLocalNode(model.parentElement?.unicastAddress)) {
+                1.toUByte() // Use TTL 1 for messages destined to the local node
+            } else {
+                null
+            }
+        )
     }
+
+    private fun isDestinedToLocalNode(destination: UnicastAddress?) =
+        destination == meshNetwork.localProvisioner?.node?.primaryUnicastAddress
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)
