@@ -159,6 +159,7 @@ abstract class ModelEventHandler {
      *
      * @param event Model event.
      */
+    @Throws(ModelError.InvalidMessage::class)
     abstract suspend fun handle(event: ModelEvent) : MeshResponse?
 }
 

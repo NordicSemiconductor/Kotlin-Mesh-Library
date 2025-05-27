@@ -280,10 +280,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         return when {
             // If ack is null, the message is not acknowledged, hence return null
-            // if message is destined to the local node, return null without waiting for the bearer
-            ack == null || networkManager.networkLayer.isLocalUnicastAddress(
-                address = destination as UnicastAddress
-            ) == true -> null
+            ack == null -> null
 
             else -> networkManager.awaitMeshMessageResponse(
                 destination = destination,
@@ -338,16 +335,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = initialTtl, keySet = keySet)
 
-        return when {
-            // if message is destined to the local node, return null without waiting for the bearer
-            networkManager.networkLayer.isLocalUnicastAddress(address = destination) == true -> null
-
-            else -> networkManager.awaitMeshMessageResponse(
-                destination = destination,
-                responseOpcode = ack.request.responseOpCode,
-                timeout = ack.timeout
-            )?.message as? MeshMessage
-        }
+        return networkManager.awaitMeshMessageResponse(
+            destination = destination,
+            responseOpcode = ack.request.responseOpCode,
+            timeout = ack.timeout
+        )?.message as? MeshMessage
     }
 
     /**
@@ -373,7 +365,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         logger?.i(category) {
             "Replying with $message from: $element to ${destination.toHexString()}"
         }
-        val dst = MeshAddress.create(destination)
+        val dst = MeshAddress.create(address = destination)
         val pdu = AccessPdu.init(
             message = message,
             source = origin,
@@ -539,7 +531,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                             keySet = keySet
                         )
                         // Some Config Messages require special handling.
-                        handle(message)
+                        handle(message = message)
                     }
                     networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
                 } else {
