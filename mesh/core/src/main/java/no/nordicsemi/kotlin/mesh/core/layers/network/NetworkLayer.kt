@@ -185,46 +185,6 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         } ?: throw BearerError.Closed
     }
 
-    internal suspend fun sendAck(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
-        networkManager.bearer?.let { bearer ->
-            val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
-                address = pdu.source as UnicastAddress
-            )
-            val networkPdu = NetworkPduDecoder.encode(
-                lowerTransportPdu = pdu,
-                pduType = type,
-                sequence = sequence,
-                ttl = ttl
-            )
-            logger?.i(LogCategory.NETWORK) {
-                "Sending $networkPdu encrypted using ${networkPdu.key}"
-            }
-            // Loopback interface
-            if (shouldLoopback(networkPdu = networkPdu)) {
-                handle(incomingPdu = networkPdu.pdu, type = type)
-                // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl == 1.toUByte()) { return }
-
-                // No need to send messages targeting local Unicast Addresses.
-                if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) return
-
-                // If the message was sent locally, don't report Bearer closed error.
-                bearer.send(pdu = networkPdu.pdu, type = type)
-            } else {
-                // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl != 1.toUByte()) { return }
-                try {
-                    bearer.send(pdu = networkPdu.pdu, type = type)
-                } catch (exception: Exception) {
-                    if (exception is BearerError.Closed) {
-                        proxyNetworkKey = null
-                    }
-                    throw exception
-                }
-            }
-        } ?: throw BearerError.Closed
-    }
-
     /**
      * Sends the Proxy Configuration Message. The Proxy Filter object will be notified about the
      * success or a failure.
