@@ -490,6 +490,16 @@ data class Node internal constructor(
     }
 
     /**
+     * Returns the application key with the given index added to the node.
+     *
+     * @param index Application Key index.
+     * @return Application Key with the given index or null if not found.
+     */
+    fun applicationKey(index: KeyIndex) = applicationKeys.firstOrNull {
+        it.index == index
+    }
+
+    /**
      * Adds an application key to a node.
      *
      * @param key     Application key to be added.
