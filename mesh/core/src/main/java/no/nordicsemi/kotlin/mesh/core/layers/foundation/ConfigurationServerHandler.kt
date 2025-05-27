@@ -106,7 +106,7 @@ import no.nordicsemi.kotlin.mesh.core.model.isValidKeyIndex
  * ConfigurationServerHandler is responsible for handling configuration messages.
  */
 internal class ConfigurationServerHandler : ModelEventHandler() {
-    // TODO commented messages to be added
+
     override val messageTypes = mapOf(
         ConfigCompositionDataGet.opCode to ConfigCompositionDataGet,
         ConfigNetKeyAdd.opCode to ConfigNetKeyAdd,
