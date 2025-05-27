@@ -44,7 +44,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
     private val mutex = Mutex()
     private val secureProperties
         get() = networkManager.securePropertiesStorage
-    private var proxyNetworkKey: NetworkKey? = null
+    internal var proxyNetworkKey: NetworkKey? = null
     private val networkMessageCache = mutableMapOf<ByteArray, Any?>()
 
     /**

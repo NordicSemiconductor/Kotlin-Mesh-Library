@@ -350,6 +350,9 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
 
     suspend fun proxyDidDisconnect() {
         onNewNetworkCreated()
+        // Clear the Proxy Network Key. This way we make sure the Network Layer will handle the new
+        // incoming Secure Network beacon properly, even if it belongs to a non-primary network.
+        manager.networkManager?.networkLayer?.proxyNetworkKey = null
         mutex.withLock {
             scope.launch {
                 _proxyFilterStateFlow.emit(
