@@ -89,9 +89,10 @@ class NetworkKeysViewModel @Inject internal constructor(
     internal fun remove(key: NetworkKeyData) {
         viewModelScope.launch {
             val state = _uiState.value
-            network.run {
-                runCatching {
-                    remove(key = networkKey(index = key.index))
+            runCatching {
+                network.run {
+                    networkKey(index = key.index)
+                        ?.let { remove(key = it) }
                     save()
                 }
             }
@@ -103,14 +104,15 @@ class NetworkKeysViewModel @Inject internal constructor(
      * Removes all keys that are queued for deletion.
      */
     private fun removeAllKeys() {
-        _uiState.value.keysToBeRemoved.forEach { keyData ->
-            network.run {
-                runCatching {
-                    remove(key = networkKey(index = keyData.index))
+        runCatching {
+            _uiState.value.keysToBeRemoved.forEach { keyData ->
+                network.run {
+                    networkKey(index = keyData.index)
+                        ?.let { remove(key = it) }
                 }
             }
+            save()
         }
-        save()
     }
 
     /**

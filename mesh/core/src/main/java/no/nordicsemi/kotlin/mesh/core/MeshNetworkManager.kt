@@ -248,7 +248,7 @@ class MeshNetworkManager(
                     throw IllegalStateException("Error: Model does not belong to an Element.")
                 }
                 it.publish?.let { publish ->
-                    network?.applicationKeys?.get(index = publish.index)?.let {
+                    network?.applicationKey(index = publish.index)?.let {
                         networkManager?.let { networkManager ->
                             scope.launch {
                                 networkManager.publish(message = message, from = model)
