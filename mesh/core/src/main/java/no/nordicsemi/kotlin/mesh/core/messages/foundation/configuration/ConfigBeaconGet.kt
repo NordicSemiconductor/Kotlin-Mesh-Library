@@ -13,9 +13,8 @@ class ConfigBeaconGet : AcknowledgedConfigMessage {
     override val parameters = null
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String {
-        return "ConfigBeaconGet(opCode: 0x${opCode.toHexString()})"
-    }
+    override fun toString() = "ConfigBeaconGet(opCode: " +
+            "0x${opCode.toHexString(format = HexFormat.UpperCase)})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8009u
