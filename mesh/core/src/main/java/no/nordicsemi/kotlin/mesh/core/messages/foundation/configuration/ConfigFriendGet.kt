@@ -19,10 +19,10 @@ class ConfigFriendGet : AcknowledgedConfigMessage {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x800Fu
 
-        override fun init(parameters: ByteArray?)  = if(parameters == null) {
-            ConfigFriendGet()
-        } else {
-            null
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.isEmpty()
+        }?.let {
+            ConfigGattProxyGet()
         }
     }
 }
