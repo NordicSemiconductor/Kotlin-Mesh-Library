@@ -22,7 +22,7 @@ class ConfigFriendGet : AcknowledgedConfigMessage {
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.isEmpty()
         }?.let {
-            ConfigGattProxyGet()
+            ConfigFriendGet()
         }
     }
 }
