@@ -114,8 +114,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
                 val propertiesMap = securePropertiesMap
                     .properties
                     .toMutableMap()
-                var properties = propertiesMap[uuid.toString()]
-                    ?: ProtoSecureProperties()
+                var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
                 val sequenceNumbers = properties
                     .sequenceNumbers
                     .toMutableMap()
@@ -149,8 +148,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
                 val propertiesMap = securePropertiesMap
                     .properties
                     .toMutableMap()
-                var properties = propertiesMap[uuid.toString()]
-                    ?: ProtoSecureProperties()
+                var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
 
                 val seqAuths = properties
                     .seqAuths
@@ -180,8 +178,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
                 val propertiesMap = securePropertiesMap
                     .properties
                     .toMutableMap()
-                var properties = propertiesMap[uuid.toString()]
-                    ?: ProtoSecureProperties()
+                var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
 
                 val seqAuths = properties
                     .seqAuths
