@@ -25,10 +25,8 @@ data class ConfigFriendStatus(val state: FeatureState) : ConfigResponse {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8011u
 
-        override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 1
-        }?.let {
-            ConfigFriendStatus(state = FeatureState.from(it[0].toUInt().toInt()))
-        }
+        override fun init(parameters: ByteArray?) = parameters
+            ?.takeIf { it.size == 1 }
+            ?.let { ConfigFriendStatus(state = FeatureState.from(it[0].toUInt().toInt())) }
     }
 }

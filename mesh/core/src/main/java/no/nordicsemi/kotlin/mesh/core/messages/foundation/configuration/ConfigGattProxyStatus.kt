@@ -25,10 +25,8 @@ class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8014u
 
-        override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 1
-        }?.let {
-            ConfigGattProxyStatus(state = FeatureState.from(it[0].toUInt().toInt()))
-        }
+        override fun init(parameters: ByteArray?) = parameters
+            ?.takeIf { it.size == 1 }
+            ?.let { ConfigGattProxyStatus(state = FeatureState.from(it[0].toUInt().toInt())) }
     }
 }
