@@ -29,10 +29,11 @@ data class RelayRetransmit(val count: Int, val interval: Int) {
 
     init {
         require(count in MIN_COUNT..MAX_COUNT) {
-            "Count must be a from $MIN_COUNT to $MAX_COUNT"
+            "Error while creating RelayRetransmit: count must be a from $MIN_COUNT to $MAX_COUNT"
         }
         require(interval in MIN_INTERVAL..MAX_INTERVAL) {
-            "Interval must be from $MIN_INTERVAL to $MAX_INTERVAL"
+            "Error while creating RelayRetransmit: interval must be from $MIN_INTERVAL to " +
+                    "$MAX_INTERVAL"
         }
     }
 
