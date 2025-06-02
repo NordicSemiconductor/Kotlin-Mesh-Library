@@ -28,7 +28,7 @@ class ConfigNetworkTransmitSet(val count : UByte, val steps: UByte) : Acknowledg
         get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigNetworkTransmitGet(opCode: 0x${opCode.toHexString()})"
+    override fun toString() = "ConfigNetworkTransmitSet(opCode: 0x${opCode.toHexString()})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8024u
