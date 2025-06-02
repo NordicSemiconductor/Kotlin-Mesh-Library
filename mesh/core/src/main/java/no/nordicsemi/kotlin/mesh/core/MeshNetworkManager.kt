@@ -85,7 +85,11 @@ class MeshNetworkManager(
 
     var logger: Logger? = null
 
-    private var meshBearer: MeshBearer? = null
+    var meshBearer: MeshBearer? = null
+        set(value) {
+            field = value
+            networkManager?.bearer = value
+        }
 
     var proxyFilter: ProxyFilter
         internal set
@@ -132,11 +136,6 @@ class MeshNetworkManager(
 
     init {
         proxyFilter = ProxyFilter(scope = scope, manager = this)
-    }
-
-    fun setMeshBearerType(meshBearer: MeshBearer) {
-        this.meshBearer = meshBearer
-        networkManager?.setMeshBearerType(bearer = meshBearer)
     }
 
     /**
@@ -429,7 +428,7 @@ class MeshNetworkManager(
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        val network =  requireNotNull(network) { throw NoNetwork }
+        val network = requireNotNull(network) { throw NoNetwork }
 
         val node = model.parentElement?.parentNode ?: run {
             println("Error: Element does not belong to a Node")

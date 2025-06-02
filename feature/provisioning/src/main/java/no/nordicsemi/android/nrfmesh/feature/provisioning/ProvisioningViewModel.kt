@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
@@ -26,6 +24,7 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Provi
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Scanning
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -68,7 +67,7 @@ class ProvisioningViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    internal fun beginProvisioning(context: Context, scanResult: ScanResult) {
+    internal fun beginProvisioning(scanResult: ScanResult) {
         viewModelScope.launch {
             val device = UnprovisionedDevice.from(
                 advertisementData = scanResult.advertisingData.raw
@@ -78,7 +77,6 @@ class ProvisioningViewModel @Inject constructor(
                 provisionerState = Connecting(unprovisionedDevice = device)
             )
             val pbGattBearer = repository.connectOverPbGattBearer(
-                context = context,
                 device = scanResult.peripheral
             )
             pbGattBearer.state.takeWhile {
@@ -102,11 +100,11 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Identify the node by sending a provisioning invite.
      */
-    private fun identifyNode(unprovisionedDevice: UnprovisionedDevice, pbGattBearer: PbGattBearer) {
+    private fun identifyNode(unprovisionedDevice: UnprovisionedDevice, bearer: ProvisioningBearer) {
         provisioningManager = ProvisioningManager(
             unprovisionedDevice = unprovisionedDevice,
             meshNetwork = meshNetwork,
-            bearer = pbGattBearer
+            bearer = bearer
         ).apply { logger = this@ProvisioningViewModel }
 
         provisioningManager.provision(10u).onEach { state ->

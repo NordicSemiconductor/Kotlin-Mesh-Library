@@ -23,9 +23,9 @@ dependencies {
     // implementation(libs.androidx.dataStore.core)
     // implementation(libs.androidx.dataStore.preferences)
 
-    implementation("androidx.datastore:datastore-core:1.2.0-alpha01")
-    implementation("androidx.datastore:datastore-preferences:1.2.0-alpha01")
-    implementation("androidx.datastore:datastore-preferences-proto:1.2.0-alpha01")
+    implementation("androidx.datastore:datastore-core:1.2.0-alpha02")
+    implementation("androidx.datastore:datastore-preferences:1.2.0-alpha02")
+    implementation("androidx.datastore:datastore-preferences-proto:1.2.0-alpha02")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -40,8 +40,7 @@ dependencies {
     implementation(project(":core:ui"))
     api(project(":core:common"))
     implementation(project(":mesh:core"))
-    implementation(project(":mesh:provisioning"))
-    implementation(project(":feature:mesh-bearer-android"))
-    implementation(project(":feature:mesh-bearer-pbgatt"))
-    implementation(project(":feature:mesh-bearer-gatt"))
+    implementation(project(":mesh:bearer-pbgatt"))
+    implementation(project(":mesh:bearer-gatt"))
+    implementation("no.nordicsemi.kotlin.ble:client-android:2.0.0-alpha02")
 }

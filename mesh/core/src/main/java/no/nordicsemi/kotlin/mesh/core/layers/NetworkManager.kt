@@ -78,7 +78,10 @@ internal class NetworkManager internal constructor(
         private set
 
     var bearer: MeshBearer? = null
-        internal set
+        internal set (value) {
+            field = value
+            awaitBearerPdus()
+        }
 
     val meshNetwork: MeshNetwork
         get() = manager.network!!
@@ -104,11 +107,6 @@ internal class NetworkManager internal constructor(
         get() = _networkManagerEventFlow.asSharedFlow()
 
     private val handlerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-    internal fun setMeshBearerType(bearer: MeshBearer) {
-        this.bearer = bearer
-        awaitBearerPdus()
-    }
 
     /**
      * Awaits and returns the mesh pdu received by the bearer.

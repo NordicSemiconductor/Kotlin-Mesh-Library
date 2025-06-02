@@ -5,13 +5,6 @@ pluginManagement {
         google()
         mavenCentral()
     }
-
-    plugins {
-        id("org.jetbrains.dokka") version "2.0.0"
-        kotlin("jvm") version "2.1.10"
-        kotlin("android") version "2.1.10"
-        id("com.android.library") version "8.5.2"
-    }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -24,7 +17,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.7")
+            from("no.nordicsemi.android.gradle:version-catalog:2.7-1")
         }
     }
 }
@@ -50,9 +43,6 @@ include(":feature:provisioning")
 include(":feature:ranges")
 include(":feature:scenes")
 include(":feature:scanner")
-include(":feature:mesh-bearer-android")
-include(":feature:mesh-bearer-gatt")
-include(":feature:mesh-bearer-pbgatt")
 
 include(":mesh:core")
 include(":mesh:crypto")
@@ -60,6 +50,8 @@ include(":mesh:provisioning")
 include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
+include(":mesh:bearer-pbgatt")
+include(":mesh:bearer-gatt")
 
 if (file("../Android-Common-Libraries").exists()) {
     includeBuild("../Android-Common-Libraries")

@@ -7,17 +7,16 @@ import kotlinx.coroutines.flow.StateFlow
 import no.nordicsemi.kotlin.mesh.bearer.BearerError.PduTypeNotSupported
 
 /**
- * transmitter is responsible for delivering messages to the mesh network.
+ * Transmitter is responsible for delivering messages to the mesh network.
  */
 interface Transmitter {
 
     /**
-     * Sends the given data over the bearer. Data longer than MTU will automatically be segmented
-     * using the bearer protocol if bearer implements segmentation.
+     * Sends the given data over the transmitter.
      *
      * @param pdu     Data to be sent.
      * @param type    Type of the PDU.
-     * @throws PduTypeNotSupported if the PDU type is not supported by the bearer.
+     * @throws PduTypeNotSupported if the PDU type is not supported by the transmitter.
      */
     suspend fun send(pdu: ByteArray, type: PduType)
 }
@@ -46,8 +45,6 @@ interface Bearer : Transmitter, Receiver {
 
     val supportedTypes: Array<PduTypes>
 
-    val isGatt: Boolean
-
     val isOpen: Boolean
 
     /**
@@ -59,6 +56,19 @@ interface Bearer : Transmitter, Receiver {
      * Closes the bearer.
      */
     suspend fun close()
+
+    /**
+     * Sends the given data over the bearer.
+     *
+     * Data longer than MTU will automatically be segmented using the bearer protocol if bearer
+     * implements segmentation.
+     *
+     * @param pdu     Data to be sent.
+     * @param type    Type of the PDU.
+     * @throws PduTypeNotSupported if the PDU type is not supported by the bearer.
+     * @throws BearerError.Closed if the bearer is not open.
+     */
+    override suspend fun send(pdu: ByteArray, type: PduType)
 
     /**
      * Returns whether the bearer supports the given message type.
@@ -73,4 +83,7 @@ interface Bearer : Transmitter, Receiver {
     }
 }
 
+/**
+ * A mesh bearer is used to send mesh messages to provisioned nodes.
+ */
 interface MeshBearer : Bearer

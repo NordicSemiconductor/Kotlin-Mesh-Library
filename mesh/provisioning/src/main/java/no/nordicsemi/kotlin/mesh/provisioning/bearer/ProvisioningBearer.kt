@@ -3,7 +3,7 @@
 package no.nordicsemi.kotlin.mesh.provisioning.bearer
 
 import no.nordicsemi.kotlin.mesh.bearer.PduType
-import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPduType
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningRequest
 
@@ -14,6 +14,6 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningRequest
  * @throws InvalidPduType if the PDU type is not supported by the bearer.
  */
 @Throws(InvalidPduType::class)
-suspend fun MeshProvisioningBearer.send(request: ProvisioningRequest) {
+suspend fun ProvisioningBearer.send(request: ProvisioningRequest) {
     send(request.pdu, PduType.PROVISIONING_PDU)
 }

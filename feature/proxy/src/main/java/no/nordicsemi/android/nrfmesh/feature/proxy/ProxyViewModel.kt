@@ -84,7 +84,7 @@ internal class ProxyViewModel @Inject internal constructor(
                 onBluetoothEnabled(enabled = true)
                 onLocationEnabled(enabled = true)
                 disconnect()
-                connectOverGattBearer(context = context, peripheral = result.peripheral)
+                connectOverGattBearer(peripheral = result.peripheral)
             }
         }
     }

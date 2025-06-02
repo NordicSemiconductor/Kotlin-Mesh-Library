@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -64,7 +63,7 @@ import kotlin.uuid.ExperimentalUuidApi
 @Composable
 internal fun ProvisioningRoute(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Context, ScanResult) -> Unit,
+    beginProvisioning: (ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -103,7 +102,7 @@ internal fun ProvisioningRoute(
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Context, ScanResult) -> Unit,
+    beginProvisioning: (ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -123,7 +122,7 @@ private fun ProvisionerScreen(
 
     ScannerSection(
         onScanResultSelected = {
-            beginProvisioning(context, it)
+            beginProvisioning(it)
             openDeviceCapabilitiesSheet = true
         }
     )

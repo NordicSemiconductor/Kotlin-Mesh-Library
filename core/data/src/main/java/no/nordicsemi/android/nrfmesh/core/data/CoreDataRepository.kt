@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.data
 
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
@@ -21,11 +22,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
-import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
+import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidGattBearer
+import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidPbGattBearer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffServer
@@ -34,7 +36,6 @@ import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
-import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -256,16 +257,14 @@ class CoreDataRepository @Inject constructor(
     /**
      * Connects to the unprovisioned node over PB-Gatt bearer.
      *
-     * @param context Android context
      * @param device  Server device
-     * @return [PbGattBearer] instance
+     * @return [ProvisioningBearer] instance
      */
-    suspend fun connectOverPbGattBearer(context: Context, device: Peripheral) =
+    suspend fun connectOverPbGattBearer(device: Peripheral) =
         withContext(defaultDispatcher) {
-            if (bearer is GattBearer) bearer?.close()
-            PbGattBearer(
+            if (bearer is AndroidPbGattBearer) bearer?.close()
+            AndroidPbGattBearer(
                 dispatcher = defaultDispatcher,
-                context = context,
                 centralManager = centralManager,
                 peripheral = device
             )
@@ -278,23 +277,21 @@ class CoreDataRepository @Inject constructor(
     /**
      * Connects to the provisioned node over Gatt bearer.
      *
-     * @param context          Android context
      * @param peripheral       Server device
-     * @return [PbGattBearer]  instance
+     * @return [ProvisioningBearer]  instance
      */
-    suspend fun connectOverGattBearer(context: Context, peripheral: Peripheral) =
+    suspend fun connectOverGattBearer(peripheral: Peripheral) =
         withContext(defaultDispatcher) {
-            if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
+            if ((bearer as? AndroidGattBearer)?.isOpen == true) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
-            GattBearer(
+            AndroidGattBearer(
                 dispatcher = defaultDispatcher,
-                context = context,
                 centralManager = centralManager,
                 peripheral = peripheral
             ).also {
-                meshNetworkManager.setMeshBearerType(meshBearer = it)
+                meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()
                 if (it.isOpen) {
@@ -360,7 +357,7 @@ class CoreDataRepository @Inject constructor(
         connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
         val peripheral = scanForProxy(meshNetwork)
-        val bearer = connectOverGattBearer(context = context, peripheral = peripheral)
+        val bearer = connectOverGattBearer(peripheral = peripheral)
         bearer.state.filter { it is BearerEvent.Closed }.first()
         connectionRequested = false
         // Retry connecting
