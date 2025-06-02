@@ -18,8 +18,8 @@ class ConfigNetworkTransmitGet : AcknowledgedConfigMessage {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8023u
 
-        override fun init(parameters: ByteArray?) = if (parameters == null || parameters.isEmpty())
-            ConfigNetworkTransmitGet()
-        else null
+        override fun init(parameters: ByteArray?) = parameters
+            ?.takeIf { it.isEmpty() }
+            ?.let { ConfigNetworkTransmitGet() }
     }
 }
