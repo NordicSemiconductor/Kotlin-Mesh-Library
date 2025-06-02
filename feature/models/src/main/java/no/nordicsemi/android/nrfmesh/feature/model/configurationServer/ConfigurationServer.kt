@@ -387,9 +387,9 @@ private fun ProxyStateRow(
             MeshOutlinedButton(
                 isOnClickActionInProgress = messageState.isInProgress()
                         && messageState.message is ConfigGattProxyGet,
-                buttonIcon = Icons.Outlined.Upload,
+                buttonIcon = Icons.Outlined.Download,
                 text = stringResource(R.string.label_get_state),
-                onClick = { send(ConfigGattProxySet(state = FeatureState.Enabled)) },
+                onClick = { send(ConfigGattProxyGet()) },
                 enabled = !messageState.isInProgress()
             )
         }
