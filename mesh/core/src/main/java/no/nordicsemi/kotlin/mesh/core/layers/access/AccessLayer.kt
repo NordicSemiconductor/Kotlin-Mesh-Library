@@ -500,12 +500,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         } else {
             // .. otherwise, the Device Key was used.
             val models = localNode.elements
-                .flatMap {
-                    it.models.filter { model ->
-                        model.supportsDeviceKey
-                    }
-                }
-            //.filter { it.supportsDeviceKey }
+                .flatMap { it.models }
+                .filter { it.supportsDeviceKey }
 
             for (model in models) {
                 val eventHandler = model.eventHandler ?: continue
