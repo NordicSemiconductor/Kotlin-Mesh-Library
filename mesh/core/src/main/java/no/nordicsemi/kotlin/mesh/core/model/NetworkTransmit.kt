@@ -37,7 +37,7 @@ data class NetworkTransmit internal constructor(
      * @param request Network transmit settings received from a node.
      */
     internal constructor(request : ConfigNetworkTransmitSet) : this(
-        count = request.count,
+        count = (request.count + 1u).toUByte(),
         interval = ((request.steps + 1u).toUShort() * 10u).toUShort()
     )
 
@@ -47,7 +47,7 @@ data class NetworkTransmit internal constructor(
      * @param status Network transmit status received from the node.
      */
     internal constructor(status: ConfigNetworkTransmitStatus) : this(
-        count = status.count,
+        count = (status.count + 1u).toUByte(),
         interval = ((status.steps + 1u).toUShort() * 10u).toUShort()
     )
 
