@@ -37,8 +37,8 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
      * @param node Node object containing the network transmit settings.
      */
     constructor(node: Node) : this(
-        count = ((node.networkTransmit?.count?.toUByte() ?: 1u) - 1u).toUByte(),
-        steps = node.networkTransmit?.steps?.toUByte() ?: 0u
+        count = ((node.networkTransmit?.count ?: 1u) - 1u).toUByte(),
+        steps = node.networkTransmit?.steps ?: 0u
     )
 
     @OptIn(ExperimentalStdlibApi::class)
