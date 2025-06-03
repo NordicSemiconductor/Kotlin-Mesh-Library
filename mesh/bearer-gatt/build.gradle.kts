@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
     api(project(":mesh:bearer"))
-    api("no.nordicsemi.kotlin.ble:client-core:2.0.0-alpha02")
+    api(libs.nordic.blek.client.core)
     testImplementation("junit:junit:4.13.2")
 }

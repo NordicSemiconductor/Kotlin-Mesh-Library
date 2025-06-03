@@ -42,5 +42,5 @@ dependencies {
     implementation(project(":mesh:core"))
     implementation(project(":mesh:bearer-pbgatt"))
     implementation(project(":mesh:bearer-gatt"))
-    implementation("no.nordicsemi.kotlin.ble:client-android:2.0.0-alpha02")
+    implementation(libs.nordic.blek.client.android)
 }
