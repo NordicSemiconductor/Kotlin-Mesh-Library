@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -31,6 +30,7 @@ import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
 import no.nordicsemi.kotlin.mesh.bearer.ProxyProtocolHandler
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshService
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.uuid.ExperimentalUuidApi
@@ -46,13 +46,13 @@ import kotlin.uuid.ExperimentalUuidApi
  * @property isOpen            Returns true if the bearer is open, false otherwise.
  */
 abstract class BaseGattBearer<
-        MeshService,
+        Service : MeshService,
         ID : Any,
         P : Peripheral<ID, EX>,
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
-        SR : ScanResult<*, *>
->(
+        SR : ScanResult<*, *>,
+        >(
     protected val dispatcher: CoroutineDispatcher,
     protected val centralManager: CentralManager<ID, P, EX, F, SR>,
     protected val peripheral: P,
@@ -68,12 +68,11 @@ abstract class BaseGattBearer<
         PduTypes.ProxyConfiguration,
         PduTypes.ProvisioningPdu
     )
-    override val isOpen: Boolean
-        get() = isOpened
+    override var isOpen: Boolean = false
+        internal set
     private var mtu: Int = DEFAULT_MTU
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
-    private var isOpened = false
     private lateinit var queue: Array<ByteArray>
     protected lateinit var dataInCharacteristic: RemoteCharacteristic
 
@@ -87,10 +86,6 @@ abstract class BaseGattBearer<
         observeConnectionState(peripheral)
         // Connect to the peripheral
         centralManager.connect(peripheral = peripheral)
-        // Start observing the discovered services
-        peripheral.services()
-            .first { it.isNotEmpty() }
-            .let { configureGatt(services = it) }
     }
 
     override suspend fun close() {
@@ -118,7 +113,7 @@ abstract class BaseGattBearer<
      * Invoked when the bearer is opened
      */
     private fun onConnected() {
-        isOpened = true
+        isOpen = true
         _state.value = BearerEvent.Opened
         logger?.v(LogCategory.BEARER) { "Bearer opened." }
     }
@@ -128,8 +123,8 @@ abstract class BaseGattBearer<
      * Invoked when the bearer is closed
      */
     private fun onDisconnected() {
-        if (isOpened) {
-            isOpened = false
+        if (isOpen) {
+            isOpen = false
             _state.value = BearerEvent.Closed(BearerError.Closed)
             logger?.v(LogCategory.BEARER) { "Bearer closed." }
         }
@@ -145,11 +140,14 @@ abstract class BaseGattBearer<
     protected suspend fun awaitNotifications(dataOutCharacteristic: RemoteCharacteristic) {
         dataOutCharacteristic.subscribe()
             .onEach {
-                proxyProtocolHandler.reassemble(data = it)?.let { pdu ->
-                    _pdus.emit(pdu)
+                proxyProtocolHandler.reassemble(data = it)
+                    ?.let { pdu -> _pdus.emit(pdu) }
+            }
+            .onCompletion {
+                logger?.v(LogCategory.BEARER) {
+                    "Device disconnected after waiting for notifications"
                 }
             }
-            .onCompletion { logger?.v(LogCategory.BEARER) { "AAA Device disconnected" } }
             .launchIn(scope)
     }
 
