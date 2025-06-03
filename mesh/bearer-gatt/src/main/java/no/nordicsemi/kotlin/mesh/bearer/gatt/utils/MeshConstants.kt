@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.android.kotlin.mesh.bearer.android.utils
+package no.nordicsemi.kotlin.mesh.bearer.gatt.utils
 
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
