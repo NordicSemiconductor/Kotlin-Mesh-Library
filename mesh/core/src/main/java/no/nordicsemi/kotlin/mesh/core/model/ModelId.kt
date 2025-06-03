@@ -65,11 +65,16 @@ sealed class ModelId {
  * @property modelIdentifier 16-bit model identifier.
  */
 @Serializable
-data class SigModelId(
-    val modelIdentifier: UShort
+class SigModelId(
+    val modelIdentifier: UShort,
 ) : ModelId() {
     @SerialName(value = "modelId")
     override val id: UInt = modelIdentifier.toUInt()
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "SigModelId(modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)})"
+    }
 }
 
 /**
@@ -79,15 +84,29 @@ data class SigModelId(
  * @property companyIdentifier  16-bit company identifier.
  */
 @Serializable
-data class VendorModelId internal constructor(
+class VendorModelId internal constructor(
     @SerialName(value = "modelId")
-    override val id: UInt
+    override val id: UInt,
 ) : ModelId() {
     val companyIdentifier: UShort = ((id and 0xFFFF0000u) shr 16).toUShort()
     val modelIdentifier: UShort = (id and 0x0000FFFFu).toUShort()
 
+    /**
+     * Constructs a VendorModelId from the given model identifier and company identifier.
+     *
+     * @param modelIdentifier    16-bit model identifier.
+     * @param companyIdentifier  16-bit company identifier.
+     * @constructor Creates a VendorModelId.
+     */
     constructor(
         modelIdentifier: UShort,
-        companyIdentifier: UShort
+        companyIdentifier: UShort,
     ) : this((modelIdentifier.toUInt()) or (companyIdentifier.toUInt() shl 16))
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "VendorModelId(" +
+                "modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
+                "companyIdentifier: ${companyIdentifier.toHexString(format = HexFormat.UpperCase)})"
+    }
 }

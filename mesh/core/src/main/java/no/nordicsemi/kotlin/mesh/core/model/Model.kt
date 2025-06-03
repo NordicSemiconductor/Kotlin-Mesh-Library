@@ -124,7 +124,7 @@ import kotlin.UShort
  * @constructor Creates a model object.
  */
 @Serializable
-data class Model internal constructor(
+class Model internal constructor(
     val modelId: ModelId,
     @SerialName(value = "bind")
     internal var _bind: MutableList<KeyIndex>,
@@ -507,6 +507,16 @@ data class Model internal constructor(
         _publish = null
     ) {
         eventHandler = handler
+    }
+
+    override fun toString(): String {
+        return "Model(modelId: $modelId, " +
+                "bind: $_bind, " +
+                "subscribe: $_subscribe, " +
+                "publish: $_publish, " +
+                "name: '$name', " +
+                "isBluetoothSigAssigned: $isBluetoothSigAssigned, " +
+                "parentElement: ${parentElement?.index})"
     }
 
     /**
