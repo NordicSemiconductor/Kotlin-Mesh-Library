@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
@@ -259,10 +259,10 @@ class CoreDataRepository @Inject constructor(
      *
      * @param device  Server device
      * @return [ProvisioningBearer] instance
-     */
+*/
     suspend fun connectOverPbGattBearer(device: Peripheral) =
         withContext(defaultDispatcher) {
-            if (bearer is AndroidPbGattBearer) bearer?.close()
+            if (bearer is AndroidGattBearer) bearer?.close()
             AndroidPbGattBearer(
                 dispatcher = defaultDispatcher,
                 centralManager = centralManager,
@@ -282,7 +282,7 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun connectOverGattBearer(peripheral: Peripheral) =
         withContext(defaultDispatcher) {
-            if ((bearer as? AndroidGattBearer)?.isOpen == true) bearer?.close()
+            if (bearer is AndroidPbGattBearer) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
