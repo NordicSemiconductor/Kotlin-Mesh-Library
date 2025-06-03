@@ -3,14 +3,13 @@
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.kotlin.ble.client.CentralManager
 import no.nordicsemi.kotlin.ble.client.Peripheral
 import no.nordicsemi.kotlin.ble.client.RemoteService
 import no.nordicsemi.kotlin.ble.client.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
-import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import kotlin.uuid.ExperimentalUuidApi
 
 /**
@@ -29,7 +28,7 @@ open class GattBearerImpl<
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
-        >(
+>(
     dispatcher: CoroutineDispatcher,
     centralManager: CentralManager<ID, P, EX, F, SR>,
     peripheral: P,
@@ -52,9 +51,5 @@ open class GattBearerImpl<
                 }
             }
         }
-    }
-
-    internal suspend fun sendPdu(pdu: ByteArray, type: PduType) {
-        send(pdu, type)
     }
 }

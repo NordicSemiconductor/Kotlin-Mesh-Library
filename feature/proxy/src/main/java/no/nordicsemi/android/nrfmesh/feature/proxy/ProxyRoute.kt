@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
 import no.nordicsemi.android.nrfmesh.core.common.name

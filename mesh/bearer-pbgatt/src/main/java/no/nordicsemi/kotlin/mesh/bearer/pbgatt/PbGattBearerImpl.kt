@@ -3,14 +3,13 @@
 package no.nordicsemi.kotlin.mesh.bearer.pbgatt
 
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProvisioningService
 import no.nordicsemi.kotlin.ble.client.CentralManager
 import no.nordicsemi.kotlin.ble.client.Peripheral
 import no.nordicsemi.kotlin.ble.client.RemoteService
 import no.nordicsemi.kotlin.ble.client.ScanResult
-import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
 import no.nordicsemi.kotlin.mesh.bearer.gatt.BaseGattBearer
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -23,7 +22,7 @@ open class PbGattBearerImpl<
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
-        >(
+>(
     dispatcher: CoroutineDispatcher,
     centralManager: CentralManager<ID, P, EX, F, SR>,
     peripheral: P,
@@ -46,9 +45,5 @@ open class PbGattBearerImpl<
                 }
             }
         }
-    }
-
-    internal suspend fun send(pdu: ByteArray) {
-        send(pdu, PduType.PROVISIONING_PDU)
     }
 }
