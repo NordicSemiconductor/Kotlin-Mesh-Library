@@ -18,19 +18,20 @@ object Utils {
 
     /**
      * Formats a UUID string to a standard UUID format.
+     *
+     * @param uuid the UUID string to decode.
      */
     fun decode(uuid: String): UUID = UUID.fromString(
         uuid
-        .uppercase()
-        .takeIf { HEX_UUID_PATTERN.matches(it) }
-        ?.run {
-            StringBuilder(this).apply {
-                insert(8, "-")
-                insert(13, "-")
-                insert(18, "-")
-                insert(23, "-")
-            }.toString()
-        } ?: uuid)
-
+            .uppercase()
+            .takeIf { HEX_UUID_PATTERN.matches(it) }
+            ?.run {
+                StringBuilder(this).apply {
+                    insert(8, "-")
+                    insert(13, "-")
+                    insert(18, "-")
+                    insert(23, "-")
+                }.toString()
+            } ?: uuid)
 }
 
