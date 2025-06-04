@@ -207,11 +207,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 context.timeoutTimer.cancel()
             }
             logger?.i(LogCategory.ACCESS) {
-                "Response $accessPdu received (decrypted using key: $keySet)"
+                "Response $accessPdu received (decrypted using key: $keySet)."
             }
         } else {
             logger?.i(LogCategory.ACCESS) {
-                "$accessPdu received (decrypted using key: $keySet)"
+                "$accessPdu received (decrypted using key: $keySet)."
             }
         }
         return handle(accessPdu = accessPdu, keySet = keySet, request = request)
