@@ -430,13 +430,6 @@ class CoreDataRepository @Inject constructor(
                 meshNetworkManager.sendToLocalNode(message = message)
             else
                 meshNetworkManager.send(message = message, node = node, initialTtl = null)
-                    .also {
-                        log(
-                            message = it?.toString() ?: "",
-                            category = LogCategory.ACCESS,
-                            level = LogLevel.INFO
-                        )
-                    }
         }
 
     /**
