@@ -6,12 +6,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Clock
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.PduType
+import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.ReceivedMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.ControlMessage
 import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.LowerTransportPdu
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.SegmentedMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.FilterStatus
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -130,59 +132,63 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      */
     @Throws(BearerError.Closed::class)
     suspend fun send(pdu: LowerTransportPdu, type: PduType, ttl: UByte) {
-        networkManager.bearer?.let { bearer ->
-            val sequence = (pdu as? AccessMessage)?.sequence ?: nextSequenceNumber(
-                address = pdu.source as UnicastAddress
-            )
-            val networkPdu = NetworkPduDecoder.encode(
-                lowerTransportPdu = pdu,
-                pduType = type,
-                sequence = sequence,
-                ttl = ttl
-            )
-            logger?.i(LogCategory.NETWORK) {
-                "Sending $networkPdu encrypted using ${networkPdu.key}"
+        // Compared to the iOS implementation, we check if a message is an AccessMessage and is not
+        // a SegmentedMessage. This allows us to reuse the sequence number from the upper transport
+        // layer for non-segmented Access Messages. However, if the PDU is a SegmentedMessage, each
+        // segment will have its own sequence number incremented.
+        val sequence = when {
+            pdu is AccessMessage && pdu !is SegmentedMessage -> pdu.sequence
+            else -> nextSequenceNumber(address = pdu.source as UnicastAddress)
+        }
+        val networkPdu = NetworkPduDecoder.encode(
+            lowerTransportPdu = pdu,
+            pduType = type,
+            sequence = sequence,
+            ttl = ttl
+        )
+        logger?.i(LogCategory.NETWORK) {
+            "Sending $networkPdu encrypted using ${networkPdu.key.name}."
+        }
+        // Loopback interface
+        if (shouldLoopback(networkPdu = networkPdu)) {
+            networkManager.handle(incomingPdu = networkPdu.pdu, type = type)
+            // Messages sent with TTL = 1 will only be sent locally.
+            require(ttl != 1.toUByte()) { return }
+            if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) {
+                // No need to send messages targeting local Unicast Addresses.
+                return
             }
-            // Loopback interface
-            if (shouldLoopback(networkPdu = networkPdu)) {
-                networkManager.handle(incomingPdu = networkPdu.pdu, type = type)
-                // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl != 1.toUByte()) { return }
-                if (isLocalUnicastAddress(networkPdu.destination as UnicastAddress)) {
-                    // No need to send messages targeting local Unicast Addresses.
-                    return
+            // If the message was sent locally, don't report Bearer closed error.
+            networkManager.bearer?.send(pdu = networkPdu.pdu, type = type)
+        } else {
+            // Messages sent with TTL = 1 will only be sent locally.
+            require(ttl != 1.toUByte()) { return }
+            try {
+                networkManager.bearer?.send(pdu = networkPdu.pdu, type = type)
+                    ?: throw BearerError.Closed
+            } catch (exception: Exception) {
+                if (exception is BearerError.Closed) {
+                    proxyNetworkKey = null
                 }
-                // If the message was sent locally, don't report Bearer closed error.
-                bearer.send(pdu = networkPdu.pdu, type = type)
-            } else {
-                // Messages sent with TTL = 1 will only be sent locally.
-                require(ttl != 1.toUByte()) { return }
-                try {
-                    bearer.send(pdu = networkPdu.pdu, type = type)
-                } catch (exception: Exception) {
-                    if (exception is BearerError.Closed) {
-                        proxyNetworkKey = null
-                    }
-                    throw exception
-                }
+                throw exception
             }
+        }
 
-            // Unless a GATT Bearer is used, the Network PDUs should be sent multiple times if
-            // Network Transmit has been set for the local Provisioner's Node
-            if (type == PduType.NETWORK_PDU && !bearer.isGatt) {
-                meshNetwork.localProvisioner?.node?.networkTransmit?.takeIf {
-                    it.count > 1u
-                }?.let { networkTransmit ->
-                    var count = networkTransmit.count.toInt()
-                    timer(period = networkTransmit.intervalAsMilliseconds) {
-                        // networkManager.transmitter?.send(pdu = networkPdu.pdu, type = type)
-                        count -= 1
-                        if (count == 0)
-                            cancel()
-                    }
+        // Unless a GATT Bearer is used, the Network PDUs should be sent multiple times if
+        // Network Transmit has been set for the local Provisioner's Node
+        if (type == PduType.NETWORK_PDU && networkManager.bearer is GattBearer) {
+            meshNetwork.localProvisioner?.node?.networkTransmit?.takeIf {
+                it.count > 1u
+            }?.let { networkTransmit ->
+                var count = networkTransmit.count.toInt()
+                timer(period = networkTransmit.intervalAsMilliseconds) {
+                    // networkManager.transmitter?.send(pdu = networkPdu.pdu, type = type)
+                    count -= 1
+                    if (count == 0)
+                        cancel()
                 }
             }
-        } ?: throw BearerError.Closed
+        }
     }
 
     /**
@@ -208,15 +214,22 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
 
             try {
                 send(pdu = pdu, type = PduType.PROXY_CONFIGURATION, ttl = pdu.ttl)
-                networkManager.proxy.onManagerDidDeliverMessage(message)
-                return networkManager.awaitProxyMessageResponse()?.message as ProxyConfigurationMessage
+                networkManager.proxy.onManagerDidDeliverMessage(message = message)
+                return networkManager.awaitProxyMessageResponse()
+                    ?.message as ProxyConfigurationMessage
             } catch (exception: Exception) {
                 if (exception is BearerError.Closed) {
                     proxyNetworkKey = null
                 }
-                networkManager.proxy.onManagerFailedToDeliverMessage(message, exception)
+                networkManager.proxy.onManagerFailedToDeliverMessage(
+                    message = message,
+                    error = exception
+                )
             }
-        } ?: networkManager.proxy.onManagerFailedToDeliverMessage(message, BearerError.Closed)
+        } ?: networkManager.proxy.onManagerFailedToDeliverMessage(
+            message = message,
+            error = BearerError.Closed
+        )
         return null
     }
 
@@ -226,7 +239,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * @param address Local source address.
      */
     suspend fun nextSequenceNumber(address: UnicastAddress) =
-        secureProperties.nextSequenceNumber(meshNetwork.uuid, address)
+        secureProperties.nextSequenceNumber(uuid = meshNetwork.uuid, address = address)
 
     /**
      * This method handles the Unprovisioned Device beacon. The current implementation does nothing,
@@ -376,7 +389,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             return null
         }
         logger?.i(LogCategory.NETWORK) {
-            "$controlMessage received (decrypted using key: ${controlMessage.networkKey}"
+            "$controlMessage received (decrypted using key: ${controlMessage.networkKey.name})."
         }
 
         return when (controlMessage.opCode) {
