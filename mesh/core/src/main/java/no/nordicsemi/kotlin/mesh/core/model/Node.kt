@@ -398,7 +398,8 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addNetKey(index: KeyIndex) {
-        _netKeys.get(index) ?: _netKeys.add(NodeKey(index, false))
+         if(!_netKeys.has(index = index))
+            _netKeys.add(NodeKey(index = index, _updated = false))
         network?.let {
             if (security is Insecure) {
                 it.networkKey(index = index)?.lowerSecurity()
@@ -523,7 +524,9 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addAppKey(index: KeyIndex) {
-        _appKeys.get(index = index) ?: _appKeys.add(NodeKey(index, false))
+        if(!_appKeys.has(index = index)) {
+            _appKeys.add(NodeKey(index, false))
+        }
         network?.updateTimestamp()
     }
 
