@@ -3,6 +3,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
+import no.nordicsemi.kotlin.data.IntFormat
+import no.nordicsemi.kotlin.data.getInt
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.hasBitSet
 import no.nordicsemi.kotlin.data.shl
@@ -19,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKeyDerivatives
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -93,7 +96,7 @@ internal class NetworkPdu internal constructor(
         val micSize = type.netMicSize
         val encryptedDataSie = pdu.size - micSize - 9
         val encryptedData = pdu.copyOfRange(fromIndex = 9, toIndex = 9 + encryptedDataSie)
-        val mic = pdu.copyOfRange(fromIndex= 9 + encryptedDataSie, pdu.size)
+        val mic = pdu.copyOfRange(fromIndex = 9 + encryptedDataSie, pdu.size)
         return "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
                 "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
                 "dst: ${destination.toHexString()}, " +
@@ -184,9 +187,11 @@ internal object NetworkPduDecoder {
             val ttl = (deobfuscatedData[0] and 0x7F).toUByte()
 
             // Multiple octet values use Big Endian.
-            val sequence = ((deobfuscatedData[1] shl 16) or
-                    (deobfuscatedData[2] shl 8) or
-                    deobfuscatedData[3]).toUInt()
+            val sequence = deobfuscatedData.getInt(
+                offset = 1,
+                format = IntFormat.UINT24,
+                order = ByteOrder.BIG_ENDIAN
+            ).toUInt()
 
             val src = deobfuscatedData.getUShort(offset = 4)
 
@@ -270,7 +275,7 @@ internal object NetworkPduDecoder {
         val iviNid = (ivi shl 7) or nid
         val ctlTtl = (type.rawValue shl 7) or ttl.toByte()
 
-        val seq = sequence.toByteArray().let { it.copyOfRange(fromIndex = 1, toIndex = it.size) }
+        val seq = sequence.toByteArray().copyOfRange(fromIndex = 1, toIndex = 4)
         val deobfuscatedData = byteArrayOf(ctlTtl) + seq + source.toByteArray()
         val decryptedData = destination.toByteArray() + transportPdu
 
