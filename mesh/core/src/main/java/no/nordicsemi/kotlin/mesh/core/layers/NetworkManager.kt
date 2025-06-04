@@ -78,7 +78,7 @@ internal class NetworkManager internal constructor(
         private set
 
     var bearer: MeshBearer? = null
-        internal set (value) {
+        internal set(value) {
             field = value
             awaitBearerPdus()
         }
@@ -112,10 +112,11 @@ internal class NetworkManager internal constructor(
      * Awaits and returns the mesh pdu received by the bearer.
      */
     private fun awaitBearerPdus() {
-        bearer?.pdus?.onEach {
-            runCatching { handle(incomingPdu = it.data, type = it.type) }
-                .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error : $it" } }
-        }?.launchIn(scope = scope)
+        bearer?.pdus
+            ?.onEach {
+                runCatching { handle(incomingPdu = it.data, type = it.type) }
+                    .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error: $it" } }
+            }?.launchIn(scope = scope)
     }
 
     /**
@@ -133,15 +134,17 @@ internal class NetworkManager internal constructor(
      * @param incomingPdu Incoming PDU.
      * @param type        PDU type.
      */
-    suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        networkLayer.handle(incomingPdu = incomingPdu, type = type)
-            ?.let {
-                if (it.message is ProxyConfigurationMessage) {
-                    _incomingProxyMessages.emit(value = it)
-                } else {
-                    _incomingMeshMessages.emit(value = it)
+    fun handle(incomingPdu: ByteArray, type: PduType) {
+        scope.launch {
+            networkLayer.handle(incomingPdu = incomingPdu, type = type)
+                ?.let {
+                    if (it.message is ProxyConfigurationMessage) {
+                        _incomingProxyMessages.emit(value = it)
+                    } else {
+                        _incomingMeshMessages.emit(value = it)
+                    }
                 }
-            }
+        }
     }
 
     /**
