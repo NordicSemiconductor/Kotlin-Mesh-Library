@@ -435,13 +435,25 @@ data class MeshNetwork internal constructor(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange,
             _name = name,
             _key = key
-        ).apply {
-            network = this@MeshNetwork
-        }.also { networkKey ->
-            // Add the new network key to the network keys and sort them by index.
-            _networkKeys.apply { add(element = networkKey) }.sortBy { it.index }
-            updateTimestamp()
-        }
+        ).also { add(key = it) }
+    }
+
+    /**
+     * Adds the given [NetworkKey] to the list of network keys in the network.
+     *
+     * This method will also add the network key to the local Provisioner's node,
+     *
+     * @param key Network key to be added.
+     */
+    internal fun add(key: NetworkKey) {
+        key.network = this
+        // Add the new network key to the network keys and sort them by index.
+        _networkKeys
+            .apply { add(element = key) }
+            .sortBy { it.index }
+        updateTimestamp()
+        // Make the local Provisioner aware of the new key.
+        localProvisioner?.node?.add(key = key)
     }
 
     /**
@@ -526,13 +538,25 @@ data class MeshNetwork internal constructor(
             _key = key
         ).apply {
             boundNetKeyIndex = boundNetworkKey.index
-            network = this@MeshNetwork
-        }.also { applicationKey ->
-            _applicationKeys.apply {
-                add(applicationKey)
-            }.sortBy { key -> key.index }
-            updateTimestamp()
-        }
+        }.also { add(key = it) }
+    }
+
+    /**
+     * Adds the given [ApplicationKey] to the list of application keys in the network.
+     *
+     * This method will also add the network key to the local Provisioner's node,
+     *
+     * @param key Application Key to be added.
+     */
+    internal fun add(key: ApplicationKey) {
+        key.network = this
+        // Add the new network key to the network keys and sort them by index.
+        _applicationKeys
+            .apply { add(element = key) }
+            .sortBy { it.index }
+        updateTimestamp()
+        // Make the local Provisioner aware of the new key.
+        localProvisioner?.node?.add(key = key)
     }
 
     /**
