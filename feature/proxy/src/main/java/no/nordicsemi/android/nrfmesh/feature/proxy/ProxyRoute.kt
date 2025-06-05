@@ -78,7 +78,7 @@ internal fun ProxyRoute(
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     onAutoConnectToggled: (Boolean) -> Unit,
-    onScanResultSelected: (Context, ScanResult) -> Unit,
+     onScanResultSelected: (ScanResult) -> Unit,
     onDisconnectClicked: () -> Unit,
     send: (ProxyConfigurationMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -116,9 +116,8 @@ private fun ProxyFilterInfo(
     proxyConnectionState: ProxyConnectionState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
-    onScanResultSelected: (Context, ScanResult) -> Unit,
+    onScanResultSelected: (ScanResult) -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
     val proxyScannerSheetState = rememberModalBottomSheetState()
@@ -137,7 +136,7 @@ private fun ProxyFilterInfo(
             ScannerSection(
                 onScanResultSelected = { result ->
                     showProxyScannerSheet = false
-                    onScanResultSelected(context, result)
+                    onScanResultSelected(result)
                     scope.launch {
                         proxyScannerSheetState.hide()
                     }.invokeOnCompletion {

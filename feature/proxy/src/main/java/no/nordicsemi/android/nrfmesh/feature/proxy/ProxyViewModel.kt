@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,7 +77,7 @@ internal class ProxyViewModel @Inject internal constructor(
         }
     }
 
-    internal fun connect(context: Context, result: ScanResult) {
+    internal fun connect(result: ScanResult) {
         viewModelScope.launch {
             with(repository) {
                 onBluetoothEnabled(enabled = true)
