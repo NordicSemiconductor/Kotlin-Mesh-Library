@@ -795,7 +795,7 @@ data class MeshNetwork internal constructor(
      * @return Scene.
      * @throws NoSuchElementException if a scene for a given scene number ws not found.
      */
-    fun scene(number: SceneNumber) = scenes.first { scene ->
+    fun scene(number: SceneNumber) = scenes.firstOrNull { scene ->
         scene.number == number
     }
 

@@ -44,12 +44,12 @@ internal fun SettingsExtraPane(
         }
 
         is NetworkKeyContent -> NetworkKeyScreenRoute(
-            key = network.networkKeys.first { it.index == content.keyIndex },
+            key = network.networkKey(index = content.keyIndex) ?: return,
             save = save
         )
 
         is ApplicationKeyContent -> ApplicationKeyScreenRoute(
-            key = network.applicationKeys.first { it.index == content.keyIndex },
+            key = network.applicationKey(content.keyIndex) ?: return,
             networkKeys = network.networkKeys,
             save = save
         )
