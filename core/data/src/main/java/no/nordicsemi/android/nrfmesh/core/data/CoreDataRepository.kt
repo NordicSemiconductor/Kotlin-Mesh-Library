@@ -1,27 +1,21 @@
 package no.nordicsemi.android.nrfmesh.core.data
 
-import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
@@ -36,6 +30,8 @@ import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -72,7 +68,6 @@ private object PreferenceKeys {
 }
 
 class CoreDataRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -86,27 +81,26 @@ class CoreDataRepository @Inject constructor(
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
     private lateinit var meshNetwork: MeshNetwork
-    private var isBluetoothEnabled = false
-    private var isLocationEnabled = false
     private var bearer: Bearer? = null
     private var connectionRequested = false
 
     val proxyFilter: ProxyFilter
         get() = meshNetworkManager.proxyFilter
 
+    private val scope = CoroutineScope(context = defaultDispatcher)
+
     init {
         meshNetworkManager.logger = this
+        network.onEach {
+            meshNetwork = it
+            // Start automatic connectivity
+            startAutomaticConnectivity(meshNetwork = it)
+        }.launchIn(scope = scope)
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
-        }.launchIn(CoroutineScope(defaultDispatcher))
-
-        // Start automatic connectivity when the network changes
-
-        // TODO need to check this on
-        network.onEach { meshNetwork = it }
-            .launchIn(scope = CoroutineScope(defaultDispatcher))
+        }.launchIn(scope)
     }
 
     /**
@@ -259,7 +253,7 @@ class CoreDataRepository @Inject constructor(
      *
      * @param device  Server device
      * @return [ProvisioningBearer] instance
-*/
+     */
     suspend fun connectOverPbGattBearer(device: Peripheral) =
         withContext(defaultDispatcher) {
             if (bearer is AndroidGattBearer) bearer?.close()
@@ -301,6 +295,10 @@ class CoreDataRepository @Inject constructor(
                                 peripheral = peripheral
                             )
                         )
+
+                    // Wait for the bearer to disconnect
+                    it.state.first { it is BearerEvent.Closed }
+                    proxyFilter.proxyDidDisconnect()
                 }
             }
         }
@@ -312,7 +310,7 @@ class CoreDataRepository @Inject constructor(
         bearer?.let { bearer ->
             if (bearer.isOpen) {
                 bearer.close()
-                bearer.state.first { it is BearerEvent.Closed }
+                // bearer.state.first { it is BearerEvent.Closed }
                 _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                     connectionState = NetworkConnectionState.Disconnected
                 )
@@ -321,28 +319,12 @@ class CoreDataRepository @Inject constructor(
     }
 
     /**
-     * Marks as bluetooth permissions are granted.
-     */
-    fun onBluetoothEnabled(enabled: Boolean) {
-        isBluetoothEnabled = enabled
-    }
-
-    /**
-     * Marks as location permissions are granted.
-     */
-    fun onLocationEnabled(enabled: Boolean) {
-        isLocationEnabled = enabled
-    }
-
-    /**
      * Starts automatic connectivity to the proxy node.
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     suspend fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
-        if (isBluetoothEnabled && isLocationEnabled) {
-            connectToProxy(meshNetwork)
-        }
+        connectToProxy(meshNetwork)
     }
 
     /**
@@ -357,8 +339,36 @@ class CoreDataRepository @Inject constructor(
         connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
         val peripheral = scanForProxy(meshNetwork)
-        val bearer = connectOverGattBearer(peripheral = peripheral)
-        bearer.state.filter { it is BearerEvent.Closed }.first()
+        // If the peripheral is null, it means that the proxy node was not found or scanning failed.
+        // If so we can safely return here and retry later.
+        if (peripheral == null) {
+            log(
+                message = "Proxy node not found",
+                category = LogCategory.BEARER,
+                level = LogLevel.INFO
+            )
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Disconnected
+            )
+            connectionRequested = false
+            return
+        }
+        try {
+            // Connect to the proxy node over GATT bearer. This method is blocking and will only
+            // return once the connection is established or failed.
+            connectOverGattBearer(peripheral = peripheral)
+        } catch (e: Exception) {
+            log(
+                message = "Failed to connect to proxy node: ${e.message}",
+                category = LogCategory.BEARER,
+                level = LogLevel.ERROR
+            )
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Disconnected
+            )
+            connectionRequested = false
+            return
+        }
         connectionRequested = false
         // Retry connecting
         connectToProxy(meshNetwork)
@@ -371,12 +381,11 @@ class CoreDataRepository @Inject constructor(
      * @return the peripheral containing the proxy node.
      */
     @OptIn(ExperimentalUuidApi::class)
-    @SuppressLint("MissingPermission")
-    suspend fun scanForProxy(meshNetwork: MeshNetwork?): Peripheral {
+    suspend fun scanForProxy(meshNetwork: MeshNetwork?) = try {
         _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
             connectionState = NetworkConnectionState.Scanning
         )
-        return centralManager
+        centralManager
             .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
             .first {
                 val serviceData = it.advertisingData.serviceData[MeshProxyService.uuid]
@@ -394,6 +403,13 @@ class CoreDataRepository @Inject constructor(
                     } == false
                 } == false
             }.peripheral
+    } catch (e: Exception) {
+        log(
+            message = "Failed to scan for proxy node: ${e.message}",
+            category = LogCategory.BEARER,
+            level = LogLevel.ERROR
+        )
+        null
     }
 
     /**
