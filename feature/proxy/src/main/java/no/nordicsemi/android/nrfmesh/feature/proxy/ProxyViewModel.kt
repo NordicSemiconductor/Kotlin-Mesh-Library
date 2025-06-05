@@ -80,8 +80,6 @@ internal class ProxyViewModel @Inject internal constructor(
     internal fun connect(result: ScanResult) {
         viewModelScope.launch {
             with(repository) {
-                onBluetoothEnabled(enabled = true)
-                onLocationEnabled(enabled = true)
                 disconnect()
                 connectOverGattBearer(peripheral = result.peripheral)
             }
@@ -94,18 +92,16 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            with(repository) {
-                onBluetoothEnabled(enabled)
-                startAutomaticConnectivity(meshNetwork)
+            if(enabled) {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
     }
 
     internal fun onLocationEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            with(repository) {
-                onLocationEnabled(enabled)
-                startAutomaticConnectivity(meshNetwork)
+            if(enabled) {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
     }
