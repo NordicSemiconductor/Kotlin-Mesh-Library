@@ -45,7 +45,6 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
@@ -79,7 +78,10 @@ internal class NetworkManager internal constructor(
         private set
 
     var bearer: MeshBearer? = null
-        internal set
+        internal set(value) {
+            field = value
+            awaitBearerPdus()
+        }
 
     val meshNetwork: MeshNetwork
         get() = manager.network!!
@@ -106,19 +108,15 @@ internal class NetworkManager internal constructor(
 
     private val handlerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    internal fun setMeshBearerType(bearer: MeshBearer) {
-        this.bearer = bearer
-        awaitBearerPdus()
-    }
-
     /**
      * Awaits and returns the mesh pdu received by the bearer.
      */
     private fun awaitBearerPdus() {
-        bearer?.pdus?.onEach {
-            runCatching { handle(incomingPdu = it.data, type = it.type) }
-                .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error : $it" } }
-        }?.launchIn(scope = scope)
+        bearer?.pdus
+            ?.onEach {
+                runCatching { handle(incomingPdu = it.data, type = it.type) }
+                    .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error: $it" } }
+            }?.launchIn(scope = scope)
     }
 
     /**
@@ -136,15 +134,17 @@ internal class NetworkManager internal constructor(
      * @param incomingPdu Incoming PDU.
      * @param type        PDU type.
      */
-    suspend fun handle(incomingPdu: ByteArray, type: PduType) {
-        networkLayer.handle(incomingPdu = incomingPdu, type = type)
-            ?.let {
-                if (it.message is ProxyConfigurationMessage) {
-                    _incomingProxyMessages.emit(value = it)
-                } else {
-                    _incomingMeshMessages.emit(value = it)
+    fun handle(incomingPdu: ByteArray, type: PduType) {
+        scope.launch {
+            networkLayer.handle(incomingPdu = incomingPdu, type = type)
+                ?.let {
+                    if (it.message is ProxyConfigurationMessage) {
+                        _incomingProxyMessages.emit(value = it)
+                    } else {
+                        _incomingMeshMessages.emit(value = it)
+                    }
                 }
-            }
+        }
     }
 
     /**
@@ -214,7 +214,7 @@ internal class NetworkManager internal constructor(
     suspend fun publish(message: MeshMessage, from: Model) {
         val publish = from.publish ?: return
         val localElement = from.parentElement ?: return
-        val applicationKey = meshNetwork.applicationKeys.get(publish.index) ?: return
+        val applicationKey = meshNetwork.applicationKey(index = publish.index) ?: return
 
         // calculate the TTL to be used
         val ttl = when (publish.ttl != 0xFF.toUByte()) {

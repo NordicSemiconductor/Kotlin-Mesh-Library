@@ -30,13 +30,13 @@ dependencies {
     // implementation(libs.kotlinx.coroutines)
 
     // Material3
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha13")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha15")
 
     // Adaptive layouts
     implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
     implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
     implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha13")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha15")
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))
@@ -56,8 +56,6 @@ dependencies {
     implementation(project(":feature:scenes"))
     implementation(project(":feature:provisioners"))
     implementation(project(":feature:ranges"))
-    implementation(project(":feature:mesh-bearer-android"))
-    implementation(project(":feature:mesh-bearer-pbgatt"))
     implementation(project(":feature:export"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))

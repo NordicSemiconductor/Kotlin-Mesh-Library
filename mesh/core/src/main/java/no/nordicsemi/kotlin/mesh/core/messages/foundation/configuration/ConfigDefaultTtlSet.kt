@@ -19,7 +19,7 @@ class ConfigDefaultTtlSet(val ttl: UByte) : AcknowledgedConfigMessage {
     override val responseOpCode = ConfigDefaultTtlStatus.opCode
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigDefaultTtlGet(opCode: 0x${opCode.toHexString()}, ttl: $ttl)"
+    override fun toString() = "ConfigDefaultTtlSet(opCode: 0x${opCode.toHexString()}, ttl: $ttl)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x800Du

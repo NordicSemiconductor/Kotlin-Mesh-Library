@@ -37,7 +37,7 @@ data class NetworkTransmit internal constructor(
      * @param request Network transmit settings received from a node.
      */
     internal constructor(request : ConfigNetworkTransmitSet) : this(
-        count = request.count,
+        count = (request.count + 1u).toUByte(),
         interval = ((request.steps + 1u).toUShort() * 10u).toUShort()
     )
 
@@ -47,17 +47,18 @@ data class NetworkTransmit internal constructor(
      * @param status Network transmit status received from the node.
      */
     internal constructor(status: ConfigNetworkTransmitStatus) : this(
-        count = status.count,
+        count = (status.count + 1u).toUByte(),
         interval = ((status.steps + 1u).toUShort() * 10u).toUShort()
     )
 
     init {
         require(count.toInt() in MIN_COUNT..MAX_COUNT) {
-            "Count must be a value from $MIN_COUNT to $MAX_COUNT number of transmissions!"
+            "Error while creating NetworkTransmit: count must be a value from " +
+                    "$MIN_COUNT to $MAX_COUNT number of transmissions!"
         }
         require(interval.toInt() in MIN_INTERVAL..MAX_INTERVAL) {
-            "Interval must be a value from $MIN_INTERVAL to $MAX_INTERVAL milliseconds between " +
-                    "transmissions!"
+            "Error while creating NetworkTransmit: interval must be a value from " +
+                    "$MIN_INTERVAL to $MAX_INTERVAL milliseconds between transmissions!"
         }
     }
 

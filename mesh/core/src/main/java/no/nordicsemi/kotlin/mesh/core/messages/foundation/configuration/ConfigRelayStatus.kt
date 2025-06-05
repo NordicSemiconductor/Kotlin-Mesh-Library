@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -9,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import kotlin.experimental.and
+import kotlin.experimental.or
 
 /**
  * Defines a message that's message sent as a response to a [ConfigRelayGet] or [ConfigRelaySet].
@@ -20,10 +22,13 @@ import kotlin.experimental.and
 data class ConfigRelayStatus(
     val state: FeatureState,
     val count: Int,
-    val steps: UByte
+    val steps: UByte,
 ) : ConfigResponse {
     override val opCode = Initializer.opCode
-    override val parameters = byteArrayOf(state.value.toByte())
+    override val parameters = byteArrayOf(
+        state.value.toByte(),
+        (((count.toUByte() and 0x07u) or (steps shl 3)).toByte())
+    )
 
     /**
      * Constructs a ConfigGattProxySet message.

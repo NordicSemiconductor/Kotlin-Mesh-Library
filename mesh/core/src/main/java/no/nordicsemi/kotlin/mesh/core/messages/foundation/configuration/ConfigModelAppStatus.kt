@@ -8,7 +8,6 @@ import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyAppKeyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage.Companion.decodeAppKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
@@ -31,7 +30,7 @@ class ConfigModelAppStatus(
     override val keyIndex: KeyIndex,
     override val elementAddress: UnicastAddress,
     override val modelId: ModelId,
-) : ConfigResponse, ConfigStatusMessage, ConfigAppKeyMessage, ConfigAnyModelMessage {
+) : ConfigResponse, ConfigStatusMessage, ConfigAnyAppKeyModelMessage, ConfigAnyModelMessage {
     override val opCode = Initializer.opCode
 
     override val parameters: ByteArray

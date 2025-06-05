@@ -6,6 +6,7 @@ import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.model.CountLog
@@ -34,14 +35,14 @@ import java.nio.ByteOrder
  * @constructor Creates a ConfigHeartbeatPublicationStatus message.
  */
 class ConfigHeartbeatPublicationStatus(
+    override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS,
+    override val index: KeyIndex = 0u,
     val destination: HeartbeatPublicationDestination = UnassignedAddress,
     val countLog: CountLog = 0x00u,
     val periodLog: UByte = 0x00u,
     val ttl: UByte = 0x00u,
     val features: List<Feature> = emptyList(),
-    val networkKeyIndex: KeyIndex = 0u,
-    override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS
-) : ConfigResponse, ConfigStatusMessage {
+) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
     override val parameters: ByteArray
@@ -51,7 +52,7 @@ class ConfigHeartbeatPublicationStatus(
                 periodLog.toByte() +
                 ttl.toByte() +
                 features.toUShort().toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                networkKeyIndex.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                index.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     val count: RemainingHeartbeatPublicationCount
         get() = countLog.toRemainingPublicationCount()
@@ -65,10 +66,54 @@ class ConfigHeartbeatPublicationStatus(
     val isFeatureTriggeredPublishingEnabled: Boolean
         get() = isEnabled && features.isNotEmpty()
 
+    /**
+     * Convenience constructor to create the ConfigHeartbeatPublicationStatus message.
+     *
+     * @param publication [HeartbeatPublication] object that this is a response to.
+     */
+    constructor(publication: HeartbeatPublication?) : this(
+        destination = publication?.address ?: UnassignedAddress,
+        countLog = publication?.state?.countLog ?: 0u,
+        periodLog = publication?.periodLog ?: 0u,
+        ttl = publication?.ttl ?: 0u,
+        features = publication?.features ?: emptyList(),
+        index = publication?.index ?: 0u
+    )
+
+    /**
+     * Convenience constructor to create the ConfigHeartbeatPublicationStatus message.
+     *
+     * @param request [ConfigHeartbeatPublicationSet] message that this is a response to.
+     * @param status  Status of the request.
+     */
+    constructor(request: ConfigHeartbeatPublicationSet, status: ConfigMessageStatus) : this(
+        destination = request.destination,
+        countLog = request.countLog,
+        periodLog = request.periodLog,
+        ttl = request.ttl,
+        features = request.features,
+        index = request.index,
+        status = status
+    )
+
+    /**
+     * Convenience constructor to create the ConfigHeartbeatPublicationStatus message.
+     *
+     * @param request [ConfigHeartbeatPublicationSet] message that this is a response to.
+     */
+    constructor(request: ConfigHeartbeatPublicationSet) : this(
+        destination = request.destination,
+        countLog = request.countLog,
+        periodLog = request.periodLog,
+        ttl = request.ttl,
+        features = request.features,
+        index = request.index
+    )
+
     override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
             "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: {${
                 features.joinToString(separator = ", ") { it.toString() }
-            }}, " + "networkKeyIndex: $networkKeyIndex, status: $status)"
+            }}, " + "networkKeyIndex: $index, status: $status)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x06u
@@ -91,66 +136,12 @@ class ConfigHeartbeatPublicationStatus(
                             order = ByteOrder.LITTLE_ENDIAN
                         )
                     ).toList(),
-                    networkKeyIndex = parameters.getUShort(
+                    index = parameters.getUShort(
                         offset = 8,
                         order = ByteOrder.LITTLE_ENDIAN
                     )
                 )
             }
         }
-
-        /**
-         * Creates a ConfigHeartbeatPublicationStatus message.
-         *
-         * @param publication Heartbeat publication settings.
-         * @return ConfigHeartbeatPublicationStatus message.
-         */
-        fun init(publication: HeartbeatPublication?) {
-            if (publication == null) {
-                ConfigHeartbeatPublicationStatus()
-            } else {
-                ConfigHeartbeatPublicationStatus(
-                    destination = publication.address,
-                    countLog = publication.state?.countLog ?: 0u,
-                    periodLog = publication.periodLog,
-                    ttl = publication.ttl,
-                    features = publication.features,
-                    networkKeyIndex = publication.index
-                )
-            }
-        }
-
-        /**
-         * Creates a ConfigHeartbeatPublicationStatus message.
-         *
-         * @param request       ConfigHeartbeatPublicationSet message.
-         * @param statusMessage Status of the message.
-         * @return ConfigHeartbeatPublicationStatus message.
-         */
-        fun init(
-            request: ConfigHeartbeatPublicationSet,
-            statusMessage: ConfigMessageStatus
-        ): ConfigHeartbeatPublicationStatus {
-            return ConfigHeartbeatPublicationStatus(
-                destination = MeshAddress
-                    .create(address = request.destination.address) as HeartbeatPublicationDestination,
-                countLog = request.countLog,
-                periodLog = request.periodLog,
-                ttl = request.ttl,
-                features = request.features,
-                networkKeyIndex = request.index,
-                status = statusMessage
-            )
-        }
-
-        /**
-         * Creates a ConfigHeartbeatPublicationStatus message.
-         *
-         * @param request ConfigHeartbeatPublicationSet message.
-         * @return ConfigHeartbeatPublicationStatus message.
-         */
-        fun init(request: ConfigHeartbeatPublicationSet) =
-            init(request = request, statusMessage = ConfigMessageStatus.SUCCESS)
-
     }
 }

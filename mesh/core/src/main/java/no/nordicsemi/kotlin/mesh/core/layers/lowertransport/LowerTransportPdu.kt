@@ -40,6 +40,11 @@ internal enum class LowerTransportPduType(val rawValue: Byte) {
             CONTROL_MESSAGE -> 8 // 64 bits
         }
 
+    override fun toString() = when (this) {
+        ACCESS_MESSAGE -> "Access Message"
+        CONTROL_MESSAGE -> "Control Message"
+    }
+
     companion object {
 
         /**

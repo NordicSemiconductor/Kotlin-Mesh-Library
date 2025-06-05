@@ -365,6 +365,16 @@ data class Node internal constructor(
         internal set
 
     /**
+     * Returns the network key with the given index added to the node.
+     *
+     * @param index Network Key index.
+     * @return Network Key with the given index or null if not found.
+     */
+    fun networkKey(index: KeyIndex) = networkKeys.firstOrNull {
+        it.index == index
+    }
+
+    /**
      * Adds a network key to a node.
      *
      * @param key     Network key to be added.
@@ -388,10 +398,11 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addNetKey(index: KeyIndex) {
-        _netKeys.get(index) ?: _netKeys.add(NodeKey(index, false))
+         if(!_netKeys.has(index = index))
+            _netKeys.add(NodeKey(index = index, _updated = false))
         network?.let {
             if (security is Insecure) {
-                it.networkKeys.get(index)?.lowerSecurity()
+                it.networkKey(index = index)?.lowerSecurity()
             }
             it.updateTimestamp()
         }
@@ -480,6 +491,16 @@ data class Node internal constructor(
     }
 
     /**
+     * Returns the application key with the given index added to the node.
+     *
+     * @param index Application Key index.
+     * @return Application Key with the given index or null if not found.
+     */
+    fun applicationKey(index: KeyIndex) = applicationKeys.firstOrNull {
+        it.index == index
+    }
+
+    /**
      * Adds an application key to a node.
      *
      * @param key     Application key to be added.
@@ -503,7 +524,9 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addAppKey(index: KeyIndex) {
-        _appKeys.get(index = index) ?: _appKeys.add(NodeKey(index, false))
+        if(!_appKeys.has(index = index)) {
+            _appKeys.add(NodeKey(index, false))
+        }
         network?.updateTimestamp()
     }
 
@@ -550,7 +573,7 @@ data class Node internal constructor(
     internal fun setAppKeys(appKeyIndexes: List<KeyIndex>, netKeyIndex: KeyIndex) {
         // Replace only the keys that are bound to the given network key.
         _appKeys = _appKeys.filter { nodeKey ->
-            applicationKeys.get(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
+            applicationKey(index = nodeKey.index)?.boundNetKeyIndex != netKeyIndex
         }.toMutableList()
         _appKeys.addAll(elements = appKeyIndexes.map { NodeKey(index = it, _updated = false) })
         _appKeys.sortBy { it.index }

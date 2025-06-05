@@ -33,7 +33,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerial
  * @constructor Creates an Element object.
  */
 @Serializable
-data class Element(
+class Element(
     @SerialName(value = "name")
     private var _name: String? = null,
     @Serializable(with = LocationAsStringSerializer::class)
@@ -103,6 +103,10 @@ data class Element(
         }
         // Assign the parent element to all models.
         _models.forEach { it.parentElement = this }
+    }
+
+    override fun toString(): String {
+        return "Element(name: $name, location: $location, models: $_models, index: $index, unicastAddress: $unicastAddress)"
     }
 
     /**

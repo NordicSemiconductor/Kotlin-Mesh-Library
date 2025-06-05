@@ -3,13 +3,23 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAddressMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelAddressMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigVirtualLabelMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
+import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
+import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.nio.ByteOrder
 
 /**
@@ -31,7 +41,7 @@ class ConfigModelSubscriptionStatus(
     override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
-) : ConfigResponse, ConfigStatusMessage, ConfigAddressMessage, ConfigAnyModelMessage {
+) : ConfigResponse, ConfigStatusMessage, ConfigAnyModelAddressMessage {
     override val opCode = Initializer.opCode
     override val parameters: ByteArray
         get() {
@@ -43,6 +53,126 @@ class ConfigModelSubscriptionStatus(
                         modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param status            Status of the message.
+     * @param address           Address of the group.
+     * @param elementAddress    Element address of the model.
+     * @param modelIdentifier   Model identifier.
+     * @param companyIdentifier Company identifier, if the model is a vendor model.
+     */
+    constructor(
+        status: ConfigMessageStatus,
+        address: VirtualAddress,
+        elementAddress: UnicastAddress,
+        modelIdentifier: UShort,
+        companyIdentifier: UShort? = null,
+    ) : this(
+        status = status,
+        address = address.address,
+        elementAddress = elementAddress,
+        modelIdentifier = modelIdentifier,
+        companyIdentifier = companyIdentifier
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param request   [ConfigModelSubscriptionDeleteAll] message that this is a response to.
+     * @param status    Status of the message.
+     */
+    constructor(request: ConfigModelSubscriptionDeleteAll, status: ConfigMessageStatus) : this(
+        status = status,
+        address = UnassignedAddress.address,
+        elementAddress = request.elementAddress,
+        modelIdentifier = request.modelIdentifier,
+        companyIdentifier = request.companyIdentifier
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param group Group to which the model is subscribed.
+     * @param model Model that should subscribe.
+     */
+    constructor(group: Group, model: Model) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        address = group.address.address,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = when (model.modelId) {
+            is SigModelId -> null
+            is VendorModelId -> model.modelId.companyIdentifier
+        }
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param address Group address to which the model is subscribed.
+     * @param model   Model that should subscribe.
+     */
+    constructor(address: GroupAddress, model: Model) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        address = address.address,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = when (model.modelId) {
+            is SigModelId -> null
+            is VendorModelId -> model.modelId.companyIdentifier
+        }
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param address Group address to which the model is subscribed.
+     * @param model   Model that should subscribe.
+     */
+    constructor(address: VirtualAddress, model: Model) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        address = address.address,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = when (model.modelId) {
+            is SigModelId -> null
+            is VendorModelId -> model.modelId.companyIdentifier
+        }
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionStatus message.
+     *
+     * @param model Model that should subscribe.
+     */
+    constructor(model: Model) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        address = UnassignedAddress.address,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = when (model.modelId) {
+            is SigModelId -> null
+            is VendorModelId -> model.modelId.companyIdentifier
+        }
+    )
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
@@ -72,6 +202,42 @@ class ConfigModelSubscriptionStatus(
                     } else params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN),
                 )
             }
+        }
+
+        /**
+         * Initialises ConfigModelSubscriptionStatus message.
+         *
+         * @param request The request message that this is a response to.
+         * @param status  Status of the message.
+         * @return ConfigModelSubscriptionStatus message.
+         */
+        fun <T> init(request: T, status: ConfigMessageStatus): ConfigModelSubscriptionStatus
+                where T : ConfigAddressMessage, T : ConfigAnyModelMessage {
+            return ConfigModelSubscriptionStatus(
+                address = request.address,
+                elementAddress = request.elementAddress,
+                modelIdentifier = request.modelIdentifier,
+                companyIdentifier = request.companyIdentifier,
+                status = status
+            )
+        }
+
+        /**
+         * Initialises ConfigModelSubscriptionStatus message.
+         *
+         * @param request The request message that this is a response to.
+         * @param status  Status of the message.
+         * @return ConfigModelSubscriptionStatus message.
+         */
+        fun <T> init(request: T, status: ConfigMessageStatus): ConfigModelSubscriptionStatus
+                where T : ConfigVirtualLabelMessage, T : ConfigAnyModelMessage {
+            return ConfigModelSubscriptionStatus(
+                address = MeshAddress.create(request.virtualLabel),
+                elementAddress = request.elementAddress,
+                modelIdentifier = request.modelIdentifier,
+                companyIdentifier = request.companyIdentifier,
+                status = status
+            )
         }
     }
 }

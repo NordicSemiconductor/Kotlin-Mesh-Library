@@ -1,5 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
@@ -20,10 +21,19 @@ import no.nordicsemi.kotlin.mesh.core.model.NodeIdentityState
 class ConfigNodeIdentityStatus(
     override val status: ConfigMessageStatus,
     override val index: KeyIndex,
-    val identity: NodeIdentityState
+    val identity: NodeIdentityState,
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
     override val opCode = Initializer.opCode
-    override val parameters = encodeNetKeyIndex()
+    override val parameters = status.value.toByteArray() +
+            encodeNetKeyIndex() +
+            identity.value.toByte()
+
+    constructor(request: ConfigNetKeyMessage) : this(
+        status = ConfigMessageStatus.SUCCESS,
+        index = request.index,
+        // TODO Add support for Node Identity state
+        identity = NodeIdentityState.NOT_SUPPORTED
+    )
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String =

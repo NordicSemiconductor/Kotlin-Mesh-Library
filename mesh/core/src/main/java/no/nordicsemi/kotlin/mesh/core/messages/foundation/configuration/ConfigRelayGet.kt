@@ -19,10 +19,10 @@ class ConfigRelayGet : AcknowledgedConfigMessage {
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8026u
 
-        override fun init(parameters: ByteArray?)  = if(parameters == null) {
+        override fun init(parameters: ByteArray?)  = parameters?.takeIf {
+            it.isEmpty()
+        }?.let {
             ConfigRelayGet()
-        } else {
-            null
         }
     }
 }

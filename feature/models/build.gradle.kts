@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:bind-app-keys"))
-    implementation(project(":feature:mesh-bearer-android"))
     implementation(project(":feature:config-application-keys"))
     implementation(project(":feature:groups"))
     implementation(project(":mesh:core"))

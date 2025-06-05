@@ -33,6 +33,8 @@ class ConfigHeartbeatSubscriptionSet(
             destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             periodLog.toByte()
 
+    val isSubscriptionEnabled : Boolean
+        get() = source !is UnassignedAddress && destination !is UnassignedAddress && periodLog > 0u
     /**
      * Constructs a ConfigHeartbeatSubscriptionSet message that will disable receiving and
      * processing of Heartbeat messages.

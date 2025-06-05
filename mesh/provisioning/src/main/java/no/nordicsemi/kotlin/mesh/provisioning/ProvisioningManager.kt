@@ -12,7 +12,7 @@ import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
-import no.nordicsemi.kotlin.mesh.bearer.provisioning.MeshProvisioningBearer
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -38,7 +38,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.bearer.send
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
-    val bearer: MeshProvisioningBearer
+    val bearer: ProvisioningBearer
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var configuration: ProvisioningParameters

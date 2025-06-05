@@ -71,7 +71,7 @@ data class HeartbeatPublication internal constructor(
         address = status.destination,
         period = periodLog2Period(periodLog = status.periodLog),
         ttl = status.ttl,
-        index = status.networkKeyIndex,
+        index = status.index,
         features = status.features
     ) {
         require(period.toInt() in MIN_PERIOD..MAX_PERIOD) {

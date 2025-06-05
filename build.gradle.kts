@@ -1,3 +1,6 @@
+import org.jetbrains.dokka.DokkaDefaults.moduleName
+import org.jetbrains.dokka.DokkaDefaults.pluginsConfiguration
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -16,11 +19,20 @@ plugins {
     alias(libs.plugins.nordic.kotlin.android) apply false
     // alias(libs.plugins.wire) apply false
     alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.dokka)
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
+
+    // This plugin is used to generate Dokka documentation.
+    alias(libs.plugins.kotlin.dokka) apply false
+    // This applies Nordic look & feel to generated Dokka documentation.
+    // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/NordicDokkaPlugin.kt
+    alias(libs.plugins.nordic.dokka) apply true
 }
 
-tasks.dokkaHtmlMultiModule.configure {
-    outputDirectory.set(rootDir.resolve("docs"))
+// Configure main Dokka page
+dokka {
+    moduleName.set("Kotlin nRF Mesh Library for Android")
+    pluginsConfiguration.html {
+        homepageLink.set("https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library")
+    }
 }

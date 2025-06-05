@@ -46,4 +46,12 @@ data class NodeKey internal constructor(
  * @param index Key Index.
  * @return Node key.
  */
-infix fun List<NodeKey>.get(index: KeyIndex): NodeKey? = find { it.index == index }
+infix fun List<NodeKey>.get(index: KeyIndex): NodeKey? = firstOrNull { it.index == index }
+
+/**
+ * Returns true if a NodeKey with the given index exists.
+ *
+ * @param index Key Index.
+ * @return true if the index exists or false otherwise.
+ */
+infix fun List<NodeKey>.has(index: KeyIndex) = any { it.index == index }

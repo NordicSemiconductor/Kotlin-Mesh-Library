@@ -5,6 +5,7 @@ import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.experimental.and
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -29,6 +30,16 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
 
     val interval: Duration
         get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
+
+    /**
+     * Convenience constructor.
+     *
+     * @param node Node object containing the network transmit settings.
+     */
+    constructor(node: Node) : this(
+        count = ((node.networkTransmit?.count ?: 1u) - 1u).toUByte(),
+        steps = node.networkTransmit?.steps ?: 0u
+    )
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigNetworkTransmitStatus(opCode: 0x${opCode.toHexString()} " +

@@ -329,7 +329,7 @@ private fun ProxyStateRow(
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     var enabled by rememberSaveable {
-        mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } ?: false)
+        mutableStateOf(proxy?.state?.let { it == FeatureState.Enabled } == true)
     }
     var showProxyStateDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
@@ -359,7 +359,7 @@ private fun ProxyStateRow(
         MeshAlertDialog(
             onDismissRequest = {
                 showProxyStateDialog = !showProxyStateDialog
-                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+                enabled = proxy?.state?.let { it == FeatureState.Enabled } == true
             },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
@@ -372,7 +372,7 @@ private fun ProxyStateRow(
             },
             onDismissClick = {
                 showProxyStateDialog = !showProxyStateDialog
-                enabled = proxy?.state?.let { it == FeatureState.Enabled } ?: false
+                enabled = proxy?.state?.let { it == FeatureState.Enabled } == true
             }
         )
     }

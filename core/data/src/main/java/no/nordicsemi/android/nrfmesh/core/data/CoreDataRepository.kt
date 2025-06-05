@@ -1,31 +1,27 @@
 package no.nordicsemi.android.nrfmesh.core.data
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
-import no.nordicsemi.android.kotlin.mesh.bearer.pbgatt.PbGattBearer
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
+import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidGattBearer
+import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidPbGattBearer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffServer
@@ -34,7 +30,8 @@ import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.mesh.bearer.Bearer
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
-import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
+import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -71,7 +68,6 @@ private object PreferenceKeys {
 }
 
 class CoreDataRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -85,27 +81,26 @@ class CoreDataRepository @Inject constructor(
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
     private lateinit var meshNetwork: MeshNetwork
-    private var isBluetoothEnabled = false
-    private var isLocationEnabled = false
     private var bearer: Bearer? = null
     private var connectionRequested = false
 
     val proxyFilter: ProxyFilter
         get() = meshNetworkManager.proxyFilter
 
+    private val scope = CoroutineScope(context = defaultDispatcher)
+
     init {
         meshNetworkManager.logger = this
+        network.onEach {
+            meshNetwork = it
+            // Start automatic connectivity
+            startAutomaticConnectivity(meshNetwork = it)
+        }.launchIn(scope = scope)
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
-        }.launchIn(CoroutineScope(defaultDispatcher))
-
-        // Start automatic connectivity when the network changes
-
-        // TODO need to check this on
-        network.onEach { meshNetwork = it }
-            .launchIn(scope = CoroutineScope(defaultDispatcher))
+        }.launchIn(scope)
     }
 
     /**
@@ -256,16 +251,14 @@ class CoreDataRepository @Inject constructor(
     /**
      * Connects to the unprovisioned node over PB-Gatt bearer.
      *
-     * @param context Android context
      * @param device  Server device
-     * @return [PbGattBearer] instance
+     * @return [ProvisioningBearer] instance
      */
-    suspend fun connectOverPbGattBearer(context: Context, device: Peripheral) =
+    suspend fun connectOverPbGattBearer(device: Peripheral) =
         withContext(defaultDispatcher) {
-            if (bearer is GattBearer) bearer?.close()
-            PbGattBearer(
+            if (bearer is AndroidGattBearer) bearer?.close()
+            AndroidPbGattBearer(
                 dispatcher = defaultDispatcher,
-                context = context,
                 centralManager = centralManager,
                 peripheral = device
             )
@@ -278,23 +271,21 @@ class CoreDataRepository @Inject constructor(
     /**
      * Connects to the provisioned node over Gatt bearer.
      *
-     * @param context          Android context
      * @param peripheral       Server device
-     * @return [PbGattBearer]  instance
+     * @return [ProvisioningBearer]  instance
      */
-    suspend fun connectOverGattBearer(context: Context, peripheral: Peripheral) =
+    suspend fun connectOverGattBearer(peripheral: Peripheral) =
         withContext(defaultDispatcher) {
-            if ((bearer as? PbGattBearer)?.isOpen == true) bearer?.close()
+            if (bearer is AndroidPbGattBearer) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
-            GattBearer(
+            AndroidGattBearer(
                 dispatcher = defaultDispatcher,
-                context = context,
                 centralManager = centralManager,
                 peripheral = peripheral
             ).also {
-                meshNetworkManager.setMeshBearerType(meshBearer = it)
+                meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()
                 if (it.isOpen) {
@@ -304,6 +295,10 @@ class CoreDataRepository @Inject constructor(
                                 peripheral = peripheral
                             )
                         )
+
+                    // Wait for the bearer to disconnect
+                    it.state.first { it is BearerEvent.Closed }
+                    proxyFilter.proxyDidDisconnect()
                 }
             }
         }
@@ -315,7 +310,7 @@ class CoreDataRepository @Inject constructor(
         bearer?.let { bearer ->
             if (bearer.isOpen) {
                 bearer.close()
-                bearer.state.first { it is BearerEvent.Closed }
+                // bearer.state.first { it is BearerEvent.Closed }
                 _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                     connectionState = NetworkConnectionState.Disconnected
                 )
@@ -324,28 +319,12 @@ class CoreDataRepository @Inject constructor(
     }
 
     /**
-     * Marks as bluetooth permissions are granted.
-     */
-    fun onBluetoothEnabled(enabled: Boolean) {
-        isBluetoothEnabled = enabled
-    }
-
-    /**
-     * Marks as location permissions are granted.
-     */
-    fun onLocationEnabled(enabled: Boolean) {
-        isLocationEnabled = enabled
-    }
-
-    /**
      * Starts automatic connectivity to the proxy node.
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     suspend fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
-        if (isBluetoothEnabled && isLocationEnabled) {
-            connectToProxy(meshNetwork)
-        }
+        connectToProxy(meshNetwork)
     }
 
     /**
@@ -360,8 +339,36 @@ class CoreDataRepository @Inject constructor(
         connectionRequested = true
         require(bearer == null || !bearer!!.isOpen) { return }
         val peripheral = scanForProxy(meshNetwork)
-        val bearer = connectOverGattBearer(context = context, peripheral = peripheral)
-        bearer.state.filter { it is BearerEvent.Closed }.first()
+        // If the peripheral is null, it means that the proxy node was not found or scanning failed.
+        // If so we can safely return here and retry later.
+        if (peripheral == null) {
+            log(
+                message = "Proxy node not found",
+                category = LogCategory.BEARER,
+                level = LogLevel.INFO
+            )
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Disconnected
+            )
+            connectionRequested = false
+            return
+        }
+        try {
+            // Connect to the proxy node over GATT bearer. This method is blocking and will only
+            // return once the connection is established or failed.
+            connectOverGattBearer(peripheral = peripheral)
+        } catch (e: Exception) {
+            log(
+                message = "Failed to connect to proxy node: ${e.message}",
+                category = LogCategory.BEARER,
+                level = LogLevel.ERROR
+            )
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Disconnected
+            )
+            connectionRequested = false
+            return
+        }
         connectionRequested = false
         // Retry connecting
         connectToProxy(meshNetwork)
@@ -374,12 +381,11 @@ class CoreDataRepository @Inject constructor(
      * @return the peripheral containing the proxy node.
      */
     @OptIn(ExperimentalUuidApi::class)
-    @SuppressLint("MissingPermission")
-    suspend fun scanForProxy(meshNetwork: MeshNetwork?): Peripheral {
+    suspend fun scanForProxy(meshNetwork: MeshNetwork?) = try {
         _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
             connectionState = NetworkConnectionState.Scanning
         )
-        return centralManager
+        centralManager
             .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
             .first {
                 val serviceData = it.advertisingData.serviceData[MeshProxyService.uuid]
@@ -397,6 +403,13 @@ class CoreDataRepository @Inject constructor(
                     } == false
                 } == false
             }.peripheral
+    } catch (e: Exception) {
+        log(
+            message = "Failed to scan for proxy node: ${e.message}",
+            category = LogCategory.BEARER,
+            level = LogLevel.ERROR
+        )
+        null
     }
 
     /**
@@ -429,14 +442,10 @@ class CoreDataRepository @Inject constructor(
      */
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) =
         withContext(context = defaultDispatcher) {
-            meshNetworkManager.send(message = message, node = node, initialTtl = null)
-                .also {
-                    log(
-                        message = it?.toString() ?: "",
-                        category = LogCategory.ACCESS,
-                        level = LogLevel.INFO
-                    )
-                }
+            if (node.primaryUnicastAddress == meshNetwork.localProvisioner?.node?.primaryUnicastAddress)
+                meshNetworkManager.sendToLocalNode(message = message)
+            else
+                meshNetworkManager.send(message = message, node = node, initialTtl = null)
         }
 
     /**
@@ -445,10 +454,19 @@ class CoreDataRepository @Inject constructor(
      * @param model          Destination model.
      * @param unackedMessage Unacknowledged mesh message to be sent.
      */
-    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) =
-        withContext(context = defaultDispatcher) {
-            meshNetworkManager.send(model = model, message = unackedMessage)
-        }
+    suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) = withContext(
+        context = defaultDispatcher
+    ) {
+        meshNetworkManager.send(
+            model = model,
+            message = unackedMessage,
+            initialTtl = if (isDestinedToLocalNode(model.parentElement?.unicastAddress)) {
+                1.toUByte() // Use TTL 1 for messages destined to the local node
+            } else {
+                null
+            }
+        )
+    }
 
     /**
      * Sends an acknowledged mesh message to the given model.
@@ -459,8 +477,19 @@ class CoreDataRepository @Inject constructor(
     suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
         context = defaultDispatcher
     ) {
-        meshNetworkManager.send(model = model, message = ackedMessage)
+        meshNetworkManager.send(
+            model = model,
+            message = ackedMessage,
+            initialTtl = if (isDestinedToLocalNode(model.parentElement?.unicastAddress)) {
+                1.toUByte() // Use TTL 1 for messages destined to the local node
+            } else {
+                null
+            }
+        )
     }
+
+    private fun isDestinedToLocalNode(destination: UnicastAddress?) =
+        destination == meshNetwork.localProvisioner?.node?.primaryUnicastAddress
 
     override fun log(message: String, category: LogCategory, level: LogLevel) {
         Log.println(level.toAndroidLogLevel(), category.category, message)

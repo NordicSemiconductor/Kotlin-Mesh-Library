@@ -6,8 +6,8 @@ import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyAppKeyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAppKeyMessage.Companion.decodeAppKeyIndex
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -28,7 +28,7 @@ class ConfigModelAppBind(
     override val keyIndex: KeyIndex,
     override val elementAddress: UnicastAddress,
     override val modelId: ModelId,
-) : AcknowledgedConfigMessage, ConfigAppKeyMessage, ConfigAnyModelMessage {
+) : AcknowledgedConfigMessage, ConfigAnyAppKeyModelMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelAppStatus.opCode
 

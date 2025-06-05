@@ -97,7 +97,10 @@ internal class ScenesViewModel @Inject internal constructor(
             val state = _uiState.value
             network.run {
                 runCatching {
-                    remove(scene = scene(number = scene.number))
+                    val scene = network.scene(number = scene.number)
+                    if (scene != null) {
+                        remove(scene = scene)
+                    }
                     save()
                 }
             }
@@ -112,7 +115,10 @@ internal class ScenesViewModel @Inject internal constructor(
         _uiState.value.scenesToBeRemoved.forEach {
             network.run {
                 runCatching {
-                    remove(scene = scene(number = it.number))
+                    val scene = network.scene(number = it.number)
+                    if (scene != null) {
+                        remove(scene = scene)
+                    }
                 }
             }
         }

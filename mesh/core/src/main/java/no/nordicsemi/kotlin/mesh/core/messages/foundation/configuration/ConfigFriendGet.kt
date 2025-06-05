@@ -13,16 +13,16 @@ class ConfigFriendGet : AcknowledgedConfigMessage {
     override val responseOpCode: UInt = ConfigFriendStatus.opCode
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String =
-        "ConfigFriendStatus(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
+    override fun toString(): String = "ConfigFriendGet(opCode: " +
+            "0x${opCode.toHexString(format = HexFormat.UpperCase)}, parameters: $parameters)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x800Fu
 
-        override fun init(parameters: ByteArray?)  = if(parameters == null) {
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.isEmpty()
+        }?.let {
             ConfigFriendGet()
-        } else {
-            null
         }
     }
 }

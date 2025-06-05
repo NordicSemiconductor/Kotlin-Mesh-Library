@@ -1,0 +1,46 @@
+@file:Suppress("unused")
+
+package no.nordicsemi.kotlin.mesh.bearer.gatt.utils
+
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+/**
+ * Base interface for Mesh service objects.
+ *
+ * @property uuid            UUID of the service.
+ * @property dataInUuid      UUID of the Data In characteristic
+ * @property dataOutUuid     UUID of the Data Out characteristic.
+ */
+@OptIn(ExperimentalUuidApi::class)
+interface MeshService {
+    var uuid: Uuid
+    var dataInUuid: Uuid
+    var dataOutUuid: Uuid
+}
+
+/**
+ * Mesh Provisioning Service object defines the mesh provisioning service. This service is present
+ * on the unprovisioned devices.
+ *
+ * This is used to send provisioning messages over gatt.
+ */
+@OptIn(ExperimentalUuidApi::class)
+object MeshProvisioningService : MeshService {
+    override var uuid: Uuid = Uuid.parse("00001827-0000-1000-8000-00805f9b34fb")
+    override var dataInUuid: Uuid = Uuid.parse("00002adb-0000-1000-8000-00805f9b34fb")
+    override var dataOutUuid: Uuid = Uuid.parse("00002adc-0000-1000-8000-00805f9b34fb")
+}
+
+/**
+ * Mesh Proxy Service object defines the mesh proxy service. This service is present
+ * on the provisioned devices.
+ *
+ * This is used to send mesh messages over gatt.
+ */
+@OptIn(ExperimentalUuidApi::class)
+object MeshProxyService : MeshService {
+    override var uuid: Uuid = Uuid.parse("00001828-0000-1000-8000-00805f9b34fb")
+    override var dataInUuid: Uuid = Uuid.parse("00002add-0000-1000-8000-00805f9b34fb")
+    override var dataOutUuid: Uuid = Uuid.parse("00002ade-0000-1000-8000-00805f9b34fb")
+}

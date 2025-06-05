@@ -45,7 +45,6 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.deserialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.serialize
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
@@ -86,7 +85,11 @@ class MeshNetworkManager(
 
     var logger: Logger? = null
 
-    private var meshBearer: MeshBearer? = null
+    var meshBearer: MeshBearer? = null
+        set(value) {
+            field = value
+            networkManager?.bearer = value
+        }
 
     var proxyFilter: ProxyFilter
         internal set
@@ -133,11 +136,6 @@ class MeshNetworkManager(
 
     init {
         proxyFilter = ProxyFilter(scope = scope, manager = this)
-    }
-
-    fun setMeshBearerType(meshBearer: MeshBearer) {
-        this.meshBearer = meshBearer
-        networkManager?.setMeshBearerType(bearer = meshBearer)
     }
 
     /**
@@ -249,7 +247,7 @@ class MeshNetworkManager(
                     throw IllegalStateException("Error: Model does not belong to an Element.")
                 }
                 it.publish?.let { publish ->
-                    network?.applicationKeys?.get(index = publish.index)?.let {
+                    network?.applicationKey(index = publish.index)?.let {
                         networkManager?.let { networkManager ->
                             scope.launch {
                                 networkManager.publish(message = message, from = model)
@@ -430,7 +428,7 @@ class MeshNetworkManager(
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        val network =  requireNotNull(network) { throw NoNetwork }
+        val network = requireNotNull(network) { throw NoNetwork }
 
         val node = model.parentElement?.parentNode ?: run {
             println("Error: Element does not belong to a Node")

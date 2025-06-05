@@ -116,6 +116,16 @@ data class Page0(
         elements = node.elements
     )
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String {
+        return "Page0(page=$page, " +
+                "companyIdentifier: ${companyIdentifier.toHexString(format = HexFormat.UpperCase)})}, " +
+                "productIdentifier: ${productIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
+                "versionIdentifier: ${versionIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
+                "minimumNumberOfReplayProtectionList: $minimumNumberOfReplayProtectionList, " +
+                "features=$features, elements=$elements)"
+    }
+
     companion object {
 
         /**

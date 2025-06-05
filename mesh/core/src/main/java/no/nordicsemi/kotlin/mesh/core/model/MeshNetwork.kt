@@ -404,12 +404,12 @@ data class MeshNetwork internal constructor(
     /**
      * Returns the network key with a given key index.
      *
-     * @param keyIndex Index of the network key.
+     * @param index Index of the network key.
      * @return Network key.
      * @throws NoSuchElementException if a key for a given key index ws not found.
      */
-    fun networkKey(keyIndex: KeyIndex) = networkKeys.first { key ->
-        key.index == keyIndex
+    fun networkKey(index: KeyIndex) = networkKeys.firstOrNull { key ->
+        key.index == index
     }
 
     /**
@@ -435,13 +435,25 @@ data class MeshNetwork internal constructor(
             index = (index ?: nextAvailableNetworkKeyIndex) ?: throw KeyIndexOutOfRange,
             _name = name,
             _key = key
-        ).apply {
-            network = this@MeshNetwork
-        }.also { networkKey ->
-            // Add the new network key to the network keys and sort them by index.
-            _networkKeys.apply { add(element = networkKey) }.sortBy { it.index }
-            updateTimestamp()
-        }
+        ).also { add(key = it) }
+    }
+
+    /**
+     * Adds the given [NetworkKey] to the list of network keys in the network.
+     *
+     * This method will also add the network key to the local Provisioner's node,
+     *
+     * @param key Network key to be added.
+     */
+    internal fun add(key: NetworkKey) {
+        key.network = this
+        // Add the new network key to the network keys and sort them by index.
+        _networkKeys
+            .apply { add(element = key) }
+            .sortBy { it.index }
+        updateTimestamp()
+        // Make the local Provisioner aware of the new key.
+        localProvisioner?.node?.add(key = key)
     }
 
     /**
@@ -453,20 +465,45 @@ data class MeshNetwork internal constructor(
      *                    key in this network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
-    fun remove(key: NetworkKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse) { throw KeyInUse }
-        _networkKeys.remove(key).also { updateTimestamp() }
+    fun remove(key: NetworkKey, force: Boolean = false) {
+        removeNetworkKeyWithIndex(index = key.index, force = force)
+    }
+
+    /**
+     * Removes a given [NetworkKey] from the list of network keys in the mesh network.
+     *
+     * @param index KeyIndex of the network key to be removed.
+     * @param force If true, the network key will be removed even if it is in use.
+     */
+    fun removeNetworkKeyWithIndex(index: KeyIndex, force: Boolean = false) {
+        removeNetworkKeyAtIndex(
+            index = networkKeys.indexOfFirst { it.index == index },
+            force = force
+        )
+    }
+
+    /**
+     * Removes a Network Key at the given index from the list of network keys in the mesh network.
+     *
+     * @param index index of the network key in the list of network keys.
+     * @param force If true, the network key will be removed even if it is in use.
+     */
+    fun removeNetworkKeyAtIndex(index: Int, force: Boolean = false) {
+        // Return as no op if the key does not exist
+        val key = networkKeys.getOrNull(index) ?: return
+        require(force || key.network == this) { throw DoesNotBelongToNetwork }
+        require(force || !key.isInUse) { throw KeyInUse }
+        _networkKeys.removeAt(index = index)
     }
 
     /**
      * Returns the application key with a given key index.
      *
-     * @param keyIndex Index of the application key.
+     * @param index Index of the application key.
      * @return Application key.
      * @throws NoSuchElementException if a key for a given key index ws not found.
      */
-    fun applicationKey(keyIndex: KeyIndex) = applicationKeys.first { key -> key.index == keyIndex }
+    fun applicationKey(index: KeyIndex) = applicationKeys.firstOrNull { key -> key.index == index }
 
     /**
      * Adds the given [ApplicationKey] to the list of network keys in the network.
@@ -501,13 +538,25 @@ data class MeshNetwork internal constructor(
             _key = key
         ).apply {
             boundNetKeyIndex = boundNetworkKey.index
-            network = this@MeshNetwork
-        }.also { applicationKey ->
-            _applicationKeys.apply {
-                add(applicationKey)
-            }.sortBy { key -> key.index }
-            updateTimestamp()
-        }
+        }.also { add(key = it) }
+    }
+
+    /**
+     * Adds the given [ApplicationKey] to the list of application keys in the network.
+     *
+     * This method will also add the network key to the local Provisioner's node,
+     *
+     * @param key Application Key to be added.
+     */
+    internal fun add(key: ApplicationKey) {
+        key.network = this
+        // Add the new network key to the network keys and sort them by index.
+        _applicationKeys
+            .apply { add(element = key) }
+            .sortBy { it.index }
+        updateTimestamp()
+        // Make the local Provisioner aware of the new key.
+        localProvisioner?.node?.add(key = key)
     }
 
     /**
@@ -518,10 +567,36 @@ data class MeshNetwork internal constructor(
      * @throws [KeyInUse] if the key is known to any node in the network.
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
-    fun remove(key: ApplicationKey) {
-        require(key.network == this) { throw DoesNotBelongToNetwork }
-        require(!key.isInUse) { throw KeyInUse }
-        _applicationKeys.remove(key).also { updateTimestamp() }
+    fun remove(key: ApplicationKey, force: Boolean = false) {
+        removeApplicationKeyWithIndex(index = key.index, force = force)
+    }
+
+    /**
+     * Removes an Application Key with the given [KeyIndex].
+     *
+     * @param index KeyIndex of the Application Key to be removed.
+     * @param force If true, the Application Key will be removed even if it is in use.
+     */
+    fun removeApplicationKeyWithIndex(index: KeyIndex, force: Boolean = false) {
+        removeApplicationKeyAtIndex(
+            index = applicationKeys.indexOfFirst { it.index == index },
+            force = force
+        )
+    }
+
+    /**
+     * Removes a Application Key at the given index from the list of Application Keys in the mesh
+     * network.
+     *
+     * @param index index of the Application Key in the list of Application Keys.
+     * @param force If true, the Application Key will be removed even if it is in use.
+     */
+    fun removeApplicationKeyAtIndex(index: Int, force: Boolean = false) {
+        // Return as no op if the key does not exist
+        val key = applicationKeys.getOrNull(index) ?: return
+        require(force || key.network == this) { throw DoesNotBelongToNetwork }
+        require(force || !key.isInUse) { throw KeyInUse }
+        _applicationKeys.removeAt(index = index)
     }
 
     /**
@@ -720,7 +795,7 @@ data class MeshNetwork internal constructor(
      * @return Scene.
      * @throws NoSuchElementException if a scene for a given scene number ws not found.
      */
-    fun scene(number: SceneNumber) = scenes.first { scene ->
+    fun scene(number: SceneNumber) = scenes.firstOrNull { scene ->
         scene.number == number
     }
 

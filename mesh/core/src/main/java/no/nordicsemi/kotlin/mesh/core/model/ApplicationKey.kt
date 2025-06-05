@@ -79,7 +79,7 @@ data class ApplicationKey internal constructor(
     internal var network: MeshNetwork? = null
 
     val boundNetworkKey: NetworkKey
-        get() = network!!.networkKeys.get(boundNetKeyIndex)!!
+        get() = network!!.networkKey(index = boundNetKeyIndex)!!
 
     internal var aid: Byte = Crypto.calculateAid(N = key)
 
@@ -228,11 +228,3 @@ infix fun List<ApplicationKey>.boundTo(networkKey: NetworkKey): List<Application
  * @return List of Application Keys known to the node.
  */
 infix fun List<ApplicationKey>.knownTo(node: Node): List<ApplicationKey> = filter { node.knows(it) }
-
-/**
- * Returns an Application Key with the given KeyIndex
- *
- * @param index Key index of the application key.
- * @return Application key with the given key index or null if not found.
- */
-infix fun List<ApplicationKey>.get(index: KeyIndex): ApplicationKey? = find { it.index == index }

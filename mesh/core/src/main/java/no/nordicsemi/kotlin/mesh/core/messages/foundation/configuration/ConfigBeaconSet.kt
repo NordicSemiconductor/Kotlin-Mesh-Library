@@ -13,12 +13,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 class ConfigBeaconSet(val enable: Boolean) : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigBeaconStatus.opCode
-    override val parameters: ByteArray = byteArrayOf(if(enable) 0x01 else 0x00)
+    override val parameters: ByteArray = byteArrayOf(if (enable) 0x01 else 0x00)
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String {
-        return "ConfigBeaconSet(opCode: 0x${opCode.toHexString()})"
-    }
+    override fun toString() = "ConfigBeaconSet(opCode: " +
+            "0x${opCode.toHexString(format = HexFormat.UpperCase)})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x800Au

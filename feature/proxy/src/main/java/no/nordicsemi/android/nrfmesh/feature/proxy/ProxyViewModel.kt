@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,13 +77,11 @@ internal class ProxyViewModel @Inject internal constructor(
         }
     }
 
-    internal fun connect(context: Context, result: ScanResult) {
+    internal fun connect(result: ScanResult) {
         viewModelScope.launch {
             with(repository) {
-                onBluetoothEnabled(enabled = true)
-                onLocationEnabled(enabled = true)
                 disconnect()
-                connectOverGattBearer(context = context, peripheral = result.peripheral)
+                connectOverGattBearer(peripheral = result.peripheral)
             }
         }
     }
@@ -95,18 +92,16 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            with(repository) {
-                onBluetoothEnabled(enabled)
-                startAutomaticConnectivity(meshNetwork)
+            if(enabled) {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
     }
 
     internal fun onLocationEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            with(repository) {
-                onLocationEnabled(enabled)
-                startAutomaticConnectivity(meshNetwork)
+            if(enabled) {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
     }

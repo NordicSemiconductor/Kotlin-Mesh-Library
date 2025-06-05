@@ -30,7 +30,5 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:scanner"))
     implementation(project(":mesh:core"))
-
-    implementation(project(":feature:mesh-bearer-android"))
-    implementation(project(":feature:mesh-bearer-gatt"))
+    implementation(project(":mesh:bearer-gatt"))
 }

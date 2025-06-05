@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -37,13 +36,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
-import no.nordicsemi.android.kotlin.mesh.bearer.android.utils.MeshProxyService
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddresses
 import no.nordicsemi.android.nrfmesh.core.common.name
@@ -58,6 +55,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.AddAddressesToFilter
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
@@ -78,7 +76,7 @@ internal fun ProxyRoute(
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     onAutoConnectToggled: (Boolean) -> Unit,
-    onScanResultSelected: (Context, ScanResult) -> Unit,
+     onScanResultSelected: (ScanResult) -> Unit,
     onDisconnectClicked: () -> Unit,
     send: (ProxyConfigurationMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -116,9 +114,8 @@ private fun ProxyFilterInfo(
     proxyConnectionState: ProxyConnectionState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
-    onScanResultSelected: (Context, ScanResult) -> Unit,
+    onScanResultSelected: (ScanResult) -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
     val proxyScannerSheetState = rememberModalBottomSheetState()
@@ -137,7 +134,7 @@ private fun ProxyFilterInfo(
             ScannerSection(
                 onScanResultSelected = { result ->
                     showProxyScannerSheet = false
-                    onScanResultSelected(context, result)
+                    onScanResultSelected(result)
                     scope.launch {
                         proxyScannerSheetState.hide()
                     }.invokeOnCompletion {

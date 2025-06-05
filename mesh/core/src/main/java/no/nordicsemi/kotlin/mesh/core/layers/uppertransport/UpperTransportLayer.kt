@@ -17,7 +17,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import no.nordicsemi.kotlin.mesh.core.model.get
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Timer
@@ -51,14 +50,14 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                 val message = UpperTransportPdu.decode(
                     message = accessMessage, network = meshNetwork
                 )?.let {
-                    logger?.i(LogCategory.UPPER_TRANSPORT) { "Received ${it.first} received." }
+                    logger?.i(LogCategory.UPPER_TRANSPORT) { "Received ${it.first}." }
                     networkManager.accessLayer.handle(
                         upperTransportPdu = it.first,
                         keySet = it.second
                     )
                 }
                 if (message == null) {
-                    logger?.w(LogCategory.UPPER_TRANSPORT) { "Failed to decode PDU" }
+                    logger?.w(LogCategory.UPPER_TRANSPORT) { "Failed to decode PDU." }
                 }
                 return message
             }
@@ -69,7 +68,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     HeartbeatMessage.OP_CODE -> {
                         HeartbeatMessage.init(message = message).also { heartbeat ->
                             logger?.i(LogCategory.UPPER_TRANSPORT) {
-                                "$heartbeat received from ${message.source.toHexString()}"
+                                "$heartbeat received from ${message.source.toHexString()}."
                             }
                             handle(heartbeat = heartbeat)
                         }
@@ -77,7 +76,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
 
                     else -> {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
-                            "Unsupported Control Message received (opCode: ${message.opCode})"
+                            "Unsupported Control Message received (opCode: ${message.opCode})."
                         }
                     }
                 }
@@ -96,7 +95,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     suspend fun send(accessPdu: AccessPdu, ttl: UByte?, keySet: KeySet) {
         // Get the current sequence number for the given source Element's address.
         val sequence = networkManager.networkLayer.nextSequenceNumber(
-            address = UnicastAddress(accessPdu.source)
+            address = UnicastAddress(address = accessPdu.source)
         )
         val pdu = UpperTransportPdu.init(
             pdu = accessPdu,
@@ -104,7 +103,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             sequence = sequence,
             ivIndex = meshNetwork.ivIndex
         )
-        logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet" }
+        logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet." }
 
         if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.
@@ -221,9 +220,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     }
                     // Check if the network key exists.
                     val networkKey = requireNotNull(
-                        localNode.networkKeys.get(
-                            heartbeatPublication.index
-                        )
+                        localNode.networkKey(index = heartbeatPublication.index)
                     ) {
                         layer.heartbeatPublisher?.cancel()
                         layer.heartbeatPublisher?.purge()

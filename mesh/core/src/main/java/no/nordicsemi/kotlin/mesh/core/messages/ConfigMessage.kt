@@ -389,7 +389,7 @@ interface ConfigVendorModelMessage : ConfigModelMessage {
 }
 
 /**
- *  A base protocol for config messages with an Address property.
+ *  A base interface for config messages with an Address property.
  *
  *  @property address The Address.
  */
@@ -398,7 +398,12 @@ interface ConfigAddressMessage : ConfigMessage {
 }
 
 /**
- * A base protocol for config messages with Virtual Label property.
+ * A base interface for config messages with an Address property and a Model Identifier.
+ */
+interface ConfigAnyModelAddressMessage : ConfigAddressMessage, ConfigAnyModelMessage
+
+/**
+ * A base interface for config messages with Virtual Label property.
  *
  * @property virtualLabel Value of the 128-bt Virtual Label UUID.
  */
@@ -407,7 +412,7 @@ interface ConfigVirtualLabelMessage : ConfigMessage {
 }
 
 /**
- * A base protocol for config messages with list of Application Keys.
+ * A base interface for config messages with list of Application Keys.
  *
  * @property applicationKeyIndexes Application Key Indexes bound to the Model.
  */
@@ -416,7 +421,7 @@ interface ConfigModelAppList : ConfigStatusMessage, ConfigModelMessage {
 }
 
 /**
- * A base protocol for config messages with list of Model subscription addresses.
+ * A base interface for config messages with list of Model subscription addresses.
  *
  * @property addresses A list of Addresses.
  */
