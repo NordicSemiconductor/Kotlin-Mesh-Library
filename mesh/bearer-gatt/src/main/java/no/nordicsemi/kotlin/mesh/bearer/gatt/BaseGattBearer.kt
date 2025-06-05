@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.takeWhile
 import no.nordicsemi.kotlin.ble.client.CentralManager
 import no.nordicsemi.kotlin.ble.client.Peripheral
 import no.nordicsemi.kotlin.ble.client.RemoteCharacteristic
@@ -86,6 +85,7 @@ abstract class BaseGattBearer<
         observeConnectionState(peripheral)
         // Connect to the peripheral
         centralManager.connect(peripheral = peripheral)
+        // TODO : requesting the highest MTU size and enable notifications should be moved here.
     }
 
     override suspend fun close() {
@@ -99,14 +99,21 @@ abstract class BaseGattBearer<
      * @param peripheral Peripheral to observe.
      */
     private fun observeConnectionState(peripheral: P) {
-        peripheral.state.takeWhile {
-            it !is ConnectionState.Disconnected
-        }.onEach {
-            if (it is ConnectionState.Connected) onConnected()
-        }.onCompletion { throwable ->
-            throwable?.let { logger?.e(LogCategory.BEARER) { "Something went wrong $it" } }
-            onDisconnected()
-        }.launchIn(scope)
+        peripheral.state
+            .onEach {
+                when (it) {
+                    is ConnectionState.Connected -> onConnected()
+                    is ConnectionState.Disconnected, is ConnectionState.Closed -> onDisconnected()
+                    else -> {
+                        // Ignore other states
+                    }
+                }
+            }
+            .onCompletion { throwable ->
+                throwable?.let { logger?.e(LogCategory.BEARER) { "Something went wrong $it" } }
+                onDisconnected()
+            }
+            .launchIn(scope)
     }
 
     /**
