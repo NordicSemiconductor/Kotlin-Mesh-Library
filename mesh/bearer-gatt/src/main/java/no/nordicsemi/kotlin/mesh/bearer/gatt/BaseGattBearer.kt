@@ -111,6 +111,7 @@ abstract class BaseGattBearer<
             }
             .onCompletion { throwable ->
                 throwable?.let { logger?.e(LogCategory.BEARER) { "Something went wrong $it" } }
+                logger?.e(LogCategory.BEARER) { "Something went wrong" }
                 onDisconnected()
             }
             .launchIn(scope)
