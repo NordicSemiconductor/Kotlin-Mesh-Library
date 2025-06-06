@@ -1,5 +1,3 @@
-@file:Suppress("unused", "RedundantSuspendModifier", "MemberVisibilityCanBePrivate")
-
 package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineDispatcher
@@ -150,7 +148,7 @@ class MeshNetworkManager(
         networkManager = NetworkManager(this)
         proxyFilter.onNewNetworkCreated()
         true
-    } ?: false
+    } == true
 
     /**
      * Saves the network in the local storage provided by the user.
@@ -228,7 +226,7 @@ class MeshNetworkManager(
      * @param configuration Specifies if the network should be fully exported or partially.
      * @return Bytearray containing the Mesh network configuration.
      */
-    suspend fun export(
+    fun export(
         configuration: NetworkConfiguration = NetworkConfiguration.Full,
     ) = network?.let {
         serialize(
