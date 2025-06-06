@@ -820,51 +820,51 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     )
                 }
 
-                is ConfigDefaultTtlSet, ConfigDefaultTtlGet -> {
+                is ConfigDefaultTtlSet, is ConfigDefaultTtlGet -> {
                     if (request is ConfigDefaultTtlSet) {
                         localNode.defaultTTL = request.ttl
                     }
                     ConfigDefaultTtlStatus(ttl = localNode.defaultTTL ?: 5u)
                 }
 
-                is ConfigRelayGet, ConfigRelaySet -> {
+                is ConfigRelayGet, is ConfigRelaySet -> {
                     // Relay feature is not supported
                     ConfigRelayStatus(
                         state = FeatureState.Unsupported, count = 0, steps = 0u
                     )
                 }
 
-                is ConfigGattProxyGet, ConfigGattProxySet -> {
+                is ConfigGattProxyGet, is ConfigGattProxySet -> {
                     // Gatt Proxy feature is not supported
                     ConfigGattProxyStatus(state = FeatureState.Unsupported)
                 }
 
-                is ConfigFriendGet, ConfigFriendSet -> {
+                is ConfigFriendGet, is ConfigFriendSet -> {
                     // Friend feature is not supported
                     ConfigFriendStatus(state = FeatureState.Unsupported)
                 }
 
-                is ConfigBeaconGet, ConfigBeaconSet -> {
+                is ConfigBeaconGet, is ConfigBeaconSet -> {
                     // Secure Network Beacon feature is not supported.
                     // TODO Add support for sending Secure Network Beacons.
                     ConfigBeaconStatus(isEnabled = false)
                 }
 
-                is ConfigNetworkTransmitGet, ConfigNetworkTransmitSet -> {
+                is ConfigNetworkTransmitGet, is ConfigNetworkTransmitSet -> {
                     if (request is ConfigNetworkTransmitSet) {
                         localNode.networkTransmit = NetworkTransmit(request = request)
                     }
                     ConfigNetworkTransmitStatus(node = localNode)
                 }
 
-                is ConfigNodeIdentityGet, ConfigNodeIdentitySet -> {
+                is ConfigNodeIdentityGet, is ConfigNodeIdentitySet -> {
                     // Node Identity feature is not supported
                     ConfigNodeIdentityStatus(request = request as ConfigNetKeyMessage)
                 }
 
                 is ConfigNodeReset -> ConfigNodeResetStatus()
 
-                is ConfigHeartbeatPublicationGet, ConfigHeartbeatPublicationSet -> {
+                is ConfigHeartbeatPublicationGet, is ConfigHeartbeatPublicationSet -> {
                     if (request is ConfigHeartbeatPublicationSet) {
                         // The Heartbeat Publication Destination shall be the Unassigned Address, a
                         // Unicast Address, or a Group Address. All other values are Prohibited.
@@ -903,7 +903,7 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     ConfigHeartbeatPublicationStatus(publication = localNode.heartbeatPublication)
                 }
 
-                is ConfigHeartbeatSubscriptionGet, ConfigHeartbeatSubscriptionSet -> {
+                is ConfigHeartbeatSubscriptionGet, is ConfigHeartbeatSubscriptionSet -> {
                     if (request is ConfigHeartbeatSubscriptionSet) {
                         // The Heartbeat Subscription Source shall be the Unassigned Address or a
                         // Unicast Address, all other values are Prohibited.
