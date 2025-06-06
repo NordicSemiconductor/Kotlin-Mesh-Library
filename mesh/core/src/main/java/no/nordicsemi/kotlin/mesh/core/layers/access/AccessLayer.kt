@@ -483,7 +483,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
                                 if (eventHandler is SceneClientHandler) {
                                     networkManager.emitNetworkManagerEvent(
-                                        NetworkManagerEvent.NetworkDidChange
+                                        NetworkManagerEvent.OnNetworkChanged
                                     )
                                 }
                             }
@@ -529,7 +529,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         // Some Config Messages require special handling.
                         handle(message = message)
                     }
-                    networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidChange)
+                    networkManager.emitNetworkManagerEvent(NetworkManagerEvent.OnNetworkChanged)
                 } else {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
                         "$message received from: ${accessPdu.source.toHexString()}," +
@@ -571,7 +571,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             }
         }
         if (message is ConfigNodeReset) {
-            networkManager.emitNetworkManagerEvent(NetworkManagerEvent.NetworkDidReset)
+            networkManager.emitNetworkManagerEvent(NetworkManagerEvent.OnNetworkReset)
         }
     }
 

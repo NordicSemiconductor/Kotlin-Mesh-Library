@@ -970,12 +970,12 @@ class MeshNetworkManager(
     private fun observeNetworkManagerEvents() {
         networkManager?.networkManagerEventFlow?.onEach {
             when (it) {
-                NetworkManagerEvent.NetworkDidChange -> save()
-                NetworkManagerEvent.NetworkDidReset -> {
+                NetworkManagerEvent.OnNetworkChanged -> save()
+                NetworkManagerEvent.OnNetworkReset -> {
                     network?.localProvisioner?.let { provisioner ->
                         val localElements = this@MeshNetworkManager.localElements
                         provisioner.network = null
-                        create()
+                        create(provisioner = provisioner)
                         this@MeshNetworkManager.localElements = localElements
                     }
                 }
