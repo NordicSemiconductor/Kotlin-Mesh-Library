@@ -33,8 +33,8 @@ dependencies {
     implementation(project(":mesh:core"))
 
     // Material3 adaptive navigation suite
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha13")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha13")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha15")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0-alpha15")
 
     // Adaptive layouts
     implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
