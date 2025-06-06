@@ -15,8 +15,8 @@ class ConfigNodeResetStatus : ConfigResponse {
     override val parameters: ByteArray? = null
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String =
-        "ConfigNodeResetStatus(opCode=${opCode.toHexString()}, parameters=${parameters?.toHexString()})"
+    override fun toString() =
+        "ConfigNodeResetStatus(opCode: ${opCode.toHexString(format = HexFormat.UpperCase)})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x804Au
