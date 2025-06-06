@@ -92,7 +92,7 @@ internal class NetworkManager internal constructor(
     private var outgoingMessages = mutableSetOf<MeshAddress>()
 
     private val _incomingProxyMessages = MutableSharedFlow<ReceivedMessage>()
-    private val incomingProxyMessages
+    internal val incomingProxyMessages
         get() = _incomingProxyMessages.asSharedFlow()
 
     private val _incomingMeshMessages = MutableSharedFlow<ReceivedMessage>()

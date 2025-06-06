@@ -3,6 +3,7 @@ package no.nordicsemi.kotlin.mesh.core
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -24,8 +25,10 @@ import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidSource
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidTtl
 import no.nordicsemi.kotlin.mesh.core.layers.access.ModelNotBoundToAppKey
 import no.nordicsemi.kotlin.mesh.core.layers.access.NoAppKeysBoundToModel
+import no.nordicsemi.kotlin.mesh.core.layers.lowertransport.AccessMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
@@ -53,13 +56,21 @@ import java.util.UUID
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
  *
- * @param storage               Custom storage option allowing users to save the mesh network to a
- *                              custom location.
- * @param secureProperties      Custom storage option allowing users to save the sequence number.
- * @param scope                 The scope in which the mesh network will be created.
- * @property meshBearer         Mesh bearer is responsible for sending and receiving mesh messages.
- * @property logger             The logger is responsible for logging mesh messages.
- * @property networkManager     Handles the mesh networking stack.
+ * @param storage                     Custom storage option allowing users to save the mesh network
+ *                                    to a custom location.
+ * @param secureProperties            Custom storage option allowing users to save the sequence
+ *                                    number.
+ * @param scope                       The scope in which the mesh network will be created.
+ * @property meshBearer               Mesh bearer is responsible for sending and receiving mesh
+ *                                    messages.
+ * @property logger                   The logger is responsible for logging mesh messages.
+ * @property networkManager           Handles the mesh networking stack.
+ * @property proxyFilter              Proxy filter is responsible for filtering messages sent to the
+ *                                    proxy node.
+ * @property localElements            List of local elements in the mesh network. The primary
+ *                                    element is always the first element in the list.
+ * @property incomingMeshMessages     Flow containing incoming access messages received by the local
+ *                                    node.
  */
 class MeshNetworkManager(
     private val storage: Storage,
@@ -78,8 +89,13 @@ class MeshNetworkManager(
             field = value
             value?.let {
                 observeNetworkManagerEvents()
+                observeMeshMessages()
             }
         }
+
+    private val _incomingMeshMessages = MutableSharedFlow<BaseMeshMessage>()
+    val incomingMeshMessages: SharedFlow<BaseMeshMessage>
+        get() = _incomingMeshMessages.asSharedFlow()
 
     var logger: Logger? = null
 
@@ -426,7 +442,7 @@ class MeshNetworkManager(
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        val network = requireNotNull(network) { throw NoNetwork }
+        if (network == null) throw NoNetwork
 
         val node = model.parentElement?.parentNode ?: run {
             println("Error: Element does not belong to a Node")
@@ -977,6 +993,17 @@ class MeshNetworkManager(
                         this@MeshNetworkManager.localElements = localElements
                     }
                 }
+            }
+        }?.launchIn(scope = scope)
+    }
+
+    /**
+     * Observes incoming mesh messages.
+     */
+    private fun observeMeshMessages() {
+        networkManager?.incomingMeshMessages?.onEach {
+            if (it.message is AccessMessage) {
+                _incomingMeshMessages.emit(it.message)
             }
         }?.launchIn(scope = scope)
     }
