@@ -31,6 +31,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -54,6 +55,12 @@ internal class NodeViewModel @Inject internal constructor(
     val uiState: StateFlow<NodeScreenUiState> = _uiState.asStateFlow()
 
     init {
+        observeNetworkChanges()
+        observeConfigNodeReset()
+        requestConfigCompositionData()
+    }
+
+    private fun observeNetworkChanges(){
         repository.network.onEach {
             val state = it.node(nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
@@ -69,7 +76,28 @@ internal class NodeViewModel @Inject internal constructor(
             )
             meshNetwork = it // update the local network instance
         }.launchIn(scope = viewModelScope)
+    }
 
+    /**
+     * Observes incoming messages from the repository to handle node reset events.
+     */
+    private fun observeConfigNodeReset() {
+        repository.incomingMessages.onEach {
+            if (it is ConfigNodeReset) {
+                _uiState.value = _uiState.value.copy(
+                    nodeState = NodeState.Error(
+                        throwable = Throwable("Node has been reset and is no longer available.")
+                    ),
+                    isRefreshing = false
+                )
+            }
+        }.launchIn(scope = viewModelScope)
+    }
+
+    /**
+     * Requests the composition data for the selected node when the network is connected.
+     */
+    private fun requestConfigCompositionData() {
         // Request the composition data when the network is connected if it has not been requested yet.
         repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {

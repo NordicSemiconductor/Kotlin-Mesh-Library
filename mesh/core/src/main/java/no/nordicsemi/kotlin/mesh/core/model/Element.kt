@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.foundation.RemoteProvisioningClient
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SarConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
+import java.nio.ByteOrder
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.
@@ -74,7 +75,7 @@ class Element(
 
     internal val composition: ByteArray
         get() {
-            var data = location.value.toByteArray()
+            var data = location.value.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             val sigModels = mutableListOf<Model>()
             val vendorModels = mutableListOf<Model>()
             for (model in _models) {
@@ -87,14 +88,14 @@ class Element(
             data += sigModels.size.toByte()
             data += vendorModels.size.toByte()
             for (model in sigModels) {
-                data += (model.modelId as SigModelId).modelIdentifier.toByteArray()
+                data += (model.modelId as SigModelId).modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             }
             for (model in vendorModels) {
                 val modelId = model.modelId as VendorModelId
-                data += modelId.companyIdentifier.toByteArray()
-                data += modelId.modelIdentifier.toByteArray()
+                data += modelId.companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                data += modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             }
-            return byteArrayOf()
+            return data
         }
 
     init {

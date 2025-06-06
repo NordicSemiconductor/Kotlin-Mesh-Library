@@ -94,11 +94,11 @@ data class Page0(
 ) : CompositionDataPage {
 
     override val parameters: ByteArray = byteArrayOf(page.toByte()) +
-            companyIdentifier.toByteArray() +
-            productIdentifier.toByteArray() +
-            versionIdentifier.toByteArray() +
-            minimumNumberOfReplayProtectionList.toByteArray() +
-            features.rawValue.toByteArray() +
+            companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            productIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            versionIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            minimumNumberOfReplayProtectionList.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            features.rawValue.toByteArray(ByteOrder.LITTLE_ENDIAN) +
             elements.composition()
 
     /**

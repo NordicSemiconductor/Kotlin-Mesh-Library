@@ -36,6 +36,7 @@ import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.ProxyFilter
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -80,6 +81,10 @@ class CoreDataRepository @Inject constructor(
 
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
+
+    val incomingMessages: SharedFlow<BaseMeshMessage>
+        get() = meshNetworkManager.incomingMeshMessages
+
     private lateinit var meshNetwork: MeshNetwork
     private var bearer: Bearer? = null
     private var connectionRequested = false
@@ -90,12 +95,24 @@ class CoreDataRepository @Inject constructor(
     private val scope = CoroutineScope(context = defaultDispatcher)
 
     init {
+        // Initialize the mesh network manager logger
         meshNetworkManager.logger = this
+        // Observe changes to the mesh network
+        observeNetworkChanges()
+        // Observe proxy connection state changes
+        observerProxyConnectionState()
+    }
+
+    private fun observeNetworkChanges() {
         network.onEach {
             meshNetwork = it
             // Start automatic connectivity
             startAutomaticConnectivity(meshNetwork = it)
         }.launchIn(scope = scope)
+
+    }
+
+    private fun observerProxyConnectionState() {
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
@@ -190,7 +207,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Exports a mesh network.
      */
-    suspend fun exportNetwork(configuration: NetworkConfiguration) =
+    fun exportNetwork(configuration: NetworkConfiguration) =
         meshNetworkManager.export(configuration = configuration)
 
     suspend fun resetNetwork() = createNewMeshNetwork().also {

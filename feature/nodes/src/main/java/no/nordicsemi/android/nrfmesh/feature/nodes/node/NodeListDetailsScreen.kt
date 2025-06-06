@@ -156,7 +156,10 @@ internal fun NodeListDetailsScreen(
             )
         }
 
-        else -> {}
+        is NodeState.Error -> navigateBack()
+        else -> {
+            // Do nothing, waiting for the node to be loaded.
+        }
     }
 
 }

@@ -25,7 +25,7 @@ internal sealed class NetworkManagerEvent {
     /**
      * An event used to notify when the Network Configuration has changed.
      */
-    data object NetworkDidChange : NetworkManagerEvent()
+    data object OnNetworkChanged : NetworkManagerEvent()
 
     /**
      * An event used to notify when the [ConfigNodeReset] message was received for the local
@@ -35,5 +35,5 @@ internal sealed class NetworkManagerEvent {
      *
      * A network might be created.
      */
-    data object NetworkDidReset : NetworkManagerEvent()
+    data object OnNetworkReset : NetworkManagerEvent()
 }

@@ -26,6 +26,7 @@ internal fun SettingsExtraPane(
     moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit,
 ) {
+    println("SettingsExtraPane: $content")
     when (content) {
         is ProvisionerContent -> {
             val provisioner = network.provisioners
