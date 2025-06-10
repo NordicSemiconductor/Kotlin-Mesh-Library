@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -86,7 +87,7 @@ private fun Provisioners(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedUuid by remember { mutableStateOf<UUID?>(null) }
+    var selectedUuid by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         contentWindowInsets = WindowInsets(top = 8.dp),
@@ -100,7 +101,7 @@ private fun Provisioners(
                     runCatching {
                         addProvisioner()
                     }.onSuccess {
-                        selectedUuid = it.uuid
+                        selectedUuid = it.uuid.toString()
                         navigateToProvisioner(it.uuid)
                     }
                 },
@@ -135,9 +136,9 @@ private fun Provisioners(
                     scope = scope,
                     context = context,
                     snackbarHostState = snackbarHostState,
-                    isSelected = selectedUuid == item.uuid && highlightSelectedItem,
+                    isSelected = selectedUuid == item.uuid.toString() && highlightSelectedItem,
                     navigateToProvisioner = {
-                        selectedUuid = it
+                        selectedUuid = it.toString()
                         navigateToProvisioner(it)
                     },
                     onSwiped = onSwiped,
