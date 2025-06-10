@@ -29,14 +29,14 @@ fun ProvisionersScreenRoute(
         onAddProvisionerClicked = viewModel::addProvisioner,
         onSwiped = {
             viewModel.onSwiped(it)
-            if (viewModel.isCurrentlySelectedProvisioner(it.uuid)) {
+            if (viewModel.isCurrentlySelectedProvisioner(uuid = it.uuid)) {
                 navigateUp()
             }
         },
         onUndoClicked = viewModel::onUndoSwipe,
         remove = viewModel::remove,
         navigateToProvisioner = {
-            viewModel.selectProvisioner(it)
+            viewModel.selectProvisioner(uuid = it)
             navigateToProvisioner(it)
         }
     )
