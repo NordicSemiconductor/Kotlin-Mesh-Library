@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -87,7 +88,7 @@ private fun Scenes(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedScene by remember { mutableStateOf<SceneNumber?>(null) }
+    var selectedSceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         contentWindowInsets = WindowInsets(top = 8.dp),
@@ -101,7 +102,10 @@ private fun Scenes(
                     runCatching {
                         onAddSceneClicked()
                     }.onSuccess { scene ->
-                        selectedScene = scene?.number?.also { navigateToScene(it) }
+                        scene?.number?.let {
+                            selectedSceneNumber = it.toInt()
+                            navigateToScene(it)
+                        }
                     }.onFailure {
                         showSnackbar(
                             scope = scope,
@@ -128,6 +132,7 @@ private fun Scenes(
             SectionTitle(title = stringResource(id = R.string.label_scenes))
             when (scenes.isEmpty()) {
                 true -> MeshNoItemsAvailable(
+                    modifier = Modifier.fillMaxSize(),
                     imageVector = Icons.Outlined.AutoAwesome,
                     title = stringResource(R.string.no_scenes_currently_added)
                 )
@@ -139,14 +144,14 @@ private fun Scenes(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(items = scenes, key = { it.hashCode() }) { scene ->
-                        val isSelected = highlightSelectedItem && scene.number == selectedScene
+                        val isSelected = highlightSelectedItem && scene.number.toInt() == selectedSceneNumber
                         SwipeToDismissScene(
                             context = context,
                             snackbarHostState = snackbarHostState,
                             scene = scene,
                             isSelected = isSelected,
                             navigateToScene = {
-                                selectedScene = it
+                                selectedSceneNumber = it.toInt()
                                 navigateToScene(it)
                             },
                             onSwiped = {
