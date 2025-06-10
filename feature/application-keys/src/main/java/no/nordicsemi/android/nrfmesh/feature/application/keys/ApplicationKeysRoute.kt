@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -64,7 +65,7 @@ internal fun ApplicationKeysRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedKeyIndex by remember { mutableStateOf<KeyIndex?>(null) }
+    var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -77,7 +78,7 @@ internal fun ApplicationKeysRoute(
                     runCatching {
                         onAddKeyClicked()
                     }.onSuccess {
-                        selectedKeyIndex = it.index
+                        selectedKeyIndex = it.index.toInt()
                         navigateToKey(it.index)
                     }
                 },
@@ -105,7 +106,7 @@ internal fun ApplicationKeysRoute(
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
                     items(items = keys, key = { it.key.hashCode() }) { key ->
-                        val isSelected = highlightSelectedItem && key.index == selectedKeyIndex
+                        val isSelected = highlightSelectedItem && key.index.toInt() == selectedKeyIndex
                         SwipeToDismissKey(
                             scope = scope,
                             context = context,
@@ -113,7 +114,7 @@ internal fun ApplicationKeysRoute(
                             key = key,
                             isSelected = isSelected,
                             onApplicationKeyClicked = {
-                                selectedKeyIndex = it
+                                selectedKeyIndex = it.toInt()
                                 onApplicationKeyClicked(it)
                             },
                             onSwiped = onSwiped,
