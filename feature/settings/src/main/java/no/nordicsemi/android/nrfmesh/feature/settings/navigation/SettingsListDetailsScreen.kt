@@ -7,7 +7,6 @@ import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
@@ -154,28 +153,10 @@ internal fun SettingsListDetailsScreen(
                     }
                 }
             )
-
-            if (uiState.selectedSetting != null) {
-                LaunchedEffect(uiState.selectedSetting) {
-                    navigator.navigateTo(
-                        pane = ListDetailPaneScaffoldRole.Detail,
-                        contentKey = uiState.selectedSetting.contentKey()
-                    )
-                }
-            }
         }
 
         else -> {
             // Do something else
         }
-    }
-}
-
-private fun ClickableSetting.contentKey(): Any {
-    return when (this) {
-        ClickableSetting.PROVISIONERS -> ProvisionersContent
-        ClickableSetting.NETWORK_KEYS -> NetworkKeysContent
-        ClickableSetting.APPLICATION_KEYS -> ApplicationKeysContent
-        ClickableSetting.SCENES -> ScenesContent
     }
 }
