@@ -46,7 +46,8 @@ data class IvIndex(
     val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,
     val transitionDate: Instant = Clock.System.now(),
-) {
+) : Comparable<IvIndex> {
+
     var ivRecoveryFlag = false
         internal set
 
@@ -91,6 +92,10 @@ data class IvIndex(
             false -> "Normal Operation"
         }
     }"
+
+    override fun compareTo(other: IvIndex): Int {
+        return other.index.compareTo(other.index)
+    }
 
     companion object {
         const val TIME_STAMP_KEY = "IVTimestamp"
