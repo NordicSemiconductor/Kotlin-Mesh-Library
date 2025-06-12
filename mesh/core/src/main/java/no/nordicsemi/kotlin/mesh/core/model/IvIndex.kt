@@ -94,6 +94,17 @@ data class IvIndex(
         return super.equals(other)
     }
 
+    override fun hashCode(): Int {
+        var result = isIvUpdateActive.hashCode()
+        result = 31 * result + ivRecoveryFlag.hashCode()
+        result = 31 * result + index.hashCode()
+        result = 31 * result + transitionDate.hashCode()
+        result = 31 * result + transmitIvIndex.hashCode()
+        result = 31 * result + (next?.hashCode() ?: 0)
+        result = 31 * result + (previous?.hashCode() ?: 0)
+        return result
+    }
+
     override fun toString() = "IV Index: $index, ${
         when (isIvUpdateActive) {
             true -> "IV Update Active"
