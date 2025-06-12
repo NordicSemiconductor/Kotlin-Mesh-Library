@@ -159,7 +159,10 @@ class MeshNetworkManager(
      * @return true if the configuration was successfully loaded or false otherwise.
      */
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
-        val meshNetwork = deserialize(it)
+        val meshNetwork = deserialize(it).apply {
+            // Load the IvIndex from the secure properties storage.
+            ivIndex = secureProperties.ivIndex(uuid = uuid)
+        }
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
@@ -212,6 +215,11 @@ class MeshNetworkManager(
         it.add(provisioner)
         network = it
         networkManager = NetworkManager(this)
+        // Store the IvIndex of the newly created network.
+        secureProperties.storeIvIndex(
+            uuid = it.uuid,
+            ivIndex = it.ivIndex
+        )
         _meshNetwork.emit(it)
     }
 
