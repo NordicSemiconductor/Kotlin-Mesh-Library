@@ -42,6 +42,7 @@ include(":feature:provisioners")
 include(":feature:provisioning")
 include(":feature:ranges")
 include(":feature:scenes")
+include(":feature:ivindex")
 include(":feature:scanner")
 
 include(":mesh:core")
@@ -51,8 +52,8 @@ include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:bearer-pbgatt")
-include(":mesh:bearer-gatt")
 
+include(":mesh:bearer-gatt")
 if (file("../Android-Common-Libraries").exists()) {
     includeBuild("../Android-Common-Libraries")
 }
@@ -61,9 +62,9 @@ if (file("../Android-Common-Libraries").exists()) {
 // }
 // if (file("../Kotlin-Util-Library").exists()) {
 //     includeBuild("../Kotlin-Util-Library")
+
 // }
 
 if (file("../Kotlin-BLE-Library").exists()) {
     includeBuild("../Kotlin-BLE-Library")
 }
-

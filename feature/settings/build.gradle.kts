@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":feature:network-keys"))
     implementation(project(":feature:application-keys"))
     implementation(project(":feature:scenes"))
+    implementation(project(":feature:ivindex"))
     implementation(project(":mesh:core"))
 
     testImplementation(libs.junit4)

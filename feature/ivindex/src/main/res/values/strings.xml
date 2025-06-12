@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_iv_index">Current IV Index</string>
+    <string name="label_iv_update_state">IV Update State</string>
+    <string name="label_iv_update_test_mode">IV Update Test Mode</string>
+    <string name="label_iv_index_update_rationale">IV Index can only be changed on a network that does not contain any provisioned nodes. \n\nChanging the IV Index does not trigger an IV Update process. However, IV Update procedure can be triggered from other nodes.</string>
+    <string name="label_change_iv_index">Change IV Index</string>
+    <string name="label_iv_index_too_small_error">IV Index too small</string>
+    <string name="label_unknown_error">Unknown error</string>
+</resources>

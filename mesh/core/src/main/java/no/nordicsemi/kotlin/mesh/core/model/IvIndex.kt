@@ -46,7 +46,8 @@ data class IvIndex(
     val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,
     val transitionDate: Instant = Clock.System.now(),
-) {
+) : Comparable<IvIndex> {
+
     var ivRecoveryFlag = false
         internal set
 
@@ -85,12 +86,35 @@ data class IvIndex(
         else -> max(1u, index) - 1u
     }
 
+    override fun equals(other: Any?): Boolean {
+        if(other is IvIndex) {
+            return index == other.index &&
+                    isIvUpdateActive == other.isIvUpdateActive
+        }
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = isIvUpdateActive.hashCode()
+        result = 31 * result + ivRecoveryFlag.hashCode()
+        result = 31 * result + index.hashCode()
+        result = 31 * result + transitionDate.hashCode()
+        result = 31 * result + transmitIvIndex.hashCode()
+        result = 31 * result + (next?.hashCode() ?: 0)
+        result = 31 * result + (previous?.hashCode() ?: 0)
+        return result
+    }
+
     override fun toString() = "IV Index: $index, ${
         when (isIvUpdateActive) {
             true -> "IV Update Active"
             false -> "Normal Operation"
         }
     }"
+
+    override fun compareTo(other: IvIndex): Int {
+        return other.index.compareTo(other.index)
+    }
 
     companion object {
         const val TIME_STAMP_KEY = "IVTimestamp"

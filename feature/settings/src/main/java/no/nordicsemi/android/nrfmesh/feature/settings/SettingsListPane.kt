@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.DataObject
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Subtitles
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.CardDefaults
@@ -25,7 +25,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import java.text.DateFormat
 import java.util.Date
 
@@ -38,7 +37,8 @@ internal fun SettingsListPane(
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
-    navigateToScenes: () -> Unit
+    navigateToScenes: () -> Unit,
+    navigateToIvIndex: () -> Unit,
 ) {
     SettingsScreen(
         settingsListData = settingsListData,
@@ -48,7 +48,8 @@ internal fun SettingsListPane(
         onProvisionersClicked = navigateToProvisioners,
         onNetworkKeysClicked = navigateToNetworkKeys,
         onApplicationKeysClicked = navigateToApplicationKeys,
-        onScenesClicked = navigateToScenes
+        onScenesClicked = navigateToScenes,
+        onIvIndexClicked = navigateToIvIndex
     )
 }
 
@@ -62,6 +63,7 @@ private fun SettingsScreen(
     onNetworkKeysClicked: () -> Unit,
     onApplicationKeysClicked: () -> Unit,
     onScenesClicked: () -> Unit,
+    onIvIndexClicked: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -93,7 +95,10 @@ private fun SettingsScreen(
             isSelected = selectedSetting == ClickableSetting.SCENES && highlightSelectedItem,
             onScenesClicked = onScenesClicked
         )
-        IvIndexRow(ivIndex = settingsListData.ivIndex)
+        IvIndexRow(
+            isSelected = selectedSetting == ClickableSetting.IV_INDEX && highlightSelectedItem,
+            onIvIndexClicked = onIvIndexClicked
+        )
         LastModifiedTimeRow(timestamp = settingsListData.timestamp)
         SectionTitle(
             modifier = Modifier.padding(vertical = 8.dp),
@@ -213,14 +218,21 @@ private fun ScenesRow(
 }
 
 @Composable
-private fun IvIndexRow(ivIndex: IvIndex) {
+private fun IvIndexRow(isSelected: Boolean, onIvIndexClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp),
-        imageVector = Icons.Outlined.Tune,
+        colors = when (isSelected) {
+            true -> CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            else -> CardDefaults.outlinedCardColors()
+        },
+        imageVector = Icons.AutoMirrored.Outlined.List,
         title = stringResource(R.string.label_iv_index),
-        subtitle = "${ivIndex.index}"
+        onClick = onIvIndexClicked
     )
 }
 

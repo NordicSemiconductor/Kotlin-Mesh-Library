@@ -11,5 +11,6 @@ enum class ClickableSetting {
     PROVISIONERS,
     NETWORK_KEYS,
     APPLICATION_KEYS,
-    SCENES
+    SCENES,
+    IV_INDEX,
 }

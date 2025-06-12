@@ -15,6 +15,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
+import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerContent
@@ -85,6 +86,15 @@ internal fun SettingsListDetailsScreen(
                                     navigator.navigateTo(
                                         pane = ListDetailPaneScaffoldRole.Detail,
                                         contentKey = ScenesContent
+                                    )
+                                }
+                            },
+                            navigateToIvIndex = {
+                                onItemSelected(ClickableSetting.IV_INDEX)
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                        contentKey = IvIndexContent
                                     )
                                 }
                             },

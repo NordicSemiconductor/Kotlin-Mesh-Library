@@ -8,6 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
@@ -29,22 +31,31 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             selectedSetting = savedStateHandle.toRoute<SettingsRoute>().selectedSetting
         )
-
-        viewModelScope.launch {
-            repository.network.collect {
-                val selectedSetting = _uiState.value.selectedSetting
-                _uiState.value = _uiState.value.copy(
-                    networkState = MeshNetworkState.Success(
-                        network = it,
-                        settingsListData = SettingsListData(it)
-                    ),
-                    selectedSetting = selectedSetting
-                )
-                network = it
-            }
-        }
+        observeNetworkState()
     }
 
+    /**
+     * Observes the network state and updates the UI state with the current network data.
+     */
+    private fun observeNetworkState() {
+        repository.network.onEach {
+            val selectedSetting = _uiState.value.selectedSetting
+            _uiState.value = _uiState.value.copy(
+                networkState = MeshNetworkState.Success(
+                    network = it,
+                    settingsListData = SettingsListData(it)
+                ),
+                selectedSetting = selectedSetting
+            )
+            network = it
+        }.launchIn(scope = viewModelScope)
+    }
+
+    /**
+     * Invoked when a setting is selected.
+     *
+     * @param clickableSetting The setting that was clicked.
+     */
     internal fun onItemSelected(clickableSetting: ClickableSetting) {
         _uiState.value = _uiState.value.copy(selectedSetting = clickableSetting)
     }
@@ -59,6 +70,9 @@ class SettingsViewModel @Inject constructor(
         save()
     }
 
+    /**
+     * Moves the provisioner to a new index in the list.
+     */
     fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
         viewModelScope.launch {
             network.move(provisioner, newIndex)
