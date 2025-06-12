@@ -41,12 +41,17 @@ class MeshSecurePropertiesStorage @Inject constructor(
      * @param uuid UUID of the mesh network.
      * @return [ProtoSecurePropertiesMap] with a single entry for the given [uuid].
      */
-    private fun createProtoSecurePropertiesMap(uuid: UUID) = ProtoSecurePropertiesMap(
+    private fun createProtoSecurePropertiesMap(
+        uuid: UUID,
+        ivIndex: ProtoIvIndex = ProtoIvIndex(),
+        sequenceNumbers: Map<Int, Int> = mutableMapOf(),
+        seqAuths: Map<Int, ProtoSeqAuth> = mutableMapOf(),
+    ) = ProtoSecurePropertiesMap(
         properties = mutableMapOf(
             uuid.toString() to ProtoSecureProperties(
-                ivIndex = ProtoIvIndex(),
-                sequenceNumbers = mutableMapOf(),
-                seqAuths = mutableMapOf()
+                ivIndex = ivIndex,
+                sequenceNumbers = sequenceNumbers,
+                seqAuths = seqAuths
             )
         )
     ).also {
@@ -81,11 +86,14 @@ class MeshSecurePropertiesStorage @Inject constructor(
     }
 
     override suspend fun storeIvIndex(uuid: UUID, ivIndex: IvIndex) {
-        scope.launch {
-            securePropertiesStore.updateData {
-                it.properties[uuid.toString()]?.copy(ivIndex = ivIndex.toProtoIvIndex())
-                it
-            }
+        securePropertiesStore.updateData { securePropertiesMap ->
+            val propertiesMap = securePropertiesMap
+                .properties
+                .toMutableMap()
+            var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
+            properties = properties.copy(ivIndex = ivIndex.toProtoIvIndex())
+            propertiesMap[uuid.toString()] = properties
+            securePropertiesMap.copy(properties = propertiesMap.toMap())
         }
     }
 
