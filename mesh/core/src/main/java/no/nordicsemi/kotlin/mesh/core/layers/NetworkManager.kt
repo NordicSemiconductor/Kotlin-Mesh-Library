@@ -86,7 +86,8 @@ internal class NetworkManager internal constructor(
     val meshNetwork: MeshNetwork
         get() = manager.network!!
 
-    var networkParameters = NetworkParameters()
+    val networkParameters : NetworkParameters
+        get() = manager.networkParameters
     private val mutex = Mutex()
 
     private var outgoingMessages = mutableSetOf<MeshAddress>()

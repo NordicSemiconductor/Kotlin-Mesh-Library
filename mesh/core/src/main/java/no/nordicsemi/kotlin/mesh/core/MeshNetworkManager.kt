@@ -16,6 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
+import no.nordicsemi.kotlin.mesh.core.layers.NetworkParameters
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotDelete
 import no.nordicsemi.kotlin.mesh.core.layers.access.CannotRelay
 import no.nordicsemi.kotlin.mesh.core.layers.access.InvalidDestination
@@ -81,6 +82,7 @@ class MeshNetworkManager(
     private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()
+    var networkParameters = NetworkParameters()
     internal var network: MeshNetwork? = null
         private set
 
@@ -104,7 +106,6 @@ class MeshNetworkManager(
             field = value
             networkManager?.bearer = value
         }
-
     var proxyFilter: ProxyFilter
         internal set
 
