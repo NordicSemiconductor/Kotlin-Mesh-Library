@@ -6,14 +6,40 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exception.*
+import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
+import no.nordicsemi.kotlin.mesh.core.exception.CannotRemove
+import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
+import no.nordicsemi.kotlin.mesh.core.exception.DuplicateKeyIndex
+import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
+import no.nordicsemi.kotlin.mesh.core.exception.IvIndexTooSmall
+import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.KeyIndexOutOfRange
+import no.nordicsemi.kotlin.mesh.core.exception.NoAddressesAvailable
+import no.nordicsemi.kotlin.mesh.core.exception.NoGroupRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
+import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
+import no.nordicsemi.kotlin.mesh.core.exception.ProvisionerAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.SceneAlreadyExists
+import no.nordicsemi.kotlin.mesh.core.exception.SceneInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
-import no.nordicsemi.kotlin.mesh.core.model.serialization.config.*
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ApplicationKeysConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.DeviceKeyConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.GroupsConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkKeysConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NodesConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ProvisionersConfig
+import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ScenesConfig
 import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
-import java.util.*
+import java.util.UUID
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -196,6 +222,61 @@ data class MeshNetwork internal constructor(
      */
     internal fun updateTimestamp() {
         this._timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    }
+
+    /**
+     * Sets new value of IV Index and IV Update flag.
+     *
+     * This method allows setting the IV Index of the mesh network when the provisioner is not
+     * connected to the network and did not receive the Secure Network beacon, for example to
+     * provision a Node.
+     *
+     * Otherwise, if the local Node is connecting to the mesh network using GATT Proxy, it will
+     * obtain the current IV Index automatically just after connection using the Secure Network
+     * beacon, in which case calling this method is not necessary.
+     *
+     * Note: If there are no Nodes in the network except the Provisioner, it is not possible to
+     *       revert IV Index to smaller value (at least not using the public API). If you set a IV
+     *       Index that's too high, the app will not be able to communicate with the mesh network.
+     *       Always use the current IV Index of the mesh network.
+     *
+     *       Once this method is called, ensure to call [SecurePropertiesStorage.storeIvIndex]
+     *
+     * @param index            32-bit integer value.
+     * @param isIvUpdateActive true if the IV Update is active, false otherwise.
+     * @throws IvIndexTooSmall if the IV Index value is lower than the current.
+     */
+    @Throws(IvIndexTooSmall::class)
+    fun setIvIndex(index: UInt, isIvUpdateActive: Boolean = false) {
+        require(isIvIndexUpdateAllowed(index = index, updateActive = isIvUpdateActive)) {
+            throw IvIndexTooSmall
+        }
+        val newIvIndex = IvIndex(index = index, isIvUpdateActive = isIvUpdateActive)
+        if (ivIndex == newIvIndex) {
+            // No change in IV Index, no need to update
+            return
+        }
+        ivIndex = newIvIndex
+    }
+
+    /**
+     * Checks if the IV Index can be updated.
+     *
+     * The IV Index can be updated only when the network has no Nodes
+     *
+     * @param index          The new IV Index to be set.
+     * @param updateActive   True if the IV Update is active, false otherwise.
+     * @return True if the IV Index can be updated, false otherwise.
+     */
+    fun isIvIndexUpdateAllowed(
+        index: UInt = ivIndex.index,
+        updateActive: Boolean = ivIndex.isIvUpdateActive,
+    ): Boolean {
+        val newIvIndex = IvIndex(index = index, isIvUpdateActive = updateActive)
+        // The IV Index can be changed only when the network has no Nodes
+        // except the local Provisioner.
+        val onlyProvisioner = nodes.none { !it.isLocalProvisioner }
+        return onlyProvisioner || newIvIndex >= ivIndex
     }
 
     /**

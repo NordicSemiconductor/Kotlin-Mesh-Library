@@ -79,6 +79,10 @@ data object InvalidPduType : MeshNetworkException()
 /** Thrown when an invalid pdu is received*/
 data object InvalidPdu : MeshNetworkException()
 
+/** Thrown when setting too small IV Index. The new IV Index must be greater than or equal to the
+ * previous one. */
+data object IvIndexTooSmall : MeshNetworkException()
+
 /**
  * Security exception thrown when level of security of the network key doesn't match with the
  * security used when provisioning a node.
