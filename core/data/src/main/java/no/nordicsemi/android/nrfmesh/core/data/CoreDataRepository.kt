@@ -91,6 +91,8 @@ class CoreDataRepository @Inject constructor(
 
     val proxyFilter: ProxyFilter
         get() = meshNetworkManager.proxyFilter
+    val ivUpdateTestMode: Boolean
+        get() = meshNetworkManager.networkParameters.ivUpdateTestMode
 
     private val scope = CoroutineScope(context = defaultDispatcher)
 
@@ -518,6 +520,10 @@ class CoreDataRepository @Inject constructor(
     fun createProvisionerName(): String = Build.MODEL.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.ROOT)
         else it.toString()
+    }
+
+    fun toggleIvUpdateTestMode(flag: Boolean) {
+        meshNetworkManager.networkParameters.ivUpdateTestMode = flag
     }
 }
 

@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -47,7 +48,7 @@ class SettingsViewModel @Inject constructor(
                 selectedSetting = selectedSetting
             )
             network = it
-        }
+        }.launchIn(scope = viewModelScope)
     }
 
     /**

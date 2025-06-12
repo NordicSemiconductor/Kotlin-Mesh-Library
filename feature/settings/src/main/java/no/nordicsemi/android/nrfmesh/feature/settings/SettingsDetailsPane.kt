@@ -10,6 +10,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContent
+import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysScreenRoute
@@ -58,6 +60,8 @@ internal fun SettingsDetailsPane(
             navigateToScene = navigateToScene,
             navigateUp = navigateUp
         )
+
+        is IvIndexContent -> IvIndexScreenRoute()
 
         else -> PlaceHolder(
             modifier = Modifier.fillMaxSize(),
