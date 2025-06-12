@@ -86,6 +86,14 @@ data class IvIndex(
         else -> max(1u, index) - 1u
     }
 
+    override fun equals(other: Any?): Boolean {
+        if(other is IvIndex) {
+            return index == other.index &&
+                    isIvUpdateActive == other.isIvUpdateActive
+        }
+        return super.equals(other)
+    }
+
     override fun toString() = "IV Index: $index, ${
         when (isIvUpdateActive) {
             true -> "IV Update Active"
