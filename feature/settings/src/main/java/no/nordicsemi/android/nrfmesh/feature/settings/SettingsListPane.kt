@@ -25,7 +25,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import java.text.DateFormat
 import java.util.Date
 
@@ -97,7 +96,6 @@ private fun SettingsScreen(
             onScenesClicked = onScenesClicked
         )
         IvIndexRow(
-            ivIndex = settingsListData.ivIndex,
             isSelected = selectedSetting == ClickableSetting.IV_INDEX && highlightSelectedItem,
             onIvIndexClicked = onIvIndexClicked
         )
@@ -220,7 +218,7 @@ private fun ScenesRow(
 }
 
 @Composable
-private fun IvIndexRow(ivIndex: IvIndex, isSelected: Boolean, onIvIndexClicked: () -> Unit) {
+private fun IvIndexRow(isSelected: Boolean, onIvIndexClicked: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -234,7 +232,6 @@ private fun IvIndexRow(ivIndex: IvIndex, isSelected: Boolean, onIvIndexClicked: 
         },
         imageVector = Icons.AutoMirrored.Outlined.List,
         title = stringResource(R.string.label_iv_index),
-        subtitle = "${ivIndex.index}",
         onClick = onIvIndexClicked
     )
 }

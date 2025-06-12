@@ -26,7 +26,6 @@ data class SettingsListData(
     val networkKeys: List<NetworkKeyData>,
     val appKeys: List<ApplicationKeyData>,
     val scenes: List<SceneData>,
-    val ivIndex: IvIndex,
     val timestamp: Instant,
 ) {
     /**
@@ -38,7 +37,6 @@ data class SettingsListData(
         networkKeys = network.networkKeys.map { NetworkKeyData(it) },
         appKeys = network.applicationKeys.map { ApplicationKeyData(it) },
         scenes = network.scenes.map { SceneData(it) },
-        ivIndex = network.ivIndex,
         timestamp = network.timestamp
     )
 }
