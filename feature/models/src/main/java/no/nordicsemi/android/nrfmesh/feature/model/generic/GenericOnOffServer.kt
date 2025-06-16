@@ -71,7 +71,7 @@ internal fun GenericOnOffServer(
 }
 
 @Composable
-internal fun Controls(
+private fun Controls(
     model: Model,
     messageState: MessageState,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
@@ -220,7 +220,7 @@ internal fun Controls(
 }
 
 @Composable
-internal fun Status(
+private fun Status(
     model: Model,
     messageState: MessageState,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
