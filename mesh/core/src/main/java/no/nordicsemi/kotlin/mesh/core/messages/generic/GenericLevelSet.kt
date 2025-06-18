@@ -6,9 +6,12 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * This message is used to set the current status of a GenericLevelServer model. Response received
@@ -28,13 +31,34 @@ class GenericLevelSet(
     override val responseOpCode = GenericLevelStatus.opCode
     override val transitionTime = transitionParams?.transitionTime
     override val delay = transitionParams?.delay
-    override val parameters: ByteArray = when (transitionTime != null && delay != null) {
-        true -> level.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                tid!!.toByteArray() + transitionTime.rawValue.toByteArray() +
-                delay.toByteArray()
+    override val parameters: ByteArray
+        get() = when (transitionTime != null && delay != null) {
+            true -> level.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    tid!!.toByteArray() + transitionTime.rawValue.toByteArray() +
+                    delay.toByteArray()
 
-        else -> level.toByteArray(order = ByteOrder.LITTLE_ENDIAN) + tid!!.toByteArray()
-    }
+            else -> level.toByteArray(order = ByteOrder.LITTLE_ENDIAN) + tid!!.toByteArray()
+        }
+
+    /**
+     * Convenience constructor to create a GenericLevelSetUnacknowledged message.
+     *
+     * @param tid              Defines a unique Transaction identifier that each message must have.
+     * @param percent          Level value in percent in the form of a float between 0 and 1.
+     * @param transitionParams Defines the transition parameters for the message.
+     */
+    constructor(
+        tid: UByte?,
+        percent: Float, //Level value in percent in the form of a float between 0 and 1
+        transitionParams: TransitionParameters? = null,
+    ) : this(
+        tid = tid,
+        level = min(
+            a = Short.MAX_VALUE.toInt(),
+            b = (Short.MIN_VALUE + ((Short.MAX_VALUE - Short.MIN_VALUE) * percent)).toInt()
+        ).toShort(),
+        transitionParams = transitionParams
+    )
 
     /**
      * Convenience constructor to create a GenericLevelSet message without any transition time,
