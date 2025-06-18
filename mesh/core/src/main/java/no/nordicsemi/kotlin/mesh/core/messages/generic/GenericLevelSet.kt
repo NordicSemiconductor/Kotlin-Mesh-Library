@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -51,18 +52,18 @@ class GenericLevelSet(
      * Convenience constructor to create a GenericLevelSetUnacknowledged message.
      *
      * @param tid              Defines a unique Transaction identifier that each message must have.
-     * @param percent          Level value in percent in the form of a float between 0 and 1.
+     * @param percent          Level value in percent in the form of a float between 0 and 100%.
      * @param transitionParams Defines the transition parameters for the message.
      */
     constructor(
         tid: UByte?,
-        percent: Float, //Level value in percent in the form of a float between 0 and 1
+        percent: Float,
         transitionParams: TransitionParameters? = null,
     ) : this(
         tid = tid,
         level = min(
-            a = Short.MAX_VALUE.toInt(),
-            b = (Short.MIN_VALUE + ((Short.MAX_VALUE - Short.MIN_VALUE) * percent)).toInt()
+            a = 32767,
+            b = max(a = -32768, b = -32768 + (655.36 * percent).toInt())
         ).toShort(),
         transitionParams = transitionParams
     )

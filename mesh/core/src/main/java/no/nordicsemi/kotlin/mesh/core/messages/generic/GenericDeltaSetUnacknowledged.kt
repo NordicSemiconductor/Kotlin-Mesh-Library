@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -59,8 +60,8 @@ class GenericDeltaSetUnacknowledged(
     ) : this(
         tid = tid,
         delta = min(
-            a = Int.MAX_VALUE,
-            b = (Int.MIN_VALUE + ((Int.MAX_VALUE - Int.MIN_VALUE) * percent)).toInt()
+            a = 65535,
+            b = max(-65535, (655.35 * percent).toInt())
         ),
         transitionParams = transitionParams
     )

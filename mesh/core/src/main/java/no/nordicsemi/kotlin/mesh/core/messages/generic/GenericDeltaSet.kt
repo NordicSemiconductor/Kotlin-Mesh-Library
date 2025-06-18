@@ -9,6 +9,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -39,7 +40,7 @@ class GenericDeltaSet(
         }
 
     /**
-     * Convenience constructor to create a GenericMoveSet message.
+     * Convenience constructor to create a GenericDeltaSet message.
      *
      * @param percent          Level value in percent in the form of a float between 0 and 100%.
      */
@@ -47,7 +48,7 @@ class GenericDeltaSet(
     constructor(percent: Float) : this(tid = null, percent = percent, transitionParams = null)
 
     /**
-     * Convenience constructor to create a GenericMoveSet message.
+     * Convenience constructor to create a GenericDeltaSet message.
      *
      * @param tid              Defines a unique Transaction identifier that each message must have.
      * @param percent          Level value in percent in the form of a float between 0 and 100%.
@@ -59,15 +60,16 @@ class GenericDeltaSet(
         transitionParams: TransitionParameters? = null,
     ) : this(
         tid = tid,
+        // Percentage
         delta = min(
-            a = Int.MAX_VALUE,
-            b = (Int.MIN_VALUE + ((Int.MAX_VALUE - Int.MIN_VALUE) * percent)).toInt()
+            a = 65535,
+            b = max(-65535, (655.35 * percent).toInt())
         ),
         transitionParams = transitionParams
     )
 
     /**
-     * Convenience constructor to create a GenericMoveSet message without any transition time,
+     * Convenience constructor to create a GenericDeltaSet message without any transition time,
      * tid or delay.
      *
      * @param delta Current value of the Generic Level state.
