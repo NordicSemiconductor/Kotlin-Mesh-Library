@@ -97,13 +97,13 @@ class ConfigModelAppStatus(
                 .from(value = params.first().toUByte()) ?: return null
             ConfigModelAppStatus(
                 status = status,
-                keyIndex = decodeAppKeyIndex(data = params, offset = 1),
                 elementAddress = UnicastAddress(
                     address = params.getUShort(
                         offset = 1,
                         order = ByteOrder.LITTLE_ENDIAN
                     )
                 ),
+                keyIndex = decodeAppKeyIndex(data = params, offset = 3),
                 modelId = when (params.size) {
                     9 -> VendorModelId(
                         id = params.getUInt(
