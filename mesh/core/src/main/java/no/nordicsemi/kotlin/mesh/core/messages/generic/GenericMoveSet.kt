@@ -70,21 +70,21 @@ class GenericMoveSet(
      * Convenience constructor to create a GenericMoveSet message without any transition time,
      * tid or delay.
      *
-     * @param level Current value of the Generic Level state.
+     * @param deltaLevel Current value of the Generic Level state.
      */
     @Suppress("unused")
-    constructor(level: Short) : this(deltaLevel = level, tid = null)
+    constructor(deltaLevel: Short) : this(deltaLevel = deltaLevel, tid = null)
 
     /**
      * Convenience constructor to create a GenericMoveSet message without any transition time, tid
      * or delay.
      *
-     * @param level Current value of the Generic Level state.
-     * @param tid   Transaction ID.
+     * @param deltaLevel Current value of the Generic Level state.
+     * @param tid        Transaction ID.
      */
     @Suppress("unused")
-    constructor(level: Short, tid: UByte) : this(
-        deltaLevel = level,
+    constructor(deltaLevel: Short, tid: UByte) : this(
+        deltaLevel = deltaLevel,
         tid = tid,
         transitionParams = null
     )

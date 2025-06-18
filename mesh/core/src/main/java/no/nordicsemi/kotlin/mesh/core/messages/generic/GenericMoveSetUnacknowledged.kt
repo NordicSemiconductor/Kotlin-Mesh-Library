@@ -6,7 +6,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
-import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericMoveSet
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
@@ -44,6 +43,7 @@ class GenericMoveSetUnacknowledged(
      *
      * @param percent          Level value in percent in the form of a float between 0 and 100%.
      */
+    @Suppress("unused")
     constructor(percent: Float) : this(tid = null, percent = percent, transitionParams = null)
 
     /**
@@ -83,8 +83,8 @@ class GenericMoveSetUnacknowledged(
      * @param tid        Transaction ID.
      */
     @Suppress("unused")
-    constructor(level: Short, tid: UByte) : this(
-        deltaLevel = level,
+    constructor(deltaLevel: Short, tid: UByte) : this(
+        deltaLevel = deltaLevel,
         tid = tid,
         transitionParams = null
     )
