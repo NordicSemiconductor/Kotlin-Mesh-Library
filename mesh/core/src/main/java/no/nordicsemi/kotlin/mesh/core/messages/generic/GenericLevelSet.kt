@@ -6,7 +6,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
-import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericMoveSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
