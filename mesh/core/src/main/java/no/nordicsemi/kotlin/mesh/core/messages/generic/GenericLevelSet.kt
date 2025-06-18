@@ -67,6 +67,13 @@ class GenericLevelSet(
     @Suppress("unused")
     constructor(level: Short) : this(level = level, tid = null)
 
+    /**
+     * Convenience constructor to create a GenericLevelSet message with a transaction ID without any
+     * transition time or delay.
+     *
+     * @param level Current value of the Generic Level state.
+     * @param tid   Transaction ID.
+     */
     @Suppress("unused")
     constructor(level: Short, tid: UByte) : this(level = level, tid = tid, transitionParams = null)
 
