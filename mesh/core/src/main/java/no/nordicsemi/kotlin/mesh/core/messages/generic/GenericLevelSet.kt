@@ -44,6 +44,7 @@ class GenericLevelSet(
      *
      * @param percent Level value in percent in the form of a float between 0 and 100 percent.
      */
+    @Suppress("unused")
     constructor(percent: Float) : this(tid = null, percent = percent, transitionParams = null)
 
     /**
