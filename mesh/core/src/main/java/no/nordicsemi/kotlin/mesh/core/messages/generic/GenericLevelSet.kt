@@ -6,12 +6,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
-import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * This message is used to set the current status of a GenericLevelServer model. Response received
