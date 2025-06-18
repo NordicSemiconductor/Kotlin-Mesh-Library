@@ -3,7 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.model.generic
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,14 +14,18 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,17 +43,19 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.model.utils.GenericLevelOptions
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSet
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffGet
-import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffSet
-import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffStatus
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -102,7 +108,9 @@ private fun Controls(
             }
         )
     }
+    var percent by rememberSaveable { mutableFloatStateOf(-100f) }
     var acknowledged by rememberSaveable { mutableStateOf(false) }
+    var levelOption by rememberSaveable { mutableIntStateOf(GenericLevelOptions.LEVEL.value) }
     SectionTitle(title = stringResource(R.string.label_controls))
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -181,40 +189,65 @@ private fun Controls(
                         )
                     }
                 )
+                HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
+                Slider(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = percent.toFloat(),
+                    onValueChange = { percent = it },
+                    onValueChangeFinished = {
+                        onSliderValueChanged(
+                            levelOption = levelOption,
+                            percent = percent,
+                            acknowledged = acknowledged,
+                            model = model,
+                            delay = delay,
+                            defaultTransitionEnabled = defaultTransitionEnabled,
+                            transitionTime = transitionTime,
+                            sendApplicationMessage = sendApplicationMessage,
+                        )
+
+                    },
+                    valueRange = -100f..100f,
+                    steps = 200,
+                    enabled = !messageState.isInProgress(),
+                    colors = NordicSliderDefaults.colors()
+                )
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "${(percent.roundToInt() + 100) / 2}%",
+                    textAlign = TextAlign.End
+                )
             }
         },
         actions = {
-            OutlinedButton(
-                onClick = {
-                    toggle(
-                        model = model,
-                        defaultTransitionEnabled = defaultTransitionEnabled,
-                        acknowledged = acknowledged,
-                        transitionTime = transitionTime,
-                        delay = delay.toUByte(),
-                        on = false,
-                        sendApplicationMessage = sendApplicationMessage
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+            ) {
+                GenericLevelOptions.entries.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 60.dp),
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = GenericLevelOptions.entries.size
+                        ),
+                        onClick = {
+                            levelOption = option.value
+                        },
+                        selected = option.value == levelOption,
+                        icon = {
+                            SegmentedButtonDefaults.Icon(active = option.value == levelOption) {
+                                Icon(
+                                    imageVector = option.icon(),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SegmentedButtonDefaults.IconSize)
+                                )
+                            }
+                        },
+                        label = { Text(text = option.description()) }
                     )
-                },
-                enabled = !messageState.isInProgress(),
-                content = { Text(text = stringResource(R.string.label_off)) }
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            OutlinedButton(
-                onClick = {
-                    toggle(
-                        model = model,
-                        defaultTransitionEnabled = defaultTransitionEnabled,
-                        acknowledged = acknowledged,
-                        transitionTime = transitionTime,
-                        delay = delay.toUByte(),
-                        on = true,
-                        sendApplicationMessage = sendApplicationMessage
-                    )
-                },
-                enabled = !messageState.isInProgress(),
-                content = { Text(text = stringResource(R.string.label_on)) }
-            )
+                }
+            }
         }
     )
 }
@@ -287,21 +320,62 @@ private fun Status(
     )
 }
 
-private fun toggle(
+private fun onSliderValueChanged(
+    levelOption: Int,
+    percent: Float,
+    acknowledged: Boolean,
+    model: Model,
+    delay: Int,
+    defaultTransitionEnabled: Boolean,
+    transitionTime: TransitionTime,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
+) = when (GenericLevelOptions.from(value = levelOption)) {
+    GenericLevelOptions.LEVEL -> toggleLevel(
+        model = model,
+        defaultTransitionEnabled = defaultTransitionEnabled,
+        acknowledged = acknowledged,
+        transitionTime = transitionTime,
+        delay = delay.toUByte(),
+        percent = percent / 2,
+        sendApplicationMessage = sendApplicationMessage
+    )
+
+    GenericLevelOptions.DELTA -> toggleDelta(
+        model = model,
+        defaultTransitionEnabled = defaultTransitionEnabled,
+        acknowledged = acknowledged,
+        transitionTime = transitionTime,
+        delay = delay.toUByte(),
+        percent = percent / 2,
+        sendApplicationMessage = sendApplicationMessage
+    )
+
+    GenericLevelOptions.MOVE -> toggleMove(
+        model = model,
+        defaultTransitionEnabled = defaultTransitionEnabled,
+        acknowledged = acknowledged,
+        transitionTime = transitionTime,
+        delay = delay.toUByte(),
+        percent = percent / 2,
+        sendApplicationMessage = sendApplicationMessage
+    )
+}
+
+private fun toggleLevel(
     model: Model,
     defaultTransitionEnabled: Boolean,
     acknowledged: Boolean,
     transitionTime: TransitionTime,
     delay: UByte,
-    on: Boolean,
+    percent: Float,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
 ) {
     sendApplicationMessage(
         model,
         when {
-            acknowledged -> GenericOnOffSet(
+            acknowledged -> GenericLevelSet(
                 tid = null,
-                on = on,
+                percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
                     TransitionParameters(transitionTime = transitionTime, delay = delay)
                 } else {
@@ -309,9 +383,79 @@ private fun toggle(
                 }
             )
 
-            else -> GenericOnOffSetUnacknowledged(
+            else -> GenericLevelSetUnacknowledged(
                 tid = null,
-                on = on,
+                percent = percent,
+                transitionParams = if (!defaultTransitionEnabled) {
+                    TransitionParameters(transitionTime = transitionTime, delay = delay)
+                } else {
+                    null
+                }
+            )
+        }
+    )
+}
+
+private fun toggleDelta(
+    model: Model,
+    defaultTransitionEnabled: Boolean,
+    acknowledged: Boolean,
+    transitionTime: TransitionTime,
+    delay: UByte,
+    percent: Float,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
+) {
+    sendApplicationMessage(
+        model,
+        when {
+            acknowledged -> GenericLevelSet(
+                tid = null,
+                percent = percent,
+                transitionParams = if (!defaultTransitionEnabled) {
+                    TransitionParameters(transitionTime = transitionTime, delay = delay)
+                } else {
+                    null
+                }
+            )
+
+            else -> GenericLevelSetUnacknowledged(
+                tid = null,
+                percent = percent,
+                transitionParams = if (!defaultTransitionEnabled) {
+                    TransitionParameters(transitionTime = transitionTime, delay = delay)
+                } else {
+                    null
+                }
+            )
+        }
+    )
+}
+
+private fun toggleMove(
+    model: Model,
+    defaultTransitionEnabled: Boolean,
+    acknowledged: Boolean,
+    transitionTime: TransitionTime,
+    delay: UByte,
+    percent: Float,
+    sendApplicationMessage: (Model, MeshMessage) -> Unit,
+) {
+    sendApplicationMessage(
+        model,
+        when {
+            acknowledged -> GenericLevelSet(
+                tid = null,
+                percent = percent,
+                transitionParams = if (!defaultTransitionEnabled) {
+                    TransitionParameters(transitionTime = transitionTime, delay = delay)
+                } else {
+                    null
+                }
+            )
+
+            else -> GenericLevelSetUnacknowledged(
+                tid = null,
+                percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
                     TransitionParameters(transitionTime = transitionTime, delay = delay)
                 } else {
