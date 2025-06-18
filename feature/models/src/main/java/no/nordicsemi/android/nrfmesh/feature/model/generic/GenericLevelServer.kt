@@ -46,8 +46,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.utils.GenericLevelOptions
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericDeltaSet
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericDeltaSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSet
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSetUnacknowledged
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericMoveSet
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericMoveSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffGet
 import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffStatus
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -207,8 +211,8 @@ private fun Controls(
                         )
 
                     },
-                    valueRange = -100f..100f,
-                    steps = 200,
+                    valueRange = 0f..200f,
+                    steps = 199,
                     enabled = !messageState.isInProgress(),
                     colors = NordicSliderDefaults.colors()
                 )
@@ -336,7 +340,7 @@ private fun onSliderValueChanged(
         acknowledged = acknowledged,
         transitionTime = transitionTime,
         delay = delay.toUByte(),
-        percent = percent / 2,
+        percent = floor(x = percent / 2),
         sendApplicationMessage = sendApplicationMessage
     )
 
@@ -346,7 +350,7 @@ private fun onSliderValueChanged(
         acknowledged = acknowledged,
         transitionTime = transitionTime,
         delay = delay.toUByte(),
-        percent = percent / 2,
+        percent = floor(x = percent - 100),
         sendApplicationMessage = sendApplicationMessage
     )
 
@@ -356,7 +360,7 @@ private fun onSliderValueChanged(
         acknowledged = acknowledged,
         transitionTime = transitionTime,
         delay = delay.toUByte(),
-        percent = percent / 2,
+        percent = floor(x = percent - 100),
         sendApplicationMessage = sendApplicationMessage
     )
 }
@@ -408,7 +412,7 @@ private fun toggleDelta(
     sendApplicationMessage(
         model,
         when {
-            acknowledged -> GenericLevelSet(
+            acknowledged -> GenericDeltaSet(
                 tid = null,
                 percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
@@ -418,7 +422,7 @@ private fun toggleDelta(
                 }
             )
 
-            else -> GenericLevelSetUnacknowledged(
+            else -> GenericDeltaSetUnacknowledged(
                 tid = null,
                 percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
@@ -443,7 +447,7 @@ private fun toggleMove(
     sendApplicationMessage(
         model,
         when {
-            acknowledged -> GenericLevelSet(
+            acknowledged -> GenericMoveSet(
                 tid = null,
                 percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
@@ -453,7 +457,7 @@ private fun toggleMove(
                 }
             )
 
-            else -> GenericLevelSetUnacknowledged(
+            else -> GenericMoveSetUnacknowledged(
                 tid = null,
                 percent = percent,
                 transitionParams = if (!defaultTransitionEnabled) {
