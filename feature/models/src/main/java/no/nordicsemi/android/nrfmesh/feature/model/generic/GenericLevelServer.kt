@@ -112,7 +112,7 @@ private fun Controls(
             }
         )
     }
-    var percent by rememberSaveable { mutableFloatStateOf(-100f) }
+    var percent by rememberSaveable { mutableFloatStateOf(0f) }
     var acknowledged by rememberSaveable { mutableStateOf(false) }
     var levelOption by rememberSaveable { mutableIntStateOf(GenericLevelOptions.LEVEL.value) }
     SectionTitle(title = stringResource(R.string.label_controls))
@@ -218,7 +218,13 @@ private fun Controls(
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "${(percent.roundToInt() + 100) / 2}%",
+                    text = "${
+                        when (GenericLevelOptions.from(value = levelOption)) {
+                            GenericLevelOptions.LEVEL -> floor(percent / 2).roundToInt()
+                            GenericLevelOptions.DELTA -> floor(percent - 100).roundToInt()
+                            GenericLevelOptions.MOVE -> (percent - 100).roundToInt()
+                        }
+                    }%",
                     textAlign = TextAlign.End
                 )
             }
