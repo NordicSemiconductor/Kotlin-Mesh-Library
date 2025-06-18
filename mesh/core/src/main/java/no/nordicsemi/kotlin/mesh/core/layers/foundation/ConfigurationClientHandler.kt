@@ -190,15 +190,8 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                     ?.element(address = response.elementAddress)
                     ?.model(modelId = response.modelId)?.let {
                         when (request) {
-                            is ConfigModelAppBind ->
-                                it.bind(index = request.keyIndex)
-
-                            is ConfigModelAppUnbind ->
-                                it.unbind(index = request.keyIndex)
-
-                            else -> {
-
-                            }
+                            is ConfigModelAppBind -> it.bind(index = request.keyIndex)
+                            is ConfigModelAppUnbind -> it.unbind(index = request.keyIndex)
                         }
                     }
             }

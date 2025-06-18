@@ -116,7 +116,7 @@ class Element(
      * @param modelId Model ID.
      * @return Model with the given model ID, or null if not found.
      */
-    fun model(modelId: ModelId) = _models.firstOrNull { it.modelId == modelId }
+    fun model(modelId: ModelId) = model(modelId = modelId.id)
 
     /**
      * Returns the model with the given model ID.
@@ -279,6 +279,23 @@ class Element(
      */
     fun contains(group: Group): Boolean = models.any {
         it.subscribe.contains(group.address as SubscriptionAddress)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is Element) return false
+        if (_name != other._name) return false
+        if (location != other.location) return false
+        if (!_models.equals(other._models)) return false
+        if (index != other.index) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _name?.hashCode() ?: 0
+        result = 31 * result + location.hashCode()
+        result = 31 * result + _models.hashCode()
+        result = 31 * result + index
+        return result
     }
 
     internal companion object {

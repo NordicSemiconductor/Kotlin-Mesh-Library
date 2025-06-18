@@ -29,10 +29,10 @@ fun PlaceHolder(
         modifier = modifier.padding(top = 48.dp, end = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 24.dp,
-            bottomEnd = 0.dp,
-            bottomStart = 0.dp
+            topStart = 16.dp,
+            topEnd = 16.dp,
+            bottomEnd = 16.dp,
+            bottomStart = 16.dp
         ),
     ) {
         Column(
@@ -62,10 +62,10 @@ fun PlaceHolder(modifier: Modifier = Modifier, content: @Composable () -> Unit) 
         modifier = modifier.padding(top = 40.dp, end = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 24.dp,
-            bottomEnd = 0.dp,
-            bottomStart = 0.dp
+            topStart = 16.dp,
+            topEnd = 16.dp,
+            bottomEnd = 16.dp,
+            bottomStart = 16.dp
         ),
     ) {
         Column(

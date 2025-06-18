@@ -31,6 +31,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigHe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationVirtualAddressSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericLevelSet
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey

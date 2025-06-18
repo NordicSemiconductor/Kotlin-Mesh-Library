@@ -48,6 +48,13 @@ class GenericOnOffSet(
     @Suppress("unused")
     constructor(on: Boolean) : this(on = on, tid = null)
 
+    /**
+     * Convenience constructor to create a GenericOnOffSet message with a transaction ID without any
+     * transition time or delay.
+     *
+     * @param on  Desired state of Generic OnOff Server.
+     * @param tid Transaction ID.
+     */
     @Suppress("unused")
     constructor(on: Boolean, tid: UByte) : this(on = on, tid = tid, transitionParams = null)
 

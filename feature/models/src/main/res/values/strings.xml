@@ -112,4 +112,7 @@
     <string name="label_target">Target</string>
     <string name="label_on_with_remaining_time">ON in %s</string>
     <string name="label_off_with_remaining_time">OFF in %s</string>
+    <string name="label_level">Level</string>
+    <string name="label_delta">Delta</string>
+    <string name="label_move">Move</string>
 </resources>
