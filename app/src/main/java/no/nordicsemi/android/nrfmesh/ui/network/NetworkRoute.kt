@@ -159,37 +159,33 @@ fun NetworkRoute(
             floatingActionButton = {
                 appState.currentMeshTopLevelDestination?.let { dst ->
                     when (dst) {
-                        MeshTopLevelDestination.NODES -> {
-                            ExtendedFloatingActionButton(
-                                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                                text = { Text(text = stringResource(R.string.label_add_node)) },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Add,
-                                        contentDescription = null
-                                    )
-                                },
-                                onClick = {
-                                    navController.navigateToProvisioning(navOptions = navOptions { })
-                                },
-                                expanded = true
-                            )
-                        }
+                        MeshTopLevelDestination.NODES -> ExtendedFloatingActionButton(
+                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                            text = { Text(text = stringResource(R.string.label_add_node)) },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Add,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                navController.navigateToProvisioning(navOptions = navOptions { })
+                            },
+                            expanded = true
+                        )
 
-                        MeshTopLevelDestination.GROUPS -> {
-                            ExtendedFloatingActionButton(
-                                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                                text = { Text(text = stringResource(R.string.label_add_group)) },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Add,
-                                        contentDescription = null
-                                    )
-                                },
-                                onClick = { showAddGroupDialog = true },
-                                expanded = true
-                            )
-                        }
+                        MeshTopLevelDestination.GROUPS -> ExtendedFloatingActionButton(
+                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                            text = { Text(text = stringResource(R.string.label_add_group)) },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Add,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = { showAddGroupDialog = true },
+                            expanded = true
+                        )
 
                         else -> {}
                     }
@@ -480,5 +476,5 @@ private fun DisplayDropdown(
 private fun NavDestination?.isTopLevelDestinationInHierarchy(
     destination: MeshTopLevelDestination,
 ) = this?.hierarchy?.any {
-    it.route?.contains(destination.name, true) ?: false
-} ?: false
+    it.route?.contains(destination.name, true) == true
+} == true
