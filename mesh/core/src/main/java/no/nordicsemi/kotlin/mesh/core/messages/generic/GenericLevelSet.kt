@@ -6,6 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericMoveSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
@@ -37,6 +38,14 @@ class GenericLevelSet(
 
             else -> level.toByteArray(order = ByteOrder.LITTLE_ENDIAN) + tid!!.toByteArray()
         }
+
+    /**
+     * Convenience constructor to create a GenericLevelSet message without any
+     * transition time, tid or delay.
+     *
+     * @param percent Level value in percent in the form of a float between 0 and 100 percent.
+     */
+    constructor(percent: Float) : this(tid = null, percent = percent, transitionParams = null)
 
     /**
      * Convenience constructor to create a GenericLevelSetUnacknowledged message.
