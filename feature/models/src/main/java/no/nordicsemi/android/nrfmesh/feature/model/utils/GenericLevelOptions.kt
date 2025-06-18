@@ -1,9 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.model.utils
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChangeCircle
-import androidx.compose.material.icons.outlined.Expand
-import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.outlined.ChangeHistory
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Flourescent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -16,9 +16,9 @@ enum class GenericLevelOptions(val value: Int) {
 
     @Composable
     fun icon(): ImageVector = when (this) {
-        LEVEL -> Icons.Outlined.Widgets
-        DELTA -> Icons.Outlined.ChangeCircle
-        MOVE -> Icons.Outlined.Expand
+        LEVEL -> Icons.Outlined.Flourescent
+        DELTA -> Icons.Outlined.ChangeHistory
+        MOVE -> Icons.Outlined.Code
     }
 
     @Composable
