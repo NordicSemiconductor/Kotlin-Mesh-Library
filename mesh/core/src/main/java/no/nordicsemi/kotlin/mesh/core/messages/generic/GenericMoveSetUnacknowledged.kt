@@ -2,10 +2,10 @@ package no.nordicsemi.kotlin.mesh.core.messages.generic
 
 import no.nordicsemi.kotlin.data.getShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.GenericMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.TransactionMessage
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionMessage
+import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.util.TransitionParameters
 import java.nio.ByteOrder
@@ -24,9 +24,8 @@ class GenericMoveSetUnacknowledged(
     override var tid: UByte?,
     val deltaLevel: Short,
     val transitionParams: TransitionParameters? = null,
-) : AcknowledgedMeshMessage, TransactionMessage, TransitionMessage {
+) : UnacknowledgedMeshMessage, TransactionMessage, TransitionMessage {
     override val opCode = Initializer.opCode
-    override val responseOpCode = GenericLevelStatus.opCode
     override val transitionTime = transitionParams?.transitionTime
     override val delay = transitionParams?.delay
     override val parameters: ByteArray
