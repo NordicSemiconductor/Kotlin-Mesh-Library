@@ -252,12 +252,12 @@ data class Node internal constructor(
         provisioner: Provisioner,
         unicastAddress: UnicastAddress,
     ) : this(
-        uuid = provisioner.uuid,
+        provisioner = provisioner,
+        unicastAddress = unicastAddress,
         deviceKey = Crypto.generateRandomKey(),
-        _primaryUnicastAddress = unicastAddress,
-        _elements = mutableListOf(),
-        _netKeys = mutableListOf(),
-        _appKeys = mutableListOf(),
+        elements = emptyList<Element>(),
+        netKeys = emptyList<NetworkKey>(),
+        appKeys = emptyList<ApplicationKey>(),
     )
 
     /**
@@ -284,7 +284,9 @@ data class Node internal constructor(
         _elements = elements.toMutableList(),
         _netKeys = netKeys.map { NodeKey(it.index, false) }.toMutableList(),
         _appKeys = appKeys.map { NodeKey(it.index, false) }.toMutableList()
-    )
+    ) {
+        this._name = provisioner.name
+    }
 
     /**
      * Convenience constructor to initialize a node for tests.
@@ -303,7 +305,7 @@ data class Node internal constructor(
         _netKeys = mutableListOf(NodeKey(index = 0u, _updated = false)),
         _appKeys = mutableListOf()
     ) {
-        this.name = name
+        this._name = name
     }
 
     /**
