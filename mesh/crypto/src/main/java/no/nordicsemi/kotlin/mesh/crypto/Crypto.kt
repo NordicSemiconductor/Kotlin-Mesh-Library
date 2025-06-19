@@ -4,7 +4,6 @@ package no.nordicsemi.kotlin.mesh.crypto
 
 import no.nordicsemi.kotlin.data.and
 import no.nordicsemi.kotlin.data.getInt
-import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.xor
 import org.bouncycastle.crypto.BlockCipher
