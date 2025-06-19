@@ -5,7 +5,6 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
