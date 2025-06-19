@@ -50,7 +50,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelAppList
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelAppList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelSubscriptionList
@@ -241,9 +240,9 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                         models.forEach { it.unsubscribeFromAll() }
                         return
                     }
+                    val address = (meshNetwork.group(address = response.address)?.address
+                        ?: MeshAddress.create(address = response.address)) as SubscriptionAddress
 
-                    val address = MeshAddress
-                        .create(address = response.address) as SubscriptionAddress
                     when (request) {
                         is ConfigModelSubscriptionOverwrite,
                         is ConfigModelSubscriptionVirtualAddressOverwrite,
