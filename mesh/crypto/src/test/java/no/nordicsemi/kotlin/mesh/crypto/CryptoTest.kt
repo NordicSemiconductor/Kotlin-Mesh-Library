@@ -236,7 +236,7 @@ class CryptoTest {
     @Test
     fun testVirtualAddress() {
         val uuid = UUID.fromString("0073e7e4-d8b9-440f-af84-15df4c56c0e1")
-        val expected = "B529".toUInt(radix = 16).toUShort()
+        val expected = "B529".toUShort(radix = 16)
         val actual = createVirtualAddress(uuid = uuid)
         Assert.assertEquals(expected, actual)
     }
