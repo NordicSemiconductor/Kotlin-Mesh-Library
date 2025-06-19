@@ -69,7 +69,7 @@ class ConfigModelSubscriptionVirtualAddressOverwrite(
             "companyIdentifier: $companyIdentifier)"
 
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x8021u
+        override val opCode = 0x8022u
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 20 || it.size == 22
