@@ -91,7 +91,7 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
         ConfigVendorModelAppList.opCode to ConfigVendorModelAppList,
         ConfigModelPublicationStatus.opCode to ConfigModelPublicationStatus,
         ConfigModelSubscriptionStatus.opCode to ConfigModelSubscriptionStatus,
-        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionGet,
+        ConfigSigModelSubscriptionList.opCode to ConfigSigModelSubscriptionList,
         ConfigVendorModelSubscriptionList.opCode to ConfigVendorModelSubscriptionList,
         ConfigDefaultTtlStatus.opCode to ConfigDefaultTtlStatus,
         ConfigRelayStatus.opCode to ConfigRelayStatus,
