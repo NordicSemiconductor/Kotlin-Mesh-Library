@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -39,7 +40,7 @@ data class ConfigModelPublicationVirtualAddressSet(
     override val parameters: ByteArray
         get() {
             var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                    (publish.address as VirtualAddress).uuid.toByteArray()
 
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
@@ -82,7 +83,7 @@ data class ConfigModelPublicationVirtualAddressSet(
             it.size == 25 || it.size == 27
         }?.let { params ->
             val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
-            val label = VirtualAddress(params.sliceArray(2 until 17).toUuid())
+            val label = VirtualAddress(params.getUuid(offset = 2))
             val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
             val flag = (params.getUShort(offset = 19) and 0x10u).toInt() shr 4
             val ttl = params[20].toUByte()
