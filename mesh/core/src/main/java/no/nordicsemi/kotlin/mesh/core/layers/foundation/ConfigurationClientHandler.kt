@@ -58,11 +58,11 @@ import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Friend
 import no.nordicsemi.kotlin.mesh.core.model.Group
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublication
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscription
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
+import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
@@ -281,16 +281,22 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                         // For each new address...
                         response.addresses.forEach {
                             // ...look for an existing Group.
-                            val address = MeshAddress.create(address = it) as SubscriptionAddress
+                            val address = (meshNetwork.group(address = it)?.address
+                                ?: MeshAddress.create(address = it)) as SubscriptionAddress
                             // Check if address is FixedGroupAddress
                             if (address is FixedGroupAddress) {
                                 models.forEach { model -> model.subscribe(address = address) }
-                            } else if (address is GroupAddress) {
+                            } else /*if (address is GroupAddress)*/ {
+                                // The above line was commented out to support groups with virtual
+                                // addresses
                                 meshNetwork.group(address = address.address)?.let { group ->
                                     models.forEach { model -> model.subscribe(group = group) }
                                 } ?: run {
                                     // If the group was not found lets create a new one.
-                                    val group = Group(address = address, _name = "New Group")
+                                    val group = Group(
+                                        address = address as PrimaryGroupAddress,
+                                        _name = "New Group"
+                                    )
                                     runCatching {
                                         meshNetwork.add(group = group)
                                         models.forEach { model -> model.subscribe(group = group) }
