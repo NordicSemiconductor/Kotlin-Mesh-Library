@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
@@ -79,9 +80,7 @@ class ConfigModelSubscriptionVirtualAddressDelete(
                 elementAddress = UnicastAddress(
                     address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ),
-                virtualLabel = UUID.nameUUIDFromBytes(
-                    params.copyOfRange(fromIndex = 2, toIndex = 18)
-                ),
+                virtualLabel = params.getUuid(offset = 2),
                 companyIdentifier = if (params.size == 24) params.getUShort(
                     offset = 18,
                     order = ByteOrder.LITTLE_ENDIAN

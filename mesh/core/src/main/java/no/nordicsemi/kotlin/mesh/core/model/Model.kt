@@ -468,28 +468,36 @@ class Model internal constructor(
 
     val relatedModels: List<Model>
         get() {
-            val node = parentElement?.parentNode ?: return emptyList()
+            // The Model must be on an Element on a Node.
+            val parentElement = this.parentElement ?: return emptyList()
+            val node = parentElement.parentNode ?: return emptyList()
+
+            // Get a list of all models on the Node.
             val models = node.elements.flatMap { it.models }
-            val result = mutableSetOf<Model>()
-            val queue = mutableListOf(this)
+
+            val result = mutableListOf<Model>()
+            val queue = ArrayDeque<Model>()
+            queue.add(this)
 
             while (queue.isNotEmpty()) {
-                val currentModel = queue.removeAt(0) // Removes the first element (FIFO)
-                if (result.add(element = currentModel) && currentModel != this) {
-                    queue.addAll(
-                        elements = models
-                            .filter {
-                                it.extendsDirectly(model = currentModel) ||
-                                        currentModel.extendsDirectly(model = it)
-                            }
-                    )
+                val currentModel = queue.removeFirst()
+                if (!result.contains(currentModel)) {
+                    if (currentModel != this) {
+                        result.add(currentModel)
+                    }
+                    // Models that directly extend currentModel
+                    val directlyExtendedModels = models.filter { it.extendsDirectly(currentModel) }
+                    queue.addAll(directlyExtendedModels)
+                    // Models that are directly extended by currentModel
+                    val extendedByModels = models.filter { currentModel.extendsDirectly(it) }
+                    queue.addAll(extendedByModels)
                 }
             }
 
             return result.sortedWith(
-                comparator = compareBy(
-                    { it.parentElement?.index },
-                    { (it.modelId as SigModelId).modelIdentifier }
+                compareBy(
+                    { it.parentElement!!.index },
+                    { it.modelId.id }
                 )
             )
         }

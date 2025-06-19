@@ -65,7 +65,7 @@ class ConfigModelSubscriptionOverwrite(
             "companyIdentifier: $companyIdentifier)"
 
     companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x801Bu
+        override val opCode = 0x801Eu
 
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
             it.size == 6 || it.size == 8
