@@ -32,8 +32,7 @@ class ConfigModelSubscriptionAdd(
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
     override val parameters: ByteArray
         get() {
-            val data = byteArrayOf() +
-                    elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            val data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
@@ -65,7 +64,7 @@ class ConfigModelSubscriptionAdd(
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.
      *
      * @param address Address to which the model should subscribe to.
-     * @param model Model to add the subscription to.
+     * @param model   Model to add the subscription to.
      * @throws IllegalArgumentException If the model does not have a parent element.
      */
     @Throws(IllegalArgumentException::class)
