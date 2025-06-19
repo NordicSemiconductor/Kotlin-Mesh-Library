@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.crypto
 
 import no.nordicsemi.kotlin.data.and
+import no.nordicsemi.kotlin.data.getInt
 import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.xor
@@ -97,7 +98,8 @@ object Crypto {
     fun generateKeyPair(algorithm: Algorithm): KeyPair = when (algorithm) {
         Algorithm.FIPS_P256_ELLIPTIC_CURVE,
         Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
-        Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
+        Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM,
+            -> {
             val keyPairGenerator = KeyPairGenerator.getInstance("ECDH", "BC")
             keyPairGenerator.initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
             keyPairGenerator.generateKeyPair()
@@ -178,11 +180,12 @@ object Crypto {
         sharedSecret: ByteArray,
         deviceRandom: ByteArray,
         authValue: ByteArray,
-        algorithm: Algorithm
+        algorithm: Algorithm,
     ): ByteArray {
         return when (algorithm) {
             Algorithm.FIPS_P256_ELLIPTIC_CURVE,
-            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM -> {
+            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
+                -> {
                 val confirmationSalt = calculateS1(confirmationInputs)
                 val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
                 calculateCmac(deviceRandom + authValue, confirmationKey)
@@ -202,15 +205,12 @@ object Crypto {
      */
     @OptIn(ExperimentalStdlibApi::class)
     fun createVirtualAddress(uuid: UUID): UShort {
-        val uuidHex = uuid.toString().replace("-", "").toByteArray()
         val salt = calculateS1(VTAD)
-        val hash = calculateCmac(input = uuidHex, key = salt)
+        val hash = calculateCmac(input = uuid.toByteArray(), key = salt)
         // The virtual address is a 16-bit value that has bit 15 set to 1, bit 14 set to 0,
         // and bits 13 to 0 set to the value of a hash.
         // See: Mesh Profile Specification 1.1: 3.4.2.3 Virtual address.
-        return 0x8000u.toUShort() or
-               (hash[0] and 0x3F shl 8).toUShort() or
-               (hash[1] and 0xFF).toUShort()
+        return (0x8000u or ((hash.getInt(offset = 12) and 0x3FFF).toUInt())).toUShort()
     }
 
     /**
@@ -276,7 +276,7 @@ object Crypto {
         key: ByteArray,
         nonce: ByteArray,
         additionalData: ByteArray? = null,
-        micSize: Int
+        micSize: Int,
     ) = calculateCCM(
         data = data,
         key = key,
@@ -303,7 +303,7 @@ object Crypto {
         key: ByteArray,
         nonce: ByteArray,
         additionalData: ByteArray? = null,
-        micSize: Int
+        micSize: Int,
     ) = try {
         calculateCCM(
             data = data,
@@ -334,7 +334,7 @@ object Crypto {
         data: ByteArray,
         random: ByteArray,
         ivIndex: UInt,
-        privacyKey: ByteArray
+        privacyKey: ByteArray,
     ): ByteArray {
         // Privacy Random = (EncDST || EncTransportPDU || NetMIC)[0–6]
         // Privacy Plaintext = 0x0000000000 || IV Index || Privacy Random
@@ -663,7 +663,7 @@ object Crypto {
         nonce: ByteArray,
         additionalData: ByteArray? = null,
         micSize: Int,
-        mode: Boolean
+        mode: Boolean,
     ) = CCMBlockCipher(blockCipher).run {
         val ccm = ByteArray(if (mode) data.size + micSize else data.size - micSize)
         init(mode, AEADParameters(KeyParameter(key), micSize * 8, nonce, additionalData))
@@ -688,11 +688,12 @@ object Crypto {
         confirmationInputs: ByteArray,
         sharedSecret: ByteArray,
         provisionerRandom: ByteArray,
-        deviceRandom: ByteArray
+        deviceRandom: ByteArray,
     ): Triple<ByteArray, ByteArray, ByteArray> {
         val confirmationSalt = when (algorithm) {
             Algorithm.FIPS_P256_ELLIPTIC_CURVE,
-            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM -> {
+            Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
+                -> {
                 calculateS1(confirmationInputs)
             }
 
