@@ -41,6 +41,24 @@ class ConfigModelSubscriptionDelete(
         }
 
     /**
+     * Convenience constructor to create a ConfigModelSubscriptionDelete message.
+     *
+     * @param elementAddress    Element address of the model.
+     * @param address           Group address to be deleted from subscriptions.
+     * @param model             Model to delete the subscription from.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    constructor(elementAddress: UnicastAddress, address: Address, model: Model) : this(
+        elementAddress = elementAddress,
+        address = address,
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+    )
+
+    /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.
      *
      * @param group Group to add the model subscription to.
