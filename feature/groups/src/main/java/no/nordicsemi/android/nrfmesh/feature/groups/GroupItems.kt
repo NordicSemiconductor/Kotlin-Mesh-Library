@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,20 +18,25 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.SensorOccupied
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.common.theme.nordicFall
 import no.nordicsemi.android.common.theme.nordicGrass
 import no.nordicsemi.android.common.theme.nordicLake
 import no.nordicsemi.android.common.theme.nordicSky
-import no.nordicsemi.android.common.theme.nordicSun
 import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.common.isLightLCServer
@@ -39,8 +44,9 @@ import no.nordicsemi.android.nrfmesh.core.common.isSceneServer
 import no.nordicsemi.android.nrfmesh.core.common.isSceneSetupServer
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericDeltaSetUnacknowledged
+import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -49,10 +55,9 @@ import no.nordicsemi.kotlin.mesh.core.model.ModelId
 @Composable
 internal fun GroupItems(
     network: MeshNetwork,
-    group: Group,
     modelId: ModelId,
     models: Map<ModelId, List<Model>>,
-    send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -73,22 +78,28 @@ internal fun GroupItems(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             network.applicationKeys.forEach { key ->
-                models[modelId]?.firstOrNull {
+                models[modelId]?.filter {
                     key.isBoundTo(model = it)
-                }?.let { model ->
+                }?.takeIf {
+                    it.isNotEmpty()
+                }?.let { models ->
                     when {
-                        model.isGenericOnOffServer() -> GenericOnOffItem(key = key, send = send)
-                        model.isGenericLevelServer() -> GenericLevelItem(key = key, send = send)
-                        model.isSceneServer() -> SceneServerGroupItem(key = key, send = send)
-                        model.isSceneSetupServer() -> SceneSetupServerGroupItem(
-                            key = key,
-                            send = send
-                        )
+                        models.first().isGenericOnOffServer() ->
+                            GenericOnOffItem(count = models.size, key = key, send = send)
 
-                        model.isLightLCServer() -> {
-                            LightLCModeGroupItem(key = key, send = send)
-                            LightLCOccupancyModeGroupItem(key = key, send = send)
-                            LightLCLightOnOffGroupItem(key = key, send = send)
+                        models.first().isGenericLevelServer() ->
+                            GenericLevelItem(count = models.size, key = key, send = send)
+
+                        models.first().isSceneServer() ->
+                            SceneServerGroupItem(count = models.size, key = key, send = send)
+
+                        models.first().isSceneSetupServer() ->
+                            SceneSetupServerGroupItem(count = models.size, key = key, send = send)
+
+                        models.first().isLightLCServer() -> {
+                            LightLCModeGroupItem(count = models.size, key = key, send = send)
+                            LightLCOccupancyModeGroupItem(count = models.size, key = key, send = send)
+                            LightLCLightOnOffGroupItem(count = models.size, key = key, send = send)
                         }
                     }
                 }
@@ -100,20 +111,21 @@ internal fun GroupItems(
 @Composable
 private fun GenericOnOffItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.Lightbulb,
                     contentDescription = null,
                     tint = nordicLake
@@ -121,87 +133,151 @@ private fun GenericOnOffItem(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 16.dp,
+                        space = 8.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     content = {
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
-                            onClick = { },
-                            content = { Text(text = stringResource(R.string.label_on)) },
+                        TextButton(
+                            onClick = { send(GenericOnOffSetUnacknowledged(on = true), key) },
+                            content = { Text(text = stringResource(R.string.label_on).uppercase()) },
                         )
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
-                            onClick = { },
-                            content = { Text(text = stringResource(R.string.label_off)) },
+                        TextButton(
+                            onClick = { send(GenericOnOffSetUnacknowledged(on = false), key) },
+                            content = { Text(text = stringResource(R.string.label_off).uppercase()) },
                         )
                     }
                 )
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GenericLevelItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.LightMode,
                     contentDescription = null,
-                    tint = nordicSun
+                    tint = nordicFall
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 16.dp,
+                        space = 8.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     content = {
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
-                            onClick = { },
-                            content = { Text(text = stringResource(R.string.label_plus)) },
+                        TextButton(
+                            onClick = { send(GenericDeltaSetUnacknowledged(delta = -8192), key) },
+                            content = {
+                                Text(
+                                    text = stringResource(R.string.label_minus),
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            },
                         )
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
-                            onClick = { },
-                            content = { Text(text = stringResource(R.string.label_minus)) },
+                        TextButton(
+                            onClick = { send(GenericDeltaSetUnacknowledged(delta = +8192), key) },
+                            content = {
+                                Text(
+                                    text = stringResource(R.string.label_plus),
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            },
                         )
                     }
                 )
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
 @Composable
+private fun KeyRow(key: ApplicationKey) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            imageVector = Icons.Outlined.VpnKey,
+            contentDescription = null
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = key.name,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+@Composable
+private fun CountRow(count: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            imageVector = Icons.Outlined.Widgets,
+            contentDescription = null
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = "$count ${stringResource(id = R.string.label_models)}",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+@Suppress("unused")
+@Composable
 private fun SceneServerGroupItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.Palette,
                     contentDescription = null,
                     tint = nordicSky
@@ -210,33 +286,37 @@ private fun SceneServerGroupItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    OutlinedButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                    TextButton(
                         onClick = { },
-                        content = { Text(text = stringResource(R.string.label_recall)) }
+                        content = { Text(text = stringResource(R.string.label_recall).uppercase()) }
                     )
                 }
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
+@Suppress("unused")
 @Composable
 private fun SceneSetupServerGroupItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.Palette,
                     contentDescription = null,
                     tint = nordicLake
@@ -245,33 +325,37 @@ private fun SceneSetupServerGroupItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    OutlinedButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                    TextButton(
                         onClick = { },
-                        content = { Text(text = stringResource(R.string.label_store)) }
+                        content = { Text(text = stringResource(R.string.label_store).uppercase()) }
                     )
                 }
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
+@Suppress("unused")
 @Composable
 private fun LightLCModeGroupItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
                     tint = nordicGrass
@@ -279,43 +363,46 @@ private fun LightLCModeGroupItem(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 16.dp,
+                        space = 8.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     content = {
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_on)) },
+                            content = { Text(text = stringResource(R.string.label_on).uppercase()) },
                         )
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_off)) },
+                            content = { Text(text = stringResource(R.string.label_off).uppercase()) },
                         )
                     }
                 )
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
+@Suppress("unused")
 @Composable
 private fun LightLCOccupancyModeGroupItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
                     tint = nordicGrass
@@ -323,43 +410,46 @@ private fun LightLCOccupancyModeGroupItem(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 16.dp,
+                        space = 8.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     content = {
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_on)) },
+                            content = { Text(text = stringResource(R.string.label_on).uppercase()) },
                         )
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_off)) },
+                            content = { Text(text = stringResource(R.string.label_off).uppercase()) },
                         )
                     }
                 )
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )
 }
 
+@Suppress("unused")
 @Composable
 private fun LightLCLightOnOffGroupItem(
     key: ApplicationKey,
-    @Suppress("UNUSED_PARAMETER") send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
+    count: Int,
 ) {
     OutlinedCard(
-        modifier = Modifier.width(width = 200.dp),
+        modifier = Modifier.width(width = 150.dp),
         content = {
             Column(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = key.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Icon(
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     imageVector = Icons.Outlined.SensorOccupied,
                     contentDescription = null,
                     tint = nordicGrass
@@ -367,22 +457,22 @@ private fun LightLCLightOnOffGroupItem(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 16.dp,
+                        space = 8.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     content = {
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_on)) },
+                            content = { Text(text = stringResource(R.string.label_on).uppercase()) },
                         )
-                        OutlinedButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 68.dp),
+                        TextButton(
                             onClick = { },
-                            content = { Text(text = stringResource(R.string.label_off)) },
+                            content = { Text(text = stringResource(R.string.label_off).uppercase()) },
                         )
                     }
                 )
+                KeyRow(key = key)
+                CountRow(count = count)
             }
         }
     )

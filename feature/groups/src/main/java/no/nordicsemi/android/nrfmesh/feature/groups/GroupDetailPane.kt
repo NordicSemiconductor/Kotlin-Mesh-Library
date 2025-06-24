@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.groups
 import android.os.Parcelable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import kotlinx.parcelize.Parcelize
@@ -10,7 +11,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.model.Group
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -19,21 +20,20 @@ import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 @Parcelize
 data class ModelControls(val id: HexString) : Parcelable
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun GroupDetailPane(
     content: Any?,
     network: MeshNetwork,
-    group: Group,
     models: Map<ModelId, List<Model>>,
-    send: (UnacknowledgedMeshMessage) -> Unit,
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit
 ) {
     when (content) {
         is ModelControls -> GroupItems(
             modelId = content.id.decode(),
             network = network,
-            group = group,
             models = models,
-            send = send,
+            send = send
         )
 
         else -> PlaceHolder(
