@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
@@ -29,7 +27,7 @@ internal class GroupViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
     private val groupAddress = savedStateHandle.toRoute<GroupRoute>().address.toUShort(radix = 16)
-
+    private var group: Group? = null
     private val _uiState = MutableStateFlow(GroupScreenUiState())
     val uiState: StateFlow<GroupScreenUiState> = _uiState.asStateFlow()
 
@@ -39,6 +37,7 @@ internal class GroupViewModel @Inject internal constructor(
         viewModelScope.launch {
             repository.network.collect { network ->
                 network.group(address = groupAddress)?.let { group ->
+                    this@GroupViewModel.group = group
                     val models = mutableMapOf<ModelId, List<Model>>()
                     network.nodes
                         .flatMap { it.elements }
@@ -99,18 +98,14 @@ internal class GroupViewModel @Inject internal constructor(
 
     fun deleteGroup(group: Group): Boolean = network.remove(group = group)
 
-    @Suppress("UNUSED_PARAMETER")
-    fun send(message: UnacknowledgedMeshMessage) {
+    fun send(message: UnacknowledgedMeshMessage, key: ApplicationKey) {
         viewModelScope.launch {
-            // repository.send(message)
+            repository.send(group = group!!, unackedMessage = message, key = key)
         }
     }
 }
 
-internal data class GroupScreenUiState(
-    val groupState: GroupState = GroupState.Loading,
-    val messageState: MessageState = NotStarted,
-)
+internal data class GroupScreenUiState(val groupState: GroupState = GroupState.Loading)
 
 internal sealed interface GroupState {
     data object Loading : GroupState

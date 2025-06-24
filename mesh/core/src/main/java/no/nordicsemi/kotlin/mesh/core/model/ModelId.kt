@@ -72,8 +72,19 @@ class SigModelId(
     override val id: UInt = modelIdentifier.toUInt()
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String {
-        return "SigModelId(modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)})"
+    override fun toString(): String =
+        "SigModelId(modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)})"
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is SigModelId)
+            return false
+        return modelIdentifier == other.modelIdentifier
+    }
+
+    override fun hashCode(): Int {
+        var result = modelIdentifier.hashCode()
+        result = 31 * result + id.hashCode()
+        return result
     }
 }
 
@@ -84,7 +95,7 @@ class SigModelId(
  * @property companyIdentifier  16-bit company identifier.
  */
 @Serializable
-class VendorModelId internal constructor(
+class VendorModelId(
     @SerialName(value = "modelId")
     override val id: UInt,
 ) : ModelId() {
@@ -108,5 +119,18 @@ class VendorModelId internal constructor(
         return "VendorModelId(" +
                 "modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
                 "companyIdentifier: ${companyIdentifier.toHexString(format = HexFormat.UpperCase)})"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is SigModelId)
+            return false
+        return modelIdentifier == other.modelIdentifier
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + companyIdentifier.hashCode()
+        result = 31 * result + modelIdentifier.hashCode()
+        return result
     }
 }

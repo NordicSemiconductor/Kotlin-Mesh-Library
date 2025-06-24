@@ -49,6 +49,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -141,7 +142,6 @@ class CoreDataRepository @Inject constructor(
      * the correct network.
      */
     private fun onMeshNetworkChanged() {
-        // TODO(implement missing model event handlers for both elements)
         val defaultTransitionTimeServer = GenericDefaultTransitionTimeServer()
         // Sets up the local Elements on the phone
         val element0 = Element(
@@ -221,14 +221,17 @@ class CoreDataRepository @Inject constructor(
      * Adds a network key to the network.
      */
     fun addNetworkKey(): NetworkKey = meshNetwork
-        .add(name = "nRF Network Key ${meshNetwork.networkKeys.size}")
+        .add(name = "Network Key ${meshNetwork.networkKeys.size}")
         .also { save() }
 
     /**
      * Adds an application key to the network.
+     *
+     * @param name            Name of the Application Key.
+     * @param boundNetworkKey Bound Network Key
      */
     fun addApplicationKey(
-        name: String = "nRF Application Key ${meshNetwork.applicationKeys.size}",
+        name: String = "Application Key ${meshNetwork.applicationKeys.size}",
         boundNetworkKey: NetworkKey,
     ): ApplicationKey = meshNetwork.add(
         name = name,
@@ -486,6 +489,18 @@ class CoreDataRepository @Inject constructor(
             }
         )
     }
+
+    /**
+     * Sends an unacknowledged mesh message to the given model.
+     *
+     * @param group          Group to which the message should be sent.
+     * @param unackedMessage Unacknowledged mesh message to be sent.
+     * @param key            Application key to be used for sending the message.
+     */
+    suspend fun send(group: Group, unackedMessage: UnacknowledgedMeshMessage, key: ApplicationKey) =
+        withContext(context = defaultDispatcher) {
+            meshNetworkManager.send(group = group, message = unackedMessage, key = key)
+        }
 
     /**
      * Sends an acknowledged mesh message to the given model.
