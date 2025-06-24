@@ -170,7 +170,7 @@ private fun ModelRow(
         },
         imageVector = models.first().toIcon(),
         title = models.first().name,
-        subtitle = "${models.size} models",
+        subtitle = "${models.size} ${stringResource(R.string.label_models1)}",
         onClick = { onModelClicked(models.first().modelId) }
     )
 }
