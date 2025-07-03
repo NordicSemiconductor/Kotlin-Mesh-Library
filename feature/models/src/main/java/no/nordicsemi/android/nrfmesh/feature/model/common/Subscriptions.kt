@@ -234,7 +234,6 @@ internal fun Subscriptions(
                             }
                         )
                     }
-
                     Text(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)

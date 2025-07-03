@@ -33,7 +33,7 @@ private const val allFriends: Address = 0xFFFDu
 private const val allRelays: Address = 0xFFFEu
 internal const val allNodes: Address = 0xFFFFu
 
-val fixedGroupAddresses = listOf(AllNodes, AllRelays, AllProxies, AllFriends)
+val fixedGroupAddresses = listOf<FixedGroupAddress>(AllNodes, AllRelays, AllProxies, AllFriends)
 
 /**
  * An interface containing a property type address.

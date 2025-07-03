@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NodesViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(NodesScreenUiState(listOf()))
     val uiState: StateFlow<NodesScreenUiState> = _uiState.stateIn(
@@ -39,6 +39,4 @@ internal class NodesViewModel @Inject internal constructor(
 }
 
 
-data class NodesScreenUiState internal constructor(
-    val nodes: List<Node> = listOf()
-)
+internal data class NodesScreenUiState(val nodes: List<Node> = listOf())
