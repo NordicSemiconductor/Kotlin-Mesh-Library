@@ -134,7 +134,18 @@ class Model internal constructor(
     internal var _publish: Publish? = null,
 ) {
     val subscribe: List<SubscriptionAddress>
-        get() = _subscribe
+        get() {
+            // A model may be additionally subscribed to any special address
+            // except from All Nodes.
+            if (!_subscribe.contains(AllNodes)) {
+                // Models on the primary Element are always subscribed to the All Nodes
+                // address.
+                if (parentElement?.isPrimary == true) {
+                    _subscribe.add(AllNodes as SubscriptionAddress)
+                }
+            }
+            return _subscribe
+        }
     var publish: Publish?
         get() = _publish
         internal set(value) {

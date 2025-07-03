@@ -33,6 +33,8 @@ private const val allFriends: Address = 0xFFFDu
 private const val allRelays: Address = 0xFFFEu
 internal const val allNodes: Address = 0xFFFFu
 
+val fixedGroupAddresses = listOf(AllNodes, AllRelays, AllProxies, AllFriends)
+
 /**
  * An interface containing a property type address.
  *
@@ -283,7 +285,7 @@ object AllRelays : FixedGroupAddress(address = allRelays), SubscriptionAddress {
  *
  * Note: AllNodes cannot be used as subscription address.
  */
-data object AllNodes : FixedGroupAddress(address = allNodes) {
+data object AllNodes : FixedGroupAddress(address = allNodes), SubscriptionAddress {
     fun isValid(address: Address) = address == allNodes
 }
 
