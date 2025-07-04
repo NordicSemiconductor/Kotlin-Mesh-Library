@@ -187,7 +187,7 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                         val existingKey = meshNetwork.networkKey(index = keyIndex)
 
                         existingKey
-                            ?.takeIf { it.key != request.key }
+                            ?.takeIf { !it.key.contentEquals(request.key) }
                             ?.let {
                                 return ConfigNetKeyStatus(
                                     request = request,
@@ -223,7 +223,8 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     }
                     // The key can only be changed once during a single Key Refresh Procedure
                     if (networkKey.phase != NormalOperation &&
-                        !(networkKey.phase == KeyDistribution && networkKey.key == request.newKey)
+                        !(networkKey.phase == KeyDistribution && networkKey.key.contentEquals(
+                            other = request.newKey))
                     ) {
                         return ConfigNetKeyStatus(
                             request = request,
@@ -295,7 +296,9 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                         val existingKey = meshNetwork.applicationKey(index = keyIndex)
 
                         if (existingKey != null &&
-                            (existingKey.key != request.key || !existingKey.isBoundTo(networkKey))
+                            (!existingKey.key.contentEquals(other = request.key) || !existingKey.isBoundTo(
+                                networkKey
+                            ))
                         ) {
                             return ConfigAppKeyStatus(
                                 request = request,
@@ -356,7 +359,8 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     }
 
                     // The key can't be changed multiple times in a single Key Refresh Procedure
-                    if (applicationKey.oldKey != null && applicationKey.key != request.key) {
+                    if (applicationKey.oldKey != null &&
+                        !applicationKey.key.contentEquals(other = request.key)) {
                         return ConfigAppKeyStatus(
                             request = request,
                             status = ConfigMessageStatus.KEY_INDEX_ALREADY_STORED
