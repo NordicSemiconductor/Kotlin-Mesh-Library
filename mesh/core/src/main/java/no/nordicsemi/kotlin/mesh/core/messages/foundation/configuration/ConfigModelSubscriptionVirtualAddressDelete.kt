@@ -36,14 +36,45 @@ class ConfigModelSubscriptionVirtualAddressDelete(
 
     override val parameters: ByteArray
         get() {
-            val data = byteArrayOf() +
-                    elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            val data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     virtualLabel.toByteArray()
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
                 companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                         modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionVirtualAddressDelete message.
+     *
+     * @param elementAddress    Element address of the model.
+     * @param address           Virtual address to be deleted from subscriptions.
+     * @param model             Model to delete the subscription from.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    constructor(elementAddress: UnicastAddress, address: VirtualAddress, model: Model) : this(
+        elementAddress = elementAddress,
+        virtualLabel = address.uuid,
+        model = model,
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionVirtualAddressDelete message.
+     *
+     * @param elementAddress    Element address of the model.
+     * @param virtualLabel      Virtual address to be deleted from subscriptions.
+     * @param model             Model to delete the subscription from.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    constructor(elementAddress: UnicastAddress, virtualLabel: UUID, model: Model) : this(
+        elementAddress = elementAddress,
+        virtualLabel = virtualLabel,
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+    )
 
     /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.

@@ -31,8 +31,7 @@ class ConfigModelSubscriptionDelete(
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
     override val parameters: ByteArray
         get() {
-            val data = byteArrayOf() +
-                    elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            val data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
                 companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
@@ -78,8 +77,11 @@ class ConfigModelSubscriptionDelete(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() = "ConfigModelSubscriptionDelete(address: $address, " +
-            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString() = "ConfigModelSubscriptionDelete(address: " +
+            "${address.toHexString(format = HexFormat.UpperCase)}, " +
+            "elementAddress: ${elementAddress.toHexString()}, " +
+            "modelIdentifier: $modelIdentifier, " +
             "companyIdentifier: $companyIdentifier)"
 
     companion object Initializer : ConfigMessageInitializer {
