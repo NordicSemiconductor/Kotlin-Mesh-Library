@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +46,7 @@ import java.util.UUID
 
 @Composable
 internal fun ModelScreen(
+    snackbarHostState: SnackbarHostState,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
@@ -87,6 +89,7 @@ internal fun ModelScreen(
         }
         if (model.supportsModelSubscription == true) {
             Subscriptions(
+                snackbarHostState = snackbarHostState,
                 messageState = messageState,
                 model = model,
                 navigateToGroups = navigateToGroups,

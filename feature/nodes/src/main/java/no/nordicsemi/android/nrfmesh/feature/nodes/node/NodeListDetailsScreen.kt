@@ -132,6 +132,7 @@ internal fun NodeListDetailsScreen(
                     AnimatedPane {
                         val content = navigator.currentDestination?.contentKey
                         NodeExtraPane(
+                            snackbarHostState = appState.snackbarHostState,
                             node = uiState.nodeState.node,
                             messageState = uiState.messageState,
                             nodeIdentityStatus = uiState.nodeIdentityStates,
