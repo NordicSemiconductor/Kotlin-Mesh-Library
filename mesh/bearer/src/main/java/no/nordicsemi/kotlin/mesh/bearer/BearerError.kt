@@ -9,27 +9,21 @@ sealed class BearerError : Exception() {
     /**
      * Thrown when the Central Manager is not in ON state.
      */
-    data object CentralManagerNotPoweredOn : BearerError() {
-        private fun readResolve(): Any = CentralManagerNotPoweredOn
-
+    class CentralManagerNotPoweredOn : BearerError() {
         override fun toString() = "Central Manager not powered on."
     }
 
     /**
      * Thrown when the PDU type is not supported by the bearer.
      */
-    data object PduTypeNotSupported : BearerError() {
-        private fun readResolve(): Any = PduTypeNotSupported
-
+    class PduTypeNotSupported : BearerError() {
         override fun toString() = "PDU type not supported."
     }
 
     /**
      * Thrown when the Bearer is not ready to send data.
      */
-    data object Closed : BearerError() {
-        private fun readResolve(): Any = Closed
-
+    class Closed : BearerError() {
         override fun toString() = "Bearer is closed."
     }
 }

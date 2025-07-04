@@ -5,89 +5,89 @@ sealed class MeshNetworkException : Exception() {
 }
 
 /** Thrown when a given key index is out of range. A valid key index must range from 0 to 4095. */
-data object KeyIndexOutOfRange : MeshNetworkException()
+class KeyIndexOutOfRange : MeshNetworkException()
 
 /** Thrown when a given key index is already in use. */
-data object DuplicateKeyIndex : MeshNetworkException()
+class DuplicateKeyIndex : MeshNetworkException()
 
 /** Thrown when the length of a key is not 16-bytes */
-data object InvalidKeyLength : MeshNetworkException()
+class InvalidKeyLength : MeshNetworkException()
 
 /** Thrown when a given key is in use. */
-data object KeyInUse : MeshNetworkException()
+class KeyInUse : MeshNetworkException()
 
 /** Thrown when a network and a node does not contain any network key. */
-data object NoNetworkKeysAdded : MeshNetworkException()
+class NoNetworkKeysAdded : MeshNetworkException()
 
 /** Thrown when a Network property cannot be removed. */
-data object CannotRemove : MeshNetworkException()
+class CannotRemove : MeshNetworkException()
 
 /** Thrown when a node already exists. */
-data object NodeAlreadyExists : MeshNetworkException()
+class NodeAlreadyExists : MeshNetworkException()
 
 /** Thrown when no provisioner is available in the mesh network. */
-data object NoLocalProvisioner : MeshNetworkException()
+class NoLocalProvisioner : MeshNetworkException()
 
 /** Thrown when no unicast address range is allocated to a provisioner. */
-data object ProvisionerAlreadyExists : MeshNetworkException()
+class ProvisionerAlreadyExists : MeshNetworkException()
 
 /** Thrown when any allocated range of a provisioner is already allocated. */
-data object RangeAlreadyAllocated : MeshNetworkException()
+class RangeAlreadyAllocated : MeshNetworkException()
 
 /** Thrown when any allocated range of a new provisioner overlaps with an existing one. */
-data object OverlappingProvisionerRanges : MeshNetworkException()
+class OverlappingProvisionerRanges : MeshNetworkException()
 
 /** Thrown when a given address does not belong to an allocated range. */
-data object AddressNotInAllocatedRanges : MeshNetworkException()
+class AddressNotInAllocatedRanges : MeshNetworkException()
 
 /** Thrown when a given address is in use by a node or it's elements. */
-data object AddressAlreadyInUse : MeshNetworkException()
+class AddressAlreadyInUse : MeshNetworkException()
 
 /** Thrown when no unicast addresses available to be allocated. */
-data object NoAddressesAvailable : MeshNetworkException()
+class NoAddressesAvailable : MeshNetworkException()
 
 /** Thrown when no unicast address range is allocated to a provisioner. */
-data object NoUnicastRangeAllocated : MeshNetworkException()
+class NoUnicastRangeAllocated : MeshNetworkException()
 
 /** Thrown when a given group already exists. */
-data object GroupAlreadyExists : MeshNetworkException()
+class GroupAlreadyExists : MeshNetworkException()
 
 /** Thrown when a given group is in use. */
-data object GroupInUse : MeshNetworkException()
+class GroupInUse : MeshNetworkException()
 
 /** Thrown when no group range is allocated to a provisioner. */
-data object NoGroupRangeAllocated : MeshNetworkException()
+class NoGroupRangeAllocated : MeshNetworkException()
 
 /** Thrown when a given scene already exists. */
-data object SceneAlreadyExists : MeshNetworkException()
+class SceneAlreadyExists : MeshNetworkException()
 
 /** Thrown when a given scene is in use. */
-data object SceneInUse : MeshNetworkException()
+class SceneInUse : MeshNetworkException()
 
 /** Thrown when no scene range is allocated to a provisioner. */
-data object NoSceneRangeAllocated : MeshNetworkException()
+class NoSceneRangeAllocated : MeshNetworkException()
 
 /** Thrown when at least one network key is not selected when exporting a partial network. */
-data object AtLeastOneNetworkKeyMustBeSelected : MeshNetworkException()
+class AtLeastOneNetworkKeyMustBeSelected : MeshNetworkException()
 
 /** Thrown when at least one provisioner is not selected when exporting a partial network. */
-data object AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
+class AtLeastOneProvisionerMustBeSelected : MeshNetworkException()
 
 /** Thrown when an invalid pdu type is received*/
-data object InvalidPduType : MeshNetworkException()
+class InvalidPduType : MeshNetworkException()
 
 /** Thrown when an invalid pdu is received*/
-data object InvalidPdu : MeshNetworkException()
+class InvalidPdu : MeshNetworkException()
 
 /** Thrown when setting too small IV Index. The new IV Index must be greater than or equal to the
  * previous one. */
-data object IvIndexTooSmall : MeshNetworkException()
+class IvIndexTooSmall : MeshNetworkException()
 
 /**
  * Security exception thrown when level of security of the network key doesn't match with the
  * security used when provisioning a node.
  */
-data object SecurityException : MeshNetworkException()
+class SecurityException : MeshNetworkException()
 
 /**
  * Thrown when the Json deserializing encounters an error.
@@ -101,7 +101,7 @@ data class ImportError internal constructor(
 ) : MeshNetworkException()
 
 /** Thrown when a network property does not belong to the current network. */
-data object DoesNotBelongToNetwork : MeshNetworkException()
+class DoesNotBelongToNetwork : MeshNetworkException()
 
 /** Thrown when no network is initialised **/
-data object NoNetwork : MeshNetworkException()
+class NoNetwork : MeshNetworkException()

@@ -118,8 +118,8 @@ data class ApplicationKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse) { throw KeyInUse }
-        require(key.size == 16) { throw InvalidKeyLength }
+        require(!isInUse) { throw KeyInUse() }
+        require(key.size == 16) { throw InvalidKeyLength() }
         _key = key
     }
 
@@ -133,7 +133,7 @@ data class ApplicationKey internal constructor(
     @Throws(KeyInUse::class)
     fun bind(networkKey: NetworkKey) {
         network?.let {
-            require(!isInUse) { throw KeyInUse }
+            require(!isInUse) { throw KeyInUse() }
             boundNetKeyIndex = networkKey.index
         }
     }

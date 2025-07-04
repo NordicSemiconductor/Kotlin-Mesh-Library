@@ -42,7 +42,7 @@ data class ConfigNetKeyUpdate(
     )
 
     init {
-        require(newKey.size == 16) { throw InvalidKeyLength }
+        require(newKey.size == 16) { throw InvalidKeyLength() }
     }
 
     override fun equals(other: Any?): Boolean {

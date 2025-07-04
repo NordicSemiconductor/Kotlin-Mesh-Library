@@ -117,7 +117,7 @@ class MeshNetworkManager(
                     "Error: Mesh Network must be created or imported before setting up local " +
                             "elements."
                 }
-                throw NoNetwork
+                throw NoNetwork()
             }
             // Some models, which are supported by the library, will be added automatically.
             // Let's make sure they are not in the array.
@@ -321,37 +321,37 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val network = requireNotNull(network) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val localNode = requireNotNull(network.localProvisioner?.node) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         val source = localElement ?: localNode.elements.firstOrNull() ?: run {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         require(source.parentNode == localNode) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: The given Element does not belong to the local Node."
             }
-            throw InvalidElement
+            throw InvalidElement()
         }
         require(initialTtl == null || initialTtl <= 127u) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: TTL value $initialTtl is invalid."
             }
-            throw InvalidTtl
+            throw InvalidTtl()
         }
         // A message may be sent to a local Node, or using a GATT Proxy Node. Check if the message
         // can be relayed to the destination using a Proxy Node. The Proxy Node must know the
@@ -366,7 +366,7 @@ class MeshNetworkManager(
                     "Error: The GATT Proxy Node is not connected or it cannot decrypt " +
                             "${applicationKey.boundNetworkKey}"
                 }
-                throw CannotRelay
+                throw CannotRelay()
             }
         } else {
             proxyFilter.proxy?.takeIf {
@@ -464,26 +464,26 @@ class MeshNetworkManager(
         initialTtl: UByte? = null,
         applicationKey: ApplicationKey? = null,
     ) {
-        if (network == null) throw NoNetwork
+        if (network == null) throw NoNetwork()
 
         val node = model.parentElement?.parentNode ?: run {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Element does not belong to a Node"
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         val destination = model.parentElement?.unicastAddress ?: run {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Element does not belong to a Node"
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
 
         if (applicationKey != null && !applicationKey.isBoundTo(model = model)) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Model is not bound to this Application Key."
             }
-            throw ModelNotBoundToAppKey
+            throw ModelNotBoundToAppKey()
         }
 
         // Uncomment to emulate sending messages to the local node
@@ -496,7 +496,7 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Model is not bound to any Application Key."
             }
-            throw NoAppKeysBoundToModel
+            throw NoAppKeysBoundToModel()
         }
 
         val selectedAppKey = applicationKey ?: model.boundApplicationKeys
@@ -510,7 +510,7 @@ class MeshNetworkManager(
             logger?.e(LogCategory.PROXY) {
                 "Error: No GATT Proxy connected or no common Network Keys"
             }
-            throw CannotRelay
+            throw CannotRelay()
         }
 
         send(
@@ -565,7 +565,7 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Source Model does not belong to an Element"
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
     }
 
@@ -608,25 +608,25 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val network = requireNotNull(network) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val destination = requireNotNull(model.parentElement?.unicastAddress) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Model does not belong to an Element."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         val node = model.parentElement?.parentNode ?: run {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Element does not belong to a Node"
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
 
 
@@ -640,14 +640,14 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Model is not bound to this Application Key."
             }
-            throw ModelNotBoundToAppKey
+            throw ModelNotBoundToAppKey()
         }
 
         if (applicationKey == null && model.boundApplicationKeys.isEmpty()) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Model is not bound to any Application Key."
             }
-            throw NoAppKeysBoundToModel
+            throw NoAppKeysBoundToModel()
         }
 
         // Check if the application Key is known to the Proxy Node, or the message is sent to the local
@@ -663,33 +663,33 @@ class MeshNetworkManager(
             logger?.e(LogCategory.PROXY) {
                 "Error: No GATT Proxy connected or no common Network Keys."
             }
-            throw CannotRelay
+            throw CannotRelay()
         }
 
         val localNode = requireNotNull(network.localProvisioner?.node) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         val source = requireNotNull(localElement ?: localNode.elements.firstOrNull()) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
 
         require(source.parentNode == localNode) {
             logger?.e(LogCategory.PROXY) {
                 "Error: The Element does not belong to the local Node."
             }
-            throw InvalidElement
+            throw InvalidElement()
         }
         require(initialTtl == null || initialTtl <= 127u) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: TTL value $initialTtl is invalid."
             }
-            throw InvalidTtl
+            throw InvalidTtl()
         }
 
         return networkManager.send(
@@ -739,7 +739,7 @@ class MeshNetworkManager(
         logger?.e(LogCategory.FOUNDATION_MODEL) {
             "Error: Source Model does not belong to an Element."
         }
-        throw InvalidSource
+        throw InvalidSource()
     }
 
     /**
@@ -779,38 +779,38 @@ class MeshNetworkManager(
             logger?.e(LogCategory.PROXY) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val network = requireNotNull(network) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val element = requireNotNull(network.localProvisioner?.node?.primaryElement) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         val dst = MeshAddress.create(address = destination)
         require(dst is UnicastAddress) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Address ${destination.toHexString()} is not a Unicast Address."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         val node = requireNotNull(network.node(dst)) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Unknown destination Node"
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         require(node.netKeys.isNotEmpty()) {
             logger?.e(LogCategory.PROXY) {
                 "Fatal Error: The target Node does not have a Network Key."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
 
         if (networkKey != null && !node.knows(key = networkKey)) {
@@ -818,7 +818,7 @@ class MeshNetworkManager(
             logger?.e(LogCategory.PROXY) {
                 "Error: Node does not know the given Network Key."
             }
-            throw InvalidKey
+            throw InvalidKey()
         }
 
         // Check if the application Key is known to the Proxy Node, or the message is sent to the
@@ -835,20 +835,20 @@ class MeshNetworkManager(
             logger?.e(LogCategory.PROXY) {
                 "Error: No GATT Proxy connected or no common Network Keys."
             }
-            throw CannotRelay
+            throw CannotRelay()
         }
 
         requireNotNull(node.deviceKey) {
             logger?.e(LogCategory.PROXY) {
                 "Fatal Error: Node's device key is unknown."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         require(initialTtl == null || initialTtl <= 127u) {
             logger?.e(LogCategory.PROXY) {
                 "Error: TTL value $initialTtl is invalid."
             }
-            throw InvalidTtl
+            throw InvalidTtl()
         }
         networkManager.send(
             configMessage = message,
@@ -923,45 +923,45 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val network = requireNotNull(network) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
         val element = requireNotNull(network.localProvisioner?.node?.primaryElement) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         val dst = MeshAddress.create(address = destination)
         require(dst is UnicastAddress) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: ${destination.toHexString()} is not a Unicast Address."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         val node = requireNotNull(network.node(dst)) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Unknown destination Node ${destination.toHexString()}."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         require(node.netKeys.isNotEmpty()) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Fatal Error: The target Node does not have a Network Key."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
 
         if (networkKey != null && !node.knows(key = networkKey)) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Node does not know the given Network Key."
             }
-            throw InvalidKey
+            throw InvalidKey()
         }
 
         // Check if the application Key is known to the Proxy Node, or the message is sent to the
@@ -982,23 +982,23 @@ class MeshNetworkManager(
                 logger?.e(LogCategory.FOUNDATION_MODEL) {
                     "Error: Cannot delete the last Network Key or a key used to secure the message."
                 }
-                throw CannotDelete
+                throw CannotDelete()
             }
-            throw CannotRelay
+            throw CannotRelay()
         }
 
         requireNotNull(node.deviceKey) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Fatal Error: Node's device key is unknown."
             }
-            throw InvalidDestination
+            throw InvalidDestination()
         }
         if (message is ConfigNetKeyDelete) {
             require(node.netKeys.size > 1) {
                 logger?.e(LogCategory.FOUNDATION_MODEL) {
                     "Error: Cannot remove last Network Key."
                 }
-                throw InvalidDestination
+                throw InvalidDestination()
             }
         }
         require(initialTtl == null || initialTtl <= 127u) {
@@ -1006,7 +1006,7 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: TTL value $initialTtl is invalid."
             }
-            throw InvalidTtl
+            throw InvalidTtl()
         }
         return networkManager.send(
             configMessage = message,
@@ -1055,14 +1055,14 @@ class MeshNetworkManager(
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Mesh Network not created."
             }
-            throw NoNetwork
+            throw NoNetwork()
         }
 
         val destination = requireNotNull(network.localProvisioner?.node?.primaryUnicastAddress) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Local Provisioner has no Unicast Address assigned."
             }
-            throw InvalidSource
+            throw InvalidSource()
         }
         return send(message = message, destination = destination.address, initialTtl = 1u)
     }

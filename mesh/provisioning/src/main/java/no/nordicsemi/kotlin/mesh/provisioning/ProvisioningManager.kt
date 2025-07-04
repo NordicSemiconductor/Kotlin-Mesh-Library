@@ -53,11 +53,11 @@ class ProvisioningManager(
         meshNetwork.localProvisioner?.let {
             require(it.allocatedUnicastRanges.isNotEmpty()) {
                 logger?.e(LogCategory.PROVISIONING) { "No unicast ranges allocated" }
-                throw NoUnicastRangeAllocated
+                throw NoUnicastRangeAllocated()
             }
         } ?: run {
             logger?.e(LogCategory.PROVISIONING) { "No local provisioner" }
-            throw NoLocalProvisioner
+            throw NoLocalProvisioner()
         }
 
         // Ensures the provided bearer supports provisioning PDUs.
@@ -65,7 +65,7 @@ class ProvisioningManager(
             logger?.e(LogCategory.PROVISIONING) {
                 "Bearer does not support provisioning pdu"
             }
-            throw BearerError.PduTypeNotSupported
+            throw BearerError.PduTypeNotSupported()
         }
     }
 
@@ -101,7 +101,7 @@ class ProvisioningManager(
             // Is there bearer open?
             require(bearer.isOpen) {
                 logger?.e(LogCategory.PROVISIONING) { "Bearer closed" }
-                throw BearerError.Closed
+                throw BearerError.Closed()
             }
             // Emit the current state.
             emit(value = ProvisioningState.RequestingCapabilities)
@@ -146,10 +146,10 @@ class ProvisioningManager(
 
             // Checks if the device supports the required algorithms
             require(capabilities.algorithms.any { Algorithms.algorithms.contains(element = it) }) {
-                throw UnsupportedDevice
+                throw UnsupportedDevice()
             }
 
-            require(configuration.unicastAddress != null) { throw NoAddressAvailable }
+            require(configuration.unicastAddress != null) { throw NoAddressAvailable() }
 
             // Is the Unicast address valid?
             require(
@@ -159,7 +159,7 @@ class ProvisioningManager(
                 )
             ) {
                 logger?.e(LogCategory.PROVISIONING) { "Unicast address is not valid" }
-                throw InvalidAddress
+                throw InvalidAddress()
             }
 
             // Try generating Private and Public keys. This may fail if the given algorithm is not
@@ -235,8 +235,8 @@ class ProvisioningManager(
 
             require(provisioningData.checkIfConfirmationsMatch()) {
                 logger?.e(LogCategory.PROVISIONING) { "Confirmations do not match" }
-                emit(value = ProvisioningState.Failed(error = ConfirmationFailed))
-                throw ConfirmationFailed
+                emit(value = ProvisioningState.Failed(error = ConfirmationFailed()))
+                throw ConfirmationFailed()
             }
 
             val data = ProvisioningRequest.Data(
@@ -285,9 +285,9 @@ class ProvisioningManager(
                 logger?.v(LogCategory.PROVISIONING) { "Received $this" }
                 require(this is ProvisioningResponse.Capabilities) {
                     logger?.e(LogCategory.PROVISIONING) {
-                        "Provisioning failed with error: $InvalidPdu"
+                        "Provisioning failed with error: ${InvalidPdu()}"
                     }
-                    throw InvalidPdu
+                    throw InvalidPdu()
                 }
                 provisioningData.accumulate(data = pdu.sliceArray(indices = 1 until pdu.size))
                 configuration = ProvisioningParameters(meshNetwork, capabilities)
@@ -306,9 +306,9 @@ class ProvisioningManager(
                 }
                 require(configuration.unicastAddress != null) {
                     logger?.e(LogCategory.PROVISIONING) {
-                        "Provisioning failed with error: $NoAddressAvailable"
+                        "Provisioning failed with error: ${NoAddressAvailable()}"
                     }
-                    throw NoAddressAvailable
+                    throw NoAddressAvailable()
                 }
                 suggestedUnicastAddress = configuration.unicastAddress
             } as ProvisioningResponse.Capabilities
@@ -340,12 +340,12 @@ class ProvisioningManager(
                 throw RemoteError(response.error)
             }
             require(response is ProvisioningResponse.PublicKey) {
-                throw InvalidPdu
+                throw InvalidPdu()
             }
             // Errata E1650 added an extra validation step to ensure the received public key is
             // the same as the provisioner's public key.
             require(!response.key.contentEquals(request.publicKey)) {
-                throw InvalidPublicKey
+                throw InvalidPublicKey()
             }
         } as ProvisioningResponse.PublicKey
         return response.key
@@ -375,7 +375,7 @@ class ProvisioningManager(
 
         AuthenticationMethod.StaticOob -> AuthAction.ProvideStaticKey(length = sizeInBytes) {
             require(it.size == sizeInBytes) {
-                throw InvalidOobValueFormat
+                throw InvalidOobValueFormat()
             }
             onAuthValueReceived(it)
             mutex.unlock()
@@ -516,7 +516,7 @@ class ProvisioningManager(
 
     private fun isPublicKeyValid(provisionerPublicKey: ByteArray, devicePublicKey: ByteArray) {
         require(!provisionerPublicKey.contentEquals(devicePublicKey)) {
-            throw InvalidPublicKey
+            throw InvalidPublicKey()
         }
     }
 

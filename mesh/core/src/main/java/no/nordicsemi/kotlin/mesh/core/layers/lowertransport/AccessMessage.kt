@@ -84,10 +84,10 @@ internal open class AccessMessage(
             // * 1 byte for SEG | AKF | AID
             // * at least one byte of Upper Transport Layer payload
             // * 4 or 8 bytes of TransMIC
-            require(pdu.transportPdu.size >= 6) { throw InvalidPdu }
+            require(pdu.transportPdu.size >= 6) { throw InvalidPdu() }
 
             // Make sure the SEG is 0, that is the message is unsegmented.
-            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu() }
 
             val akf = pdu.transportPdu[0] hasBitSet 6
             val aid = if (akf) pdu.transportPdu[0] and 0x3F else null
@@ -112,7 +112,7 @@ internal open class AccessMessage(
          * @return AccessMessage or null if the segments are invalid.
          */
         fun init(segments: List<SegmentedAccessMessage>): AccessMessage {
-            require(segments.isNotEmpty()) { throw InvalidPdu }
+            require(segments.isNotEmpty()) { throw InvalidPdu() }
 
             val pdu = segments.fold(byteArrayOf()) { acc, sam -> acc + sam.upperTransportPdu }
             return segments.first().run {

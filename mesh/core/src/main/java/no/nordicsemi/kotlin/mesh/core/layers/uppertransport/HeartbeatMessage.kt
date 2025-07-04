@@ -57,12 +57,12 @@ internal class HeartbeatMessage(
          */
         fun init(message: ControlMessage): HeartbeatMessage {
             // Heartbeat message must have the opcode 0x0A.
-            require(message.opCode == OP_CODE) { throw InvalidPdu } // TODO Change exception?
+            require(message.opCode == OP_CODE) { throw InvalidPdu() } // TODO Change exception?
 
             // Required fields are:
             // * 1 byte for Initial TTL,
             // * 2 bytes for Features
-            require(message.upperTransportPdu.size == 3) { throw InvalidPdu } // TODO Change exception?
+            require(message.upperTransportPdu.size == 3) { throw InvalidPdu() } // TODO Change exception?
 
             return HeartbeatMessage(
                 source = message.source,

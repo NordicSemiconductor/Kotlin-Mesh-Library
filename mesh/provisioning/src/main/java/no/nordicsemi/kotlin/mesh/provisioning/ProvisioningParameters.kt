@@ -33,10 +33,10 @@ data class ProvisioningParameters internal constructor(
         meshNetwork.nextAvailableUnicastAddress(
             elementCount = capabilities.numberOfElements,
             provisioner = it
-        ) ?: throw NoAddressAvailable
-    } ?: throw NoLocalProvisioner
+        ) ?: throw NoAddressAvailable()
+    } ?: throw NoLocalProvisioner()
 
-    var networkKey: NetworkKey = meshNetwork.networkKeys.firstOrNull() ?: throw NoNetworkKeysAdded
+    var networkKey: NetworkKey = meshNetwork.networkKeys.firstOrNull() ?: throw NoNetworkKeysAdded()
 
     var algorithm: Algorithm = capabilities.algorithms.strongest()
 

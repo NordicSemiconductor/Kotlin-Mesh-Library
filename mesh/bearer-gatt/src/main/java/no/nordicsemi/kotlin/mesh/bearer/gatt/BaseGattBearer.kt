@@ -59,7 +59,7 @@ abstract class BaseGattBearer<
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _pdus = MutableSharedFlow<Pdu>()
     override val pdus: Flow<Pdu> = _pdus.asSharedFlow()
-    private val _state = MutableStateFlow<BearerEvent>(BearerEvent.Closed(BearerError.Closed))
+    private val _state = MutableStateFlow<BearerEvent>(BearerEvent.Closed(BearerError.Closed()))
     override val state: StateFlow<BearerEvent> = _state.asStateFlow()
     override val supportedTypes: Array<PduTypes> = arrayOf(
         PduTypes.NetworkPdu,
@@ -133,14 +133,14 @@ abstract class BaseGattBearer<
     private fun onDisconnected() {
         if (isOpen) {
             isOpen = false
-            _state.value = BearerEvent.Closed(BearerError.Closed)
+            _state.value = BearerEvent.Closed(BearerError.Closed())
             logger?.v(LogCategory.BEARER) { "Bearer closed." }
         }
     }
 
     override suspend fun send(pdu: ByteArray, type: PduType) {
-        require(supports(type)) { throw BearerError.PduTypeNotSupported }
-        require(isOpen) { throw BearerError.Closed }
+        require(supports(type)) { throw BearerError.PduTypeNotSupported() }
+        require(isOpen) { throw BearerError.Closed() }
         proxyProtocolHandler.segment(pdu, type, mtu)
             .forEach { dataInCharacteristic.write(it, WriteType.WITHOUT_RESPONSE) }
     }

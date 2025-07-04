@@ -49,7 +49,7 @@ class ConfigAppKeyAdd(
     )
 
     init {
-        require(key.size == 16) { throw InvalidKeyLength }
+        require(key.size == 16) { throw InvalidKeyLength() }
     }
 
     @OptIn(ExperimentalStdlibApi::class)
