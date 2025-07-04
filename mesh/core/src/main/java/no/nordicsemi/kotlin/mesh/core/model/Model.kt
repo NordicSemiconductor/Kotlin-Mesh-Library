@@ -656,9 +656,12 @@ class Model internal constructor(
      */
     fun unsubscribe(address: Address) {
         _subscribe
-            .firstOrNull { it.address == address }
-            ?.takeIf { _subscribe.remove(element = it) }
-            ?.let { parentElement?.parentNode?.network?.updateTimestamp() }
+            .indexOfFirst { it.address == address }
+            .takeIf { it > -1 }
+            ?.let {
+                _subscribe.removeAt(index = it)
+                parentElement?.parentNode?.network?.updateTimestamp()
+            }
     }
 
     /**
