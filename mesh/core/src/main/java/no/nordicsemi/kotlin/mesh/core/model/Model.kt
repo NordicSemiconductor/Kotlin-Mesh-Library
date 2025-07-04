@@ -638,10 +638,6 @@ class Model internal constructor(
      */
     fun subscribe(group: Group) {
         subscribe(address = group.address as SubscriptionAddress)
-        if (isSubscribedTo(group = group)) {
-            _subscribe.add(group.address as SubscriptionAddress)
-            parentElement?.parentNode?.network?.updateTimestamp()
-        }
     }
 
     /**
