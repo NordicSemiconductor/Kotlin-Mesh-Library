@@ -6,8 +6,6 @@ import no.nordicsemi.kotlin.mesh.core.model.AllProxies
 import no.nordicsemi.kotlin.mesh.core.model.AllRelays
 import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 
-val fixedGroupAddresses = listOf(AllRelays, AllFriends, AllProxies, AllNodes)
-
 /**
  * Returns a human readable description of the [FixedGroupAddress].
  */

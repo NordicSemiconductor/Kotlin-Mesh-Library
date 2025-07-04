@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
@@ -11,6 +12,7 @@ import java.util.UUID
 
 @Composable
 fun ModelScreenRoute(
+    snackbarHostState: SnackbarHostState,
     model: Model,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
@@ -22,6 +24,7 @@ fun ModelScreenRoute(
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
 ) {
     ModelScreen(
+        snackbarHostState = snackbarHostState,
         model = model,
         messageState = messageState,
         nodeIdentityStates = nodeIdentityStates,

@@ -251,7 +251,7 @@ private fun CountRow(count: Int) {
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = "$count ${stringResource(id = R.string.label_models)}",
+            text = "$count ${stringResource(id = R.string.label_models1)}",
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodySmall

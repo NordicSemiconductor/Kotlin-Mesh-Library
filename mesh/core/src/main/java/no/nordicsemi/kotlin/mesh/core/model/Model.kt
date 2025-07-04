@@ -134,7 +134,18 @@ class Model internal constructor(
     internal var _publish: Publish? = null,
 ) {
     val subscribe: List<SubscriptionAddress>
-        get() = _subscribe
+        get() {
+            // A model may be additionally subscribed to any special address
+            // except from All Nodes.
+            if (!_subscribe.contains(AllNodes)) {
+                // Models on the primary Element are always subscribed to the All Nodes
+                // address.
+                if (parentElement?.isPrimary == true) {
+                    _subscribe.add(AllNodes as SubscriptionAddress)
+                }
+            }
+            return _subscribe
+        }
     var publish: Publish?
         get() = _publish
         internal set(value) {
@@ -627,10 +638,6 @@ class Model internal constructor(
      */
     fun subscribe(group: Group) {
         subscribe(address = group.address as SubscriptionAddress)
-        if (isSubscribedTo(group = group)) {
-            _subscribe.add(group.address as SubscriptionAddress)
-            parentElement?.parentNode?.network?.updateTimestamp()
-        }
     }
 
     /**
@@ -649,9 +656,12 @@ class Model internal constructor(
      */
     fun unsubscribe(address: Address) {
         _subscribe
-            .firstOrNull { it.address == address }
-            ?.takeIf { _subscribe.remove(element = it) }
-            ?.let { parentElement?.parentNode?.network?.updateTimestamp() }
+            .indexOfFirst { it.address == address }
+            .takeIf { it > -1 }
+            ?.let {
+                _subscribe.removeAt(index = it)
+                parentElement?.parentNode?.network?.updateTimestamp()
+            }
     }
 
     /**

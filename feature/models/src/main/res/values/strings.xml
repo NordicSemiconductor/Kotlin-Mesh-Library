@@ -115,4 +115,5 @@
     <string name="label_level">Level</string>
     <string name="label_delta">Delta</string>
     <string name="label_move">Move</string>
+    <string name="label_primary_element_subscription_error">All Nodes address cannot be unsubscribed from a primary Element.</string>
 </resources>

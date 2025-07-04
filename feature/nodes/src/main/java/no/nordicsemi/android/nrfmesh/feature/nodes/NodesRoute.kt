@@ -61,7 +61,6 @@ private fun NodesScreen(
     remove: (Node) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     when (uiState.nodes.isEmpty()) {
         true -> MeshNoItemsAvailable(
@@ -71,7 +70,6 @@ private fun NodesScreen(
 
         false -> Nodes(
             coroutineScope = coroutineScope,
-            snackbarHostState = snackbarHostState,
             nodes = uiState.nodes,
             navigateToNode = navigateToNode,
             onSwiped = onSwiped,
@@ -85,7 +83,6 @@ private fun NodesScreen(
 @Composable
 private fun Nodes(
     coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
     nodes: List<Node>,
     navigateToNode: (Node) -> Unit,
     onSwiped: (Node) -> Unit,

@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,6 +25,7 @@ import java.util.UUID
 
 @Composable
 internal fun NodeExtraPane(
+    snackbarHostState: SnackbarHostState,
     content: Any?,
     node: Node,
     messageState: MessageState,
@@ -37,6 +39,7 @@ internal fun NodeExtraPane(
 ) {
     when (content) {
         is ModelRouteKeyKey -> ModelScreenRoute(
+            snackbarHostState = snackbarHostState,
             model = node.element(address = content.address)
                 ?.model(modelId = content.modelId)
                 ?: return,
