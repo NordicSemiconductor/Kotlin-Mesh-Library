@@ -7,23 +7,23 @@ sealed class LowerTransportError : Exception() {
     /**
      * Thrown when the segmented message has not been acknowledged before the timeout occurred.
      */
-    data object Timeout : LowerTransportError()
+    class Timeout : LowerTransportError()
 
     /**
      * Sending segmented messages was cancelled.
      */
-    data object Cancelled : LowerTransportError()
+    class Cancelled : LowerTransportError()
 
     /**
      * Thrown when the target device is busy at the moment and could not accept the message.
      */
-    data object Busy : LowerTransportError()
+    class Busy : LowerTransportError()
 
     override fun toString() = "LowerTransport: ${
         when (this) {
-            Timeout -> "Request timed out in Lower Transport layer."
-            Cancelled -> "Message cancelled ."
-            Busy -> "Node is busy, Try later"
+            is Timeout -> "Request timed out in Lower Transport layer."
+            is Cancelled -> "Message cancelled ."
+            is Busy -> "Node is busy, Try later"
         }
     }"
 }

@@ -104,7 +104,7 @@ data class NetworkKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value = value.size == 16) { throw InvalidKeyLength }
+            require(value = value.size == 16) { throw InvalidKeyLength() }
             MeshNetwork.onChange(oldValue = _key, newValue = value) {
                 oldKey = _key
             }
@@ -201,8 +201,8 @@ data class NetworkKey internal constructor(
      * @throws KeyInUse If the key is already in use.
      */
     fun setKey(key: ByteArray) {
-        require(!isInUse) { throw KeyInUse }
-        require(key.size == 16) { throw InvalidKeyLength }
+        require(!isInUse) { throw KeyInUse() }
+        require(key.size == 16) { throw InvalidKeyLength() }
         _key = key
     }
 

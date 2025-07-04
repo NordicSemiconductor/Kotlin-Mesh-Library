@@ -268,7 +268,7 @@ internal class NetworkManager internal constructor(
      */
     @Throws(Busy::class)
     private suspend fun ensureNotBusy(destination: MeshAddress) = mutex.withLock {
-        require(!outgoingMessages.contains(destination)) { throw Busy }
+        require(!outgoingMessages.contains(destination)) { throw Busy ()}
         outgoingMessages.add(destination)
         false
     }
@@ -373,7 +373,7 @@ internal class NetworkManager internal constructor(
         networkKey: NetworkKey,
     ) {
         val meshAddress = MeshAddress.create(address = destination)
-        require(!ensureNotBusy(destination = meshAddress)) { throw Busy }
+        require(!ensureNotBusy(destination = meshAddress)) { throw Busy() }
         accessLayer.send(
             message = configMessage,
             localElement = element,

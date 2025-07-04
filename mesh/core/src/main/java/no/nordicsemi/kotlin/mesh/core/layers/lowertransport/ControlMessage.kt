@@ -72,10 +72,10 @@ internal open class ControlMessage(
             // Minimum length of a Control Message is 2 bytes:
             // * 1 byte for SEG | AKF | AID
             // * at least one byte of Upper Transport Control PDU
-            require(pdu.transportPdu.size >= 2) { throw InvalidPdu }
+            require(pdu.transportPdu.size >= 2) { throw InvalidPdu() }
 
             // Make sure the SEG is 0, that is the message is unsegmented.
-            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu() }
 
             return ControlMessage(
                 opCode = pdu.transportPdu[0].toUByte() and 0x7Fu,
@@ -95,7 +95,7 @@ internal open class ControlMessage(
          * @return a ControlMessage.
          */
         fun init(segments: List<SegmentedControlMessage>): ControlMessage {
-            require(segments.isNotEmpty()) { throw InvalidPdu }
+            require(segments.isNotEmpty()) { throw InvalidPdu() }
 
             val pdu = segments.fold(byteArrayOf()) { acc, seg -> acc + seg.upperTransportPdu }
             return segments.first().run {

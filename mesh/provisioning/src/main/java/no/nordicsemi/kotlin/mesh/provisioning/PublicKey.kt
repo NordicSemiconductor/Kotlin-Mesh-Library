@@ -26,14 +26,14 @@ sealed class PublicKey {
      */
     data class OobPublicKey(val key: ByteArray) : PublicKey() {
         init {
-            require(key.size == 16) { throw InvalidKeyLength }
+            require(key.size == 16) { throw InvalidKeyLength() }
         }
     }
 
     val method: PublicKeyMethod
         get() = when (this) {
-            NoOobPublicKey -> PublicKeyMethod.NO_OOB_PUBLIC_KEY
-            is OobPublicKey -> PublicKeyMethod.OOB_PUBLIC_KEY
+            NoOobPublicKey -> NO_OOB_PUBLIC_KEY
+            is OobPublicKey -> OOB_PUBLIC_KEY
         }
 }
 
@@ -87,7 +87,7 @@ enum class PublicKeyMethod {
  * @constructor Creates a new PublicKeyType.
  */
 sealed class PublicKeyType(val rawValue: UByte) {
-    private constructor(rawValue: Int) : this(rawValue.toUByte())
+    constructor(rawValue: Int) : this(rawValue.toUByte())
 
     /**
      * Public key OOB information is available.

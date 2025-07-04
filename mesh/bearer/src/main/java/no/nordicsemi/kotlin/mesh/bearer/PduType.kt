@@ -30,7 +30,7 @@ enum class PduType(val value: UByte) {
         get() = when (this) {
             NETWORK_PDU -> 0x00u
             PROXY_CONFIGURATION -> 0x03u
-            else -> throw PduTypeNotSupported
+            else -> throw PduTypeNotSupported()
         }
 
     companion object {
@@ -79,7 +79,7 @@ sealed class PduTypes(val value: UByte) {
             MeshBeacon.value -> MeshBeacon
             ProxyConfiguration.value -> ProxyConfiguration
             ProvisioningPdu.value -> ProvisioningPdu
-            else -> throw PduTypeNotSupported
+            else -> throw PduTypeNotSupported()
         }
     }
 }

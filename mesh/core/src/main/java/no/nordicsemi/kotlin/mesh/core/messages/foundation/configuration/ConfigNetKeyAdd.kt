@@ -36,7 +36,7 @@ data class ConfigNetKeyAdd(
     constructor(key: NetworkKey) : this(index = key.index, key = key.key)
 
     init {
-        require(key.size == 16) { throw InvalidKeyLength }
+        require(key.size == 16) { throw InvalidKeyLength() }
     }
 
     companion object Initializer : ConfigMessageInitializer {

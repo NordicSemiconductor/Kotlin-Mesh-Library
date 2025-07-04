@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import kotlinx.coroutines.delay
@@ -40,9 +38,8 @@ sealed class SecurityError : Exception() {
      * Thrown internally when a possible replay attack is detected. This error is not propagated to
      * higher levels. When it is caught, te received packet discarded.
      */
-    data object ReplayAttack : SecurityError() {
-        fun readResolve(): Any = ReplayAttack
-    }
+    @Suppress("unused")
+    class ReplayAttack : SecurityError()
 }
 
 /**
@@ -678,7 +675,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                 message = message,
                 source = segment.source,
                 destination = destination,
-                error = LowerTransportError.Busy
+                error = LowerTransportError.Busy()
             )
             return
         }
@@ -898,7 +895,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                             message = message,
                             source = segment.source,
                             destination = destination,
-                            error = LowerTransportError.Timeout
+                            error = LowerTransportError.Timeout()
                         )
                     }
                 }
@@ -965,7 +962,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         message = message,
                         source = segment.source,
                         destination = destination,
-                        error = LowerTransportError.Timeout
+                        error = LowerTransportError.Timeout()
                     )
                 }
                 return@fixedRateTimer

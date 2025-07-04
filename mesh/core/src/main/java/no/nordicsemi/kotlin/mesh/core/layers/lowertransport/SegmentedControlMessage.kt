@@ -63,10 +63,10 @@ internal class SegmentedControlMessage(
             // * 1 byte for SEG | AKF | AID
             // * 3 bytes for SZMIC | SeqZero | SegO | SegN
             // * At least 1 byte of segment payload
-            require(pdu.transportPdu.size >= 5) { throw InvalidPdu }
+            require(pdu.transportPdu.size >= 5) { throw InvalidPdu() }
 
             // Make sure the SEG is 0, that is the message is segmented.
-            require(pdu.transportPdu[0] hasBitSet 7) { throw InvalidPdu } // TODO Change exception?
+            require(pdu.transportPdu[0] hasBitSet 7) { throw InvalidPdu() } // TODO Change exception?
 
             val opCode = pdu.transportPdu[0].toUByte() and 0x7Fu
             val sequenceZero = (pdu.transportPdu[1].toUShort() and 0x7Fu shl 6) or
@@ -76,7 +76,7 @@ internal class SegmentedControlMessage(
             val lastSegmentNumber = pdu.transportPdu[3].toUByte() and 0x1Fu
 
             // Make sure SegO is less than or equal to SegN.
-            require(segmentOffset <= lastSegmentNumber) { throw InvalidPdu } // TODO Change exception?
+            require(segmentOffset <= lastSegmentNumber) { throw InvalidPdu() } // TODO Change exception?
 
             return SegmentedControlMessage(
                 opCode = opCode,

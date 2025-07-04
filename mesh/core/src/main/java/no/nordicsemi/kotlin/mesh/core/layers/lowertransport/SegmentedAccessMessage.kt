@@ -90,10 +90,10 @@ internal class SegmentedAccessMessage(
             // * 1 byte for SEG | AKF | AID
             // * 3 bytes for SZMIC | SeqZero | SegO | SegN
             // * At least 1 byte of segment payload
-            require(pdu.transportPdu.size >= 5) { return null /*throw InvalidPdu*/ }
+            require(pdu.transportPdu.size >= 5) { return null /*throw InvalidPdu()*/ }
 
             // Make sure the SEG is 0, that is the message is segmented.
-            require(pdu.transportPdu[0] hasBitSet 7) { return null /*throw InvalidPdu*/ } // TODO Change exception?
+            require(pdu.transportPdu[0] hasBitSet 7) { return null /*throw InvalidPdu()*/ } // TODO Change exception?
 
             val akf = pdu.transportPdu[0] hasBitSet 6
             val aid = if (akf) pdu.transportPdu[0] and 0x3F else null
@@ -107,7 +107,7 @@ internal class SegmentedAccessMessage(
             val lastSegmentNumber = pdu.transportPdu[3].toUByte() and 0x1Fu
 
             // Make sure SegO is less than or equal to SegN.
-            require(segmentOffset <= lastSegmentNumber) { return null /*throw InvalidPdu*/ } // TODO Change exception?
+            require(segmentOffset <= lastSegmentNumber) { return null /*throw InvalidPdu()*/ } // TODO Change exception?
 
             val upperTransportPdu = pdu.transportPdu.copyOfRange(4, pdu.transportPdu.size)
             val sequence = (pdu.sequence and 0xFFE000u) or sequenceZero.toUInt()

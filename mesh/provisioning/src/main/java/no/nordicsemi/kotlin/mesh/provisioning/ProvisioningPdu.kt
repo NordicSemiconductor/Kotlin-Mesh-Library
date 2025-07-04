@@ -192,7 +192,8 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning Confirmation PDU.
      */
     data class Confirmation(val confirmation: ByteArray) : ProvisioningRequest() {
-        @ExperimentalStdlibApi
+
+        @OptIn(ExperimentalStdlibApi::class)
         override fun toString() = "Provisioning Confirmation " +
                 "(${confirmation.toHexString(prefixOx = true)})"
     }
@@ -246,7 +247,7 @@ sealed class ProvisioningRequest {
         @Throws(InvalidPdu::class)
         fun from(pdu: ProvisioningPdu): ProvisioningRequest {
             val pduType = pdu.type()
-            require(pduType != null && pdu.isValid()) { throw InvalidPdu }
+            require(pduType != null && pdu.isValid()) { throw InvalidPdu() }
             return when (pduType) {
                 INVITE -> Invite(pdu[1].toUByte())
                 START -> {
@@ -254,7 +255,7 @@ sealed class ProvisioningRequest {
                     val publicKey = PublicKeyMethod.from(pdu)
                     val method = AuthenticationMethod.from(pdu)
                     require(algorithm != null && publicKey != null && method != null) {
-                        throw InvalidPdu
+                        throw InvalidPdu()
                     }
                     Start(algorithm, publicKey, method)
                 }
@@ -262,7 +263,7 @@ sealed class ProvisioningRequest {
                 PUBLIC_KEY -> PublicKey(pdu.copyOfRange(1, pdu.size))
                 CONFIRMATION -> Confirmation(pdu.copyOfRange(1, pdu.size))
                 RANDOM -> Random(pdu.copyOfRange(1, pdu.size))
-                else -> throw InvalidPdu
+                else -> throw InvalidPdu()
             }
         }
     }
@@ -375,7 +376,7 @@ sealed class ProvisioningResponse {
         @Throws(InvalidPdu::class)
         fun from(pdu: ProvisioningPdu): ProvisioningResponse {
             val pduType = pdu.type()
-            require(pduType != null && pdu.isValid()) { throw InvalidPdu }
+            require(pduType != null && pdu.isValid()) { throw InvalidPdu() }
             return when (pduType) {
                 CAPABILITIES -> Capabilities(ProvisioningCapabilities(pdu))
                 INPUT_COMPLETE -> InputComplete
@@ -385,9 +386,8 @@ sealed class ProvisioningResponse {
                 COMPLETE -> Complete
                 FAILED -> RemoteProvisioningError.entries.firstOrNull {
                     it.errorCode == pdu[1].toInt()
-                }?.let { Failed(it) } ?: throw InvalidPdu
-
-                else -> throw InvalidPdu
+                }?.let { Failed(it) } ?: throw InvalidPdu()
+                else -> throw InvalidPdu()
             }
         }
     }

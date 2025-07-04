@@ -169,7 +169,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             require(ttl != 1.toUByte()) { return }
             try {
                 networkManager.bearer?.send(pdu = networkPdu.pdu, type = type)
-                    ?: throw BearerError.Closed
+                    ?: throw BearerError.Closed()
             } catch (e: Exception) {
                 if (e is BearerError.Closed) {
                     proxyNetworkKey = null
@@ -232,7 +232,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
         } ?: networkManager.proxy.onManagerFailedToDeliverMessage(
             message = message,
-            error = BearerError.Closed
+            error = BearerError.Closed()
         )
         return null
     }

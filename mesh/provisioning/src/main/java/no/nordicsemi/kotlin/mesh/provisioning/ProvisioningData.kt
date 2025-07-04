@@ -200,6 +200,6 @@ internal class ProvisioningData {
                 algorithm
             ).contentEquals(deviceConfirmation)
         } else {
-            throw InvalidState
+            throw InvalidState()
         }
 }

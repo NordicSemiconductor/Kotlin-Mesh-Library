@@ -179,8 +179,8 @@ data class Provisioner internal constructor(
                 network.provisioners
                     .filter { it.uuid != uuid }
                     .none { it._allocatedUnicastRanges.overlaps(range) }
-            ) { throw OverlappingProvisionerRanges }
-            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
+            ) { throw OverlappingProvisionerRanges() }
+            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
             _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
         } ?: run {
             _allocatedUnicastRanges.add(range)
@@ -198,12 +198,13 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // group ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(network.provisioners
+            require(
+                network.provisioners
                 .filter { it.uuid != uuid }
                 .none { it._allocatedGroupRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges
+                throw OverlappingProvisionerRanges()
             }
-            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
+            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
             _allocatedGroupRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedGroupRanges.add(range) }
     }
@@ -219,12 +220,13 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // scene ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(network.provisioners
+            require(
+                network.provisioners
                 .filter { it.uuid != uuid }
                 .none { it._allocatedSceneRanges.overlaps(range) }) {
-                throw OverlappingProvisionerRanges
+                throw OverlappingProvisionerRanges()
             }
-            require(!hasAllocatedRange(range)) { RangeAlreadyAllocated }
+            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
             _allocatedSceneRanges.add(range).also { network.updateTimestamp() }
         } ?: run { _allocatedSceneRanges.add(range) }
     }
@@ -421,7 +423,7 @@ data class Provisioner internal constructor(
     @Throws(DoesNotBelongToNetwork::class)
     fun assign(address: UnicastAddress) {
         network?.let { network ->
-            require(value = network.has(this@Provisioner)) { throw DoesNotBelongToNetwork }
+            require(value = network.has(this@Provisioner)) { throw DoesNotBelongToNetwork() }
             var isNewNode = false
             val node = network.node(provisioner = this@Provisioner) ?: Node(
                 provisioner = this@Provisioner,
@@ -444,12 +446,12 @@ data class Provisioner internal constructor(
             // Is it in Provisioner's range?
             val newRange = UnicastRange(address = address, elementsCount = node.elementsCount)
             require(value = hasAllocatedRange(range = newRange)) {
-                throw AddressNotInAllocatedRanges
+                throw AddressNotInAllocatedRanges()
             }
 
             // Is there any other node using the address?
             require(value = network.isAddressAvailable(address = address, node = node)) {
-                throw AddressAlreadyInUse
+                throw AddressAlreadyInUse()
             }
 
             when (isNewNode) {

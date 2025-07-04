@@ -310,7 +310,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         initialTtl: UByte?,
         networkKey: NetworkKey,
     ): MeshMessage? {
-        val node = network.node(destination) ?: throw InvalidDestination
+        val node = network.node(destination) ?: throw InvalidDestination()
 
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node

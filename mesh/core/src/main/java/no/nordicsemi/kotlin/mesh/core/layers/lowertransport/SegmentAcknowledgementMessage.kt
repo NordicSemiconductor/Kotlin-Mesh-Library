@@ -95,14 +95,14 @@ internal class SegmentAcknowledgementMessage(
             // * 1 byte for SEG | AKF | AID
             // * 2 byte for OBO | SeqZero | RFU
             // * 4 bytes for the block acknowledgment
-            require(pdu.transportPdu.size == 7) { throw InvalidPdu }
+            require(pdu.transportPdu.size == 7) { throw InvalidPdu() }
 
             // Make sure the SEG is 0, that is the message is unsegmented.
-            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu }
+            require(pdu.transportPdu[0] hasBitCleared 7) { throw InvalidPdu() }
 
             // OpCode for Segment Acknowledgement Message is 0x00.
             val opCode = (pdu.transportPdu[0] and 0x7F).toUByte()
-            require(opCode == 0x00.toUByte()) { throw InvalidPdu }
+            require(opCode == 0x00.toUByte()) { throw InvalidPdu() }
 
             val isOnBehalfOfLowePowerNode = pdu.transportPdu[1] hasBitSet 7
             val sequenceZero: UShort = ((pdu.transportPdu[1].toUShort() and 0x7Fu) shl 6) or
@@ -130,7 +130,7 @@ internal class SegmentAcknowledgementMessage(
          */
         fun init(segments: List<SegmentedMessage?>): SegmentAcknowledgementMessage {
             val segment = segments.firstOrNull { it != null }
-            require(segment != null) { throw InvalidPdu }
+            require(segment != null) { throw InvalidPdu() }
 
             // Create the block acknowledgement
             val ack = segments.fold(0u) { acc, seg ->
