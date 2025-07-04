@@ -645,13 +645,13 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                 }
 
                 is ConfigModelSubscriptionDelete -> {
-                    val element = localNode.element(request.elementAddress)
+                    val element = localNode.element(address = request.elementAddress)
                         ?: return ConfigModelSubscriptionStatus.init(
                             request = request,
                             status = ConfigMessageStatus.INVALID_ADDRESS
                         )
 
-                    val model = element.model(request.modelId)
+                    val model = element.model(modelId = request.modelId)
                         ?: return ConfigModelSubscriptionStatus.init(
                             request = request,
                             status = ConfigMessageStatus.INVALID_MODEL
@@ -669,7 +669,7 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     model.unsubscribe(request.address)
                     return ConfigModelSubscriptionStatus.init(
                         request = request,
-                        status = ConfigMessageStatus.INVALID_ADDRESS
+                        status = ConfigMessageStatus.SUCCESS
                     )
                 }
 
