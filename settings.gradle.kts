@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-             from("no.nordicsemi.android.gradle:version-catalog:2.7-2")
+             from("no.nordicsemi.android.gradle:version-catalog:2.8.1")
         }
     }
 }
@@ -54,9 +54,9 @@ include(":mesh:bearer-provisioning")
 include(":mesh:bearer-pbgatt")
 
 include(":mesh:bearer-gatt")
-if (file("../Android-Common-Libraries").exists()) {
-    includeBuild("../Android-Common-Libraries")
-}
+// if (file("../Android-Common-Libraries").exists()) {
+//     includeBuild("../Android-Common-Libraries")
+// }
 // if (file("../Android-Gradle-Plugins").exists()) {
 //     includeBuild("../Android-Gradle-Plugins")
 // }
@@ -65,6 +65,6 @@ if (file("../Android-Common-Libraries").exists()) {
 
 // }
 
-if (file("../Kotlin-BLE-Library").exists()) {
-    includeBuild("../Kotlin-BLE-Library")
-}
+// if (file("../Kotlin-BLE-Library").exists()) {
+//     includeBuild("../Kotlin-BLE-Library")
+// }
