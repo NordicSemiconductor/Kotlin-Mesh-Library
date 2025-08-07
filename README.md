@@ -46,7 +46,7 @@ The following features are not (yet) supported:
 
 The library can be included as a project and will be avialable on maven central in the near future.
 
-Product documentation is available here: [Documentation](https://nordicsemiconductor.github.io/IOS-nRF-Mesh-Library/documentation/nordicmesh).
+Product documentation is available here: [Documentation](https://github.com/NordicPlayground/Kotlin-nRF-Mesh-Library/deployments/github-pages).
 
 ## nRF Mesh sample app
 
