@@ -18,7 +18,6 @@ The library is compatible with the following [Bluetooth specifications](https://
    - Input and Output OOB
    - No OOB (insecure)
    - Enhanced security, added in Mesh Protocol 1.1
-   - Remote Provisioning (requires a node with Remote Provisioning Server model to proxy provisioning messages)
 2. Configuration, including managing keys, publications, subscription, and heartbeats (both as client and server).
 3. Support for client and server models.
 4. Groups, including those with virtual labels.
