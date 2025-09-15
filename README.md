@@ -46,7 +46,7 @@ The following features are not (yet) supported:
 
 The library can be included as a project and will be avialable on maven central in the near future.
 
-Product documentation is available here: [Documentation](https://github.com/NordicPlayground/Kotlin-nRF-Mesh-Library/deployments/github-pages).
+Product documentation is available here: [Documentation](https://nordicplayground.github.io/Kotlin-nRF-Mesh-Library/).
 
 ## nRF Mesh sample app
 
