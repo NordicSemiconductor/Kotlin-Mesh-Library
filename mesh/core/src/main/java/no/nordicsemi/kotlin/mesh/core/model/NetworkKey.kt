@@ -2,7 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -13,6 +13,8 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
 import no.nordicsemi.kotlin.mesh.crypto.SecurityCredentials
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -53,6 +55,8 @@ import no.nordicsemi.kotlin.mesh.crypto.SecurityCredentials
  *                                 removed from all the nodes and is no longer bound to any
  *                                 application keys.
  */
+@ConsistentCopyVisibility
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class NetworkKey internal constructor(
     val index: KeyIndex,
@@ -127,7 +131,7 @@ data class NetworkKey internal constructor(
             }
         }
 
-    var timestamp: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    var timestamp : Instant = Clock.System.now()
         internal set
 
     @Transient

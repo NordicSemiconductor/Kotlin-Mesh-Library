@@ -6,8 +6,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.layers.AccessKeySet
@@ -47,8 +45,11 @@ import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.schedule
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlin.time.toDuration
 
 /**
@@ -61,6 +62,7 @@ import kotlin.time.toDuration
  * @property nextTid       Next transaction identifier.
  * @property isActive      Whether the transaction can be continued.
  */
+@OptIn(ExperimentalTime::class)
 private data class Transaction(
     var lastTid: UByte = Random.nextInt(0, UByte.MAX_VALUE.toInt()).toUByte(),
     var timestamp: Instant = Clock.System.now(),
@@ -233,6 +235,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
      * @param applicationKey   Application Key to be used to encrypt the message.
      * @param retransmit       If the message is a retransmission of a previous message.
      */
+    @OptIn(ExperimentalTime::class)
     suspend fun send(
         message: MeshMessage,
         element: Element,

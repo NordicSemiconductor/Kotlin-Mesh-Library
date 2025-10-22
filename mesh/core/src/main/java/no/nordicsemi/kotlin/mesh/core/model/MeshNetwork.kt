@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -40,6 +39,8 @@ import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
 import java.util.UUID
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -70,6 +71,8 @@ import java.util.UUID
  *                                  in the list of provisioners.
  * @constructor                     Creates a mesh network.
  */
+@ConsistentCopyVisibility
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class MeshNetwork internal constructor(
     @Serializable(with = UUIDSerializer::class)

@@ -3,7 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
@@ -29,6 +29,7 @@ import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
+import kotlin.time.ExperimentalTime
 
 /**
  * Network Layer of the mesh networking stack
@@ -263,6 +264,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      * will set the IV Index and IV Update Active flag and change the Key Refresh Phase based on the
      * information specified in them.
      */
+    @OptIn(ExperimentalTime::class)
     private suspend fun handle(networkBeacon: NetworkBeaconPdu) {
         // The network key the beacon was authenticated with.
         val networkKey = networkBeacon.networkKey

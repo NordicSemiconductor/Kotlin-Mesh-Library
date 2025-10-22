@@ -2,10 +2,11 @@
 
 package no.nordicsemi.android.nrfmesh.core.data.models
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import java.util.*
+import kotlin.time.ExperimentalTime
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -33,6 +34,7 @@ import java.util.*
  *                                  Beacon and its current state.
  * @constructor                     Creates a mesh network.
  */
+@OptIn(ExperimentalTime::class)
 data class MeshNetworkData(
     val uuid: UUID = UUID.randomUUID(),
     val name: String,
@@ -46,6 +48,7 @@ data class MeshNetworkData(
     val timestamp: Instant,
     val partial: Boolean,
 ) {
+    @OptIn(ExperimentalTime::class)
     constructor(network: MeshNetwork) : this(
         uuid = network.uuid,
         name = network.name,

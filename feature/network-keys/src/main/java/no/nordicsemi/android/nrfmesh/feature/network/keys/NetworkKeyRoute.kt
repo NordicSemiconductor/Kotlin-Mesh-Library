@@ -22,7 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.NetworkKeyRow
@@ -40,7 +40,9 @@ import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import java.text.DateFormat
 import java.util.Date
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Composable
 internal fun NetworkKeyRoute(
     key: NetworkKey,
@@ -157,6 +159,7 @@ private fun Security(security: Security) {
     )
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 private fun LastModified(timestamp: Instant) {
     ElevatedCardItem(

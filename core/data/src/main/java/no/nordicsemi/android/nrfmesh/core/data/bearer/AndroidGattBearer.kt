@@ -20,7 +20,7 @@ class AndroidGattBearer(
         Peripheral.Executor,
         ConjunctionFilterScope,
         ScanResult
->(
+        >(
     dispatcher = dispatcher,
     centralManager = centralManager,
     peripheral = peripheral
@@ -32,8 +32,8 @@ class AndroidGattBearer(
         peripheral.requestHighestValueLength()
 
         // Start observing the discovered services
-        val services = peripheral.services()
-            .first { it.isNotEmpty() }
-        configureGatt(services = services)
+        peripheral.services()
+            .first { it?.isNotEmpty() == true }
+            ?.also { configureGatt(services = it) }
     }
 }

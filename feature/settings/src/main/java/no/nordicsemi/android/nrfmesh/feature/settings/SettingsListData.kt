@@ -1,11 +1,12 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.android.nrfmesh.core.data.models.SceneData
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import kotlin.time.ExperimentalTime
 
 /**
  * Defines a data object that is used to display the ui state of the Settings List.
@@ -18,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
  * @param timestamp        Timestamp when the network was last modified.
  */
 
+@OptIn(ExperimentalTime::class)
 data class SettingsListData(
     val name: String,
     val provisioners: List<ProvisionerData>,

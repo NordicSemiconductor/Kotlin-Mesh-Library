@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.ProtoIvIndex
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecureProperties
@@ -26,6 +25,8 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class MeshSecurePropertiesStorage @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -80,6 +81,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     override suspend fun ivIndex(uuid: UUID): IvIndex = secureProperties(uuid = uuid)
         ?.ivIndex?.toIvIndex() ?: IvIndex().also {
         storeIvIndex(uuid, it)
@@ -228,6 +230,7 @@ object ProtoSecurePropertiesMapSerializer : Serializer<ProtoSecurePropertiesMap>
  * @receiver [ProtoIvIndex]
  * @return [IvIndex]
  */
+@OptIn(ExperimentalTime::class)
 private fun ProtoIvIndex.toIvIndex() = IvIndex(
     index = index.toUInt(),
     isIvUpdateActive = updateActive,
@@ -240,6 +243,7 @@ private fun ProtoIvIndex.toIvIndex() = IvIndex(
  * @receiver [IvIndex]
  * @return [ProtoIvIndex]
  */
+@OptIn(ExperimentalTime::class)
 private fun IvIndex.toProtoIvIndex() = ProtoIvIndex(
     index = index.toInt(),
     updateActive = isIvUpdateActive,
