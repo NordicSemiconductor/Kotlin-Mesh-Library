@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers
 
-import GenericState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -22,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
 import no.nordicsemi.kotlin.mesh.core.model.or
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.toKotlinUuid
@@ -38,6 +38,7 @@ class GenericOnOffServer(
         GenericOnOffSetUnacknowledged.Initializer.opCode to GenericOnOffSetUnacknowledged.Initializer
     )
     override val isSubscriptionSupported = true
+    @OptIn(ExperimentalTime::class)
     override val publicationMessageComposer: MessageComposer?
         get() = {
             if (state.transition?.remainingTime?.let { it > 0.0.milliseconds } == true) {
@@ -50,6 +51,8 @@ class GenericOnOffServer(
                 GenericOnOffStatus(state.value)
             }
         }
+
+    @OptIn(ExperimentalTime::class)
     private var state: GenericState<Boolean> = GenericState(value = false)
         set(newValue) {
             if (!newValue.storedWithScene) {
@@ -89,7 +92,7 @@ class GenericOnOffServer(
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
+    @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
     override fun recall(
         scene: SceneNumber,
         transitionTime: TransitionTime?,
@@ -130,6 +133,7 @@ class GenericOnOffServer(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun handleRequest(event: ModelEvent.AcknowledgedMessageReceived)
             : GenericOnOffStatus? {
         with(event) {
@@ -149,7 +153,7 @@ class GenericOnOffServer(
                     }
 
                     // Message execution delay in 5 millisecond steps. By default 0.
-                    val delay = (req.delay ?: 0u).toDouble() * 0.005.toDouble()
+                    val delay = (req.delay ?: 0u).toDouble() * 0.005
 
                     // The time that an element will take to transition to the target
                     // state from the present state. If not set, use the default.
@@ -186,6 +190,7 @@ class GenericOnOffServer(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun handleRequest(event: ModelEvent.UnacknowledgedMessageReceived) {
         with(event) {
             when (val req = message) {
@@ -204,7 +209,7 @@ class GenericOnOffServer(
                     }
 
                     // Message execution delay in 5 millisecond steps. By default 0.
-                    val delay = (req.delay ?: 0u).toDouble() * 0.005.toDouble()
+                    val delay = (req.delay ?: 0u).toDouble() * 0.005
 
                     // The time that an element will take to transition to the target
                     // state from the present state. If not set, use the default.

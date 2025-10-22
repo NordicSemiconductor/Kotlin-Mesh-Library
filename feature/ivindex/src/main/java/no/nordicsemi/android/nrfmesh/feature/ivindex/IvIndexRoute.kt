@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.IvIndexTooSmall
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import java.text.DateFormat
 import java.util.Date
+import kotlin.time.ExperimentalTime
 
 @Composable
 fun IvIndexRoute(
@@ -210,6 +211,7 @@ private fun IvIndexUpdateTestMode(testMode: Boolean, onIvIndexTestModeToggled: (
     )
 }
 
+@OptIn(ExperimentalTime::class)
 fun IvIndex.toSubtitle(): String = buildString {
     append(
         when (isIvUpdateActive) {

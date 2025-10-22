@@ -1,12 +1,16 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.wire)
 }
 
 
 android {
     namespace = "no.nordicsemi.android.nrfmesh.core.data"
+    kotlinOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
 }
 
 wire {
@@ -17,8 +21,7 @@ dependencies {
     implementation(libs.nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
     // implementation(libs.nordic.scanner)
-
-    implementation(libs.kotlinx.datetime)
+    // implementation(libs.kotlinx.datetime)
 
     // implementation(libs.androidx.dataStore.core)
     // implementation(libs.androidx.dataStore.preferences)

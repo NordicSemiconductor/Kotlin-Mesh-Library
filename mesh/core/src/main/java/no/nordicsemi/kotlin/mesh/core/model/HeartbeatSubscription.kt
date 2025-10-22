@@ -2,7 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.HeartbeatMessage
@@ -14,6 +14,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 
 /**
@@ -180,6 +181,7 @@ data class HeartbeatSubscription internal constructor(
      *                       transformation defined in Table 4.1, where 0xFF means that more than
      *                       0xFFFF messages were received.
      */
+    @OptIn(ExperimentalTime::class)
     class State internal constructor(_periodLog: UByte) {
         private val startDate = Clock.System.now()
         val period = periodLog2Period(_periodLog).toInt().toDuration(DurationUnit.SECONDS)

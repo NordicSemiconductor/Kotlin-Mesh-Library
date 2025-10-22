@@ -2,9 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.math.max
+import kotlin.time.ExperimentalTime
 
 /**
  * The IV Index received with the last Secure Network Beacon and its
@@ -42,6 +43,7 @@ import kotlin.math.max
  * @property next              Next IV Index to be used or null if max value is reached.
  * @property previous          Previous IV Index or null in case of initial one.
  */
+@OptIn(ExperimentalTime::class)
 data class IvIndex(
     val index: UInt = 0u,
     val isIvUpdateActive: Boolean = false,

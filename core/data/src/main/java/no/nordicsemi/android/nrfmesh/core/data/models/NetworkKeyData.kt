@@ -2,11 +2,12 @@
 
 package no.nordicsemi.android.nrfmesh.core.data.models
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Security
+import kotlin.time.ExperimentalTime
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -42,6 +43,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Security
  *                                 removed from all the nodes and is no longer bound to any
  *                                 application keys.
  */
+@OptIn(ExperimentalTime::class)
 data class NetworkKeyData internal constructor(
     val index: KeyIndex,
     val name: String,

@@ -103,7 +103,7 @@ abstract class BaseGattBearer<
             .onEach {
                 when (it) {
                     is ConnectionState.Connected -> onConnected()
-                    is ConnectionState.Disconnected, is ConnectionState.Closed -> onDisconnected()
+                    is ConnectionState.Disconnecting, is ConnectionState.Disconnected -> onDisconnected()
                     else -> {
                         // Ignore other states
                     }

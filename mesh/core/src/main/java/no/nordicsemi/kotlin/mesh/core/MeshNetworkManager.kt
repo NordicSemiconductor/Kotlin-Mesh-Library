@@ -53,6 +53,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfigur
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.UUID
+import kotlin.time.ExperimentalTime
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
@@ -206,6 +207,7 @@ class MeshNetworkManager(
      * @param uuid 128-bit UUID of the mesh network.
      * @param provisioner Provisioner to be added to the network.
      */
+    @OptIn(ExperimentalTime::class)
     suspend fun create(
         name: String = "Mesh Network",
         uuid: UUID = UUID.randomUUID(),

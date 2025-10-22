@@ -20,13 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import java.text.DateFormat
 import java.util.Date
+import kotlin.time.ExperimentalTime
 
 @Composable
 internal fun SettingsListPane(
@@ -53,6 +54,7 @@ internal fun SettingsListPane(
     )
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 private fun SettingsScreen(
     settingsListData: SettingsListData,
@@ -236,6 +238,7 @@ private fun IvIndexRow(isSelected: Boolean, onIvIndexClicked: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 private fun LastModifiedTimeRow(timestamp: Instant) {
     ElevatedCardItem(
