@@ -218,6 +218,10 @@ class MeshNetworkManager(
         network = it
         networkManager = NetworkManager(this)
         // Store the IvIndex of the newly created network.
+        secureProperties.storeLocalProvisioner(
+            uuid = uuid,
+            localProvisionerUuid = it.provisioners.first().uuid
+        )
         secureProperties.storeIvIndex(
             uuid = it.uuid,
             ivIndex = it.ivIndex
