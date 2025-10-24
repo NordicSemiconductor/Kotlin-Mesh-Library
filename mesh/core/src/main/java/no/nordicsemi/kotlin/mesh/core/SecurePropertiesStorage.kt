@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import java.util.UUID
 
@@ -112,9 +111,9 @@ interface SecurePropertiesStorage {
     suspend fun storeLocalProvisioner(uuid: UUID, localProvisionerUuid: UUID)
 
     /**
-     * Returns the local provisioner uuid or null if the local provisioner
+     * Returns the local provisioner uuid or null if the local provisioner does not exist.
      *
-     * @param uuid UUID of the local provisioner.
+     * @param uuid UUID of the Network.
      */
     suspend fun localProvisioner(uuid: UUID): String?
 }

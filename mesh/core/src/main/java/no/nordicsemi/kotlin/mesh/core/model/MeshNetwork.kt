@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import no.nordicsemi.kotlin.mesh.core.SecurePropertiesStorage
 import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
 import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
 import no.nordicsemi.kotlin.mesh.core.exception.CannotRemove
@@ -1482,6 +1483,20 @@ data class MeshNetwork internal constructor(
      * @return true if the provisioner is a part of the network or false otherwise.
      */
     fun contains(provisioner: Provisioner) = provisioner(uuid = provisioner.uuid) != null
+
+    /**
+     * Restores the local provisioner for a given mesh network.
+     *
+     * @param storage Secure properties storage where the local provisioner is saved.
+     * @return returns true if the local property
+     */
+    suspend fun restoreLocalProvisioner(storage: SecurePropertiesStorage) = provisioners
+        .firstOrNull {
+            it.uuid.toString() == storage.localProvisioner(uuid = uuid)
+        }?.let {
+            move(provisioner = it, to = 0)
+            true
+        } ?: false
 
     companion object {
         /**

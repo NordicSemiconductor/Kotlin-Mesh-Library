@@ -77,7 +77,7 @@ class SettingsViewModel @Inject constructor(
      */
     fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
         viewModelScope.launch {
-            network.move(provisioner, newIndex)
+            network.move(provisioner = provisioner, to = newIndex)
             storage.storeLocalProvisioner(
                 uuid = network.uuid,
                 localProvisionerUuid = provisioner.uuid

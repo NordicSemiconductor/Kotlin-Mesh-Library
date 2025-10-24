@@ -18,7 +18,6 @@ import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.io.BufferedReader
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -92,26 +91,20 @@ class NetworkViewModel @Inject constructor(
                 }
             } ?: ""
             meshNetwork = repository.importMeshNetwork(networkJson.encodeToByteArray())
-            storage.localProvisioner(uuid = meshNetwork.uuid)?.let { uuid ->
-                meshNetwork.provisioner(uuid = UUID.fromString(uuid))?.let {
-                    meshNetwork.move(provisioner = it, to = 0)
-                    storage.storeLocalProvisioner(
-                        uuid = meshNetwork.uuid,
-                        localProvisionerUuid = it.uuid
-                    )
-                }
-            } ?: run {
-                meshNetwork.takeIf { it.provisioners.size > 1 }
+
+            if (!meshNetwork.restoreLocalProvisioner(storage = storage)) {
+                meshNetwork
+                    .takeIf { it.provisioners.size > 1 }
                     ?.let {
                         _uiState.value = _uiState.value.copy(
                             provisioners = it.provisioners,
                             shouldSelectProvisioner = true
                         )
                     } ?: run {
-                    storage.storeLocalProvisioner(
-                        uuid = meshNetwork.uuid,
-                        localProvisionerUuid = meshNetwork.provisioners.first().uuid
-                    )
+                        storage.storeLocalProvisioner(
+                            uuid = meshNetwork.uuid,
+                            localProvisionerUuid = meshNetwork.provisioners.first().uuid
+                        )
                 }
             }
             // Let's save the imported network
