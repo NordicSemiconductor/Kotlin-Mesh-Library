@@ -1484,6 +1484,12 @@ data class MeshNetwork internal constructor(
      */
     fun contains(provisioner: Provisioner) = provisioner(uuid = provisioner.uuid) != null
 
+    /**
+     * Restores the local provisioner for a given mesh network.
+     *
+     * @param storage Secure properties storage where the local provisioner is saved.
+     * @return returns true if the local property
+     */
     suspend fun restoreLocalProvisioner(storage: SecurePropertiesStorage) = provisioners
         .firstOrNull {
             it.uuid.toString() == storage.localProvisioner(uuid = uuid)
