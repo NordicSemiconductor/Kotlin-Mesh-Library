@@ -335,7 +335,7 @@ data class Provisioner internal constructor(
         for (range in _allocatedUnicastRanges) {
             if (range.contains(address.address)) {
                 count = minOf(
-                    a = ((range.highAddress - address) + 1).address.toInt(),
+                    a = ((range.high - address.address) + 1u).toInt(),
                     b = UByte.MAX_VALUE.toInt()
                 )
                 break

@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core
 
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import java.util.UUID
 
@@ -99,5 +100,22 @@ interface SecurePropertiesStorage {
      * @param source  Source address.
      */
     suspend fun storePreviousSeqAuthValue(uuid: UUID, source: UnicastAddress, seqAuth: ULong)
+
+    /**
+     * Stores the local provisioner for a given network. This can be used to restore the
+     * previously selected provisioner.
+     *
+     * @param uuid                 UUID of the network.
+     * @param localProvisionerUuid Local provisioner UUID.
+     *
+     */
+    suspend fun storeLocalProvisioner(uuid: UUID, localProvisionerUuid: UUID)
+
+    /**
+     * Returns the local provisioner uuid or null if the local provisioner
+     *
+     * @param uuid UUID of the local provisioner.
+     */
+    suspend fun localProvisioner(uuid: UUID): String?
 }
 

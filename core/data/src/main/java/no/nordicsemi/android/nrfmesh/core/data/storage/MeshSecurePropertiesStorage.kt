@@ -44,12 +44,14 @@ class MeshSecurePropertiesStorage @Inject constructor(
      */
     private fun createProtoSecurePropertiesMap(
         uuid: UUID,
+        provisionerUUID: String = "",
         ivIndex: ProtoIvIndex = ProtoIvIndex(),
         sequenceNumbers: Map<Int, Int> = mutableMapOf(),
         seqAuths: Map<Int, ProtoSeqAuth> = mutableMapOf(),
     ) = ProtoSecurePropertiesMap(
         properties = mutableMapOf(
             uuid.toString() to ProtoSecureProperties(
+                localProvisionerUuid = provisionerUUID,
                 ivIndex = ivIndex,
                 sequenceNumbers = sequenceNumbers,
                 seqAuths = seqAuths
@@ -69,15 +71,38 @@ class MeshSecurePropertiesStorage @Inject constructor(
     private suspend fun secureProperties(uuid: UUID) = securePropertiesStore.data
         .firstOrNull()
         ?.properties
-        ?.get(uuid.toString())
-        ?: createProtoSecurePropertiesMap(uuid).properties[uuid.toString()]
+        ?.get(key = uuid.toString())
+        ?: createProtoSecurePropertiesMap(uuid = uuid).properties[uuid.toString()]
 
+    /**
+     * Stores the given secure properties for a given network.
+     *
+     * @param securePropertiesMap Map of secure properties.
+     */
     private fun storeSecurePropertiesMap(securePropertiesMap: ProtoSecurePropertiesMap) {
         scope.launch {
             securePropertiesStore.updateData {
                 it.copy(properties = securePropertiesMap.properties)
                 it
             }
+        }
+    }
+
+    override suspend fun localProvisioner(uuid: UUID): String? {
+        return secureProperties(uuid = uuid)?.localProvisionerUuid
+    }
+
+    override suspend fun storeLocalProvisioner(uuid: UUID, localProvisionerUuid: UUID) {
+        securePropertiesStore.updateData { securePropertiesMap ->
+            val propertiesMap = securePropertiesMap
+                .properties
+                .toMutableMap()
+            var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties(
+                localProvisionerUuid = localProvisionerUuid.toString()
+            )
+            properties = properties.copy(localProvisionerUuid = localProvisionerUuid.toString())
+            propertiesMap[uuid.toString()] = properties
+            securePropertiesMap.copy(properties = propertiesMap.toMap())
         }
     }
 
