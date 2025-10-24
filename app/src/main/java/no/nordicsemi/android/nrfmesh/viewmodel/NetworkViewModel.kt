@@ -5,21 +5,30 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.io.BufferedReader
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class NetworkViewModel @Inject constructor(
     private val repository: CoreDataRepository,
+    private val storage: MeshSecurePropertiesStorage,
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
+    private val _uiState = MutableStateFlow(NetworkScreenUiState())
+    internal val uiState: StateFlow<NetworkScreenUiState> = _uiState.asStateFlow()
 
     init {
         // Loads a mesh network on view model creation
@@ -27,7 +36,10 @@ class NetworkViewModel @Inject constructor(
 
         // Observes the mesh network for any changes i.e. network reset etc.
         repository.network
-            .onEach { meshNetwork = it }
+            .onEach {
+                meshNetwork = it
+                _uiState.value = _uiState.value.copy(provisioners = it.provisioners)
+            }
             .launchIn(scope = viewModelScope)
 
     }
@@ -49,6 +61,22 @@ class NetworkViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Selects the given provisioner.
+     *
+     * @param provisioner Provisioner to be selected.
+     */
+    internal fun onProvisionerSelected(provisioner: Provisioner) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(shouldSelectProvisioner = false)
+            meshNetwork.move(provisioner = provisioner, to = 0)
+            storage.storeLocalProvisioner(
+                uuid = meshNetwork.uuid,
+                localProvisionerUuid = provisioner.uuid
+            )
+            repository.save()
+        }
+    }
 
     /**
      * Imports a network from a given Uri.
@@ -63,7 +91,29 @@ class NetworkViewModel @Inject constructor(
                     bufferedReader.readText()
                 }
             } ?: ""
-            repository.importMeshNetwork(networkJson.encodeToByteArray())
+            meshNetwork = repository.importMeshNetwork(networkJson.encodeToByteArray())
+            storage.localProvisioner(uuid = meshNetwork.uuid)?.let { uuid ->
+                meshNetwork.provisioner(uuid = UUID.fromString(uuid))?.let {
+                    meshNetwork.move(provisioner = it, to = 0)
+                    storage.storeLocalProvisioner(
+                        uuid = meshNetwork.uuid,
+                        localProvisionerUuid = it.uuid
+                    )
+                }
+            } ?: run {
+                meshNetwork.takeIf { it.provisioners.size > 1 }
+                    ?.let {
+                        _uiState.value = _uiState.value.copy(
+                            provisioners = it.provisioners,
+                            shouldSelectProvisioner = true
+                        )
+                    } ?: run {
+                    storage.storeLocalProvisioner(
+                        uuid = meshNetwork.uuid,
+                        localProvisionerUuid = meshNetwork.provisioners.first().uuid
+                    )
+                }
+            }
             // Let's save the imported network
             repository.save()
         }
@@ -84,3 +134,8 @@ class NetworkViewModel @Inject constructor(
         meshNetwork.add(group)
     }
 }
+
+internal data class NetworkScreenUiState(
+    val provisioners: List<Provisioner> = emptyList(),
+    val shouldSelectProvisioner: Boolean = false,
+)

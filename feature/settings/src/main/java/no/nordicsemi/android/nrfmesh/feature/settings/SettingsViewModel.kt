@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: CoreDataRepository,
+    private val storage: MeshSecurePropertiesStorage,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsScreenUiState())
@@ -76,6 +78,10 @@ class SettingsViewModel @Inject constructor(
     fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
         viewModelScope.launch {
             network.move(provisioner, newIndex)
+            storage.storeLocalProvisioner(
+                uuid = network.uuid,
+                localProvisionerUuid = provisioner.uuid
+            )
             repository.save()
         }
     }

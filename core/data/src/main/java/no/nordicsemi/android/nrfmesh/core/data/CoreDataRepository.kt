@@ -202,9 +202,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Imports a mesh network.
      */
-    suspend fun importMeshNetwork(data: ByteArray) {
-        meshNetworkManager.import(data)
-    }
+    suspend fun importMeshNetwork(data: ByteArray) = meshNetworkManager.import(data)
 
     /**
      * Exports a mesh network.

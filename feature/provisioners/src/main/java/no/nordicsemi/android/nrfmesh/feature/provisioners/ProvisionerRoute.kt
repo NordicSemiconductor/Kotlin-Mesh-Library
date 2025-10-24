@@ -446,7 +446,7 @@ fun MoveProvisioner(
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Badge,
-        title = "Set as Local Provisioner",
+        title = stringResource(R.string.label_set_as_local_provisioner),
         titleAction = {
             Checkbox(
                 checked = checked,

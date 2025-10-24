@@ -17,7 +17,6 @@
     <string name="label_not_applicable">N/A</string>
     <string name="label_device_key">Device Key</string>
     <string name="label_ttl">TTL</string>
-    <string name="label_set_as_current_provisioner">Set as current provisioner</string>
     <string name="label_allocated_ranges">Allocated Ranges</string>
     <string name="label_unicast_range">Unicast Range</string>
     <string name="label_group_range">Group Range</string>
@@ -38,4 +37,5 @@
     <string name="label_unassigned">Configuration capabilities disabled</string>
     <string name="label_this_provisioner">This Provisioner</string>
     <string name="label_other_provisioner">Other Provisioners</string>
+    <string name="label_set_as_local_provisioner">Set as Local Provisioner</string>
 </resources>

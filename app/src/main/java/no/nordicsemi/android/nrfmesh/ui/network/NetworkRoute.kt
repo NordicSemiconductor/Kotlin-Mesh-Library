@@ -6,15 +6,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
@@ -29,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -61,8 +66,10 @@ import androidx.navigation.navOptions
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroup
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
@@ -75,6 +82,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.util.UUID
 
@@ -82,6 +90,9 @@ import java.util.UUID
 @Composable
 fun NetworkRoute(
     windowSizeClass: WindowSizeClass,
+    provisioners: List<Provisioner>,
+    shouldSelectProvisioner: Boolean,
+    onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
     onAddGroupClicked: (Group) -> Unit,
@@ -98,6 +109,7 @@ fun NetworkRoute(
     )
     val currentDestination = appState.currentDestination
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
@@ -383,6 +395,54 @@ fun NetworkRoute(
                                 }
                             }
                         )
+                    }
+                )
+            }
+            if (shouldSelectProvisioner) {
+                ModalBottomSheet(
+                    properties = ModalBottomSheetProperties(
+                        shouldDismissOnBackPress = false,
+                        shouldDismissOnClickOutside = false
+                    ),
+                    sheetState = selectProvisionerSheetState,
+                    sheetGesturesEnabled = false,
+                    onDismissRequest = { },
+                    content = {
+                        SectionTitle(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            title = stringResource(R.string.label_select_provisioner),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .padding(horizontal = 16.dp),
+                            text = stringResource(R.string.label_select_provisioner_rationale)
+                        )
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        ) {
+                            items(
+                                items = provisioners,
+                                key = { it.uuid.hashCode() }
+                            ) {
+                                ElevatedCardItem(
+                                    imageVector = Icons.Filled.PersonPin,
+                                    title = it.name,
+                                    onClick = {
+                                        onProvisionerSelected(it)
+                                        scope.launch { exportSheetState.hide() }
+                                            .invokeOnCompletion {
+                                                if (!exportSheetState.isVisible) {
+                                                    showExportBottomSheet = false
+                                                }
+                                            }
+                                    }
+                                )
+                            }
+                        }
                     }
                 )
             }

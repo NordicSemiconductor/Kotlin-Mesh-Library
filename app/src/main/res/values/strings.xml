@@ -50,4 +50,6 @@
     <string name="label_invalid_group_address">Invalid group address</string>
     <string name="label_group_in_use">Group in use</string>
     <string name="label_group_already_exists">Group already exists</string>
+    <string name="label_select_provisioner">Select a Provisioner</string>
+    <string name="label_select_provisioner_rationale">Select a Provisioner to use with this device</string>
 </resources>
