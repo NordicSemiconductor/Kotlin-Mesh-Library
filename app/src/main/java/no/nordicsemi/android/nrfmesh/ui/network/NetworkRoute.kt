@@ -68,6 +68,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicLake
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -90,7 +91,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class,
     ExperimentalMaterial3AdaptiveApi::class
 )
 @Composable
@@ -144,7 +146,9 @@ fun NetworkRoute(
                             contentDescription = null
                         )
                     },
-                    label = { Text(stringResource(destination.iconTextId)) }
+                    label = {
+                        Text(stringResource(destination.iconTextId), color = Color.White)
+                    }
                 )
             }
         }
