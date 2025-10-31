@@ -1,18 +1,24 @@
 package no.nordicsemi.android.nrfmesh.navigation
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
- import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
+import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
@@ -31,28 +37,45 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.PROXY
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.SETTINGS
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun rememberMeshAppState(
+    scope: CoroutineScope = rememberCoroutineScope(),
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     windowSizeClass: WindowSizeClass,
+    nodesNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
+    groupsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
+    settingsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
 ): MeshAppState = remember(navController) {
     MeshAppState(
+        scope = scope,
         navController = navController,
         snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass
+        windowSizeClass = windowSizeClass,
+        nodesNavigator = nodesNavigator,
+        groupsNavigator = groupsNavigator,
+        settingsNavigator = settingsNavigator
     )
 }
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Stable
 class MeshAppState(
+    val scope: CoroutineScope,
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     windowSizeClass: WindowSizeClass,
+    nodesNavigator: ThreePaneScaffoldNavigator<Any>,
+    groupsNavigator: ThreePaneScaffoldNavigator<Any>,
+    settingsNavigator: ThreePaneScaffoldNavigator<Any>,
 ) : AppState(
     navController = navController,
     snackbarHostState = snackbarHostState,
-    windowSizeClass = windowSizeClass
+    windowSizeClass = windowSizeClass,
+    nodeNavigator = nodesNavigator,
+    groupsNavigator = groupsNavigator,
+    settingsNavigator = settingsNavigator
 ) {
     val meshTopLevelDestinations: List<MeshTopLevelDestination> = MeshTopLevelDestination.entries
 
@@ -127,6 +150,34 @@ class MeshAppState(
     }
 
     override fun onBackPressed() {
-        navController.navigateUp()
+        navController.graph.startDestinationRoute?.let { route ->
+            when {
+                route.contains("node", ignoreCase = true) -> {
+                    scope.launch {
+                        if (nodeNavigator.canNavigateBack())
+                            nodeNavigator.navigateBack()
+                        else navController.popBackStack()
+                    }
+                }
+
+                route.contains("group", ignoreCase = true) -> {
+                    scope.launch {
+                        if (groupsNavigator.canNavigateBack())
+                            groupsNavigator.navigateBack()
+                        else navController.popBackStack()
+                    }
+                }
+
+                route.contains("settings", ignoreCase = true) -> {
+                    scope.launch {
+                        if (settingsNavigator.canNavigateBack())
+                            settingsNavigator.navigateBack()
+                        else navController.popBackStack()
+                    }
+                }
+
+                else -> navController.popBackStack()
+            }
+        } ?: navController.popBackStack()
     }
 }

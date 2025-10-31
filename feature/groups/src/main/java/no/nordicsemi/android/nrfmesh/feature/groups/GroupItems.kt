@@ -20,7 +20,6 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.SensorOccupied
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -154,7 +153,6 @@ private fun GenericOnOffItem(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GenericLevelItem(
     key: ApplicationKey,

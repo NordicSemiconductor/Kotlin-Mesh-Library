@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,7 +39,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -86,7 +90,9 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class,
+    ExperimentalMaterial3AdaptiveApi::class
+)
 @Composable
 fun NetworkRoute(
     windowSizeClass: WindowSizeClass,
@@ -105,7 +111,10 @@ fun NetworkRoute(
     val appState = rememberMeshAppState(
         navController = navController,
         snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass
+        windowSizeClass = windowSizeClass,
+        nodesNavigator = rememberListDetailPaneScaffoldNavigator<Any>(),
+        groupsNavigator = rememberListDetailPaneScaffoldNavigator<Any>(),
+        settingsNavigator = rememberListDetailPaneScaffoldNavigator<Any>()
     )
     val currentDestination = appState.currentDestination
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -114,12 +123,16 @@ fun NetworkRoute(
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
     var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
-
+    val navigationSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
+        adaptiveInfo = currentWindowAdaptiveInfo()
+    )
     NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            appState.meshTopLevelDestinations.forEach { destination ->
+        navigationSuiteType = navigationSuiteType,
+        navigationItemVerticalArrangement = Arrangement.Center,
+        navigationItems = {
+            appState.meshTopLevelDestinations.forEachIndexed { index, destination ->
                 val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
-                item(
+                NavigationSuiteItem(
                     selected = selected,
                     onClick = { appState.navigateToTopLevelDestination(destination) },
                     icon = {
@@ -135,11 +148,9 @@ fun NetworkRoute(
                 )
             }
         }
-
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            // contentWindowInsets = WindowInsets.displayCutout.union(WindowInsets.navigationBars),
             topBar = {
                 NordicAppBar(
                     title = { Text(text = appState.title) },
@@ -172,7 +183,6 @@ fun NetworkRoute(
                 appState.currentMeshTopLevelDestination?.let { dst ->
                     when (dst) {
                         MeshTopLevelDestination.NODES -> ExtendedFloatingActionButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                             text = { Text(text = stringResource(R.string.label_add_node)) },
                             icon = {
                                 Icon(
@@ -187,7 +197,6 @@ fun NetworkRoute(
                         )
 
                         MeshTopLevelDestination.GROUPS -> ExtendedFloatingActionButton(
-                            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                             text = { Text(text = stringResource(R.string.label_add_group)) },
                             icon = {
                                 Icon(
@@ -203,48 +212,139 @@ fun NetworkRoute(
                     }
                 }
             }
-        ) { paddingValues ->
+        ) { padding ->
             MeshNavHost(
                 appState = appState,
-                onBackPressed = appState::onBackPressed,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(paddingValues = padding),
+                onBackPressed = appState::onBackPressed
             )
+        }
 
-            if (showAddGroupDialog) {
-                var isError by rememberSaveable { mutableStateOf(false) }
-                var errorMessage by remember { mutableStateOf("") }
-                val initialValue by remember {
-                    mutableStateOf(
-                        nextAvailableGroupAddress()
-                            .address
-                            .toHexString(format = HexFormat.UpperCase)
+        if (showAddGroupDialog) {
+            var isError by rememberSaveable { mutableStateOf(false) }
+            var errorMessage by remember { mutableStateOf("") }
+            val initialValue by remember {
+                mutableStateOf(
+                    nextAvailableGroupAddress()
+                        .address
+                        .toHexString(format = HexFormat.UpperCase)
+                )
+            }
+            var address by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+                mutableStateOf(
+                    TextFieldValue(
+                        text = initialValue,
+                        selection = TextRange(initialValue.length)
                     )
-                }
-                var address by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-                    mutableStateOf(
-                        TextFieldValue(
-                            text = initialValue,
-                            selection = TextRange(initialValue.length)
+                )
+            }
+            MeshAlertDialog(
+                icon = Icons.Outlined.GroupWork,
+                title = stringResource(R.string.label_add_group),
+                text = stringResource(R.string.label_add_group_rationale),
+                onDismissRequest = { showResetNetworkDialog = false },
+                content = {
+                    MeshOutlinedTextField(
+                        value = address,
+                        onValueChanged = {
+                            isError = false
+                            address = it
+                            if (it.text.isNotEmpty()) {
+                                if (GroupAddress.isValid(it.text.toUShort(16))) {
+                                    isError = false
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                } else {
+                                    isError = true
+                                    errorMessage =
+                                        context.getString(R.string.label_invalid_group_address)
+                                }
+                            }
+                        },
+                        label = { Text(text = stringResource(id = R.string.address)) },
+                        supportingText = {
+                            if (isError) {
+                                Text(
+                                    text = errorMessage,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters
+                        ),
+                        regex = Regex("[0-9A-Fa-f]{0,4}"),
+                        isError = isError,
+                    )
+                    Row(
+                        modifier = Modifier.padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    ) {
+                        TextButton(
+                            onClick = {
+                                runCatching {
+                                    val group = Group(
+                                        address = VirtualAddress(uuid = UUID.randomUUID()),
+                                        _name = "New Group"
+                                    )
+                                    onAddGroupClicked(group)
+                                        .also {
+                                            showAddGroupDialog = false
+                                            navController.navigateToGroup(address = group.address)
+                                        }
+                                }.onFailure {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = when (it) {
+                                                is GroupAlreadyExists -> context
+                                                    .getString(R.string.label_group_already_exists)
+
+                                                is GroupInUse -> context
+                                                    .getString(R.string.label_group_in_use)
+
+                                                else -> it.message ?: context
+                                                    .getString(R.string.label_failed_to_add_group)
+                                            },
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            },
+                            content = {
+                                Text(text = stringResource(R.string.label_virtual_label))
+                            }
                         )
-                    )
-                }
-                MeshAlertDialog(
-                    icon = Icons.Outlined.GroupWork,
-                    title = stringResource(R.string.label_add_group),
-                    text = stringResource(R.string.label_add_group_rationale),
-                    onDismissRequest = { showResetNetworkDialog = false },
-                    content = {
-                        MeshOutlinedTextField(
-                            value = address,
-                            onValueChanged = {
-                                isError = false
-                                address = it
-                                if (it.text.isNotEmpty()) {
-                                    if (GroupAddress.isValid(it.text.toUShort(16))) {
+                        Spacer(modifier = Modifier.weight(weight = 1f))
+                        TextButton(
+                            onClick = { showAddGroupDialog = false },
+                            content = { Text(text = stringResource(R.string.label_cancel)) }
+                        )
+                        TextButton(
+                            onClick = {
+                                if (address.text.isNotEmpty()) {
+                                    if (GroupAddress.isValid(address.text.toUShort(16))) {
                                         isError = false
-                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                        runCatching {
+                                            val group = Group(
+                                                address = MeshAddress.create(
+                                                    address = address.text.toUShort(radix = 16)
+                                                ) as GroupAddress,
+                                                _name = "New Group"
+                                            )
+                                            onAddGroupClicked(group).also {
+                                                showAddGroupDialog = false
+                                                navController.navigateToGroup(address = group.address)
+                                            }
+                                        }.onFailure {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = it.message
+                                                        ?: context.getString(R.string.label_failed_to_add_group),
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
                                     } else {
                                         isError = true
                                         errorMessage =
@@ -252,200 +352,108 @@ fun NetworkRoute(
                                     }
                                 }
                             },
-                            label = { Text(text = stringResource(id = R.string.address)) },
-                            supportingText = {
-                                if (isError) {
-                                    Text(
-                                        text = errorMessage,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Characters
-                            ),
-                            regex = Regex("[0-9A-Fa-f]{0,4}"),
-                            isError = isError,
+                            content = { Text(text = stringResource(R.string.label_add)) }
                         )
-                        Row(
-                            modifier = Modifier.padding(top = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    runCatching {
-                                        val group = Group(
-                                            address = VirtualAddress(uuid = UUID.randomUUID()),
-                                            _name = "New Group"
-                                        )
-                                        onAddGroupClicked(group)
-                                            .also {
-                                                showAddGroupDialog = false
-                                                navController.navigateToGroup(address = group.address)
-                                            }
-                                    }.onFailure {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = when (it) {
-                                                    is GroupAlreadyExists -> context
-                                                        .getString(R.string.label_group_already_exists)
-
-                                                    is GroupInUse -> context
-                                                        .getString(R.string.label_group_in_use)
-
-                                                    else -> it.message ?: context
-                                                        .getString(R.string.label_failed_to_add_group)
-                                                },
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    }
-                                },
-                                content = {
-                                    Text(text = stringResource(R.string.label_virtual_label))
-                                }
-                            )
-                            Spacer(modifier = Modifier.weight(weight = 1f))
-                            TextButton(
-                                onClick = { showAddGroupDialog = false },
-                                content = { Text(text = stringResource(R.string.label_cancel)) }
-                            )
-                            TextButton(
-                                onClick = {
-                                    if (address.text.isNotEmpty()) {
-                                        if (GroupAddress.isValid(address.text.toUShort(16))) {
-                                            isError = false
-                                            runCatching {
-                                                val group = Group(
-                                                    address = MeshAddress.create(
-                                                        address = address.text.toUShort(radix = 16)
-                                                    ) as GroupAddress,
-                                                    _name = "New Group"
-                                                )
-                                                onAddGroupClicked(group).also {
-                                                    showAddGroupDialog = false
-                                                    navController.navigateToGroup(address = group.address)
-                                                }
-                                            }.onFailure {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        message = it.message
-                                                            ?: context.getString(R.string.label_failed_to_add_group),
-                                                        duration = SnackbarDuration.Short
-                                                    )
-                                                }
-                                            }
-                                        } else {
-                                            isError = true
-                                            errorMessage =
-                                                context.getString(R.string.label_invalid_group_address)
-                                        }
-                                    }
-                                },
-                                content = { Text(text = stringResource(R.string.label_add)) }
-                            )
-                        }
                     }
-                )
-            }
-
-            if (showResetNetworkDialog) {
-                MeshAlertDialog(
-                    icon = Icons.Outlined.RestartAlt,
-                    iconColor = Color.Red,
-                    title = stringResource(R.string.label_reset_network),
-                    text = stringResource(R.string.label_reset_network_rationale),
-                    onConfirmClick = {
-                        scope.launch {
-                            appState.clearBackStack()
-                        }.invokeOnCompletion {
-                            showResetNetworkDialog = false
-                            resetNetwork()
-                        }
-                    },
-                    onDismissClick = { showResetNetworkDialog = false },
-                    onDismissRequest = { showResetNetworkDialog = false }
-                )
-            }
-            if (showExportBottomSheet) {
-                ModalBottomSheet(
-                    sheetState = exportSheetState,
-                    onDismissRequest = { showExportBottomSheet = false },
-                    content = {
-                        ExportScreenRoute(
-                            onDismissRequest = {
-                                scope.launch { exportSheetState.hide() }
-                                    .invokeOnCompletion {
-                                        if (!exportSheetState.isVisible) {
-                                            showExportBottomSheet = false
-                                        }
-                                    }
-                            },
-                            onExportCompleted = { message ->
-                                scope.launch {
-                                    exportSheetState.hide()
-                                    snackbarHostState.showSnackbar(
-                                        message = message,
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }.invokeOnCompletion {
+                }
+            )
+        }
+        if (showResetNetworkDialog) {
+            MeshAlertDialog(
+                icon = Icons.Outlined.RestartAlt,
+                iconColor = Color.Red,
+                title = stringResource(R.string.label_reset_network),
+                text = stringResource(R.string.label_reset_network_rationale),
+                onConfirmClick = {
+                    scope.launch {
+                        appState.clearBackStack()
+                    }.invokeOnCompletion {
+                        showResetNetworkDialog = false
+                        resetNetwork()
+                    }
+                },
+                onDismissClick = { showResetNetworkDialog = false },
+                onDismissRequest = { showResetNetworkDialog = false }
+            )
+        }
+        if (showExportBottomSheet) {
+            ModalBottomSheet(
+                sheetState = exportSheetState,
+                onDismissRequest = { showExportBottomSheet = false },
+                content = {
+                    ExportScreenRoute(
+                        onDismissRequest = {
+                            scope.launch { exportSheetState.hide() }
+                                .invokeOnCompletion {
                                     if (!exportSheetState.isVisible) {
                                         showExportBottomSheet = false
                                     }
                                 }
-                            }
-                        )
-                    }
-                )
-            }
-            if (shouldSelectProvisioner) {
-                ModalBottomSheet(
-                    properties = ModalBottomSheetProperties(
-                        shouldDismissOnBackPress = false,
-                        shouldDismissOnClickOutside = false
-                    ),
-                    sheetState = selectProvisionerSheetState,
-                    sheetGesturesEnabled = false,
-                    onDismissRequest = { },
-                    content = {
-                        SectionTitle(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            title = stringResource(R.string.label_select_provisioner),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                        Text(
-                            modifier = Modifier
-                                .padding(bottom = 8.dp)
-                                .padding(horizontal = 16.dp),
-                            text = stringResource(R.string.label_select_provisioner_rationale)
-                        )
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        ) {
-                            items(
-                                items = provisioners,
-                                key = { it.uuid.hashCode() }
-                            ) {
-                                ElevatedCardItem(
-                                    imageVector = Icons.Filled.PersonPin,
-                                    title = it.name,
-                                    onClick = {
-                                        onProvisionerSelected(it)
-                                        scope.launch { exportSheetState.hide() }
-                                            .invokeOnCompletion {
-                                                if (!exportSheetState.isVisible) {
-                                                    showExportBottomSheet = false
-                                                }
-                                            }
-                                    }
+                        },
+                        onExportCompleted = { message ->
+                            scope.launch {
+                                exportSheetState.hide()
+                                snackbarHostState.showSnackbar(
+                                    message = message,
+                                    duration = SnackbarDuration.Short
                                 )
+                            }.invokeOnCompletion {
+                                if (!exportSheetState.isVisible) {
+                                    showExportBottomSheet = false
+                                }
                             }
                         }
+                    )
+                }
+            )
+        }
+        if (shouldSelectProvisioner) {
+            ModalBottomSheet(
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = false,
+                    shouldDismissOnClickOutside = false
+                ),
+                sheetState = selectProvisionerSheetState,
+                sheetGesturesEnabled = false,
+                onDismissRequest = { },
+                content = {
+                    SectionTitle(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        title = stringResource(R.string.label_select_provisioner),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        text = stringResource(R.string.label_select_provisioner_rationale)
+                    )
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        items(
+                            items = provisioners,
+                            key = { it.uuid.hashCode() }
+                        ) {
+                            ElevatedCardItem(
+                                imageVector = Icons.Filled.PersonPin,
+                                title = it.name,
+                                onClick = {
+                                    onProvisionerSelected(it)
+                                    scope.launch { exportSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!exportSheetState.isVisible) {
+                                                showExportBottomSheet = false
+                                            }
+                                        }
+                                }
+                            )
+                        }
                     }
-                )
-            }
+                }
+            )
         }
     }
 }

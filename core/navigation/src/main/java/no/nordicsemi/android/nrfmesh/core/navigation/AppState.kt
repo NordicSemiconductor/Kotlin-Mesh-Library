@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrfmesh.core.navigation
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Stable
 import androidx.navigation.NavBackStackEntry
@@ -15,11 +17,15 @@ import java.util.UUID
  *                                  destinations of the application.
  * @property windowSizeClass        The current window size class.
  */
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Stable
 abstract class AppState(
     val navController: NavHostController,
     val snackbarHostState: SnackbarHostState,
     val windowSizeClass: WindowSizeClass,
+    val nodeNavigator: ThreePaneScaffoldNavigator<Any>,
+    val groupsNavigator: ThreePaneScaffoldNavigator<Any>,
+    val settingsNavigator: ThreePaneScaffoldNavigator<Any>
 ) {
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry
