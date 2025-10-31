@@ -68,7 +68,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.theme.nordicLake
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
