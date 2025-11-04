@@ -46,7 +46,7 @@ fun PlaceHolder(
             ),
         ) {
             Icon(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(120.dp),
                 imageVector = imageVector,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,

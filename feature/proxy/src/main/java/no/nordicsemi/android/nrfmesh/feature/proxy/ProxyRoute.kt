@@ -76,7 +76,7 @@ internal fun ProxyRoute(
     onBluetoothEnabled: (Boolean) -> Unit,
     onLocationEnabled: (Boolean) -> Unit,
     onAutoConnectToggled: (Boolean) -> Unit,
-     onScanResultSelected: (ScanResult) -> Unit,
+    onScanResultSelected: (ScanResult) -> Unit,
     onDisconnectClicked: () -> Unit,
     send: (ProxyConfigurationMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -84,7 +84,9 @@ internal fun ProxyRoute(
     RequireBluetooth(onChanged = onBluetoothEnabled) {
         RequireLocation(onChanged = onLocationEnabled) {
             Column(
-                modifier = Modifier.verticalScroll(state = rememberScrollState()),
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .verticalScroll(state = rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ProxyFilterInfo(
