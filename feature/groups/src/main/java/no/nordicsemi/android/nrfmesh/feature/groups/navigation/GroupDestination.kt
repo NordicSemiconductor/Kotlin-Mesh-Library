@@ -28,6 +28,7 @@ fun NavGraphBuilder.groupGraph(appState: AppState) {
         val viewModel = hiltViewModel<GroupViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         GroupListDetailScreen(
+            appState = appState,
             snackbarHostState = appState.snackbarHostState,
             uiState = uiState.groupState,
             onModelClicked = viewModel::onModelClicked,

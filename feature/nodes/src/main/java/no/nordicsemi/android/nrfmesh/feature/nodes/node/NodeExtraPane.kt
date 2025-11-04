@@ -14,7 +14,7 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.Applica
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKeyKey
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
@@ -38,7 +38,7 @@ internal fun NodeExtraPane(
     navigateToConfigApplicationKeys: (UUID) -> Unit,
 ) {
     when (content) {
-        is ModelRouteKeyKey -> ModelScreenRoute(
+        is ModelRouteKey -> ModelScreenRoute(
             snackbarHostState = snackbarHostState,
             model = node.element(address = content.address)
                 ?.model(modelId = content.modelId)

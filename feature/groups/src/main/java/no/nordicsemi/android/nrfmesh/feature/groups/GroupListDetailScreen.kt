@@ -1,15 +1,14 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -18,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Group
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalStdlibApi::class)
 @Composable
 internal fun GroupListDetailScreen(
+    appState: AppState,
     snackbarHostState: SnackbarHostState,
     uiState: GroupState,
     onModelClicked: (Int) -> Unit,
@@ -26,10 +26,7 @@ internal fun GroupListDetailScreen(
     save: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
-    BackHandler(enabled = navigator.canNavigateBack()) {
-        scope.launch { navigator.navigateBack() }
-    }
+    val navigator = appState.groupsNavigator
     when (uiState) {
         is GroupState.Success -> {
             NavigableListDetailPaneScaffold(

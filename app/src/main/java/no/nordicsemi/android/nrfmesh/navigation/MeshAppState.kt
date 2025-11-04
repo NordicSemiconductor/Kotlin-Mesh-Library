@@ -1,28 +1,43 @@
 package no.nordicsemi.android.nrfmesh.navigation
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
- import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
+import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeyContent
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.GroupsRoute
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroups
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeyContent
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.navigateToNodes
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionerContent
+import no.nordicsemi.android.nrfmesh.feature.provisioners.navigation.ProvisionersContent
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.ProxyRoute
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.navigateToProxy
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
+import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContent
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.navigateToSettings
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
@@ -31,28 +46,45 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.PROXY
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.SETTINGS
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun rememberMeshAppState(
-    navController: NavHostController,
+    scope: CoroutineScope = rememberCoroutineScope(),
+    navController: NavHostController = rememberNavController(),
     snackbarHostState: SnackbarHostState,
     windowSizeClass: WindowSizeClass,
+    nodesNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
+    groupsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
+    settingsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
 ): MeshAppState = remember(navController) {
     MeshAppState(
+        scope = scope,
         navController = navController,
         snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass
+        windowSizeClass = windowSizeClass,
+        nodesNavigator = nodesNavigator,
+        groupsNavigator = groupsNavigator,
+        settingsNavigator = settingsNavigator
     )
 }
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Stable
 class MeshAppState(
+    val scope: CoroutineScope,
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     windowSizeClass: WindowSizeClass,
+    nodesNavigator: ThreePaneScaffoldNavigator<Any>,
+    groupsNavigator: ThreePaneScaffoldNavigator<Any>,
+    settingsNavigator: ThreePaneScaffoldNavigator<Any>,
 ) : AppState(
     navController = navController,
     snackbarHostState = snackbarHostState,
-    windowSizeClass = windowSizeClass
+    windowSizeClass = windowSizeClass,
+    nodeNavigator = nodesNavigator,
+    groupsNavigator = groupsNavigator,
+    settingsNavigator = settingsNavigator
 ) {
     val meshTopLevelDestinations: List<MeshTopLevelDestination> = MeshTopLevelDestination.entries
 
@@ -67,9 +99,19 @@ class MeshAppState(
 
     val showBackButton: Boolean
         get() = when {
-            navController.currentDestination?.hasRoute<NodeRoute>() == true -> true
-            navController.currentDestination?.hasRoute<GroupRoute>() == true -> true
-            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> true
+            navController.currentDestination?.hasRoute<NodeRoute>() == true ||
+                    navController.currentDestination?.hasRoute<GroupRoute>() == true ||
+                    navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> true
+            // Check against the Settings navigator
+            settingsNavigator.currentDestination?.contentKey is ScenesContent ||
+                    settingsNavigator.currentDestination?.contentKey is SceneContent ||
+                    settingsNavigator.currentDestination?.contentKey is ProvisionersContent ||
+                    settingsNavigator.currentDestination?.contentKey is ProvisionerContent ||
+                    settingsNavigator.currentDestination?.contentKey is NetworkKeysContent ||
+                    settingsNavigator.currentDestination?.contentKey is NetworkKeyContent ||
+                    settingsNavigator.currentDestination?.contentKey is ApplicationKeysContent ||
+                    settingsNavigator.currentDestination?.contentKey is ApplicationKeyContent -> true
+
             else -> false
         }
 
@@ -80,8 +122,8 @@ class MeshAppState(
             navController.currentDestination?.hasRoute<GroupsRoute>() == true -> "Groups"
             navController.currentDestination?.hasRoute<GroupRoute>() == true -> "Group"
             navController.currentDestination?.hasRoute<ProxyRoute>() == true -> "Proxy"
-            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> "Provisioning"
             navController.currentDestination?.hasRoute<SettingsRoute>() == true -> "Settings"
+            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> "Provisioning"
             else -> "Unknown"
         }
 
@@ -127,6 +169,34 @@ class MeshAppState(
     }
 
     override fun onBackPressed() {
-        navController.navigateUp()
+        navController.graph.startDestinationRoute?.let { route ->
+            when {
+                route.contains("node", ignoreCase = true) -> {
+                    scope.launch {
+                        if (nodeNavigator.canNavigateBack())
+                            nodeNavigator.navigateBack()
+                        else navController.navigateUp()
+                    }
+                }
+
+                route.contains("group", ignoreCase = true) -> {
+                    scope.launch {
+                        if (groupsNavigator.canNavigateBack())
+                            groupsNavigator.navigateBack()
+                        else navController.navigateUp()
+                    }
+                }
+
+                route.contains("settings", ignoreCase = true) -> {
+                    scope.launch {
+                        if (settingsNavigator.canNavigateBack())
+                            settingsNavigator.navigateBack()
+                        else navController.navigateUp()
+                    }
+                }
+
+                else -> navController.navigateUp()
+            }
+        } ?: navController.navigateUp()
     }
 }

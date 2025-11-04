@@ -6,10 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesRoute
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
+@Serializable
 @Parcelize
 data object ScenesContent : Parcelable
 

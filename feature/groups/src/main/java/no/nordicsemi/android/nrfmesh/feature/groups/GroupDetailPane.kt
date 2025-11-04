@@ -1,13 +1,14 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
 import android.os.Parcelable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import kotlinx.parcelize.Parcelize
-import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
@@ -26,7 +27,7 @@ internal fun GroupDetailPane(
     content: Any?,
     network: MeshNetwork,
     models: Map<ModelId, List<Model>>,
-    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit
+    send: (UnacknowledgedMeshMessage, ApplicationKey) -> Unit,
 ) {
     when (content) {
         is ModelControls -> GroupItems(
@@ -39,16 +40,16 @@ internal fun GroupDetailPane(
         else -> PlaceHolder(
             content = {
                 if (models.isNotEmpty()) {
-                    MeshNoItemsAvailable(
+                    PlaceHolder(
+                        modifier = Modifier.fillMaxSize(),
                         imageVector = Icons.Outlined.Info,
-                        title = stringResource(id = R.string.label_no_models_selected),
-                        rationale = stringResource(id = R.string.label_select_model_rationale)
+                        text = stringResource(id = R.string.label_select_model_rationale)
                     )
                 } else {
-                    MeshNoItemsAvailable(
+                    PlaceHolder(
+                        modifier = Modifier.fillMaxSize(),
                         imageVector = Icons.Outlined.Info,
-                        title = stringResource(id = R.string.label_no_models_subscribed),
-                        rationale = stringResource(id = R.string.label_no_models_subscribed_rationale)
+                        text = stringResource(id = R.string.label_no_models_subscribed_rationale)
                     )
                 }
             }

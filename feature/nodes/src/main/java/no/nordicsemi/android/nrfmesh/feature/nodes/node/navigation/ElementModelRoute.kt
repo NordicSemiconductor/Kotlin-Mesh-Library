@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
  * @property address The address of the element.
  */
 @Parcelize
-internal open class ElementModelRouteKey(open val address: UShort) : Parcelable
+internal open class ElementModelRoute(open val address: UShort) : Parcelable
 
 /**
  * ElementRouteKeyKey is the content key that is used to identify an element in the
@@ -19,8 +19,8 @@ internal open class ElementModelRouteKey(open val address: UShort) : Parcelable
  * @property address The address of the element.
  */
 @Parcelize
-internal data class ElementRouteKeyKey(override val address: UShort) :
-    ElementModelRouteKey(address = address), Parcelable
+internal data class ElementRouteKey(override val address: UShort) :
+    ElementModelRoute(address = address), Parcelable
 
 
 /**
@@ -31,7 +31,7 @@ internal data class ElementRouteKeyKey(override val address: UShort) :
  * @property address The address of the parent element the model belongs to.
  */
 @Parcelize
-internal data class ModelRouteKeyKey(
+internal data class ModelRouteKey(
     val modelId: UInt,
     override val address: UShort,
-) : ElementModelRouteKey(address = address), Parcelable
+) : ElementModelRoute(address = address), Parcelable

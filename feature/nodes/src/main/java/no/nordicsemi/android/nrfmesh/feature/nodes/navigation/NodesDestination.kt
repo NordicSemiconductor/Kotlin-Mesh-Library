@@ -13,8 +13,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.nodeGraph
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningGraph
 
 @Serializable
 data object NodesBaseRoute
@@ -27,7 +25,11 @@ fun NavController.navigateToNodes(navOptions: NavOptions? = null) = navigate(
     navOptions = navOptions
 )
 
-fun NavGraphBuilder.nodesGraph(appState: AppState, navigateBack: () -> Unit) {
+fun NavGraphBuilder.nodesGraph(
+    appState: AppState,
+    nodeGraph: NavGraphBuilder.() -> Unit,
+    provisioningGraph: NavGraphBuilder.() -> Unit,
+) {
     navigation<NodesBaseRoute>(startDestination = NodesRoute) {
         composable<NodesRoute> {
             val viewModel = hiltViewModel<NodesViewModel>()
@@ -41,7 +43,7 @@ fun NavGraphBuilder.nodesGraph(appState: AppState, navigateBack: () -> Unit) {
                 remove = { }
             )
         }
-        nodeGraph(appState = appState, navigateBack = navigateBack)
-        provisioningGraph(appState = appState, onBackPressed = navigateBack)
+        nodeGraph()
+        provisioningGraph()
     }
 }

@@ -6,10 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeysViewModel
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
+@Serializable
 @Parcelize
 data object NetworkKeysContent : Parcelable
 

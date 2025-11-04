@@ -29,15 +29,15 @@ internal fun SettingsExtraPane(
     when (content) {
         is ProvisionerContent -> {
             val provisioner = network.provisioners
-                .firstOrNull { it.uuid == content.uuid }
+                .firstOrNull { it.uuid.toString() == content.uuid }
                 ?: return
             ProvisionerScreenRoute(
                 index = network.provisioners.indexOf(element = provisioner),
                 provisioner = provisioner,
                 provisionerData = settingsListData.provisioners
-                    .firstOrNull { it.uuid == content.uuid }
+                    .firstOrNull { it.uuid.toString() == content.uuid }
                     ?: return,
-                otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
+                otherProvisioners = network.provisioners.filter { it.uuid.toString() != content.uuid },
                 moveProvisioner = moveProvisioner,
                 save = save
             )
