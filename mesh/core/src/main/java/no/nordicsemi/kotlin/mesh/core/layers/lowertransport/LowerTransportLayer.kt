@@ -24,6 +24,7 @@ import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.schedule
 import kotlin.math.min
 import kotlin.time.Duration
+import kotlin.uuid.ExperimentalUuidApi
 
 private sealed class Message {
 
@@ -335,6 +336,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * @param networkPdu: The Network PDU to validate.
      * @return true if the message is valid and not a replay attack, false if otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     private suspend fun checkAgainstReplayAttack(networkPdu: NetworkPdu): Boolean {
         // Do not check for replay attacks against messages that are not sent to the local node.
         // Therefore, return True, if the destination is not a unicast address || if the destination

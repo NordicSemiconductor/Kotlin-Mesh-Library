@@ -31,6 +31,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import kotlin.uuid.ExperimentalUuidApi
 
 @Composable
 internal fun NodesRoute(
@@ -77,7 +78,7 @@ private fun NodesScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
 @Composable
 private fun Nodes(
     coroutineScope: CoroutineScope,

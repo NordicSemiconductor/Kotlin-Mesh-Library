@@ -18,6 +18,7 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.SettingsRoute
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -75,6 +76,7 @@ class SettingsViewModel @Inject constructor(
     /**
      * Moves the provisioner to a new index in the list.
      */
+    @OptIn(ExperimentalUuidApi::class)
     fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
         viewModelScope.launch {
             network.move(provisioner = provisioner, to = newIndex)

@@ -51,8 +51,10 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisionersRoute(
     highlightSelectedItem: Boolean,
@@ -61,7 +63,7 @@ internal fun ProvisionersRoute(
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
-    navigateToProvisioner: (UUID) -> Unit,
+    navigateToProvisioner: (Uuid) -> Unit,
 ) {
     Provisioners(
         highlightSelectedItem = highlightSelectedItem,
@@ -74,6 +76,7 @@ internal fun ProvisionersRoute(
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun Provisioners(
     highlightSelectedItem: Boolean,
@@ -82,7 +85,7 @@ private fun Provisioners(
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
-    navigateToProvisioner: (UUID) -> Unit,
+    navigateToProvisioner: (Uuid) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -151,13 +154,14 @@ private fun Provisioners(
     }
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun SwipeToDismissProvisioner(
     scope: CoroutineScope,
     context: Context,
     snackbarHostState: SnackbarHostState,
     provisioner: ProvisionerData,
-    navigateToProvisioner: (UUID) -> Unit,
+    navigateToProvisioner: (Uuid) -> Unit,
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,

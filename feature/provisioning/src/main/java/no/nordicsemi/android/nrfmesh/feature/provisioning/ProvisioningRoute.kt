@@ -57,9 +57,10 @@ import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisioningRoute(
     uiState: ProvisioningScreenUiState,
@@ -70,7 +71,7 @@ internal fun ProvisioningRoute(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: (UUID) -> Unit,
+    onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
 ) {
@@ -98,7 +99,7 @@ internal fun ProvisioningRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun ProvisionerScreen(
     uiState: ProvisioningScreenUiState,
@@ -109,7 +110,7 @@ private fun ProvisionerScreen(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: (UUID) -> Unit,
+    onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
 ) {
@@ -197,6 +198,7 @@ private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun ProvisioningContent(
     provisionerState: ProvisionerState,
@@ -209,7 +211,7 @@ private fun ProvisioningContent(
     onNetworkKeyClick: (KeyIndex) -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: (UUID) -> Unit,
+    onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     dismissCapabilitiesSheet: () -> Unit,
 ) {
@@ -298,6 +300,7 @@ private fun ProvisioningContent(
     }
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun ProvisioningStateInfo(
     state: ProvisioningState,
@@ -310,7 +313,7 @@ private fun ProvisioningStateInfo(
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (KeyIndex) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: (UUID) -> Unit,
+    onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
     startProvisioning: (AuthenticationMethod) -> Unit,

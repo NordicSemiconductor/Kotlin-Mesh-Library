@@ -5,9 +5,14 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.mesh.core.exception.*
-import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
-import java.util.*
+import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
+import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
+import no.nordicsemi.kotlin.mesh.core.exception.DoesNotBelongToNetwork
+import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
+import no.nordicsemi.kotlin.mesh.core.exception.RangeAlreadyAllocated
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * A Provisioner is capable of provisioning a device to a mesh network and is represented by a
@@ -30,12 +35,13 @@ import java.util.*
  *
  * @constructor Creates a Provisioner object.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Suppress("unused")
 @Serializable
 data class Provisioner internal constructor(
     @SerialName(value = "UUID")
-    @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID,
+    @Serializable(with = UuidSerializer::class)
+    val uuid: Uuid,
     @SerialName(value = "provisionerName")
     private var _name: String = "nRF Mesh Provisioner",
     @SerialName(value = "allocatedUnicastRange")
@@ -84,7 +90,7 @@ data class Provisioner internal constructor(
      *
      * @param uuid Provisioner UUID.
      */
-    constructor(uuid: UUID = UUID.randomUUID()) : this(
+    constructor(uuid: Uuid = Uuid.random()) : this(
         uuid = uuid,
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
@@ -98,7 +104,7 @@ data class Provisioner internal constructor(
      * @param uuid Provisioner UUID.
      * @param name Provisioner name.
      */
-    constructor(uuid: UUID = UUID.randomUUID(), name: String) : this(
+    constructor(uuid: Uuid = Uuid.random(), name: String) : this(
         uuid = uuid,
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
@@ -112,7 +118,7 @@ data class Provisioner internal constructor(
      * @param name Provisioner name.
      */
     constructor(name: String) : this(
-        uuid = UUID.randomUUID(),
+        uuid = Uuid.random(),
         _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
         _allocatedGroupRanges = mutableListOf<GroupRange>(),
         _allocatedSceneRanges = mutableListOf<SceneRange>(),
@@ -134,7 +140,7 @@ data class Provisioner internal constructor(
         allocatedGroupRanges: List<GroupRange> = mutableListOf(),
         allocatedSceneRanges: List<SceneRange> = mutableListOf(),
     ) : this(
-        uuid = UUID.randomUUID(),
+        uuid = Uuid.random(),
         _allocatedUnicastRanges = allocatedUnicastRanges.toMutableList(),
         _allocatedGroupRanges = allocatedGroupRanges.toMutableList(),
         _allocatedSceneRanges = allocatedSceneRanges.toMutableList(),

@@ -2,7 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.util
 
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 object Utils {
 
@@ -14,15 +15,17 @@ object Utils {
      *
      * @return a UUID string without dashes.
      */
-    fun UUID.encode() = toString().uppercase().filter { it.isLetterOrDigit() }
+    @OptIn(ExperimentalUuidApi::class)
+    fun Uuid.encode() = toString().uppercase().filter { it.isLetterOrDigit() }
 
     /**
      * Formats a UUID string to a standard UUID format.
      *
      * @param uuid the UUID string to decode.
      */
-    fun decode(uuid: String): UUID = UUID.fromString(
-        uuid
+    @OptIn(ExperimentalUuidApi::class)
+    fun decode(uuid: String): Uuid = Uuid.parse(
+        uuidString = uuid
             .uppercase()
             .takeIf { HEX_UUID_PATTERN.matches(it) }
             ?.run {

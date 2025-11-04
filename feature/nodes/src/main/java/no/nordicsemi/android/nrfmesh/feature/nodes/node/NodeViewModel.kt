@@ -37,9 +37,11 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import java.util.UUID
+import kotlin.uuid.Uuid
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @HiltViewModel
 internal class NodeViewModel @Inject internal constructor(
     savedStateHandle: SavedStateHandle,
@@ -48,7 +50,7 @@ internal class NodeViewModel @Inject internal constructor(
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
     private val nodeUuid = savedStateHandle.toRoute<NodeRoute>().let {
-        UUID.fromString(it.uuid)
+        Uuid.parse(uuidString = it.uuid)
     }
 
     private val _uiState = MutableStateFlow(NodeScreenUiState())

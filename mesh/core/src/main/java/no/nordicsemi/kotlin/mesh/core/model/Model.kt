@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import kotlin.UShort
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Represents Bluetooth mesh model contained in an element in a node.
@@ -689,6 +690,7 @@ class Model internal constructor(
      * @param model Model to check if this model extends.
      * @return true if this model extends the given model, false otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     fun extends(model: Model): Boolean {
         val parentElement = parentElement ?: return false
         val otherParentElement = model.parentElement ?: return false
@@ -716,6 +718,7 @@ class Model internal constructor(
      * @param model Model to check if this model extends.
      * @return true if this model extends the given model, false otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     fun extendsDirectly(model: Model): Boolean {
         // Ensure models are on the same node
         val parentElement = parentElement ?: return false

@@ -6,7 +6,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Features
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Defines a data object that is used to display the ui state of the Node Info List.
@@ -23,8 +24,9 @@ import java.util.UUID
  * @property features                      Features of the node.
  * @property excluded                      True if the node is excluded from the network.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class NodeInfoListData(
-    val uuid: UUID,
+    val uuid: Uuid,
     val name: String,
     val networkKeyCount: Int,
     val appKeyCount: Int,

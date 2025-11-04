@@ -28,8 +28,9 @@ import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import kotlin.uuid.ExperimentalUuidApi
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
 @Composable
 internal fun GroupsRoute(
     uiState: GroupsScreenUiState,
@@ -57,10 +58,10 @@ internal fun GroupsRoute(
                         },
                         title = group.name,
                         subtitle = group.address.run {
-                            if (this is GroupAddress) {
-                                "0x${group.address.toHexString()}"
-                            } else {
-                                (this as VirtualAddress).uuid.toString().uppercase()
+                            when (this) {
+                                is GroupAddress -> "0x${group.address.toHexString()}"
+
+                                else -> (this as VirtualAddress).uuid.toString().uppercase()
                             }
                         },
                         onClick = { navigateToGroup(group.address) },

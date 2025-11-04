@@ -84,7 +84,7 @@ class GenericOnOffServer(
     override fun store(scene: SceneNumber) {
         model.parentElement?.index?.let { index ->
             storage.storeGenericOnOffState(
-                uuid = model.parentElement?.parentNode?.network?.uuid!!.toKotlinUuid(),
+                uuid = model.parentElement?.parentNode?.network?.uuid!!,
                 sceneNumber = scene,
                 elementIndex = index,
                 on = state.value
@@ -101,7 +101,7 @@ class GenericOnOffServer(
         model.parentElement?.index?.let { index ->
             scope.launch {
                 val isOn = storage.readGenericOnOffState(
-                    uuid = model.parentElement?.parentNode?.network?.uuid!!.toKotlinUuid(),
+                    uuid = model.parentElement?.parentNode?.network?.uuid!!,
                     sceneNumber = scene,
                     elementIndex = index
                 )

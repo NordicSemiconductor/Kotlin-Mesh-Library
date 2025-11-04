@@ -20,9 +20,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun NodeExtraPane(
     snackbarHostState: SnackbarHostState,
@@ -35,7 +37,7 @@ internal fun NodeExtraPane(
     requestNodeIdentityStates: (Model) -> Unit,
     resetMessageState: () -> Unit,
     navigateToGroups: () -> Unit,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
 ) {
     when (content) {
         is ModelRouteKey -> ModelScreenRoute(

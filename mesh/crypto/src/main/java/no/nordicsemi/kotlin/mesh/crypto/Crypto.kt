@@ -31,10 +31,11 @@ import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Security
 import java.security.spec.InvalidKeySpecException
-import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
 import javax.crypto.spec.SecretKeySpec
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 object Crypto {
 
@@ -202,8 +203,8 @@ object Crypto {
      * Creates a 16-bit virtual address for a given UUID.
      * @param uuid 128-bit Label UUID.
      */
-    @OptIn(ExperimentalStdlibApi::class)
-    fun createVirtualAddress(uuid: UUID): UShort {
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
+    fun createVirtualAddress(uuid: Uuid): UShort {
         val salt = calculateS1(VTAD)
         val hash = calculateCmac(input = uuid.toByteArray(), key = salt)
         // The virtual address is a 16-bit value that has bit 15 set to 1, bit 14 set to 0,

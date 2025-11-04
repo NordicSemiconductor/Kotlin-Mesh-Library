@@ -80,7 +80,9 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.minus
 import no.nordicsemi.kotlin.mesh.core.model.overlaps
 import no.nordicsemi.kotlin.mesh.core.model.plus
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisionerRoute(
     index: Int,
@@ -212,6 +214,7 @@ fun Name(
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun UnicastAddress(
     snackbarHostState: SnackbarHostState,
@@ -458,7 +461,7 @@ fun MoveProvisioner(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun UnicastRanges(
     snackbarHostState: SnackbarHostState,
@@ -517,7 +520,7 @@ private fun UnicastRanges(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun GroupRanges(
     snackbarHostState: SnackbarHostState,
@@ -573,7 +576,7 @@ private fun GroupRanges(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun SceneRanges(
     snackbarHostState: SnackbarHostState,

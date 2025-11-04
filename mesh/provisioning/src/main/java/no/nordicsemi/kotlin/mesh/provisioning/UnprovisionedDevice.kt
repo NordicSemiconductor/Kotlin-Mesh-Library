@@ -5,11 +5,13 @@ package no.nordicsemi.kotlin.mesh.provisioning
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 data class UnprovisionedDevice(
     var name: String,
-    val uuid: UUID,
+    val uuid: Uuid,
     val oobInformation: OobInformation = OobInformation.None
 ) {
 
@@ -29,7 +31,7 @@ data class UnprovisionedDevice(
         fun from(advertisementData: ByteArray): UnprovisionedDevice {
             var length: Int
             var type: Int
-            var deviceUuid: UUID? = null
+            var deviceUuid: Uuid? = null
             var oobInformation: OobInformation = OobInformation.Other
             var localName = ""
             var i = 0

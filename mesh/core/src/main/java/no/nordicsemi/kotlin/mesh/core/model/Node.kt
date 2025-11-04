@@ -14,9 +14,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.Page0
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.UShortAsStringSerializer
-import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * The node represents a configured state of a mesh node.
@@ -84,11 +85,12 @@ import java.util.UUID
  *
  * @constructor                         Creates a mesh node.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Serializable
 data class Node internal constructor(
     @SerialName(value = "UUID")
-    @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID,
+    @Serializable(with = UuidSerializer::class)
+    val uuid: Uuid,
     @SerialName(value = "name")
     private var _name:String = "nRF Mesh Node",
     @Serializable(with = KeySerializer::class)
@@ -298,7 +300,7 @@ data class Node internal constructor(
      */
     @Throws(SecurityException::class)
     internal constructor(name: String, address: Int, elements: Int) : this(
-        uuid = UUID.randomUUID(),
+        uuid = Uuid.random(),
         deviceKey = Crypto.generateRandomKey(),
         _primaryUnicastAddress = UnicastAddress(address),
         _elements = MutableList(elements) { Element(location = Location.UNKNOWN) },
@@ -323,7 +325,7 @@ data class Node internal constructor(
     @Throws(SecurityException::class)
     constructor(
         name: String = "nRF Mesh Node",
-        uuid: UUID,
+        uuid: Uuid,
         deviceKey: ByteArray,
         unicastAddress: UnicastAddress,
         elementCount: Int,

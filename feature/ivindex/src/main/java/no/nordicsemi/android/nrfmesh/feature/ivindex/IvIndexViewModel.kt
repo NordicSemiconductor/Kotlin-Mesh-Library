@@ -15,6 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
+import kotlin.uuid.ExperimentalUuidApi
 
 @HiltViewModel
 class IvIndexViewModel @Inject constructor(
@@ -47,6 +48,7 @@ class IvIndexViewModel @Inject constructor(
     /**
      * Increases the IV index by 1 if the network is empty.
      */
+    @OptIn(ExperimentalUuidApi::class)
     internal fun onIvIndexChanged(index: UInt, isIvUpdateActive: Boolean) {
         runCatching {
             network.setIvIndex(index = index, isIvUpdateActive = isIvUpdateActive)

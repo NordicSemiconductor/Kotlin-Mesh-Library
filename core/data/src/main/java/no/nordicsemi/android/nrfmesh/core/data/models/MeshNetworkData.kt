@@ -2,16 +2,17 @@
 
 package no.nordicsemi.android.nrfmesh.core.data.models
 
-import kotlin.time.Instant
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import java.util.*
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
  *
- * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows
+ * @property uuid                   128-bit Universally Unique Identifier (Uuid), which allows
  *                                  differentiation among multiple mesh networks.
  * @property name                   Human-readable name for the mesh network.
  * @property timestamp              Represents the last time the Mesh Object has been modified. The
@@ -34,9 +35,9 @@ import kotlin.time.ExperimentalTime
  *                                  Beacon and its current state.
  * @constructor                     Creates a mesh network.
  */
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
 data class MeshNetworkData(
-    val uuid: UUID = UUID.randomUUID(),
+    val uuid: Uuid = Uuid.random(),
     val name: String,
     val provisioners: List<ProvisionerData> = mutableListOf(),
     val networkKeys: List<NetworkKeyData> = mutableListOf(),

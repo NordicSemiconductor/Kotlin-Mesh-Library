@@ -28,13 +28,15 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppUnbind
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun BindAppKeysRoute(
     model: Model,
     addedKeys: List<ApplicationKey> = model.parentElement?.parentNode?.applicationKeys.orEmpty(),
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     Column(

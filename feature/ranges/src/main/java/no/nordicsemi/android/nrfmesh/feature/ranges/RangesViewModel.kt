@@ -17,8 +17,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.minus
 import no.nordicsemi.kotlin.mesh.core.model.overlaps
 import no.nordicsemi.kotlin.mesh.core.model.plus
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Suppress("ConvertArgumentToSet")
 internal abstract class RangesViewModel(
     savedStateHandle: SavedStateHandle,
@@ -28,8 +30,8 @@ internal abstract class RangesViewModel(
     protected lateinit var network: MeshNetwork
     protected lateinit var provisioner: Provisioner
 
-    private val uuid: UUID = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
-        UUID.fromString(it as String)
+    private val uuid: Uuid = checkNotNull(savedStateHandle[MeshNavigationDestination.ARG]).let {
+        Uuid.parse(uuidString = it as String)
     }
 
     protected val _uiState = MutableStateFlow(RangesScreenUiState(listOf()))

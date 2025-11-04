@@ -12,7 +12,8 @@ import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * The node represents a configured state of a mesh node.
@@ -79,8 +80,9 @@ import java.util.UUID
  *
  * @constructor                         Creates a mesh node.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class NodeData internal constructor(
-    val uuid: UUID,
+    val uuid: Uuid,
     val name: String,
     val deviceKey: ByteArray?,
     val netKeys: List<NodeKey>,

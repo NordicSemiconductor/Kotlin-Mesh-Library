@@ -1,6 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

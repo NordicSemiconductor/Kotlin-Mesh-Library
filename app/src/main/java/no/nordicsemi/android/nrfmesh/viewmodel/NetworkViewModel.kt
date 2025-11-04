@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.io.BufferedReader
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
 @HiltViewModel
 class NetworkViewModel @Inject constructor(
@@ -65,6 +66,7 @@ class NetworkViewModel @Inject constructor(
      *
      * @param provisioner Provisioner to be selected.
      */
+    @OptIn(ExperimentalUuidApi::class)
     internal fun onProvisionerSelected(provisioner: Provisioner) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(shouldSelectProvisioner = false)
@@ -83,6 +85,7 @@ class NetworkViewModel @Inject constructor(
      * @param uri                  URI of the file.
      * @param contentResolver      Content resolver.
      */
+    @OptIn(ExperimentalUuidApi::class)
     internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
         viewModelScope.launch {
             val networkJson = contentResolver.openInputStream(uri)?.use { inputStream ->

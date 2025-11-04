@@ -44,7 +44,8 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.GROUPS
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.NODES
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.PROXY
 import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination.SETTINGS
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -153,7 +154,8 @@ class MeshAppState(
         navController.navigateToSettings()
     }
 
-    override fun navigateToNode(uuid: UUID) {
+    @OptIn(ExperimentalUuidApi::class)
+    override fun navigateToNode(uuid: Uuid) {
         navController.navigateToNode(
             uuid = uuid,
             navOptions = navOptions {

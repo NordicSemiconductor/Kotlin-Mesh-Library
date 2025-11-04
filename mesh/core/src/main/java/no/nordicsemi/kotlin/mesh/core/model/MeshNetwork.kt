@@ -26,7 +26,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.OverlappingProvisionerRanges
 import no.nordicsemi.kotlin.mesh.core.exception.ProvisionerAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.exception.SceneAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.exception.SceneInUse
-import no.nordicsemi.kotlin.mesh.core.model.serialization.UUIDSerializer
+import no.nordicsemi.kotlin.mesh.core.model.serialization.UuidSerializer
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ApplicationKeysConfig
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.DeviceKeyConfig
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.GroupsConfig
@@ -39,14 +39,15 @@ import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
  *
- * @property uuid                   128-bit Universally Unique Identifier (UUID), which allows
+ * @property uuid                   128-bit Universally Unique Identifier (Uuid), which allows
  *                                  differentiation among multiple mesh networks.
  * @property name                   Human-readable name for the mesh network.
  * @property timestamp              Represents the last time the Mesh Object has been modified. The
@@ -73,12 +74,12 @@ import kotlin.time.Instant
  * @constructor                     Creates a mesh network.
  */
 @ConsistentCopyVisibility
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
 @Serializable
 data class MeshNetwork internal constructor(
-    @Serializable(with = UUIDSerializer::class)
+    @Serializable(with = UuidSerializer::class)
     @SerialName(value = "meshUUID")
-    val uuid: UUID = UUID.randomUUID(),
+    val uuid: Uuid = Uuid.random(),
     @SerialName(value = "meshName")
     private var _name: String,
     @SerialName("provisioners")
@@ -208,15 +209,15 @@ data class MeshNetwork internal constructor(
      *
      * @param name The name of the network
      */
-    internal constructor(name: String) : this(name = name, uuid = UUID.randomUUID())
+    internal constructor(name: String) : this(name = name, uuid = Uuid.random())
 
     /**
      * Convenience constructor to create a network.
      *
      * @param name The name of the network
-     * @param uuid The UUID of the network
+     * @param uuid The Uuid of the network
      */
-    internal constructor(name: String, uuid: UUID = UUID.randomUUID()) : this(
+    internal constructor(name: String, uuid: Uuid = Uuid.random()) : this(
         uuid = uuid,
         _name = name
     )
@@ -284,15 +285,15 @@ data class MeshNetwork internal constructor(
     }
 
     /**
-     * Returns a provisioner with the given UUID.
+     * Returns a provisioner with the given Uuid.
      *
-     * @param uuid UUID of the provisioner.
-     * @return Provisioner with the given UUID or null otherwise
+     * @param uuid Uuid of the provisioner.
+     * @return Provisioner with the given Uuid or null otherwise
      */
-    fun provisioner(uuid: UUID): Provisioner? = provisioners.firstOrNull { it.uuid == uuid }
+    fun provisioner(uuid: Uuid): Provisioner? = provisioners.firstOrNull { it.uuid == uuid }
 
     /**
-     * Checks if a provisioner with the given UUID already exists in the network.
+     * Checks if a provisioner with the given Uuid already exists in the network.
      *
      * @param provisioner provisioner to check.
      * @return true if the provisioner exists.
@@ -736,10 +737,10 @@ data class MeshNetwork internal constructor(
     /**
      * Returns the node with the given uuid.
      *
-     * @param uuid matching UUID.
+     * @param uuid matching Uuid.
      * @return Node
      */
-    fun node(uuid: UUID) = nodes.find { it.uuid == uuid }
+    fun node(uuid: Uuid) = nodes.find { it.uuid == uuid }
 
     /**
      * Returns the node with the given node identity.
@@ -793,11 +794,11 @@ data class MeshNetwork internal constructor(
     }
 
     /**
-     * Removes a node with the given UUID from the mesh network.
+     * Removes a node with the given Uuid from the mesh network.
      *
-     * @param uuid UUID of the node to be removed.
+     * @param uuid Uuid of the node to be removed.
      */
-    internal fun removeNode(uuid: UUID) {
+    internal fun removeNode(uuid: Uuid) {
         _nodes.find {
             it.uuid == uuid
         }?.let { node ->

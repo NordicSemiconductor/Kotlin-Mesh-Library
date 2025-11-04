@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

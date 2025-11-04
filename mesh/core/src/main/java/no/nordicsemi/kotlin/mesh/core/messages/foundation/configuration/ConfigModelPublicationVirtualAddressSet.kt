@@ -21,12 +21,15 @@ import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.nio.ByteOrder
 import kotlin.experimental.and
 import kotlin.experimental.or
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.toKotlinUuid
 
 /**
  * This message is used to set the publication state of a model.
  *
  * @property publish               Contains the publication state.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class ConfigModelPublicationVirtualAddressSet(
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
@@ -82,7 +85,7 @@ data class ConfigModelPublicationVirtualAddressSet(
             it.size == 25 || it.size == 27
         }?.let { params ->
             val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
-            val label = VirtualAddress(params.getUuid(offset = 2))
+            val label = VirtualAddress(uuid = params.getUuid(offset = 2).toKotlinUuid())
             val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
             val flag = (params.getUShort(offset = 19) and 0x10u).toInt() shr 4
             val ttl = params[20].toUByte()

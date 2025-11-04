@@ -9,7 +9,9 @@ import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.data.toUuid
 import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import kotlin.uuid.toKotlinUuid
 
 /**
  * Type alias for an unsigned 16-bit address.
@@ -99,11 +101,12 @@ sealed class MeshAddress : HasAddress {
         fun create(address: Int): MeshAddress = create(address.toUShort())
 
         /**
-         * Creates a virtual address using the given UUID Label.
+         * Creates a virtual address using the given Uuid Label.
          *
-         * @param uuid UUID Label.
+         * @param uuid Uuid Label.
          */
-        fun create(uuid: UUID) = VirtualAddress(uuid = uuid)
+        @OptIn(ExperimentalUuidApi::class)
+        fun create(uuid: Uuid) = VirtualAddress(uuid = uuid)
     }
 }
 
@@ -170,17 +173,18 @@ data class UnicastAddress(
 
 /**
  * A virtual address represents a set of destination addresses. Each virtual address logically
- * represents a Label UUID,
+ * represents a Label Uuid,
  * which is a 128-bit value that does not have to be managed centrally. One or more elements may be
- * programmed to publish or subscribe to a Label UUID. The Label UUID is not transmitted and shall
+ * programmed to publish or subscribe to a Label Uuid. The Label Uuid is not transmitted and shall
  * be used as the Additional Data field of the message integrity check value in the upper transport
  * layer.
  *
- * @property UUID     UUID label of the virtual address.
+ * @property Uuid     Uuid label of the virtual address.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
-    val uuid: UUID
+    val uuid: Uuid
 ) : MeshAddress(),
     PrimaryGroupAddress,
     ParentGroupAddress,
@@ -190,14 +194,16 @@ data class VirtualAddress(
     HeartbeatSubscriptionDestination,
     ProxyFilterAddress {
 
-    override val address: Address = Crypto.createVirtualAddress(uuid)
+    @OptIn(ExperimentalUuidApi::class)
+    override val address: Address = Crypto.createVirtualAddress(uuid = uuid)
 
     /**
      * Creates a virtual address using the given byte array.
-     * @param label Byte array containing the UUID label.
+     * @param label Byte array containing the Uuid label.
      * @throws IllegalArgumentException If the byte array containing the label is not 16 bytes long.
      */
-    constructor(label: ByteArray) : this(uuid = label.toUuid())
+    @OptIn(ExperimentalUuidApi::class)
+    constructor(label: ByteArray) : this(uuid = label.toUuid().toKotlinUuid())
 
     operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }

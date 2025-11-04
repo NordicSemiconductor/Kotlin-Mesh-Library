@@ -8,8 +8,10 @@ import no.nordicsemi.android.nrfmesh.feature.model.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ModelScreenRoute(
     snackbarHostState: SnackbarHostState,
@@ -19,7 +21,7 @@ fun ModelScreenRoute(
     requestNodeIdentityStates: (Model) -> Unit = {},
     resetMessageState: () -> Unit,
     navigateToGroups: () -> Unit,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
 ) {

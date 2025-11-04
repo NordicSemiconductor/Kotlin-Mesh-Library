@@ -17,7 +17,9 @@ import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.SceneScreenRoute
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun SettingsExtraPane(
     network: MeshNetwork,
@@ -29,15 +31,15 @@ internal fun SettingsExtraPane(
     when (content) {
         is ProvisionerContent -> {
             val provisioner = network.provisioners
-                .firstOrNull { it.uuid.toString() == content.uuid }
+                .firstOrNull { it.uuid == content.uuid }
                 ?: return
             ProvisionerScreenRoute(
                 index = network.provisioners.indexOf(element = provisioner),
                 provisioner = provisioner,
                 provisionerData = settingsListData.provisioners
-                    .firstOrNull { it.uuid.toString() == content.uuid }
+                    .firstOrNull { it.uuid == content.uuid }
                     ?: return,
-                otherProvisioners = network.provisioners.filter { it.uuid.toString() != content.uuid },
+                otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
                 moveProvisioner = moveProvisioner,
                 save = save
             )

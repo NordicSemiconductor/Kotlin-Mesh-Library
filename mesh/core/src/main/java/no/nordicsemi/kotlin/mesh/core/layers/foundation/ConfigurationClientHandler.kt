@@ -68,6 +68,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import kotlin.run
 
 /**
  * ConfigurationClientHandler class handles the configuration messages sent from the provisioner

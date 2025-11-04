@@ -7,7 +7,8 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Stable
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * AppState is a class that holds the current state of the application.
@@ -43,7 +44,8 @@ abstract class AppState(
      *
      * @param uuid UUID of the  node.
      */
-    abstract fun navigateToNode(uuid: UUID)
+    @OptIn(ExperimentalUuidApi::class)
+    abstract fun navigateToNode(uuid: Uuid)
 
     /**
      * Navigate to settings.
