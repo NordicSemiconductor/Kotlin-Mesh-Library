@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
@@ -65,7 +64,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
@@ -106,16 +104,11 @@ fun NetworkRoute(
     nextAvailableGroupAddress: () -> GroupAddress,
 ) {
     val context = LocalContext.current
-    val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberMeshAppState(
-        navController = navController,
         snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass,
-        nodesNavigator = rememberListDetailPaneScaffoldNavigator<Any>(),
-        groupsNavigator = rememberListDetailPaneScaffoldNavigator<Any>(),
-        settingsNavigator = rememberListDetailPaneScaffoldNavigator<Any>()
+        windowSizeClass = windowSizeClass
     )
     val currentDestination = appState.currentDestination
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -194,7 +187,8 @@ fun NetworkRoute(
                                 )
                             },
                             onClick = {
-                                navController.navigateToProvisioning(navOptions = navOptions { })
+                                appState.navController
+                                    .navigateToProvisioning(navOptions = navOptions { })
                             },
                             expanded = true
                         )
@@ -294,7 +288,8 @@ fun NetworkRoute(
                                     onAddGroupClicked(group)
                                         .also {
                                             showAddGroupDialog = false
-                                            navController.navigateToGroup(address = group.address)
+                                            appState.navController
+                                                .navigateToGroup(address = group.address)
                                         }
                                 }.onFailure {
                                     scope.launch {
@@ -337,7 +332,8 @@ fun NetworkRoute(
                                             )
                                             onAddGroupClicked(group).also {
                                                 showAddGroupDialog = false
-                                                navController.navigateToGroup(address = group.address)
+                                                appState.navController
+                                                    .navigateToGroup(address = group.address)
                                             }
                                         }.onFailure {
                                             scope.launch {
@@ -482,7 +478,11 @@ private fun DisplayDropdown(
     appState.currentMeshTopLevelDestination?.takeIf {
         it == MeshTopLevelDestination.SETTINGS
     }?.let {
-        Box(modifier = Modifier.padding(all = 16.dp)) {
+        Box(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .padding(vertical = 16.dp)
+        ) {
             IconButton(
                 onClick = onExpandPressed,
                 content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) }

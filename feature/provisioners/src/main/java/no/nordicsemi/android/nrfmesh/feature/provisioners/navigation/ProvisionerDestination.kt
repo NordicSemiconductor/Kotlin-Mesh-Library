@@ -3,13 +3,14 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerRoute
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.UUID
 
+@Serializable
 @Parcelize
-data class ProvisionerContent(val uuid: UUID) : Parcelable
+data class ProvisionerContent(val uuid: String) : Parcelable
 
 @Composable
 fun ProvisionerScreenRoute(

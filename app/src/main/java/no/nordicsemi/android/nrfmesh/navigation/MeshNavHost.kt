@@ -25,11 +25,11 @@ fun MeshNavHost(appState: AppState, modifier: Modifier = Modifier, onBackPressed
                 nodeGraph(appState = appState, navigateBack = onBackPressed)
             },
             provisioningGraph = {
-                provisioningGraph(appState = appState, onBackPressed = appState::onBackPressed)
+                provisioningGraph(appState = appState, onBackPressed = onBackPressed)
             }
         )
         groupsGraph(appState = appState)
         proxyFilterGraph()
-        settingsListDetailsScreen()
+        settingsListDetailsScreen(appState = appState, onBackPressed = onBackPressed)
     }
 }

@@ -16,6 +16,13 @@ import java.util.UUID
  * @property snackbarHostState      The [SnackbarHostState] that will be used to show snackbars.
  *                                  destinations of the application.
  * @property windowSizeClass        The current window size class.
+ * @property nodeNavigator          Three Pane Scaffold Navigator used for navigating the node
+ *                                  graph.
+ * @property groupsNavigator        Three Pane Scaffold Navigator used for navigating the group
+ *                                  graph.
+ * @property settingsNavigator      Three Pane Scaffold Navigator used for navigating the settings
+ *                                  graph.
+ *
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Stable
@@ -27,11 +34,22 @@ abstract class AppState(
     val groupsNavigator: ThreePaneScaffoldNavigator<Any>,
     val settingsNavigator: ThreePaneScaffoldNavigator<Any>
 ) {
+
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry
 
+    /**
+     * Navigate to node.
+     *
+     * @param uuid UUID of the  node.
+     */
     abstract fun navigateToNode(uuid: UUID)
 
+    /**
+     * Navigate to settings.
+     *
+     * @param listItem Clickable setting item.
+     */
     abstract fun navigateToSettings(listItem: ClickableSetting? = null)
 
     /**

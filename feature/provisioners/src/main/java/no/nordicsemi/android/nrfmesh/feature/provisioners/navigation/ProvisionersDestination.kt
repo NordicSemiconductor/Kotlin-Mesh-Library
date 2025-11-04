@@ -8,10 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersViewModel
 import java.util.UUID
 
+@Serializable
 @Parcelize
 data object ProvisionersContent : Parcelable
 

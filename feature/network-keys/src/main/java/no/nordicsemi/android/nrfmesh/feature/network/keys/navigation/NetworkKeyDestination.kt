@@ -3,10 +3,12 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys.navigation
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.network.keys.NetworkKeyRoute
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
+@Serializable
 @Parcelize
 data class NetworkKeyContent(val keyIndex: KeyIndex) : Parcelable
 
