@@ -1,10 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,6 +11,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class MeshNetworkTest {
@@ -20,7 +19,6 @@ class MeshNetworkTest {
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
         secureProperties = TestPropertiesStorage(),
-        scope = TestScope(),
         dispatcher = TODO()
     )
     private lateinit var meshNetwork: MeshNetwork
