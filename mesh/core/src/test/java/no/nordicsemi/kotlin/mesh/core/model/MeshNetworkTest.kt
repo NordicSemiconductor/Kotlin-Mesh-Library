@@ -11,13 +11,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.ExperimentalTime
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 class MeshNetworkTest {
 
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
         secureProperties = TestPropertiesStorage(),
-        scope = TestScope()
+        scope = TestScope(),
+        dispatcher = TODO()
     )
     private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))
@@ -34,7 +38,7 @@ class MeshNetworkTest {
     @Test
     fun testNextAvailableUnicastAddressEmptyNetwork() {
         val meshNetwork = MeshNetwork(name = "Test Network")
-        val provisioner = Provisioner(uuid = UUID.randomUUID()).apply {
+        val provisioner = Provisioner(uuid = Uuid.random()).apply {
             this.network = meshNetwork
             this.name = "Test Provisioner"
             this.allocate(
@@ -105,6 +109,7 @@ class MeshNetworkTest {
         assertEquals(expected = UnicastAddress(address = 117), actual = address2)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testNextAvailableUnicastAddressComplexNetwork() {
         val meshNetwork = MeshNetwork(name = "Test Network").apply {
@@ -299,7 +304,7 @@ class MeshNetworkTest {
     @Test
     fun testMoveProvisionerFromTo() {
         setUp()
-        meshNetwork.add(provisioner = Provisioner(UUID.randomUUID()).apply {
+        meshNetwork.add(provisioner = Provisioner(Uuid.random()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
             this.allocate(UnicastAddress(0x7000u)..UnicastAddress(0x7F00u))
@@ -313,7 +318,7 @@ class MeshNetworkTest {
     @Test
     fun testMoveProvisionerTo() {
         setUp()
-        meshNetwork.add(provisioner = Provisioner(UUID.randomUUID()).apply {
+        meshNetwork.add(provisioner = Provisioner(Uuid.random()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
             this.allocate(UnicastAddress(0x7000u)..UnicastAddress(0x7F00u))
@@ -348,7 +353,7 @@ class MeshNetworkTest {
     fun testIsRangeAvailableForAllocation() {
         setUp()
         val range = UnicastAddress(0x7000u)..UnicastAddress(0x7F00u)
-        val provisioner = Provisioner(UUID.randomUUID()).apply {
+        val provisioner = Provisioner(Uuid.random()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
         }
@@ -360,7 +365,7 @@ class MeshNetworkTest {
         setUp()
         val range = UnicastAddress(0x7000u)..UnicastAddress(0x7F00u)
         meshNetwork.provisioners.first().allocate(range)
-        val provisioner = Provisioner(UUID.randomUUID()).apply {
+        val provisioner = Provisioner(Uuid.random()).apply {
             this.network = meshNetwork
             this.name = "Test provisioner"
         }
