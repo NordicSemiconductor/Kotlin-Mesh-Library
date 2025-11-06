@@ -55,9 +55,10 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 internal fun NodeListPane(
     messageState: MessageState,
@@ -67,8 +68,8 @@ internal fun NodeListPane(
     onRefresh: () -> Unit,
     highlightSelectedItem: Boolean,
     selectedItem: ClickableNodeInfoItem?,
-    onNetworkKeysClicked: (UUID) -> Unit,
-    onApplicationKeysClicked: (UUID) -> Unit,
+    onNetworkKeysClicked: (Uuid) -> Unit,
+    onApplicationKeysClicked: (Uuid) -> Unit,
     onElementClicked: (Address) -> Unit,
     onExcluded: (Boolean) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,

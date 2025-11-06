@@ -42,8 +42,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ModelScreen(
     snackbarHostState: SnackbarHostState,
@@ -56,7 +58,7 @@ internal fun ModelScreen(
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
     navigateToGroups: () -> Unit,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
 ) {
     Column(
         modifier = Modifier.verticalScroll(state = rememberScrollState()),
@@ -137,11 +139,11 @@ internal fun ModelScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
-    navigateToConfigApplicationKeys: (UUID) -> Unit,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val bottomSheetState =

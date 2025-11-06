@@ -21,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkKeysConf
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NodesConfig
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.ProvisionersConfig
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
 @HiltViewModel
 class ExportViewModel @Inject internal constructor(
@@ -57,6 +58,7 @@ class ExportViewModel @Inject internal constructor(
      * @param provisioner     Provisioner.
      * @param selected        True if selected or false otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     internal fun onProvisionerSelected(provisioner: Provisioner, selected: Boolean) {
         uiState = uiState.copy(
             provisionerItemStates = uiState.provisionerItemStates.map {

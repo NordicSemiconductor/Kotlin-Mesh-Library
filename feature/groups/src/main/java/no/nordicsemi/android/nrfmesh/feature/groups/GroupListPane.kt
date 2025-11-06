@@ -40,6 +40,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import kotlin.uuid.ExperimentalUuidApi
 
 @Composable
 internal fun GroupListPane(
@@ -109,7 +110,7 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
     )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
 @Composable
 private fun AddressRow(address: PrimaryGroupAddress) {
     ElevatedCardItem(

@@ -1,9 +1,11 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 class ExclusionListTest {
 
     private val elements = arrayListOf(
@@ -31,7 +33,7 @@ class ExclusionListTest {
     )
 
     private val node = Node(
-        uuid = UUID.randomUUID(),
+        uuid = Uuid.random(),
         deviceKey = byteArrayOf(),
         _primaryUnicastAddress = UnicastAddress(address = 1u),
         _elements = elements,

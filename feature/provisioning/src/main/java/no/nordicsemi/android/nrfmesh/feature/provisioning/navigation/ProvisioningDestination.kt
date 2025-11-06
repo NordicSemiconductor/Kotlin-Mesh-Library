@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisioningViewModel
+import kotlin.uuid.ExperimentalUuidApi
 
 @Parcelize
 @Serializable
@@ -23,6 +24,7 @@ fun NavController.navigateToProvisioning(navOptions: NavOptions) = navigate(
     navOptions = navOptions
 )
 
+@OptIn(ExperimentalUuidApi::class)
 fun NavGraphBuilder.provisioningGraph(appState: AppState, onBackPressed: () -> Unit) {
     composable<ProvisioningRoute> {
         val viewModel = hiltViewModel<ProvisioningViewModel>()

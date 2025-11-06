@@ -11,16 +11,18 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersRoute
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersViewModel
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 @Parcelize
 data object ProvisionersContent : Parcelable
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ProvisionersScreenRoute(
     highlightSelectedItem: Boolean,
-    navigateToProvisioner: (UUID) -> Unit,
+    navigateToProvisioner: (Uuid) -> Unit,
     navigateUp: () -> Unit,
 ) {
     val viewModel = hiltViewModel<ProvisionersViewModel>()

@@ -15,7 +15,8 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto.k5
 import org.junit.Assert
 import org.junit.Test
 import java.util.Locale
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Unit tests for crypto module. All test data used can be found at section 8 "Sample data" in the
@@ -233,9 +234,10 @@ class CryptoTest {
         Assert.assertEquals(expected, actual)
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     @Test
     fun testVirtualAddress() {
-        val uuid = UUID.fromString("0073e7e4-d8b9-440f-af84-15df4c56c0e1")
+        val uuid = Uuid.parse("0073e7e4-d8b9-440f-af84-15df4c56c0e1")
         val expected = "B529".toUShort(radix = 16)
         val actual = createVirtualAddress(uuid = uuid)
         Assert.assertEquals(expected, actual)

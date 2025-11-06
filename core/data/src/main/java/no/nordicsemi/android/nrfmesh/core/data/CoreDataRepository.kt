@@ -250,6 +250,7 @@ class CoreDataRepository @Inject constructor(
      * Creates a new mesh network.
      * @return MeshNetwork
      */
+    @OptIn(ExperimentalUuidApi::class)
     private suspend fun createNewMeshNetwork() = meshNetworkManager.create(
         provisioner = Provisioner(name = createProvisionerName()).apply {
             allocate(

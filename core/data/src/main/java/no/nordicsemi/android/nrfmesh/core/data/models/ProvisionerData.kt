@@ -5,14 +5,16 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * ProvisionerData is a data class that represents a Provisioner in the Mesh network.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class ProvisionerData(
     val name: String,
-    val uuid: UUID,
+    val uuid: Uuid,
     val address: UnicastAddress?,
     val ttl: Int,
     val deviceKey: String? = null,

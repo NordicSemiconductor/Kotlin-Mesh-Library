@@ -14,7 +14,9 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.nio.ByteOrder
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import kotlin.uuid.toKotlinUuid
 
 /**
  * This message is used to add a virtual address to the model subscriptions list.
@@ -24,10 +26,11 @@ import java.util.UUID
  * @property modelIdentifier   Model identifier.
  * @property companyIdentifier Company identifier, if the model is a vendor model.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Suppress("unused")
 class ConfigModelSubscriptionVirtualAddressAdd(
     override val elementAddress: UnicastAddress,
-    override val virtualLabel: UUID,
+    override val virtualLabel: Uuid,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigVirtualLabelMessage, ConfigAnyModelMessage {
@@ -82,7 +85,7 @@ class ConfigModelSubscriptionVirtualAddressAdd(
                 elementAddress = UnicastAddress(
                     address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ),
-                virtualLabel = params.getUuid(offset = 2),
+                virtualLabel = params.getUuid(offset = 2).toKotlinUuid(),
                 companyIdentifier = if (params.size == 24) params.getUShort(
                     offset = 18,
                     order = ByteOrder.LITTLE_ENDIAN

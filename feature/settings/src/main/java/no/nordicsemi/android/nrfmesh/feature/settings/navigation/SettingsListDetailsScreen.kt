@@ -28,9 +28,10 @@ import no.nordicsemi.android.nrfmesh.feature.settings.SettingsExtraPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListPane
 import no.nordicsemi.android.nrfmesh.feature.settings.SettingsScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import kotlin.uuid.ExperimentalUuidApi
 
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class)
 @Composable
 internal fun SettingsListDetailsScreen(
     appState: AppState,
@@ -113,7 +114,7 @@ internal fun SettingsListDetailsScreen(
                             scope.launch {
                                 navigator.navigateTo(
                                     pane = ListDetailPaneScaffoldRole.Extra,
-                                    contentKey = ProvisionerContent(uuid = it.toString())
+                                    contentKey = ProvisionerContent(uuid = it)
                                 )
                             }
                         },

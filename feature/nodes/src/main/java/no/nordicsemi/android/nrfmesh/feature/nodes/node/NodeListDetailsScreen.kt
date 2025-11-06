@@ -18,8 +18,9 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
+import kotlin.uuid.ExperimentalUuidApi
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class)
 @Composable
 internal fun NodeListDetailsScreen(
     appState: AppState,

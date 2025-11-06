@@ -23,13 +23,15 @@ import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContent
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesScreenRoute
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun SettingsDetailsPane(
     content: Any?,
     highlightSelectedItem: Boolean,
-    navigateToProvisioner: (UUID) -> Unit,
+    navigateToProvisioner: (Uuid) -> Unit,
     navigateToNetworkKey: (KeyIndex) -> Unit,
     navigateToApplicationKey: (KeyIndex) -> Unit,
     navigateToScene: (SceneNumber) -> Unit,

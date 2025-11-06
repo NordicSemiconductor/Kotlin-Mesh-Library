@@ -11,20 +11,22 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
 import no.nordicsemi.kotlin.mesh.core.util.Utils
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Custom serializer/deserializer for UUID. Mesh Configuration Database contains certain UUIDs
  * as string with and without dashes and this Helper class encodes and decodes them accordingly.
  */
 
-object UUIDSerializer : KSerializer<UUID> {
+@OptIn(ExperimentalUuidApi::class)
+object UuidSerializer : KSerializer<Uuid> {
 
 
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor(serialName = "UuidSerializer", kind = PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): UUID = runCatching {
+    override fun deserialize(decoder: Decoder): Uuid = runCatching {
         Utils.decode(uuid = decoder.decodeString())
     }.getOrElse {
         throw ImportError(
@@ -33,6 +35,6 @@ object UUIDSerializer : KSerializer<UUID> {
         )
     }
 
-    override fun serialize(encoder: Encoder, value: UUID) =
+    override fun serialize(encoder: Encoder, value: Uuid) =
         encoder.encodeString(value = value.toString().uppercase())
 }

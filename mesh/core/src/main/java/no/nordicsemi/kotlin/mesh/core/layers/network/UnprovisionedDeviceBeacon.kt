@@ -5,20 +5,23 @@ package no.nordicsemi.kotlin.mesh.core.layers.network
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import kotlin.uuid.toKotlinUuid
 
 /**
  * Class that defines an Unprovisioned device beacon PDU.
  *
  * @property pdu               Raw beacon PDU data.
- * @property deviceUuid        UUID of the unprovisioned device.
+ * @property deviceUuid        Uuid of the unprovisioned device.
  * @property oobInformation    OOB information.
  * @property uriHash           URI hash.
  * @property beaconType        Type of beacon.
  */
+@OptIn(ExperimentalUuidApi::class)
 internal class UnprovisionedDeviceBeacon(
     override val pdu: ByteArray,
-    val deviceUuid: UUID,
+    val deviceUuid: Uuid,
     val oobInformation: OobInformation,
     val uriHash: ByteArray? = null
 ) : BeaconPdu {
@@ -26,7 +29,7 @@ internal class UnprovisionedDeviceBeacon(
     override val beaconType: BeaconType = BeaconType.UNPROVISIONED_DEVICE
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "Unprovisioned Device beacon (UUID: $deviceUuid \n," +
+    override fun toString() = "Unprovisioned Device beacon (Uuid: $deviceUuid \n," +
             "OOB Information: $oobInformation \n, URI Hash: ${uriHash?.toHexString() ?: "null"})"
 }
 
@@ -38,16 +41,21 @@ internal object UnprovisionedDeviceBeaconDecoder {
      * @param pdu Unprovisioned device beacon PDU.
      * @return an Unprovisioned Device beacon or null otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     fun decode(pdu: ByteArray): UnprovisionedDeviceBeacon? = when {
         pdu.size > 1 -> when (BeaconType.from(pdu[0].toUByte())) {
             BeaconType.UNPROVISIONED_DEVICE -> {
-                val uuid = pdu.getUuid(1)
+                val uuid = pdu.getUuid(1).toKotlinUuid()
                 val oob = OobInformation.from(pdu.getUShort(17))
                 val uriHash = when (pdu.size == 23) {
                     true -> pdu.copyOfRange(19, pdu.size)
                     false -> null
                 }
-                UnprovisionedDeviceBeacon(pdu, uuid, oob, uriHash)
+                UnprovisionedDeviceBeacon(pdu,
+                    deviceUuid = uuid,
+                    oobInformation = oob,
+                    uriHash = uriHash
+                )
             }
 
             else -> null

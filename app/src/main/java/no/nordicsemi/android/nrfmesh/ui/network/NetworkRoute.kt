@@ -86,11 +86,12 @@ import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class,
-    ExperimentalMaterial3AdaptiveApi::class
+    ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class
 )
 @Composable
 fun NetworkRoute(
@@ -282,7 +283,7 @@ fun NetworkRoute(
                             onClick = {
                                 runCatching {
                                     val group = Group(
-                                        address = VirtualAddress(uuid = UUID.randomUUID()),
+                                        address = VirtualAddress(uuid = Uuid.random()),
                                         _name = "New Group"
                                     )
                                     onAddGroupClicked(group)

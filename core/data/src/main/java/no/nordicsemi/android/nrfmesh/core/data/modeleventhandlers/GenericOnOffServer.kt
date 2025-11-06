@@ -24,7 +24,6 @@ import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.toKotlinUuid
 
 class GenericOnOffServer(
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
@@ -84,7 +83,7 @@ class GenericOnOffServer(
     override fun store(scene: SceneNumber) {
         model.parentElement?.index?.let { index ->
             storage.storeGenericOnOffState(
-                uuid = model.parentElement?.parentNode?.network?.uuid!!.toKotlinUuid(),
+                uuid = model.parentElement?.parentNode?.network?.uuid!!,
                 sceneNumber = scene,
                 elementIndex = index,
                 on = state.value
@@ -101,7 +100,7 @@ class GenericOnOffServer(
         model.parentElement?.index?.let { index ->
             scope.launch {
                 val isOn = storage.readGenericOnOffState(
-                    uuid = model.parentElement?.parentNode?.network?.uuid!!.toKotlinUuid(),
+                    uuid = model.parentElement?.parentNode?.network?.uuid!!,
                     sceneNumber = scene,
                     elementIndex = index
                 )

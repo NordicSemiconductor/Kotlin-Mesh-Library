@@ -52,8 +52,9 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.time.ExperimentalTime
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
@@ -159,6 +160,7 @@ class MeshNetworkManager(
      *
      * @return true if the configuration was successfully loaded or false otherwise.
      */
+    @OptIn(ExperimentalUuidApi::class)
     suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
         val meshNetwork = deserialize(it).apply {
             // Load the IvIndex from the secure properties storage.
@@ -190,12 +192,13 @@ class MeshNetworkManager(
      * be generated.
      *
      * @param name Name of the mesh network.
-     * @param uuid 128-bit Universally Unique Identifier (UUID), which allows differentiation among
+     * @param uuid 128-bit Universally Unique Identifier (Uuid), which allows differentiation among
      *             multiple mesh networks.
      */
+    @OptIn(ExperimentalUuidApi::class)
     suspend fun create(
         name: String = "Mesh Network",
-        uuid: UUID = UUID.randomUUID(),
+        uuid: Uuid = Uuid.random(),
         provisionerName: String = "Mesh Provisioner",
     ) = create(name = name, uuid = uuid, provisioner = Provisioner(name = provisionerName))
 
@@ -207,10 +210,10 @@ class MeshNetworkManager(
      * @param uuid 128-bit UUID of the mesh network.
      * @param provisioner Provisioner to be added to the network.
      */
-    @OptIn(ExperimentalTime::class)
+    @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
     suspend fun create(
         name: String = "Mesh Network",
-        uuid: UUID = UUID.randomUUID(),
+        uuid: Uuid = Uuid.random(),
         provisioner: Provisioner,
     ) = MeshNetwork(uuid = uuid, _name = name).also {
         it.add(name = "Primary Network Key", index = 0u)
@@ -806,7 +809,7 @@ class MeshNetworkManager(
             }
             throw InvalidDestination()
         }
-        val node = requireNotNull(network.node(dst)) {
+        val node = requireNotNull(value = network.node(address = dst)) {
             logger?.e(LogCategory.PROXY) {
                 "Error: Unknown destination Node"
             }
@@ -950,7 +953,7 @@ class MeshNetworkManager(
             }
             throw InvalidDestination()
         }
-        val node = requireNotNull(network.node(dst)) {
+        val node = requireNotNull(value = network.node(address = dst)) {
             logger?.e(LogCategory.FOUNDATION_MODEL) {
                 "Error: Unknown destination Node ${destination.toHexString()}."
             }
@@ -1092,6 +1095,7 @@ class MeshNetworkManager(
     /**
      * Observes network manager events.
      */
+    @OptIn(ExperimentalUuidApi::class)
     private fun observeNetworkManagerEvents() {
         networkManager?.networkManagerEventFlow?.onEach {
             when (it) {

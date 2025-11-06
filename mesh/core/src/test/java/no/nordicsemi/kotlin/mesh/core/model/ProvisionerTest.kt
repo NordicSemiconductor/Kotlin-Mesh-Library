@@ -1,13 +1,15 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
-import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 class ProvisionerTest {
 
-    private val provisioner = Provisioner(UUID.randomUUID())
-    private val other = Provisioner(UUID.randomUUID())
+    private val provisioner = Provisioner(Uuid.random())
+    private val other = Provisioner(Uuid.random())
 
     @Test
     fun testHasOverlappingUnicastRanges_1() {

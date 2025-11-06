@@ -14,16 +14,18 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import java.util.UUID
+import kotlin.uuid.Uuid
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @HiltViewModel
 internal class ProvisionersViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
-    private var selectedProvisioner: UUID? = null
+    private var selectedProvisioner: Uuid? = null
 
     private val _uiState = MutableStateFlow(ProvisionersScreenUiState())
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.asStateFlow()
@@ -146,11 +148,12 @@ internal class ProvisionersViewModel @Inject internal constructor(
         viewModelScope.launch { repository.save() }
     }
 
-    fun selectProvisioner(uuid: UUID) {
+    @OptIn(ExperimentalUuidApi::class)
+    fun selectProvisioner(uuid: Uuid) {
         selectedProvisioner = uuid
     }
 
-    fun isCurrentlySelectedProvisioner(uuid: UUID) = selectedProvisioner == uuid
+    fun isCurrentlySelectedProvisioner(uuid: Uuid) = selectedProvisioner == uuid
 }
 
 data class ProvisionersScreenUiState internal constructor(
