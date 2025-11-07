@@ -20,7 +20,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
 
     implementation(project(":core:common"))
     implementation(project(":core:data"))

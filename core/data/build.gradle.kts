@@ -18,17 +18,17 @@ wire {
 }
 
 dependencies {
-    implementation(libs.nordic.permissions.ble)
+    implementation(nordic.permissions.ble)
     // Workaround to get access to the scanner compat api
-    // implementation(libs.nordic.scanner)
+    // implementation(nordic.scanner)
     // implementation(libs.kotlinx.datetime)
 
     // implementation(libs.androidx.dataStore.core)
     // implementation(libs.androidx.dataStore.preferences)
 
-    implementation("androidx.datastore:datastore-core:1.2.0-alpha02")
-    implementation("androidx.datastore:datastore-preferences:1.2.0-alpha02")
-    implementation("androidx.datastore:datastore-preferences-proto:1.2.0-alpha02")
+    implementation("androidx.datastore:datastore-core:1.2.0-rc01")
+    implementation("androidx.datastore:datastore-preferences:1.2.0-rc01")
+    implementation("androidx.datastore:datastore-preferences-proto:1.2.0-rc01")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -45,5 +45,5 @@ dependencies {
     implementation(project(":mesh:core"))
     implementation(project(":mesh:bearer-pbgatt"))
     implementation(project(":mesh:bearer-gatt"))
-    implementation(libs.nordic.blek.client.android)
+    implementation(nordic.blek.client.android)
 }

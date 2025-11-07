@@ -7,7 +7,7 @@ dependencies {
     api(project(":mesh:bearer"))
     api(project(":mesh:crypto"))
     api(project(":mesh:logger"))
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)

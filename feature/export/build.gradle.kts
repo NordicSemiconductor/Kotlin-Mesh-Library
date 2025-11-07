@@ -11,7 +11,7 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit4)

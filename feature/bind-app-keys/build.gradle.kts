@@ -9,7 +9,7 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)

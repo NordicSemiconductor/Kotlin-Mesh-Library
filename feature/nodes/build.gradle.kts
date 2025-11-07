@@ -11,7 +11,7 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
@@ -19,9 +19,9 @@ dependencies {
     implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
     implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0")
 
-    implementation("androidx.compose.material3.adaptive:adaptive:1.3.0-alpha02")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.3.0-alpha02")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.3.0-alpha02")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.2.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0")
 
 
     testImplementation(libs.junit4)

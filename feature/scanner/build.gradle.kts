@@ -10,9 +10,9 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.core)
-    implementation(libs.nordic.kotlin.data)
-    implementation(libs.nordic.permissions.ble)
+    implementation(nordic.core)
+    implementation(nordic.kotlin.data)
+    implementation(nordic.permissions.ble)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

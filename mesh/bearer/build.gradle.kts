@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api(project(":mesh:logger"))
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.coroutines.core)
     testImplementation("junit:junit:4.13.2")
 }
