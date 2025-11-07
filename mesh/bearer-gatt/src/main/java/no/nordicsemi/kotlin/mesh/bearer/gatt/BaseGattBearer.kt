@@ -47,13 +47,14 @@ import kotlin.uuid.ExperimentalUuidApi
 abstract class BaseGattBearer<
         Service : MeshService,
         ID : Any,
+        C : CentralManager<ID, P, EX, F, SR>,
         P : Peripheral<ID, EX>,
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
         >(
     protected val dispatcher: CoroutineDispatcher,
-    protected val centralManager: CentralManager<ID, P, EX, F, SR>,
+    protected val centralManager: C,
     protected val peripheral: P,
 ) : GattBearer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -83,9 +84,6 @@ abstract class BaseGattBearer<
     override suspend fun open() {
         // Observe the connection state
         observeConnectionState(peripheral)
-        // Connect to the peripheral
-        centralManager.connect(peripheral = peripheral)
-        // TODO : requesting the highest MTU size and enable notifications should be moved here.
     }
 
     override suspend fun close() {
@@ -148,6 +146,7 @@ abstract class BaseGattBearer<
     protected suspend fun awaitNotifications(dataOutCharacteristic: RemoteCharacteristic) {
         dataOutCharacteristic.subscribe()
             .onEach {
+                println("What happens here: ${it.toHexString()}")
                 proxyProtocolHandler.reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }
             }

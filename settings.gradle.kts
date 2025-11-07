@@ -68,6 +68,6 @@ include(":mesh:bearer-gatt")
 
 // }
 
-// if (file("../Kotlin-BLE-Library").exists()) {
-//     includeBuild("../Kotlin-BLE-Library")
-// }
+if (file("../Kotlin-BLE-Library").exists()) {
+    includeBuild("../Kotlin-BLE-Library")
+}

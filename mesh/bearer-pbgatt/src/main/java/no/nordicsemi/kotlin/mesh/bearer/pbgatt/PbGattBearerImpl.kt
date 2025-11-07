@@ -18,15 +18,16 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 open class PbGattBearerImpl<
         ID : Any,
+        C : CentralManager<ID, P, EX, F, SR>,
         P : Peripheral<ID, EX>,
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
 >(
     dispatcher: CoroutineDispatcher,
-    centralManager: CentralManager<ID, P, EX, F, SR>,
+    centralManager: C,
     peripheral: P,
-) : BaseGattBearer<MeshProvisioningService, ID, P, EX, F, SR>(
+) : BaseGattBearer<MeshProvisioningService, ID, C, P, EX, F, SR>(
     dispatcher = dispatcher,
     centralManager = centralManager,
     peripheral = peripheral
