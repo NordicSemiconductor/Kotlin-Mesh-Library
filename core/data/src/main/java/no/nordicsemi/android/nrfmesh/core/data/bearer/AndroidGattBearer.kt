@@ -16,6 +16,7 @@ class AndroidGattBearer(
     peripheral: Peripheral,
 ) : GattBearerImpl<
         String,
+        CentralManager,
         Peripheral,
         Peripheral.Executor,
         ConjunctionFilterScope,
@@ -28,8 +29,12 @@ class AndroidGattBearer(
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun open() {
         super.open()
-        // Request the maximum transmission unit (MTU) size.
-        peripheral.requestHighestValueLength()
+        centralManager.connect(
+            peripheral = peripheral,
+            options = CentralManager.ConnectionOptions.Direct(
+                automaticallyRequestHighestValueLength = true
+            )
+        )
 
         // Start observing the discovered services
         peripheral.services()

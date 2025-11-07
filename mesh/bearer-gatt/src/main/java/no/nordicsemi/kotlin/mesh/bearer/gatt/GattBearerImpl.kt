@@ -11,7 +11,6 @@ import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.PduTypes
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import kotlin.uuid.ExperimentalUuidApi
-
 /**
  * Responsible for receiving and sending mesh messages to and from the GATT Proxy Node.
  *
@@ -24,15 +23,16 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 open class GattBearerImpl<
         ID : Any,
+        C : CentralManager<ID, P, EX, F, SR>,
         P : Peripheral<ID, EX>,
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
 >(
     dispatcher: CoroutineDispatcher,
-    centralManager: CentralManager<ID, P, EX, F, SR>,
     peripheral: P,
-) : BaseGattBearer<MeshProxyService, ID, P, EX, F, SR>(
+    centralManager: C,
+) : BaseGattBearer<MeshProxyService, ID, C, P, EX, F, SR>(
     dispatcher = dispatcher,
     centralManager = centralManager,
     peripheral = peripheral
@@ -53,3 +53,4 @@ open class GattBearerImpl<
         }
     }
 }
+
