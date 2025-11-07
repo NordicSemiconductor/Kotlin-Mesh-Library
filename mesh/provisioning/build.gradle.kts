@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.coroutines.core)
     api(project(":mesh:core"))
     api(project(":mesh:bearer-provisioning"))

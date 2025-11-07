@@ -11,7 +11,7 @@ android {
 
 dependencies {
 
-    implementation(libs.nordic.kotlin.data)
+    implementation(nordic.kotlin.data)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

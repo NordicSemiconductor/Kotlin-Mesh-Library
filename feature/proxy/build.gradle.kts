@@ -13,7 +13,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.nordic.permissions.ble)
+    implementation(nordic.permissions.ble)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

@@ -8,10 +8,10 @@ android {
 }
 
 dependencies {
-    api(libs.nordic.ui)
-    api(libs.androidx.compose.material.iconsExtended)
-    implementation(libs.nordic.logger)
-    implementation(libs.nordic.log.timber)
+    api(nordic.ui)
+    api(libs.androidx.compose.material.icons.extended)
+    implementation(nordic.logger)
+    implementation(nordic.log.timber)
 
     implementation(project(":core:common"))
     implementation(project(":core:navigation"))
@@ -26,11 +26,11 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
 
-    implementation("androidx.compose.material3:material3:1.4.0-alpha15")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite-android:1.4.0-alpha15")
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout-android:1.1.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation-android:1.1.0")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite-android:1.4.0")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.2.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout-android:1.2.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation-android:1.2.0")
 
     implementation(project(":mesh:core"))
 }
