@@ -146,7 +146,6 @@ abstract class BaseGattBearer<
     protected suspend fun awaitNotifications(dataOutCharacteristic: RemoteCharacteristic) {
         dataOutCharacteristic.subscribe()
             .onEach {
-                println("What happens here: ${it.toHexString()}")
                 proxyProtocolHandler.reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }
             }
