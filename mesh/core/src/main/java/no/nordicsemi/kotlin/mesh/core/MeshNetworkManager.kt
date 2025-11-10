@@ -370,7 +370,6 @@ class MeshNetworkManager(
             if (!localNode.containsElementWithAddress(destination.address) &&
                 proxyFilter.proxy?.knows(applicationKey.boundNetworkKey) != true
             ) {
-
                 logger?.e(LogCategory.FOUNDATION_MODEL) {
                     "Error: The GATT Proxy Node is not connected or it cannot decrypt " +
                             "${applicationKey.boundNetworkKey}"
@@ -383,8 +382,8 @@ class MeshNetworkManager(
             }?.let { proxy ->
                 logger?.w(category = LogCategory.PROXY) {
                     "${proxy.name} cannot relay messages using " +
-                            "${applicationKey.boundNetworkKey}, message will be sent only to " +
-                            "the local Node."
+                            "${applicationKey.boundNetworkKey}, message will be sent only to the " +
+                            "local Node."
                 }
             } ?: logger?.w(category = LogCategory.PROXY) {
                 "No GATT Proxy connected, message will be sent only to the local Node."
@@ -638,7 +637,6 @@ class MeshNetworkManager(
             throw InvalidDestination()
         }
 
-
         // Uncomment to emulate sending messages to the local node
         // network.applicationKeys.firstOrNull()?.let {
         //     model.parentElement?.parentNode?.addAppKey(it.index)
@@ -659,8 +657,8 @@ class MeshNetworkManager(
             throw NoAppKeysBoundToModel()
         }
 
-        // Check if the application Key is known to the Proxy Node, or the message is sent to the local
-        // Node.
+        // Check if the application Key is known to the Proxy Node, or the message is sent to the
+        // local Node.
         val selectedAppKey = applicationKey ?: model.boundApplicationKeys
             .firstOrNull {
                 node.isLocalProvisioner || proxyFilter.proxy?.knows(it.boundNetworkKey) == true
@@ -973,26 +971,25 @@ class MeshNetworkManager(
             throw InvalidKey()
         }
 
-        // Check if the application Key is known to the Proxy Node, or the message is sent to the
-        // local Node.
-        val configNetKeyDelete = message as? ConfigNetKeyDelete
-
-        val selectedNetworkKey = networkKey ?: node.networkKeys.firstOrNull {
-            (configNetKeyDelete?.index != it.index) &&
-                    (node.isLocalProvisioner || proxyFilter.proxy?.knows(it) == true)
+        val selectedNetworkKey = networkKey ?: node.networkKeys.firstOrNull { key ->
+            // A key that is being deleted cannot be used to send a message.
+            (message as? ConfigNetKeyDelete)?.index != key.index &&
+                    // Unless the message is sent locally, take only keys known to the Proxy Node.
+                    (node.isLocalProvisioner || proxyFilter.proxy?.knows(key = key) == true)
         }
 
         if (selectedNetworkKey == null ||
-            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(selectedNetworkKey) != true)
+            (!node.isLocalProvisioner && proxyFilter.proxy?.knows(key = selectedNetworkKey) != true)
         ) {
+            val configNetKeyDelete = message as? ConfigNetKeyDelete
             if (configNetKeyDelete != null &&
                 (networkKey == null || networkKey.index == configNetKeyDelete.index)
             ) {
-                logger?.e(LogCategory.FOUNDATION_MODEL) {
-                    "Error: Cannot delete the last Network Key or a key used to secure the message."
-                }
+                println("Error: Cannot delete the last Network Key or a key used to secure the message")
                 throw CannotDelete()
             }
+
+            println("Error: No GATT Proxy connected or no common Network Keys")
             throw CannotRelay()
         }
 
