@@ -378,7 +378,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         proxyNetworkKey = networkKey
 
         if (justConnected) {
-            networkManager.proxy.newProxyDidConnect()
+            networkManager.proxy.onNewProxyConnected()
         }
     }
 

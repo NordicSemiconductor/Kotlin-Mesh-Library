@@ -75,6 +75,8 @@ enum class ProxyFilterType(val type: UByte) {
  */
 sealed class ProxyFilterState {
 
+    data object Unknown : ProxyFilterState()
+
     /**
      * State defining when the Proxy filter has been sent to the proxy.
      *
@@ -156,7 +158,7 @@ internal sealed interface ProxyFilterEventHandler {
      * This method reloads the Proxy Filter for the local Provisioner, adding all the addresses the
      * Provisioner is subscribed to, including its Unicast Addresses and All Nodes address.
      */
-    suspend fun newProxyDidConnect()
+    suspend fun onNewProxyConnected()
 
     /**
      * Invoked when a Proxy Configuration Message has been sent. This method refreshes the local
@@ -213,7 +215,7 @@ internal sealed interface ProxyFilterEventHandler {
 class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: MeshNetworkManager) :
     ProxyFilterEventHandler {
 
-    private val _proxyFilterStateFlow = MutableStateFlow<ProxyFilterState?>(value = null)
+    private val _proxyFilterStateFlow = MutableStateFlow<ProxyFilterState>(value = ProxyFilterState.Unknown)
     val proxyFilterStateFlow = _proxyFilterStateFlow.asStateFlow()
 
     // A mutex for internal synchronization.
@@ -379,10 +381,11 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
             _addresses.clear()
             busy = false
             proxy = null
+            request = null
         }
     }
 
-    override suspend fun newProxyDidConnect() {
+    override suspend fun onNewProxyConnected() {
         scope.launch {
             onNewNetworkCreated()
             logger?.i(LogCategory.PROXY) { "New Proxy connected." }
@@ -446,16 +449,16 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                                 expectedListSize = 0
                             }
 
-                            else -> { /* Ignore */ }
+                            else -> { /* Ignore */
+                            }
                         }
                         this.request = null
                     }
                     // Notify the app about the current state
-                    _proxyFilterStateFlow.emit(
-                        value = ProxyFilterState.ProxyFilterUpdated(
-                            type = type,
-                            addresses = addresses
-                        )
+                    println("Trying to emit ProxyFilterUpdated")
+                    _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterUpdated(
+                        type = type,
+                        addresses = addresses
                     )
                 }
 
@@ -465,18 +468,16 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                         "Proxy Filter limit reached: ${message.listSize} " +
                                 "(expected: $expectedListSize)"
                     }
-                    _proxyFilterStateFlow.emit(
-                        value = ProxyFilterState.ProxyFilterLimitReached(
-                            type = message.filterType,
-                            listSize = message.listSize
-                        )
+                    println("Trying to emit ProxyFilterLimitReached")
+                    _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterLimitReached(
+                        type = message.filterType,
+                        listSize = message.listSize
                     )
                 } else {
-                    _proxyFilterStateFlow.emit(
-                        value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
-                            type = message.filterType,
-                            listSize = message.listSize
-                        )
+                    println("Trying to emit ProxyFilterUpdateAcknowledged")
+                    _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
+                        type = message.filterType,
+                        listSize = message.listSize
                     )
                 }
             }
