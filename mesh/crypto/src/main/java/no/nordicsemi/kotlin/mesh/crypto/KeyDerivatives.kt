@@ -11,6 +11,7 @@ package no.nordicsemi.kotlin.mesh.crypto
  * @param beaconKey         Beacon key for a given NetworkKey
  * @param privateBeaconKey  Private Beacon key for a given NetworkKey
  */
+@ConsistentCopyVisibility
 data class KeyDerivatives internal constructor(
     val nid: Byte,
     val encryptionKey: ByteArray,

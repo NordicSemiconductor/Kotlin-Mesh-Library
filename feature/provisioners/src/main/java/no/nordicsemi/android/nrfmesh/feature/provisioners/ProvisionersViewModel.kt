@@ -156,6 +156,7 @@ internal class ProvisionersViewModel @Inject internal constructor(
     fun isCurrentlySelectedProvisioner(uuid: Uuid) = selectedProvisioner == uuid
 }
 
+@ConsistentCopyVisibility
 data class ProvisionersScreenUiState internal constructor(
     val provisioners: List<ProvisionerData> = listOf(),
     val provisionersToBeRemoved: List<ProvisionerData> = listOf(),

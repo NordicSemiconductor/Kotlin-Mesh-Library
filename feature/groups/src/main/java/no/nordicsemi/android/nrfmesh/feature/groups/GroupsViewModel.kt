@@ -40,6 +40,7 @@ internal class GroupsViewModel @Inject internal constructor(
     }
 }
 
+@ConsistentCopyVisibility
 internal data class GroupsScreenUiState internal constructor(
     val groups: List<Group> = listOf(),
 )

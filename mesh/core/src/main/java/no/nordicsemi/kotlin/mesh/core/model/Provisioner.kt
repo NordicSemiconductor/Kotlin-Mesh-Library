@@ -35,6 +35,7 @@ import kotlin.uuid.Uuid
  *
  * @constructor Creates a Provisioner object.
  */
+@ConsistentCopyVisibility
 @OptIn(ExperimentalUuidApi::class)
 @Suppress("unused")
 @Serializable

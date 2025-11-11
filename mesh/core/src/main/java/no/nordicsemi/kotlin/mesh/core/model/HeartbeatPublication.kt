@@ -43,6 +43,7 @@ import kotlin.math.pow
  * @property isFeatureTriggeredPublishingEnabled   If True feature-triggered Heartbeat Publishing is
  *                                                 enabled.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class HeartbeatPublication internal constructor(
     val address: HeartbeatPublicationDestination,

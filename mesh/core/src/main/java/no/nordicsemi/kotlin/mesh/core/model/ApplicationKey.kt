@@ -27,6 +27,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * @property boundNetworkKey             Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class ApplicationKey internal constructor(
     @SerialName(value = "name")

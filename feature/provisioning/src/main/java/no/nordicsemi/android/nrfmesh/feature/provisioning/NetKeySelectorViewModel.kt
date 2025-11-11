@@ -56,6 +56,7 @@ class NetKeySelectorViewModel @Inject constructor(
     }
 }
 
+@ConsistentCopyVisibility
 internal data class NetworkKeySelectionScreenUiState internal constructor(
     val keys: List<NetworkKey> = emptyList(),
     val selectedKeyIndex: KeyIndex = 0u,

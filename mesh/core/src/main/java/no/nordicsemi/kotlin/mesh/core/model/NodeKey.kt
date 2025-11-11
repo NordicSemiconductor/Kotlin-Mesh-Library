@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  *                         the Key Refresh procedure is in progress and the [NetworkKey] or the
  *                         [ApplicationKey] has been successfully updated.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class NodeKey internal constructor(
     val index: KeyIndex,
@@ -27,7 +28,7 @@ data class NodeKey internal constructor(
 
     internal constructor(key: ApplicationKey) : this(
         index = key.index,
-        _updated = key.boundNetworkKey?.phase != NormalOperation
+        _updated = key.boundNetworkKey.phase != NormalOperation
     )
 
     /**

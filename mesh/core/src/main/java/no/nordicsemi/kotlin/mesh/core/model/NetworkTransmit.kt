@@ -16,6 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
  * @param interval      The interval property contains an integer from 10 to 320 that represents the
  *                      interval in milliseconds between the transmissions.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class NetworkTransmit internal constructor(
     val count: UByte,

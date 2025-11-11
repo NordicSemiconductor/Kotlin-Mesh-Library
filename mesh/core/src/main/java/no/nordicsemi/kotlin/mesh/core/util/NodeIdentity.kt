@@ -28,6 +28,7 @@ interface NodeIdentity {
  * @property hash    Function of the included random number and identity information.
  * @property random  64-bit random number.
  */
+@ConsistentCopyVisibility
 data class PublicNodeIdentity internal constructor(
     val hash: ByteArray,
     val random: ByteArray
@@ -74,6 +75,7 @@ data class PublicNodeIdentity internal constructor(
  * @property hash    Function of the included random number and identity information.
  * @property random  64-bit random number.
  */
+@ConsistentCopyVisibility
 data class PrivateNodeIdentity internal constructor(
     val hash: ByteArray,
     val random: ByteArray

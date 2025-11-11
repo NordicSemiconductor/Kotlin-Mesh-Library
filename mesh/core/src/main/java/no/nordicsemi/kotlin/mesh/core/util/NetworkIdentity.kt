@@ -27,6 +27,7 @@ sealed interface NetworkIdentity {
  *
  * @param networkId 64-bit network identifier derived from the network key.
  */
+@ConsistentCopyVisibility
 data class PublicNetworkIdentity internal constructor(val networkId: ByteArray) : NetworkIdentity {
 
     override fun matches(networkKey: NetworkKey) = networkKey.networkId.contentEquals(networkId) ||
@@ -54,6 +55,7 @@ data class PublicNetworkIdentity internal constructor(val networkId: ByteArray) 
  * @param hash    Function of the included random number and identity information.
  * @param random  64-bit random number.
  */
+@ConsistentCopyVisibility
 data class PrivateNetworkIdentity internal constructor(
     val hash: ByteArray, val random: ByteArray
 ) : NetworkIdentity {
