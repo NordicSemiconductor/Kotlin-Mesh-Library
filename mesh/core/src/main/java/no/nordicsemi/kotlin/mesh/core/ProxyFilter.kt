@@ -83,6 +83,7 @@ sealed class ProxyFilterState {
      * @property type      Filter type.
      * @property addresses List of addresses.
      */
+    @ConsistentCopyVisibility
     data class ProxyFilterUpdated internal constructor(
         val type: ProxyFilterType,
         val addresses: List<ProxyFilterAddress>,
@@ -94,6 +95,7 @@ sealed class ProxyFilterState {
      * @property type     Filter type.
      * @property listSize List of addresses.
      */
+    @ConsistentCopyVisibility
     data class ProxyFilterUpdateAcknowledged internal constructor(
         val type: ProxyFilterType,
         val listSize: UShort,
@@ -105,6 +107,7 @@ sealed class ProxyFilterState {
      * @property type     Filter type.
      * @property listSize List of addresses.
      */
+    @ConsistentCopyVisibility
     data class ProxyFilterLimitReached internal constructor(
         val type: ProxyFilterType,
         val listSize: UShort,

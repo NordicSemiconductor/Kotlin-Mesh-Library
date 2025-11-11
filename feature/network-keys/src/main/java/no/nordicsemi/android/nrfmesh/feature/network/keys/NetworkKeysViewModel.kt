@@ -132,6 +132,7 @@ class NetworkKeysViewModel @Inject internal constructor(
         keyIndex == selectedKeyIndex
 }
 
+@ConsistentCopyVisibility
 data class NetworkKeysScreenUiState internal constructor(
     val keys: List<NetworkKeyData> = listOf(),
     val keysToBeRemoved: List<NetworkKeyData> = listOf(),

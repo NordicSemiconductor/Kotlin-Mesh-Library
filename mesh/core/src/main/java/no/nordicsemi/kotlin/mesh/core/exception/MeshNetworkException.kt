@@ -95,6 +95,7 @@ class SecurityException : MeshNetworkException()
  * @property error            Error message.
  * @property throwable        Throwable exception.
  */
+@ConsistentCopyVisibility
 data class ImportError internal constructor(
     val error: String,
     val throwable: Throwable,

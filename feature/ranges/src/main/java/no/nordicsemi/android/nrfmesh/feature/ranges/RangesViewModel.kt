@@ -218,6 +218,7 @@ internal abstract class RangesViewModel(
     }*/
 }
 
+@ConsistentCopyVisibility
 data class RangesScreenUiState internal constructor(
     val ranges: List<Range> = listOf(),
     val otherRanges: List<Range> = listOf(),

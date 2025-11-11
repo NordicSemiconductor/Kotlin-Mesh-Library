@@ -141,6 +141,7 @@ internal class ScenesViewModel @Inject internal constructor(
     }
 }
 
+@ConsistentCopyVisibility
 data class ScenesScreenUiState internal constructor(
     val scenes: List<SceneData> = listOf(),
     val scenesToBeRemoved: List<SceneData> = listOf(),

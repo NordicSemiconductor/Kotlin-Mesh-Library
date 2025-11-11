@@ -198,6 +198,7 @@ sealed interface ExportState {
     data object Unknown : ExportState
 }
 
+@ConsistentCopyVisibility
 data class ExportScreenUiState internal constructor(
     val exportState: ExportState = ExportState.Unknown,
     val exportOption: ExportOption = ExportOption.ALL,
@@ -207,11 +208,13 @@ data class ExportScreenUiState internal constructor(
     val exportDeviceKeys: Boolean = true,
 )
 
+@ConsistentCopyVisibility
 data class ProvisionerItemState internal constructor(
     val provisioner: Provisioner,
     val isSelected: Boolean = false,
 )
 
+@ConsistentCopyVisibility
 data class NetworkKeyItemState internal constructor(
     val networkKey: NetworkKey,
     val isSelected: Boolean = false,

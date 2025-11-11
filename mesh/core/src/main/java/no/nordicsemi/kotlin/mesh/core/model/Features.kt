@@ -23,6 +23,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.FeaturesSerializer
  *                      storing messages destined for those nodes. Null if the current
  *                      [FeatureState] of the [LowPower] feature is unknown.
  */
+@ConsistentCopyVisibility
 @Serializable(with = FeaturesSerializer::class)
 data class Features internal constructor(
     @SerialName(value = "relay")

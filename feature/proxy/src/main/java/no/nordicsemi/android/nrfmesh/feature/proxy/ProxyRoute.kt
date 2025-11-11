@@ -135,7 +135,6 @@ private fun ProxyFilterInfo(
             SectionTitle(title = stringResource(R.string.label_proxies))
             ScannerSection(
                 onScanResultSelected = { result ->
-                    showProxyScannerSheet = false
                     onScanResultSelected(result)
                     scope.launch {
                         proxyScannerSheetState.hide()
@@ -323,8 +322,8 @@ private fun FilterSection(
             SwipeToDismissAddress(
                 network = network,
                 address = it,
-                onSwiped = {
-                    send(RemoveAddressesFromFilter(addresses = listOf(it)))
+                onSwiped = { proxyFilterAddress ->
+                    send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
                 }
             )
         }

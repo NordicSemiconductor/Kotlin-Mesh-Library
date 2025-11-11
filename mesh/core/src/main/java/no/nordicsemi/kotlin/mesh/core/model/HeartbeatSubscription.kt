@@ -29,6 +29,7 @@ import kotlin.time.toDuration
  * @property state          The state property contains the state of the Heartbeat subscription.
  * @property isEnabled      Returns true if the Heartbeat subscription is enabled.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class HeartbeatSubscription internal constructor(
     val source: HeartbeatSubscriptionSource,

@@ -76,6 +76,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
  * @property requiresDeviceKey                          True if the model requires a device key.
  * @constructor Creates a model object.
  */
+@ConsistentCopyVisibility
 data class ModelData internal constructor(
     val modelId: ModelId,
     val name: String,

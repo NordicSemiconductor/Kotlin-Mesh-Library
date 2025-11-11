@@ -21,6 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
  * @property destination     Destination address of the message.
  * @constructor Creates a message handle.
  */
+@ConsistentCopyVisibility
 data class MessageHandle internal constructor(
     val message: MeshMessage,
     val source: UnicastAddress,

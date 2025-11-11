@@ -137,6 +137,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         keyIndex == selectedKeyIndex
 }
 
+@ConsistentCopyVisibility
 data class ApplicationKeysScreenUiState internal constructor(
     val keys: List<ApplicationKeyData> = listOf(),
     val keysToBeRemoved: List<ApplicationKeyData> = listOf()

@@ -17,6 +17,7 @@ typealias SceneNumber = UShort
  * @property addresses     Addresses containing the scene.
  * @property isInUse       Defines whether the scene is in use by a node.
  */
+@ConsistentCopyVisibility
 @Serializable
 data class Scene internal constructor(
     @SerialName(value = "name")

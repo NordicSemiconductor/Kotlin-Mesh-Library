@@ -43,6 +43,7 @@ import kotlin.time.ExperimentalTime
  *                                 removed from all the nodes and is no longer bound to any
  *                                 application keys.
  */
+@ConsistentCopyVisibility
 @OptIn(ExperimentalTime::class)
 data class NetworkKeyData internal constructor(
     val index: KeyIndex,

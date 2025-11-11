@@ -24,6 +24,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
  * @throws NoLocalProvisioner  Exception thrown when there is no local provisioner added to the mesh
  *                             network.
  */
+@ConsistentCopyVisibility
 data class ProvisioningParameters internal constructor(
     private val meshNetwork: MeshNetwork,
     private val capabilities: ProvisioningCapabilities

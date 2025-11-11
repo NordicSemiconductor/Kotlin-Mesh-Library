@@ -85,6 +85,7 @@ import kotlin.uuid.Uuid
  *
  * @constructor                         Creates a mesh node.
  */
+@ConsistentCopyVisibility
 @OptIn(ExperimentalUuidApi::class)
 @Serializable
 data class Node internal constructor(

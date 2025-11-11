@@ -23,6 +23,7 @@ import kotlinx.serialization.Transient
  * @property addresses     List of excluded addresses for a given ivIndex.
  * @constructor            Creates an ExclusionList object.
  */
+@ConsistentCopyVisibility
 @Serializable
 internal data class ExclusionList internal constructor(
     val ivIndex: UInt,
