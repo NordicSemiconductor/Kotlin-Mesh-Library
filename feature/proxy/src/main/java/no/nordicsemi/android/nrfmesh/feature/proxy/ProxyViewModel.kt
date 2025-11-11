@@ -29,7 +29,7 @@ internal class ProxyViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
     private var meshNetwork: MeshNetwork? = null
-    private val _uiState = MutableStateFlow<ProxyScreenUiState>(ProxyScreenUiState())
+    private val _uiState = MutableStateFlow(ProxyScreenUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -46,6 +46,12 @@ internal class ProxyViewModel @Inject internal constructor(
             _uiState.value = _uiState.value.copy(proxyConnectionState = it)
         }.launchIn(scope = viewModelScope)
 
+        // Setup initial state
+        _uiState.value = _uiState.value.copy(
+            filterType = repository.proxyFilter.type,
+            addresses = repository.proxyFilter.addresses.toList(),
+        )
+
         repository.proxyFilter.proxyFilterStateFlow.onEach {
             when (it) {
                 is ProxyFilterState.ProxyFilterUpdated -> {
@@ -58,13 +64,18 @@ internal class ProxyViewModel @Inject internal constructor(
                     )
                 }
 
-                is ProxyFilterState.ProxyFilterLimitReached ->
+                is ProxyFilterState.ProxyFilterLimitReached -> {
                     _uiState.value = _uiState.value.copy(
                         filterType = it.type,
                         isProxyLimitReached = true
                     )
+                }
 
-                else -> {
+                is ProxyFilterState.ProxyFilterUpdateAcknowledged -> {
+
+                }
+
+                ProxyFilterState.Unknown -> {
 
                 }
             }
@@ -92,7 +103,7 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            if(enabled) {
+            if (enabled) {
                 repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
@@ -100,7 +111,7 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onLocationEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            if(enabled) {
+            if (enabled) {
                 repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
             }
         }
@@ -110,18 +121,11 @@ internal class ProxyViewModel @Inject internal constructor(
         _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
         viewModelScope.launch {
             try {
-                repository.send(message)?.let { response ->
+                repository.send(message).let { response ->
                     _uiState.value = _uiState.value.copy(
                         messageState = Completed(
                             message = message,
                             response = response as ConfigResponse
-                        ),
-                    )
-                } ?: run {
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Failed(
-                            message = message,
-                            error = IllegalStateException("No response received")
                         ),
                     )
                 }

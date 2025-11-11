@@ -41,6 +41,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
+import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Location
@@ -49,7 +50,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -120,7 +120,7 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
-        }.launchIn(scope)
+        }.launchIn(scope = scope)
     }
 
     /**
@@ -305,7 +305,7 @@ class CoreDataRepository @Inject constructor(
                 dispatcher = defaultDispatcher,
                 centralManager = centralManager,
                 peripheral = peripheral
-            ).also {
+            ).also { it ->
                 meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()
@@ -319,7 +319,7 @@ class CoreDataRepository @Inject constructor(
 
                     // Wait for the bearer to disconnect
                     it.state.first { it is BearerEvent.Closed }
-                    proxyFilter.proxyDidDisconnect()
+                    meshNetworkManager.proxyFilter.proxyDidDisconnect()
                 }
             }
         }
@@ -450,6 +450,8 @@ class CoreDataRepository @Inject constructor(
 
     /**
      * Sends a proxy configuration message to the proxy node.
+     *
+     * @param message Proxy configuration message to be sent.
      */
     suspend fun send(message: ProxyConfigurationMessage) = withContext(defaultDispatcher) {
         meshNetworkManager.send(message)

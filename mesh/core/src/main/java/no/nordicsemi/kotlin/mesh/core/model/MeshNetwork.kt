@@ -708,7 +708,7 @@ data class MeshNetwork internal constructor(
      * @return provisioned Node matching the unprovisioned device.
      */
     @Suppress("KDocUnresolvedReference")
-    fun node(/*device:UnprovisionedDevice*/): Node? {
+    fun node(/*device:UnprovisionedDevice*/): Node {
         TODO("return node(device.uuid)")
     }
 
