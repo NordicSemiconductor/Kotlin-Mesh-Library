@@ -5,6 +5,7 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -26,7 +27,9 @@ internal fun GroupListDetailScreen(
     save: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val navigator = appState.groupsNavigator
+    val navigator = rememberListDetailPaneScaffoldNavigator().also {
+        appState.groupsNavigator = it
+    }
     when (uiState) {
         is GroupState.Success -> {
             NavigableListDetailPaneScaffold(

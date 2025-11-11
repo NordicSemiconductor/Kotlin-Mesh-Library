@@ -2,8 +2,6 @@ package no.nordicsemi.android.nrfmesh.navigation
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -53,19 +51,13 @@ fun rememberMeshAppState(
     scope: CoroutineScope = rememberCoroutineScope(),
     navController: NavHostController = rememberNavController(),
     snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass,
-    nodesNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
-    groupsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
-    settingsNavigator: ThreePaneScaffoldNavigator<Any> = rememberListDetailPaneScaffoldNavigator<Any>(),
+    windowSizeClass: WindowSizeClass
 ): MeshAppState = remember(navController) {
     MeshAppState(
         scope = scope,
         navController = navController,
         snackbarHostState = snackbarHostState,
         windowSizeClass = windowSizeClass,
-        nodesNavigator = nodesNavigator,
-        groupsNavigator = groupsNavigator,
-        settingsNavigator = settingsNavigator
     )
 }
 
@@ -75,17 +67,11 @@ class MeshAppState(
     val scope: CoroutineScope,
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass,
-    nodesNavigator: ThreePaneScaffoldNavigator<Any>,
-    groupsNavigator: ThreePaneScaffoldNavigator<Any>,
-    settingsNavigator: ThreePaneScaffoldNavigator<Any>,
+    windowSizeClass: WindowSizeClass
 ) : AppState(
     navController = navController,
     snackbarHostState = snackbarHostState,
-    windowSizeClass = windowSizeClass,
-    nodeNavigator = nodesNavigator,
-    groupsNavigator = groupsNavigator,
-    settingsNavigator = settingsNavigator
+    windowSizeClass = windowSizeClass
 ) {
     val meshTopLevelDestinations: List<MeshTopLevelDestination> = MeshTopLevelDestination.entries
 
@@ -104,14 +90,14 @@ class MeshAppState(
                     navController.currentDestination?.hasRoute<GroupRoute>() == true ||
                     navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> true
             // Check against the Settings navigator
-            settingsNavigator.currentDestination?.contentKey is ScenesContent ||
-                    settingsNavigator.currentDestination?.contentKey is SceneContent ||
-                    settingsNavigator.currentDestination?.contentKey is ProvisionersContent ||
-                    settingsNavigator.currentDestination?.contentKey is ProvisionerContent ||
-                    settingsNavigator.currentDestination?.contentKey is NetworkKeysContent ||
-                    settingsNavigator.currentDestination?.contentKey is NetworkKeyContent ||
-                    settingsNavigator.currentDestination?.contentKey is ApplicationKeysContent ||
-                    settingsNavigator.currentDestination?.contentKey is ApplicationKeyContent -> true
+            settingsNavigator?.currentDestination?.contentKey is ScenesContent ||
+                    settingsNavigator?.currentDestination?.contentKey is SceneContent ||
+                    settingsNavigator?.currentDestination?.contentKey is ProvisionersContent ||
+                    settingsNavigator?.currentDestination?.contentKey is ProvisionerContent ||
+                    settingsNavigator?.currentDestination?.contentKey is NetworkKeysContent ||
+                    settingsNavigator?.currentDestination?.contentKey is NetworkKeyContent ||
+                    settingsNavigator?.currentDestination?.contentKey is ApplicationKeysContent ||
+                    settingsNavigator?.currentDestination?.contentKey is ApplicationKeyContent -> true
 
             else -> false
         }
@@ -175,24 +161,24 @@ class MeshAppState(
             when {
                 route.contains("node", ignoreCase = true) -> {
                     scope.launch {
-                        if (nodeNavigator.canNavigateBack())
-                            nodeNavigator.navigateBack()
+                        if (nodeNavigator?.canNavigateBack() == true)
+                            nodeNavigator?.navigateBack()
                         else navController.navigateUp()
                     }
                 }
 
                 route.contains("group", ignoreCase = true) -> {
                     scope.launch {
-                        if (groupsNavigator.canNavigateBack())
-                            groupsNavigator.navigateBack()
+                        if (groupsNavigator?.canNavigateBack() == true)
+                            groupsNavigator?.navigateBack()
                         else navController.navigateUp()
                     }
                 }
 
                 route.contains("settings", ignoreCase = true) -> {
                     scope.launch {
-                        if (settingsNavigator.canNavigateBack())
-                            settingsNavigator.navigateBack()
+                        if (settingsNavigator?.canNavigateBack() == true)
+                            settingsNavigator?.navigateBack()
                         else navController.navigateUp()
                     }
                 }
