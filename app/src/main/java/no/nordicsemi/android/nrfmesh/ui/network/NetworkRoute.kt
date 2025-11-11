@@ -125,7 +125,7 @@ fun NetworkRoute(
         navigationSuiteType = navigationSuiteType,
         navigationItemVerticalArrangement = Arrangement.Center,
         navigationItems = {
-            appState.meshTopLevelDestinations.forEachIndexed { index, destination ->
+            appState.meshTopLevelDestinations.forEach { destination ->
                 val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
                 NavigationSuiteItem(
                     selected = selected,
@@ -140,7 +140,10 @@ fun NetworkRoute(
                         )
                     },
                     label = {
-                        Text(stringResource(destination.iconTextId), color = Color.White)
+                        Text(
+                            stringResource(destination.iconTextId),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 )
             }
