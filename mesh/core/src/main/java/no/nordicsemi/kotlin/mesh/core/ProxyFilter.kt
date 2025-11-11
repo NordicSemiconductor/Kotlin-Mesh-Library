@@ -455,7 +455,6 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                         this.request = null
                     }
                     // Notify the app about the current state
-                    println("Trying to emit ProxyFilterUpdated")
                     _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterUpdated(
                         type = type,
                         addresses = addresses
@@ -468,13 +467,11 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                         "Proxy Filter limit reached: ${message.listSize} " +
                                 "(expected: $expectedListSize)"
                     }
-                    println("Trying to emit ProxyFilterLimitReached")
                     _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterLimitReached(
                         type = message.filterType,
                         listSize = message.listSize
                     )
                 } else {
-                    println("Trying to emit ProxyFilterUpdateAcknowledged")
                     _proxyFilterStateFlow.value = ProxyFilterState.ProxyFilterUpdateAcknowledged(
                         type = message.filterType,
                         listSize = message.listSize
