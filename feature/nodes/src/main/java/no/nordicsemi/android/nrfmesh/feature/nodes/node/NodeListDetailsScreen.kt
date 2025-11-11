@@ -4,6 +4,7 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -38,7 +39,9 @@ internal fun NodeListDetailsScreen(
     navigateBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val navigator = appState.nodeNavigator
+    val navigator = rememberListDetailPaneScaffoldNavigator().also {
+        appState.nodeNavigator = it
+    }
     when (uiState.nodeState) {
         is NodeState.Success -> NavigableListDetailPaneScaffold(
             navigator = navigator,

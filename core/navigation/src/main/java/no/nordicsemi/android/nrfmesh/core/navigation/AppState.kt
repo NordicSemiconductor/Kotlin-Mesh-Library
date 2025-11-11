@@ -31,10 +31,10 @@ abstract class AppState(
     val navController: NavHostController,
     val snackbarHostState: SnackbarHostState,
     val windowSizeClass: WindowSizeClass,
-    val nodeNavigator: ThreePaneScaffoldNavigator<Any>,
-    val groupsNavigator: ThreePaneScaffoldNavigator<Any>,
-    val settingsNavigator: ThreePaneScaffoldNavigator<Any>
 ) {
+    var nodeNavigator: ThreePaneScaffoldNavigator<Any>? = null
+    var groupsNavigator: ThreePaneScaffoldNavigator<Any>? = null
+    var settingsNavigator: ThreePaneScaffoldNavigator<Any>? = null
 
     val previousBackStackEntry: NavBackStackEntry?
         get() = navController.previousBackStackEntry

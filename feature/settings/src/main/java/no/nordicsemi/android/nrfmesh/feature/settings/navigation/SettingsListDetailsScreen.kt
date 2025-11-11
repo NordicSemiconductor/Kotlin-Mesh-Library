@@ -5,6 +5,7 @@ import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -43,7 +44,9 @@ internal fun SettingsListDetailsScreen(
     onBackPressed: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val navigator = appState.settingsNavigator
+    val navigator = rememberListDetailPaneScaffoldNavigator().also {
+        appState.settingsNavigator = it
+    }
     when (uiState.networkState) {
         is MeshNetworkState.Success -> NavigableListDetailPaneScaffold(
             navigator = navigator,
