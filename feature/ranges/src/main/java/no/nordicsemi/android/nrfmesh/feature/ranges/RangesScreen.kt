@@ -510,5 +510,4 @@ internal fun Range.toImageVector() = when (this) {
     is UnicastRange -> Icons.Outlined.Lan
     is GroupRange -> Icons.Outlined.GroupWork
     is SceneRange -> Icons.Outlined.AutoAwesome
-    else -> Icons.Outlined.Lan
 }
