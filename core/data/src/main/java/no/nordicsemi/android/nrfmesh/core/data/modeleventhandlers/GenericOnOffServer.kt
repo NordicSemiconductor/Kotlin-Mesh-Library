@@ -32,13 +32,13 @@ class GenericOnOffServer(
 ) : StoredWithSceneModelEventHandler() {
     private val scope = CoroutineScope(context = dispatcher)
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
-        GenericOnOffGet.Initializer.opCode to GenericOnOffGet.Initializer,
-        GenericOnOffSet.Initializer.opCode to GenericOnOffSet.Initializer,
-        GenericOnOffSetUnacknowledged.Initializer.opCode to GenericOnOffSetUnacknowledged.Initializer
+        GenericOnOffGet.opCode to GenericOnOffGet.Initializer,
+        GenericOnOffSet.opCode to GenericOnOffSet.Initializer,
+        GenericOnOffSetUnacknowledged.opCode to GenericOnOffSetUnacknowledged.Initializer
     )
     override val isSubscriptionSupported = true
     @OptIn(ExperimentalTime::class)
-    override val publicationMessageComposer: MessageComposer?
+    override val publicationMessageComposer: MessageComposer
         get() = {
             if (state.transition?.remainingTime?.let { it > 0.0.milliseconds } == true) {
                 GenericOnOffStatus(
