@@ -20,6 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.ProxyFilterState
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
+import no.nordicsemi.kotlin.mesh.core.messages.proxy.RemoveAddressesFromFilter
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import javax.inject.Inject
@@ -122,6 +123,12 @@ internal class ProxyViewModel @Inject internal constructor(
         viewModelScope.launch {
             try {
                 repository.send(message).let { response ->
+                    if (message is RemoveAddressesFromFilter) {
+                        val addresses = _uiState.value.addresses.toMutableList()
+                        if (addresses.removeAll(message.addresses)) {
+                            _uiState.value = _uiState.value.copy(addresses = addresses.toList())
+                        }
+                    }
                     _uiState.value = _uiState.value.copy(
                         messageState = Completed(
                             message = message,
