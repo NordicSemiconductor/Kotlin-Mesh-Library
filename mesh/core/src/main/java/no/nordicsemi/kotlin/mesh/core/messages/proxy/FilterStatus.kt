@@ -21,9 +21,8 @@ class FilterStatus(
     override val parameters: ByteArray
         get() = byteArrayOf(filterType.type.toByte()) + listSize.toByteArray()
 
-    override fun toString(): String {
-        return "FilterStatus(opcode: $opCode, filterType: $filterType, listSize: $listSize)"
-    }
+    override fun toString(): String =
+        "FilterStatus(opcode: $opCode, filterType: $filterType, listSize: $listSize)"
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x03u

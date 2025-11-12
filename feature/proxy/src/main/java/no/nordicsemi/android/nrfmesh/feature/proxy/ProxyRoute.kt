@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
@@ -28,6 +29,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -225,7 +227,7 @@ private fun FilterSection(
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    val options = listOf(ProxyFilterType.INCLUSION_LIST, ProxyFilterType.EXCLUSION_LIST)
+    val options = listOf(ProxyFilterType.ACCEPT_LIST, ProxyFilterType.REJECT_LIST)
     var selectedIndex by remember {
         mutableIntStateOf(if (type == null) 0 else options.indexOf(type))
     }
@@ -260,6 +262,11 @@ private fun FilterSection(
                             shape = SegmentedButtonDefaults.itemShape(
                                 index = index,
                                 count = options.size
+                            ),
+                            colors = SegmentedButtonDefaults.colors(
+                                disabledActiveContainerColor = MaterialTheme.colorScheme.primary.copy(
+                                    alpha = 0.3f
+                                )
                             ),
                             onClick = {
                                 selectedIndex = index
@@ -302,6 +309,11 @@ private fun FilterSection(
                             index = index,
                             count = options.size
                         ),
+                        colors = SegmentedButtonDefaults.colors(
+                            disabledActiveContainerColor = MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.3f
+                            )
+                        ),
                         onClick = {
                             selectedIndex = index
                             send(SetFilterType(options[selectedIndex]))
@@ -316,16 +328,18 @@ private fun FilterSection(
     }
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         addresses.forEach {
-            SwipeToDismissAddress(
-                network = network,
-                address = it,
-                onSwiped = { proxyFilterAddress ->
-                    send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
-                }
-            )
+            key(it.toHexString()) {
+                SwipeToDismissAddress(
+                    network = network,
+                    address = it,
+                    onSwiped = { proxyFilterAddress ->
+                        send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
+                    }
+                )
+            }
         }
     }
 

@@ -74,18 +74,23 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         // Try decoding the pdu.
         when (type) {
             PduType.NETWORK_PDU -> {
-                val networkPdu = NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)
-                return if (networkPdu != null) {
-                    logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
-                    networkManager.lowerTransportLayer.handle(networkPdu)?.let {
-                        ReceivedMessage(address = networkPdu.source, message = it)
-                    }
-                } else {
+                return NetworkPduDecoder.decode(
+                    pdu = incomingPdu,
+                    pduType = type,
+                    meshNetwork = meshNetwork
+                )
+                    ?.let { networkPdu ->
+                        logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
+                        networkManager.lowerTransportLayer.handle(networkPdu = networkPdu)?.let {
+                            ReceivedMessage(address = networkPdu.source, message = it)
+                        }
+                    } ?: run {
                     logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
                     null
                 }
             }
-
+            // This condition always return null because mesh beacons are not responded to by the
+            // lib as of now.
             PduType.MESH_BEACON -> {
                 NetworkBeaconPduDecoder.decode(pdu = incomingPdu, meshNetwork = meshNetwork)?.let {
                     logger?.i(LogCategory.NETWORK) {
@@ -99,7 +104,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     }
                     return null
                 }
-                UnprovisionedDeviceBeaconDecoder.decode(incomingPdu)?.let {
+                UnprovisionedDeviceBeaconDecoder.decode(pdu = incomingPdu)?.let {
                     logger?.i(LogCategory.NETWORK) { "$it received." }
                     handle(beacon = it)
                     return null
@@ -109,12 +114,16 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
 
             PduType.PROXY_CONFIGURATION -> {
-                NetworkPduDecoder.decode(incomingPdu, type, meshNetwork)?.let {
+                return NetworkPduDecoder.decode(
+                    pdu = incomingPdu,
+                    pduType = type,
+                    meshNetwork = meshNetwork
+                )?.let {
                     logger?.i(LogCategory.NETWORK) { "$it received." }
-                    return handle(it)
+                    handle(proxyPdu = it)
                 } ?: run {
                     logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
-                    return null
+                    null
                 }
             }
 
