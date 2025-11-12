@@ -28,6 +28,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -316,16 +317,18 @@ private fun FilterSection(
     }
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         addresses.forEach {
-            SwipeToDismissAddress(
-                network = network,
-                address = it,
-                onSwiped = { proxyFilterAddress ->
-                    send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
-                }
-            )
+            key(it.toHexString()) {
+                SwipeToDismissAddress(
+                    network = network,
+                    address = it,
+                    onSwiped = { proxyFilterAddress ->
+                        send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
+                    }
+                )
+            }
         }
     }
 
@@ -391,10 +394,7 @@ private fun Addresses(
             .verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(R.string.label_elements)
-        )
+        Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_elements))
         network.nodes.flatMap { it.elements }.forEach { element ->
             AddressRow(
                 network = network,
@@ -403,10 +403,7 @@ private fun Addresses(
             )
         }
         if (network.groups.isNotEmpty()) {
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = stringResource(R.string.label_groups)
-            )
+            Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_groups))
         }
         network.groups.forEach { group ->
             AddressRow(
@@ -415,10 +412,7 @@ private fun Addresses(
                 onClick = { onAddressClicked(group.address as ProxyFilterAddress) }
             )
         }
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(R.string.label_fixed_group_addresses)
-        )
+        Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_fixed_group_addresses))
         fixedGroupAddresses.forEach { destination ->
             AddressRow(
                 address = destination as ProxyFilterAddress,
