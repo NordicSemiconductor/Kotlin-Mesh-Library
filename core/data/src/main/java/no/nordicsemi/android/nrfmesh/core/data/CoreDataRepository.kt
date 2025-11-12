@@ -103,7 +103,7 @@ class CoreDataRepository @Inject constructor(
         // Observe changes to the mesh network
         observeNetworkChanges()
         // Observe proxy connection state changes
-        observerProxyConnectionState()
+        observerAutomaticProxyConnectionState()
     }
 
     private fun observeNetworkChanges() {
@@ -115,7 +115,7 @@ class CoreDataRepository @Inject constructor(
 
     }
 
-    private fun observerProxyConnectionState() {
+    private fun observerAutomaticProxyConnectionState() {
         preferences.data.onEach {
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
