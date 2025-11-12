@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,9 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -99,7 +102,13 @@ private fun Nodes(
                         modifier = Modifier.fillMaxWidth(),
                         icon = {
                             Image(
-                                modifier = Modifier.size(size = 32.dp),
+                                modifier = Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                                    .size(size = 36.dp)
+                                    .padding(all = 4.dp),
                                 painter = painterResource(R.drawable.ic_mesh_white),
                                 contentDescription = null
                             )
@@ -133,7 +142,13 @@ private fun Nodes(
                 MeshItem(
                     icon = {
                         Image(
-                            modifier = Modifier.size(size = 32.dp),
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                                .size(size = 36.dp)
+                                .padding(all = 4.dp),
                             painter = painterResource(R.drawable.ic_mesh_white),
                             contentDescription = null
                         )
