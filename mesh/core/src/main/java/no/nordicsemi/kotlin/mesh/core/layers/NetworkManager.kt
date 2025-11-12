@@ -86,7 +86,7 @@ internal class NetworkManager internal constructor(
     val meshNetwork: MeshNetwork
         get() = manager.network!!
 
-    val networkParameters : NetworkParameters
+    val networkParameters: NetworkParameters
         get() = manager.networkParameters
     private val mutex = Mutex()
 
@@ -131,6 +131,9 @@ internal class NetworkManager internal constructor(
 
     /**
      * Handles the received PDU of a given type.
+     *
+     * This method parses incoming Proxy messages and mesh messages and emits them to their
+     * respective SharedFlow which are observed by the respective subscriber.
      *
      * @param incomingPdu Incoming PDU.
      * @param type        PDU type.
@@ -268,7 +271,7 @@ internal class NetworkManager internal constructor(
      */
     @Throws(Busy::class)
     private suspend fun ensureNotBusy(destination: MeshAddress) = mutex.withLock {
-        require(!outgoingMessages.contains(destination)) { throw Busy ()}
+        require(!outgoingMessages.contains(destination)) { throw Busy() }
         outgoingMessages.add(destination)
         false
     }
