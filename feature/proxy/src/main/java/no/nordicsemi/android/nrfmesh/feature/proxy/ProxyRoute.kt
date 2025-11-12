@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
@@ -262,6 +263,11 @@ private fun FilterSection(
                                 index = index,
                                 count = options.size
                             ),
+                            colors = SegmentedButtonDefaults.colors(
+                                disabledActiveContainerColor = MaterialTheme.colorScheme.primary.copy(
+                                    alpha = 0.3f
+                                )
+                            ),
                             onClick = {
                                 selectedIndex = index
                                 send(SetFilterType(options[selectedIndex]))
@@ -302,6 +308,11 @@ private fun FilterSection(
                         shape = SegmentedButtonDefaults.itemShape(
                             index = index,
                             count = options.size
+                        ),
+                        colors = SegmentedButtonDefaults.colors(
+                            disabledActiveContainerColor = MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.3f
+                            )
                         ),
                         onClick = {
                             selectedIndex = index
@@ -394,7 +405,10 @@ private fun Addresses(
             .verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
-        Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_elements))
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = stringResource(R.string.label_elements)
+        )
         network.nodes.flatMap { it.elements }.forEach { element ->
             AddressRow(
                 network = network,
@@ -403,7 +417,10 @@ private fun Addresses(
             )
         }
         if (network.groups.isNotEmpty()) {
-            Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_groups))
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(R.string.label_groups)
+            )
         }
         network.groups.forEach { group ->
             AddressRow(
@@ -412,7 +429,10 @@ private fun Addresses(
                 onClick = { onAddressClicked(group.address as ProxyFilterAddress) }
             )
         }
-        Text(modifier = Modifier.padding(top = 8.dp), text = stringResource(R.string.label_fixed_group_addresses))
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = stringResource(R.string.label_fixed_group_addresses)
+        )
         fixedGroupAddresses.forEach { destination ->
             AddressRow(
                 address = destination as ProxyFilterAddress,
