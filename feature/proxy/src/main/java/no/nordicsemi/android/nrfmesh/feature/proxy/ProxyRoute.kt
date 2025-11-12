@@ -227,7 +227,7 @@ private fun FilterSection(
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    val options = listOf(ProxyFilterType.INCLUSION_LIST, ProxyFilterType.EXCLUSION_LIST)
+    val options = listOf(ProxyFilterType.ACCEPT_LIST, ProxyFilterType.REJECT_LIST)
     var selectedIndex by remember {
         mutableIntStateOf(if (type == null) 0 else options.indexOf(type))
     }

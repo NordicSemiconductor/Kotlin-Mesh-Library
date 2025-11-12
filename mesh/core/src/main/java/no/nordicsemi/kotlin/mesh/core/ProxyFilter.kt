@@ -32,22 +32,22 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 enum class ProxyFilterType(val type: UByte) {
 
     /**
-     * An inclusion list filter has an associated inclusion list containing destination addresses
-     * that are of interest for the Proxy Client.
+     * An accept list filter has an associated inclusion list containing destination addresses that
+     * are of interest for the Proxy Client.
      *
-     * The inclusion list filter blocks all messages except those targeting addresses added to the
+     * The accept list filter blocks all messages except those targeting addresses added to the
      * list.
      */
-    INCLUSION_LIST(0x00u),
+    ACCEPT_LIST(0x00u),
 
     /**
-     * An exclusion list filter has an associated exclusion list containing destination addresses
-     * that are NOT of the Proxy Client interest.
+     * A reject list filter has an associated exclusion list containing destination addresses that
+     * are NOT of the Proxy Client interest.
      *
-     * The exclusion list filter forwards all messages except those targeting addresses added to the
+     * The reject list filter forwards all messages except those targeting addresses added to the
      * list.
      */
-    EXCLUSION_LIST(0x01u);
+    REJECT_LIST(0x01u);
 
     companion object {
 
@@ -65,8 +65,8 @@ enum class ProxyFilterType(val type: UByte) {
     }
 
     override fun toString() = when (this) {
-        INCLUSION_LIST -> "Inclusion List"
-        EXCLUSION_LIST -> "Exclusion List"
+        ACCEPT_LIST -> "Accept List"
+        REJECT_LIST -> "Reject List"
     }
 }
 
@@ -122,20 +122,20 @@ sealed class ProxyFilterState {
 enum class ProxyFilterSetup {
 
     /**
-     * This setup will set to [ProxyFilterType.INCLUSION_LIST] with [UnicastAddress]es of all local
+     * This setup will set to [ProxyFilterType.ACCEPT_LIST] with [UnicastAddress]es of all local
      * elements, all [GroupAddress]es with at least one local model subscribed to the [AllNodes]
      * address.
      */
     AUTOMATIC,
 
     /**
-     * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.INCLUSION_LIST]
+     * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.ACCEPT_LIST]
      * with the given set of addresses.
      */
     INCLUSION_LIST,
 
     /**
-     * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.EXCLUSION_LIST]
+     * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.REJECT_LIST]
      * with the given set of addresses.
      */
     EXCLUSION_LIST
@@ -174,7 +174,7 @@ internal sealed interface ProxyFilterEventHandler {
     /**
      * Invoked when the manager failed to send the Proxy Configuration Message.
      *
-     * This method clears the local filter and sets it back to [ProxyFilterType.INCLUSION_LIST].
+     * This method clears the local filter and sets it back to [ProxyFilterType.ACCEPT_LIST].
      * All the messages waiting to be sent are cancelled.
      *
      * @param message Message that has not been sent.
@@ -240,7 +240,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
     val addresses: List<ProxyFilterAddress>
         get() = _addresses
 
-    var type: ProxyFilterType = ProxyFilterType.INCLUSION_LIST
+    var type: ProxyFilterType = ProxyFilterType.ACCEPT_LIST
         private set
     var proxy: Node? = null
         private set
@@ -255,10 +255,10 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
     }
 
     /**
-     * Resets the filter to an empty inclusion list filter.
+     * Resets the filter to an empty accept list filter.
      */
     suspend fun reset() {
-        send(message = SetFilterType(filterType = ProxyFilterType.INCLUSION_LIST))
+        send(message = SetFilterType(filterType = ProxyFilterType.ACCEPT_LIST))
     }
 
     /**
@@ -334,8 +334,8 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
      * @param provisioner Provisioner to be added to the filter.
      */
     suspend fun setup(provisioner: Provisioner) = provisioner.node?.run {
-        // Reset the proxy filter to an empty inclusion list filter.
-        setType(type = ProxyFilterType.INCLUSION_LIST)
+        // Reset the proxy filter to an empty accept list filter.
+        setType(type = ProxyFilterType.ACCEPT_LIST)
         val addresses = mutableListOf<ProxyFilterAddress>()
         // Add all the unicast addresses of all elements of the provisioner's Node
         addresses.addAll(elements.map { it.unicastAddress })
@@ -362,7 +362,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
             scope.launch {
                 _proxyFilterStateFlow.emit(
                     value = ProxyFilterState.ProxyFilterUpdated(
-                        type = ProxyFilterType.INCLUSION_LIST,
+                        type = ProxyFilterType.ACCEPT_LIST,
                         addresses = listOf()
                     )
                 )
@@ -380,7 +380,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
 
     override suspend fun onNewNetworkCreated() {
         mutex.withLock {
-            type = ProxyFilterType.INCLUSION_LIST
+            type = ProxyFilterType.ACCEPT_LIST
             _addresses.clear()
             busy = false
             proxy = null
@@ -396,7 +396,7 @@ class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: M
                 when (initializeState) {
                     ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
                     ProxyFilterSetup.EXCLUSION_LIST -> {
-                        setType(type = ProxyFilterType.EXCLUSION_LIST)
+                        setType(type = ProxyFilterType.REJECT_LIST)
                         add(addresses = addresses)
                     }
 
