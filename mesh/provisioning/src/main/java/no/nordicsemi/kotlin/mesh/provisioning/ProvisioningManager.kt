@@ -472,6 +472,11 @@ class ProvisioningManager(
                 throw RemoteError(it.error)
             }
         } as ProvisioningResponse.Confirmation
+        // Errata E1650 added an extra validation step to ensure the received public key is
+        // the same as the provisioner's public key.
+        require(!response.confirmation.contentEquals(request.confirmation)) {
+            throw InvalidConfirmation()
+        }
         return response.confirmation
     }
 

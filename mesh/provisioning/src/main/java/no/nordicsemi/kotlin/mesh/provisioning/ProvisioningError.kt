@@ -23,6 +23,11 @@ class InvalidPdu : ProvisioningError()
 class InvalidPublicKey : ProvisioningError()
 
 /**
+ * The received Public Key is invalid or not equal to Provisioner's Public Key.
+ */
+class InvalidConfirmation : ProvisioningError()
+
+/**
  * Thrown when the Unprovisioned Device is not supported by the manager.
  */
 class UnsupportedDevice : ProvisioningError()
