@@ -1,6 +1,3 @@
-import org.jetbrains.dokka.DokkaDefaults.moduleName
-import org.jetbrains.dokka.DokkaDefaults.pluginsConfiguration
-
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -17,6 +14,9 @@ plugins {
     alias(libs.plugins.nordic.hilt) apply false
     alias(libs.plugins.nordic.feature) apply false
     alias(libs.plugins.nordic.kotlin.android) apply false
+    alias(libs.plugins.nordic.nexus.jvm) apply false
+    alias(libs.plugins.nordic.nexus.android) apply false
+
     // alias(libs.plugins.wire) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false

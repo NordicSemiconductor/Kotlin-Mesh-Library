@@ -8,3 +8,4 @@ release/
 /captures
 .externalNativeBuild
 /.kotlin
+*.gpg
