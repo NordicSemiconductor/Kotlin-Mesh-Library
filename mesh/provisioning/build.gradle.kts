@@ -1,13 +1,28 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.nordic.nexus.jvm)
+}
+
+group = "no.nordicsemi.kotlin.mesh"
+
+nordicNexusPublishing {
+    POM_ARTIFACT_ID = "provisioning"
+    POM_NAME = "Provisioning in Bluetooth Mesh"
+    POM_DESCRIPTION =
+        "Provides a Provisioning related functionality in Bluetooth Mesh for the Kotlin Mesh Library."
+    POM_URL = "https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library"
+    POM_SCM_URL = "https://github.com/NordicSemiconductor/Kotlin-nR-Mesh-Library"
+    POM_SCM_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
+    POM_SCM_DEV_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
 }
 
 dependencies {
-    implementation(nordic.kotlin.data)
-    implementation(libs.kotlinx.coroutines.core)
     api(project(":mesh:core"))
     api(project(":mesh:bearer-provisioning"))
 
-    testImplementation("junit:junit:4.13.2")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(nordic.kotlin.data)
+    // Dependencies used for testing
     implementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.junit)
 }

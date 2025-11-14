@@ -1,6 +1,19 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.nordic.nexus.jvm)
+}
+
+group = "no.nordicsemi.kotlin.mesh"
+
+nordicNexusPublishing {
+    POM_ARTIFACT_ID = "core"
+    POM_NAME = "Bluetooth Mesh Core Library"
+    POM_DESCRIPTION = "Provides a complete set of Bluetooth Mesh features for the Kotlin Mesh Library."
+    POM_URL = "https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library"
+    POM_SCM_URL = "https://github.com/NordicSemiconductor/Kotlin-nR-Mesh-Library"
+    POM_SCM_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
+    POM_SCM_DEV_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
 }
 
 dependencies {
@@ -12,9 +25,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.datetime)
-
-    testImplementation(kotlin("test"))
-    testImplementation(libs.kotlinx.coroutines.test)
+    // Dependencies used for testing
+    testImplementation(libs.kotlin.test)
 }
 
 tasks.test {

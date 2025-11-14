@@ -1,9 +1,23 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.nordic.nexus.jvm)
+}
+
+group = "no.nordicsemi.kotlin.mesh"
+
+nordicNexusPublishing {
+    POM_ARTIFACT_ID = "bearer-gatt"
+    POM_NAME = "GATT Bearer extension for Bluetooth Mesh"
+    POM_DESCRIPTION = "Provides a GATT Bearer implementation for the Kotlin Mesh Library."
+    POM_URL = "https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library"
+    POM_SCM_URL = "https://github.com/NordicSemiconductor/Kotlin-nR-Mesh-Library"
+    POM_SCM_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
+    POM_SCM_DEV_CONNECTION = "scm:git@github.com:NordicSemiconductor/Kotlin-nRF-Mesh-Library.git"
 }
 
 dependencies {
     api(project(":mesh:bearer"))
     api(nordic.blek.client.core)
-    testImplementation("junit:junit:4.13.2")
+    // Dependencies used for testing
+    testImplementation(libs.kotlin.junit)
 }
