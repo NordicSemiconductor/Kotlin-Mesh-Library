@@ -1,6 +1,6 @@
-package no.nordicsemi.android.nrfmesh.core.data.meshnetwork.messages
+package no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.messages
 
-import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.messages.SimpleOnOffGet.Initializer.opCode
+import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.messages.SimpleOnOffGet.Initializer.opCode
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedVendorMessage
 import no.nordicsemi.kotlin.mesh.core.messages.VendorMessageInitializer
 
