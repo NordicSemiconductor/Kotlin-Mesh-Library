@@ -180,7 +180,7 @@ class CoreDataRepository @Inject constructor(
                 // A simple vendor model
                 Model(
                     modelId = VendorModelId(
-                        modelIdentifier = VendorModelIds.SIMPLE_ON_OFF_SERVER_MODEL_ID,
+                        modelIdentifier = VendorModelIds.SIMPLE_ON_OFF_CLIENT_MODEL_ID,
                         companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
                     )
                 )
