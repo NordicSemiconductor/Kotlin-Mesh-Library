@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.data.models.ElementData
+import no.nordicsemi.android.nrfmesh.core.data.name
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -133,7 +134,7 @@ private fun ModelRow(model: Model, isSelected: Boolean, onModelClicked: (Model) 
         },
         onClick = { onModelClicked(model) },
         imageVector = Icons.Outlined.Widgets,
-        title = model.name,
+        title = model.name(),
         subtitle = when (model.modelId) {
             is SigModelId -> "Bluetooth SIG"
             is VendorModelId -> CompanyIdentifier.name(

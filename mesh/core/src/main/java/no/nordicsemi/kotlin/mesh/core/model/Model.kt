@@ -155,7 +155,7 @@ class Model internal constructor(
         }
     val bind: List<KeyIndex>
         get() = _bind
-    val name: String
+    val name: String?
         get() = nameOf(modelId)
     val isBluetoothSigAssigned: Boolean
         get() = modelId is SigModelId
@@ -949,7 +949,7 @@ class Model internal constructor(
          * @param modelId Model ID
          * @return name of the model
          */
-        private fun nameOf(modelId: ModelId): String =
+        private fun nameOf(modelId: ModelId): String? =
             if (!modelId.isBluetoothSigAssigned) "Vendor Model"
             else when (modelId.id) {
                 // Foundation
@@ -1040,7 +1040,7 @@ class Model internal constructor(
                 FIRMWARE_UPDATE_CLIENT_MODEL_ID.toUInt() -> "Firmware Update Client"
                 FIRMWARE_DISTRIBUTION_SERVER_MODEL_ID.toUInt() -> "Firmware Distribution Server"
                 FIRMWARE_DISTRIBUTION_CLIENT_MODEL_ID.toUInt() -> "Firmware Distribution Client"
-                else -> "Unknown"
+                else -> null
             }
 
         /**

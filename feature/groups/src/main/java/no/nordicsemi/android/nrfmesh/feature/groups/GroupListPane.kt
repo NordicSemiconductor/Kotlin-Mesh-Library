@@ -30,6 +30,7 @@ import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.common.isSceneServer
 import no.nordicsemi.android.nrfmesh.core.common.isSceneSetupServer
+import no.nordicsemi.android.nrfmesh.core.data.name
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -170,7 +171,7 @@ private fun ModelRow(
             else -> CardDefaults.outlinedCardColors()
         },
         imageVector = models.first().toIcon(),
-        title = models.first().name,
+        title = models.firstOrNull()?.name() ?: "Unknown Model",
         subtitle = "${models.size} ${stringResource(R.string.label_models1)}",
         onClick = { onModelClicked(models.first().modelId) }
     )

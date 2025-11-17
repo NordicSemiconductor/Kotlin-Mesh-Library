@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.data.name
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -23,7 +24,7 @@ import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 @Composable
 internal fun CommonInformation(model: Model) {
     Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
-        NameRow(name = model.name)
+        NameRow(name = model.name())
         ModelIdRow(modelId = model.modelId.toHex(prefix0x = true))
         Company(modelId = model.modelId)
     }
