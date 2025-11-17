@@ -13,7 +13,7 @@ class GenericOnOffClientEventHandler() : ModelEventHandler() {
         GenericOnOffStatus.opCode to GenericOnOffStatus.Initializer,
     )
     override val isSubscriptionSupported = true
-    override val publicationMessageComposer: MessageComposer?
+    override val publicationMessageComposer: MessageComposer
         get() = { GenericOnOffSetUnacknowledged(on = state) }
     var state: Boolean = false
         set(value) {
