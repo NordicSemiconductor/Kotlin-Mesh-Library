@@ -34,7 +34,7 @@ import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
 import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
-import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
+import no.nordicsemi.android.nrfmesh.feature.model.configurationserver.ConfigurationServer
 import no.nordicsemi.android.nrfmesh.feature.model.generic.GenericLevelServer
 import no.nordicsemi.android.nrfmesh.feature.model.generic.GenericOnOffServer
 import no.nordicsemi.android.nrfmesh.feature.models.R

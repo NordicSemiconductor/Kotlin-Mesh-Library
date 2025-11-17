@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
+package no.nordicsemi.android.nrfmesh.feature.model.configurationserver
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
