@@ -3,12 +3,15 @@ package no.nordicsemi.kotlin.mesh.core.messages
 /**
  * A base interface for vendor messages.
  *
- * Vendor messages have 24-bit long Op Code,
- * of which 16 least significant bits contain the Company ID
- * and 6 least significant bits of the most significant byte
- * are the vendor Op Code.
+ * Vendor messages have 24-bit long Op Code, of which 16 least significant bits contain the Company
+ * ID and 6 least significant bits of the most significant byte are the vendor Op Code.
+ *
+ * @property vendorOpCode The Op Code as defined by the company.
+ * @property companyIdentifier The Company Identifiers are 16-bit values defined by the Bluetooth
+ *                             SIG and are coded into the second and third octets of the 3-octet
+ *                             Op Code.
  */
-interface VendorMessage : MeshMessage {
+sealed interface VendorMessage : MeshMessage {
 
     /**
      * The Op Code as defined by the company.
