@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
-import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -32,23 +31,22 @@ class ConfigModelAppUnbind(
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelAppStatus.opCode
 
-    override val parameters = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-            encodeAppKeyIndex(applicationKeyIndex = keyIndex) +
-            when (modelId) {
-                is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-                is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-            }
+    override val parameters : ByteArray
+        get() {
+            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    encodeAppKeyIndex(applicationKeyIndex = keyIndex)
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
+            return data
+        }
 
-    override val modelIdentifier: UShort = when {
-        modelId.isBluetoothSigAssigned -> (modelId as SigModelId).modelIdentifier
-        else -> (modelId as VendorModelId).id.toUShort()
+    override val modelIdentifier: UShort = when(modelId is SigModelId) {
+        true -> modelId.modelIdentifier
+        false -> (modelId as VendorModelId).modelIdentifier
     }
 
-    override val companyIdentifier: UShort?
-        get() = when (modelId.isBluetoothSigAssigned) {
-            true -> null
-            else -> (modelId as VendorModelId).companyIdentifier
-        }
+    override val companyIdentifier: UShort? = (modelId as? VendorModelId)?.companyIdentifier
 
     /**
      * Convenience constructor to create a [ConfigModelAppUnbind] message.
@@ -65,7 +63,9 @@ class ConfigModelAppUnbind(
     )
 
     override fun toString() = "ConfigModelAppUnbind(applicationKeyIndex: $keyIndex, " +
-            "elementAddress: ${elementAddress.toHexString()}, modelId: ${modelId.toHex()})"
+            "elementAddress: ${elementAddress.toHexString()} " +
+            "modelIdentifier: $modelIdentifier), " +
+            "optional companyIdentifier: $companyIdentifier)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x803Fu
@@ -82,7 +82,16 @@ class ConfigModelAppUnbind(
             val elementAddress = it.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
             val appKeyIndex = decodeAppKeyIndex(data = it, offset = 2)
             val modelId = when (it.size == 8) {
-                true -> VendorModelId(id = it.getUInt(offset = 4, order = ByteOrder.LITTLE_ENDIAN))
+                true -> VendorModelId(
+                    companyIdentifier = it.getUShort(
+                        offset = 4,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    modelIdentifier = it.getUShort(
+                        offset = 6,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    )
+                )
                 else -> SigModelId(
                     modelIdentifier = it.getUShort(
                         offset = 4,

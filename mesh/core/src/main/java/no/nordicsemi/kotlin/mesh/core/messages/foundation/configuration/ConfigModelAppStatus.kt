@@ -2,7 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
-import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessage
@@ -34,24 +33,22 @@ class ConfigModelAppStatus(
     override val opCode = Initializer.opCode
 
     override val parameters: ByteArray
-        get() = status.value.toByteArray() +
-                elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                encodeAppKeyIndex(applicationKeyIndex = keyIndex) +
-                when (modelId) {
-                    is SigModelId -> modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-                    is VendorModelId -> modelId.id.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-                }
+        get() {
+            var data = status.value.toByteArray() +
+                    elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+                    encodeAppKeyIndex(applicationKeyIndex = keyIndex)
+            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
+                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
+                ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
+            return data
+        }
 
     override val modelIdentifier: UShort = when {
         modelId.isBluetoothSigAssigned -> (modelId as SigModelId).modelIdentifier
-        else -> (modelId as VendorModelId).id.toUShort()
+        else -> (modelId as VendorModelId).modelIdentifier
     }
 
-    override val companyIdentifier: UShort?
-        get() = when (modelId.isBluetoothSigAssigned) {
-            true -> null
-            else -> (modelId as VendorModelId).companyIdentifier
-        }
+    override val companyIdentifier: UShort? = (modelId as? VendorModelId)?.companyIdentifier
 
     /**
      * Constructs the ConfigAppBindStatus message.
@@ -90,36 +87,40 @@ class ConfigModelAppStatus(
          * @param parameters Message parameters.
          * @return ConfigAppKeyStatus or null if the parameters are invalid.
          */
-        override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
-            it.size == 7 || it.size == 9
-        }?.let { params ->
-            val status = ConfigMessageStatus
-                .from(value = params.first().toUByte()) ?: return null
-            ConfigModelAppStatus(
-                status = status,
-                elementAddress = UnicastAddress(
-                    address = params.getUShort(
-                        offset = 1,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    )
-                ),
-                keyIndex = decodeAppKeyIndex(data = params, offset = 3),
-                modelId = when (params.size) {
-                    9 -> VendorModelId(
-                        id = params.getUInt(
-                            offset = 5,
+        override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters
+            ?.takeIf { it.size == 7 || it.size == 9 }
+            ?.let { params ->
+                val status = ConfigMessageStatus
+                    .from(value = params.first().toUByte()) ?: return null
+                ConfigModelAppStatus(
+                    status = status,
+                    elementAddress = UnicastAddress(
+                        address = params.getUShort(
+                            offset = 1,
                             order = ByteOrder.LITTLE_ENDIAN
                         )
-                    )
+                    ),
+                    keyIndex = decodeAppKeyIndex(data = params, offset = 3),
+                    modelId = when (params.size) {
+                        9 -> VendorModelId(
+                            companyIdentifier = params.getUShort(
+                                offset = 5,
+                                order = ByteOrder.LITTLE_ENDIAN
+                            ),
+                            modelIdentifier = params.getUShort(
+                                offset = 7,
+                                order = ByteOrder.LITTLE_ENDIAN
+                            )
+                        )
 
-                    else -> SigModelId(
-                        modelIdentifier = params.getUShort(
-                            offset = 5,
-                            order = ByteOrder.LITTLE_ENDIAN
+                        else -> SigModelId(
+                            modelIdentifier = params.getUShort(
+                                offset = 5,
+                                order = ByteOrder.LITTLE_ENDIAN
+                            )
                         )
-                    )
-                }
-            )
-        }
+                    }
+                )
+            }
     }
 }
