@@ -16,7 +16,7 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
  * @param security The security level of the message.
  */
 class AcknowledgedVendorMessageImpl(
-    val modelId: VendorModelId,
+    modelId: VendorModelId,
     sixBitOpcode: UByte,
     sixBitResponseOpCode: UByte,
     override val parameters: ByteArray?,
