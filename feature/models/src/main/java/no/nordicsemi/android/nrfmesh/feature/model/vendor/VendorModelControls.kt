@@ -43,6 +43,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 
 @Composable
 internal fun VendorModelControls(
@@ -310,7 +311,12 @@ private fun Request(
                             } else {
                                 null
                             },
-                            vendorResponseOpCode = responseOpCode.text.toUByte(radix = 16)
+                            vendorResponseOpCode = responseOpCode.text.toUByte(radix = 16),
+                            isSegmented = forceSegmentation,
+                            security = when(sixtyFourBitTransmic) {
+                                true -> MeshMessageSecurity.High
+                                false -> MeshMessageSecurity.Low
+                            }
                         )
                     } else {
                         UnacknowledgedVendorMessageImpl(
@@ -320,6 +326,11 @@ private fun Request(
                                 parameters.text.toByteArray()
                             } else {
                                 null
+                            },
+                            isSegmented = forceSegmentation,
+                            security = when(sixtyFourBitTransmic) {
+                                true -> MeshMessageSecurity.High
+                                false -> MeshMessageSecurity.Low
                             }
                         )
                     }
