@@ -132,15 +132,12 @@ internal data class AccessPdu(
             // At least 3 octets are required.
             require(pdu.accessPdu.size >= 3) { return null }
 
-            val octet1 = pdu.accessPdu[1]
-            val octet2 = pdu.accessPdu[2]
-
             return AccessPdu(
                 message = null,
                 userInitiated = false,
                 source = pdu.source,
                 destination = pdu.destination,
-                opCode = octet0.toUInt() shl 16 or octet1.toUInt() shl 8 or octet2.toUInt(),
+                opCode = pdu.accessPdu.getUInt(offset = 0, format = IntFormat.UINT24),
                 parameters = pdu.accessPdu.copyOfRange(fromIndex = 3, toIndex = pdu.accessPdu.size),
                 accessPdu = byteArrayOf()
             )
