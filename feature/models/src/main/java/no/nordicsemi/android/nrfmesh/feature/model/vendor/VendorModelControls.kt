@@ -56,11 +56,7 @@ internal fun VendorModelControls(
         messageState = messageState,
         sendApplicationMessage = sendApplicationMessage
     )
-    Response(
-        model = model,
-        messageState = messageState,
-        sendApplicationMessage = sendApplicationMessage
-    )
+    Response(messageState = messageState)
 }
 
 @Composable
@@ -217,6 +213,7 @@ private fun Request(
                             isParametersFocused = false
                             isResponseOpCodeFocused = true
                         },
+                    enabled = acknowledged,
                     onFocus = isResponseOpCodeFocused,
                     showPrefix = true,
                     value = responseOpCode,
@@ -313,7 +310,7 @@ private fun Request(
                             },
                             vendorResponseOpCode = responseOpCode.text.toUByte(radix = 16),
                             isSegmented = forceSegmentation,
-                            security = when(sixtyFourBitTransmic) {
+                            security = when (sixtyFourBitTransmic) {
                                 true -> MeshMessageSecurity.High
                                 false -> MeshMessageSecurity.Low
                             }
@@ -328,7 +325,7 @@ private fun Request(
                                 null
                             },
                             isSegmented = forceSegmentation,
-                            security = when(sixtyFourBitTransmic) {
+                            security = when (sixtyFourBitTransmic) {
                                 true -> MeshMessageSecurity.High
                                 false -> MeshMessageSecurity.Low
                             }
@@ -351,11 +348,7 @@ private fun Request(
 }
 
 @Composable
-private fun Response(
-    model: Model,
-    messageState: MessageState,
-    sendApplicationMessage: (Model, MeshMessage) -> Unit,
-) {
+private fun Response(messageState: MessageState) {
     SectionTitle(title = stringResource(R.string.label_response))
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -373,7 +366,24 @@ private fun Response(
                     },
                     title = stringResource(R.string.label_op_code)
                 )
-                Text(text = "")
+                Text(
+                    text = when (messageState.message) {
+                        is AcknowledgedVendorMessageImpl -> messageState
+                            .response
+                            ?.opCode
+                            ?.toHexString(
+                                format = HexFormat {
+                                    number {
+                                        prefix = "0x"
+                                        removeLeadingZeros = true
+                                    }
+                                    upperCase = true
+                                }
+                            ) ?: ""
+
+                        else -> ""
+                    }
+                )
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 MeshSingleLineListItem(
@@ -389,7 +399,24 @@ private fun Response(
                     },
                     title = stringResource(R.string.label_status)
                 )
-                Text(text = "")
+                Text(
+                    text = when (messageState.message) {
+                        is AcknowledgedVendorMessageImpl -> messageState
+                            .response
+                            ?.parameters
+                            ?.toHexString(
+                                format = HexFormat {
+                                    number {
+                                        prefix = "0x"
+                                        removeLeadingZeros = true
+                                    }
+                                    upperCase = true
+                                }
+                            ) ?: ""
+
+                        else -> ""
+                    }
+                )
             }
         }
     }
