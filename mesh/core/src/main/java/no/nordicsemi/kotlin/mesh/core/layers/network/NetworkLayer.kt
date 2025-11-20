@@ -438,7 +438,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      */
     internal fun isLocalUnicastAddress(address: UnicastAddress) = isLocalUnicastAddress(
         address = address.address
-    ) == true
+    )
 
     /**
      * Check whether the given address is an address of an element belonging to the local Node.
