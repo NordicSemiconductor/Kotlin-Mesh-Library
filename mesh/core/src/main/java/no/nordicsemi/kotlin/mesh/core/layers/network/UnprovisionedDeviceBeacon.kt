@@ -7,7 +7,6 @@ import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import kotlin.uuid.toKotlinUuid
 
 /**
  * Class that defines an Unprovisioned device beacon PDU.
@@ -45,7 +44,7 @@ internal object UnprovisionedDeviceBeaconDecoder {
     fun decode(pdu: ByteArray): UnprovisionedDeviceBeacon? = when {
         pdu.size > 1 -> when (BeaconType.from(pdu[0].toUByte())) {
             BeaconType.UNPROVISIONED_DEVICE -> {
-                val uuid = pdu.getUuid(1).toKotlinUuid()
+                val uuid = pdu.getUuid(1)
                 val oob = OobInformation.from(pdu.getUShort(17))
                 val uriHash = when (pdu.size == 23) {
                     true -> pdu.copyOfRange(19, pdu.size)
