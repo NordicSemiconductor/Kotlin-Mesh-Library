@@ -116,4 +116,14 @@
     <string name="label_delta">Delta</string>
     <string name="label_move">Move</string>
     <string name="label_primary_element_subscription_error">All Nodes address cannot be unsubscribed from a primary Element.</string>
+    <string name="label_vendor_opcode_prefix">0xC0</string>
+    <string name="label_6_bit_op_code">6-bit Opcode</string>
+    <string name="label_request">Request</string>
+    <string name="label_response">Response</string>
+    <string name="label_op_code">Op Code</string>
+    <string name="label_parameters">Parameters</string>
+    <string name="label_or">|</string>
+    <string name="label_6_bit_response_op_code">6-bit Response Opcode</string>
+    <string name="label_64_bit_transmic">64-bit Transmic</string>
+    <string name="label_force_segmentation">Force segmentation</string>
 </resources>

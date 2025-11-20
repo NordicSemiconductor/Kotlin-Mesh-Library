@@ -25,7 +25,7 @@ import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 internal fun CommonInformation(model: Model) {
     Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
         NameRow(name = model.name())
-        ModelIdRow(modelId = model.modelId.toHex(prefix0x = true))
+        ModelIdRow(modelId = model.modelId)
         Company(modelId = model.modelId)
     }
 }
@@ -41,12 +41,15 @@ private fun NameRow(name: String) {
 }
 
 @Composable
-private fun ModelIdRow(modelId: String) {
+private fun ModelIdRow(modelId: ModelId) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Numbers,
         title = stringResource(R.string.label_model_identifier),
-        subtitle = modelId
+        subtitle = when (modelId) {
+            is SigModelId -> modelId.modelIdentifier.toHexString()
+            is VendorModelId -> modelId.modelIdentifier.toHexString()
+        }
     )
 }
 
@@ -58,7 +61,7 @@ private fun Company(modelId: ModelId) {
         title = stringResource(id = R.string.label_company),
         subtitle = when (modelId) {
             is SigModelId -> "Bluetooth SIG"
-            is VendorModelId -> CompanyIdentifier.name(id = modelId.modelIdentifier)
+            is VendorModelId -> CompanyIdentifier.name(id = modelId.companyIdentifier)
                 ?: stringResource(id = R.string.label_unknown)
         }
     )

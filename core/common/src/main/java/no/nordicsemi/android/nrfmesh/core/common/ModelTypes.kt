@@ -18,6 +18,8 @@ fun Model.isSceneSetupServer() =
 fun Model.isLightLCServer() =
     (modelId as? SigModelId)?.modelIdentifier == Model.LIGHT_LC_SERVER_MODEL_ID
 
+fun Model.isVendorModel() = !isBluetoothSigAssigned
+
 fun isSupportedGroupItem(model: Model) = model.isGenericOnOffServer() ||
         model.isGenericLevelServer() ||
         model.isLightLCServer() ||
