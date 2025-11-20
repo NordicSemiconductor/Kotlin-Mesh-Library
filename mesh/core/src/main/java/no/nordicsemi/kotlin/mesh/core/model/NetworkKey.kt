@@ -2,11 +2,9 @@
 
 package no.nordicsemi.kotlin.mesh.core.model
 
-import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
@@ -15,6 +13,7 @@ import no.nordicsemi.kotlin.mesh.crypto.KeyDerivatives
 import no.nordicsemi.kotlin.mesh.crypto.SecurityCredentials
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -189,8 +188,7 @@ data class NetworkKey internal constructor(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "NetworkKey(index: $index, name: $_name, key: ${_key.toHexString()}, " +
-                "old key: ${oldKey?.toHexString()}, security: $_security, phase: $_phase, " +
+        return "NetworkKey(index: $index, name: $_name, security: $_security, phase: $_phase, " +
                 "timestamp: $timestamp)"
     }
 

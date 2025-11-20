@@ -50,8 +50,15 @@ internal data class AccessPdu(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "Access PDU (opcode: " +
-            "0x${opCode.toHexString(format = HexFormat.UpperCase)}, " +
-            "parameters: 0x${parameters.toHexString()})"
+            "${opCode.toHexString(format = HexFormat {
+                number.removeLeadingZeros = true
+                number.prefix = "0x"
+                upperCase = true
+            })}, " +
+            "parameters: ${parameters.toHexString(format = HexFormat { 
+                upperCase = true
+                number.prefix = "0x"
+            })})"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

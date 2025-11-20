@@ -67,9 +67,18 @@ internal open class AccessMessage(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "$type (akf: ${aid?.let { "1, aid: 0x${it.toHexString()}" } ?: "0"}, " +
+    override fun toString() = "$type (akf: ${aid?.let { "1, aid: ${
+        it.toHexString(
+            format = HexFormat { 
+                number.prefix = "0x"
+                upperCase = true
+             }
+        )}" } ?: "0"}, " +
             "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
-            "data: 0x${upperTransportPdu.toHexString(format = HexFormat.UpperCase)})"
+            "data: ${upperTransportPdu.toHexString(format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            })})"
 
     internal companion object {
 

@@ -97,9 +97,26 @@ internal class NetworkPdu internal constructor(
         val encryptedDataSie = pdu.size - micSize - 9
         val encryptedData = pdu.copyOfRange(fromIndex = 9, toIndex = 9 + encryptedDataSie)
         val mic = pdu.copyOfRange(fromIndex = 9 + encryptedDataSie, pdu.size)
-        return "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
-                "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
-                "dst: ${destination.toHexString()}, " +
+        return "NetworkPdu (ivi: $ivi, nid: ${
+            nid.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase
+                }
+            )
+        }, ctl: ${type.rawValue}, ttl: $ttl, seq: $sequence, " +
+                "src: ${
+                    source.address.toHexString(format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase
+                    })
+                }, " +
+                "dst: ${
+                    destination.address.toHexString(format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase
+                    })
+                }, " +
                 "transportPdu: ${encryptedData.toHexString(prefixOx = true)}, " +
                 "netMic: ${mic.toHexString(prefixOx = true)})"
     }

@@ -263,7 +263,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             msg = it
         }
 
-        logger?.i(LogCategory.MODEL) { "Sending $msg to ${destination.toHexString()})" }
+        logger?.i(LogCategory.MODEL) {
+            "Sending $msg from: ${element.unicastAddress.toHexString()}, " +
+                    "to: ${destination.toHexString()})"
+        }
+
         val pdu = AccessPdu.init(
             message = msg,
             source = element.unicastAddress.address,
@@ -320,7 +324,14 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         ) ?: return null
 
         logger?.i(LogCategory.FOUNDATION_MODEL) {
-            "Sending $message to ${destination.toHexString()})"
+            "Sending $message to ${
+                destination.toHexString(
+                    format = HexFormat {
+                        upperCase = true
+                        number.prefix = "0x"
+                    }
+                )
+            })"
         }
         val pdu = AccessPdu.init(
             message = message,
@@ -364,10 +375,18 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         element: Element,
         keySet: KeySet,
     ) {
-        val category =
-            if (message is ConfigMessage) LogCategory.FOUNDATION_MODEL else LogCategory.MODEL
+        val category = if (message is ConfigMessage)
+            LogCategory.FOUNDATION_MODEL
+        else LogCategory.MODEL
         logger?.i(category) {
-            "Replying with $message from: $element to ${destination.toHexString()}"
+            "Replying with $message from: $element to ${
+                destination.toHexString(
+                    format = HexFormat {
+                        upperCase = true
+                        number.prefix = "0x"
+                    }
+                )
+            }"
         }
         val dst = MeshAddress.create(address = destination)
         val pdu = AccessPdu.init(
@@ -399,8 +418,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
     internal suspend fun cancel(handle: MessageHandle) {
         logger?.i(LogCategory.ACCESS) {
             "Cancelling messages with op code: ${handle.opCode}, " + "sent from: " +
-                    "${handle.source.toHexString()} " +
-                    "to: ${handle.destination.toHexString()}"
+                    "${
+                        handle.source.address.toHexString(
+                            format = HexFormat {
+                                upperCase = true
+                                number.prefix = "0x"
+                            })
+                    } " +
+                    "to: ${
+                        handle.destination.address.toHexString(
+                            format = HexFormat {
+                                upperCase = true
+                                number.prefix = "0x"
+                            })
+                    }"
         }
 
         mutex.withLock {
@@ -443,8 +474,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                     // Save and log only the first decoded message
                     if (newMessage == null) {
                         logger?.i(LogCategory.MODEL) {
-                            "Message received from ${accessPdu.source.toHexString()}, " +
-                                    "to: ${accessPdu.destination.toHexString()}"
+                            "Message received from: ${
+                                accessPdu.source.toHexString(
+                                    format = HexFormat {
+                                        upperCase = true
+                                        number.prefix = "0x"
+                                    })
+                            }, to: ${
+                                accessPdu.destination.address.toHexString(
+                                    format = HexFormat {
+                                        upperCase = true
+                                        number.prefix = "0x"
+                                    }
+                                )
+                            }"
                         }
                         newMessage = message
                     } else if (message::class != newMessage::class) {
