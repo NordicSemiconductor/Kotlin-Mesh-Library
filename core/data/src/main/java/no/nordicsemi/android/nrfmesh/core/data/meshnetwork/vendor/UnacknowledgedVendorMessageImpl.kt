@@ -1,5 +1,7 @@
 package no.nordicsemi.android.nrfmesh.core.data.meshnetwork.vendor
 
+import no.nordicsemi.kotlin.data.bigEndian
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedVendorMessage
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 
@@ -7,22 +9,31 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 /**
  * Implementation of Unacknowledged Vendor Message.
  *
- * @param modelId The Vendor Model Identifier.
- * @param sixBitOpCode The 6-bit opcode defined for the message.
- * @param parameters The parameters for the message.
+ * @param modelId            Vendor Model Identifier.
+ * @param vendorOpCode       6-bit opcode defined for the message.
+ * @param parameters         Optional Parameters of the message.
  */
 class UnacknowledgedVendorMessageImpl(
     modelId: VendorModelId,
-    sixBitOpCode: UByte,
+    vendorOpCode: UByte,
     override val parameters: ByteArray?,
 ) : UnacknowledgedVendorMessage {
 
     override val opCode =
-        ((0xC0u or sixBitOpCode.toUInt()) shl 16) or modelId.companyIdentifier.toUInt()
+        ((0xC0.toUByte() or vendorOpCode).toUInt() shl 16) or
+                modelId.companyIdentifier.bigEndian.toUInt()
 
-    override fun toString() = "RuntimeUnacknowledgedVendorMessage(" +
-            "opCode: 0x${opCode.toString(16)}, " +
-            "parameters:${parameters?.toHexString()}, " +
+    override fun toString() = "UnacknowledgedVendorMessageImpl(" +
+            "opCode: ${
+                opCode.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                        number.removeLeadingZeros = true
+                    }
+                )
+            }, " +
+            "parameters: ${parameters?.toHexString(prefixOx = true)}, " +
             "isSegmented: $isSegmented, " +
             "security: $security)"
 }
