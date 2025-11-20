@@ -23,7 +23,7 @@ class AcknowledgedVendorMessageImpl(
     vendorResponseOpCode: UByte,
     override val parameters: ByteArray?,
     override val isSegmented: Boolean = false,
-    override val security: MeshMessageSecurity = MeshMessageSecurity.Low,
+    override val security: MeshMessageSecurity = MeshMessageSecurity.Low
 ) : AcknowledgedVendorMessage {
 
     override val opCode =
