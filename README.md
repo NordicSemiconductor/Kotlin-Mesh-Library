@@ -62,12 +62,12 @@ The app is not yet published to Playstore but is available on this repo.
 4. Managing groups, including those with virtual labels.
 5. Sending group messages.
 6. UI for local models, which include: 
-   - Generic OnOff Client and Server,
-   - Generic Level Client and Server,
-   - Simple OnOff vendor model by Nordic not supported yet.
-   - Mesh vendor model by Nordic not supported yet.
+   - Generic OnOff Client and Server
+   - Generic Level Client and Server
+   - Simple OnOff vendor model by Nordic
 7. Support for some server models:
-   - Generic OnOff,
+   - Generic OnOff
+   - Vendor models
 8. Scenes, both as client and server.
 9. Automatic connection to nearby nodes and automatic proxy filter management.
 10. IV Index test
@@ -89,8 +89,8 @@ and [nRF Connect SDK](https://www.nordicsemi.com/Products/Development-software/n
 
 Any feedback is more than welcome. Please, test the app, test the library and check out the API.
 
-Use [Issues](https://github.com/NordicPlayground/Kotlin-Mesh-Library/issues) to report a bug, or ask a question. We also encourage to submit 
-[Pull Requests](https://github.com/NordicPlayground/Kotlin-Mesh-Library/pulls) with new features or bug fixes.
+Use [Issues](https://github.com/NordicSemiconductor/Kotlin-Mesh-Library/issues) to report a bug, or ask a question. We also encourage to submit 
+[Pull Requests](https://github.com/NordicSemiconductor/Kotlin-Mesh-Library/pulls) with new features or bug fixes.
 
 ## License
 
