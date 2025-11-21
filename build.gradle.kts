@@ -31,7 +31,7 @@ plugins {
 
 // Configure main Dokka page
 dokka {
-    moduleName.set("Kotlin nRF Mesh Library for Android")
+    moduleName.set("Kotlin Mesh Library")
     pluginsConfiguration.html {
         homepageLink.set("https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library")
     }

@@ -1,0 +1,889 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Model</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    Kotlin Mesh Library
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.6.0
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":mesh:core/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":mesh:core/main" data-filter=":mesh:core/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Kotlin Mesh Library
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="core::no.nordicsemi.kotlin.mesh.core.model/Model///PointingToDeclaration//-554328198">
+  <div class="breadcrumbs"><a href="../../index.html">core</a><span class="delimiter">/</span><a href="../index.html">no.nordicsemi.kotlin.mesh.core.model</a><span class="delimiter">/</span><span class="current">Model</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Model</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">class </span><a href="index.html">Model</a></div><p class="paragraph">Represents Bluetooth mesh model contained in an element in a node.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="81014291%2FConstructors%2F-554328198" anchor-label="Model" id="81014291%2FConstructors%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-model.html"><span><span>Model</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="81014291%2FConstructors%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">modelId<span class="token operator">: </span><a href="../-model-id/index.html">ModelId</a><span class="token punctuation">, </span></span><span class="parameter ">handler<span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core/-model-event-handler/index.html">ModelEventHandler</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Constructs a Model</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-1321177019%2FClasslikes%2F-554328198" anchor-label="Companion" id="-1321177019%2FClasslikes%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1321177019%2FClasslikes%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="12822625%2FProperties%2F-554328198" anchor-label="baseModels" id="12822625%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="base-models.html"><span>base</span><wbr><span><span>Models</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="12822625%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="base-models.html">baseModels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">Model</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List of all base <a href="index.html">Model</a>s extended by Model,     directly or indirectly.     The "Extend" relationship is explained in     Mesh Profile 1.0.1, chapter 2.3.6.     Note: Models that operate on bound states     share a single subscription list per element.     Note: Model Extension is only defined for     SIG Models. Currently it is not possible to     get relationships between Vendor Models, and     for those this method returns an empty list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2092626369%2FProperties%2F-554328198" anchor-label="bind" id="-2092626369%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bind.html"><span><span>bind</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2092626369%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="bind.html">bind</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-key-index/index.html">KeyIndex</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The bind property contains a list of     integers that represents indexes of the     ApplicationKey to which this model is     bound. Each application key index     corresponds to the index values of one of     the application key entries in the node’s     ApplicationKey list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="881583766%2FProperties%2F-554328198" anchor-label="boundApplicationKeys" id="881583766%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bound-application-keys.html"><span>bound</span><wbr><span>Application</span><wbr><span><span>Keys</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="881583766%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="bound-application-keys.html">boundApplicationKeys</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-application-key/index.html">ApplicationKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List of <a href="../-application-key/index.html">ApplicationKey</a> bound to the model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1184685960%2FProperties%2F-554328198" anchor-label="directBaseModels" id="-1184685960%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="direct-base-models.html"><span>direct</span><wbr><span>Base</span><wbr><span><span>Models</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1184685960%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="direct-base-models.html">directBaseModels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">Model</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List of direct base <a href="index.html">Model</a>s to the Model.     The "Extend" relationship is explained in     Mesh Profile 1.0.1, chapter 2.3.6.     Note: Models that operate on bound states     share a single subscription list per element.     Note: Model Extension is only defined for     SIG Models. Currently it is not possible to     get relationships between Vendor Models, and     for those this method returns an empty list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="903939509%2FProperties%2F-554328198" anchor-label="directExtendingModels" id="903939509%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="direct-extending-models.html"><span>direct</span><wbr><span>Extending</span><wbr><span><span>Models</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="903939509%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="direct-extending-models.html">directExtendingModels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">Model</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List of <a href="index.html">Model</a>s directly extending the     Model. The "Extend" relationship is     explained in Mesh Profile 1.0.1, chapter     2.3.6.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="61305740%2FProperties%2F-554328198" anchor-label="eventHandler" id="61305740%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="event-handler.html"><span>event</span><wbr><span><span>Handler</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="61305740%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Transient///PointingToDeclaration/"><span class="token annotation builtin">Transient</span></span></div></div><span class="token keyword">var </span><a href="event-handler.html">eventHandler</a><span class="token operator">: </span><a href="../../no.nordicsemi.kotlin.mesh.core/-model-event-handler/index.html">ModelEventHandler</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1985349484%2FProperties%2F-554328198" anchor-label="extendingModels" id="1985349484%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="extending-models.html"><span>extending</span><wbr><span><span>Models</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1985349484%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="extending-models.html">extendingModels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">Model</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List of all <a href="index.html">Model</a>s extending the Model,     directly or indirectly. The "Extend"     The "Extend" relationship is explained in     Mesh Profile 1.0.1, chapter 2.3.6.     Note: Models that operate on bound states     share a single subscription list per element.     Note: Model Extension is only defined for     SIG Models. Currently it is not possible to     get relationships between Vendor Models, and     for those this method returns an empty list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-133101567%2FProperties%2F-554328198" anchor-label="isBluetoothSigAssigned" id="-133101567%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-bluetooth-sig-assigned.html"><span>is</span><wbr><span>Bluetooth</span><wbr><span>Sig</span><wbr><span><span>Assigned</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-133101567%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-bluetooth-sig-assigned.html">isBluetoothSigAssigned</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a Bluetooth SIG defined     model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1840290704%2FProperties%2F-554328198" anchor-label="isBridgeConfigurationClient" id="-1840290704%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-bridge-configuration-client.html"><span>is</span><wbr><span>Bridge</span><wbr><span>Configuration</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1840290704%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-bridge-configuration-client.html">isBridgeConfigurationClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a bridge configuration     client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1179090936%2FProperties%2F-554328198" anchor-label="isBridgeConfigurationServer" id="1179090936%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-bridge-configuration-server.html"><span>is</span><wbr><span>Bridge</span><wbr><span>Configuration</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1179090936%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-bridge-configuration-server.html">isBridgeConfigurationServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a bridge configuration     server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="547801735%2FProperties%2F-554328198" anchor-label="isConfigurationClient" id="547801735%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-configuration-client.html"><span>is</span><wbr><span>Configuration</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="547801735%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-configuration-client.html">isConfigurationClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a configuration client     model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-727783921%2FProperties%2F-554328198" anchor-label="isConfigurationServer" id="-727783921%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-configuration-server.html"><span>is</span><wbr><span>Configuration</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-727783921%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-configuration-server.html">isConfigurationServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a configuration server     model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="890066380%2FProperties%2F-554328198" anchor-label="isDirectedForwardingConfigurationClient" id="890066380%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-directed-forwarding-configuration-client.html"><span>is</span><wbr><span>Directed</span><wbr><span>Forwarding</span><wbr><span>Configuration</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="890066380%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-directed-forwarding-configuration-client.html">isDirectedForwardingConfigurationClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a directed forwarding     configuration client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-385519276%2FProperties%2F-554328198" anchor-label="isDirectedForwardingConfigurationServer" id="-385519276%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-directed-forwarding-configuration-server.html"><span>is</span><wbr><span>Directed</span><wbr><span>Forwarding</span><wbr><span>Configuration</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-385519276%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-directed-forwarding-configuration-server.html">isDirectedForwardingConfigurationServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a directed forwarding     configuration server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-889921877%2FProperties%2F-554328198" anchor-label="isHealthClient" id="-889921877%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-health-client.html"><span>is</span><wbr><span>Health</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-889921877%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-health-client.html">isHealthClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a health client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2129459763%2FProperties%2F-554328198" anchor-label="isHealthServer" id="2129459763%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-health-server.html"><span>is</span><wbr><span>Health</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2129459763%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-health-server.html">isHealthServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a health server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1759704302%2FProperties%2F-554328198" anchor-label="isLargeCompositionDataClient" id="1759704302%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-large-composition-data-client.html"><span>is</span><wbr><span>Large</span><wbr><span>Composition</span><wbr><span>Data</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1759704302%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-large-composition-data-client.html">isLargeCompositionDataClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a large composition     data client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="484118646%2FProperties%2F-554328198" anchor-label="isLargeCompositionDataServer" id="484118646%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-large-composition-data-server.html"><span>is</span><wbr><span>Large</span><wbr><span>Composition</span><wbr><span>Data</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="484118646%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-large-composition-data-server.html">isLargeCompositionDataServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a large composition     data server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-669838254%2FProperties%2F-554328198" anchor-label="isOnDemandPrivateProxyClient" id="-669838254%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-on-demand-private-proxy-client.html"><span>is</span><wbr><span>On</span><wbr><span>Demand</span><wbr><span>Private</span><wbr><span>Proxy</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-669838254%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-on-demand-private-proxy-client.html">isOnDemandPrivateProxyClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a on demand private     proxy client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1945423910%2FProperties%2F-554328198" anchor-label="isOnDemandPrivateProxyServer" id="-1945423910%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-on-demand-private-proxy-server.html"><span>is</span><wbr><span>On</span><wbr><span>Demand</span><wbr><span>Private</span><wbr><span>Proxy</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1945423910%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-on-demand-private-proxy-server.html">isOnDemandPrivateProxyServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a on demand private     proxy server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1508166255%2FProperties%2F-554328198" anchor-label="isOpcodesAggregatorClient" id="1508166255%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-opcodes-aggregator-client.html"><span>is</span><wbr><span>Opcodes</span><wbr><span>Aggregator</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1508166255%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-opcodes-aggregator-client.html">isOpcodesAggregatorClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a opcodes aggregator     client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="232580599%2FProperties%2F-554328198" anchor-label="isOpcodesAggregatorServer" id="232580599%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-opcodes-aggregator-server.html"><span>is</span><wbr><span>Opcodes</span><wbr><span>Aggregator</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="232580599%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-opcodes-aggregator-server.html">isOpcodesAggregatorServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a opcodes aggregator     server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-753354314%2FProperties%2F-554328198" anchor-label="isPrivateBeaconClient" id="-753354314%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-private-beacon-client.html"><span>is</span><wbr><span>Private</span><wbr><span>Beacon</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-753354314%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-private-beacon-client.html">isPrivateBeaconClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a private beacon client     model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2028939970%2FProperties%2F-554328198" anchor-label="isPrivateBeaconServer" id="-2028939970%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-private-beacon-server.html"><span>is</span><wbr><span>Private</span><wbr><span>Beacon</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2028939970%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-private-beacon-server.html">isPrivateBeaconServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a private beacon server     model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="845636692%2FProperties%2F-554328198" anchor-label="isRemoteProvisioningClient" id="845636692%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-remote-provisioning-client.html"><span>is</span><wbr><span>Remote</span><wbr><span>Provisioning</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="845636692%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-remote-provisioning-client.html">isRemoteProvisioningClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a remote provisioning     client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-429948964%2FProperties%2F-554328198" anchor-label="isRemoteProvisioningServer" id="-429948964%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-remote-provisioning-server.html"><span>is</span><wbr><span>Remote</span><wbr><span>Provisioning</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-429948964%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-remote-provisioning-server.html">isRemoteProvisioningServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a remote provisioning     server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1100135573%2FProperties%2F-554328198" anchor-label="isSarConfigurationClient" id="1100135573%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-sar-configuration-client.html"><span>is</span><wbr><span>Sar</span><wbr><span>Configuration</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1100135573%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-sar-configuration-client.html">isSarConfigurationClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a SAR configuration     client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-175450083%2FProperties%2F-554328198" anchor-label="isSarConfigurationServer" id="-175450083%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-sar-configuration-server.html"><span>is</span><wbr><span>Sar</span><wbr><span>Configuration</span><wbr><span><span>Server</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-175450083%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-sar-configuration-server.html">isSarConfigurationServer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a SAR configuration     server model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-569479375%2FProperties%2F-554328198" anchor-label="isSceneClient" id="-569479375%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-scene-client.html"><span>is</span><wbr><span>Scene</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-569479375%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="is-scene-client.html">isSceneClient</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model is a scene client model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2130768486%2FProperties%2F-554328198" anchor-label="modelId" id="-2130768486%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="model-id.html"><span>model</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2130768486%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="model-id.html">modelId</a><span class="token operator">: </span><a href="../-model-id/index.html">ModelId</a></div><div class="brief "><p class="paragraph">The <a href="../-model-id/index.html">ModelId</a> property contains a 16-bit     SigModelId that represents a Bluetooth SIG     defined model identifier field or a 32-bit     VendorModelId that represents a     vendor-defined model identifier.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1258042447%2FProperties%2F-554328198" anchor-label="name" id="-1258042447%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="name.html"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1258042447%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="name.html">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Name of the model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="332427212%2FProperties%2F-554328198" anchor-label="parentElement" id="332427212%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="parent-element.html"><span>parent</span><wbr><span><span>Element</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="332427212%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Transient///PointingToDeclaration/"><span class="token annotation builtin">Transient</span></span></div></div><span class="token keyword">var </span><a href="parent-element.html">parentElement</a><span class="token operator">: </span><a href="../-element/index.html">Element</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Parent element of the model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1394171151%2FProperties%2F-554328198" anchor-label="publish" id="1394171151%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="publish.html"><span><span>publish</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1394171151%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="publish.html">publish</a><span class="token operator">: </span><a href="../-publish/index.html">Publish</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The publish property contains a <a href="../-publish/index.html">Publish</a>     that describes the configuration of this     model’s publication.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-210965079%2FProperties%2F-554328198" anchor-label="relatedModels" id="-210965079%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="related-models.html"><span>related</span><wbr><span><span>Models</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-210965079%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="related-models.html">relatedModels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">Model</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns all <a href="index.html">Model</a> insurances that are in a     hierarchy of "Extend" relationship with this     Model.     The "Extend" relationship is explained in     Mesh Profile 1.0.1, chapter 2.3.6.     Note: Models that operate on bound states     share a single subscription list per element.     Note: Model Extension is only defined for     SIG Models. Currently it is not possible to     get relationships between Vendor Models, and     for those this method returns an empty list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1968372291%2FProperties%2F-554328198" anchor-label="requiresDeviceKey" id="1968372291%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="requires-device-key.html"><span>requires</span><wbr><span>Device</span><wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1968372291%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="requires-device-key.html">requiresDeviceKey</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model requires a device key.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1031247628%2FProperties%2F-554328198" anchor-label="subscribe" id="-1031247628%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="subscribe.html"><span><span>subscribe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1031247628%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="subscribe.html">subscribe</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-subscription-address/index.html">SubscriptionAddress</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The subscribe property contains a list of     MeshAddress.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1170498484%2FProperties%2F-554328198" anchor-label="supportsApplicationKeyBinding" id="-1170498484%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="supports-application-key-binding.html"><span>supports</span><wbr><span>Application</span><wbr><span>Key</span><wbr><span><span>Binding</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1170498484%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-application-key-binding.html">supportsApplicationKeyBinding</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">True if the model supports application key     binding.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="440144793%2FProperties%2F-554328198" anchor-label="supportsDeviceKey" id="440144793%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="supports-device-key.html"><span>supports</span><wbr><span>Device</span><wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="440144793%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-device-key.html">supportsDeviceKey</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="218275413%2FProperties%2F-554328198" anchor-label="supportsModelPublication" id="218275413%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="supports-model-publication.html"><span>supports</span><wbr><span>Model</span><wbr><span><span>Publication</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="218275413%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-model-publication.html">supportsModelPublication</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">True if the model supports model publication.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-713676164%2FProperties%2F-554328198" anchor-label="supportsModelSubscription" id="-713676164%2FProperties%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="supports-model-subscription.html"><span>supports</span><wbr><span>Model</span><wbr><span><span>Subscription</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-713676164%2FProperties%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-model-subscription.html">supportsModelSubscription</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">True if the model supports model subscription.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1207836379%2FFunctions%2F-554328198" anchor-label="copyProperties" id="-1207836379%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="copy-properties.html"><span>copy</span><wbr><span><span>Properties</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1207836379%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="copy-properties.html"><span class="token function">copyProperties</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">model<span class="token operator">: </span><a href="index.html">Model</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Copies the properties from the given model</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1196723946%2FFunctions%2F-554328198" anchor-label="extends" id="-1196723946%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="extends.html"><span><span>extends</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1196723946%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="extends.html"><span class="token function">extends</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">model<span class="token operator">: </span><a href="index.html">Model</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns whether a model extends the given model directly or indirectly.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="270440960%2FFunctions%2F-554328198" anchor-label="extendsDirectly" id="270440960%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="extends-directly.html"><span>extends</span><wbr><span><span>Directly</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="270440960%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="extends-directly.html"><span class="token function">extendsDirectly</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">model<span class="token operator">: </span><a href="index.html">Model</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns whether a model extends the given model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1267806816%2FFunctions%2F-554328198" anchor-label="isSubscribedTo" id="-1267806816%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-subscribed-to.html"><span>is</span><wbr><span>Subscribed</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1267806816%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-subscribed-to.html"><span class="token function">isSubscribedTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">group<span class="token operator">: </span><a href="../-group/index.html">Group</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the Model is subscribed to the given Group.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-subscribed-to.html"><span class="token function">isSubscribedTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">address<span class="token operator">: </span><a href="../-primary-group-address/index.html">PrimaryGroupAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-subscribed-to.html"><span class="token function">isSubscribedTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">address<span class="token operator">: </span><a href="../-subscription-address/index.html">SubscriptionAddress</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Checks if the Model is subscribed to the given address.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-932753809%2FFunctions%2F-554328198" anchor-label="subscribe" id="-932753809%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="subscribe.html"><span><span>subscribe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-932753809%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="subscribe.html"><span class="token function">subscribe</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">group<span class="token operator">: </span><a href="../-group/index.html">Group</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Subscribes the model to the given group.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1288158064%2FFunctions%2F-554328198" anchor-label="toString" id="1288158064%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-string.html"><span>to</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1288158064%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="409217107%2FFunctions%2F-554328198" anchor-label="unsubscribe" id="409217107%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="unsubscribe.html"><span><span>unsubscribe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="409217107%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="unsubscribe.html"><span class="token function">unsubscribe</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">address<span class="token operator">: </span><a href="../-address/index.html">Address</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes the given address from the subscription list.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="unsubscribe.html"><span class="token function">unsubscribe</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">group<span class="token operator">: </span><a href="../-group/index.html">Group</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes the given group address from the subscription list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-95763754%2FFunctions%2F-554328198" anchor-label="unsubscribeFromAll" id="-95763754%2FFunctions%2F-554328198" data-filterable-set=":mesh:core/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":mesh:core/main" data-filterable-set=":mesh:core/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="unsubscribe-from-all.html"><span>unsubscribe</span><wbr><span>From</span><wbr><span><span>All</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-95763754%2FFunctions%2F-554328198"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mesh:core/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="unsubscribe-from-all.html"><span class="token function">unsubscribeFromAll</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Removes all subscription from this Model.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>Copyright © 2022 - 2025 Nordic Semiconductor ASA. All Rights Reserved.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

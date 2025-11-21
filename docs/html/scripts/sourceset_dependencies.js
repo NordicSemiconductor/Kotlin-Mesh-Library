@@ -1,0 +1,1 @@
+sourceset_dependencies = '{":mesh:core/main":[],":mesh:bearer-gatt/main":[],":mesh:bearer-pbgatt/main":[],":mesh:bearer-provisioning/main":[],":mesh:logger/main":[],":mesh:bearer/main":[],":mesh:provisioning/main":[],":mesh:crypto/main":[]}'
