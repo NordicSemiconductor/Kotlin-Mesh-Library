@@ -20,7 +20,7 @@ dependencyResolutionManagement {
              from("no.nordicsemi.android.gradle:version-catalog:2.11")
         }
         create("nordic") {
-            from("no.nordicsemi.android:version-catalog:2025.10.00")
+            from("no.nordicsemi.android:version-catalog:2025.11.01")
         }
     }
 }
@@ -55,18 +55,17 @@ include(":mesh:logger")
 include(":mesh:bearer")
 include(":mesh:bearer-provisioning")
 include(":mesh:bearer-pbgatt")
-
 include(":mesh:bearer-gatt")
+
 // if (file("../Android-Common-Libraries").exists()) {
 //     includeBuild("../Android-Common-Libraries")
 // }
 // if (file("../Android-Gradle-Plugins").exists()) {
 //     includeBuild("../Android-Gradle-Plugins")
 // }
-if (file("../Kotlin-Util-Library").exists()) {
-    includeBuild("../Kotlin-Util-Library")
-}
-
-if (file("../Kotlin-BLE-Library").exists()) {
-    includeBuild("../Kotlin-BLE-Library")
-}
+// if (file("../Kotlin-Util-Library").exists()) {
+//     includeBuild("../Kotlin-Util-Library")
+// }
+// if (file("../Kotlin-BLE-Library").exists()) {
+//     includeBuild("../Kotlin-BLE-Library")
+// }
