@@ -32,6 +32,8 @@ The library is compatible with the following [Bluetooth specifications](https://
     including partial export.
 11. Option to use own transport layer with default GATT Bearer implementation available.
 
+[^1]: OOB - Out Of Band
+
 ### NOT (yet) supported features
 
 The following features are not (yet) supported:
