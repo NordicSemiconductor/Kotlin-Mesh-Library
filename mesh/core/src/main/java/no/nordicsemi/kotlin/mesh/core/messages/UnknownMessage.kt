@@ -30,7 +30,16 @@ class UnknownMessage(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "Unknown Message (opcode: ${opCode.toHexString()}, " +
-                "parameters: 0x${parameters.toHexString()})"
+        return "Unknown Message (opCode: ${opCode.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )}, parameters: 0x${parameters.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )})"
     }
 }

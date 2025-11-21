@@ -58,7 +58,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.toFloat
+import no.nordicsemi.android.nrfmesh.feature.model.configurationserver.toFloat
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelPublicationGet

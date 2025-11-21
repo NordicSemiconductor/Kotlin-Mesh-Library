@@ -20,7 +20,7 @@ data class SetFilterType(val filterType: ProxyFilterType) : AcknowledgedProxyCon
         get() = filterType.type.toByteArray()
 
     override fun toString(): String {
-        return "SetFilterType(opcode: $opCode, filterType: $filterType)"
+        return "SetFilterType(opCode: $opCode, filterType: $filterType)"
     }
 
     companion object Initializer : ProxyConfigurationMessageInitializer {

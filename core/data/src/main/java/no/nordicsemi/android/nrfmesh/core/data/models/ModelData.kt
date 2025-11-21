@@ -79,7 +79,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 @ConsistentCopyVisibility
 data class ModelData internal constructor(
     val modelId: ModelId,
-    val name: String,
+    val name: String?,
     val bind: List<KeyIndex>,
     val subscribe: List<SubscriptionAddress>,
     val publish: Publish? = null,

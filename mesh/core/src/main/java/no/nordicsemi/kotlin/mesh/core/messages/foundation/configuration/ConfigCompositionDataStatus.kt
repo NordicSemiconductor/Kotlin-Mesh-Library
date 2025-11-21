@@ -118,12 +118,29 @@ data class Page0(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "Page0(page=$page, " +
-                "companyIdentifier: ${companyIdentifier.toHexString(format = HexFormat.UpperCase)})}, " +
-                "productIdentifier: ${productIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
-                "versionIdentifier: ${versionIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
+        return "Page0(page:$page, " +
+                "companyIdentifier: ${
+                    companyIdentifier.toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    )
+                })}, " +
+                "productIdentifier: ${productIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )}, " +
+                "versionIdentifier: ${versionIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )}, " +
                 "minimumNumberOfReplayProtectionList: $minimumNumberOfReplayProtectionList, " +
-                "features=$features, elements=$elements)"
+                "features: $features, elements: $elements)"
     }
 
     companion object {
@@ -211,11 +228,20 @@ data class Page0(
 
 
                 for (i in offset until offset + vendorModelsByteCount step 2) {
-                    val vendorModelId = compositionData.getUInt(
-                        offset = i,
-                        order = ByteOrder.LITTLE_ENDIAN
+                    element.add(
+                        Model(
+                            modelId = VendorModelId(
+                                companyIdentifier = compositionData.getUShort(
+                                    offset = i,
+                                    order = ByteOrder.LITTLE_ENDIAN
+                                ),
+                                modelIdentifier = compositionData.getUShort(
+                                    offset = i + 2,
+                                    order = ByteOrder.LITTLE_ENDIAN
+                                )
+                            )
+                        )
                     )
-                    element.add(Model(modelId = VendorModelId(id = vendorModelId)))
                 }
                 offset += vendorModelsByteCount
                 elements.add(element = element)

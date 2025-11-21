@@ -97,13 +97,43 @@ internal class NetworkPdu internal constructor(
         val encryptedDataSie = pdu.size - micSize - 9
         val encryptedData = pdu.copyOfRange(fromIndex = 9, toIndex = 9 + encryptedDataSie)
         val mic = pdu.copyOfRange(fromIndex = 9 + encryptedDataSie, pdu.size)
-        return "NetworkPdu (ivi: $ivi, nid: ${nid.toHexString()}, ctl: ${type.rawValue}, " +
-                "ttl: $ttl, seq: $sequence, src: ${source.toHexString()}, " +
-                "dst: ${destination.toHexString()}, " +
-                "transportPdu: ${encryptedData.toHexString(prefixOx = true)}, " +
-                "netMic: ${mic.toHexString(prefixOx = true)})"
+        return "NetworkPdu (ivi: $ivi, nid: ${
+            nid.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, ctl: ${type.rawValue}, ttl: $ttl, seq: $sequence, src: ${
+            source.address.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, dst: ${
+            destination.address.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, transportPdu: ${
+            encryptedData.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, netMic: ${
+            mic.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        })"
     }
-
 }
 
 /**
@@ -129,7 +159,12 @@ internal object NetworkPduDecoder {
             return null
         }
         for (networkKey in meshNetwork.networkKeys) {
-            decode(pdu, pduType, networkKey, meshNetwork.ivIndex)?.let {
+            decode(
+                pdu = pdu,
+                pduType = pduType,
+                networkKey = networkKey,
+                ivIndex = meshNetwork.ivIndex
+            )?.let {
                 return it
             }
         }

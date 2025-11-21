@@ -9,12 +9,22 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
  */
 class ConfigGattProxyGet : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
-    override val parameters = null
+    override val parameters: ByteArray ? = null
     override val responseOpCode: UInt = ConfigGattProxyStatus.opCode
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String =
-        "ConfigGattProxyGet(opCode: 0x${opCode.toHexString()}, parameters: $parameters)"
+        "ConfigGattProxyGet(opCode: ${opCode.toHexString(
+            format = HexFormat { 
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )}, parameters: ${parameters?.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        ) ?: "null"}))"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8012u

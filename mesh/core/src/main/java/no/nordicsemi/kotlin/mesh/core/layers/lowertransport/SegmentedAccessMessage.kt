@@ -69,10 +69,28 @@ internal class SegmentedAccessMessage(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "Segmented $type " +
-            "(akf: ${aid?.let { "1, aid: 0x${it.toHexString()}" } ?: "0"}, " +
+            "(akf: ${
+                aid?.let {
+                    "1, aid: ${
+                        it.toHexString(
+                            format = HexFormat {
+                                upperCase = true
+                                number.prefix = "0x"
+                            }
+                        )
+                    }"
+                } ?: "0"
+            }, " +
             "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
             "seqZero: $sequenceZero, segO: $segmentOffset, segN: $lastSegmentNumber " +
-            "data: 0x${upperTransportPdu.toHexString(format = HexFormat.UpperCase)})"
+            "data: ${
+                upperTransportPdu.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            })"
 
     internal companion object {
 
@@ -138,7 +156,7 @@ internal class SegmentedAccessMessage(
         fun init(
             pdu: UpperTransportPdu,
             networkKey: NetworkKey,
-            offset: UByte
+            offset: UByte,
         ): SegmentedAccessMessage {
             val lowerBound = offset.toInt() * 12
             val upperBound = min(pdu.transportPdu.size, (offset.toInt() + 1) * 12)

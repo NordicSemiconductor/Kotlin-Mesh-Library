@@ -32,12 +32,13 @@ fun MeshOutlinedTextField(
     onValueChanged: (TextFieldValue) -> Unit,
     internalTrailingIcon: @Composable (() -> Unit)? = null,
     readOnly: Boolean = false,
+    enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value.text),
     supportingText: @Composable (() -> Unit)? = null,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit = {},
 ) {
     val requester = remember { FocusRequester() }
     Row(
@@ -49,6 +50,7 @@ fun MeshOutlinedTextField(
             modifier = Modifier
                 .weight(1f)
                 .focusRequester(requester),
+            enabled = enabled,
             prefix = prefix,
             value = value,
             onValueChange = onValueChanged,
@@ -74,6 +76,7 @@ fun MeshOutlinedTextField(
 fun MeshOutlinedHexTextField(
     modifier: Modifier = Modifier,
     showPrefix: Boolean = true,
+    enabled: Boolean = true,
     onFocus: Boolean = false,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
@@ -90,10 +93,11 @@ fun MeshOutlinedHexTextField(
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(value.text),
     supportingText: @Composable (() -> Unit)? = null,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit = {},
 ) {
     MeshOutlinedTextField(
         modifier = modifier,
+        enabled = enabled,
         onFocus = onFocus,
         label = label,
         placeholder = placeholder,

@@ -10,10 +10,10 @@ import no.nordicsemi.kotlin.mesh.core.messages.generic.GenericOnOffStatus
 
 class GenericOnOffClientEventHandler() : ModelEventHandler() {
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
-        GenericOnOffStatus.Initializer.opCode to GenericOnOffStatus.Initializer,
+        GenericOnOffStatus.opCode to GenericOnOffStatus.Initializer,
     )
     override val isSubscriptionSupported = true
-    override val publicationMessageComposer: MessageComposer?
+    override val publicationMessageComposer: MessageComposer
         get() = { GenericOnOffSetUnacknowledged(on = state) }
     var state: Boolean = false
         set(value) {

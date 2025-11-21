@@ -2,6 +2,8 @@
 
 package no.nordicsemi.kotlin.mesh.core.layers.access
 
+import no.nordicsemi.kotlin.data.IntFormat
+import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.data.or
 import no.nordicsemi.kotlin.data.shl
@@ -47,9 +49,17 @@ internal data class AccessPdu(
         } ?: 0
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "Access PDU (opcode: " +
-            "0x${opCode.toHexString(format = HexFormat.UpperCase)}, " +
-                "parameters: 0x${parameters.toHexString()})"
+    override fun toString() = "Access PDU (opCode: " +
+            "${opCode.toHexString(format = HexFormat {
+                number {
+                    prefix = "0x"
+                }
+                upperCase = true
+            })}, " +
+            "parameters: ${parameters.toHexString(format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            })})"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -132,15 +142,12 @@ internal data class AccessPdu(
             // At least 3 octets are required.
             require(pdu.accessPdu.size >= 3) { return null }
 
-            val octet1 = pdu.accessPdu[1]
-            val octet2 = pdu.accessPdu[2]
-
             return AccessPdu(
                 message = null,
                 userInitiated = false,
                 source = pdu.source,
                 destination = pdu.destination,
-                opCode = octet0.toUInt() shl 16 or octet1.toUInt() shl 8 or octet2.toUInt(),
+                opCode = pdu.accessPdu.getUInt(offset = 0, format = IntFormat.UINT24),
                 parameters = pdu.accessPdu.copyOfRange(fromIndex = 3, toIndex = pdu.accessPdu.size),
                 accessPdu = byteArrayOf()
             )
@@ -172,26 +179,25 @@ internal data class AccessPdu(
                 opCode = opCode,
                 parameters = parameters,
                 accessPdu = when {
-                    opCode == 0b01111111u -> throw IllegalArgumentException(
-                        "Opcode reserved for future use"
-                    )
+                    opCode == 0b01111111u ->
+                        throw IllegalArgumentException("Opcode reserved for future use")
 
                     opCode < 0x80u -> byteArrayOf(opCode.toByte())
 
-                    opCode and 0xFF_C0_00u == 0x00_80_00u -> byteArrayOf(
-                        (opCode shr 8).toByte() or 0x80,
-                        opCode.toByte()
-                    )
+                    opCode and 0xFF_C0_00u == 0x00_80_00u ->
+                        byteArrayOf((opCode shr 8).toByte() or 0x80, opCode.toByte())
 
-                    opCode and 0xC0_00_00u == 0xC0_00_00u -> byteArrayOf(
-                        (opCode shr 16).toByte() or 0xC0,
-                        (opCode shr 8).toByte(),
-                        opCode.toByte()
-                    )
+                    opCode and 0xC0_00_00u == 0xC0_00_00u ->
+                        byteArrayOf(
+                            (opCode shr 16).toByte() or 0xC0,
+                            (opCode shr 8).toByte(),
+                            opCode.toByte()
+                        )
 
-                    else -> throw IllegalArgumentException(
-                        "Invalid opcode: 0x${opCode.toHexString()}"
-                    )
+                    else ->
+                        throw IllegalArgumentException(
+                            "Invalid opCode: 0x${opCode.toHexString()}"
+                        )
                 } + parameters
             )
         }

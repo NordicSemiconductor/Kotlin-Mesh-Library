@@ -37,9 +37,28 @@ internal open class ControlMessage(
     override val type = LowerTransportPduType.CONTROL_MESSAGE
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String = "ControlMessage(opCode: ${opCode.toHexString()}, " +
-            "source: $source, destination: $destination,  networkKey: ${networkKey.index}, " +
-            "ivIndex: $ivIndex, ttl: $ttl)"
+    override fun toString(): String = "ControlMessage(opCode: ${
+        opCode.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, source: ${
+        source.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, destination: ${
+        destination.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    },  networkKey: ${networkKey.index}, ivIndex: $ivIndex, ttl: $ttl)"
 
     /**
      * Creates a Control Message.

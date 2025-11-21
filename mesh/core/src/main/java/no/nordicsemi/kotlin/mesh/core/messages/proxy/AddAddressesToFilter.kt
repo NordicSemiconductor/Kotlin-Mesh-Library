@@ -28,7 +28,7 @@ class AddAddressesToFilter(
             return byteArray
         }
 
-    override fun toString() = "AddAddressesToFilter(opcode: $opCode, " +
+    override fun toString() = "AddAddressesToFilter(opCode: $opCode, " +
             "addresses:${addresses.joinToString(separator = ", ")})"
 
     companion object Initializer : ProxyConfigurationMessageInitializer {

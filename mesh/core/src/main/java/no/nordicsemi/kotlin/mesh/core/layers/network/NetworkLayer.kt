@@ -74,17 +74,17 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         // Try decoding the pdu.
         when (type) {
             PduType.NETWORK_PDU -> {
-                return NetworkPduDecoder.decode(
+                val networkPdu = NetworkPduDecoder.decode(
                     pdu = incomingPdu,
                     pduType = type,
                     meshNetwork = meshNetwork
                 )
-                    ?.let { networkPdu ->
-                        logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
-                        networkManager.lowerTransportLayer.handle(networkPdu = networkPdu)?.let {
-                            ReceivedMessage(address = networkPdu.source, message = it)
-                        }
-                    } ?: run {
+                return if (networkPdu != null) {
+                    logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
+                    networkManager.lowerTransportLayer.handle(networkPdu = networkPdu)?.let {
+                        ReceivedMessage(address = networkPdu.source, message = it)
+                    }
+                } else {
                     logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
                     null
                 }
@@ -413,8 +413,20 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             FilterStatus.opCode -> {
                 FilterStatus.init(parameters = controlMessage.upperTransportPdu)?.let { message ->
                     logger?.i(LogCategory.PROXY) {
-                        "$message received from: ${proxyPdu.source.toHexString()}, " +
-                                "dest: ${proxyPdu.destination.toHexString()}"
+                        "$message received from: ${
+                            proxyPdu.source.address.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                })
+                        }, dest: ${
+                            proxyPdu.destination.address.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }"
                     }
                     // Look for the proxy Node.
                     val proxyNode = meshNetwork.node(proxyPdu.source as UnicastAddress)
@@ -424,7 +436,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
 
             else -> {
-                logger?.w(LogCategory.PROXY) { "Unknown Proxy Configuration message (opcode: ${controlMessage.opCode})" }
+                logger?.w(LogCategory.PROXY) { "Unknown Proxy Configuration message (opCode: ${controlMessage.opCode})" }
                 null
             }
         }
@@ -438,7 +450,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
      */
     internal fun isLocalUnicastAddress(address: UnicastAddress) = isLocalUnicastAddress(
         address = address.address
-    ) == true
+    )
 
     /**
      * Check whether the given address is an address of an element belonging to the local Node.

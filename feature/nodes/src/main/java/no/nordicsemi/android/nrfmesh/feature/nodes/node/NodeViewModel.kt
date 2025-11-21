@@ -88,7 +88,8 @@ internal class NodeViewModel @Inject internal constructor(
             if (it is ConfigNodeReset) {
                 _uiState.value = _uiState.value.copy(
                     nodeState = NodeState.Error(
-                        throwable = Throwable("Node has been reset and is no longer available.")
+                        throwable =
+                            Throwable("Node has been reset and is no longer available.")
                     ),
                     isRefreshing = false
                 )

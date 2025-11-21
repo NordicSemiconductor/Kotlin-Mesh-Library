@@ -16,7 +16,6 @@ import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.nio.ByteOrder
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import kotlin.uuid.toKotlinUuid
 
 /**
  * This message is used to delete a virtual address from the subscription list.
@@ -82,7 +81,7 @@ class ConfigModelSubscriptionVirtualAddressOverwrite(
                 elementAddress = UnicastAddress(
                     address = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
                 ),
-                virtualLabel = params.getUuid(offset = 2).toKotlinUuid(),
+                virtualLabel = params.getUuid(offset = 2),
                 companyIdentifier = if (params.size == 24) params.getUShort(
                     offset = 18,
                     order = ByteOrder.LITTLE_ENDIAN

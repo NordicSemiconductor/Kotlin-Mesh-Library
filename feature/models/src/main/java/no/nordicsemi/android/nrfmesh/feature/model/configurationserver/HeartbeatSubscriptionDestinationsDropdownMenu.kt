@@ -1,10 +1,11 @@
-package no.nordicsemi.android.nrfmesh.feature.model.configurationServer
+package no.nordicsemi.android.nrfmesh.feature.model.configurationserver
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.SportsScore
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -22,17 +23,18 @@ import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
+import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdownMenu(
+internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdownMenu(
     network: MeshNetwork?,
     expanded: Boolean,
     onDismissed: () -> Unit,
-    onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
-    onAddGroupClicked: () -> Unit,
+    onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
+    onAddGroupClicked: () -> Unit
 ) {
     val elements = network?.nodes.orEmpty().flatMap { it.elements }
     val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
@@ -67,9 +69,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                             } ?: element.unicastAddress.toHexString()
                         )
                     },
-                    onClick = {
-                        onDestinationSelected(element.unicastAddress)
-                    }
+                    onClick = { onDestinationSelected(element.unicastAddress) }
                 )
             }
             HorizontalDivider()
@@ -88,7 +88,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                                     modifier = Modifier
                                         .padding(horizontal = 8.dp)
                                         .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
+                                    imageVector = Icons.Outlined.GroupWork,
                                     contentDescription = null
                                 )
                             },
@@ -97,7 +97,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                                 ?: destination.toHexString(),
                         )
                     },
-                    onClick = { onDestinationSelected(destination) }
+                    onClick = { onDestinationSelected(destination as HeartbeatSubscriptionDestination) }
                 )
             }
             DropdownMenuItem(
@@ -135,14 +135,16 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                                     modifier = Modifier
                                         .padding(horizontal = 8.dp)
                                         .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
+                                    imageVector = Icons.Outlined.GroupWork,
                                     contentDescription = null
                                 )
                             },
                             title = destination.name(),
                         )
                     },
-                    onClick = { onDestinationSelected(destination) }
+                    onClick = {
+                        onDestinationSelected(destination)
+                    }
                 )
             }
         }

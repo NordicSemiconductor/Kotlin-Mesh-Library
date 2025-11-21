@@ -57,8 +57,9 @@ internal class UpperTransportPdu(
         val mic = transportPdu.sliceArray(
             encryptedDataSize until encryptedDataSize + micSize
         )
-        return "Upper transport PDU (encrypted data: 0x${encryptedData.toHexString()}, " +
-                "transMIC: 0x${mic.toHexString()})"
+        return "Upper transport PDU (encrypted data: " +
+                "0x${encryptedData.toHexString(format = HexFormat.UpperCase)}, " +
+                "transMIC: 0x${mic.toHexString(format = HexFormat.UpperCase)})"
     }
 
     internal companion object {

@@ -35,7 +35,7 @@ internal class SegmentAcknowledgementMessage(
     // Additional
     val isOnBehalfOfLowePowerNode: Boolean = false, // Friend feature not supported
     val sequenceZero: UShort,
-    val ackedSegments: UInt
+    val ackedSegments: UInt,
 ) : ControlMessage(OP_CODE, source, destination, networkKey, ivIndex, upperTransportPdu) {
 
     override val type = LowerTransportPduType.CONTROL_MESSAGE
@@ -79,7 +79,14 @@ internal class SegmentAcknowledgementMessage(
         ackedSegments == ((1 shl (lastSegmentNumber + 1)) - 1).toUInt()
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ACK (seqZero: $sequenceZero, acked segments: 0x${ackedSegments.toHexString()})"
+    override fun toString() = "ACK (seqZero: $sequenceZero, acked segments: ${
+        ackedSegments.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    })"
 
     internal companion object {
         val OP_CODE: UByte = 0x00u

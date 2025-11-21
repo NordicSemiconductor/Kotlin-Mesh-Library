@@ -27,6 +27,7 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
+import no.nordicsemi.android.nrfmesh.core.common.isVendorModel
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -34,9 +35,10 @@ import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
 import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
-import no.nordicsemi.android.nrfmesh.feature.model.configurationServer.ConfigurationServer
+import no.nordicsemi.android.nrfmesh.feature.model.configurationserver.ConfigurationServer
 import no.nordicsemi.android.nrfmesh.feature.model.generic.GenericLevelServer
 import no.nordicsemi.android.nrfmesh.feature.model.generic.GenericOnOffServer
+import no.nordicsemi.android.nrfmesh.feature.model.vendor.VendorModelControls
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
@@ -79,17 +81,17 @@ internal fun ModelScreen(
                 onAddGroupClicked = onAddGroupClicked,
             )
         }
-        if (model.supportsModelPublication == true || model.supportsModelSubscription == true) {
+        if (model.supportsModelPublication != false && model.supportsModelSubscription != false) {
             BoundApplicationKeys(
                 model = model,
                 navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
                 send = send
             )
         }
-        if (model.supportsModelPublication == true) {
+        if (model.supportsModelPublication != false) {
             Publication(messageState = messageState, model = model, send = send)
         }
-        if (model.supportsModelSubscription == true) {
+        if (model.supportsModelSubscription != false) {
             Subscriptions(
                 snackbarHostState = snackbarHostState,
                 messageState = messageState,
@@ -107,6 +109,14 @@ internal fun ModelScreen(
         }
         if (model.isGenericLevelServer()) {
             GenericLevelServer(
+                model = model,
+                messageState = messageState,
+                sendApplicationMessage = sendApplicationMessage
+            )
+        }
+
+        if (model.isVendorModel()) {
+            VendorModelControls(
                 model = model,
                 messageState = messageState,
                 sendApplicationMessage = sendApplicationMessage

@@ -99,6 +99,9 @@ data class ApplicationKey internal constructor(
         regenerateKeyDerivatives()
     }
 
+    override fun toString(): String =
+        "ApplicationKey(name: '$name', index: $index, boundNetKeyIndex: $boundNetKeyIndex)"
+
     /**
      * Returns whether the application key is added to any nodes in the network.
      * A key that is in use cannot be removed until it has been removed from all the nodes.

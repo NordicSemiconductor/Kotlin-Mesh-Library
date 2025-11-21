@@ -263,7 +263,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             msg = it
         }
 
-        logger?.i(LogCategory.MODEL) { "Sending $msg to ${destination.toHexString()})" }
+        logger?.i(LogCategory.MODEL) {
+            "Sending $msg from: ${element.unicastAddress.toHexString()}, " +
+                    "to: ${destination.toHexString()})"
+        }
+
         val pdu = AccessPdu.init(
             message = msg,
             source = element.unicastAddress.address,
@@ -320,7 +324,14 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         ) ?: return null
 
         logger?.i(LogCategory.FOUNDATION_MODEL) {
-            "Sending $message to ${destination.toHexString()})"
+            "Sending $message to ${
+                destination.toHexString(
+                    format = HexFormat {
+                        upperCase = true
+                        number.prefix = "0x"
+                    }
+                )
+            })"
         }
         val pdu = AccessPdu.init(
             message = message,
@@ -364,10 +375,18 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         element: Element,
         keySet: KeySet,
     ) {
-        val category =
-            if (message is ConfigMessage) LogCategory.FOUNDATION_MODEL else LogCategory.MODEL
+        val category = if (message is ConfigMessage)
+            LogCategory.FOUNDATION_MODEL
+        else LogCategory.MODEL
         logger?.i(category) {
-            "Replying with $message from: $element to ${destination.toHexString()}"
+            "Replying with $message from: $element to ${
+                destination.toHexString(
+                    format = HexFormat {
+                        upperCase = true
+                        number.prefix = "0x"
+                    }
+                )
+            }"
         }
         val dst = MeshAddress.create(address = destination)
         val pdu = AccessPdu.init(
@@ -399,8 +418,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
     internal suspend fun cancel(handle: MessageHandle) {
         logger?.i(LogCategory.ACCESS) {
             "Cancelling messages with op code: ${handle.opCode}, " + "sent from: " +
-                    "${handle.source.toHexString()} " +
-                    "to: ${handle.destination.toHexString()}"
+                    "${
+                        handle.source.address.toHexString(
+                            format = HexFormat {
+                                upperCase = true
+                                number.prefix = "0x"
+                            })
+                    } " +
+                    "to: ${
+                        handle.destination.address.toHexString(
+                            format = HexFormat {
+                                upperCase = true
+                                number.prefix = "0x"
+                            })
+                    }"
         }
 
         mutex.withLock {
@@ -443,8 +474,20 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                     // Save and log only the first decoded message
                     if (newMessage == null) {
                         logger?.i(LogCategory.MODEL) {
-                            "Message received from ${accessPdu.source.toHexString()}, " +
-                                    "to: ${accessPdu.destination.toHexString()}"
+                            "Message received from: ${
+                                accessPdu.source.toHexString(
+                                    format = HexFormat {
+                                        upperCase = true
+                                        number.prefix = "0x"
+                                    })
+                            }, to: ${
+                                accessPdu.destination.address.toHexString(
+                                    format = HexFormat {
+                                        upperCase = true
+                                        number.prefix = "0x"
+                                    }
+                                )
+                            }"
                         }
                         newMessage = message
                     } else if (message::class != newMessage::class) {
@@ -514,7 +557,14 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 // Is this message targeting the local Node?
                 if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from  ${accessPdu.source.toHexString()}"
+                        "$message received from : ${
+                            accessPdu.source.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }"
                     }
                     eventHandler.onMeshMessageReceived(
                         model = model,
@@ -536,8 +586,21 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                     networkManager.emitNetworkManagerEvent(NetworkManagerEvent.OnNetworkChanged)
                 } else {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from: ${accessPdu.source.toHexString()}," +
-                                " to: ${accessPdu.destination.toHexString()}"
+                        "$message received from: ${
+                            accessPdu.source.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }, to: ${
+                            accessPdu.destination.address.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }"
                     }
                 }
                 break
@@ -637,17 +700,36 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             },
             timeout = timeout,
             timeoutBlock = {
-                logger?.w(LogCategory.ACCESS) { "Response to $pdu not received (timed out)." }
+                logger?.w(LogCategory.ACCESS) {
+                    "Response to $pdu not received (timed out)."
+                }
                 val category = if (request is AcknowledgedConfigMessage)
                     LogCategory.FOUNDATION_MODEL
                 else LogCategory.MODEL
                 logger?.w(category) {
-                    "$request sent from ${pdu.source.toHexString()} to ${
-                        pdu.destination.toHexString()
+                    "$request sent from: ${
+                        pdu.source.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
+                    } to: ${
+                        pdu.destination.address.toHexString(format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        })
                     } timed out."
                 }
                 scope.launch {
-                    cancel(MessageHandle(request, pdu.source, pdu.destination, networkManager))
+                    cancel(
+                        handle = MessageHandle(
+                            message = request,
+                            source = pdu.source,
+                            destination = pdu.destination,
+                            manager = networkManager
+                        )
+                    )
                     mutex.withLock { reliableMessageContexts.clear() }
                 }
             }
@@ -711,7 +793,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
         val response = message as? MeshResponse
             ?: error("$message is not MeshResponse")
         handle(
-            ModelEvent.ResponseReceived(
+            event = ModelEvent.ResponseReceived(
                 model = model,
                 response = response,
                 request = request,
@@ -722,7 +804,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
 
     message is AcknowledgedMeshMessage -> runCatching {
         handle(
-            ModelEvent.AcknowledgedMessageReceived(
+            event = ModelEvent.AcknowledgedMessageReceived(
                 model = model,
                 request = message,
                 source = source,
@@ -732,7 +814,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     }.getOrNull()
 
     message is UnacknowledgedMeshMessage -> handle(
-        ModelEvent.UnacknowledgedMessageReceived(
+        event = ModelEvent.UnacknowledgedMessageReceived(
             model = model,
             message = message,
             source = source,

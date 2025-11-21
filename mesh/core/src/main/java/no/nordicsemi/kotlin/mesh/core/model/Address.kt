@@ -11,7 +11,6 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshAddressSerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import kotlin.uuid.toKotlinUuid
 
 /**
  * Type alias for an unsigned 16-bit address.
@@ -203,7 +202,7 @@ data class VirtualAddress(
      * @throws IllegalArgumentException If the byte array containing the label is not 16 bytes long.
      */
     @OptIn(ExperimentalUuidApi::class)
-    constructor(label: ByteArray) : this(uuid = label.toUuid().toKotlinUuid())
+    constructor(label: ByteArray) : this(uuid = label.toUuid())
 
     operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
 }

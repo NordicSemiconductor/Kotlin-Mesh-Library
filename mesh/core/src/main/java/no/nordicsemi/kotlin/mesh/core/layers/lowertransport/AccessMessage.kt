@@ -31,7 +31,7 @@ internal open class AccessMessage(
     // Additional
     open val transportMicSize: UByte,
     open val sequence: UInt,
-    open val aid: Byte? = null
+    open val aid: Byte? = null,
 ) : LowerTransportPdu {
 
     override val type = LowerTransportPduType.ACCESS_MESSAGE
@@ -54,7 +54,7 @@ internal open class AccessMessage(
      */
     internal constructor(
         pdu: UpperTransportPdu,
-        networkKey: NetworkKey
+        networkKey: NetworkKey,
     ) : this(
         source = MeshAddress.create(pdu.source),
         destination = pdu.destination,
@@ -67,9 +67,26 @@ internal open class AccessMessage(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "$type (akf: ${aid?.let { "1, aid: 0x${it.toHexString()}" } ?: "0"}, " +
-            "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
-            "data: 0x${upperTransportPdu.toHexString(format = HexFormat.UpperCase)})"
+    override fun toString() = "$type (akf: ${
+        aid?.let {
+            "1, aid: ${
+                it.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }"
+        } ?: "0"
+    }, szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
+            "data: ${
+                upperTransportPdu.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            })"
 
     internal companion object {
 
