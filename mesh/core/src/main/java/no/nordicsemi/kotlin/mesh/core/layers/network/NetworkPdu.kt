@@ -243,7 +243,6 @@ internal object NetworkPduDecoder {
             if (pduType == PduType.PROXY_CONFIGURATION) nonce[1] = 0x00
 
             try {
-                println("Decrypting $type with key: ${keys.encryptionKey.toHexString(prefixOx = true)}")
                 val decryptedData = Crypto.decrypt(
                     data = destAndTransportPdu,
                     key = keys.encryptionKey,
@@ -251,7 +250,6 @@ internal object NetworkPduDecoder {
                     micSize = mic.size
                 ) ?: continue
 
-                println("PDU decrypted")
                 val dst = decryptedData.getUShort(offset = 0)
 
                 return NetworkPdu(
