@@ -101,26 +101,39 @@ internal class NetworkPdu internal constructor(
             nid.toHexString(
                 format = HexFormat {
                     number.prefix = "0x"
-                    upperCase
+                    upperCase = true
                 }
             )
-        }, ctl: ${type.rawValue}, ttl: $ttl, seq: $sequence, " +
-                "src: ${
-                    source.address.toHexString(format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase
-                    })
-                }, " +
-                "dst: ${
-                    destination.address.toHexString(format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase
-                    })
-                }, " +
-                "transportPdu: ${encryptedData.toHexString(prefixOx = true)}, " +
-                "netMic: ${mic.toHexString(prefixOx = true)})"
+        }, ctl: ${type.rawValue}, ttl: $ttl, seq: $sequence, src: ${
+            source.address.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, dst: ${
+            destination.address.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, transportPdu: ${
+            encryptedData.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, netMic: ${
+            mic.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        })"
     }
-
 }
 
 /**
@@ -146,7 +159,12 @@ internal object NetworkPduDecoder {
             return null
         }
         for (networkKey in meshNetwork.networkKeys) {
-            decode(pdu, pduType, networkKey, meshNetwork.ivIndex)?.let {
+            decode(
+                pdu = pdu,
+                pduType = pduType,
+                networkKey = networkKey,
+                ivIndex = meshNetwork.ivIndex
+            )?.let {
                 return it
             }
         }
@@ -225,6 +243,7 @@ internal object NetworkPduDecoder {
             if (pduType == PduType.PROXY_CONFIGURATION) nonce[1] = 0x00
 
             try {
+                println("Decrypting $type with key: ${keys.encryptionKey.toHexString(prefixOx = true)}")
                 val decryptedData = Crypto.decrypt(
                     data = destAndTransportPdu,
                     key = keys.encryptionKey,
@@ -232,6 +251,7 @@ internal object NetworkPduDecoder {
                     micSize = mic.size
                 ) ?: continue
 
+                println("PDU decrypted")
                 val dst = decryptedData.getUShort(offset = 0)
 
                 return NetworkPdu(

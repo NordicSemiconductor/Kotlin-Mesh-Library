@@ -32,13 +32,15 @@ internal class SegmentedControlMessage(
     override val sequenceZero: UShort,
     override val segmentOffset: UByte,
     override val lastSegmentNumber: UByte,
-) : ControlMessage(opCode, source, destination, networkKey, ivIndex, upperTransportPdu), SegmentedMessage {
+) : ControlMessage(opCode, source, destination, networkKey, ivIndex, upperTransportPdu),
+    SegmentedMessage {
 
     override val transportPdu: ByteArray
         get() {
             val octet0 = 0x80.toByte() or (opCode.toByte() and 0x7F)
             val octet1 = (sequenceZero shr 5).toByte()
-            val octet2 = ((sequenceZero and 0x3Fu) shl 2).toByte() or (segmentOffset.toByte() and 0x07)
+            val octet2 =
+                ((sequenceZero and 0x3Fu) shl 2).toByte() or (segmentOffset.toByte() and 0x07)
             val octet3 = (segmentOffset.toByte() and 0x07) or (lastSegmentNumber.toByte() and 0x07)
             return byteArrayOf(octet0, octet1, octet2, octet3) + upperTransportPdu
         }
@@ -48,7 +50,14 @@ internal class SegmentedControlMessage(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "Segmented $type (opCode: $opCode, seqZero: $sequenceZero, " +
             "segO: $segmentOffset, segN: $lastSegmentNumber, " +
-            "data: 0x${upperTransportPdu.toHexString()})"
+            "data: ${
+                upperTransportPdu.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            })"
 
     internal companion object {
 

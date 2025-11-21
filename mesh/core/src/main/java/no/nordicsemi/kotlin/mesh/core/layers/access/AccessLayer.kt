@@ -557,7 +557,14 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 // Is this message targeting the local Node?
                 if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from  ${accessPdu.source.toHexString()}"
+                        "$message received from : ${
+                            accessPdu.source.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }"
                     }
                     eventHandler.onMeshMessageReceived(
                         model = model,
@@ -579,8 +586,21 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                     networkManager.emitNetworkManagerEvent(NetworkManagerEvent.OnNetworkChanged)
                 } else {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from: ${accessPdu.source.toHexString()}," +
-                                " to: ${accessPdu.destination.toHexString()}"
+                        "$message received from: ${
+                            accessPdu.source.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }, to: ${
+                            accessPdu.destination.address.toHexString(
+                                format = HexFormat {
+                                    number.prefix = "0x"
+                                    upperCase = true
+                                }
+                            )
+                        }"
                     }
                 }
                 break
@@ -680,17 +700,36 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             },
             timeout = timeout,
             timeoutBlock = {
-                logger?.w(LogCategory.ACCESS) { "Response to $pdu not received (timed out)." }
+                logger?.w(LogCategory.ACCESS) {
+                    "Response to $pdu not received (timed out)."
+                }
                 val category = if (request is AcknowledgedConfigMessage)
                     LogCategory.FOUNDATION_MODEL
                 else LogCategory.MODEL
                 logger?.w(category) {
-                    "$request sent from ${pdu.source.toHexString()} to ${
-                        pdu.destination.toHexString()
+                    "$request sent from: ${
+                        pdu.source.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
+                    } to: ${
+                        pdu.destination.address.toHexString(format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        })
                     } timed out."
                 }
                 scope.launch {
-                    cancel(MessageHandle(request, pdu.source, pdu.destination, networkManager))
+                    cancel(
+                        handle = MessageHandle(
+                            message = request,
+                            source = pdu.source,
+                            destination = pdu.destination,
+                            manager = networkManager
+                        )
+                    )
                     mutex.withLock { reliableMessageContexts.clear() }
                 }
             }
@@ -754,7 +793,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
         val response = message as? MeshResponse
             ?: error("$message is not MeshResponse")
         handle(
-            ModelEvent.ResponseReceived(
+            event = ModelEvent.ResponseReceived(
                 model = model,
                 response = response,
                 request = request,
@@ -765,7 +804,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
 
     message is AcknowledgedMeshMessage -> runCatching {
         handle(
-            ModelEvent.AcknowledgedMessageReceived(
+            event = ModelEvent.AcknowledgedMessageReceived(
                 model = model,
                 request = message,
                 source = source,
@@ -775,7 +814,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
     }.getOrNull()
 
     message is UnacknowledgedMeshMessage -> handle(
-        ModelEvent.UnacknowledgedMessageReceived(
+        event = ModelEvent.UnacknowledgedMessageReceived(
             model = model,
             message = message,
             source = source,

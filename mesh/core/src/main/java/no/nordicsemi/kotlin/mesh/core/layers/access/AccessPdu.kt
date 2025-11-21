@@ -49,15 +49,16 @@ internal data class AccessPdu(
         } ?: 0
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "Access PDU (opcode: " +
+    override fun toString() = "Access PDU (opCode: " +
             "${opCode.toHexString(format = HexFormat {
-                number.removeLeadingZeros = true
-                number.prefix = "0x"
+                number {
+                    prefix = "0x"
+                }
                 upperCase = true
             })}, " +
-            "parameters: ${parameters.toHexString(format = HexFormat { 
-                upperCase = true
+            "parameters: ${parameters.toHexString(format = HexFormat {
                 number.prefix = "0x"
+                upperCase = true
             })})"
 
     override fun equals(other: Any?): Boolean {
@@ -195,7 +196,7 @@ internal data class AccessPdu(
 
                     else ->
                         throw IllegalArgumentException(
-                            "Invalid opcode: 0x${opCode.toHexString()}"
+                            "Invalid opCode: 0x${opCode.toHexString()}"
                         )
                 } + parameters
             )

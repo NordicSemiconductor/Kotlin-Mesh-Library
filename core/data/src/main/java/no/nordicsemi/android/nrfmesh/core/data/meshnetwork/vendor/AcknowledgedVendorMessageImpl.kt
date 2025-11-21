@@ -23,7 +23,7 @@ class AcknowledgedVendorMessageImpl(
     vendorResponseOpCode: UByte,
     override val parameters: ByteArray?,
     override val isSegmented: Boolean = false,
-    override val security: MeshMessageSecurity = MeshMessageSecurity.Low
+    override val security: MeshMessageSecurity = MeshMessageSecurity.Low,
 ) : AcknowledgedVendorMessage {
 
     override val opCode =
@@ -38,9 +38,11 @@ class AcknowledgedVendorMessageImpl(
             "opCode: ${
                 opCode.toHexString(
                     format = HexFormat {
-                        number.prefix = "0x"
+                        number {
+                            prefix = "0x"
+                            removeLeadingZeros = true
+                        }
                         upperCase = true
-                        number.removeLeadingZeros = true
                     }
                 )
             }, " +
@@ -48,9 +50,11 @@ class AcknowledgedVendorMessageImpl(
             "responseOpCode: ${
                 responseOpCode.toHexString(
                     format = HexFormat {
-                        number.prefix = "0x"
+                        number {
+                            prefix = "0x"
+                            removeLeadingZeros = true
+                        }
                         upperCase = true
-                        number.removeLeadingZeros = true
                     }
                 )
             }, " +
