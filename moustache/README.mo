@@ -46,7 +46,7 @@ The following features are not (yet) supported:
 
 The library can be included as a project and will be avialable on maven central in the near future.
 
-Product documentation is available here: [Documentation](https://nordicplayground.github.io/Kotlin-nRF-Mesh-Library/).
+Product documentation is available here: [Documentation](https://nordicplayground.github.io/Kotlin-Mesh-Library/).
 
 ## nRF Mesh sample app
 
@@ -89,8 +89,8 @@ and [nRF Connect SDK](https://www.nordicsemi.com/Products/Development-software/n
 
 Any feedback is more than welcome. Please, test the app, test the library and check out the API.
 
-Use [Issues](https://github.com/NordicPlayground/Kotlin-nRF-Mesh-Library/issues) to report a bug, or ask a question. We also encourage to submit 
-[Pull Requests](https://github.com/NordicPlayground/Kotlin-nRF-Mesh-Library/pulls) with new features or bug fixes.
+Use [Issues](https://github.com/NordicPlayground/Kotlin-Mesh-Library/issues) to report a bug, or ask a question. We also encourage to submit
+[Pull Requests](https://github.com/NordicPlayground/Kotlin-Mesh-Library/pulls) with new features or bug fixes.
 
 ## License
 

@@ -33,6 +33,6 @@ plugins {
 dokka {
     moduleName.set("Kotlin Mesh Library")
     pluginsConfiguration.html {
-        homepageLink.set("https://github.com/NordicSemiconductor/Kotlin-nRF-Mesh-Library")
+        homepageLink.set("https://github.com/NordicSemiconductor/Kotlin-Mesh-Library")
     }
 }
