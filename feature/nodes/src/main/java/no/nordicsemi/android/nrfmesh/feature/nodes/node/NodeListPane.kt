@@ -116,6 +116,7 @@ internal fun NodeListPane(
             )
             AddressRow(address = nodeData.address)
             SectionTitle(title = stringResource(id = R.string.title_keys))
+            DeviceKeyRow(deviceKey = nodeData.deviceKey)
             NetworkKeysRow(
                 count = nodeData.networkKeyCount,
                 isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
@@ -179,6 +180,49 @@ private fun AddressRow(address: UnicastAddress) {
     )
 }
 
+@Composable
+private fun DeviceKeyRow(deviceKey: ByteArray?) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboard.current
+    val key by rememberSaveable {
+        mutableStateOf(
+            deviceKey?.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            ) ?: context.getString(R.string.unknown)
+        )
+    }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Badge,
+        title = stringResource(id = R.string.label_device_key),
+        subtitle = key,
+        titleAction = {
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        val clip = ClipData.newPlainText(
+                            /* label = */ "Device Key",
+                            /* text = */ key
+                        )
+                        clipboardManager.setClipEntry(clipEntry = ClipEntry(clipData = clip))
+                    }
+                },
+                content = {
+                    Icon(
+                        modifier = Modifier.padding(start = 16.dp),
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    )
+                }
+            )
+        }
+    )
+}
 
 @Composable
 private fun NetworkKeysRow(count: Int, isSelected: Boolean, onNetworkKeysClicked: () -> Unit) {

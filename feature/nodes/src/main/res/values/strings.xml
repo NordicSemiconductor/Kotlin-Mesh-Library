@@ -52,4 +52,5 @@
     <string name="label_element">Element</string>
     <string name="label_add_node">Add Node</string>
     <string name="label_unicast_address">Unicast Address</string>
+    <string name="label_device_key">Device Key</string>
 </resources>
