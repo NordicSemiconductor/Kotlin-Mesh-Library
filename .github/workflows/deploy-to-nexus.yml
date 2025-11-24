@@ -1,8 +1,5 @@
 name: Deploy to Nexus
 on:
-  push:
-    tags:
-      - '*'
   workflow_dispatch:
 jobs:
   deployToNexus:
