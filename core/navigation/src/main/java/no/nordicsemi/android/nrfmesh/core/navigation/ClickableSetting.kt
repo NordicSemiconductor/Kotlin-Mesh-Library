@@ -1,11 +1,13 @@
 package no.nordicsemi.android.nrfmesh.core.navigation
 
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 
 /**
  * ClickableSetting is a sealed class that represents the clickable settings item in the settings
  * screen. This is used to highlight the selected item in the settings list ui
  */
+@Keep
 @Serializable
 enum class ClickableSetting {
     PROVISIONERS,
