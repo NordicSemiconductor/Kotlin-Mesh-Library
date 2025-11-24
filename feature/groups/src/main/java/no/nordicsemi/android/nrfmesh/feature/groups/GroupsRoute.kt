@@ -69,13 +69,15 @@ internal fun GroupsRoute(
                         subtitle = group.address.run {
                             when (this) {
                                 is GroupAddress -> group.address.address.toHexString(
-                                        format = HexFormat {
-                                            number.prefix = "Address: 0x"
-                                            upperCase = true
-                                        }
-                                    )
+                                    format = HexFormat {
+                                        number.prefix = "Address: 0x"
+                                        upperCase = true
+                                    }
+                                )
 
-                                else -> (this as VirtualAddress).uuid.toString().uppercase()
+                                else -> "Address: ${
+                                    (this as VirtualAddress).uuid.toString().uppercase()
+                                }"
                             }
                         },
                         onClick = { navigateToGroup(group.address) },
