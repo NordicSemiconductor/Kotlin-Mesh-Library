@@ -17,6 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import java.nio.ByteOrder
 
 /**
@@ -118,27 +119,25 @@ data class Page0(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "Page0(page:$page, " +
-                "companyIdentifier: ${
-                    companyIdentifier.toHexString(
+        return "Page0(" +
+                "page:$page, " +
+                "companyIdentifier: ${CompanyIdentifier.name(id = companyIdentifier)}" +
+                "), productIdentifier: ${
+                    productIdentifier.toHexString(
                         format = HexFormat {
                             number.prefix = "0x"
                             upperCase = true
                         }
                     )
-                })}, " +
-                "productIdentifier: ${productIdentifier.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )}, " +
-                "versionIdentifier: ${versionIdentifier.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )}, " +
+                }, " +
+                "versionIdentifier: ${
+                    versionIdentifier.toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    )
+                }, " +
                 "minimumNumberOfReplayProtectionList: $minimumNumberOfReplayProtectionList, " +
                 "features: $features, elements: $elements)"
     }
