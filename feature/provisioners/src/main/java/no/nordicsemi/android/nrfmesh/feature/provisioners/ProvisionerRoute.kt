@@ -342,7 +342,7 @@ private fun UnicastAddress(
                                         runCatching {
                                             provisioner.assign(
                                                 address = UnicastAddress(
-                                                    address = value.text.toInt(radix = 16)
+                                                    address = value.text.toUShort(radix = 16)
                                                 )
                                             )
                                         }.onSuccess {
