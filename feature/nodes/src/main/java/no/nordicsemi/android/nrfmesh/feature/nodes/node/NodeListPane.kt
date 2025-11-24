@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
+import android.content.ClipData
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,9 +13,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
@@ -26,18 +29,26 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -55,6 +66,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -102,6 +114,7 @@ internal fun NodeListPane(
                     save()
                 }
             )
+            AddressRow(address = nodeData.address)
             SectionTitle(title = stringResource(id = R.string.title_keys))
             NetworkKeysRow(
                 count = nodeData.networkKeyCount,
@@ -130,19 +143,11 @@ internal fun NodeListPane(
             SectionTitle(title = stringResource(id = R.string.title_time_to_live))
             DefaultTtlRow(ttl = nodeData.defaultTtl, messageState = messageState, send = send)
             SectionTitle(title = stringResource(id = R.string.title_proxy_state))
-            ProxyStateRow(
-                messageState = messageState,
-                proxy = nodeData.features.proxy,
-                send = send
-            )
+            ProxyStateRow(messageState = messageState, proxy = nodeData.features.proxy, send = send)
             SectionTitle(title = stringResource(id = R.string.title_exclusions))
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
             SectionTitle(title = stringResource(id = R.string.label_reset_node))
-            ResetRow(
-                messageState = messageState,
-                navigateBack = navigateBack,
-                send = send,
-            )
+            ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
         }
     }
 }
@@ -156,6 +161,21 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
         subtitle = name,
         placeholder = stringResource(id = R.string.label_placeholder_node_name),
         onValueChanged = onNameChanged
+    )
+}
+
+@Composable
+private fun AddressRow(address: UnicastAddress) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Lan,
+        title = stringResource(id = R.string.label_unicast_address),
+        subtitle = address.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
     )
 }
 
