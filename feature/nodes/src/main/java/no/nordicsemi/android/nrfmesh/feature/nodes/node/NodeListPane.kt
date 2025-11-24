@@ -197,7 +197,7 @@ private fun DeviceKeyRow(deviceKey: ByteArray?) {
     }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Badge,
+        imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
         subtitle = key,
         titleAction = {
