@@ -272,8 +272,7 @@ private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.SafetyCheck,
         title = stringResource(R.string.label_replay_protection_count),
-        subtitle = replayProtectionCount?.toHexString()?.uppercase()
-            ?: stringResource(R.string.unknown),
+        subtitle = "${replayProtectionCount ?: stringResource(R.string.unknown)}",
     )
 }
 
