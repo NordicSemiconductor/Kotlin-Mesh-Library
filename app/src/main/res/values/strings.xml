@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">nRF Mesh</string>
+    <string name="app_name">nRF Mesh(New)</string>
     <string name="label_export">Export</string>
     <string name="label_nav_bar_nodes">Nodes</string>
     <string name="label_nav_bar_groups">Groups</string>
