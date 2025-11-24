@@ -38,7 +38,7 @@ fun MeshItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Address: $subtitle",
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

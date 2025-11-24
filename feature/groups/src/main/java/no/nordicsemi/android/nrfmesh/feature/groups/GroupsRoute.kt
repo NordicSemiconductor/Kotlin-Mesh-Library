@@ -68,7 +68,12 @@ internal fun GroupsRoute(
                         title = group.name,
                         subtitle = group.address.run {
                             when (this) {
-                                is GroupAddress -> "0x${group.address.toHexString()}"
+                                is GroupAddress -> group.address.address.toHexString(
+                                        format = HexFormat {
+                                            number.prefix = "Address: 0x"
+                                            upperCase = true
+                                        }
+                                    )
 
                                 else -> (this as VirtualAddress).uuid.toString().uppercase()
                             }

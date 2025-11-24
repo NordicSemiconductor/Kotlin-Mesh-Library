@@ -114,10 +114,13 @@ private fun Nodes(
                             )
                         },
                         title = node.name,
-                        subtitle = "0x${
-                            node.primaryUnicastAddress.address
-                                .toHexString(format = HexFormat.UpperCase)
-                        }",
+                        subtitle = node.primaryUnicastAddress.address
+                            .toHexString(
+                                format = HexFormat {
+                                    number.prefix = "Address: 0x"
+                                    upperCase = true
+                                }
+                            ),
                         onClick = { navigateToNode(node) },
                     )
                 }
@@ -154,10 +157,13 @@ private fun Nodes(
                         )
                     },
                     title = node.name,
-                    subtitle = "0x${
-                        node.primaryUnicastAddress.address
-                            .toHexString(format = HexFormat.UpperCase)
-                    }",
+                    subtitle = node.primaryUnicastAddress.address
+                        .toHexString(
+                            format = HexFormat {
+                                number.prefix = "Address: 0x"
+                                upperCase = true
+                            }
+                        ),
                     onClick = { navigateToNode(node) },
                 )
             }

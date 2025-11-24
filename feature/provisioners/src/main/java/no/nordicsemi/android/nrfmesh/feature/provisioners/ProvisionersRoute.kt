@@ -189,7 +189,12 @@ private fun SwipeToDismissProvisioner(
                 imageVector = index.toImageVector(),
                 title = provisioner.name,
                 subtitle = provisioner.address?.let {
-                    "0x${it.toHexString()}"
+                    it.address.toHexString(
+                        format = HexFormat {
+                            number.prefix = "Address: 0x"
+                            upperCase = true
+                        }
+                    )
                 } ?: context.getString(R.string.label_unassigned),
             )
         }
