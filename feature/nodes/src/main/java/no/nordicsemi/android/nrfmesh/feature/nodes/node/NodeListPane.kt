@@ -55,6 +55,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -237,7 +238,16 @@ private fun CompanyIdentifier(companyIdentifier: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Work,
         title = stringResource(R.string.label_company_identifier),
-        subtitle = companyIdentifier?.toHexString()?.uppercase()
+        subtitle = companyIdentifier
+            ?.let {
+                CompanyIdentifier.name(id = it) ?: it
+                    .toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    ).uppercase()
+            }
             ?: stringResource(R.string.unknown),
     )
 }
