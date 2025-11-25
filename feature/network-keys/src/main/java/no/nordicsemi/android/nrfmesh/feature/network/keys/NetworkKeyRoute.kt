@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.network.keys
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +18,15 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -40,6 +45,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import java.text.DateFormat
 import java.util.Date
+import kotlin.text.toHexString
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -106,11 +112,23 @@ private fun Key(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clickable {
+                copyToClipboard(
+                    scope = scope,
+                    clipboard = clipboard,
+                    text = key.toHexString(format = HexFormat.UpperCase),
+                    label = context.getString(R.string.label_network_key)
+                )
+            },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = key.toHexString(),
+        subtitle = key.toHexString(format = HexFormat.UpperCase),
         onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
@@ -121,11 +139,24 @@ private fun Key(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun OldKey(oldKey: ByteArray?) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     NetworkKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
-        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na)
+        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na),
+        onClick = {
+            if (oldKey != null) {
+                copyToClipboard(
+                    scope = scope,
+                    clipboard = clipboard,
+                    text = oldKey.toHexString(format = HexFormat.UpperCase),
+                    label = context.getString(R.string.label_old_key)
+                )
+            }
+        }
     )
 }
 

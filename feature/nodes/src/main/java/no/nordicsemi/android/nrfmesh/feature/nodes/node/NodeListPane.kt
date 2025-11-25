@@ -181,12 +181,9 @@ private fun DeviceKeyRow(deviceKey: ByteArray?) {
     val clipboard = LocalClipboard.current
     val key by rememberSaveable {
         mutableStateOf(
-            deviceKey?.toHexString(
-                format = HexFormat {
-                    number.prefix = "0x"
-                    upperCase = true
-                }
-            ) ?: context.getString(R.string.unknown)
+            deviceKey
+                ?.toHexString(format = HexFormat.UpperCase)
+                ?: context.getString(R.string.unknown)
         )
     }
     ElevatedCardItem(
