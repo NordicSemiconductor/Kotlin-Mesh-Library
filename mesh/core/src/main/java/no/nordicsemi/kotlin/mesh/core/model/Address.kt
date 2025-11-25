@@ -153,17 +153,21 @@ data class UnicastAddress(
 
     override fun toString() = super.toString()
 
-    operator fun plus(other: Int) = UnicastAddress((address.toInt() + other))
+    operator fun plus(other: Int) = UnicastAddress(address = address.toInt() + other)
 
-    operator fun plus(other: UnicastAddress) = UnicastAddress((address + other.address).toInt())
+    operator fun plus(other: UnicastAddress) = UnicastAddress(
+        address = (address + other.address).toInt()
+    )
 
-    operator fun minus(other: Int) = UnicastAddress((address.toInt() - other))
+    operator fun minus(other: Int) = UnicastAddress(address = address.toInt() - other)
 
-    operator fun minus(other: UnicastAddress) = UnicastAddress((address - other.address).toInt())
+    operator fun minus(other: UnicastAddress) = UnicastAddress(
+        address = (address - other.address).toInt()
+    )
 
-    operator fun compareTo(o: UnicastAddress) = address.compareTo(o.address)
+    operator fun compareTo(o: UnicastAddress) = address.compareTo(other = o.address)
 
-    operator fun rangeTo(o: UnicastAddress) = UnicastRange(this, o)
+    operator fun rangeTo(o: UnicastAddress) = UnicastRange(lowAddress = this, highAddress = o)
 
     companion object {
         fun isValid(address: Address) = address in minUnicastAddress..maxUnicastAddress
@@ -204,7 +208,7 @@ data class VirtualAddress(
     @OptIn(ExperimentalUuidApi::class)
     constructor(label: ByteArray) : this(uuid = label.toUuid())
 
-    operator fun compareTo(o: VirtualAddress) = address.compareTo(o.address)
+    operator fun compareTo(o: VirtualAddress) = address.compareTo(other = o.address)
 }
 
 /**
@@ -236,17 +240,17 @@ data class GroupAddress(
         }
     }
 
-    operator fun plus(o: Int): GroupAddress = GroupAddress((address.toInt() + o))
+    operator fun plus(o: Int): GroupAddress = GroupAddress(address = address.toInt() + o)
 
-    operator fun minus(other: Int) = GroupAddress((address.toInt() - other))
+    operator fun minus(other: Int) = GroupAddress(address = address.toInt() - other)
 
-    operator fun compareTo(o: GroupAddress) = address.compareTo(o.address)
+    operator fun compareTo(o: GroupAddress) = address.compareTo(other = o.address)
 
     operator fun compareTo(o: PrimaryGroupAddress) = address.compareTo(o.address)
 
-    operator fun compareTo(o: ParentGroupAddress) = address.compareTo(o.address)
+    operator fun compareTo(o: ParentGroupAddress) = address.compareTo(other = o.address)
 
-    operator fun rangeTo(o: GroupAddress) = GroupRange(this, o)
+    operator fun rangeTo(o: GroupAddress) = GroupRange(lowAddress = this, highAddress = o)
 
     companion object {
         fun isValid(address: Address) = address in minGroupAddress..maxGroupAddress
