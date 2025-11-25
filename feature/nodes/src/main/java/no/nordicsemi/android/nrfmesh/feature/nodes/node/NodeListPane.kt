@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
-import android.content.ClipData
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Hub
@@ -29,9 +27,6 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -43,13 +38,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -184,7 +178,7 @@ private fun AddressRow(address: UnicastAddress) {
 private fun DeviceKeyRow(deviceKey: ByteArray?) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current
+    val clipboard = LocalClipboard.current
     val key by rememberSaveable {
         mutableStateOf(
             deviceKey?.toHexString(
@@ -200,25 +194,12 @@ private fun DeviceKeyRow(deviceKey: ByteArray?) {
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_device_key),
         subtitle = key,
-        titleAction = {
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        val clip = ClipData.newPlainText(
-                            /* label = */ "Device Key",
-                            /* text = */ key
-                        )
-                        clipboardManager.setClipEntry(clipEntry = ClipEntry(clipData = clip))
-                    }
-                },
-                content = {
-                    Icon(
-                        modifier = Modifier.padding(start = 16.dp),
-                        imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                }
+        onClick = {
+            copyToClipboard(
+                scope = scope,
+                clipboard = clipboard,
+                text = key,
+                label = context.getString(R.string.label_device_key)
             )
         }
     )
