@@ -100,14 +100,14 @@ abstract class BaseGattBearer<
             dataInChar != null && dataOutChar != null -> {
                 dataInCharacteristic = dataInChar
                 subscribe(dataOutCharacteristic = dataOutChar)
-                // Mark device as ready
-                println("AAA services found")
+                // Marks device as ready
                 onOpened()
             }
 
             else -> {
+                // Subscription for dataOutCharacteristic may cancel automatically in case the
+                // services gets invalidated.
                 dataInCharacteristic = null
-                println("AAA services not found")
                 onClosed()
             }
         }
