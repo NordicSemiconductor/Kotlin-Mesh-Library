@@ -464,7 +464,7 @@ private fun AddressRow(
             is FixedGroupAddress -> address.name()
         },
         subtitle = if (address is UnicastAddress) {
-            "${network?.node(address.address)?.name ?: "Unknown"} : 0x${address.toHexString()}"
+            "${network?.node(address.address)?.name ?: "Unknown"}: 0x${address.toHexString()}"
         } else null,
         onClick = onClick
     )
