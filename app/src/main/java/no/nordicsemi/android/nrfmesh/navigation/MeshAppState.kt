@@ -110,7 +110,7 @@ class MeshAppState(
             navController.currentDestination?.hasRoute<GroupRoute>() == true -> "Group"
             navController.currentDestination?.hasRoute<ProxyRoute>() == true -> "Proxy"
             navController.currentDestination?.hasRoute<SettingsRoute>() == true -> "Settings"
-            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> "Provisioning"
+            navController.currentDestination?.hasRoute<ProvisioningRoute>() == true -> "Add Node"
             else -> "Unknown"
         }
 
