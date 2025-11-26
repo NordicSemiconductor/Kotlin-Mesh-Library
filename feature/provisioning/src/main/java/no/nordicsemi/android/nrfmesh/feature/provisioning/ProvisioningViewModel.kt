@@ -64,7 +64,7 @@ class ProvisioningViewModel @Inject constructor(
     private fun observeNetwork() {
         repository.network.onEach {
             meshNetwork = it
-        }.launchIn(viewModelScope)
+        }.launchIn(scope = viewModelScope)
     }
 
     internal fun beginProvisioning(scanResult: ScanResult) {
@@ -76,29 +76,30 @@ class ProvisioningViewModel @Inject constructor(
             _uiState.value = ProvisioningScreenUiState(
                 provisionerState = Connecting(unprovisionedDevice = device)
             )
-            val pbGattBearer = repository.connectOverPbGattBearer(
-                device = scanResult.peripheral
-            )
-            pbGattBearer.state.takeWhile {
-                it !is BearerEvent.Closed
-            }.onEach {
-                if (it is BearerEvent.Opened) {
+            val pbGattBearer = repository.connectOverPbGattBearer(device = scanResult.peripheral)
+            pbGattBearer.state
+                .takeWhile { it !is BearerEvent.Closed }
+                .onEach {
+                    if (it is BearerEvent.Opened) {
+                        _uiState.value = ProvisioningScreenUiState(
+                            provisionerState = Connected(unprovisionedDevice = device)
+                        )
+                        identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
+                    }
+                }.onCompletion {
+                    println("What happened here: $it")
                     _uiState.value = ProvisioningScreenUiState(
-                        provisionerState = Connected(unprovisionedDevice = device)
+                        provisionerState = Disconnected(unprovisionedDevice = device)
                     )
-                    identifyNode(device, pbGattBearer)
-                }
-            }.onCompletion {
-                _uiState.value = ProvisioningScreenUiState(
-                    provisionerState = Disconnected(unprovisionedDevice = device)
-                )
-
-            }.launchIn(this)
+                }.launchIn(scope = this)
         }
     }
 
     /**
      * Identify the node by sending a provisioning invite.
+     *
+     * @param unprovisionedDevice  Device to be provisioned.
+     * @param bearer               Provisioning bearer to be used.
      */
     private fun identifyNode(unprovisionedDevice: UnprovisionedDevice, bearer: ProvisioningBearer) {
         provisioningManager = ProvisioningManager(
@@ -107,29 +108,30 @@ class ProvisioningViewModel @Inject constructor(
             bearer = bearer
         ).apply { logger = this@ProvisioningViewModel }
 
-        provisioningManager.provision(10u).onEach { state ->
-            _uiState.value = ProvisioningScreenUiState(
-                provisionerState = Provisioning(unprovisionedDevice, state)
-            )
-        }.catch { throwable ->
-            log(
-                message = "Error while provisioning $throwable",
-                category = LogCategory.PROVISIONING,
-                level = LogLevel.ERROR
-            )
-            _uiState.value = ProvisioningScreenUiState(
-                provisionerState = Error(unprovisionedDevice, throwable)
-            )
-        }.onCompletion { throwable ->
-            _uiState.value.provisionerState.let { provisionerState ->
-                if (provisionerState is Provisioning) {
-                    // Save when the provisioning completes.
-                    if (throwable == null && provisionerState.state is ProvisioningState.Complete) {
-                        repository.save()
+        provisioningManager.provision(attentionTimer = 10u)
+            .onEach { state ->
+                _uiState.value = ProvisioningScreenUiState(
+                    provisionerState = Provisioning(unprovisionedDevice, state)
+                )
+            }.catch { throwable ->
+                log(
+                    message = "Error while provisioning $throwable",
+                    category = LogCategory.PROVISIONING,
+                    level = LogLevel.ERROR
+                )
+                _uiState.value = ProvisioningScreenUiState(
+                    provisionerState = Error(unprovisionedDevice, throwable)
+                )
+            }.onCompletion { throwable ->
+                _uiState.value.provisionerState.let { provisionerState ->
+                    if (provisionerState is Provisioning) {
+                        // Save when the provisioning completes.
+                        if (throwable == null && provisionerState.state is ProvisioningState.Complete) {
+                            repository.save()
+                        }
                     }
                 }
-            }
-        }.launchIn(viewModelScope)
+            }.launchIn(scope = viewModelScope)
     }
 
     /**
