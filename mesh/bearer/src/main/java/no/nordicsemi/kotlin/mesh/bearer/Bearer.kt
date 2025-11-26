@@ -48,7 +48,7 @@ interface Bearer : Transmitter, Receiver {
     val isOpen: Boolean
 
     /**
-     * Opens the bearer.
+     * Opens the bearer and is ready for sending and receiving messages.
      */
     suspend fun open()
 
