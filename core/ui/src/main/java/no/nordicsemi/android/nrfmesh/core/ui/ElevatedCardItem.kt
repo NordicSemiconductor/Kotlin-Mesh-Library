@@ -106,7 +106,7 @@ fun ElevatedCardItem(
     supportingText: String? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    if(onClick == null) {
+    if (onClick == null) {
         ElevatedCardItem(
             modifier = modifier,
             colors = colors,
@@ -117,7 +117,7 @@ fun ElevatedCardItem(
             supportingText = supportingText,
             actions = actions
         )
-    } else{
+    } else {
         OutlinedCard(
             modifier = modifier,
             onClick = onClick,
@@ -220,6 +220,7 @@ fun ElevatedCardItemTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle),
+    supportingText: @Composable (() -> Unit)? = null,
 ) {
     var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
@@ -265,6 +266,7 @@ fun ElevatedCardItemTextField(
                         keyboardActions = keyboardActions,
                         regex = regex,
                         isError = isError,
+                        supportingText = supportingText,
                         content = {
                             IconButton(
                                 modifier = Modifier.padding(horizontal = 8.dp),
@@ -312,6 +314,140 @@ fun ElevatedCardItemTextField(
                         modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = value.text,
+                        trailingComposable = {
+                            IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = isEditable,
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ElevatedCardItemHexTextField(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    prefix: @Composable (() -> Unit)? = null,
+    title: String,
+    subtitle: String = "",
+    placeholder: String = "",
+    onValueChanged: (String) -> Unit,
+    isEditable: Boolean = true,
+    onEditableStateChanged: () -> Unit = {},
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    regex: Regex? = null,
+    isError: Boolean = regex != null && !regex.matches(subtitle),
+    supportingText: @Composable (() -> Unit)? = null,
+) {
+    var value by rememberSaveable(inputs = arrayOf(subtitle), stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(text = subtitle, selection = TextRange(subtitle.length)))
+    }
+    var onEditClick by rememberSaveable { mutableStateOf(false) }
+    OutlinedCard(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                modifier = Modifier.padding(start = 12.dp),
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+            Crossfade(targetState = onEditClick, label = "textfield") { state ->
+                when (state) {
+                    true -> MeshOutlinedTextField(
+                        modifier = Modifier.padding(start = 16.dp),
+                        prefix = prefix,
+                        onFocus = onEditClick,
+                        value = value,
+                        onValueChanged = { value = it },
+                        label = { Text(text = title) },
+                        placeholder = { Text(text = placeholder, maxLines = 1) },
+                        internalTrailingIcon = {
+                            IconButton(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = value.text.isNotBlank(),
+                                onClick = {
+                                    value = TextFieldValue(
+                                        text = "",
+                                        selection = TextRange("".length)
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.DeleteSweep,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        },
+                        readOnly = readOnly,
+                        keyboardOptions = keyboardOptions,
+                        keyboardActions = keyboardActions,
+                        regex = regex,
+                        isError = isError,
+                        supportingText = supportingText,
+                        content = {
+                            IconButton(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = subtitle,
+                                        selection = TextRange(subtitle.length)
+                                    )
+                                    onValueChanged(subtitle)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                modifier = Modifier.padding(end = 8.dp),
+                                enabled = value.text.isNotBlank() && regex?.matches(value.text) ?: true,
+                                onClick = {
+                                    onEditClick = !onEditClick
+                                    onEditableStateChanged()
+                                    value = TextFieldValue(
+                                        text = value.text.trim(),
+                                        selection = TextRange(value.text.trim().length)
+                                    )
+                                    onValueChanged(value.text)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                        }
+                    )
+
+                    false -> MeshTwoLineListItem(
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+                        title = title,
+                        subtitle = if (prefix != null) "0x${value.text}" else value.text,
                         trailingComposable = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
