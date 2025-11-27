@@ -4,8 +4,10 @@ package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -33,24 +35,30 @@ fun MeshTwoLineListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(height = 80.dp),
+            .heightIn(min = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
-        Column(modifier = Modifier.weight(weight = 1f)) {
+        Column(
+            modifier = Modifier
+                .weight(weight = 1f)
+                .padding(vertical = 16.dp)
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
-            if (!subtitle.isNullOrEmpty())
+            if (!subtitle.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = subtitleMaxLines,
                     overflow = subtitleTextOverflow
                 )
+            }
         }
         trailingComposable()
     }
@@ -68,7 +76,7 @@ fun MeshTwoLineListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(height = 80.dp),
+            .heightIn(min = 80.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -84,16 +92,19 @@ fun MeshTwoLineListItem(
                 .padding(vertical = 28.dp)
         ) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-            if (!subtitle.isNullOrEmpty())
+            if (!subtitle.isNullOrEmpty()){
+                Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = subtitleMaxLines,
                     overflow = subtitleTextOverflow
                 )
+            }
         }
     }
 }
+
 
 @Composable
 fun TwoLineRangeListItem(
@@ -122,6 +133,7 @@ fun TwoLineRangeListItem(
                 maxLines = 1,
                 overflow = titleTextOverflow
             )
+            Spacer(modifier = Modifier.size(4.dp))
             lineTwo()
         }
     }
