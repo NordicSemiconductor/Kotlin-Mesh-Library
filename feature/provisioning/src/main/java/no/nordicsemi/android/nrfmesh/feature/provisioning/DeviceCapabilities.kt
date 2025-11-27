@@ -8,12 +8,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.DeviceHub
+import androidx.compose.material.icons.outlined.DisplaySettings
+import androidx.compose.material.icons.outlined.EnhancedEncryption
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.KeyboardAlt
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Badge
-import androidx.compose.material.icons.rounded.EnhancedEncryption
-import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,17 +106,20 @@ internal fun DeviceCapabilities(
         )
         SupportedAlgorithmsRow(
             title = stringResource(R.string.label_supported_algorithms),
-            subtitle = state.capabilities.algorithms.joinToString(separator = ", ")
+            subtitle = state.capabilities.algorithms
+                .joinToString(separator = "\n")
                 .ifEmpty { "None" }
         )
         PublicKeyTypeRow(
             title = stringResource(R.string.label_public_key_type),
-            subtitle = state.capabilities.publicKeyType.joinToString(separator = ", ")
+            subtitle = state.capabilities.publicKeyType
+                .joinToString(separator = ", ")
                 .ifEmpty { "None" }
         )
         StaticOobTypeRow(
             title = stringResource(R.string.label_static_oob_type),
-            subtitle = state.capabilities.oobTypes.joinToString(separator = ", ")
+            subtitle = state.capabilities.oobTypes
+                .joinToString(separator = ", ")
                 .ifEmpty { "None" }
         )
         OutputOobSizeRow(
@@ -119,7 +128,8 @@ internal fun DeviceCapabilities(
         )
         OutputOobActionsRow(
             title = stringResource(R.string.label_output_oob_actions),
-            subtitle = state.capabilities.outputOobActions.joinToString(separator = ", ")
+            subtitle = state.capabilities.outputOobActions
+                .joinToString(separator = ", ")
                 .ifEmpty { "None" }
         )
         InputOobSizeRow(
@@ -128,7 +138,8 @@ internal fun DeviceCapabilities(
         )
         InputOobActionsRow(
             title = stringResource(R.string.label_input_oob_actions),
-            subtitle = state.capabilities.inputOobActions.joinToString(separator = ", ")
+            subtitle = state.capabilities.inputOobActions
+                .joinToString(separator = ", ")
                 .ifBlank { "None" }
         )
     }
@@ -239,7 +250,7 @@ private fun KeyRow(
 private fun ElementsRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Badge,
+        imageVector = Icons.Outlined.DeviceHub,
         title = title,
         subtitle = subtitle
     )
@@ -249,9 +260,10 @@ private fun ElementsRow(title: String, subtitle: String) {
 private fun SupportedAlgorithmsRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.EnhancedEncryption,
+        imageVector = Icons.Outlined.EnhancedEncryption,
         title = title,
-        subtitle = subtitle
+        subtitle = subtitle,
+        subtitlesMaxLines = Int.MAX_VALUE
     )
 }
 
@@ -259,34 +271,15 @@ private fun SupportedAlgorithmsRow(title: String, subtitle: String) {
 private fun PublicKeyTypeRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Key,
+        imageVector = Icons.Outlined.Campaign,
         title = title,
-        subtitle = subtitle
+        subtitle = subtitle,
+        subtitlesMaxLines = Int.MAX_VALUE
     )
 }
 
 @Composable
 private fun StaticOobTypeRow(title: String, subtitle: String) {
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Key,
-        title = title,
-        subtitle = subtitle
-    )
-}
-
-@Composable
-private fun OutputOobSizeRow(title: String, subtitle: String) {
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Key,
-        title = title,
-        subtitle = subtitle
-    )
-}
-
-@Composable
-private fun OutputOobActionsRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Key,
@@ -296,10 +289,32 @@ private fun OutputOobActionsRow(title: String, subtitle: String) {
 }
 
 @Composable
+private fun OutputOobSizeRow(title: String, subtitle: String) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Numbers,
+        title = title,
+        subtitle = subtitle,
+        subtitlesMaxLines = Int.MAX_VALUE
+    )
+}
+
+@Composable
+private fun OutputOobActionsRow(title: String, subtitle: String) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.DisplaySettings,
+        title = title,
+        subtitle = subtitle,
+        subtitlesMaxLines = Int.MAX_VALUE
+    )
+}
+
+@Composable
 private fun InputOobSizeRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Key,
+        imageVector = Icons.Outlined.Numbers,
         title = title,
         subtitle = subtitle
     )
@@ -309,8 +324,9 @@ private fun InputOobSizeRow(title: String, subtitle: String) {
 private fun InputOobActionsRow(title: String, subtitle: String) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Rounded.Key,
+        imageVector = Icons.Outlined.KeyboardAlt,
         title = title,
-        subtitle = subtitle
+        subtitle = subtitle,
+        subtitlesMaxLines = Int.MAX_VALUE
     )
 }
