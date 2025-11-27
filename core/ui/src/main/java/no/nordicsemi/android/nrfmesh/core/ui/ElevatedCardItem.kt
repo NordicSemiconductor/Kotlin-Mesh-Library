@@ -40,17 +40,67 @@ import androidx.compose.ui.unit.dp
 fun ElevatedCardItem(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    enabled: Boolean = true,
+    onClick: (() -> Unit)? = null,
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
+    subtitlesMaxLines: Int = 1,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    OutlinedCard(modifier = modifier, colors = colors) {
+    if (onClick == null) {
+        NonClickableElevatedCardItem(
+            modifier = modifier,
+            colors = colors,
+            imageVector = imageVector,
+            title = title,
+            titleAction = titleAction,
+            subtitle = subtitle,
+            subtitleMaxLines = subtitlesMaxLines,
+            supportingText = supportingText,
+            body = body,
+            actions = actions
+        )
+    } else {
+        ClickableElevatedCardItem(
+            modifier = modifier,
+            colors = colors,
+            enabled = enabled,
+            onClick = onClick,
+            imageVector = imageVector,
+            title = title,
+            titleAction = titleAction,
+            subtitle = subtitle,
+            supportingText = supportingText,
+            body = body,
+            actions = actions
+        )
+    }
+}
+
+@Composable
+private fun NonClickableElevatedCardItem(
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    imageVector: ImageVector,
+    title: String,
+    titleAction: @Composable () -> Unit = {},
+    subtitle: String? = null,
+    subtitleMaxLines: Int = 1,
+    supportingText: String? = null,
+    body: @Composable (ColumnScope?.() -> Unit)? = null,
+    actions: @Composable (RowScope?.() -> Unit)? = null,
+) {
+    OutlinedCard(
+        modifier = modifier,
+        colors = colors
+    ) {
         MeshTwoLineListItem(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
             leadingComposable = {
                 Icon(
                     modifier = Modifier.padding(end = 16.dp),
@@ -61,11 +111,12 @@ fun ElevatedCardItem(
             },
             title = title,
             subtitle = subtitle,
+            subtitleMaxLines =  subtitleMaxLines,
             trailingComposable = titleAction
         )
         if (supportingText != null)
             Text(
-                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 8.dp),
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
                 text = supportingText,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -94,67 +145,67 @@ fun ElevatedCardItem(
 }
 
 @Composable
-fun ElevatedCardItem(
+private fun ClickableElevatedCardItem(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
     enabled: Boolean = true,
-    onClick: (() -> Unit)? = null,
+    onClick: (() -> Unit),
     imageVector: ImageVector,
     title: String,
     titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
+    subtitleMaxLines: Int = 1,
     supportingText: String? = null,
+    body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
 ) {
-    if (onClick == null) {
-        ElevatedCardItem(
-            modifier = modifier,
-            colors = colors,
-            imageVector = imageVector,
-            title = title,
-            titleAction = titleAction,
-            subtitle = subtitle,
-            supportingText = supportingText,
-            actions = actions
-        )
-    } else {
-        OutlinedCard(
-            modifier = modifier,
-            onClick = onClick,
-            enabled = enabled,
-            colors = colors
-        ) {
-            MeshTwoLineListItem(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp),
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(end = 16.dp),
-                        imageVector = imageVector,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
-                title = title,
-                subtitle = subtitle,
-                trailingComposable = titleAction
-            )
-            if (supportingText != null)
-                Text(
-                    modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
-                    text = supportingText,
-                    style = MaterialTheme.typography.bodyMedium
+    OutlinedCard(
+        modifier = modifier,
+        onClick = onClick,
+        enabled = enabled,
+        colors = colors
+    ) {
+        MeshTwoLineListItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            leadingComposable = {
+                Icon(
+                    modifier = Modifier.padding(end = 16.dp),
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.6f)
                 )
-            actions?.let {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    it()
-                }
+            },
+            title = title,
+            subtitle = subtitle,
+            subtitleMaxLines =  subtitleMaxLines,
+            trailingComposable = titleAction
+        )
+        if (supportingText != null)
+            Text(
+                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        body?.let {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                it()
+            }
+        }
+        actions?.let {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                it()
             }
         }
     }
