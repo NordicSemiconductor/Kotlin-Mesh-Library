@@ -40,6 +40,6 @@ dependencies {
     implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.4.0-alpha18")
 
     implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.1.0")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0")
     implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.1.0")
 }
