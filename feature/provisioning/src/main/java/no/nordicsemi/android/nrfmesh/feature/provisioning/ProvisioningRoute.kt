@@ -48,10 +48,11 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
@@ -122,6 +123,7 @@ private fun ProvisionerScreen(
     var showAuthenticationDialog by remember { mutableStateOf(false) }
 
     ScannerSection(
+        network = uiState.meshNetwork,
         onScanResultSelected = {
             beginProvisioning(it)
             openDeviceCapabilitiesSheet = true
@@ -191,9 +193,10 @@ private fun ProvisionerScreen(
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
-    ScannerScreenRoute(
-        uuid = MeshProvisioningService.uuid,
+private fun ScannerSection(network: MeshNetwork?, onScanResultSelected: (ScanResult) -> Unit) {
+    ScannerContent(
+        meshNetwork = network,
+        service = MeshProvisioningService,
         onScanResultSelected = onScanResultSelected
     )
 }

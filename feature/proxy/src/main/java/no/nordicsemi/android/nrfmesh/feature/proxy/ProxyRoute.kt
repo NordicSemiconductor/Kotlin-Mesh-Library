@@ -54,7 +54,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
-import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
@@ -92,6 +92,7 @@ internal fun ProxyRoute(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ProxyFilterInfo(
+                    network = uiState.network,
                     proxyConnectionState = uiState.proxyConnectionState,
                     onAutoConnectToggled = onAutoConnectToggled,
                     onScanResultSelected = onScanResultSelected,
@@ -115,6 +116,7 @@ internal fun ProxyRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProxyFilterInfo(
+    network: MeshNetwork?,
     proxyConnectionState: ProxyConnectionState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
@@ -136,6 +138,7 @@ private fun ProxyFilterInfo(
         ) {
             SectionTitle(title = stringResource(R.string.label_proxies))
             ScannerSection(
+                network = network,
                 onScanResultSelected = { result ->
                     onScanResultSelected(result)
                     scope.launch {
@@ -192,11 +195,14 @@ private fun AutomaticConnectionRow(
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
-    ScannerScreenRoute(
-        uuid = MeshProxyService.uuid,
-        onScanResultSelected = onScanResultSelected
-    )
+private fun ScannerSection(network: MeshNetwork?, onScanResultSelected: (ScanResult) -> Unit) {
+    network?.let {
+        ScannerContent(
+            meshNetwork = it,
+            service = MeshProxyService,
+            onScanResultSelected = onScanResultSelected
+        )
+    }
 }
 
 @Composable

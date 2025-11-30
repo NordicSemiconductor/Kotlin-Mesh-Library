@@ -13,6 +13,7 @@ dependencies {
     implementation(nordic.core)
     implementation(nordic.kotlin.data)
     implementation(nordic.permissions.ble)
+    implementation(nordic.scanner.ble)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -29,4 +30,6 @@ dependencies {
     implementation(project(":core:navigation"))
 
     api(project(":mesh:core"))
+    api(project(":mesh:bearer-gatt"))
+    api(project(":mesh:provisioning"))
 }

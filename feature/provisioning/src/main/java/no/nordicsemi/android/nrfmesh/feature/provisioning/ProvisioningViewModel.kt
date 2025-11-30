@@ -50,7 +50,12 @@ class ProvisioningViewModel @Inject constructor(
 
     private var unprovisionedDevice: UnprovisionedDevice? = null
     private var keyIndex: KeyIndex = 0u
-    private val _uiState = MutableStateFlow(ProvisioningScreenUiState(provisionerState = Scanning))
+    private val _uiState = MutableStateFlow(
+        ProvisioningScreenUiState(
+            meshNetwork = null,
+            provisionerState = Scanning
+        )
+    )
     internal val uiState = _uiState.asStateFlow()
 
     init {
@@ -74,6 +79,7 @@ class ProvisioningViewModel @Inject constructor(
             ).also { this@ProvisioningViewModel.unprovisionedDevice = it }
 
             _uiState.value = ProvisioningScreenUiState(
+                meshNetwork = meshNetwork,
                 provisionerState = Connecting(unprovisionedDevice = device)
             )
             val pbGattBearer = repository.connectOverPbGattBearer(device = scanResult.peripheral)
@@ -82,6 +88,7 @@ class ProvisioningViewModel @Inject constructor(
                 .onEach {
                     if (it is BearerEvent.Opened) {
                         _uiState.value = ProvisioningScreenUiState(
+                            meshNetwork = meshNetwork,
                             provisionerState = Connected(unprovisionedDevice = device)
                         )
                         identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
@@ -89,6 +96,7 @@ class ProvisioningViewModel @Inject constructor(
                 }.onCompletion {
                     println("What happened here: $it")
                     _uiState.value = ProvisioningScreenUiState(
+                        meshNetwork = meshNetwork,
                         provisionerState = Disconnected(unprovisionedDevice = device)
                     )
                 }.launchIn(scope = this)
@@ -111,6 +119,7 @@ class ProvisioningViewModel @Inject constructor(
         provisioningManager.provision(attentionTimer = 10u)
             .onEach { state ->
                 _uiState.value = ProvisioningScreenUiState(
+                    meshNetwork = meshNetwork,
                     provisionerState = Provisioning(unprovisionedDevice, state)
                 )
             }.catch { throwable ->
@@ -120,6 +129,7 @@ class ProvisioningViewModel @Inject constructor(
                     level = LogLevel.ERROR
                 )
                 _uiState.value = ProvisioningScreenUiState(
+                    meshNetwork = meshNetwork,
                     provisionerState = Error(unprovisionedDevice, throwable)
                 )
             }.onCompletion { throwable ->
@@ -140,7 +150,10 @@ class ProvisioningViewModel @Inject constructor(
     internal fun disconnect() {
         viewModelScope.launch {
             repository.disconnect()
-            _uiState.value = ProvisioningScreenUiState(provisionerState = Scanning)
+            _uiState.value = ProvisioningScreenUiState(
+                meshNetwork = meshNetwork,
+                provisionerState = Scanning
+            )
         }
     }
 
@@ -292,6 +305,7 @@ sealed class ProvisionerState {
 }
 
 internal data class ProvisioningScreenUiState(
+    val meshNetwork: MeshNetwork?,
     val provisionerState: ProvisionerState,
     val keyIndex: KeyIndex = 0u,
 )
