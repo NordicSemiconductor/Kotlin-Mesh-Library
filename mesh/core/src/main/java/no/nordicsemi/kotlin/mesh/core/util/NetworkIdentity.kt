@@ -20,6 +20,39 @@ sealed interface NetworkIdentity {
      */
     fun matches(networkKey: NetworkKey): Boolean
 
+    /**
+     * Returns the first Network Key that matches the identity from the given list.
+     *
+     * @param networkKeys List of Network Keys to be matched.
+     * @return The first matching Network Key.
+     */
+    fun matches(networkKeys: List<NetworkKey>) = networkKeys.firstOrNull { networkKey ->
+        matches(networkKey = networkKey)
+    }
+
+    /**
+     * Returns the Network Identity as a hex string.
+     *
+     * @return Network Identity in hex string format.
+     */
+    fun toHexString() = when (this) {
+        is PrivateNetworkIdentity ->
+            hash.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            ) + random.toHexString(format = HexFormat.UpperCase)
+
+        is PublicNetworkIdentity ->
+            networkId.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+    }
+
 }
 
 /**
@@ -57,7 +90,7 @@ data class PublicNetworkIdentity internal constructor(val networkId: ByteArray) 
  */
 @ConsistentCopyVisibility
 data class PrivateNetworkIdentity internal constructor(
-    val hash: ByteArray, val random: ByteArray
+    val hash: ByteArray, val random: ByteArray,
 ) : NetworkIdentity {
 
     override fun matches(networkKey: NetworkKey): Boolean {
@@ -97,12 +130,12 @@ data class PrivateNetworkIdentity internal constructor(
  * @receiver ByteArray Advertisement data.
  * @return NetworkIdentity if the data is valid, null otherwise.
  */
-fun ByteArray.networkIdentity() = when {
-    size == 9 && get(0) == 0x00.toByte() -> PublicNetworkIdentity(
+fun ByteArray.networkIdentity() = when (size) {
+    9 if get(0) == 0x00.toByte() -> PublicNetworkIdentity(
         networkId = sliceArray(1 until 9)
     )
 
-    size == 9 && get(0) == 0x02.toByte() -> PrivateNetworkIdentity(
+    9 if get(0) == 0x02.toByte() -> PrivateNetworkIdentity(
         hash = sliceArray(1 until 9),
         random = sliceArray(9 until 17)
     )
