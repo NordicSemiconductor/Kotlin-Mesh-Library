@@ -3,13 +3,19 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsetsSides.Companion
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +25,7 @@ import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicFall
+import no.nordicsemi.android.common.theme.nordicGreen
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -135,7 +144,8 @@ private fun ProvisionerScreen(
                 disconnect()
                 openDeviceCapabilitiesSheet = false
             },
-            sheetState = capabilitiesSheetState
+            sheetState = capabilitiesSheetState,
+            contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Top) }
         ) {
             Column(
                 modifier = Modifier
@@ -168,7 +178,10 @@ private fun ProvisionerScreen(
                                 }
                         },
                         buttonIcon = Icons.Outlined.SyncLock,
-                        text = stringResource(id = R.string.label_provision)
+                        buttonIconTint = nordicGreen,
+                        text = stringResource(id = R.string.label_provision),
+                        textColor = nordicGreen,
+                        border = BorderStroke(width = 1.dp, color = nordicGreen)
                     )
                 }
                 ProvisioningContent(
