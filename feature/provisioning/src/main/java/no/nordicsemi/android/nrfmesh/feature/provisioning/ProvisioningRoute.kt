@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.WindowInsetsSides.Companion
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,15 +48,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.common.theme.nordicFall
 import no.nordicsemi.android.common.theme.nordicGreen
-import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
 import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -67,8 +64,8 @@ import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
-import kotlin.uuid.Uuid
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
@@ -162,6 +159,7 @@ private fun ProvisionerScreen(
                     SectionTitle(
                         modifier = Modifier.weight(weight = 1f),
                         title = stringResource(R.string.label_device_information),
+                        style = MaterialTheme.typography.titleMedium
                     )
                     MeshOutlinedButton(
                         modifier = Modifier.padding(end = 16.dp),
