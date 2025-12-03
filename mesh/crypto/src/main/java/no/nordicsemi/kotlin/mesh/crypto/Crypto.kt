@@ -66,7 +66,7 @@ object Crypto {
             Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
         }
         // Install the provider
-        Security.insertProviderAt(BouncyCastleProvider(), 1)
+        Security.addProvider(BouncyCastleProvider())
     }
 
     /**
