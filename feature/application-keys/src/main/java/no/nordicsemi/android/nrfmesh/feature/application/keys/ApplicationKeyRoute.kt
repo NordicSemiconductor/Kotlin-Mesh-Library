@@ -6,7 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -63,17 +63,19 @@ internal fun ApplicationKeyRoute(
     var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.boundNetKeyIndex.toInt()) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = paddingValues)
+                .consumeWindowInsets(paddingValues = paddingValues)
                 .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            SectionTitle(title = stringResource(id = R.string.label_application_key))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(id = R.string.label_application_key)
+            )
             Name(
                 name = applicationKey.name,
                 onNameChanged = {

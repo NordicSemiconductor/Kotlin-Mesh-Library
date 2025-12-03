@@ -2,9 +2,10 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -60,7 +61,6 @@ internal fun NetworkKeysRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -80,11 +80,17 @@ internal fun NetworkKeysRoute(
         }
     ) { paddingValues ->
         LazyColumn(
-            contentPadding = paddingValues,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .consumeWindowInsets(paddingValues),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            item { SectionTitle(title = stringResource(R.string.label_network_keys)) }
+            item {
+                SectionTitle(
+                    modifier = Modifier.padding(top = 8.dp),
+                    title = stringResource(R.string.label_network_keys)
+                )
+            }
             items(items = keys, key = { (it.index + 1u).toInt() }) { key ->
                 val isSelected = highlightSelectedItem && key.index.toInt() == selectedKeyIndex
                 SwipeToDismissKey(

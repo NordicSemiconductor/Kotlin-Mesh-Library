@@ -5,7 +5,7 @@ package no.nordicsemi.android.nrfmesh.feature.application.keys
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -67,7 +67,6 @@ internal fun ApplicationKeysRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -89,9 +88,12 @@ internal fun ApplicationKeysRoute(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = paddingValues)
+                .consumeWindowInsets(paddingValues = paddingValues)
         ) {
-            SectionTitle(title = stringResource(id = R.string.label_application_keys))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(id = R.string.label_application_keys)
+            )
             when (keys.isEmpty()) {
                 true -> MeshNoItemsAvailable(
                     modifier = Modifier.fillMaxSize(),
