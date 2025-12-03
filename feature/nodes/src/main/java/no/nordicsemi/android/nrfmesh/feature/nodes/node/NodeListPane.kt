@@ -3,9 +3,11 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -95,7 +97,7 @@ internal fun NodeListPane(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = scrollState),
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         ) {
             SectionTitle(
                 modifier = Modifier.padding(top = 8.dp),
@@ -143,6 +145,7 @@ internal fun NodeListPane(
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
             SectionTitle(title = stringResource(id = R.string.label_reset_node))
             ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
+            Spacer(modifier = Modifier.size(size = 8.dp))
         }
     }
 }

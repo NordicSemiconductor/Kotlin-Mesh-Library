@@ -1,8 +1,10 @@
 package no.nordicsemi.android.nrfmesh.feature.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -108,6 +110,7 @@ private fun SettingsScreen(
         )
         VersionNameRow()
         VersionCodeRow()
+        Spacer(modifier = Modifier.size(size = 16.dp))
     }
 }
 
@@ -270,7 +273,7 @@ private fun VersionCodeRow() {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .padding(vertical = 8.dp),
+            .padding(top = 8.dp),
         imageVector = Icons.Outlined.DataObject,
         title = stringResource(R.string.label_version_code),
         subtitle = BuildConfig.VERSION_CODE
