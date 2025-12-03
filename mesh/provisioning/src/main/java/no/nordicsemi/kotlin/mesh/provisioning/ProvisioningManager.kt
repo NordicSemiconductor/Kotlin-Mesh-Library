@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -39,7 +40,7 @@ import kotlin.uuid.ExperimentalUuidApi
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
-    val bearer: ProvisioningBearer
+    val bearer: ProvisioningBearer,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var configuration: ProvisioningParameters
@@ -294,8 +295,27 @@ class ProvisioningManager(
                 }
                 provisioningData.accumulate(data = pdu.sliceArray(indices = 1 until pdu.size))
                 configuration = ProvisioningParameters(
-                    meshNetwork = meshNetwork,
-                    capabilities = capabilities
+                    capabilities = capabilities,
+                    unicastAddress = meshNetwork.localProvisioner?.let {
+                        // Calculates the unicast address automatically based ont he number of elements.
+                        meshNetwork.nextAvailableUnicastAddress(
+                            elementCount = capabilities.numberOfElements,
+                            provisioner = it
+                        )?.also { address -> suggestedUnicastAddress = address }
+                            ?: run {
+                                logger?.e(LogCategory.PROVISIONING) {
+                                    "Provisioning failed with error: ${NoAddressAvailable()}"
+                                }
+                                throw NoAddressAvailable()
+                            }
+                    } ?: run {
+                        logger?.e(LogCategory.PROVISIONING) {
+                            "Provisioning failed with error: ${NoLocalProvisioner()}"
+                        }
+                        throw NoLocalProvisioner()
+                    },
+                    networkKey = meshNetwork.networkKeys.firstOrNull()
+                        ?: throw NoNetworkKeysAdded()
                 )
                 meshNetwork.localProvisioner?.let {
                     // Calculates the unicast address automatically based ont he number of elements.
