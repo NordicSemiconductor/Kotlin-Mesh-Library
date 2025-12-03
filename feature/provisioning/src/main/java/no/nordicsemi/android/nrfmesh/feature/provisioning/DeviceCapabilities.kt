@@ -3,10 +3,14 @@ package no.nordicsemi.android.nrfmesh.feature.provisioning
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.DeviceHub
@@ -15,20 +19,28 @@ import androidx.compose.material.icons.outlined.EnhancedEncryption
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.KeyboardAlt
 import androidx.compose.material.icons.outlined.Lan
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Numbers
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -40,10 +52,11 @@ import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.model.Address
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
@@ -56,13 +69,14 @@ internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
     snackbarHostState: SnackbarHostState,
     unprovisionedDevice: UnprovisionedDevice,
+    networkKeys: List<NetworkKey>,
     showAuthenticationDialog: Boolean,
     onAuthenticationDialogDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit,
+    onNetworkKeyClicked: (NetworkKey) -> Unit,
+    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -86,18 +100,16 @@ internal fun DeviceCapabilities(
             keyboardController = keyboardController,
             address = state.parameters.unicastAddress!!.address,
             onAddressChanged = {
-                onAddressChanged(
-                    state.parameters, state.capabilities.numberOfElements, it
-                )
+                onAddressChanged(state.parameters, state.capabilities.numberOfElements, it)
             },
             isValidAddress = isValidAddress,
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
-        KeyRow(
-            state = state,
-            name = state.parameters.networkKey.name,
-            onNetworkKeyClick = onNetworkKeyClick
+        NetworkKeyRow(
+            networkKeys = networkKeys,
+            networkKey = state.parameters.networkKey,
+            onNetworkKeyClick = onNetworkKeyClicked
         )
         SectionTitle(title = stringResource(R.string.title_device_capabilities))
         ElementsRow(
@@ -142,12 +154,13 @@ internal fun DeviceCapabilities(
                 .joinToString(separator = ", ")
                 .ifBlank { "None" }
         )
+        Spacer(modifier = Modifier.size(size = 16.dp))
     }
 
     if (showAuthenticationDialog) {
         AuthSelectionBottomSheet(
             capabilities = state.capabilities,
-            onConfirmClicked = { startProvisioning(it) },
+            onConfirmClicked = { onAuthenticationMethodSelected(it) },
             onDismissRequest = { onAuthenticationDialogDismissed(false) },
         )
     }
@@ -231,18 +244,73 @@ private fun UnicastAddressRow(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KeyRow(
-    name: String,
-    state: ProvisioningState.CapabilitiesReceived,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
+private fun NetworkKeyRow(
+    networkKey: NetworkKey,
+    networkKeys: List<NetworkKey>,
+    onNetworkKeyClick: (NetworkKey) -> Unit,
 ) {
-    ElevatedCardItem(
+    var name by remember(key1 = networkKey.index) { mutableStateOf(networkKey.name) }
+    var isExpanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.VpnKey,
-        title = stringResource(R.string.label_network_key),
-        subtitle = name,
-        onClick = { onNetworkKeyClick(state.parameters.networkKey.index) }
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it },
+        content = {
+            ElevatedCardItem(
+                modifier = Modifier
+                    .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                imageVector = Icons.Outlined.VpnKey,
+                title = stringResource(R.string.label_network_key),
+                titleAction = {
+                    IconButton(
+                        modifier = Modifier.rotate(if (isExpanded) 180f else 0f),
+                        onClick = { isExpanded = true },
+                        content = {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                },
+                subtitle = name
+            )
+            DropdownMenu(
+                modifier = Modifier.exposedDropdownSize(),
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }
+            ) {
+                networkKeys.forEachIndexed { index, key ->
+                    DropdownMenuItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                        text = {
+                            MeshSingleLineListItem(
+                                leadingComposable = {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 16.dp),
+                                        imageVector = Icons.Outlined.VpnKey,
+                                        contentDescription = null
+                                    )
+                                },
+                                title = key.name
+                            )
+                        },
+                        onClick = {
+                            name = key.name
+                            onNetworkKeyClick(key)
+                            isExpanded = false
+                        }
+                    )
+                    if (index < networkKeys.size - 1) {
+                        HorizontalDivider()
+                    }
+                }
+            }
+        }
     )
 }
 

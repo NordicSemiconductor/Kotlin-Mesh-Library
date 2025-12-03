@@ -35,10 +35,8 @@ fun NavGraphBuilder.provisioningGraph(appState: AppState, onBackPressed: () -> U
             onNameChanged = viewModel::onNameChanged,
             onAddressChanged = viewModel::onAddressChanged,
             isValidAddress = viewModel::isValidAddress,
-            onNetworkKeyClick = {
-
-            },
-            startProvisioning = viewModel::startProvisioning,
+            onNetworkKeyClicked = viewModel::onNetworkKeyClicked,
+            onAuthenticationMethodSelected = viewModel::onAuthenticationMethodSelected,
             authenticate = viewModel::authenticate,
             onProvisioningComplete = {
                 viewModel.onProvisioningComplete()
