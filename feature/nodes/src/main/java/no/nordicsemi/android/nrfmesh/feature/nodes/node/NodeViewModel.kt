@@ -274,6 +274,11 @@ internal class NodeViewModel @Inject internal constructor(
         boundNetworkKey = meshNetwork.networkKeys.first()
     )
 
+    internal fun removeNode() {
+        meshNetwork.remove(node = selectedNode)
+        save()
+    }
+
     fun save() {
         viewModelScope.launch {
             repository.save()

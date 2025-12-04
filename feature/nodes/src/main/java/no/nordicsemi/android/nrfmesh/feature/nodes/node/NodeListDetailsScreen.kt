@@ -37,6 +37,7 @@ internal fun NodeListDetailsScreen(
     resetMessageState: () -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
+    removeNode: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator().also {
@@ -85,7 +86,8 @@ internal fun NodeListDetailsScreen(
                         selectedItem = uiState.selectedNodeInfoItem,
                         send = send,
                         save = save,
-                        navigateBack = navigateBack
+                        navigateBack = navigateBack,
+                        removeNode = removeNode
                     )
                 }
             },

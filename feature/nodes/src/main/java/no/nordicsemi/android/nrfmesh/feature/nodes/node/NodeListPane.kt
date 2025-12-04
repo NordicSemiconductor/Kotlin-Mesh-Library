@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Hub
@@ -84,6 +85,7 @@ internal fun NodeListPane(
     send: (AcknowledgedConfigMessage) -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
+    removeNode: () -> Unit,
 ) {
     val state = rememberPullToRefreshState()
     val scrollState = rememberScrollState()
@@ -145,6 +147,12 @@ internal fun NodeListPane(
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
             SectionTitle(title = stringResource(id = R.string.label_reset_node))
             ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
+            SectionTitle(title = stringResource(id = R.string.label_remove_node))
+            RemoveNode(
+                messageState = messageState,
+                navigateBack = navigateBack,
+                removeNode = removeNode
+            )
             Spacer(modifier = Modifier.size(size = 8.dp))
         }
     }
@@ -495,5 +503,45 @@ private fun ResetRow(
     }
     if (messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
         navigateBack()
+    }
+}
+
+@Composable
+private fun RemoveNode(
+    messageState: MessageState,
+    removeNode: () -> Unit,
+    navigateBack: () -> Unit,
+) {
+    var showResetDialog by rememberSaveable { mutableStateOf(false) }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.DeleteOutline,
+        title = stringResource(R.string.label_remove_node),
+        supportingText = stringResource(R.string.label_reset_node_rationale)
+    ) {
+        MeshOutlinedButton(
+            border = BorderStroke(width = 1.dp, color = Color.Red),
+            onClick = { showResetDialog = !showResetDialog },
+            text = stringResource(R.string.label_remove),
+            buttonIcon = Icons.Outlined.DeleteOutline,
+            buttonIconTint = Color.Red,
+            textColor = Color.Red,
+            enabled = !messageState.isInProgress()
+        )
+    }
+    if (showResetDialog) {
+        MeshAlertDialog(
+            onDismissRequest = { showResetDialog = !showResetDialog },
+            icon = Icons.Outlined.Recycling,
+            title = stringResource(R.string.label_remove_node),
+            text = stringResource(R.string.label_are_you_sure_rationale),
+            iconColor = Color.Red,
+            onDismissClick = { showResetDialog = !showResetDialog },
+            onConfirmClick = {
+                showResetDialog = !showResetDialog
+                removeNode()
+                navigateBack()
+            }
+        )
     }
 }

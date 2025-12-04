@@ -27,8 +27,11 @@
     <string name="label_exclusion_rationale">If checked, the node will be excluded from the key exchange process. When the key refresh procedure is complete, this node will no longer be able to receive or send messages to the mesh network.</string>
     <string name="label_reset">Reset</string>
     <string name="label_reset_node">Reset Node</string>
-    <string name="label_reset_node_rationale">Resetting this node will change its provisioned state
+    <string name="label_reset_node_rationale">Resetting this node wilabel_resetll change its provisioned state
         back to an un-provisioned state.</string>
+    <string name="label_remove">Remove</string>
+    <string name="label_remove_node">Remove Node</string>
+    <string name="label_remove_node_rationale">This node will only be removed from the local database. It will still be able to send and receive messages from the network. Remove the node only if the device iis no longer available.</string>
     <string name="label_disable_proxy_feature">Disable Proxy</string>
     <string name="label_are_you_sure_rationale">Are you sure you want to continue?</string>
     <string name="title_loading_node">Loading node…</string>
