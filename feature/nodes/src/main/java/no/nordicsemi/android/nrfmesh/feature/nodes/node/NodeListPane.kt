@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
@@ -515,15 +516,15 @@ private fun RemoveNode(
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.DeleteOutline,
+        imageVector = Icons.Outlined.DeleteForever,
         title = stringResource(R.string.label_remove_node),
-        supportingText = stringResource(R.string.label_reset_node_rationale)
+        supportingText = stringResource(R.string.label_remove_node_rationale)
     ) {
         MeshOutlinedButton(
             border = BorderStroke(width = 1.dp, color = Color.Red),
             onClick = { showResetDialog = !showResetDialog },
             text = stringResource(R.string.label_remove),
-            buttonIcon = Icons.Outlined.DeleteOutline,
+            buttonIcon = Icons.Outlined.DeleteForever,
             buttonIconTint = Color.Red,
             textColor = Color.Red,
             enabled = !messageState.isInProgress()
@@ -532,7 +533,7 @@ private fun RemoveNode(
     if (showResetDialog) {
         MeshAlertDialog(
             onDismissRequest = { showResetDialog = !showResetDialog },
-            icon = Icons.Outlined.Recycling,
+            icon = Icons.Outlined.DeleteForever,
             title = stringResource(R.string.label_remove_node),
             text = stringResource(R.string.label_are_you_sure_rationale),
             iconColor = Color.Red,
