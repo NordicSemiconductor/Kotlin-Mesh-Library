@@ -373,7 +373,7 @@ data class MeshNetwork internal constructor(
             ).apply {
                 if (provisioners.isEmpty()) {
                     add(elements = localElements)
-                    companyIdentifier = 0x00E0u //Google
+                    companyIdentifier = 0x00E0u // Google
                     replayProtectionCount = maxUnicastAddress
                     name = provisioner.name
                 } else {
@@ -400,13 +400,13 @@ data class MeshNetwork internal constructor(
         require(_provisioners.size > 1) { throw CannotRemove() }
 
         val localProvisionerRemoved = index == 0
-        val provisioner = _provisioners[index]
-        _provisioners.remove(provisioner)
+        val provisioner = _provisioners.removeAt(index = index)
+            .also { it.network = null }
 
         // If the old local Provisioner has been removed, and a new one has been set in it's place,
         // it needs the properties to be updated.
         if (localProvisionerRemoved) {
-            _provisioners.first().node?.apply {
+            localProvisioner?.node?.apply {
                 assignNetKeys(networkKeys)
                 assignAppKeys(applicationKeys)
                 companyIdentifier = 0x00E0u
@@ -455,7 +455,19 @@ data class MeshNetwork internal constructor(
         require(from != to) {
             return
         }
-        _provisioners.add(to, removeProvisioner(from)).also { updateTimestamp() }
+        try {
+            val provisioner = removeProvisioner(index = from)
+            _provisioners.add(
+                to, provisioner.apply {
+                    network = this@MeshNetwork
+                }
+            ).also {
+                updateTimestamp()
+            }
+        } catch (e: Exception) {
+            println("Error while moving provisioner: ${e.message}")
+            throw IllegalStateException("Error while moving provisioner!", e)
+        }
     }
 
     /**
@@ -471,7 +483,8 @@ data class MeshNetwork internal constructor(
     fun move(provisioner: Provisioner, to: Int) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
         _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
-            moveProvisioner(from, to)
+            println("Moving provisioner from $from to $to")
+            moveProvisioner(from = from, to = to)
         }
     }
 

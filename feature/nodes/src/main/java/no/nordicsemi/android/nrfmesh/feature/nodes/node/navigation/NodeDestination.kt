@@ -45,7 +45,8 @@ fun NavGraphBuilder.nodeGraph(appState: AppState, navigateBack: () -> Unit) {
             save = viewModel::save,
             resetMessageState = viewModel::resetMessageState,
             appState = appState,
-            navigateBack = navigateBack
+            navigateBack = navigateBack,
+            removeNode = viewModel::removeNode
         )
     }
 }

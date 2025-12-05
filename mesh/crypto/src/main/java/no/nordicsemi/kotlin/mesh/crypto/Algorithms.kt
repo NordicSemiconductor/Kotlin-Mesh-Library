@@ -78,13 +78,20 @@ enum class Algorithm {
  * @property rawValue The raw value of the algorithm.
  */
 sealed class Algorithms(val rawValue: UShort) {
-    private constructor(rawValue: Int) : this(rawValue.toUShort())
+
+    /**
+     * Convenience constructor to accept Int values.
+     *
+     * @param rawValue The raw value of the algorithm.
+     */
+    constructor(rawValue: Int) : this(rawValue.toUShort())
 
     @Deprecated(
         message = "Renamed to BtmEcdhP256CmacAes128AesCcm in Mesh Protocol 1.1",
         replaceWith = ReplaceWith("BtmEcdhP256CmacAes128AesCcm"),
         level = DeprecationLevel.WARNING
     )
+
     object FipsP256EllipticCurve : Algorithms(rawValue = 1 shl 0) {
         override fun toString(): String = "FIPS P256 ELLIPTIC CURVE"
     }
@@ -99,8 +106,7 @@ sealed class Algorithms(val rawValue: UShort) {
 
     companion object {
 
-        val algorithms =
-            listOf(FipsP256EllipticCurve, BtmEcdhP256CmacAes128AesCcm, BtmEcdhP256HmacSha256AesCcm)
+        val algorithms = listOf(BtmEcdhP256CmacAes128AesCcm, BtmEcdhP256HmacSha256AesCcm)
 
         /**
          * Returns the list supported algorithms.

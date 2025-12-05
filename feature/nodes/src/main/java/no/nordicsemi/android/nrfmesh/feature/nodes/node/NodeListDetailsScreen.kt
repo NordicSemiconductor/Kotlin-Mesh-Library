@@ -1,5 +1,8 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -7,6 +10,7 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysRoute
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
@@ -37,6 +41,7 @@ internal fun NodeListDetailsScreen(
     resetMessageState: () -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
+    removeNode: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator().also {
@@ -44,6 +49,7 @@ internal fun NodeListDetailsScreen(
     }
     when (uiState.nodeState) {
         is NodeState.Success -> NavigableListDetailPaneScaffold(
+            modifier = Modifier.windowInsetsPadding(WindowInsets()),
             navigator = navigator,
             listPane = {
                 AnimatedPane {
@@ -85,7 +91,8 @@ internal fun NodeListDetailsScreen(
                         selectedItem = uiState.selectedNodeInfoItem,
                         send = send,
                         save = save,
-                        navigateBack = navigateBack
+                        navigateBack = navigateBack,
+                        removeNode = removeNode
                     )
                 }
             },

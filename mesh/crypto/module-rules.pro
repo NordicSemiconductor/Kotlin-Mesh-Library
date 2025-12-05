@@ -1,2 +1,3 @@
--keep class org.spongycastle.** { *; }
--dontwarn org.spongycastle.**
+# Keep all Bouncy Castle classes
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**

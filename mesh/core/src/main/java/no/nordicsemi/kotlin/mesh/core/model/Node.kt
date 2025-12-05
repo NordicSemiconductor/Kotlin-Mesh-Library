@@ -869,6 +869,17 @@ data class Node internal constructor(
 fun List<Node>.elements() = flatMap { it.elements }
 
 /**
+ * Returns an element with the given address from a list of nodes.
+ *
+ * @receiver List of nodes.
+ * @param address Address of the element.
+ * @return Element or null if not found.
+ */
+fun List<Node>.element(address: UnicastAddress) = elements().firstOrNull {
+    it.unicastAddress == address
+}
+
+/**
  * Returns the list of addresses from a list of nodes.
  *
  * @receiver List of nodes.

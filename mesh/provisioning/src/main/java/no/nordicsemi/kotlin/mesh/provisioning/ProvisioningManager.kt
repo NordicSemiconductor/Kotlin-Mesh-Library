@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.bearer.Pdu
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.exception.NoLocalProvisioner
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -39,7 +40,7 @@ import kotlin.uuid.ExperimentalUuidApi
 class ProvisioningManager(
     private val unprovisionedDevice: UnprovisionedDevice,
     private val meshNetwork: MeshNetwork,
-    val bearer: ProvisioningBearer
+    val bearer: ProvisioningBearer,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var configuration: ProvisioningParameters
@@ -281,7 +282,8 @@ class ProvisioningManager(
         provisioningData: ProvisioningData,
     ): ProvisioningCapabilities {
         logger?.v(LogCategory.PROVISIONING) { "Sending $invite" }
-        send(invite).also { provisioningData.accumulate(it) }
+        send(request = invite)
+            .also { provisioningData.accumulate(data = it) }
         val response = ProvisioningResponse.from(pdu = awaitBearerPdu().data)
             .apply {
                 logger?.v(LogCategory.PROVISIONING) { "Received $this" }
@@ -292,7 +294,29 @@ class ProvisioningManager(
                     throw InvalidPdu()
                 }
                 provisioningData.accumulate(data = pdu.sliceArray(indices = 1 until pdu.size))
-                configuration = ProvisioningParameters(meshNetwork, capabilities)
+                configuration = ProvisioningParameters(
+                    capabilities = capabilities,
+                    unicastAddress = meshNetwork.localProvisioner?.let {
+                        // Calculates the unicast address automatically based ont he number of elements.
+                        meshNetwork.nextAvailableUnicastAddress(
+                            elementCount = capabilities.numberOfElements,
+                            provisioner = it
+                        )?.also { address -> suggestedUnicastAddress = address }
+                            ?: run {
+                                logger?.e(LogCategory.PROVISIONING) {
+                                    "Provisioning failed with error: ${NoAddressAvailable()}"
+                                }
+                                throw NoAddressAvailable()
+                            }
+                    } ?: run {
+                        logger?.e(LogCategory.PROVISIONING) {
+                            "Provisioning failed with error: ${NoLocalProvisioner()}"
+                        }
+                        throw NoLocalProvisioner()
+                    },
+                    networkKey = meshNetwork.networkKeys.firstOrNull()
+                        ?: throw NoNetworkKeysAdded()
+                )
                 meshNetwork.localProvisioner?.let {
                     // Calculates the unicast address automatically based ont he number of elements.
                     if (configuration.unicastAddress == null) {
@@ -301,9 +325,7 @@ class ProvisioningManager(
                             meshNetwork.nextAvailableUnicastAddress(
                                 elementCount = count,
                                 provisioner = it
-                            )?.apply {
-                                suggestedUnicastAddress = this
-                            }
+                            )?.apply { suggestedUnicastAddress = this }
                     }
                 }
                 require(configuration.unicastAddress != null) {
@@ -332,7 +354,7 @@ class ProvisioningManager(
         provisioningData: ProvisioningData,
     ): ByteArray {
         logger?.v(LogCategory.PROVISIONING) { "Sending $request" }
-        send(request).also { provisioningData.accumulate(it) }
+        send(request).also { provisioningData.accumulate(data = it) }
         val response = ProvisioningResponse.from(pdu = awaitBearerPdu().data).also { response ->
             logger?.v(LogCategory.PROVISIONING) { "Received $response" }
             if (response is ProvisioningResponse.Failed) {

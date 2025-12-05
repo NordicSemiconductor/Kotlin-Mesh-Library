@@ -17,6 +17,13 @@ nordicNexusPublishing {
 
 dependencies {
     implementation(nordic.kotlin.data)
-    implementation("org.bouncycastle:bcprov-jdk15to18:1.73")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     testImplementation(libs.kotlin.junit)
+}
+
+// Applies proguard rules to the crypto module
+tasks.withType<Jar> {
+    from("module-rules.pro") {
+        into("META-INF/proguard/")
+    }
 }

@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
+import java.lang.Thread.sleep
 import kotlin.uuid.Uuid
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
@@ -62,7 +63,7 @@ internal class NodeViewModel @Inject internal constructor(
         requestConfigCompositionData()
     }
 
-    private fun observeNetworkChanges(){
+    private fun observeNetworkChanges() {
         repository.network.onEach {
             val state = it.node(nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
@@ -104,6 +105,8 @@ internal class NodeViewModel @Inject internal constructor(
         // Request the composition data when the network is connected if it has not been requested yet.
         repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
+                // Add a small delay to ensure proxy filter is set up before sending the message.
+                sleep(1000)
                 if (!selectedNode.isCompositionDataReceived) {
                     onRefresh()
                 }
@@ -273,6 +276,11 @@ internal class NodeViewModel @Inject internal constructor(
     internal fun addApplicationKey() = repository.addApplicationKey(
         boundNetworkKey = meshNetwork.networkKeys.first()
     )
+
+    internal fun removeNode() {
+        meshNetwork.remove(node = selectedNode)
+        save()
+    }
 
     fun save() {
         viewModelScope.launch {

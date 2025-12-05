@@ -12,7 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 /**
  * This message is used to delete a network key from the mesh network.
  *
- * @property index      Index of the network key to be deleted.
+ * @property index                Index of the network key to be deleted.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
  * @property responseOpCode       Op Code of the response message.

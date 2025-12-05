@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -113,8 +114,9 @@ private fun Provisioners(
         }
     ) { paddingValues ->
         LazyColumn(
-            contentPadding = paddingValues,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .consumeWindowInsets(paddingValues = paddingValues),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
             itemsIndexed(
@@ -123,7 +125,7 @@ private fun Provisioners(
             ) { index, item ->
                 if (index == 0) {
                     SectionTitle(
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier.padding(vertical = 8.dp),
                         title = stringResource(id = R.string.label_this_provisioner)
                     )
                 }
@@ -189,7 +191,12 @@ private fun SwipeToDismissProvisioner(
                 imageVector = index.toImageVector(),
                 title = provisioner.name,
                 subtitle = provisioner.address?.let {
-                    "0x${it.toHexString()}"
+                    it.address.toHexString(
+                        format = HexFormat {
+                            number.prefix = "Address: 0x"
+                            upperCase = true
+                        }
+                    )
                 } ?: context.getString(R.string.label_unassigned),
             )
         }

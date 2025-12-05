@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -80,7 +81,6 @@ internal fun ConfigAppKeysScreen(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        contentWindowInsets = WindowInsets(top = 0.dp),
         floatingActionButton = {
             AnimatedVisibility(visible = !showBottomSheet) {
                 ExtendedFloatingActionButton(
@@ -96,7 +96,7 @@ internal fun ConfigAppKeysScreen(
             PullToRefreshBox(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues = paddingValues),
+                    .consumeWindowInsets(paddingValues = paddingValues),
                 onRefresh = {
                     send(
                         ConfigAppKeyGet(

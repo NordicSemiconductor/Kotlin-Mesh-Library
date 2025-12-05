@@ -19,6 +19,6 @@
     <string name="label_settings">Settings</string>
     <string name="label_network_keys">Network Keys</string>
     <string name="label_added_network_keys">Added Network Keys</string>
-    <string name="label_generate_key">Generate Key</string>
+    <string name="label_generate">Generate</string>
     <string name="label_network_key_added">Network key added</string>
 </resources>

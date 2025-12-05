@@ -82,7 +82,7 @@ class CryptoTest {
     fun testK2() {
         val N = "f7a2a44f8e8a8029064f173ddc1e2b00".uppercase(Locale.US)
         val P = "00".uppercase(Locale.US)
-        val expectedNid = "7f".uppercase(Locale.US).toInt(radix = 16)
+        val expectedNid = "7f".uppercase(Locale.US).toByte(radix = 16)
         val expectedEncryptionKey = "9f589181a0f50de73c8070c7a6d27f46".uppercase(Locale.US)
         val expectedPrivacyKey = "4c715bd4a64b938f99b453351653124f".uppercase(Locale.US)
         val (nid, encryptionKey, privacyKey) = k2(N = N.toByteArray(), P = P.toByteArray())
@@ -111,7 +111,7 @@ class CryptoTest {
     @Test
     fun testK4() {
         val N = "3216d1509884b533248541792b877f98".uppercase(Locale.US)
-        val expectedNetworkId = "38".uppercase(Locale.US).toInt(radix = 16)
+        val expectedNetworkId = "38".uppercase(Locale.US).toByte(radix = 16)
         Assert.assertEquals(expectedNetworkId, k4(N = N.toByteArray()))
     }
 

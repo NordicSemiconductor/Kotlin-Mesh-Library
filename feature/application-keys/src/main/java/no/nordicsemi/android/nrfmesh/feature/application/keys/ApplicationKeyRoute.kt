@@ -3,9 +3,10 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -32,9 +33,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -42,7 +45,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -61,17 +63,19 @@ internal fun ApplicationKeyRoute(
     var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.boundNetKeyIndex.toInt()) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = paddingValues)
+                .consumeWindowInsets(paddingValues = paddingValues)
                 .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            SectionTitle(title = stringResource(id = R.string.label_application_key))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(id = R.string.label_application_key)
+            )
             Name(
                 name = applicationKey.name,
                 onNameChanged = {
@@ -152,8 +156,20 @@ fun Key(
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     ElevatedCardItemTextField(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clickable {
+                copyToClipboard(
+                    scope = scope,
+                    clipboard = clipboard,
+                    text = key.toHexString(format = HexFormat.UpperCase),
+                    label = context.getString(R.string.label_application_key)
+                )
+            },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
         subtitle = key.toHexString(),
@@ -167,11 +183,24 @@ fun Key(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun OldKey(oldKey: ByteArray?) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     ApplicationKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AssistWalker,
         title = stringResource(id = R.string.label_old_key),
-        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na)
+        subtitle = oldKey?.toHexString() ?: stringResource(id = R.string.label_na),
+        onClick = {
+            if (oldKey != null) {
+                copyToClipboard(
+                    scope = scope,
+                    clipboard = clipboard,
+                    text = oldKey.toHexString(format = HexFormat.UpperCase),
+                    label = context.getString(R.string.label_old_key)
+                )
+            }
+        }
     )
 }
 

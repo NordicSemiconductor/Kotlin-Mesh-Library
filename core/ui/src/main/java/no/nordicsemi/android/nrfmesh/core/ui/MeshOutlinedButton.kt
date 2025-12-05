@@ -1,9 +1,9 @@
 package no.nordicsemi.android.nrfmesh.core.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -42,7 +42,8 @@ fun MeshOutlinedButton(
     border: BorderStroke? = ButtonDefaults.outlinedButtonBorder(enabled = enabled),
 ) {
     OutlinedButton(
-        modifier = modifier.defaultMinSize(minWidth = 120.dp),
+        modifier = modifier.widthIn(min = 120.dp),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         border = border,
         enabled = enabled,
         onClick = onClick,

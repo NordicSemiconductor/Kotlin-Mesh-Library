@@ -16,9 +16,8 @@ class MainActivity : NordicActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
             NordicTheme {
-                MeshApp(windowSizeClass = windowSizeClass)
+                MeshApp(windowSizeClass = calculateWindowSizeClass(activity = this))
             }
         }
     }

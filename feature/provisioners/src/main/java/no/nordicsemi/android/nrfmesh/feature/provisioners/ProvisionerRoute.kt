@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -99,17 +99,19 @@ internal fun ProvisionerRoute(
     }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = paddingValues)
+                .consumeWindowInsets(paddingValues = paddingValues)
                 .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
-            SectionTitle(title = stringResource(id = R.string.label_provisioner))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(id = R.string.label_provisioner)
+            )
             Name(
                 name = provisionerData.name,
                 onNameChanged = {
@@ -342,7 +344,7 @@ private fun UnicastAddress(
                                         runCatching {
                                             provisioner.assign(
                                                 address = UnicastAddress(
-                                                    address = value.text.toInt(radix = 16)
+                                                    address = value.text.toUShort(radix = 16)
                                                 )
                                             )
                                         }.onSuccess {

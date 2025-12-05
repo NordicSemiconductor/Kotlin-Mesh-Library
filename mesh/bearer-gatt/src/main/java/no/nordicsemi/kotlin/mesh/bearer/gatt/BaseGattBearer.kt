@@ -2,11 +2,10 @@
 
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +15,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.suspendCancellableCoroutine
 import no.nordicsemi.kotlin.ble.client.CentralManager
 import no.nordicsemi.kotlin.ble.client.Peripheral
 import no.nordicsemi.kotlin.ble.client.RemoteCharacteristic
 import no.nordicsemi.kotlin.ble.client.RemoteService
 import no.nordicsemi.kotlin.ble.client.ScanResult
-import no.nordicsemi.kotlin.ble.core.ConnectionState
 import no.nordicsemi.kotlin.ble.core.WriteType
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
@@ -32,6 +31,8 @@ import no.nordicsemi.kotlin.mesh.bearer.ProxyProtocolHandler
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshService
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.uuid.ExperimentalUuidApi
 
 /**
@@ -45,7 +46,6 @@ import kotlin.uuid.ExperimentalUuidApi
  * @property isOpen            Returns true if the bearer is open, false otherwise.
  */
 abstract class BaseGattBearer<
-        Service : MeshService,
         ID : Any,
         C : CentralManager<ID, P, EX, F, SR>,
         P : Peripheral<ID, EX>,
@@ -53,7 +53,6 @@ abstract class BaseGattBearer<
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
         >(
-    protected val dispatcher: CoroutineDispatcher,
     protected val centralManager: C,
     protected val peripheral: P,
 ) : GattBearer {
@@ -73,66 +72,102 @@ abstract class BaseGattBearer<
     private var mtu: Int = DEFAULT_MTU
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
-    private lateinit var queue: Array<ByteArray>
-    protected lateinit var dataInCharacteristic: RemoteCharacteristic
+    protected var dataInCharacteristic: RemoteCharacteristic? = null
 
-    private var logger: Logger? = null
+    var logger: Logger? = null
+    private var servicesObserver: Job? = null
 
-    abstract suspend fun configureGatt(services: List<RemoteService>)
+    protected abstract val meshService: MeshService
+
+    /**
+     * Configures the GATT services and characteristics required for the bearer to operate.
+     *
+     * @param services List of remote services discovered on the peripheral.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun configureGatt(services: List<RemoteService>?) {
+        var dataInChar: RemoteCharacteristic? = null
+        var dataOutChar: RemoteCharacteristic? = null
+        services?.forEach { service ->
+            service.characteristics.forEach { characteristic ->
+                when (characteristic.uuid) {
+                    meshService.dataInUuid -> dataInChar = characteristic
+                    meshService.dataOutUuid -> dataOutChar = characteristic
+                }
+            }
+        }
+        when {
+            dataInChar != null && dataOutChar != null -> {
+                dataInCharacteristic = dataInChar
+                subscribe(dataOutCharacteristic = dataOutChar)
+                // Marks device as ready
+                onOpened()
+            }
+
+            else -> {
+                // Subscription for dataOutCharacteristic may cancel automatically in case the
+                // services gets invalidated.
+                dataInCharacteristic = null
+                onClosed()
+            }
+        }
+    }
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun open() {
+        // Avoid multiple opens if already observing services
+        if (servicesObserver != null) return
         // Observe the connection state
-        observeConnectionState(peripheral)
+        centralManager.connect(peripheral = peripheral)
+
+        return suspendCancellableCoroutine { continuation ->
+            var suspended = true
+            // Start observing the discovered services
+            servicesObserver = peripheral.services()
+                .onEach { services ->
+                    configureGatt(services = services)
+                    if (suspended && services != null) {
+                        suspended = false
+                        when (isOpen) {
+                            true -> continuation.resume(Unit)
+                            false -> continuation.resumeWithException(BearerError.Closed())
+                        }
+                    }
+                }
+                .onCompletion {
+                    // Let's clear the reference to the observer after cancellation
+                    servicesObserver = null
+                }
+                .launchIn(scope = scope)
+        }
     }
 
     override suspend fun close() {
+        onClosed()
+        servicesObserver?.cancel()
         peripheral.disconnect()
-        dispatcher.cancel()
-    }
-
-    /**
-     * Observes the connection state of the GATT client and the bearer state.
-     *
-     * @param peripheral Peripheral to observe.
-     */
-    private fun observeConnectionState(peripheral: P) {
-        peripheral.state
-            .onEach {
-                when (it) {
-                    is ConnectionState.Connected -> onConnected()
-                    is ConnectionState.Disconnecting, is ConnectionState.Disconnected -> onDisconnected()
-                    else -> {
-                        // Ignore other states
-                    }
-                }
-            }
-            .onCompletion { throwable ->
-                throwable?.let { logger?.e(LogCategory.BEARER) { "Something went wrong $it" } }
-                logger?.e(LogCategory.BEARER) { "Something went wrong" }
-                onDisconnected()
-            }
-            .launchIn(scope)
     }
 
     /**
      * Invoked when the bearer is opened
      */
-    private fun onConnected() {
+    private fun onOpened() {
         isOpen = true
         _state.value = BearerEvent.Opened
-        logger?.v(LogCategory.BEARER) { "Bearer opened." }
+        logger?.v(LogCategory.BEARER) { "Bearer opened" }
     }
 
 
     /**
      * Invoked when the bearer is closed
      */
-    private fun onDisconnected() {
+    private fun onClosed() {
         if (isOpen) {
             isOpen = false
-            _state.value = BearerEvent.Closed(BearerError.Closed())
-            logger?.v(LogCategory.BEARER) { "Bearer closed." }
+            _state.value = BearerEvent.Closed(
+                error = BearerError.Closed()
+            )
+            logger?.v(LogCategory.BEARER) { "Bearer closed" }
         }
     }
 
@@ -140,21 +175,28 @@ abstract class BaseGattBearer<
         require(supports(type)) { throw BearerError.PduTypeNotSupported() }
         require(isOpen) { throw BearerError.Closed() }
         proxyProtocolHandler.segment(pdu, type, mtu)
-            .forEach { dataInCharacteristic.write(it, WriteType.WITHOUT_RESPONSE) }
+            .forEach { dataInCharacteristic?.write(it, WriteType.WITHOUT_RESPONSE) }
     }
 
-    protected suspend fun awaitNotifications(dataOutCharacteristic: RemoteCharacteristic) {
+    /**
+     * Subscribes to the Data Out characteristic to receive notifications.
+     *
+     * @param dataOutCharacteristic The Data Out characteristic to subscribe to.
+     */
+    protected suspend fun subscribe(dataOutCharacteristic: RemoteCharacteristic) {
+        // Call subscribe first before setting notifying to avoid missing packets
         dataOutCharacteristic.subscribe()
             .onEach {
-                proxyProtocolHandler.reassemble(data = it)
+                proxyProtocolHandler
+                    .reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }
-            }
-            .onCompletion {
+            }.onCompletion {
                 logger?.v(LogCategory.BEARER) {
-                    "Device disconnected after waiting for notifications"
+                    "Unsubscribed from: $dataOutCharacteristic"
                 }
             }
             .launchIn(scope)
+        dataOutCharacteristic.setNotifying(true)
     }
 
     companion object {

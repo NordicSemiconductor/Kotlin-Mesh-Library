@@ -66,8 +66,11 @@ fun MeshAlertDialog(
     iconColor: Color = MaterialTheme.colorScheme.error,
     title: String? = null,
     error: Boolean = false,
-    properties: DialogProperties = DialogProperties(usePlatformDefaultWidth = false),
-    content: @Composable () -> Unit = {}
+    properties: DialogProperties = DialogProperties(
+        usePlatformDefaultWidth = !isCompactWidth(),
+        decorFitsSystemWindows = !isCompactWidth()
+    ),
+    content: @Composable () -> Unit = {},
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
@@ -123,11 +126,14 @@ fun MeshAlertDialog(
     icon: ImageVector? = null,
     iconColor: Color = AlertDialogDefaults.iconContentColor,
     title: String? = null,
-    text: String? = null
+    text: String? = null,
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.85f),
-        // properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(
+            usePlatformDefaultWidth = !isCompactWidth(),
+            decorFitsSystemWindows = !isCompactWidth()
+        ),
         onDismissRequest = { onDismissRequest() },
         confirmButton = {
             TextButton(onClick = { onConfirmClick() }) { Text(text = confirmButtonText) }
@@ -160,12 +166,15 @@ fun MeshAlertDialog(
     iconColor: Color = AlertDialogDefaults.iconContentColor,
     title: String? = null,
     text: String? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = Modifier.fillMaxWidth(0.85f),
-        properties = DialogProperties(usePlatformDefaultWidth = true),
+        properties = DialogProperties(
+            usePlatformDefaultWidth = !isCompactWidth(),
+            decorFitsSystemWindows = !isCompactWidth()
+        ),
         content = {
             Surface(
                 modifier = Modifier
@@ -250,7 +259,9 @@ fun MeshMessageStatusDialog(
     AlertDialog(
         properties = DialogProperties(
             dismissOnBackPress = false,
-            dismissOnClickOutside = false
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = !isCompactWidth(),
+            decorFitsSystemWindows = !isCompactWidth()
         ),
         onDismissRequest = onDismissRequest,
         confirmButton = {

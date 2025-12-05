@@ -60,7 +60,7 @@ fun BottomSheetApplicationKeys(
                 enabled = !messageState.isInProgress(),
                 onClick = onAddApplicationKeyClicked,
                 buttonIcon = Icons.Outlined.AutoFixHigh,
-                text = stringResource(R.string.label_generate_key)
+                text = stringResource(R.string.label_generate)
             )
             MeshOutlinedButton(
                 enabled = !messageState.isInProgress(),

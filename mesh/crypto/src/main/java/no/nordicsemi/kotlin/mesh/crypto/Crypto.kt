@@ -15,6 +15,7 @@ import org.bouncycastle.crypto.macs.HMac
 import org.bouncycastle.crypto.modes.CCMBlockCipher
 import org.bouncycastle.crypto.params.AEADParameters
 import org.bouncycastle.crypto.params.KeyParameter
+import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyPairGeneratorSpi
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.interfaces.ECPublicKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -23,7 +24,6 @@ import org.bouncycastle.util.BigIntegers
 import java.security.InvalidKeyException
 import java.security.KeyFactory
 import java.security.KeyPair
-import java.security.KeyPairGenerator
 import java.security.NoSuchAlgorithmException
 import java.security.NoSuchProviderException
 import java.security.PrivateKey
@@ -38,10 +38,9 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 object Crypto {
-
     private val secureRandom = SecureRandom()
-    private val blockCipher: BlockCipher = AESEngine()
-    private val SALT_KEY = ByteArray(16) { 0x00 }
+    private val blockCipher: BlockCipher = AESEngine.newInstance()
+    private val SALT_KEY = ByteArray(16)
     private val smk2 = "smk2".encodeToByteArray()
     private val smk3 = "smk3".encodeToByteArray()
     private val smk4 = "smk4".encodeToByteArray()
@@ -66,14 +65,14 @@ object Crypto {
             Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
         }
         // Install the provider
-        Security.insertProviderAt(BouncyCastleProvider(), 1)
+        Security.insertProviderAt(BouncyCastleProvider(), 0)
     }
 
     /**
      * Generates a 128-bit random key using a SecureRandom.
      */
     fun generateRandomKey() = secureRandom.run {
-        val random = ByteArray(16) { 0x00 }
+        val random = ByteArray(16)
         nextBytes(random)
         random
     }
@@ -85,7 +84,7 @@ object Crypto {
      * @return ByteArray
      */
     fun generateRandom(sizeInBits: Int) = secureRandom.run {
-        val random = ByteArray(sizeInBits shr 3) { 0x00 }
+        val random = ByteArray(sizeInBits shr 3)
         nextBytes(random)
         random
     }
@@ -95,23 +94,19 @@ object Crypto {
      * @param algorithm Algorithm to use.
      * @return KeyPair
      */
-    fun generateKeyPair(algorithm: Algorithm): KeyPair = when (algorithm) {
-        Algorithm.FIPS_P256_ELLIPTIC_CURVE,
-        Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
-        Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM,
-            -> {
-            val keyPairGenerator = KeyPairGenerator.getInstance("ECDH", "BC")
-            keyPairGenerator.initialize(ECNamedCurveTable.getParameterSpec("secp256r1"))
-            keyPairGenerator.generateKeyPair()
+    fun generateKeyPair(algorithm: Algorithm): KeyPair = KeyPairGeneratorSpi
+        .ECDH()
+        .run {
+            initialize(algorithm.length)
+            generateKeyPair()
         }
-    }
 
 
     /**
      * Calculates the shared secret based on the given public key and the local private key.
      *
      * @param privateKey  Private key.
-     * @param publicKey   Public key.
+     * @param publicKey   Public key.z
      * @return Shared secret.
      * @throws NoSuchAlgorithmException  if the algorithm is not supported.
      * @throws NoSuchProviderException   if the provider is not supported.
@@ -129,12 +124,13 @@ object Crypto {
         IllegalStateException::class
     )
     fun calculateSharedSecret(privateKey: PrivateKey, publicKey: ByteArray): ByteArray {
-        val devicePublicKey = calculateDeviceEcPublicKey(publicKey) as ECPublicKey
-        return KeyAgreement.getInstance("ECDH", "BC").let {
-            it.init(privateKey)
-            it.doPhase(devicePublicKey, true)
-            it.generateSecret()
-        }
+        val devicePublicKey = calculateDeviceEcPublicKey(publicKey = publicKey) as ECPublicKey
+        return KeyAgreement.getInstance(privateKey.algorithm, BouncyCastleProvider.PROVIDER_NAME)
+            .let {
+                it.init(privateKey)
+                it.doPhase(devicePublicKey, true)
+                it.generateSecret()
+            }
     }
 
     /**
@@ -150,7 +146,7 @@ object Crypto {
         val ecParameters = ECNamedCurveTable.getParameterSpec("secp256r1")
         val ecPoint = ecParameters.curve.validatePoint(x, y)
         val keySpec = ECPublicKeySpec(ecPoint, ecParameters)
-        val keyFactory = KeyFactory.getInstance("ECDH", "BC")
+        val keyFactory = KeyFactory.getInstance("ECDH", BouncyCastleProvider.PROVIDER_NAME)
         return keyFactory.generatePublic(keySpec)
     }
 
@@ -162,7 +158,7 @@ object Crypto {
      * @param publicKey Provisioner public key.
      */
     fun calculateDevicePublicKey(publicKey: ByteArray): ByteArray =
-        calculateDeviceEcPublicKey(publicKey).toByteArray()
+        calculateDeviceEcPublicKey(publicKey = publicKey).toByteArray()
 
     /**
      * Calculates the provisioning confirmation based on the confirmation inputs, device random,
@@ -186,9 +182,9 @@ object Crypto {
             Algorithm.FIPS_P256_ELLIPTIC_CURVE,
             Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
                 -> {
-                val confirmationSalt = calculateS1(confirmationInputs)
-                val confirmationKey = k1(sharedSecret, confirmationSalt, PRCK)
-                calculateCmac(deviceRandom + authValue, confirmationKey)
+                val confirmationSalt = calculateS1(input = confirmationInputs)
+                val confirmationKey = k1(N = sharedSecret, SALT = confirmationSalt, P = PRCK)
+                calculateCmac(input = deviceRandom + authValue, key = confirmationKey)
             }
 
             Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
@@ -205,7 +201,7 @@ object Crypto {
      */
     @OptIn(ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
     fun createVirtualAddress(uuid: Uuid): UShort {
-        val salt = calculateS1(VTAD)
+        val salt = calculateS1(input = VTAD)
         val hash = calculateCmac(input = uuid.toByteArray(), key = salt)
         // The virtual address is a 16-bit value that has bit 15 set to 1, bit 14 set to 0,
         // and bits 13 to 0 set to the value of a hash.
@@ -222,7 +218,7 @@ object Crypto {
      * @return Key Derivatives.
      */
     fun calculateKeyDerivatives(N: ByteArray, credentials: SecurityCredentials): KeyDerivatives {
-        return calculateKeyDerivatives(N, credentials.P)
+        return calculateKeyDerivatives(N = N, P = credentials.P)
     }
 
     /**
@@ -341,9 +337,9 @@ object Crypto {
         // PECB = e (PrivacyKey, Privacy Plaintext)
         // ObfuscatedData = (CTL || TTL || SEQ || SRC) ⊕ PECB[0–5]
         val privacyRandom = random.copyOfRange(fromIndex = 0, toIndex = 7)
-        val privacyPlaintext = ByteArray(5) { 0x00 } +
+        val privacyPlaintext = ByteArray(5) +
                 ivIndex.toByteArray() + privacyRandom
-        val pecb = calculateECB(privacyPlaintext, privacyKey)
+        val pecb = calculateECB(data = privacyPlaintext, key = privacyKey)
         return data xor pecb.copyOfRange(fromIndex = 0, toIndex = 6)
     }
 
@@ -357,11 +353,11 @@ object Crypto {
      */
     fun authenticate(pdu: ByteArray, beaconKey: ByteArray): Boolean = try {
         // byte 0 is the beacon type 0x01
-        val flagsNetIdAndIvIndex = pdu.sliceArray(1 until 14)
-        val authenticationValue = pdu.sliceArray(14 until 22)
+        val flagsNetIdAndIvIndex = pdu.sliceArray(indices = 1 until 14)
+        val authenticationValue = pdu.sliceArray(indices = 14 until 22)
         val hash = calculateCmac(input = flagsNetIdAndIvIndex, key = beaconKey)
-            .sliceArray(0 until 8)
-        hash.contentEquals(authenticationValue)
+            .sliceArray(indices = 0 until 8)
+        hash.contentEquals(other = authenticationValue)
     } catch (e: Exception) {
         false
     }
@@ -380,27 +376,31 @@ object Crypto {
      */
     fun decodeAndAuthenticate(pdu: ByteArray, privateBeaconKey: ByteArray): Pair<Byte, ByteArray>? {
         // Byte 0 of the PDU is the Beacon Type (0x02)
-        val random = pdu.sliceArray(1 until 14)
-        val obfuscatedData = pdu.sliceArray(14 until 19)
-        val authenticationTag = pdu.sliceArray(19 until 27)
+        val random = pdu.sliceArray(indices = 1 until 14)
+        val obfuscatedData = pdu.sliceArray(indices = 14 until 19)
+        val authenticationTag = pdu.sliceArray(indices = 19 until 27)
 
         // Deobfuscate Private Beacon Data
         val C1 = byteArrayOf(0x01) + random + byteArrayOf(0x00, 0x01)
-        val S = calculateECB(C1, privateBeaconKey)
-        val privateBeaconData = S.sliceArray(0 until 5) xor obfuscatedData
+        val S = calculateECB(data = C1, key = privateBeaconKey)
+        val privateBeaconData = S.sliceArray(indices = 0 until 5) xor obfuscatedData
 
         // Authenticate the Beacon
         val B0 = byteArrayOf(0x19) + random + byteArrayOf(0x00, 0x05)
         val C0 = byteArrayOf(0x01) + random + ByteArray(2) { 0x00 }
         val P = privateBeaconData + ByteArray(11) { 0x00 }
-        val T0 = calculateECB(B0, privateBeaconKey)
-        val T1 = calculateECB(T0 xor P, privateBeaconKey)
-        val T2 = T1 xor calculateECB(C0, privateBeaconKey)
-        val calculatedAuthenticationTag = T2.sliceArray(0 until 8)
+        val T0 = calculateECB(data = B0, key = privateBeaconKey)
+        val T1 = calculateECB(data = T0 xor P, key = privateBeaconKey)
+        val T2 = T1 xor calculateECB(data = C0, key = privateBeaconKey)
+        val calculatedAuthenticationTag = T2.sliceArray(indices = 0 until 8)
 
-        if (!authenticationTag.contentEquals(calculatedAuthenticationTag)) return null
+        if (!authenticationTag.contentEquals(other = calculatedAuthenticationTag)) return null
 
-        return Pair(privateBeaconData[0], privateBeaconData.copyOfRange(1, 5))
+        return Pair(
+            first = privateBeaconData[0],
+            second = privateBeaconData
+                .copyOfRange(fromIndex = 1, toIndex = 5)
+        )
     }
 
     /**
@@ -441,7 +441,7 @@ object Crypto {
      * @return Function of the included random number and identity information.
      */
     fun calculateHash(data: ByteArray, identityKey: ByteArray) =
-        calculateECB(data, identityKey).drop(8).toByteArray()
+        calculateECB(data, identityKey).drop(n = 8).toByteArray()
 
     /**
      * Calculates the 128-bit IdentityKey.
@@ -452,7 +452,7 @@ object Crypto {
      * @return 128-bit key T.
      */
     private fun calculateIdentityKey(N: ByteArray): ByteArray {
-        val s1 = calculateS1(NKIK)
+        val s1 = calculateS1(input = NKIK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
@@ -467,7 +467,7 @@ object Crypto {
      * @return 128-bit key T.
      */
     private fun calculateBeaconKey(N: ByteArray): ByteArray {
-        val s1 = calculateS1(NKBK)
+        val s1 = calculateS1(input = NKBK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
@@ -481,7 +481,7 @@ object Crypto {
      * @return 128-bit key T.
      */
     private fun calculatePrivateBeaconKey(N: ByteArray): ByteArray {
-        val s1 = calculateS1(NKPK)
+        val s1 = calculateS1(input = NKPK)
         val P = ID128 + 0x01
         return k1(N = N, SALT = s1, P = P)
     }
@@ -543,8 +543,8 @@ object Crypto {
         require(P.isNotEmpty()) {
             "P must be 1 or more octets."
         }
-        val s1 = calculateS1(smk2)
-        val T = calculateCmac(N, s1)
+        val s1 = calculateS1(input = smk2)
+        val T = calculateCmac(input = N, key = s1)
         val T0 = byteArrayOf()
         val T1 = calculateCmac(input = (T0 + P + byteArrayOf(0x01)), key = T)
         val T2 = calculateCmac(input = (T1 + P + byteArrayOf(0x02)), key = T) // EncryptionKey
@@ -563,8 +563,8 @@ object Crypto {
      * @return 64-bit key T.
      */
     internal fun k3(N: ByteArray): ByteArray {
-        val s1 = calculateS1(smk3)
-        val T = calculateCmac(N, s1)
+        val s1 = calculateS1(input = smk3)
+        val T = calculateCmac(input = N, key = s1)
         val result = calculateCmac(input = (id64 + 0x01), key = T)
         return result.copyOfRange(8, result.count())
     }
@@ -578,8 +578,8 @@ object Crypto {
      * @return 128-bit key T.
      */
     internal fun k4(N: ByteArray): Byte {
-        val s1 = calculateS1(smk4)
-        val T = calculateCmac(N, s1)
+        val s1 = calculateS1(input = smk4)
+        val T = calculateCmac(input = N, key = s1)
         val result = calculateCmac(input = (id6 + 0x01), key = T)
         return result.last() and 0x3F
     }
@@ -595,8 +595,8 @@ object Crypto {
      * @return 256-bit key T.
      */
     internal fun k5(N: ByteArray, SALT: ByteArray, P: ByteArray): ByteArray {
-        val T = calculateHmac256(N, SALT)
-        return calculateHmac256(P, T)
+        val T = calculateHmac256(input = N, key = SALT)
+        return calculateHmac256(input = P, key = T)
     }
 
     /**
@@ -635,7 +635,7 @@ object Crypto {
         return HMac(SHA256Digest()).run {
             init(KeyParameter(key))
             update(input, 0, input.count())
-            val output = ByteArray(macSize) { 0x00 }
+            val output = ByteArray(macSize)
             doFinal(output, 0)
             output
         }
@@ -664,7 +664,7 @@ object Crypto {
         additionalData: ByteArray? = null,
         micSize: Int,
         mode: Boolean,
-    ) = CCMBlockCipher(blockCipher).run {
+    ) = CCMBlockCipher.newInstance(blockCipher).run {
         val ccm = ByteArray(if (mode) data.size + micSize else data.size - micSize)
         init(mode, AEADParameters(KeyParameter(key), micSize * 8, nonce, additionalData))
         processBytes(data, 0, data.size, ccm, data.size)
@@ -693,21 +693,18 @@ object Crypto {
         val confirmationSalt = when (algorithm) {
             Algorithm.FIPS_P256_ELLIPTIC_CURVE,
             Algorithm.BTM_ECDH_P256_CMAC_AES128_AES_CCM,
-                -> {
-                calculateS1(confirmationInputs)
-            }
+                -> calculateS1(input = confirmationInputs)
 
-            Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> {
-                calculateS2(confirmationInputs)
-            }
+            Algorithm.BTM_ECDH_P256_HMAC_SHA256_AES_CCM -> calculateS2(input = confirmationInputs)
         }
-        val provisioningSalt = calculateS1(confirmationSalt + provisionerRandom + deviceRandom)
-        val sessionKey = k1(sharedSecret, provisioningSalt, PRSK)
+        val provisioningSalt =
+            calculateS1(input = confirmationSalt + provisionerRandom + deviceRandom)
+        val sessionKey = k1(N = sharedSecret, SALT = provisioningSalt, P = PRSK)
         // Only the 13 least significant bits of the calculated session nonce are used.
-        val sessionNonce = k1(sharedSecret, provisioningSalt, PRSN).let { nonce ->
-            nonce.sliceArray(3 until nonce.size)
+        val sessionNonce = k1(N = sharedSecret, SALT = provisioningSalt, P = PRSN).let { nonce ->
+            nonce.sliceArray(indices = 3 until nonce.size)
         }
-        val deviceKey = k1(sharedSecret, provisioningSalt, PRDK)
-        return Triple(sessionKey, sessionNonce, deviceKey)
+        val deviceKey = k1(N = sharedSecret, SALT = provisioningSalt, P = PRDK)
+        return Triple(first = sessionKey, second = sessionNonce, third = deviceKey)
     }
 }

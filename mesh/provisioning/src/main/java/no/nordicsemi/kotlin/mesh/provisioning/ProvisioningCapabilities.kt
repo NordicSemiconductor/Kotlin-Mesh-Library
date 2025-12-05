@@ -41,13 +41,13 @@ data class ProvisioningCapabilities(
 ) {
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
-        algorithms = Algorithms.from(data.getUShort(2)),
+        algorithms = Algorithms.from(data.getUShort(offset = 2)),
         publicKeyType = PublicKeyType.from(data[4].toUByte()),
         oobTypes = OobType.from(data[5].toUByte()),
         outputOobSize = data[6].toUByte(),
-        outputOobActions = OutputOobActions.from(data.getUShort(7)),
+        outputOobActions = OutputOobActions.from(data.getUShort(offset = 7)),
         inputOobSize = data[9].toUByte(),
-        inputOobActions = InputOobActions.from(data.getUShort(10))
+        inputOobActions = InputOobActions.from(data.getUShort(offset = 10))
     )
 
     val value: ProvisioningPdu

@@ -143,7 +143,7 @@ sealed class ProvisioningRequest {
      * @constructor Creates a new Provisioning Invite PDU.
      */
     data class Invite(val attentionTimer: UByte) : ProvisioningRequest() {
-        override fun toString() = "Provisioning Invite (attention timer : $attentionTimer sec)"
+        override fun toString() = "Provisioning Invite (attention timer: $attentionTimer sec)"
     }
 
     /**

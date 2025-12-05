@@ -50,4 +50,5 @@
     <string name="label_provide_static_key_rationale">Enter the %d character text displayed on the device.</string>
     <string name="action_connect">Connect</string>
     <string name="label_device_information">Device Information</string>
+    <string name="label_hex_prefix">0x</string>
 </resources>

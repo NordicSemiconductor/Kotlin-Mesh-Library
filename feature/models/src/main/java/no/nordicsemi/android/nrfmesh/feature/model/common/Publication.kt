@@ -163,15 +163,14 @@ internal fun Publication(
             onDismissRequest = { showBottomSheet = !showBottomSheet },
             content = {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     content = {
                         SectionTitle(
                             modifier = Modifier.weight(weight = 1f),
-                            title = stringResource(R.string.label_publication)
+                            title = stringResource(R.string.label_publication),
+                            style = MaterialTheme.typography.titleMedium
                         )
                         MeshOutlinedButton(
                             modifier = Modifier.padding(end = 16.dp),
@@ -220,7 +219,7 @@ internal fun Publication(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = 16.dp)
+                        .padding(vertical = 16.dp)
                         .verticalScroll(state = rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {

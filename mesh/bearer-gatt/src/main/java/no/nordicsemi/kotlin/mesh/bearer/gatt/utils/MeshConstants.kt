@@ -13,10 +13,10 @@ import kotlin.uuid.Uuid
  * @property dataOutUuid     UUID of the Data Out characteristic.
  */
 @OptIn(ExperimentalUuidApi::class)
-interface MeshService {
-    var uuid: Uuid
-    var dataInUuid: Uuid
-    var dataOutUuid: Uuid
+sealed interface MeshService {
+    val uuid: Uuid
+    val dataInUuid: Uuid
+    val dataOutUuid: Uuid
 }
 
 /**
@@ -27,9 +27,9 @@ interface MeshService {
  */
 @OptIn(ExperimentalUuidApi::class)
 object MeshProvisioningService : MeshService {
-    override var uuid: Uuid = Uuid.parse("00001827-0000-1000-8000-00805f9b34fb")
-    override var dataInUuid: Uuid = Uuid.parse("00002adb-0000-1000-8000-00805f9b34fb")
-    override var dataOutUuid: Uuid = Uuid.parse("00002adc-0000-1000-8000-00805f9b34fb")
+    override val uuid: Uuid = Uuid.parse("00001827-0000-1000-8000-00805f9b34fb")
+    override val dataInUuid: Uuid = Uuid.parse("00002adb-0000-1000-8000-00805f9b34fb")
+    override val dataOutUuid: Uuid = Uuid.parse("00002adc-0000-1000-8000-00805f9b34fb")
 }
 
 /**
@@ -40,7 +40,7 @@ object MeshProvisioningService : MeshService {
  */
 @OptIn(ExperimentalUuidApi::class)
 object MeshProxyService : MeshService {
-    override var uuid: Uuid = Uuid.parse("00001828-0000-1000-8000-00805f9b34fb")
-    override var dataInUuid: Uuid = Uuid.parse("00002add-0000-1000-8000-00805f9b34fb")
-    override var dataOutUuid: Uuid = Uuid.parse("00002ade-0000-1000-8000-00805f9b34fb")
+    override val uuid: Uuid = Uuid.parse("00001828-0000-1000-8000-00805f9b34fb")
+    override val dataInUuid: Uuid = Uuid.parse("00002add-0000-1000-8000-00805f9b34fb")
+    override val dataOutUuid: Uuid = Uuid.parse("00002ade-0000-1000-8000-00805f9b34fb")
 }

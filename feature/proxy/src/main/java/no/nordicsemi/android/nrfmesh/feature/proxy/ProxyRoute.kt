@@ -54,7 +54,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
-import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
@@ -63,13 +63,15 @@ import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.RemoveAddressesFromFilter
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.SetFilterType
 import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
+import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
-import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import no.nordicsemi.kotlin.mesh.core.model.element
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
-import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -92,13 +94,17 @@ internal fun ProxyRoute(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ProxyFilterInfo(
+                    nodes = uiState.nodes,
+                    networkKeys = uiState.networkKeys,
                     proxyConnectionState = uiState.proxyConnectionState,
                     onAutoConnectToggled = onAutoConnectToggled,
                     onScanResultSelected = onScanResultSelected,
                     onDisconnectClicked = onDisconnectClicked
                 )
                 FilterSection(
-                    network = uiState.network,
+                    nodes = uiState.nodes,
+                    networkKeys = uiState.networkKeys,
+                    groups = uiState.groups,
                     type = uiState.filterType,
                     addresses = uiState.addresses,
                     isConnected = uiState.proxyConnectionState.connectionState is NetworkConnectionState.Connected,
@@ -115,6 +121,8 @@ internal fun ProxyRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProxyFilterInfo(
+    nodes: List<Node>,
+    networkKeys: List<NetworkKey>,
     proxyConnectionState: ProxyConnectionState,
     onAutoConnectToggled: (Boolean) -> Unit,
     onDisconnectClicked: () -> Unit,
@@ -122,7 +130,7 @@ private fun ProxyFilterInfo(
 ) {
     val scope = rememberCoroutineScope()
     var showProxyScannerSheet by rememberSaveable { mutableStateOf(false) }
-    val proxyScannerSheetState = rememberModalBottomSheetState()
+    val proxyScannerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     AutomaticConnectionRow(
         proxyConnectionState = proxyConnectionState,
         onAutoConnectToggled = onAutoConnectToggled,
@@ -134,8 +142,14 @@ private fun ProxyFilterInfo(
             onDismissRequest = { showProxyScannerSheet = false },
             sheetState = proxyScannerSheetState
         ) {
-            SectionTitle(title = stringResource(R.string.label_proxies))
-            ScannerSection(
+            SectionTitle(
+                title = stringResource(R.string.label_proxies),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            ScannerContent(
+                nodes = nodes,
+                networkKeys = networkKeys,
+                service = MeshProxyService,
                 onScanResultSelected = { result ->
                     onScanResultSelected(result)
                     scope.launch {
@@ -190,15 +204,6 @@ private fun AutomaticConnectionRow(
     )
 }
 
-@OptIn(ExperimentalUuidApi::class)
-@Composable
-private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
-    ScannerScreenRoute(
-        uuid = MeshProxyService.uuid,
-        onScanResultSelected = onScanResultSelected
-    )
-}
-
 @Composable
 private fun NetworkConnectionState.describe() = when (this) {
     NetworkConnectionState.Scanning -> stringResource(R.string.label_scanning)
@@ -216,7 +221,9 @@ private fun NetworkConnectionState.describe() = when (this) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterSection(
-    network: MeshNetwork?,
+    nodes: List<Node>,
+    groups: List<Group>,
+    networkKeys: List<NetworkKey>,
     type: ProxyFilterType?,
     addresses: List<ProxyFilterAddress> = emptyList(),
     limitReached: Boolean,
@@ -333,7 +340,8 @@ private fun FilterSection(
         addresses.forEach {
             key(it.toHexString()) {
                 SwipeToDismissAddress(
-                    network = network,
+                    nodes = nodes,
+                    groups = groups,
                     address = it,
                     onSwiped = { proxyFilterAddress ->
                         send(RemoveAddressesFromFilter(addresses = listOf(proxyFilterAddress)))
@@ -355,21 +363,20 @@ private fun FilterSection(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
             content = {
-                network?.let { network ->
-                    Addresses(
-                        network = network,
-                        onAddressClicked = {
-                            send(AddAddressesToFilter(addresses = listOf(it)))
-                            scope.launch {
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                if (!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
+                Addresses(
+                    nodes = nodes,
+                    groups = groups,
+                    onAddressClicked = {
+                        send(AddAddressesToFilter(addresses = listOf(it)))
+                        scope.launch {
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showBottomSheet = false
                             }
                         }
-                    )
-                }
+                    }
+                )
             }
         )
     }
@@ -378,7 +385,8 @@ private fun FilterSection(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissAddress(
-    network: MeshNetwork?,
+    nodes: List<Node>,
+    groups: List<Group>,
     address: ProxyFilterAddress,
     onSwiped: (ProxyFilterAddress) -> Unit,
 ) {
@@ -390,13 +398,16 @@ private fun SwipeToDismissAddress(
     )
     SwipeDismissItem(
         dismissState = dismissState,
-        content = { AddressRow(address = address, network = network) }
+        content = {
+            AddressRow(name = address.name(nodes = nodes, groups = groups))
+        }
     )
 }
 
 @Composable
 private fun Addresses(
-    network: MeshNetwork,
+    nodes: List<Node>,
+    groups: List<Group>,
     onAddressClicked: ((ProxyFilterAddress) -> Unit),
 ) {
     Column(
@@ -409,23 +420,30 @@ private fun Addresses(
             modifier = Modifier.padding(top = 8.dp),
             text = stringResource(R.string.label_elements)
         )
-        network.nodes.flatMap { it.elements }.forEach { element ->
+        nodes.flatMap { it.elements }.forEach { element ->
             AddressRow(
-                network = network,
-                address = element.unicastAddress,
+                name = element.name ?: stringResource(R.string.label_unknown),
+                subtitle = nodes
+                    .element(address = element.unicastAddress)
+                    ?.name
+                    ?: element.unicastAddress.address.toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    ),
                 onClick = { onAddressClicked(element.unicastAddress as ProxyFilterAddress) }
             )
         }
-        if (network.groups.isNotEmpty()) {
+        if (groups.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(top = 8.dp),
                 text = stringResource(R.string.label_groups)
             )
         }
-        network.groups.forEach { group ->
+        groups.forEach { group ->
             AddressRow(
-                address = group.address as ProxyFilterAddress,
-                network = network,
+                name = group.name,
                 onClick = { onAddressClicked(group.address as ProxyFilterAddress) }
             )
         }
@@ -435,8 +453,7 @@ private fun Addresses(
         )
         fixedGroupAddresses.forEach { destination ->
             AddressRow(
-                address = destination as ProxyFilterAddress,
-                network = network,
+                name = destination.name(),
                 onClick = { onAddressClicked(destination) }
             )
         }
@@ -444,28 +461,28 @@ private fun Addresses(
 }
 
 @Composable
+private fun ProxyFilterAddress.name(nodes: List<Node>, groups: List<Group>) =
+    when (this) {
+        is UnicastAddress -> nodes.element(address = this)?.name
+            ?: stringResource(R.string.label_unknown)
+
+        is VirtualAddress,
+        is GroupAddress,
+            -> groups.first { it.address == this }.name
+
+        is FixedGroupAddress -> name()
+    }
+
+@Composable
 private fun AddressRow(
-    address: ProxyFilterAddress,
-    network: MeshNetwork?,
+    name: String,
+    subtitle: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
     ElevatedCardItem(
         imageVector = Icons.Outlined.Lan,
-        title = when (address) {
-            is UnicastAddress -> network?.element(address.address)?.name
-                ?: stringResource(R.string.label_unknown)
-
-            is VirtualAddress -> network?.group(address.address)?.name
-                ?: stringResource(R.string.label_unknown)
-
-            is GroupAddress -> network?.group(address.address)?.name
-                ?: stringResource(R.string.label_unknown)
-
-            is FixedGroupAddress -> address.name()
-        },
-        subtitle = if (address is UnicastAddress) {
-            "${network?.node(address.address)?.name ?: "Unknown"} : 0x${address.toHexString()}"
-        } else null,
+        title = name,
+        subtitle = subtitle,
         onClick = onClick
     )
 }

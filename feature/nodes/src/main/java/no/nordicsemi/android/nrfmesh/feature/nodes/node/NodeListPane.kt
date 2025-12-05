@@ -12,9 +12,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
@@ -32,13 +34,17 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -55,6 +61,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
+import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -75,6 +83,7 @@ internal fun NodeListPane(
     send: (AcknowledgedConfigMessage) -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
+    removeNode: () -> Unit,
 ) {
     val state = rememberPullToRefreshState()
     val scrollState = rememberScrollState()
@@ -88,7 +97,7 @@ internal fun NodeListPane(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = scrollState),
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         ) {
             SectionTitle(
                 modifier = Modifier.padding(top = 8.dp),
@@ -101,7 +110,9 @@ internal fun NodeListPane(
                     save()
                 }
             )
+            AddressRow(address = nodeData.address)
             SectionTitle(title = stringResource(id = R.string.title_keys))
+            DeviceKeyRow(deviceKey = nodeData.deviceKey)
             NetworkKeysRow(
                 count = nodeData.networkKeyCount,
                 isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
@@ -129,19 +140,18 @@ internal fun NodeListPane(
             SectionTitle(title = stringResource(id = R.string.title_time_to_live))
             DefaultTtlRow(ttl = nodeData.defaultTtl, messageState = messageState, send = send)
             SectionTitle(title = stringResource(id = R.string.title_proxy_state))
-            ProxyStateRow(
-                messageState = messageState,
-                proxy = nodeData.features.proxy,
-                send = send
-            )
+            ProxyStateRow(messageState = messageState, proxy = nodeData.features.proxy, send = send)
             SectionTitle(title = stringResource(id = R.string.title_exclusions))
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
             SectionTitle(title = stringResource(id = R.string.label_reset_node))
-            ResetRow(
+            ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
+            SectionTitle(title = stringResource(id = R.string.label_remove_node))
+            RemoveNode(
                 messageState = messageState,
                 navigateBack = navigateBack,
-                send = send,
+                removeNode = removeNode
             )
+            Spacer(modifier = Modifier.size(size = 8.dp))
         }
     }
 }
@@ -158,6 +168,48 @@ private fun NodeNameRow(name: String, onNameChanged: (String) -> Unit) {
     )
 }
 
+@Composable
+private fun AddressRow(address: UnicastAddress) {
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.Lan,
+        title = stringResource(id = R.string.label_unicast_address),
+        subtitle = address.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    )
+}
+
+@Composable
+private fun DeviceKeyRow(deviceKey: ByteArray?) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val key by rememberSaveable {
+        mutableStateOf(
+            deviceKey
+                ?.toHexString(format = HexFormat.UpperCase)
+                ?: context.getString(R.string.unknown)
+        )
+    }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.VpnKey,
+        title = stringResource(id = R.string.label_device_key),
+        subtitle = key,
+        onClick = {
+            copyToClipboard(
+                scope = scope,
+                clipboard = clipboard,
+                text = key,
+                label = context.getString(R.string.label_device_key)
+            )
+        }
+    )
+}
 
 @Composable
 private fun NetworkKeysRow(count: Int, isSelected: Boolean, onNetworkKeysClicked: () -> Unit) {
@@ -237,7 +289,16 @@ private fun CompanyIdentifier(companyIdentifier: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Work,
         title = stringResource(R.string.label_company_identifier),
-        subtitle = companyIdentifier?.toHexString()?.uppercase()
+        subtitle = companyIdentifier
+            ?.let {
+                CompanyIdentifier.name(id = it) ?: it
+                    .toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    ).uppercase()
+            }
             ?: stringResource(R.string.unknown),
     )
 }
@@ -272,8 +333,7 @@ private fun ReplayProtectionCount(replayProtectionCount: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.SafetyCheck,
         title = stringResource(R.string.label_replay_protection_count),
-        subtitle = replayProtectionCount?.toHexString()?.uppercase()
-            ?: stringResource(R.string.unknown),
+        subtitle = "${replayProtectionCount ?: stringResource(R.string.unknown)}",
     )
 }
 
@@ -441,5 +501,45 @@ private fun ResetRow(
     }
     if (messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
         navigateBack()
+    }
+}
+
+@Composable
+private fun RemoveNode(
+    messageState: MessageState,
+    removeNode: () -> Unit,
+    navigateBack: () -> Unit,
+) {
+    var showResetDialog by rememberSaveable { mutableStateOf(false) }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.DeleteForever,
+        title = stringResource(R.string.label_remove_node),
+        supportingText = stringResource(R.string.label_remove_node_rationale)
+    ) {
+        MeshOutlinedButton(
+            border = BorderStroke(width = 1.dp, color = Color.Red),
+            onClick = { showResetDialog = !showResetDialog },
+            text = stringResource(R.string.label_remove),
+            buttonIcon = Icons.Outlined.DeleteForever,
+            buttonIconTint = Color.Red,
+            textColor = Color.Red,
+            enabled = !messageState.isInProgress()
+        )
+    }
+    if (showResetDialog) {
+        MeshAlertDialog(
+            onDismissRequest = { showResetDialog = !showResetDialog },
+            icon = Icons.Outlined.DeleteForever,
+            title = stringResource(R.string.label_remove_node),
+            text = stringResource(R.string.label_are_you_sure_rationale),
+            iconColor = Color.Red,
+            onDismissClick = { showResetDialog = !showResetDialog },
+            onConfirmClick = {
+                showResetDialog = !showResetDialog
+                removeNode()
+                navigateBack()
+            }
+        )
     }
 }

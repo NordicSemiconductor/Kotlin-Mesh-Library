@@ -24,25 +24,35 @@ import no.nordicsemi.kotlin.mesh.crypto.Algorithm.Companion.strongest
  * @throws NoLocalProvisioner  Exception thrown when there is no local provisioner added to the mesh
  *                             network.
  */
-@ConsistentCopyVisibility
-data class ProvisioningParameters internal constructor(
-    private val meshNetwork: MeshNetwork,
-    private val capabilities: ProvisioningCapabilities
+class ProvisioningParameters internal constructor(
+    private val capabilities: ProvisioningCapabilities,
+    var unicastAddress: UnicastAddress?,
+    var networkKey: NetworkKey,
+    var algorithm: Algorithm = capabilities.algorithms.strongest(),
+    var publicKey: PublicKey = PublicKey.NoOobPublicKey,
+    var authMethod: AuthenticationMethod = capabilities.supportedAuthMethods.first(),
 ) {
-    var unicastAddress: UnicastAddress? = meshNetwork.localProvisioner?.let {
-        // Calculates the unicast address automatically based ont he number of elements.
-        meshNetwork.nextAvailableUnicastAddress(
-            elementCount = capabilities.numberOfElements,
-            provisioner = it
-        ) ?: throw NoAddressAvailable()
-    } ?: throw NoLocalProvisioner()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ProvisioningParameters) return false
 
-    var networkKey: NetworkKey = meshNetwork.networkKeys.firstOrNull() ?: throw NoNetworkKeysAdded()
+        if (capabilities != other.capabilities) return false
+        if (unicastAddress != other.unicastAddress) return false
+        if (networkKey != other.networkKey) return false
+        if (algorithm != other.algorithm) return false
+        if (publicKey != other.publicKey) return false
+        if (authMethod != other.authMethod) return false
 
-    var algorithm: Algorithm = capabilities.algorithms.strongest()
+        return true
+    }
 
-    var publicKey: PublicKey = PublicKey.NoOobPublicKey
-
-    var authMethod: AuthenticationMethod =
-        capabilities.supportedAuthMethods.first()
+    override fun hashCode(): Int {
+        var result = capabilities.hashCode()
+        result = 31 * result + (unicastAddress?.hashCode() ?: 0)
+        result = 31 * result + networkKey.hashCode()
+        result = 31 * result + algorithm.hashCode()
+        result = 31 * result + publicKey.hashCode()
+        result = 31 * result + authMethod.hashCode()
+        return result
+    }
 }

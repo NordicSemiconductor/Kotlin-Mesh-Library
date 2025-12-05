@@ -87,14 +87,9 @@ private fun Request(
     var forceSegmentation by rememberSaveable { mutableStateOf(false) }
     SectionTitle(title = stringResource(R.string.label_request))
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-        // When entering this screen the TextFields automatically gets focused causing the keyboard
-        // to show up. This is a known issue and the workaround is to make the column focusable to
-        // clear focus from the TextFields.
-        // https://issuetracker.google.com/issues/445720462
         Column(
             modifier = Modifier
-                .padding(all = 16.dp)
-                .focusable(),
+                .padding(all = 16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

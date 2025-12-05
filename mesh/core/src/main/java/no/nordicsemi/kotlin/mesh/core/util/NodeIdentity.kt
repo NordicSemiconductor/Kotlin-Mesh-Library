@@ -3,6 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.util
 
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
@@ -10,8 +11,13 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * The Node Identity contains information from Node Identity or Private Node Identity beacon.
  *
  * This can be used to identify a node in the network.
+ *
+ * @property hash    Function of the included random number and identity information.
+ * @property random  64-bit random number.
  */
-interface NodeIdentity {
+sealed interface NodeIdentity {
+    val hash: ByteArray
+    val random: ByteArray
 
     /**
      * Returns whether the identity matches given node.
@@ -20,6 +26,32 @@ interface NodeIdentity {
      * @return true if the identity matches, false otherwise.
      */
     fun matches(node: Node): Boolean
+
+    /**
+     * Returns the first Node that matches the identity from the given list.
+     *
+     * @param nodes List of Nodes to be matched.
+     * @return The first matching Node.
+     */
+    fun matches(nodes: List<Node>) = nodes.firstOrNull { node ->
+        matches(node = node)
+    }
+
+    /**
+     * Returns the Node Identity as a hex string with hash and random concatenated.
+     *
+     * @return Node Identity in hex string format.
+     */
+    fun toHexString(): String {
+        return hash.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        ) + random.toHexString(
+            format = HexFormat.UpperCase
+        )
+    }
 }
 
 /**
@@ -30,9 +62,10 @@ interface NodeIdentity {
  */
 @ConsistentCopyVisibility
 data class PublicNodeIdentity internal constructor(
-    val hash: ByteArray,
-    val random: ByteArray
+    override val hash: ByteArray,
+    override val random: ByteArray,
 ) : NodeIdentity {
+
     override fun matches(node: Node): Boolean {
         val data = ByteArray(6) { 0 } + random +
                 node.primaryUnicastAddress.address.toByteArray()
@@ -77,8 +110,8 @@ data class PublicNodeIdentity internal constructor(
  */
 @ConsistentCopyVisibility
 data class PrivateNodeIdentity internal constructor(
-    val hash: ByteArray,
-    val random: ByteArray
+    override val hash: ByteArray,
+    override val random: ByteArray,
 ) : NodeIdentity {
     override fun matches(node: Node): Boolean {
         val data = ByteArray(5) { 0 } + random + node.primaryUnicastAddress.address.toByteArray()
@@ -121,13 +154,13 @@ data class PrivateNodeIdentity internal constructor(
  * @receiver ByteArray Node Identity beacon.
  * @return NodeIdentity or null if the beacon is invalid.
  */
-fun ByteArray.nodeIdentity() = when {
-    size == 17 && get(0) == 0x01.toByte() -> PublicNodeIdentity(
+fun ByteArray.nodeIdentity() = when (size) {
+    17 if get(0) == 0x01.toByte() -> PublicNodeIdentity(
         hash = sliceArray(1 until 9),
         random = sliceArray(9 until 17)
     )
 
-    size == 17 && get(0) == 0x03.toByte() -> PrivateNodeIdentity(
+    17 if get(0) == 0x03.toByte() -> PrivateNodeIdentity(
         hash = sliceArray(1 until 9),
         random = sliceArray(9 until 17)
     )

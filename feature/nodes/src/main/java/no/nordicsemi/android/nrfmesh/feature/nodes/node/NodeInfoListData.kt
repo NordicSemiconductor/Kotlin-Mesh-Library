@@ -28,6 +28,8 @@ import kotlin.uuid.Uuid
 data class NodeInfoListData(
     val uuid: Uuid,
     val name: String,
+    val address: UnicastAddress,
+    val deviceKey: ByteArray?,
     val networkKeyCount: Int,
     val appKeyCount: Int,
     val elements: List<ElementListData>,
@@ -43,6 +45,8 @@ data class NodeInfoListData(
     constructor(node: Node) : this(
         uuid = node.uuid,
         name = node.name,
+        address = node.primaryUnicastAddress,
+        deviceKey = node.deviceKey,
         networkKeyCount = node.netKeys.size,
         appKeyCount = node.appKeys.size,
         elements = node.elements.map { ElementListData(element = it) },

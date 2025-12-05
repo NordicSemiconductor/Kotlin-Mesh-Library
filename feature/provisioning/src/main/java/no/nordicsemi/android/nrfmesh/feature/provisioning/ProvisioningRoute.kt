@@ -3,13 +3,18 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,22 +48,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
+import no.nordicsemi.android.common.theme.nordicGreen
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.feature.scanner.navigation.ScannerScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
+import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
-import kotlin.uuid.Uuid
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
@@ -68,8 +74,8 @@ internal fun ProvisioningRoute(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit,
+    onNetworkKeyClicked: (NetworkKey) -> Unit,
+    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
@@ -90,8 +96,8 @@ internal fun ProvisioningRoute(
         onNameChanged = onNameChanged,
         onAddressChanged = onAddressChanged,
         isValidAddress = isValidAddress,
-        onNetworkKeyClick = onNetworkKeyClick,
-        startProvisioning = startProvisioning,
+        onNetworkKeyClick = onNetworkKeyClicked,
+        onAuthenticationMethodSelected = onAuthenticationMethodSelected,
         authenticate = authenticate,
         onProvisioningComplete = onProvisioningComplete,
         onProvisioningFailed = onProvisioningFailed,
@@ -107,8 +113,8 @@ private fun ProvisionerScreen(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit,
+    onNetworkKeyClick: (NetworkKey) -> Unit,
+    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
@@ -118,10 +124,12 @@ private fun ProvisionerScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var openDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
-    val capabilitiesSheetState = rememberModalBottomSheetState()
+    val capabilitiesSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showAuthenticationDialog by remember { mutableStateOf(false) }
-
-    ScannerSection(
+    ScannerContent(
+        nodes = uiState.nodes,
+        networkKeys = uiState.networkKeys,
+        service = MeshProvisioningService,
         onScanResultSelected = {
             beginProvisioning(it)
             openDeviceCapabilitiesSheet = true
@@ -133,44 +141,53 @@ private fun ProvisionerScreen(
                 disconnect()
                 openDeviceCapabilitiesSheet = false
             },
-            sheetState = capabilitiesSheetState
+            sheetState = capabilitiesSheetState,
+            contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Top) }
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SectionTitle(
+                    modifier = Modifier.weight(weight = 1f),
+                    title = stringResource(R.string.label_device_information),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                MeshOutlinedButton(
+                    modifier = Modifier.padding(end = 16.dp),
+                    enabled = uiState.provisionerState is ProvisionerState.Provisioning,
+                    onClick = {
+                        runCatching { showAuthenticationDialog = true }
+                            .onFailure {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = it.message
+                                            ?: context.getString(R.string.label_unknown_error)
+                                    )
+                                }
+                            }
+                    },
+                    buttonIcon = Icons.Outlined.SyncLock,
+                    buttonIconTint = nordicGreen,
+                    text = stringResource(id = R.string.label_provision),
+                    textColor = nordicGreen,
+                    border = BorderStroke(width = 1.dp, color = nordicGreen)
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(vertical = 16.dp)
                     .verticalScroll(state = rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(
+                    8.dp,
+                    alignment = Alignment.CenterVertically
+                )
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SectionTitle(
-                        modifier = Modifier.weight(weight = 1f),
-                        title = stringResource(R.string.label_device_information),
-                    )
-                    MeshOutlinedButton(
-                        modifier = Modifier.padding(end = 16.dp),
-                        enabled = uiState.provisionerState is ProvisionerState.Provisioning,
-                        onClick = {
-                            runCatching { showAuthenticationDialog = true }
-                                .onFailure {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = it.message
-                                                ?: context.getString(R.string.label_unknown_error)
-                                        )
-                                    }
-                                }
-                        },
-                        buttonIcon = Icons.Outlined.SyncLock,
-                        text = stringResource(id = R.string.label_provision)
-                    )
-                }
                 ProvisioningContent(
                     provisionerState = uiState.provisionerState,
+                    networkKeys = uiState.networkKeys,
                     snackbarHostState = snackbarHostState,
                     showAuthenticationDialog = showAuthenticationDialog,
                     onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
@@ -178,7 +195,7 @@ private fun ProvisionerScreen(
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
                     onNetworkKeyClick = onNetworkKeyClick,
-                    startProvisioning = startProvisioning,
+                    onAuthenticationMethodSelected = onAuthenticationMethodSelected,
                     authenticate = authenticate,
                     onProvisioningComplete = onProvisioningComplete,
                     onProvisioningFailed = onProvisioningFailed,
@@ -191,25 +208,17 @@ private fun ProvisionerScreen(
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-private fun ScannerSection(onScanResultSelected: (ScanResult) -> Unit) {
-    ScannerScreenRoute(
-        uuid = MeshProvisioningService.uuid,
-        onScanResultSelected = onScanResultSelected
-    )
-}
-
-@OptIn(ExperimentalUuidApi::class)
-@Composable
 private fun ProvisioningContent(
     provisionerState: ProvisionerState,
+    networkKeys: List<NetworkKey>,
     snackbarHostState: SnackbarHostState,
     showAuthenticationDialog: Boolean,
     onAuthenticationDialogDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit,
+    onNetworkKeyClick: (NetworkKey) -> Unit,
+    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
@@ -242,6 +251,7 @@ private fun ProvisioningContent(
 
         is ProvisionerState.Provisioning -> ProvisioningStateInfo(
             state = provisionerState.state,
+            networkKeys = networkKeys,
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
             showAuthenticationDialog = showAuthenticationDialog,
@@ -249,12 +259,12 @@ private fun ProvisioningContent(
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
-            onNetworkKeyClick = onNetworkKeyClick,
+            onNetworkKeyClicked = onNetworkKeyClick,
             authenticate = authenticate,
             onProvisioningComplete = onProvisioningComplete,
             onProvisioningFailed = onProvisioningFailed,
             onInputComplete = { scope.launch { sheetState.hide() } },
-            startProvisioning = startProvisioning,
+            onAuthenticationMethodSelected = onAuthenticationMethodSelected,
             dismissCapabilitiesSheet = dismissCapabilitiesSheet
         )
 
@@ -304,6 +314,7 @@ private fun ProvisioningContent(
 @Composable
 private fun ProvisioningStateInfo(
     state: ProvisioningState,
+    networkKeys: List<NetworkKey>,
     unprovisionedDevice: UnprovisionedDevice,
     snackbarHostState: SnackbarHostState,
     showAuthenticationDialog: Boolean,
@@ -311,12 +322,12 @@ private fun ProvisioningStateInfo(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
-    onNetworkKeyClick: (KeyIndex) -> Unit,
+    onNetworkKeyClicked: (NetworkKey) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     onInputComplete: () -> Unit,
-    startProvisioning: (AuthenticationMethod) -> Unit,
+    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     dismissCapabilitiesSheet: () -> Unit,
 ) {
     when (state) {
@@ -327,14 +338,15 @@ private fun ProvisioningStateInfo(
         is ProvisioningState.CapabilitiesReceived -> DeviceCapabilities(
             state = state,
             snackbarHostState = snackbarHostState,
+            networkKeys = networkKeys,
             unprovisionedDevice = unprovisionedDevice,
             showAuthenticationDialog = showAuthenticationDialog,
             onAuthenticationDialogDismissed = onAuthenticationDialogDismissed,
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
-            onNetworkKeyClick = onNetworkKeyClick,
-            startProvisioning = startProvisioning
+            onNetworkKeyClicked = onNetworkKeyClicked,
+            onAuthenticationMethodSelected = onAuthenticationMethodSelected
         )
 
         is ProvisioningState.Provisioning -> ProvisionerStateInfo(

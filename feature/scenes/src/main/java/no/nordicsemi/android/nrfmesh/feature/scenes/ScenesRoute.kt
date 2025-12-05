@@ -6,7 +6,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -91,7 +91,6 @@ private fun Scenes(
     var selectedSceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
-        contentWindowInsets = WindowInsets(top = 8.dp),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -127,9 +126,12 @@ private fun Scenes(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues = paddingValues)
         ) {
-            SectionTitle(title = stringResource(id = R.string.label_scenes))
+            SectionTitle(
+                modifier = Modifier.padding(top = 8.dp),
+                title = stringResource(id = R.string.label_scenes)
+            )
             when (scenes.isEmpty()) {
                 true -> MeshNoItemsAvailable(
                     modifier = Modifier.fillMaxSize(),

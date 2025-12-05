@@ -279,14 +279,13 @@ class CoreDataRepository @Inject constructor(
         withContext(defaultDispatcher) {
             if (bearer is AndroidGattBearer) bearer?.close()
             AndroidPbGattBearer(
-                dispatcher = defaultDispatcher,
                 centralManager = centralManager,
                 peripheral = device
-            )
-                .also {
-                    it.open()
-                    bearer = it
-                }
+            ).also {
+                it.open()
+                bearer = it
+                it.logger = this@CoreDataRepository
+            }
         }
 
     /**
@@ -302,10 +301,10 @@ class CoreDataRepository @Inject constructor(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
             AndroidGattBearer(
-                dispatcher = defaultDispatcher,
                 centralManager = centralManager,
                 peripheral = peripheral
             ).also { it ->
+                it.logger = this@CoreDataRepository
                 meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()

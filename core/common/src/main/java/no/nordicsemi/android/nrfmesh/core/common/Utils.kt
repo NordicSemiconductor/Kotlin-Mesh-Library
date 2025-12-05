@@ -2,6 +2,17 @@
 
 package no.nordicsemi.android.nrfmesh.core.common
 
+import android.content.ClipData
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import no.nordicsemi.kotlin.mesh.core.exception.AddressAlreadyInUse
 import no.nordicsemi.kotlin.mesh.core.exception.AddressNotInAllocatedRanges
 import no.nordicsemi.kotlin.mesh.core.exception.AtLeastOneNetworkKeyMustBeSelected
@@ -56,10 +67,10 @@ object Utils {
     }
 
     fun Throwable.describe(): String {
-        return when(this) {
+        return when (this) {
             is AccessError -> this.toString()
 
-            is MeshNetworkException -> when(this) {
+            is MeshNetworkException -> when (this) {
                 is AddressAlreadyInUse -> "Address already in use."
                 is AddressNotInAllocatedRanges -> "Address not in allocated ranges."
                 is AtLeastOneNetworkKeyMustBeSelected -> "At least one network key must be selected."
@@ -94,5 +105,25 @@ object Utils {
 
             else -> "Unknown error: ${this.message}"
         }
+    }
+
+}
+
+/**
+ * Copies the provided text to the clipboard.
+ *
+ * @param scope   CoroutineScope] to launch the clipboard operation in
+ * @param text    Text to copy
+ * @param label   Label for the clipboard entry
+ */
+fun copyToClipboard(
+    scope: CoroutineScope,
+    clipboard: Clipboard,
+    text: String,
+    label: String,
+) {
+    scope.launch {
+        val clip = ClipData.newPlainText(/* label = */ label, /* text = */ text)
+        clipboard.setClipEntry(clipEntry = ClipEntry(clipData = clip))
     }
 }

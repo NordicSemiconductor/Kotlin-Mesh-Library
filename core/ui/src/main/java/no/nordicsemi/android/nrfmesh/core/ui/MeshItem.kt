@@ -37,8 +37,9 @@ fun MeshItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.size(4.dp))
                 Text(
-                    text = "Address: $subtitle",
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
