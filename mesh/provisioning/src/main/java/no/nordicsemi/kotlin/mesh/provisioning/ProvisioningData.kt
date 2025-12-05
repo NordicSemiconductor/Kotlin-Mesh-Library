@@ -153,7 +153,7 @@ internal class ProvisioningData {
      * @throws InvalidPublicKey if the Provisioner's keys have not been generated.
      */
     fun onDevicePublicKeyReceived(key: ByteArray, usingOob: Boolean) {
-        sharedSecret = Crypto.calculateSharedSecret(privateKey, key)
+        sharedSecret = Crypto.calculateSharedSecret(privateKey = privateKey, publicKey = key)
         oobPublicKey = usingOob
     }
 
