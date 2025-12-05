@@ -125,7 +125,7 @@ class ProvisioningViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     provisionerState = Provisioning(unprovisionedDevice, state)
                 )
-            }/*.catch { throwable ->
+            }.catch { throwable ->
                 log(
                     message = "Error while provisioning $throwable",
                     category = LogCategory.PROVISIONING,
@@ -134,7 +134,7 @@ class ProvisioningViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     provisionerState = Error(unprovisionedDevice, throwable)
                 )
-            }*/.onCompletion { throwable ->
+            }.onCompletion { throwable ->
                 _uiState.value.provisionerState.let { provisionerState ->
                     if (provisionerState is Provisioning) {
                         // Save when the provisioning completes.
@@ -229,7 +229,6 @@ class ProvisioningViewModel @Inject constructor(
         if (provisionerState is Provisioning &&
             provisionerState.state is ProvisioningState.CapabilitiesReceived
         ) {
-            println("We are here")
             val provisioningState = provisionerState.state
             val p = provisioningState.parameters.apply {
                 networkKey = key
