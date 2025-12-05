@@ -1,4 +1,3 @@
--keep class no.nordicsemi.kotlin.mesh.crypto.Algorithms.** { *; }
--keep class org.bouncycastle.jce.provider.** { *; }
+# Keep all Bouncy Castle classes
 -keep class org.bouncycastle.** { *; }
 -dontwarn org.bouncycastle.**
