@@ -114,12 +114,12 @@ fun ScannerContent(
 }
 
 private fun NodeIdentity.createMatchingDescription(nodes: List<Node>) = when {
-    matches(nodes = nodes) != null -> toHexString()
+    matches(nodes = nodes) != null -> "Node Identity: ${toHexString()}"
     else -> null
 }
 
 
 private fun NetworkIdentity?.createMatchingDescription(networkKeys: List<NetworkKey>) = this
     ?.takeIf { matches(networkKeys = networkKeys) != null }
-    ?.toHexString()
+    ?.let { "Network Identity: ${toHexString()}" }
 
