@@ -1080,13 +1080,14 @@ class MeshNetworkManager(
      * and sent to the [Transmitter], which should deliver the PDU to the connected Node.
      *
      * @param message     Proxy Configuration message to be sent.
+     * @throws NoNetwork When there is no mesh network created.
      * @throws IllegalStateException This method throws when the mesh network has not been created.
      */
-    @Throws(IllegalStateException::class)
+    @Throws(NoNetwork::class, IllegalStateException::class)
     suspend fun send(message: ProxyConfigurationMessage): ProxyConfigurationMessage =
         networkManager?.send(message) ?: run {
             logger?.e(category = LogCategory.PROXY) { "Error: Mesh Network not created" }
-            throw IllegalStateException("Network manager is not initialized")
+            throw NoNetwork()
         }
 
     /**

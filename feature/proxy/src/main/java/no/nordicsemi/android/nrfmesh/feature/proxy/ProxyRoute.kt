@@ -184,8 +184,14 @@ private fun AutomaticConnectionRow(
                 onCheckedChange = { onAutoConnectToggled(it) }
             )
         },
-        subtitle = proxyConnectionState.connectionState.describe(),
         supportingText = stringResource(R.string.label_automatic_connection_rationale),
+        body = {
+            Text(
+                modifier = Modifier.padding(start = 42.dp),
+                text = "State: ${proxyConnectionState.connectionState.describe()}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
         actions = {
             OutlinedButton(
                 onClick = onConnectClicked,
@@ -198,6 +204,7 @@ private fun AutomaticConnectionRow(
                     onAutoConnectToggled(false)
                     onDisconnectClicked()
                 },
+                enabled = proxyConnectionState.connectionState is NetworkConnectionState.Connected,
                 content = { Text(text = stringResource(R.string.label_disconnect)) }
             )
         }
