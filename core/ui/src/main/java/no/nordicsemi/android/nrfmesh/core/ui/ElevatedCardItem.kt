@@ -105,7 +105,7 @@ private fun NonClickableElevatedCardItem(
                     modifier = Modifier.padding(end = 16.dp),
                     imageVector = imageVector,
                     contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             title = title,
@@ -172,7 +172,7 @@ private fun ClickableElevatedCardItem(
                     modifier = Modifier.padding(end = 16.dp),
                     imageVector = imageVector,
                     contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             title = title,
@@ -282,7 +282,7 @@ fun ElevatedCardItemTextField(
                 modifier = Modifier.padding(start = 12.dp),
                 imageVector = imageVector,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
@@ -376,7 +376,7 @@ fun ElevatedCardItemTextField(
                                 Icon(
                                     imageVector = Icons.Outlined.Edit,
                                     contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -415,7 +415,7 @@ fun ElevatedCardItemHexTextField(
                 modifier = Modifier.padding(start = 12.dp),
                 imageVector = imageVector,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
@@ -510,7 +510,7 @@ fun ElevatedCardItemHexTextField(
                                 Icon(
                                     imageVector = Icons.Outlined.Edit,
                                     contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
