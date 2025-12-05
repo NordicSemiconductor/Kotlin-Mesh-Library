@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -62,9 +63,18 @@ internal fun ModelScreen(
     navigateToGroups: () -> Unit,
     navigateToConfigApplicationKeys: (Uuid) -> Unit,
 ) {
+    // When entering this screen the TextFields automatically gets focused causing the keyboard
+    // to show up. This is a known issue and the workaround is to make the column focusable to
+    // clear focus from the TextFields.
+    // This workaround applies to the TextFields in the VendorModelControls.
+    // The reason for applying to the parent composable is to avoid scrolling directly to the
+    // TextField when focused.
+    // See issue: https://issuetracker.google.com/issues/445720462
     Column(
-        modifier = Modifier.verticalScroll(state = rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+        modifier = Modifier
+            .verticalScroll(state = rememberScrollState())
+            .focusable(),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp),
     ) {
         SectionTitle(
             modifier = Modifier.padding(top = 8.dp),
