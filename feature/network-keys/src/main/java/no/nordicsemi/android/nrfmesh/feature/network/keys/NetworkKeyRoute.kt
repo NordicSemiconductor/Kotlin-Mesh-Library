@@ -27,13 +27,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
-import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.NetworkKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.Insecure
 import no.nordicsemi.kotlin.mesh.core.model.KeyDistribution
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -45,8 +43,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UsingNewKeys
 import java.text.DateFormat
 import java.util.Date
-import kotlin.text.toHexString
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Composable
