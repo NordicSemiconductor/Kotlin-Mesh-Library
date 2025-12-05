@@ -58,7 +58,7 @@ fun BottomSheetNetworkKeys(
                 enabled = !messageState.isInProgress(),
                 onClick = onAddNetworkKeyClicked,
                 buttonIcon = Icons.Outlined.AutoFixHigh,
-                text = stringResource(R.string.label_generate_key)
+                text = stringResource(R.string.label_generate)
             )
             MeshOutlinedButton(
                 enabled = !messageState.isInProgress(),
