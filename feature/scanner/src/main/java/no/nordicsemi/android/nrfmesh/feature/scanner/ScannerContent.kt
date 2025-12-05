@@ -2,20 +2,27 @@ package no.nordicsemi.android.nrfmesh.feature.scanner
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.outlined.Bluetooth
+import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.common.scanner.rememberFilterState
 import no.nordicsemi.android.common.scanner.view.DeviceListItem
 import no.nordicsemi.android.common.scanner.view.ScannerView
+import no.nordicsemi.android.common.ui.view.CircularIcon
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
@@ -52,23 +59,26 @@ fun ScannerContent(
                                     modifier = Modifier
                                         .height(height = 80.dp)
                                         .padding(horizontal = 8.dp)
+                                        .padding(bottom = 8.dp)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        DeviceListItem(
-                                            peripheralIcon = rememberVectorPainter(
-                                                image = Icons.Default.Bluetooth
-                                            ),
-                                            title = when {
-                                                scanResult.advertisingData.name.isNullOrEmpty() -> device.name
-                                                else -> scanResult.advertisingData.name
-                                                    ?: stringResource(R.string.label_unknown_device)
-                                            },
-                                            subtitle = device.uuid.toString().uppercase()
-                                        )
-                                    }
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = rememberVectorPainter(Icons.Outlined.Bluetooth),
+                                                    iconSize = 24.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
+                                        title = when {
+                                            scanResult.advertisingData.name.isNullOrEmpty() -> device.name
+                                            else -> scanResult.advertisingData.name
+                                                ?: stringResource(R.string.label_unknown_device)
+                                        },
+                                        subtitle = device.uuid.toString().uppercase()
+                                    )
                                 }
                             }
                     }.onFailure {
@@ -84,23 +94,46 @@ fun ScannerContent(
                                 modifier = Modifier
                                     .height(height = 80.dp)
                                     .padding(horizontal = 8.dp)
+                                    .padding(bottom = 8.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    DeviceListItem(
-                                        peripheralIcon = rememberVectorPainter(
-                                            image = Icons.Default.Bluetooth
-                                        ),
+                                nodeIdentity()?.matches(nodes = nodes)?.let {
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = rememberVectorPainter(Icons.Outlined.WavingHand),
+                                                    iconSize = 24.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
+                                        title = it.name,
+                                        subtitle = it.primaryUnicastAddress.address.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "Address: 0x"
+                                                upperCase = true
+                                            }
+                                        )
+                                    )
+                                } ?: run {
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = painterResource(no.nordicsemi.android.common.scanner.R.drawable.ic_mesh),
+                                                    iconSize = 36.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
                                         title = scanResult.advertisingData.name
                                             ?: scanResult.peripheral.name
                                             ?: stringResource(R.string.label_unknown_device),
-                                        subtitle = nodeIdentity()
-                                            ?.createMatchingDescription(nodes = nodes)
-                                            ?: networkIdentity()
-                                                ?.createMatchingDescription(networkKeys = networkKeys)
-                                            ?: return@OutlinedCard
+                                        subtitle = networkIdentity()
+                                            ?.createMatchingDescription(networkKeys = networkKeys)
+                                            ?: return@OutlinedCard,
                                     )
                                 }
                             }
@@ -113,10 +146,17 @@ fun ScannerContent(
     )
 }
 
-private fun NodeIdentity.createMatchingDescription(nodes: List<Node>) = when {
-    matches(nodes = nodes) != null -> "Node Identity: ${toHexString()}"
-    else -> null
-}
+private fun NodeIdentity.createMatchingSubtitle(nodes: List<Node>) =
+    matches(nodes = nodes)?.primaryUnicastAddress?.address?.let {
+        "Unicast Address: ${
+            it.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }"
+    } ?: "Node Identity: ${toHexString()}"
 
 
 private fun NetworkIdentity?.createMatchingDescription(networkKeys: List<NetworkKey>) = this
