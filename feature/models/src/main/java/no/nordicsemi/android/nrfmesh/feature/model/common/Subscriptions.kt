@@ -1,12 +1,17 @@
 package no.nordicsemi.android.nrfmesh.feature.model.common
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteSweep
@@ -161,37 +166,33 @@ internal fun Subscriptions(
             onDismissRequest = { showBottomSheet = false },
             content = {
                 val addresses = model.unsubscribedGroups() + fixedGroupAddressesForSubscriptions
-                LazyColumn(
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionTitle(
+                        modifier = Modifier.weight(weight = 1f),
+                        title = stringResource(R.string.label_groups)
+                    )
+                    MeshOutlinedButton(
+                        modifier = Modifier.padding(end = 16.dp),
+                        enabled = !messageState.isInProgress(),
+                        onClick = navigateToGroups,
+                        isOnClickActionInProgress = messageState.isInProgress() &&
+                                messageState.message is ConfigModelSubscriptionAdd,
+                        buttonIcon = Icons.Outlined.Add,
+                        text = stringResource(R.string.label_add_group)
+                    )
+                }
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 16.dp)
+                        .verticalScroll(state = rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            SectionTitle(
-                                modifier = Modifier.weight(weight = 1f),
-                                title = stringResource(R.string.label_select_subscribe_group)
-                            )
-                            MeshOutlinedButton(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                enabled = !messageState.isInProgress(),
-                                onClick = navigateToGroups,
-                                isOnClickActionInProgress = messageState.isInProgress() &&
-                                        messageState.message is ConfigModelSubscriptionAdd,
-                                buttonIcon = Icons.Outlined.Add,
-                                text = stringResource(R.string.label_add_group)
-                            )
-                        }
-                    }
-                    itemsIndexed(
-                        items = addresses,
-                        key = { index, item -> index }
-                    ) { index, item ->
+                    addresses.forEach { item ->
                         if (item is Group) {
                             ElevatedCardItem(
                                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -242,15 +243,12 @@ internal fun Subscriptions(
                             }
                         }
                     }
-                    item {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .padding(top = 16.dp),
-                            text = stringResource(R.string.label_subscribe_addresses_rationale),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                    Spacer(modifier = Modifier.size(size = 8.dp))
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = stringResource(R.string.label_subscribe_addresses_rationale),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         )

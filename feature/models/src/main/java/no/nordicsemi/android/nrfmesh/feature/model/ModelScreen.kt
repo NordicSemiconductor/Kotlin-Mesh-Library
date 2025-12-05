@@ -3,7 +3,9 @@ package no.nordicsemi.android.nrfmesh.feature.model
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -132,6 +134,7 @@ internal fun ModelScreen(
                 sendApplicationMessage = sendApplicationMessage
             )
         }
+        Spacer(modifier = Modifier.size(size = 8.dp))
     }
 
     when (messageState) {
