@@ -52,6 +52,7 @@ fun ScannerContent(
                                     modifier = Modifier
                                         .height(height = 80.dp)
                                         .padding(horizontal = 8.dp)
+                                        .padding(bottom = 8.dp)
                                 ) {
                                     Column(
                                         modifier = Modifier.fillMaxSize(),
@@ -84,24 +85,38 @@ fun ScannerContent(
                                 modifier = Modifier
                                     .height(height = 80.dp)
                                     .padding(horizontal = 8.dp)
+                                    .padding(bottom = 8.dp)
                             ) {
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    DeviceListItem(
-                                        peripheralIcon = rememberVectorPainter(
-                                            image = Icons.Default.Bluetooth
-                                        ),
-                                        title = scanResult.advertisingData.name
-                                            ?: scanResult.peripheral.name
-                                            ?: stringResource(R.string.label_unknown_device),
-                                        subtitle = nodeIdentity()
-                                            ?.createMatchingDescription(nodes = nodes)
-                                            ?: networkIdentity()
+                                    nodeIdentity()?.matches(nodes = nodes)?.let {
+                                        DeviceListItem(
+                                            peripheralIcon = rememberVectorPainter(
+                                                image = Icons.Default.Bluetooth
+                                            ),
+                                            title = it.name,
+                                            subtitle = it.primaryUnicastAddress.address.toHexString(
+                                                format = HexFormat {
+                                                    number.prefix = "Address: 0x"
+                                                    upperCase = true
+                                                }
+                                            )
+                                        )
+                                    } ?: run {
+                                        DeviceListItem(
+                                            peripheralIcon = rememberVectorPainter(
+                                                image = Icons.Default.Bluetooth
+                                            ),
+                                            title = scanResult.advertisingData.name
+                                                ?: scanResult.peripheral.name
+                                                ?: stringResource(R.string.label_unknown_device),
+                                            subtitle = networkIdentity()
                                                 ?.createMatchingDescription(networkKeys = networkKeys)
-                                            ?: return@OutlinedCard
-                                    )
+                                                ?: return@OutlinedCard
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -113,10 +128,17 @@ fun ScannerContent(
     )
 }
 
-private fun NodeIdentity.createMatchingDescription(nodes: List<Node>) = when {
-    matches(nodes = nodes) != null -> "Node Identity: ${toHexString()}"
-    else -> null
-}
+private fun NodeIdentity.createMatchingSubtitle(nodes: List<Node>) =
+    matches(nodes = nodes)?.primaryUnicastAddress?.address?.let {
+        "Unicast Address: ${
+            it.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }"
+    } ?: "Node Identity: ${toHexString()}"
 
 
 private fun NetworkIdentity?.createMatchingDescription(networkKeys: List<NetworkKey>) = this
