@@ -61,22 +61,24 @@ fun ScannerContent(
                                         .padding(horizontal = 8.dp)
                                         .padding(bottom = 8.dp)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        DeviceListItem(
-                                            peripheralIcon = rememberVectorPainter(
-                                                image = Icons.Outlined.Bluetooth
-                                            ),
-                                            title = when {
-                                                scanResult.advertisingData.name.isNullOrEmpty() -> device.name
-                                                else -> scanResult.advertisingData.name
-                                                    ?: stringResource(R.string.label_unknown_device)
-                                            },
-                                            subtitle = device.uuid.toString().uppercase()
-                                        )
-                                    }
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = rememberVectorPainter(Icons.Outlined.Bluetooth),
+                                                    iconSize = 24.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
+                                        title = when {
+                                            scanResult.advertisingData.name.isNullOrEmpty() -> device.name
+                                            else -> scanResult.advertisingData.name
+                                                ?: stringResource(R.string.label_unknown_device)
+                                        },
+                                        subtitle = device.uuid.toString().uppercase()
+                                    )
                                 }
                             }
                     }.onFailure {
@@ -94,50 +96,45 @@ fun ScannerContent(
                                     .padding(horizontal = 8.dp)
                                     .padding(bottom = 8.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    nodeIdentity()?.matches(nodes = nodes)?.let {
-                                        MeshTwoLineListItem(
-                                            leadingComposable = {
-                                                Row {
-                                                    Spacer(modifier = Modifier.size(size = 16.dp))
-                                                    CircularIcon(
-                                                        painter = rememberVectorPainter(Icons.Outlined.WavingHand),
-                                                        iconSize = 24.dp
-                                                    )
-                                                    Spacer(modifier = Modifier.size(size = 8.dp))
-                                                }
-                                            },
-                                            title = it.name,
-                                            subtitle = it.primaryUnicastAddress.address.toHexString(
-                                                format = HexFormat {
-                                                    number.prefix = "Address: 0x"
-                                                    upperCase = true
-                                                }
-                                            )
+                                nodeIdentity()?.matches(nodes = nodes)?.let {
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = rememberVectorPainter(Icons.Outlined.WavingHand),
+                                                    iconSize = 24.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
+                                        title = it.name,
+                                        subtitle = it.primaryUnicastAddress.address.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "Address: 0x"
+                                                upperCase = true
+                                            }
                                         )
-                                    } ?: run {
-                                        MeshTwoLineListItem(
-                                            leadingComposable = {
-                                                Row {
-                                                    Spacer(modifier = Modifier.size(size = 16.dp))
-                                                    CircularIcon(
-                                                        painter = painterResource(no.nordicsemi.android.common.scanner.R.drawable.ic_mesh),
-                                                        iconSize = 36.dp
-                                                    )
-                                                    Spacer(modifier = Modifier.size(size = 8.dp))
-                                                }
-                                            },
-                                            title = scanResult.advertisingData.name
-                                                ?: scanResult.peripheral.name
-                                                ?: stringResource(R.string.label_unknown_device),
-                                            subtitle = networkIdentity()
-                                                ?.createMatchingDescription(networkKeys = networkKeys)
-                                                ?: return@OutlinedCard,
-                                        )
-                                    }
+                                    )
+                                } ?: run {
+                                    MeshTwoLineListItem(
+                                        leadingComposable = {
+                                            Row {
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                                CircularIcon(
+                                                    painter = painterResource(no.nordicsemi.android.common.scanner.R.drawable.ic_mesh),
+                                                    iconSize = 36.dp
+                                                )
+                                                Spacer(modifier = Modifier.size(size = 16.dp))
+                                            }
+                                        },
+                                        title = scanResult.advertisingData.name
+                                            ?: scanResult.peripheral.name
+                                            ?: stringResource(R.string.label_unknown_device),
+                                        subtitle = networkIdentity()
+                                            ?.createMatchingDescription(networkKeys = networkKeys)
+                                            ?: return@OutlinedCard,
+                                    )
                                 }
                             }
                         }
