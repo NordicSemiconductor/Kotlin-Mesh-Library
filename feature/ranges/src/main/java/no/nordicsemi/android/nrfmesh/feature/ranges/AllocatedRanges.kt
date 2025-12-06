@@ -45,7 +45,7 @@ fun AllocatedRanges(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = imageVector,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
         },
         title = title,
@@ -89,7 +89,7 @@ internal fun AllocatedRange(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = imageVector,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
         },
         title = title,
