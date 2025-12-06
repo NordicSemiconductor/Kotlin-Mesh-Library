@@ -50,7 +50,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Adds an application key to the network.
      */
     internal fun addApplicationKey(
-        name: String = "nRF Application Key ${network.networkKeys.size}",
+        name: String = "Application Key ${network.networkKeys.size}",
         boundNetworkKey: NetworkKey = network.networkKeys.first()
     ) = repository.addApplicationKey(name = name, boundNetworkKey = boundNetworkKey)
 
