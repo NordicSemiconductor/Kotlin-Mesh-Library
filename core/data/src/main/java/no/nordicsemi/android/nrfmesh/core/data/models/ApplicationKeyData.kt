@@ -11,16 +11,15 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * The application key (AppKey) shall be generated using a random number generator
  * compatible with the requirements in Volume 2, Part H, Section 2 of the Core Specification [1].
  *
- * @property index              The index property contains an integer from 0 to 4095 that
- *                              represents the NetKey index for this network key.
  * @property name               Human-readable name for the application functionality associated
  *                              with this application key.
- * @property boundNetKeyIndex   The boundNetKey property contains a corresponding Network Key index
- *                              of the network key in the mesh network.
+ * @property index              The index property contains an integer from 0 to 4095 that
+ *                              represents the NetKey index for this network key.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
- * @property boundNetworkKey             Network key to which this application key is bound to.
- * @param    key               128-bit application key.
+ * @property boundNetKeyIndex   The boundNetKey property contains a corresponding Network Key index
+ *                              of the network key in the mesh network.
+ * @property isInUse            True if the application key is currently in use in the mesh network.
  */
 data class ApplicationKeyData(
     val name: String,
@@ -28,7 +27,7 @@ data class ApplicationKeyData(
     val key: ByteArray,
     val oldKey: ByteArray? = null,
     val boundNetKeyIndex: KeyIndex,
-    val boundNetworkKey: NetworkKey?,
+    val boundNetworkKeyName: String,
     val isInUse: Boolean
 ) {
     constructor(key: ApplicationKey) : this(
@@ -37,7 +36,7 @@ data class ApplicationKeyData(
         key = key.key,
         oldKey = key.oldKey,
         boundNetKeyIndex = key.boundNetKeyIndex,
-        boundNetworkKey = key.boundNetworkKey,
+        boundNetworkKeyName = key.boundNetworkKey.name,
         isInUse = key.isInUse
     )
 
@@ -55,7 +54,6 @@ data class ApplicationKeyData(
             if (!oldKey.contentEquals(other.oldKey)) return false
         } else if (other.oldKey != null) return false
         if (boundNetKeyIndex != other.boundNetKeyIndex) return false
-        if (boundNetworkKey != other.boundNetworkKey) return false
         if (isInUse != other.isInUse) return false
 
         return true
@@ -67,7 +65,6 @@ data class ApplicationKeyData(
         result = 31 * result + key.contentHashCode()
         result = 31 * result + (oldKey?.contentHashCode() ?: 0)
         result = 31 * result + boundNetKeyIndex.hashCode()
-        result = 31 * result + (boundNetworkKey?.hashCode() ?: 0)
         result = 31 * result + isInUse.hashCode()
         return result
     }

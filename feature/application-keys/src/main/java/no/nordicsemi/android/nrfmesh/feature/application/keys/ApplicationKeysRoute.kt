@@ -47,7 +47,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
-import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
@@ -170,7 +169,7 @@ private fun SwipeToDismissKey(
                     else -> CardDefaults.outlinedCardColors()
                 },
                 title = key.name,
-                subtitle = "Bound to ${key.boundNetworkKey?.name ?: key.key.toHexString()}"
+                subtitle = "Bound to ${key.boundNetworkKeyName}"
             )
         }
     )
