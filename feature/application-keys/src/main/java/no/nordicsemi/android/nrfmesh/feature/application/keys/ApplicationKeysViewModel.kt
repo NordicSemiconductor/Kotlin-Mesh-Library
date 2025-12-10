@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -17,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ApplicationKeysViewModel @Inject internal constructor(
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
@@ -27,18 +29,18 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            repository.network.collect { network ->
-                this@ApplicationKeysViewModel.network = network
-                _uiState.update { state ->
-                    val keys = network.applicationKeys.map{ ApplicationKeyData(it) }
-                    state.copy(
-                        keys = keys,
-                        keysToBeRemoved = keys.filter { it in state.keysToBeRemoved }
-                    )
-                }
+        observeNetwork()
+    }
+
+    private fun observeNetwork() {
+        repository.network.onEach { network ->
+            this@ApplicationKeysViewModel.network = network
+            _uiState.update { state ->
+                state.copy(
+                    keys = network.applicationKeys.map { ApplicationKeyData(it) },
+                )
             }
-        }
+        }.launchIn(scope = viewModelScope)
     }
 
     override fun onCleared() {
@@ -50,8 +52,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Adds an application key to the network.
      */
     internal fun addApplicationKey(
-        name: String = "Application Key ${network.applicationKeys.size}",
-        boundNetworkKey: NetworkKey = network.networkKeys.first()
+        name: String = "Application Key ${_uiState.value.keys.size}",
+        boundNetworkKey: NetworkKey = network.networkKeys.first(),
     ) = repository.addApplicationKey(name = name, boundNetworkKey = boundNetworkKey)
 
     /**
@@ -61,10 +63,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * @param key Application key to be deleted.
      */
     fun onSwiped(key: ApplicationKeyData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            _uiState.value = state.copy(
-                keys = state.keys - key,
+        _uiState.update { state ->
+            state.copy(
                 keysToBeRemoved = state.keysToBeRemoved + key
             )
         }
@@ -77,11 +77,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * @param key Application key to be reverted.
      */
     fun onUndoSwipe(key: ApplicationKeyData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            _uiState.value = state.copy(
-                keys = (state.keys + key)
-                    .sortedBy { it.index },
+        _uiState.update { state ->
+            state.copy(
                 keysToBeRemoved = state.keysToBeRemoved - key
             )
         }
@@ -93,33 +90,29 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * @param key Key to be removed.
      */
     internal fun remove(key: ApplicationKeyData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            network.run {
-                applicationKey(index = key.index)?.let {
-                    remove(key = it)
-                    save()
-                }
-            }
-            _uiState.value = state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
+        _uiState.update { state ->
+            state.copy(
+                keys = state.keys - key,
+                keysToBeRemoved = state.keysToBeRemoved - key
+            )
         }
+        network.removeApplicationKeyWithIndex(index = key.index)
+        // In addition lets remove the keys queued for deletion as well.
+        //
+        removeKeys()
     }
-
     /**
      * Removes all keys that are queued for deletion.
      */
     private fun removeKeys() {
         runCatching {
             _uiState.value.keysToBeRemoved.forEach { keyData ->
-                network.run {
-                    applicationKey(index = keyData.index)?.let {
-                        remove(key = it)
-                    }
-                }
+                network.removeApplicationKeyWithIndex(index = keyData.index)
             }
         }
         save()
     }
+
 
     /**
      * Saves the network.
