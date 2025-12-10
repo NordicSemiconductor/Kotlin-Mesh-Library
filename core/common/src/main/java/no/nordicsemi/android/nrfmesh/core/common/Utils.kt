@@ -45,6 +45,9 @@ import no.nordicsemi.kotlin.mesh.core.exception.SceneInUse
 import no.nordicsemi.kotlin.mesh.core.exception.SecurityException
 import no.nordicsemi.kotlin.mesh.core.layers.access.AccessError
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
 /**
  * Helper object containing utility methods.
@@ -126,4 +129,16 @@ fun copyToClipboard(
         val clip = ClipData.newPlainText(/* label = */ label, /* text = */ text)
         clipboard.setClipEntry(clipEntry = ClipEntry(clipData = clip))
     }
+}
+
+object KeyIdGenerator {
+    @OptIn(ExperimentalAtomicApi::class)
+    private val counter = AtomicLong(0)
+
+    /**
+     * Generates the next unique ID. This is a helper method used to generate unique IDs for keys in
+     * a LazyColumn
+     */
+    @OptIn(ExperimentalAtomicApi::class)
+    fun nextId() = counter.incrementAndFetch()
 }

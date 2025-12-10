@@ -2,9 +2,10 @@
 
 package no.nordicsemi.android.nrfmesh.core.data.models
 
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Application Keys are used to secure communications at the upper transport layer.
@@ -21,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  *                              of the network key in the mesh network.
  * @property isInUse            True if the application key is currently in use in the mesh network.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class ApplicationKeyData(
     val name: String,
     val index: KeyIndex,
@@ -28,7 +30,8 @@ data class ApplicationKeyData(
     val oldKey: ByteArray? = null,
     val boundNetKeyIndex: KeyIndex,
     val boundNetworkKeyName: String,
-    val isInUse: Boolean
+    val isInUse: Boolean,
+    val id: Long = KeyIdGenerator.nextId()
 ) {
     constructor(key: ApplicationKey) : this(
         name = key.name,
