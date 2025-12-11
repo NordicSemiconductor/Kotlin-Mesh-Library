@@ -98,7 +98,6 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         }
         network.removeApplicationKeyWithIndex(index = key.index)
         // In addition lets remove the keys queued for deletion as well.
-        //
         removeKeys()
     }
     /**
