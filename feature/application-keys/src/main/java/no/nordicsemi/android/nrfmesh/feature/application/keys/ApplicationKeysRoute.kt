@@ -194,7 +194,9 @@ private fun SwipeToDismissKey(
                     )
                 }
             } else {
-                onSwiped(key)
+                scope.launch {
+                    onSwiped(key)
+                }
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
                         message = context.getString(
