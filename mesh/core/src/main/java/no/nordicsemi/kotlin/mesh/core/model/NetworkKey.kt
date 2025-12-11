@@ -14,6 +14,7 @@ import no.nordicsemi.kotlin.mesh.crypto.SecurityCredentials
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * AThe network key object represents the state of the mesh network key that is used for securing
@@ -130,7 +131,7 @@ data class NetworkKey internal constructor(
             }
         }
 
-    var timestamp : Instant = Clock.System.now()
+    var timestamp: Instant = Clock.System.now()
         internal set
 
     @Transient
@@ -167,6 +168,7 @@ data class NetworkKey internal constructor(
     var network: MeshNetwork? = null
         internal set
 
+    @OptIn(ExperimentalUuidApi::class)
     val isInUse: Boolean
         get() = network?.run {
             // A network key is in use if at least one application key is bound to it.
@@ -174,11 +176,9 @@ data class NetworkKey internal constructor(
             // The network key is known by any of the nodes in the network.
             _applicationKeys.any { applicationKey ->
                 applicationKey.boundNetKeyIndex == index
-            } || _nodes.any { node ->
-                node.netKeys.any { nodeKey ->
-                    nodeKey.index == index
-                }
-            }
+            } || nodes
+                .filter { it.uuid != localProvisioner?.uuid }
+                .any { it.knowsNetworkKeyIndex(index) }
         } ?: false
 
     init {
