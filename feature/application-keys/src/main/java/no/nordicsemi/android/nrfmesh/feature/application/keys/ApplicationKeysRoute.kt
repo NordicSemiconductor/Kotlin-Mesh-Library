@@ -182,18 +182,25 @@ private fun SwipeToDismissKey(
             )
         },
         onDismiss = {
+            snackbarHostState.currentSnackbarData?.dismiss()
             if (key.isInUse) {
                 scope.launch {
                     dismissState.reset()
                     snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.error_cannot_delete_key_in_use)
+                        message = context.getString(
+                            R.string.label_unable_to_delete_key_is_in_use,
+                            key.name
+                        )
                     )
                 }
             } else {
                 onSwiped(key)
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.label_application_key_deleted),
+                        message = context.getString(
+                            R.string.label_key_deleted,
+                            key.name
+                        ),
                         actionLabel = context.getString(R.string.action_undo),
                         withDismissAction = true,
                         duration = SnackbarDuration.Short
@@ -201,9 +208,7 @@ private fun SwipeToDismissKey(
 
                     when (result) {
                         SnackbarResult.ActionPerformed -> {
-                            println("Dismiss state: ${dismissState.settledValue}")
                             dismissState.reset()
-                            println("Dismiss state: ${dismissState.settledValue}")
                             onUndoClicked(key)
                         }
 
