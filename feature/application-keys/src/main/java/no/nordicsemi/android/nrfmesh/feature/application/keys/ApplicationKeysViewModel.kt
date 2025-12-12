@@ -32,20 +32,20 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         observeNetwork()
     }
 
+    override fun onCleared() {
+        removeKeys()
+        super.onCleared()
+    }
+
     private fun observeNetwork() {
         repository.network.onEach { network ->
-            this@ApplicationKeysViewModel.network = network
+            this.network = network
             _uiState.update { state ->
                 state.copy(
                     keys = network.applicationKeys.map { ApplicationKeyData(it) },
                 )
             }
         }.launchIn(scope = viewModelScope)
-    }
-
-    override fun onCleared() {
-        removeKeys()
-        super.onCleared()
     }
 
     /**
@@ -64,9 +64,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      */
     fun onSwiped(key: ApplicationKeyData) {
         _uiState.update { state ->
-            state.copy(
-                keysToBeRemoved = state.keysToBeRemoved + key
-            )
+            state.copy(keysToBeRemoved = state.keysToBeRemoved + key)
         }
     }
 
@@ -78,9 +76,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      */
     fun onUndoSwipe(key: ApplicationKeyData) {
         _uiState.update { state ->
-            state.copy(
-                keysToBeRemoved = state.keysToBeRemoved - key
-            )
+            state.copy(keysToBeRemoved = state.keysToBeRemoved - key)
         }
     }
 
