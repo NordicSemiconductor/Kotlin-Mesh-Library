@@ -9,7 +9,7 @@
     <string name="label_provisioner_address">Address</string>
     <string name="action_undo">Undo</string>
     <string name="error_cannot_delete_scene_in_use">Error cannot delete a scene in use.</string>
-    <string name="label_provisioner_deleted">Provisioner deleted.</string>
+    <string name="label_provisioner_deleted">%1$s deleted.</string>
     <string name="unknown_error">Unknown error when adding a provisioner.</string>
     <string name="no_provisioners_currently_added">No provisioners currently added.</string>
     <string name="label_unicast_address">Unicast Address</string>
@@ -32,10 +32,11 @@
     <string name="label_group_ranges">Group Ranges</string>
     <string name="label_scene_ranges">Scene Ranges</string>
     <string name="label_provisioner">Provisioner</string>
-    <string name="error_cannot_delete_last_provisioner">Cannot delete, a mesh network must have at least one provisioner</string>
+    <string name="error_cannot_delete_last_provisioner">Cannot delete %1$s, a mesh network must have at least one provisioner</string>
     <string name="error_cannot_delete_selected_provisioner">Switch to a different provisioner to delete the currently selected provisioner</string>
     <string name="label_unassigned">Configuration capabilities disabled</string>
     <string name="label_this_provisioner">This Provisioner</string>
     <string name="label_other_provisioner">Other Provisioners</string>
     <string name="label_set_as_local_provisioner">Set as Local Provisioner</string>
+    <string name="label_no_provisioners_available">No provisioners currently added</string>
 </resources>

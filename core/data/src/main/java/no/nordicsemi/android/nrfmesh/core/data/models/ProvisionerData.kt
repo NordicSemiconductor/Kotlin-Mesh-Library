@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.core.data.models
 
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
@@ -10,6 +11,18 @@ import kotlin.uuid.Uuid
 
 /**
  * ProvisionerData is a data class that represents a Provisioner in the Mesh network.
+ *
+ * @param name                         Name of the provisioner.
+ * @param uuid                         UUID of the provisioner.
+ * @param address                      Unicast address of the provisioner.
+ * @param ttl                          Default TTL value for the provisioner.
+ * @param deviceKey                    Device key of the provisioner in hexadecimal string format.
+ * @param unicastRanges                List of unicast address ranges allocated to the provisioner.
+ * @param groupRanges                  List of group address ranges allocated to the provisioner.
+ * @param sceneRanges                  List of scene ranges allocated to the provisioner.
+ * @param hasConfigurationCapabilities Indicates if the provisioner has configuration capabilities.
+ * @param id                           A unique identifier for the ProvisionerData instance.
+ *
  */
 @OptIn(ExperimentalUuidApi::class)
 data class ProvisionerData(
@@ -21,7 +34,8 @@ data class ProvisionerData(
     val unicastRanges: List<UnicastRange> = emptyList(),
     val groupRanges: List<GroupRange> = emptyList(),
     val sceneRanges: List<SceneRange> = emptyList(),
-    val hasConfigurationCapabilities: Boolean = false
+    val hasConfigurationCapabilities: Boolean = false,
+    val id: Long = KeyIdGenerator.nextId()
 ) {
     @OptIn(ExperimentalStdlibApi::class)
     constructor(provisioner: Provisioner) : this(

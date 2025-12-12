@@ -436,6 +436,21 @@ data class MeshNetwork internal constructor(
     }
 
     /**
+     * Removes the provisioner with the given Uuid from the list of provisioners in the network.
+     *
+     * @param uuid Uuid of the provisioner to be removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     * @throws NoSuchElementException if a provisioner with the given Uuid was not found.
+     */
+    @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
+    fun removeProvisionerWithUuid(uuid: Uuid) {
+        provisioner(uuid)?.let { provisioner ->
+            remove(provisioner)
+        }
+    }
+
+    /**
      * Moves the provisioner from the given 'from' index to the specified 'to' index.
      *
      * @param from      Current index of the provisioner.
@@ -675,7 +690,10 @@ data class MeshNetwork internal constructor(
      *
      * @param index KeyIndex of the Application Key to be removed.
      * @param force If true, the Application Key will be removed even if it is in use.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the
      */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun removeApplicationKeyWithIndex(index: KeyIndex, force: Boolean = false) {
         removeApplicationKeyAtIndex(
             index = applicationKeys.indexOfFirst { it.index == index },
@@ -689,7 +707,10 @@ data class MeshNetwork internal constructor(
      *
      * @param index index of the Application Key in the list of Application Keys.
      * @param force If true, the Application Key will be removed even if it is in use.
+     * @throws [DoesNotBelongToNetwork] if the key does not belong to this network.
+     * @throws [KeyInUse] if the key is known to any node in the
      */
+    @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
     fun removeApplicationKeyAtIndex(index: Int, force: Boolean = false) {
         // Return as no op if the key does not exist
         val key = applicationKeys.getOrNull(index) ?: return

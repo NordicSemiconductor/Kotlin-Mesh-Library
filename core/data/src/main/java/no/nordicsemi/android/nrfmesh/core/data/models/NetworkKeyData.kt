@@ -2,6 +2,7 @@
 
 package no.nordicsemi.android.nrfmesh.core.data.models
 
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import kotlin.time.Instant
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.KeyRefreshPhase
@@ -56,7 +57,8 @@ data class NetworkKeyData internal constructor(
     val oldNetworkId: ByteArray?,
     val timestamp: Instant,
     val isPrimary: Boolean,
-    val isInUse: Boolean
+    val isInUse: Boolean,
+    val id: Long = KeyIdGenerator.nextId(),
 ) {
     /**
      * Convenience constructor for creating a new network key

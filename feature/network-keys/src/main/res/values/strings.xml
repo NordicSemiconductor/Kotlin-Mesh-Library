@@ -30,4 +30,8 @@
     <string name="error_cannot_delete_selected_key">Switch to a different key to delete the currently selected key.</string>
     <string name="label_network_key">Network Key</string>
     <string name="label_add_key">Add Key</string>
+    <string name="label_cannot_delete_is_in_use">Cannot delete, %1$s is in use.</string>
+    <string name="label_cannot_delete_the_primary_network_key">Cannot delete the primary network key.</string>
+    <string name="label_key_deleted">%1$s deleted</string>
+    <string name="no_network_keys_available">No network keys available</string>
 </resources>
