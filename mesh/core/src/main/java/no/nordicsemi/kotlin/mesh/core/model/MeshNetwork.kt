@@ -436,6 +436,21 @@ data class MeshNetwork internal constructor(
     }
 
     /**
+     * Removes the provisioner with the given Uuid from the list of provisioners in the network.
+     *
+     * @param uuid Uuid of the provisioner to be removed.
+     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws CannotRemove if there is only one provisioner.
+     * @throws NoSuchElementException if a provisioner with the given Uuid was not found.
+     */
+    @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
+    fun removeProvisionerWithUuid(uuid: Uuid) {
+        provisioner(uuid)?.let { provisioner ->
+            remove(provisioner)
+        }
+    }
+
+    /**
      * Moves the provisioner from the given 'from' index to the specified 'to' index.
      *
      * @param from      Current index of the provisioner.
