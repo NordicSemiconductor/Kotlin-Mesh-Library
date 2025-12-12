@@ -31,16 +31,23 @@ internal class ProvisionersViewModel @Inject internal constructor(
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.asStateFlow()
 
     init {
-        repository.network.onEach { network ->
-            this.network = network
-            val provisioners = network.provisioners.map { ProvisionerData(it) }
-            _uiState.value = ProvisionersScreenUiState(provisioners = provisioners)
-        }.launchIn(viewModelScope)
+        observeNetwork()
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeProvisioners()
+        super.onCleared()
+    }
+
+    private fun observeNetwork() {
+        repository.network.onEach { network ->
+            this.network = network
+            _uiState.update { state ->
+                state.copy(
+                    provisioners = network.provisioners.map { ProvisionerData(it) }
+                )
+            }
+        }.launchIn(scope = viewModelScope)
     }
 
     /**
@@ -72,13 +79,8 @@ internal class ProvisionersViewModel @Inject internal constructor(
      * @param provisioner Provisioner to be deleted.
      */
     internal fun onSwiped(provisioner: ProvisionerData) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    provisioners = it.provisioners - provisioner,
-                    provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner
-                )
-            }
+        _uiState.update {
+            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner)
         }
     }
 
@@ -89,53 +91,35 @@ internal class ProvisionersViewModel @Inject internal constructor(
      * @param provisioner Scene to be reverted.
      */
     internal fun onUndoSwipe(provisioner: ProvisionerData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            network.provisioners
-                .indexOfFirst { it.uuid == provisioner.uuid }
-                .takeIf { it >= 0 }
-                ?.let { index ->
-                    val provisioners = state.provisioners
-                        .toMutableList()
-                        .also { it.add(index, provisioner) }
-                        .toList()
-                    _uiState.value = state.copy(
-                        provisioners = provisioners,
-                        provisionersToBeRemoved = state.provisionersToBeRemoved - provisioner
-                    )
-                }
+        _uiState.update {
+            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved - provisioner)
         }
     }
 
     /**
      * Remove a given scene from the network.
      *
-     * @param item Scene to be removed.
+     * @param provisioner Scene to be removed.
      */
-    internal fun remove(item: ProvisionerData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            network.run {
-                provisioner(uuid = item.uuid)?.let { provisioner ->
-                    remove(provisioner)
-                    save()
-                }
-            }
-            _uiState.value = state.copy(
-                provisionersToBeRemoved = state.provisionersToBeRemoved - item
+    internal fun remove(provisioner: ProvisionerData) {
+        _uiState.update { state ->
+            state.copy(
+                provisioners = state.provisioners - provisioner,
+                provisionersToBeRemoved = state.provisionersToBeRemoved - provisioner
             )
         }
+        network.removeProvisionerWithUuid(uuid = provisioner.uuid)
+        // In addition lets remove the provisioners queued for deletion as well.
+        removeProvisioners()
     }
 
     /**
      * Removes the provisioners that are queued for deletion.
      */
     private fun removeProvisioners() {
-        _uiState.value.provisionersToBeRemoved.forEach { item ->
-            network.run {
-                provisioner(uuid = item.uuid)?.let { provisioner ->
-                    remove(provisioner)
-                }
+        runCatching {
+            _uiState.value.provisionersToBeRemoved.forEach { provisioner ->
+                network.removeProvisionerWithUuid(uuid = provisioner.uuid)
             }
         }
         save()
