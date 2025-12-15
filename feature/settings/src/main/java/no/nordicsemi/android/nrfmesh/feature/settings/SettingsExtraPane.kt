@@ -57,7 +57,7 @@ internal fun SettingsExtraPane(
         )
 
         is SceneContent -> SceneScreenRoute(
-            scene = network.scenes.first { it.number == content.number },
+            scene = network.scene(number = content.number) ?: return,
             save = save
         )
 
