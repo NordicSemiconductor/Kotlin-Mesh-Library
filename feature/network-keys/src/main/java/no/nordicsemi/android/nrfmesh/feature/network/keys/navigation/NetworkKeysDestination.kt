@@ -26,19 +26,20 @@ fun NetworkKeysScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkKeysRoute(
         highlightSelectedItem = highlightSelectedItem,
+        selectedKeyIndex = uiState.selectedKeyIndex,
         keys = uiState.keys,
         onAddKeyClicked = viewModel::addNetworkKey,
         onNetworkKeyClicked = {
-            viewModel.selectKeyIndex(it)
+            viewModel.selectKeyIndex(keyIndex = it)
             onNetworkKeyClicked(it)
         },
         navigateToKey = {
-            viewModel.selectKeyIndex(it)
+            viewModel.selectKeyIndex(keyIndex = it)
             navigateToKey(it)
         },
         onSwiped = {
             viewModel.onSwiped(it)
-            if(viewModel.isCurrentlySelectedKey(it.index)) {
+            if(uiState.selectedKeyIndex == it.index) {
                 navigateUp()
             }
         },

@@ -54,6 +54,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 @Composable
 internal fun NetworkKeysRoute(
     highlightSelectedItem: Boolean,
+    selectedKeyIndex: KeyIndex?,
     onAddKeyClicked: () -> NetworkKey,
     keys: List<NetworkKeyData>,
     onNetworkKeyClicked: (KeyIndex) -> Unit,
@@ -65,7 +66,6 @@ internal fun NetworkKeysRoute(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -77,7 +77,6 @@ internal fun NetworkKeysRoute(
                     runCatching {
                         onAddKeyClicked()
                     }.onSuccess {
-                        selectedKeyIndex = it.index.toInt()
                         navigateToKey(it.index)
                     }
                 },
@@ -113,7 +112,7 @@ internal fun NetworkKeysRoute(
                         }
                         items(items = keys, key = { it.id }) { key ->
                             val isSelected =
-                                highlightSelectedItem && key.index.toInt() == selectedKeyIndex
+                                highlightSelectedItem && key.index == selectedKeyIndex
                             var visibility by remember { mutableStateOf(true) }
                             AnimatedVisibility(visibility) {
                                 SwipeToDismissKey(
@@ -122,10 +121,7 @@ internal fun NetworkKeysRoute(
                                     snackbarHostState = snackbarHostState,
                                     key = key,
                                     isSelected = isSelected,
-                                    onNetworkKeyClicked = {
-                                        selectedKeyIndex = it.toInt()
-                                        onNetworkKeyClicked(it)
-                                    },
+                                    onNetworkKeyClicked = onNetworkKeyClicked,
                                     onSwiped = {
                                         visibility = false
                                         onSwiped(it)
