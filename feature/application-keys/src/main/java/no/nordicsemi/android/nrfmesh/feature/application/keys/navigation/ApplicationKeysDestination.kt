@@ -26,16 +26,20 @@ fun ApplicationKeysScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeysRoute(
         highlightSelectedItem = highlightSelectedItem,
+        selectedKeyIndex = uiState.selectedKeyIndex,
         keys = uiState.keys,
         onAddKeyClicked = viewModel::addApplicationKey,
         onApplicationKeyClicked = {
-            viewModel.selectKeyIndex(it)
+            viewModel.selectKeyIndex(keyIndex = it)
             onApplicationKeyClicked(it)
         },
-        navigateToKey = navigateToKey,
+        navigateToKey = {
+            viewModel.selectKeyIndex(keyIndex = it)
+            navigateToKey(it)
+        },
         onSwiped = {
             viewModel.onSwiped(it)
-            if(viewModel.isCurrentlySelectedKey(it.index)) {
+            if(uiState.selectedKeyIndex == it.index) {
                 navigateUp()
             }
         },

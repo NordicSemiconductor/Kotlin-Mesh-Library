@@ -56,6 +56,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 @Composable
 internal fun ApplicationKeysRoute(
     highlightSelectedItem: Boolean,
+    selectedKeyIndex: KeyIndex?,
     keys: List<ApplicationKeyData>,
     onAddKeyClicked: () -> ApplicationKey,
     onApplicationKeyClicked: (KeyIndex) -> Unit,
@@ -67,7 +68,6 @@ internal fun ApplicationKeysRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedKeyIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -79,7 +79,6 @@ internal fun ApplicationKeysRoute(
                     runCatching {
                         onAddKeyClicked()
                     }.onSuccess {
-                        selectedKeyIndex = it.index.toInt()
                         navigateToKey(it.index)
                     }
                 },
@@ -114,7 +113,7 @@ internal fun ApplicationKeysRoute(
                     }
                     items(items = keys, key = { it.id }) { key ->
                         val isSelected =
-                            highlightSelectedItem && key.index.toInt() == selectedKeyIndex
+                            highlightSelectedItem && key.index == selectedKeyIndex
                         var visibility by remember { mutableStateOf(true) }
                         AnimatedVisibility(visibility) {
                             SwipeToDismissKey(
@@ -123,10 +122,7 @@ internal fun ApplicationKeysRoute(
                                 snackbarHostState = snackbarHostState,
                                 key = key,
                                 isSelected = isSelected,
-                                onApplicationKeyClicked = {
-                                    selectedKeyIndex = it.toInt()
-                                    onApplicationKeyClicked(it)
-                                },
+                                onApplicationKeyClicked = onApplicationKeyClicked,
                                 onSwiped = {
                                     visibility = false
                                     onSwiped(it)

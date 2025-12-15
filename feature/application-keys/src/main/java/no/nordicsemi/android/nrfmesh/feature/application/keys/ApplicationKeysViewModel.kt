@@ -23,7 +23,6 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
-    private var selectedKeyIndex: KeyIndex? = null
 
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState(listOf()))
     val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.asStateFlow()
@@ -121,15 +120,15 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
 
 
     internal fun selectKeyIndex(keyIndex: KeyIndex) {
-        selectedKeyIndex = keyIndex
+        _uiState.update { state ->
+            state.copy(selectedKeyIndex = keyIndex)
+        }
     }
-
-    internal fun isCurrentlySelectedKey(keyIndex: KeyIndex): Boolean =
-        keyIndex == selectedKeyIndex
 }
 
 @ConsistentCopyVisibility
 data class ApplicationKeysScreenUiState internal constructor(
     val keys: List<ApplicationKeyData> = listOf(),
     val keysToBeRemoved: List<ApplicationKeyData> = listOf(),
+    val selectedKeyIndex: KeyIndex? = null,
 )
