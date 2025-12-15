@@ -70,7 +70,6 @@ internal fun ScenesRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
