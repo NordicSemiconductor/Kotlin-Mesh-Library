@@ -960,11 +960,25 @@ data class MeshNetwork internal constructor(
      * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
      * @throws [SceneInUse] If the scene is already in use.
      */
-    @Throws(DoesNotBelongToNetwork::class)
+    @Throws(DoesNotBelongToNetwork::class, SceneInUse::class)
     fun remove(scene: Scene) {
         require(scene.network == this) { throw DoesNotBelongToNetwork() }
         require(!scene.isInUse) { throw SceneInUse() }
         _scenes.remove(scene).also { updateTimestamp() }
+    }
+
+    /**
+     * Removes a scene with the given scene number from the network.
+     *
+     * @param sceneNumber Scene number of the scene to be removed.
+     * @throws [DoesNotBelongToNetwork] If the scene does not belong to the network.
+     * @throws [SceneInUse] If the scene is already in use.
+     */
+    @Throws(DoesNotBelongToNetwork::class, SceneInUse::class)
+    fun remove(sceneNumber: SceneNumber) {
+        scene(number = sceneNumber)?.let { scene ->
+            remove(scene = scene)
+        }
     }
 
     /**
