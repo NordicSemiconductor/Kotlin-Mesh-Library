@@ -26,16 +26,20 @@ fun ScenesScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ScenesRoute(
         highlightSelectedItem = highlightSelectedItem,
+        selectedSceneNumber = uiState.selectedSceneNumber,
         scenes = uiState.scenes,
         onAddSceneClicked = viewModel::addScene,
         onSceneClicked = {
             viewModel.selectScene(number = it)
             onSceneClicked(it)
         },
-        navigateToScene = navigateToScene,
+        navigateToScene = {
+            viewModel.selectScene(it)
+            navigateToScene(it)
+        },
         onSwiped = {
             viewModel.onSwiped(scene = it)
-            if(viewModel.isCurrentlySelectedScene(number = it.number)) {
+            if(uiState.selectedSceneNumber == it.number) {
                 navigateUp()
             }
         },

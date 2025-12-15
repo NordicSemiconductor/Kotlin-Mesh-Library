@@ -23,7 +23,6 @@ internal class ScenesViewModel @Inject internal constructor(
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
-    private var selectedSceneNumber: SceneNumber? = null
     private val _uiState = MutableStateFlow(ScenesScreenUiState())
     val uiState: StateFlow<ScenesScreenUiState> = _uiState.asStateFlow()
 
@@ -118,14 +117,15 @@ internal class ScenesViewModel @Inject internal constructor(
     }
 
     internal fun selectScene(number: SceneNumber) {
-        selectedSceneNumber = number
+        _uiState.update { state ->
+            state.copy(selectedSceneNumber = number)
+        }
     }
-
-    internal fun isCurrentlySelectedScene(number: SceneNumber) = selectedSceneNumber == number
 }
 
 @ConsistentCopyVisibility
 data class ScenesScreenUiState internal constructor(
     val scenes: List<SceneData> = listOf(),
     val scenesToBeRemoved: List<SceneData> = listOf(),
+    val selectedSceneNumber: SceneNumber? = null,
 )

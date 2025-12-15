@@ -58,6 +58,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 @Composable
 internal fun ScenesRoute(
     highlightSelectedItem: Boolean,
+    selectedSceneNumber: SceneNumber?,
     scenes: List<SceneData>,
     onAddSceneClicked: () -> Scene,
     onSceneClicked: (KeyIndex) -> Unit,
@@ -69,7 +70,7 @@ internal fun ScenesRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedSceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -81,7 +82,6 @@ internal fun ScenesRoute(
                     runCatching {
                         onAddSceneClicked()
                     }.onSuccess { scene ->
-                        selectedSceneNumber = scene.number.toInt()
                         navigateToScene(scene.number)
                     }.onFailure {
                         scope.launch {
@@ -128,7 +128,7 @@ internal fun ScenesRoute(
                     }
                     items(items = scenes, key = { it.id }) { scene ->
                         val isSelected =
-                            highlightSelectedItem && scene.number.toInt() == selectedSceneNumber
+                            highlightSelectedItem && scene.number == selectedSceneNumber
                         var visibility by remember { mutableStateOf(true) }
                         AnimatedVisibility(visible = visibility) {
                             SwipeToDismissScene(
@@ -137,10 +137,7 @@ internal fun ScenesRoute(
                                 snackbarHostState = snackbarHostState,
                                 scene = scene,
                                 isSelected = isSelected,
-                                onAddSceneClicked = {
-                                    selectedSceneNumber = it.toInt()
-                                    onSceneClicked(it)
-                                },
+                                onSceneClicked = onSceneClicked,
                                 onSwiped = {
                                     visibility = false
                                     onSwiped(it)
@@ -167,7 +164,7 @@ private fun SwipeToDismissScene(
     snackbarHostState: SnackbarHostState,
     scene: SceneData,
     isSelected: Boolean,
-    onAddSceneClicked: (SceneNumber) -> Unit,
+    onSceneClicked: (SceneNumber) -> Unit,
     onSwiped: (SceneData) -> Unit,
     onUndoClicked: (SceneData) -> Unit,
     remove: (SceneData) -> Unit,
@@ -233,7 +230,7 @@ private fun SwipeToDismissScene(
         },
         content = {
             ElevatedCardItem(
-                onClick = { onAddSceneClicked(scene.number) },
+                onClick = { onSceneClicked(scene.number) },
                 colors = when (isSelected) {
                     true -> CardDefaults.outlinedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
