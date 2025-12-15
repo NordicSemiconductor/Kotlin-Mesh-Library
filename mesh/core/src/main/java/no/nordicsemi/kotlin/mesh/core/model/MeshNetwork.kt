@@ -949,7 +949,7 @@ data class MeshNetwork internal constructor(
      * @throws [SceneAlreadyExists] If the scene already exists.
      */
     @Throws(NoSceneNumberAvailable::class, SceneAlreadyExists::class)
-    fun add(name: String, provisioner: Provisioner = provisioners.first()): Scene {
+    fun add(name: String, provisioner: Provisioner): Scene {
         val nextSceneNumber =
             nextAvailableScene(provisioner = provisioner) ?: throw NoSceneNumberAvailable()
         return add(name = name, number = nextSceneNumber)
