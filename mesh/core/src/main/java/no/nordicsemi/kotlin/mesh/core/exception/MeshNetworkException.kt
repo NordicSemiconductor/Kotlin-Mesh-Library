@@ -67,6 +67,9 @@ class SceneInUse : MeshNetworkException()
 /** Thrown when no scene range is allocated to a provisioner. */
 class NoSceneRangeAllocated : MeshNetworkException()
 
+/** Thrown when no scene number is available to be allocated. */
+class NoSceneNumberAvailable : MeshNetworkException()
+
 /** Thrown when at least one network key is not selected when exporting a partial network. */
 class AtLeastOneNetworkKeyMustBeSelected : MeshNetworkException()
 
