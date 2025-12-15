@@ -172,7 +172,6 @@ private fun SwipeToDismissKey(
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
                         -> if (key.isInUse) Color.Gray else Color.Red
-
                 }
             )
             Box(

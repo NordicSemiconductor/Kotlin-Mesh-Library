@@ -40,6 +40,6 @@ fun ApplicationKeysScreenRoute(
             }
         },
         onUndoClicked = viewModel::onUndoSwipe,
-        remove = { viewModel.remove(it) }
+        remove = viewModel::remove
     )
 }
