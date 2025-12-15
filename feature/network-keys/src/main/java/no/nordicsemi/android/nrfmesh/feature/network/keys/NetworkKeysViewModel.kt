@@ -40,7 +40,10 @@ class NetworkKeysViewModel @Inject internal constructor(
             this@NetworkKeysViewModel.network = network
             _uiState.update { state ->
                 state.copy(
-                    keys = network.networkKeys.map { NetworkKeyData(it) },
+                    keys = network.networkKeys
+                        .map { NetworkKeyData(key = it) }
+                        // Filter out the keys that are marked for deletion.
+                        .filter { it !in state.keysToBeRemoved },
                 )
             }
         }.launchIn(scope = viewModelScope)

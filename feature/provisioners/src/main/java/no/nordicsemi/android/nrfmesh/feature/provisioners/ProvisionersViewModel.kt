@@ -44,8 +44,12 @@ internal class ProvisionersViewModel @Inject internal constructor(
             this.network = network
             _uiState.update { state ->
                 state.copy(
-                    provisioners = network.provisioners.map { ProvisionerData(it) }
-                )
+                    provisioners = network.provisioners
+                        .map { ProvisionerData(provisioner = it) }
+                        // Filter out the provisioners that are marked for deletion.
+                        .filter { it !in state.provisionersToBeRemoved },
+
+                    )
             }
         }.launchIn(scope = viewModelScope)
     }

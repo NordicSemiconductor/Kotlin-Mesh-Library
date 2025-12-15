@@ -42,7 +42,10 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
             this.network = network
             _uiState.update { state ->
                 state.copy(
-                    keys = network.applicationKeys.map { ApplicationKeyData(it) },
+                    keys = network.applicationKeys
+                        .map { ApplicationKeyData(key = it) }
+                        // Filter out the keys that are marked for deletion.
+                        .filter { it !in state.keysToBeRemoved },
                 )
             }
         }.launchIn(scope = viewModelScope)
@@ -96,6 +99,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         // In addition lets remove the keys queued for deletion as well.
         removeKeys()
     }
+
     /**
      * Removes all keys that are queued for deletion.
      */
@@ -107,7 +111,6 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         }
         save()
     }
-
 
     /**
      * Saves the network.
@@ -128,5 +131,5 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
 @ConsistentCopyVisibility
 data class ApplicationKeysScreenUiState internal constructor(
     val keys: List<ApplicationKeyData> = listOf(),
-    val keysToBeRemoved: List<ApplicationKeyData> = listOf()
+    val keysToBeRemoved: List<ApplicationKeyData> = listOf(),
 )
