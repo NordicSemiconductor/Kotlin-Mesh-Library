@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.KeyIndexOutOfRange
 import no.nordicsemi.kotlin.mesh.core.exception.NoAddressesAvailable
 import no.nordicsemi.kotlin.mesh.core.exception.NoGroupRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetworkKeysAdded
+import no.nordicsemi.kotlin.mesh.core.exception.NoSceneNumberAvailable
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.exception.NoUnicastRangeAllocated
 import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
@@ -922,7 +923,7 @@ data class MeshNetwork internal constructor(
     /**
      * Adds a given Scene with the given name and the scene number to the mesh network.
      *
-     * @param name Name of the scene.
+     * @param name   Name of the scene.
      * @param number Scene number.
      * @throws [SceneAlreadyExists] If the scene already exists.
      */
@@ -932,11 +933,26 @@ data class MeshNetwork internal constructor(
         return Scene(_name = name, number = number).apply {
             network = this@MeshNetwork
         }.also { scene ->
-            _scenes.apply {
-                add(scene)
-            }.sortBy { it.number }
+            _scenes
+                .apply { add(scene) }
+                .sortBy { it.number }
             updateTimestamp()
         }
+    }
+
+    /**
+     * Adds a given Scene with the given name to the mesh network for a given provisioner
+     *
+     * @param name        Name of the scene.
+     * @param provisioner Provisioner for whom the scene is being added.
+     * @throws [NoSceneNumberAvailable] If there is no scene number available for the provisioner.
+     * @throws [SceneAlreadyExists] If the scene already exists.
+     */
+    @Throws(NoSceneNumberAvailable::class, SceneAlreadyExists::class)
+    fun add(name: String, provisioner: Provisioner = provisioners.first()): Scene {
+        val nextSceneNumber =
+            nextAvailableScene(provisioner = provisioner) ?: throw NoSceneNumberAvailable()
+        return add(name = name, number = nextSceneNumber)
     }
 
     /**
