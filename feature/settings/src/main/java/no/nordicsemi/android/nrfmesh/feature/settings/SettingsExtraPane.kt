@@ -51,7 +51,7 @@ internal fun SettingsExtraPane(
         )
 
         is ApplicationKeyContent -> ApplicationKeyScreenRoute(
-            key = network.applicationKey(content.keyIndex) ?: return,
+            key = network.applicationKey(index = content.keyIndex) ?: return,
             networkKeys = network.networkKeys,
             save = save
         )
