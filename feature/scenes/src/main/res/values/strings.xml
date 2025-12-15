@@ -8,8 +8,8 @@
     <string name="label_scene_number">Scene Number</string>
     <string name="error_cannot_edit_scene_in_use">Cannot edit a scene that\'s in use.</string>
     <string name="action_undo">Undo</string>
-    <string name="error_cannot_delete_scene_in_use">Error cannot delete a scene in use.</string>
-    <string name="label_scene_deleted">Scene deleted.</string>
+    <string name="label_cannot_delete_scene_in_use">Cannot delete, %1$s is in use.</string>
+    <string name="label_scene_deleted">%1$s deleted.</string>
     <string name="error_no_allocated_scene_numbers_available">No scene numbers are available from
         the allocated scene range</string>
     <string name="error_allocate_scene_range_to_provisioner">Error, please allocate a scene range to

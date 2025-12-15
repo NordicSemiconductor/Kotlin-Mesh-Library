@@ -3,9 +3,12 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,11 +28,11 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,10 +50,8 @@ import no.nordicsemi.android.nrfmesh.core.data.models.SceneData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.exception.NoSceneRangeAllocated
+import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.Scene
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
@@ -58,39 +59,18 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 internal fun ScenesRoute(
     highlightSelectedItem: Boolean,
     scenes: List<SceneData>,
-    onAddSceneClicked: () -> Scene?,
+    onAddSceneClicked: () -> Scene,
+    onSceneClicked: (KeyIndex) -> Unit,
     navigateToScene: (SceneNumber) -> Unit,
     onSwiped: (SceneData) -> Unit,
     onUndoClicked: (SceneData) -> Unit,
-    remove: (SceneData) -> Unit
-) {
-    Scenes(
-        highlightSelectedItem = highlightSelectedItem,
-        scenes = scenes,
-        onAddSceneClicked = onAddSceneClicked,
-        navigateToScene = navigateToScene,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove
-    )
-}
-
-@Composable
-private fun Scenes(
-    highlightSelectedItem: Boolean,
-    scenes: List<SceneData>,
-    onAddSceneClicked: () -> Scene?,
-    navigateToScene: (SceneNumber) -> Unit,
-    onSwiped: (SceneData) -> Unit,
-    onUndoClicked: (SceneData) -> Unit,
-    remove: (SceneData) -> Unit
+    remove: (SceneData) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedSceneNumber by rememberSaveable { mutableStateOf<Int?>(null) }
     Scaffold(
-        modifier = Modifier.background(color = Color.Red),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -101,22 +81,20 @@ private fun Scenes(
                     runCatching {
                         onAddSceneClicked()
                     }.onSuccess { scene ->
-                        scene?.number?.let {
-                            selectedSceneNumber = it.toInt()
-                            navigateToScene(it)
-                        }
+                        selectedSceneNumber = scene.number.toInt()
+                        navigateToScene(scene.number)
                     }.onFailure {
-                        showSnackbar(
-                            scope = scope,
-                            snackbarHostState = snackbarHostState,
-                            message = when (it) {
-                                is NoSceneRangeAllocated -> it.message ?: context.getString(
-                                    R.string.error_allocate_scene_range_to_provisioner
-                                )
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = when (it) {
+                                    is NoSceneRangeAllocated -> it.message ?: context.getString(
+                                        R.string.error_allocate_scene_range_to_provisioner
+                                    )
 
-                                else -> it.message ?: context.getString(R.string.unknown_error)
-                            }
-                        )
+                                    else -> it.message ?: context.getString(R.string.unknown_error)
+                                }
+                            )
+                        }
                     }
                 },
                 expanded = true
@@ -128,10 +106,6 @@ private fun Scenes(
                 .fillMaxSize()
                 .consumeWindowInsets(paddingValues = paddingValues)
         ) {
-            SectionTitle(
-                modifier = Modifier.padding(top = 8.dp),
-                title = stringResource(id = R.string.label_scenes)
-            )
             when (scenes.isEmpty()) {
                 true -> MeshNoItemsAvailable(
                     modifier = Modifier.fillMaxSize(),
@@ -141,28 +115,43 @@ private fun Scenes(
 
                 false -> LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    // Removed in favor of padding in SwipeToDismissKey so that hiding an item will not leave any gaps
+                    //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
-                    items(items = scenes, key = { it.hashCode() }) { scene ->
-                        val isSelected = highlightSelectedItem && scene.number.toInt() == selectedSceneNumber
-                        SwipeToDismissScene(
-                            context = context,
-                            snackbarHostState = snackbarHostState,
-                            scene = scene,
-                            isSelected = isSelected,
-                            navigateToScene = {
-                                selectedSceneNumber = it.toInt()
-                                navigateToScene(it)
-                            },
-                            onSwiped = {
-                                onSwiped(it)
-                                remove(it)
-                            },
-                            onUndoClicked = onUndoClicked,
-                            remove = remove
+                    item {
+                        SectionTitle(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            title = stringResource(id = R.string.label_scenes)
                         )
+                    }
+                    items(items = scenes, key = { it.id }) { scene ->
+                        val isSelected =
+                            highlightSelectedItem && scene.number.toInt() == selectedSceneNumber
+                        var visibility by remember { mutableStateOf(true) }
+                        AnimatedVisibility(visible = visibility) {
+                            SwipeToDismissScene(
+                                scope = scope,
+                                context = context,
+                                snackbarHostState = snackbarHostState,
+                                scene = scene,
+                                isSelected = isSelected,
+                                onAddSceneClicked = {
+                                    selectedSceneNumber = it.toInt()
+                                    onSceneClicked(it)
+                                },
+                                onSwiped = {
+                                    visibility = false
+                                    onSwiped(it)
+                                },
+                                onUndoClicked = {
+                                    visibility = true
+                                    onUndoClicked(it)
+                                },
+                                remove = remove
+                            )
+                        }
                     }
                 }
             }
@@ -173,82 +162,96 @@ private fun Scenes(
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun SwipeToDismissScene(
+    scope: CoroutineScope,
     context: Context,
     snackbarHostState: SnackbarHostState,
     scene: SceneData,
     isSelected: Boolean,
-    navigateToScene: (SceneNumber) -> Unit,
+    onAddSceneClicked: (SceneNumber) -> Unit,
     onSwiped: (SceneData) -> Unit,
     onUndoClicked: (SceneData) -> Unit,
-    remove: (SceneData) -> Unit
+    remove: (SceneData) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            handleValueChange(
-                scope = scope,
-                context = context,
-                snackbarHostState = snackbarHostState,
-                scene = scene
+    val dismissState = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        // Added instead of using Arrangement.spacedBy to avoid leaving gaps when an item is swiped away.
+        modifier = Modifier.padding(bottom = 8.dp),
+        state = dismissState,
+        backgroundContent = {
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.Settled,
+                    SwipeToDismissBoxValue.StartToEnd,
+                    SwipeToDismissBoxValue.EndToStart,
+                        -> if (scene.isInUse) Color.Gray else Color.Red
+
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
             )
         },
-        positionalThreshold = { it * 0.5f }
-    )
-    SwipeDismissItem(
-        dismissState = dismissState,
-        content = {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                ElevatedCardItem(
-                    onClick = { navigateToScene(scene.number) },
-                    colors = when (isSelected) {
-                        true -> CardDefaults.outlinedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        onDismiss = {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            if (scene.isInUse) {
+                // The following functions are invoked in their own coroutine to ensure
+                // that they are executed sequentially
+                scope.launch {
+                    dismissState.reset()
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            R.string.label_cannot_delete_scene_in_use,
+                            scene.name
                         )
+                    )
+                }
+            } else {
+                onSwiped(scene)
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            R.string.label_scene_deleted,
+                            scene.name
+                        ),
+                        actionLabel = context.getString(R.string.action_undo),
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short
+                    )
 
-                        else -> CardDefaults.outlinedCardColors()
-                    },
-                    imageVector = Icons.Outlined.AutoAwesome,
-                    title = scene.name,
-                    subtitle = "0x${scene.number.toHexString()}"
-                )
-            }
-        }
-    )
-    if (dismissState.isDismissed()) {
-        LaunchedEffect(key1 = snackbarHostState) {
-            onSwiped(scene)
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.label_scene_deleted),
-                actionLabel = context.getString(R.string.action_undo),
-                withDismissAction = true,
-                duration = SnackbarDuration.Short
-            ).also {
-                when (it) {
-                    SnackbarResult.Dismissed -> remove(scene)
-                    SnackbarResult.ActionPerformed -> {
-                        dismissState.reset()
-                        onUndoClicked(scene)
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> {
+                            onUndoClicked(scene)
+                            dismissState.reset()
+                        }
+
+                        SnackbarResult.Dismissed -> remove(scene)
                     }
                 }
             }
-        }
-    }
-}
+        },
+        content = {
+            ElevatedCardItem(
+                onClick = { onAddSceneClicked(scene.number) },
+                colors = when (isSelected) {
+                    true -> CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
 
-private fun handleValueChange(
-    scope: CoroutineScope,
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    scene: SceneData
-): Boolean = when {
-    scene.isInUse -> {
-        scope.launch {
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.error_cannot_delete_scene_in_use)
+                    else -> CardDefaults.outlinedCardColors()
+                },
+                imageVector = Icons.Outlined.AutoAwesome,
+                title = scene.name,
+                subtitle = "Scene number: ${
+                    scene.number.toHexString(
+                        format = HexFormat {
+                            number.prefix = "0x"
+                            upperCase = true
+                        }
+                    )
+                }"
             )
         }
-        false
-    }
-
-    else -> true
+    )
 }

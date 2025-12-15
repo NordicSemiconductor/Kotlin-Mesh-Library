@@ -18,6 +18,7 @@ data object ScenesContent : Parcelable
 @Composable
 fun ScenesScreenRoute(
     highlightSelectedItem: Boolean,
+    onSceneClicked: (SceneNumber) -> Unit,
     navigateToScene: (SceneNumber) -> Unit,
     navigateUp: () -> Unit,
 ) {
@@ -27,13 +28,14 @@ fun ScenesScreenRoute(
         highlightSelectedItem = highlightSelectedItem,
         scenes = uiState.scenes,
         onAddSceneClicked = viewModel::addScene,
-        navigateToScene = {
-            viewModel.selectScene(it)
-            navigateToScene(it)
+        onSceneClicked = {
+            viewModel.selectScene(number = it)
+            onSceneClicked(it)
         },
+        navigateToScene = navigateToScene,
         onSwiped = {
-            viewModel.onSwiped(it)
-            if(viewModel.isCurrentlySelectedScene(it.number)) {
+            viewModel.onSwiped(scene = it)
+            if(viewModel.isCurrentlySelectedScene(number = it.number)) {
                 navigateUp()
             }
         },

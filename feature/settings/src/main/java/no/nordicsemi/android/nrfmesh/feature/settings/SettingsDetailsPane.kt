@@ -59,6 +59,7 @@ internal fun SettingsDetailsPane(
 
         is ScenesContent, is SceneContent -> ScenesScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
+            onSceneClicked = navigateToScene,
             navigateToScene = navigateToScene,
             navigateUp = navigateUp
         )
