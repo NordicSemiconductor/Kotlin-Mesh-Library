@@ -46,9 +46,7 @@ fun Name(name: String, onNameChanged: (String) -> Unit) {
         imageVector = Icons.Outlined.Badge,
         title = stringResource(id = R.string.label_name),
         subtitle = name,
-        onValueChanged = onNameChanged,
-        isEditable = true,
-        onEditableStateChanged = { },
+        onValueChanged = onNameChanged
     )
 }
 
@@ -59,6 +57,11 @@ fun Number(number: SceneNumber) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(id = R.string.label_scene_number),
-        subtitle = number.toHexString()
+        subtitle = number.toHexString(
+            format = HexFormat {
+                this.number.prefix = "0x"
+                upperCase = true
+            }
+        )
     )
 }
