@@ -61,7 +61,7 @@ class NetworkKeysViewModel @Inject internal constructor(
      * @param key Network key to be deleted.
      */
 
-    fun onSwiped(key: NetworkKeyData) {
+    internal fun onSwiped(key: NetworkKeyData) {
         viewModelScope.launch {
             val state = _uiState.value
             _uiState.value = state.copy(
@@ -76,7 +76,7 @@ class NetworkKeysViewModel @Inject internal constructor(
      *
      * @param key Network key to be reverted.
      */
-    fun onUndoSwipe(key: NetworkKeyData) {
+    internal fun onUndoSwipe(key: NetworkKeyData) {
         _uiState.update { state ->
             state.copy(
                 keysToBeRemoved = state.keysToBeRemoved - key
