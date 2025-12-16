@@ -1,6 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.proxy
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -16,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -23,6 +27,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -38,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -52,7 +59,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
@@ -397,17 +403,28 @@ private fun SwipeToDismissAddress(
     address: ProxyFilterAddress,
     onSwiped: (ProxyFilterAddress) -> Unit,
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            onSwiped(address)
-            true
-        }
-    )
-    SwipeDismissItem(
-        dismissState = dismissState,
-        content = {
-            AddressRow(name = address.name(nodes = nodes, groups = groups))
-        }
+    val dismissState = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        state = dismissState,
+        backgroundContent = {
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.Settled,
+                    SwipeToDismissBoxValue.StartToEnd,
+                    SwipeToDismissBoxValue.EndToStart,
+                        -> Color.Red
+
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
+            )
+        },
+        onDismiss = { onSwiped(address) },
+        content = { AddressRow(name = address.name(nodes = nodes, groups = groups)) }
     )
 }
 
