@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
@@ -43,44 +44,60 @@ internal class ProxyViewModel @Inject internal constructor(
     private fun observeNetwork() {
         repository.network.onEach {
             meshNetwork = it
-            _uiState.value = _uiState.value.copy(
-                nodes = it.nodes.toList(),
-                networkKeys = it.networkKeys.toList(),
-                groups = it.groups.toList()
-            )
+            _uiState.update {
+                it.copy(
+                    nodes = meshNetwork?.nodes?.toList() ?: emptyList(),
+                    networkKeys = meshNetwork?.networkKeys?.toList() ?: emptyList(),
+                    groups = meshNetwork?.groups?.toList() ?: emptyList()
+                )
+            }
         }.launchIn(scope = viewModelScope)
 
-        repository.proxyConnectionStateFlow.onEach {
-            _uiState.value = _uiState.value.copy(proxyConnectionState = it)
+        repository.proxyConnectionStateFlow.onEach { proxyConnectionState ->
+            _uiState.update {
+                it.copy(proxyConnectionState = proxyConnectionState)
+            }
         }.launchIn(scope = viewModelScope)
 
         // Setup initial state
-        _uiState.value = _uiState.value.copy(
-            filterType = repository.proxyFilter.type,
-            addresses = repository.proxyFilter.addresses.toList(),
-        )
+        _uiState.update {
+            it.copy(
+                filterType = repository.proxyFilter.type,
+                addresses = repository.proxyFilter.addresses.toList(),
+            )
+        }
 
-        repository.proxyFilter.proxyFilterStateFlow.onEach {
-            when (it) {
+        repository.proxyFilter.proxyFilterStateFlow.onEach { proxyFilterState ->
+            println("ProxyViewModel: proxyFilterState: $proxyFilterState")
+            when (proxyFilterState) {
                 is ProxyFilterState.ProxyFilterUpdated -> {
                     val addresses = mutableListOf<ProxyFilterAddress>()
-                    addresses.addAll(it.addresses)
-                    _uiState.value = _uiState.value.copy(
-                        filterType = it.type,
-                        addresses = addresses.toList(),
-                        isProxyLimitReached = false
-                    )
+                    addresses.addAll(proxyFilterState.addresses)
+                    _uiState.update {
+                        it.copy(
+                            filterType = proxyFilterState.type,
+                            addresses = proxyFilterState.addresses.toList(),
+                            isProxyLimitReached = false
+                        )
+                    }
                 }
 
                 is ProxyFilterState.ProxyFilterLimitReached -> {
-                    _uiState.value = _uiState.value.copy(
-                        filterType = it.type,
-                        isProxyLimitReached = true
-                    )
+                    _uiState.update {
+                        it.copy(
+                            filterType = proxyFilterState.type,
+                            isProxyLimitReached = true
+                        )
+                    }
                 }
 
                 is ProxyFilterState.ProxyFilterUpdateAcknowledged -> {
-
+                    _uiState.update {
+                        it.copy(
+                            filterType = proxyFilterState.type,
+                            addresses = repository.proxyFilter.addresses.toList(),
+                        )
+                    }
                 }
 
                 ProxyFilterState.Unknown -> {
@@ -126,27 +143,33 @@ internal class ProxyViewModel @Inject internal constructor(
     }
 
     internal fun send(message: ProxyConfigurationMessage) {
-        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
+        _uiState.update {
+            it.copy(messageState = Sending(message = message))
+        }
         viewModelScope.launch {
             try {
                 repository.send(message).let { response ->
                     if (message is RemoveAddressesFromFilter) {
                         val addresses = _uiState.value.addresses.toMutableList()
                         if (addresses.removeAll(message.addresses)) {
-                            _uiState.value = _uiState.value.copy(addresses = addresses.toList())
+                            _uiState.update {
+                                it.copy(addresses = addresses.toList())
+                            }
                         }
                     }
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Completed(
-                            message = message,
-                            response = response as ConfigResponse
-                        ),
-                    )
+                    _uiState.update {
+                        it.copy(
+                            messageState = Completed(
+                                message = message,
+                                response = response as ConfigResponse
+                            ),
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = e)
-                )
+                _uiState.update {
+                    it.copy(messageState = Failed(message = message, error = e))
+                }
             }
         }
     }
