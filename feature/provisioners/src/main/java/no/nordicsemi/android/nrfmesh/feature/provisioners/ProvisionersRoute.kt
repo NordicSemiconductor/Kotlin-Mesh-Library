@@ -6,7 +6,6 @@ import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,8 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.PersonOutline
-import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -38,28 +35,22 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -68,30 +59,10 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun ProvisionersRoute(
     highlightSelectedItem: Boolean,
+    selectedProvisionerUuid: Uuid?,
     provisioners: List<ProvisionerData>,
     onAddProvisionerClicked: () -> Provisioner,
-    onSwiped: (ProvisionerData) -> Unit,
-    onUndoClicked: (ProvisionerData) -> Unit,
-    remove: (ProvisionerData) -> Unit,
-    navigateToProvisioner: (Uuid) -> Unit,
-) {
-    Provisioners(
-        highlightSelectedItem = highlightSelectedItem,
-        provisioners = provisioners,
-        addProvisioner = onAddProvisionerClicked,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove,
-        navigateToProvisioner = navigateToProvisioner
-    )
-}
-
-@OptIn(ExperimentalUuidApi::class)
-@Composable
-private fun Provisioners(
-    highlightSelectedItem: Boolean,
-    provisioners: List<ProvisionerData>,
-    addProvisioner: () -> Provisioner,
+    onProvisionerClicked: (Uuid) -> Unit,
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
@@ -100,7 +71,6 @@ private fun Provisioners(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedUuid by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         contentWindowInsets = WindowInsets(top = 8.dp),
@@ -112,9 +82,8 @@ private fun Provisioners(
                 icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
                 onClick = {
                     runCatching {
-                        addProvisioner()
+                        onAddProvisionerClicked()
                     }.onSuccess {
-                        selectedUuid = it.uuid.toString()
                         navigateToProvisioner(it.uuid)
                     }
                 },
@@ -166,11 +135,8 @@ private fun Provisioners(
                                 scope = scope,
                                 context = context,
                                 snackbarHostState = snackbarHostState,
-                                isSelected = selectedUuid == item.uuid.toString() && highlightSelectedItem,
-                                navigateToProvisioner = {
-                                    selectedUuid = it.toString()
-                                    navigateToProvisioner(it)
-                                },
+                                isSelected = selectedProvisionerUuid == item.uuid && highlightSelectedItem,
+                                onProvisionerClicked = onProvisionerClicked,
                                 onSwiped = {
                                     visibility = false
                                     onSwiped(it)
@@ -197,7 +163,7 @@ private fun SwipeToDismissProvisioner(
     context: Context,
     snackbarHostState: SnackbarHostState,
     provisioner: ProvisionerData,
-    navigateToProvisioner: (Uuid) -> Unit,
+    onProvisionerClicked: (Uuid) -> Unit,
     onSwiped: (ProvisionerData) -> Unit,
     onUndoClicked: (ProvisionerData) -> Unit,
     remove: (ProvisionerData) -> Unit,
@@ -271,7 +237,7 @@ private fun SwipeToDismissProvisioner(
         content = {
             ElevatedCardItem(
                 colors = isSelected.selectedColor(),
-                onClick = { navigateToProvisioner(provisioner.uuid) },
+                onClick = { onProvisionerClicked(provisioner.uuid) },
                 imageVector = index.toImageVector(),
                 title = provisioner.name,
                 subtitle = provisioner.address?.let {

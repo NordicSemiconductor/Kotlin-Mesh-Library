@@ -25,7 +25,6 @@ internal class ProvisionersViewModel @Inject internal constructor(
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
-    private var selectedProvisioner: Uuid? = null
 
     private val _uiState = MutableStateFlow(ProvisionersScreenUiState())
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.asStateFlow()
@@ -138,14 +137,14 @@ internal class ProvisionersViewModel @Inject internal constructor(
 
     @OptIn(ExperimentalUuidApi::class)
     fun selectProvisioner(uuid: Uuid) {
-        selectedProvisioner = uuid
+        _uiState.update { it.copy(selectedProvisionerUuid = uuid) }
     }
-
-    fun isCurrentlySelectedProvisioner(uuid: Uuid) = selectedProvisioner == uuid
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @ConsistentCopyVisibility
 data class ProvisionersScreenUiState internal constructor(
     val provisioners: List<ProvisionerData> = listOf(),
     val provisionersToBeRemoved: List<ProvisionerData> = listOf(),
+    val selectedProvisionerUuid: Uuid? = null,
 )

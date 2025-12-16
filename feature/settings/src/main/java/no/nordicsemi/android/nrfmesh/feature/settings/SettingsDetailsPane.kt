@@ -40,6 +40,7 @@ internal fun SettingsDetailsPane(
     when (content) {
         is ProvisionersContent, is ProvisionerContent -> ProvisionersScreenRoute(
             highlightSelectedItem = highlightSelectedItem,
+            onProvisionerClicked = navigateToProvisioner,
             navigateToProvisioner = navigateToProvisioner,
             navigateUp = navigateUp
         )
