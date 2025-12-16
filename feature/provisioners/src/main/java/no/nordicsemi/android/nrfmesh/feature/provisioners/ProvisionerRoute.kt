@@ -97,10 +97,7 @@ internal fun ProvisionerRoute(
     var isCurrentlyEditable by rememberSaveable(inputs = arrayOf(provisioner.uuid)) {
         mutableStateOf(true)
     }
-    Scaffold(
-        modifier = Modifier.background(color = Color.Red),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-    ) { paddingValues ->
+    Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -590,9 +587,7 @@ private fun SceneRanges(
 ) {
     var showSceneRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
-        mutableStateOf<List<Range>>(
-            provisionerData.sceneRanges
-        )
+        mutableStateOf<List<Range>>(provisionerData.sceneRanges)
     }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
