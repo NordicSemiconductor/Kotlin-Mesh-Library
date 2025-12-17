@@ -1,12 +1,16 @@
 package no.nordicsemi.android.nrfmesh.feature.ranges
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,9 +21,11 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,13 +33,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,8 +60,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
@@ -80,6 +83,7 @@ fun RangesScreen(
     remove: (Range) -> Unit,
     resolve: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showAddRangeDialog by remember { mutableStateOf(false) }
     var rangeToEdit by remember { mutableStateOf<Range?>(null) }
@@ -144,21 +148,53 @@ fun RangesScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (ranges.isNotEmpty()) {
-                items(items = ranges) { range ->
+                items(items = ranges, key = { it.hashCode() }) { range ->
                     // Hold the current state from the Swipe to Dismiss composable
                     val currentItem by rememberUpdatedState(newValue = range)
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        positionalThreshold = { it * 0.5f }
-                    )
-                    SwipeDismissItem(
-                        dismissState = dismissState,
+                    val dismissState = rememberSwipeToDismissBoxState()
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            val color by animateColorAsState(
+                                when (dismissState.targetValue) {
+                                    SwipeToDismissBoxValue.Settled,
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> Color.Red
+                                }
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(color = color, shape = CardDefaults.elevatedShape)
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                                    Alignment.CenterStart
+                                else Alignment.CenterEnd
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
+                            }
+                        },
+                        onDismiss = { onSwiped(currentItem) },
                         content = {
                             OutlinedCard {
                                 AllocatedRange(
                                     imageVector = range.toImageVector(),
-                                    title = "0x${
-                                        range.low.toByteArray().toHexString()
-                                    } - 0x${range.high.toByteArray().toHexString()}",
+                                    title = "${
+                                        range.low.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "0x"
+                                                upperCase = true
+                                            }
+                                        )
+                                    } - ${
+                                        range.high.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "0x"
+                                                upperCase = true
+                                            }
+                                        )
+                                    }",
                                     range = range,
                                     otherRanges = otherRanges.filter { it.overlap(range) != null },
                                     onClick = {
@@ -169,29 +205,11 @@ fun RangesScreen(
                             }
                         }
                     )
-                    if (dismissState.isDismissed()) {
-                        LaunchedEffect(snackbarHostState) {
-                            onSwiped(currentItem)
-                            snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.label_range_deleted),
-                                actionLabel = context.getString(R.string.action_undo),
-                                withDismissAction = true,
-                                duration = SnackbarDuration.Long
-                            ).also {
-                                when (it) {
-                                    SnackbarResult.Dismissed -> remove(currentItem)
-                                    SnackbarResult.ActionPerformed -> {
-                                        dismissState.reset()
-                                        onUndoClicked(currentItem)
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             } else {
                 item {
                     MeshNoItemsAvailable(
+                        modifier = Modifier.fillMaxSize(),
                         imageVector = Icons.Outlined.AutoAwesome,
                         title = stringResource(R.string.no_ranges_currently_added)
                     )
