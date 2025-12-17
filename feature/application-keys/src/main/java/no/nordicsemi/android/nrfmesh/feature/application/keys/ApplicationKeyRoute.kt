@@ -60,7 +60,7 @@ internal fun ApplicationKeyRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     val applicationKey by remember(key.index) { derivedStateOf { ApplicationKeyData(key = key) } }
-    var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.boundNetKeyIndex.toInt()) }
+    var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.index.toInt()) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -103,7 +103,7 @@ internal fun ApplicationKeyRoute(
                     onClick = {
                         if (!applicationKey.isInUse) {
                             boundNetKeyIndex = networkKey.index.toInt()
-                            key.boundNetKeyIndex = networkKey.index
+                            key.bind(networkKey = networkKey)
                             save()
                         } else showSnackbar(
                             scope = coroutineScope,
