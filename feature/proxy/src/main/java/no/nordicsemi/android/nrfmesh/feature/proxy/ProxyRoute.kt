@@ -18,9 +18,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -414,14 +416,19 @@ private fun SwipeToDismissAddress(
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
                         -> Color.Red
-
                 }
             )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = color, shape = CardDefaults.elevatedShape)
-            )
+                    .padding(horizontal = 16.dp),
+                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                    Alignment.CenterStart
+                else Alignment.CenterEnd
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
+            }
         },
         onDismiss = { onSwiped(address) },
         content = { AddressRow(name = address.name(nodes = nodes, groups = groups)) }

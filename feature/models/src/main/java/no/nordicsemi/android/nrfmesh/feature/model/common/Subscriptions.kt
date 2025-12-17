@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Refresh
@@ -280,14 +281,19 @@ private fun SubscriptionRow(
                             address = address
                         )
                     ) Color.Gray else Color.Red
-
                 }
             )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = color, shape = CardDefaults.elevatedShape)
-            )
+                    .padding(horizontal = 16.dp),
+                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                    Alignment.CenterStart
+                else Alignment.CenterEnd
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
+            }
         },
         onDismiss = {
             if (!shouldDismiss(model = model, address = address)) {
