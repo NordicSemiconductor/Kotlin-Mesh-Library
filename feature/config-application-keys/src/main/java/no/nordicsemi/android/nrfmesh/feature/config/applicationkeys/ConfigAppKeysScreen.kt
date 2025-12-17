@@ -2,9 +2,12 @@ package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,6 +25,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -34,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,16 +55,11 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyAdd
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
@@ -116,7 +119,8 @@ internal fun ConfigAppKeysScreen(
                     when (node.applicationKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
                         ) {
                             items(
                                 items = node.applicationKeys,
@@ -193,16 +197,28 @@ internal fun ConfigAppKeysScreen(
                 )
 
                 false -> LaunchedEffect(snackbarHostState) {
-                    if (messageState.message is ConfigNetKeyDelete) {
+                    if (messageState.message is ConfigAppKeyDelete) {
                         snackbarHostState.showSnackbar(
                             message = context.getString(R.string.label_application_key_deleted),
                             duration = SnackbarDuration.Short,
-                        )
-                    } else if (messageState.message is ConfigNetKeyAdd) {
+                        ).also {
+                            when (it) {
+                                SnackbarResult.Dismissed,
+                                SnackbarResult.ActionPerformed,
+                                    -> resetMessageState()
+                            }
+                        }
+                    } else if (messageState.message is ConfigAppKeyAdd) {
                         snackbarHostState.showSnackbar(
                             message = context.getString(R.string.label_application_key_added),
                             duration = SnackbarDuration.Short,
-                        )
+                        ).also {
+                            when (it) {
+                                SnackbarResult.Dismissed,
+                                SnackbarResult.ActionPerformed,
+                                    -> resetMessageState()
+                            }
+                        }
                     }
                 }
             }
@@ -222,41 +238,51 @@ private fun SwipeToDismissKey(
     onSwiped: (ApplicationKey) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    var shouldNotDismiss by remember { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
+    val dismissState = rememberSwipeToDismissBoxState()
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.Settled,
+                    SwipeToDismissBoxValue.StartToEnd,
+                    SwipeToDismissBoxValue.EndToStart,
+                        -> if (key.isInUse) Color.Gray else Color.Red
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
+            )
+        },
+        onDismiss = {
             if (key.isInUse) {
-                shouldNotDismiss = true
-                false
+                scope.launch {
+                    dismissState.reset()
+                }
+                snackbarHostState.currentSnackbarData?.dismiss()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            R.string.label_app_key_in_use,
+                            key.name
+                        ),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
             } else {
-                shouldNotDismiss = false
                 onSwiped(key)
-                true
+                snackbarHostState.currentSnackbarData?.dismiss()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(R.string.label_application_key_deleted),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
             }
         },
-        positionalThreshold = { it * 0.5f }
+        content = { key.Row() }
     )
-    SwipeDismissItem(dismissState = dismissState, content = { key.Row() })
-
-    if (shouldNotDismiss) {
-        LaunchedEffect(snackbarHostState) {
-            showSnackbar(
-                scope = scope,
-                snackbarHostState = snackbarHostState,
-                message = context.getString(R.string.error_cannot_delete_key_in_use),
-                duration = SnackbarDuration.Short,
-                onDismissed = { shouldNotDismiss = false }
-            )
-        }
-    }
-    if (dismissState.isDismissed()) {
-        LaunchedEffect(snackbarHostState) {
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.label_application_key_deleted),
-                    duration = SnackbarDuration.Short,
-                )
-            }
-        }
-    }
 }
