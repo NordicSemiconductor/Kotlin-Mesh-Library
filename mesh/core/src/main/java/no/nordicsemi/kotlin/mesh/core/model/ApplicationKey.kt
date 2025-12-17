@@ -20,8 +20,6 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              represents the NetKey index for this network key.
  * @property name               Human-readable name for the application functionality associated
  *                              with this application key.
- * @property boundNetKeyIndex   The boundNetKey property contains a corresponding Network Key index
- *                              of the network key in the mesh network.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
  * @property boundNetworkKey             Network key to which this application key is bound to.
@@ -45,8 +43,12 @@ data class ApplicationKey internal constructor(
             _name = value
         }
 
+    /**
+     * The boundNetKey property contains a corresponding Network Key index of the network key in
+     * the mesh network.
+     */
     @SerialName("boundNetKey")
-    var boundNetKeyIndex: KeyIndex = 0u
+    internal var boundNetKeyIndex: KeyIndex = 0u
         set(value) {
             require(value.isValidKeyIndex()) { "Key index must be in range from 0 to 4095." }
             onChange(oldValue = field, newValue = value) { network?.updateTimestamp() }
