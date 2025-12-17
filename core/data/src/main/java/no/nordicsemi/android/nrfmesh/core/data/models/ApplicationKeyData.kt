@@ -38,7 +38,7 @@ data class ApplicationKeyData(
         index = key.index,
         key = key.key,
         oldKey = key.oldKey,
-        boundNetKeyIndex = key.boundNetKeyIndex,
+        boundNetKeyIndex = key.boundNetworkKey.index,
         boundNetworkKeyName = key.boundNetworkKey.name,
         isInUse = key.isInUse
     )
