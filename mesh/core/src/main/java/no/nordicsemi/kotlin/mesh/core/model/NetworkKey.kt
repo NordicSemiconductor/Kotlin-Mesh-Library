@@ -174,11 +174,12 @@ data class NetworkKey internal constructor(
             // A network key is in use if at least one application key is bound to it.
             // OR
             // The network key is known by any of the nodes in the network.
-            _applicationKeys.any { applicationKey ->
-                applicationKey.boundNetKeyIndex == index
-            } || nodes
-                .filter { it.uuid != localProvisioner?.uuid }
-                .any { it.knowsNetworkKeyIndex(index) }
+             val hasBoundAppKey = _applicationKeys
+                .any { it.boundNetworkKey == this@NetworkKey }
+            val knownByRemoteNode = nodes
+                .filter { it != localProvisioner }
+                .any { it.knows(key = this@NetworkKey) }
+            hasBoundAppKey || knownByRemoteNode
         } ?: false
 
     init {
