@@ -213,7 +213,7 @@ data class Page0(
                 val index = 0
 
                 // Read models.
-                val element = Element(_name = "Element ${elementNo++}", location = location)
+                val element = Element(_name = "Element ${elements.size + 1}", location = location)
                     .apply { this.index = index }
 
                 for (i in offset until offset + sigModelsByteCount step 2) {
