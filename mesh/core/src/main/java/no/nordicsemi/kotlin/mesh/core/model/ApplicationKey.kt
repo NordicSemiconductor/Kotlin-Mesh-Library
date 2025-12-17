@@ -10,6 +10,7 @@ import no.nordicsemi.kotlin.mesh.core.exception.KeyInUse
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork.Companion.onChange
 import no.nordicsemi.kotlin.mesh.core.model.serialization.KeySerializer
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Application Keys are used to secure communications at the upper transport layer.
@@ -22,7 +23,7 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  *                              with this application key.
  * @property key                128-bit application key.
  * @property oldKey             OldKey property contains the previous application key.
- * @property boundNetworkKey             Network key to which this application key is bound to.
+ * @property boundNetworkKey    Network key to which this application key is bound to.
  * @param    _key               128-bit application key.
  */
 @ConsistentCopyVisibility
@@ -38,7 +39,7 @@ data class ApplicationKey internal constructor(
     var name: String
         get() = _name
         set(value) {
-            require(value.isNotBlank()) { "Name cannot be empty!" }
+            require(value.isNotBlank()) { "Name cannot be empty." }
             onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
@@ -58,7 +59,7 @@ data class ApplicationKey internal constructor(
     var key: ByteArray
         get() = _key
         internal set(value) {
-            require(value.size == 16) { "Key must be 16-bytes long!" }
+            require(value.size == 16) { "Key must be 16-bytes long." }
             onChange(oldValue = _key, newValue = value) {
                 oldKey = _key
                 oldAid = aid
@@ -81,6 +82,8 @@ data class ApplicationKey internal constructor(
     @Transient
     internal var network: MeshNetwork? = null
 
+    // Returns the Network Key to which this Application Key is bound to. This property should not
+    // by null as the MeshNetwork is assigned when adding a Network Key via the public api.
     val boundNetworkKey: NetworkKey
         get() = network!!.networkKey(index = boundNetKeyIndex)!!
 
@@ -88,12 +91,11 @@ data class ApplicationKey internal constructor(
 
     internal var oldAid: Byte? = null
 
+    @OptIn(ExperimentalUuidApi::class)
     val isInUse: Boolean
         get() = network?.run {
-            // The application key in used when it is known by any of the nodes in the network.
-            _nodes.any { node ->
-                node.elements.flatMap { it.models }.any { it.bind.contains(element = index) }
-            }
+            nodes.filter { it != localProvisioner }
+                .any { it.knows(key = this@ApplicationKey) }
         } ?: false
 
     init {
