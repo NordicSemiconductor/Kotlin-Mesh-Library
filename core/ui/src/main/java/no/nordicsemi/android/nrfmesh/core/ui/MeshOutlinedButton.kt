@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 fun MeshOutlinedButton(
     modifier: Modifier = Modifier,
     isOnClickActionInProgress: Boolean = false,
-    buttonIcon: ImageVector? = null,
+    buttonIcon: ImageVector,
     buttonIconTint: Color? = null,
     text: String,
     textColor: Color = Color.Unspecified,
@@ -54,7 +54,7 @@ fun MeshOutlinedButton(
                     color = buttonIconTint ?: ProgressIndicatorDefaults.circularColor
                 )
             } else {
-                buttonIcon?.let {
+                buttonIcon.let {
                     Icon(
                         imageVector = it,
                         contentDescription = null,
