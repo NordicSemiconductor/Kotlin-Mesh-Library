@@ -17,9 +17,12 @@
     <string name="label_upper_bound">Upper bound</string>
     <string name="label_resolve">Resolve</string>
     <string name="title_edit_ranges">Edit Ranges</string>
+    <string name="title_edit_range">Edit Range</string>
     <string name="action_undo">Undo</string>
     <string name="label_unicast_ranges">Unicast Ranges</string>
     <string name="label_group_ranges">Group Ranges</string>
     <string name="label_scene_ranges">Scene Ranges</string>
     <string name="label_add_range">Add Range</string>
+    <string name="label_save">Save</string>
+    <string name="label_allocate">Allocate</string>
 </resources>
