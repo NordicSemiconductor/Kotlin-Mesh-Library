@@ -331,6 +331,7 @@ private fun SourceRow(
         )
         HeartbeatSubscriptionSourcesDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onSourceSelected = {
@@ -383,6 +384,7 @@ private fun DestinationRow(
         )
         HeartbeatSubscriptionDestinationsDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onDestinationSelected = {
