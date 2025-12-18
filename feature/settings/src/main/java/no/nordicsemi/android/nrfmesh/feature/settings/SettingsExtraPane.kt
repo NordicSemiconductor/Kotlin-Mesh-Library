@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,6 +23,7 @@ import kotlin.uuid.ExperimentalUuidApi
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun SettingsExtraPane(
+    snackbarHostState: SnackbarHostState,
     network: MeshNetwork,
     settingsListData: SettingsListData,
     content: Any?,
@@ -34,12 +36,12 @@ internal fun SettingsExtraPane(
                 .firstOrNull { it.uuid == content.uuid }
                 ?: return
             ProvisionerScreenRoute(
+                snackbarHostState = snackbarHostState,
                 index = network.provisioners.indexOf(element = provisioner),
                 provisioner = provisioner,
                 provisionerData = settingsListData.provisioners
                     .firstOrNull { it.uuid == content.uuid }
                     ?: return,
-                otherProvisioners = network.provisioners.filter { it.uuid != content.uuid },
                 moveProvisioner = moveProvisioner,
                 save = save
             )

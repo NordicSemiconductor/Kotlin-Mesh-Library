@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.scenes.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel

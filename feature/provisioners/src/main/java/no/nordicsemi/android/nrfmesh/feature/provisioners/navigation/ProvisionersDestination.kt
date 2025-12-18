@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,6 +22,7 @@ data object ProvisionersContent : Parcelable
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ProvisionersScreenRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     onProvisionerClicked: (Uuid) -> Unit,
     navigateToProvisioner: (Uuid) -> Unit,

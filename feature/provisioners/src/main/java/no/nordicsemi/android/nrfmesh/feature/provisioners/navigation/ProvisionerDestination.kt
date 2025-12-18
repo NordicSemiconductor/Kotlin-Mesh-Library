@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -21,7 +22,6 @@ fun ProvisionerScreenRoute(
     index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
-    otherProvisioners: List<Provisioner>,
     moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit
 ) {
@@ -30,8 +30,8 @@ fun ProvisionerScreenRoute(
         index = index,
         provisioner = provisioner,
         provisionerData = provisionerData,
-        otherProvisioners = otherProvisioners,
         moveProvisioner = moveProvisioner,
         save = save
     )
 }
+

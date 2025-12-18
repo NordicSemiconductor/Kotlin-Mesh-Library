@@ -451,7 +451,7 @@ fun List<Range>.merged(): List<Range> {
     val result = mutableListOf<Range>()
     var accumulator: Range? = null
 
-    for (range in sortedBy { it.low }) {
+    for (range in sortedWith { r0, r1 -> r0.low.compareTo(r1.low) }) {
         if (accumulator == null) {
             accumulator = range
         }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
@@ -31,9 +32,9 @@ class SettingsViewModel @Inject constructor(
     private lateinit var network: MeshNetwork
 
     init {
-        _uiState.value = _uiState.value.copy(
-            selectedSetting = savedStateHandle.toRoute<SettingsRoute>().selectedSetting
-        )
+        _uiState.update {
+            it.copy(selectedSetting = savedStateHandle.toRoute<SettingsRoute>().selectedSetting)
+        }
         observeNetworkState()
     }
 
@@ -42,14 +43,15 @@ class SettingsViewModel @Inject constructor(
      */
     private fun observeNetworkState() {
         repository.network.onEach {
-            val selectedSetting = _uiState.value.selectedSetting
-            _uiState.value = _uiState.value.copy(
-                networkState = MeshNetworkState.Success(
-                    network = it,
-                    settingsListData = SettingsListData(it)
-                ),
-                selectedSetting = selectedSetting
-            )
+            _uiState.update { state ->
+                state.copy(
+                    networkState = MeshNetworkState.Success(
+                        network = it,
+                        settingsListData = SettingsListData(it)
+                    ),
+                    selectedSetting = state.selectedSetting
+                )
+            }
             network = it
         }.launchIn(scope = viewModelScope)
     }
@@ -60,7 +62,7 @@ class SettingsViewModel @Inject constructor(
      * @param clickableSetting The setting that was clicked.
      */
     internal fun onItemSelected(clickableSetting: ClickableSetting) {
-        _uiState.value = _uiState.value.copy(selectedSetting = clickableSetting)
+        _uiState.update { it.copy(selectedSetting = clickableSetting) }
     }
 
     /**

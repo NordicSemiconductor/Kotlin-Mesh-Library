@@ -39,4 +39,5 @@
     <string name="label_other_provisioner">Other Provisioners</string>
     <string name="label_set_as_local_provisioner">Set as Local Provisioner</string>
     <string name="label_no_provisioners_available">No provisioners currently added</string>
+    <string name="message_local_provisioner_set">%1$s has been set as the local provisioner.</string>
 </resources>
