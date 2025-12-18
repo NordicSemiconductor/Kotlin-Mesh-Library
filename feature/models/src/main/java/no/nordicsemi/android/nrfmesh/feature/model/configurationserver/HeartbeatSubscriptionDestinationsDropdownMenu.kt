@@ -21,23 +21,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdownMenu(
     network: MeshNetwork?,
+    model: Model,
     expanded: Boolean,
     onDismissed: () -> Unit,
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
     val elements = network?.nodes.orEmpty().flatMap { it.elements }
-    val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
+    val groups = network?.groups.orEmpty().map { it.address as HeartbeatSubscriptionDestination }
     DropdownMenu(
         modifier = Modifier
             .exposedDropdownSize()
@@ -49,12 +52,12 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
                 text = stringResource(R.string.label_elements)
             )
-            elements.forEach { element ->
+            model.parentElement?.parentNode?.let { node ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshSingleLineListItem(
+                        MeshTwoLineListItem(
                             leadingComposable = {
                                 Icon(
                                     modifier = Modifier
@@ -64,13 +67,19 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                                     contentDescription = null
                                 )
                             },
-                            title = element.name?.let {
-                                "$it: 0x${element.unicastAddress.toHexString()}"
-                            } ?: element.unicastAddress.toHexString()
+                            title = node.name,
+                            subtitle = node.primaryUnicastAddress.address.toHexString(
+                                format = HexFormat {
+                                    number.prefix = ""
+                                    upperCase = true
+                                }
+                            )
                         )
                     },
-                    onClick = { onDestinationSelected(element.unicastAddress) }
+                    onClick = { onDestinationSelected(node.primaryUnicastAddress) }
                 )
+            }
+            elements.forEach { element ->
             }
             HorizontalDivider()
             Text(

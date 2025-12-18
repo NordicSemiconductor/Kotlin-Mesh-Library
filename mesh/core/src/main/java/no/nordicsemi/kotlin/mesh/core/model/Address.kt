@@ -194,7 +194,6 @@ data class VirtualAddress(
     PublicationAddress,
     SubscriptionAddress,
     HeartbeatPublicationDestination,
-    HeartbeatSubscriptionDestination,
     ProxyFilterAddress {
 
     @OptIn(ExperimentalUuidApi::class)
