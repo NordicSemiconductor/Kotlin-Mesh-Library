@@ -302,10 +302,19 @@ private fun UnicastAddress(
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
-                                    value = TextFieldValue(
-                                        text = initialValue,
-                                        selection = TextRange(initialValue.length)
-                                    )
+                                    value = if (provisioner.hasConfigurationCapabilities) {
+                                        TextFieldValue(
+                                            text = address?.toHexString() ?: "",
+                                            selection = TextRange(
+                                                index = (address?.toHexString() ?: "").length
+                                            )
+                                        )
+                                    } else {
+                                        TextFieldValue(
+                                            text = initialValue,
+                                            selection = TextRange(index = initialValue.length)
+                                        )
+                                    }
                                 },
                                 content = {
                                     Icon(
