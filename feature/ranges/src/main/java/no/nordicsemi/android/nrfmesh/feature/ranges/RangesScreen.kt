@@ -508,7 +508,7 @@ private fun UpdateRangeDialog(
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                     isError = invalidEnd,
                     supportingText = {
                         if (invalidEnd)
