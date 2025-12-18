@@ -30,6 +30,7 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun SettingsDetailsPane(
     content: Any?,
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     navigateToProvisioner: (Uuid) -> Unit,
     navigateToNetworkKey: (KeyIndex) -> Unit,
@@ -39,6 +40,7 @@ internal fun SettingsDetailsPane(
 ) {
     when (content) {
         is ProvisionersContent, is ProvisionerContent -> ProvisionersScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onProvisionerClicked = navigateToProvisioner,
             navigateToProvisioner = navigateToProvisioner,
@@ -46,6 +48,7 @@ internal fun SettingsDetailsPane(
         )
 
         is NetworkKeysContent, is NetworkKeyContent -> NetworkKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onNetworkKeyClicked = navigateToNetworkKey,
             navigateToKey = navigateToNetworkKey,
@@ -53,6 +56,7 @@ internal fun SettingsDetailsPane(
         )
 
         is ApplicationKeysContent, is ApplicationKeyContent -> ApplicationKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onApplicationKeyClicked = navigateToApplicationKey,
             navigateToKey = navigateToApplicationKey,
@@ -60,6 +64,7 @@ internal fun SettingsDetailsPane(
         )
 
         is ScenesContent, is SceneContent -> ScenesScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onSceneClicked = navigateToScene,
             navigateToScene = navigateToScene,

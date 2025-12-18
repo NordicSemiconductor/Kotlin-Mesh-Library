@@ -85,6 +85,7 @@ import kotlin.uuid.ExperimentalUuidApi
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisionerRoute(
+    snackbarHostState: SnackbarHostState,
     index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,

@@ -17,6 +17,7 @@ data object ScenesContent : Parcelable
 
 @Composable
 fun ScenesScreenRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     onSceneClicked: (SceneNumber) -> Unit,
     navigateToScene: (SceneNumber) -> Unit,
@@ -25,6 +26,7 @@ fun ScenesScreenRoute(
     val viewModel = hiltViewModel<ScenesViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ScenesRoute(
+        snackbarHostState = snackbarHostState,
         highlightSelectedItem = highlightSelectedItem,
         selectedSceneNumber = uiState.selectedSceneNumber,
         scenes = uiState.scenes,

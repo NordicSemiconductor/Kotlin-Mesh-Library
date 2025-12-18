@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,6 +18,7 @@ data object ApplicationKeysContent : Parcelable
 
 @Composable
 fun ApplicationKeysScreenRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     onApplicationKeyClicked: (KeyIndex) -> Unit,
     navigateToKey: (KeyIndex) -> Unit,
@@ -25,6 +27,7 @@ fun ApplicationKeysScreenRoute(
     val viewModel = hiltViewModel<ApplicationKeysViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeysRoute(
+        snackbarHostState = snackbarHostState,
         highlightSelectedItem = highlightSelectedItem,
         selectedKeyIndex = uiState.selectedKeyIndex,
         keys = uiState.keys,

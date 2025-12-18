@@ -111,6 +111,7 @@ internal fun SettingsListDetailsScreen(
                     val content = navigator.currentDestination?.contentKey
                     SettingsDetailsPane(
                         content = content,
+                        snackbarHostState = appState.snackbarHostState,
                         highlightSelectedItem = navigator.isDetailPaneVisible() &&
                                 navigator.isExtraPaneVisible(),
                         navigateToProvisioner = {
@@ -161,6 +162,7 @@ internal fun SettingsListDetailsScreen(
                 AnimatedPane {
                     val content = navigator.currentDestination?.contentKey
                     SettingsExtraPane(
+                        snackbarHostState = appState.snackbarHostState,
                         network = uiState.networkState.network,
                         settingsListData = uiState.networkState.settingsListData,
                         content = content,

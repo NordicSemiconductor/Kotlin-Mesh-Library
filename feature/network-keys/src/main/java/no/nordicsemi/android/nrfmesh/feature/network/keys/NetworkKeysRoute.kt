@@ -54,6 +54,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun NetworkKeysRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     selectedKeyIndex: KeyIndex?,
     onAddKeyClicked: () -> NetworkKey,
@@ -66,7 +67,6 @@ internal fun NetworkKeysRoute(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {

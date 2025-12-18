@@ -56,6 +56,7 @@ import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 
 @Composable
 internal fun ApplicationKeysRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     selectedKeyIndex: KeyIndex?,
     keys: List<ApplicationKeyData>,
@@ -68,7 +69,6 @@ internal fun ApplicationKeysRoute(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {

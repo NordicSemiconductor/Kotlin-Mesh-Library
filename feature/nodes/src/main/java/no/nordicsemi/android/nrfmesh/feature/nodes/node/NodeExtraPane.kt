@@ -56,6 +56,7 @@ internal fun NodeExtraPane(
         )
 
         is ApplicationKeysContent -> ApplicationKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = false,
             onApplicationKeyClicked = {
                 send(

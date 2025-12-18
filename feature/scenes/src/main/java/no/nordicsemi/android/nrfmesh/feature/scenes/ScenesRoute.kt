@@ -58,6 +58,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Composable
 internal fun ScenesRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     selectedSceneNumber: SceneNumber?,
     scenes: List<SceneData>,
@@ -70,7 +71,6 @@ internal fun ScenesRoute(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {

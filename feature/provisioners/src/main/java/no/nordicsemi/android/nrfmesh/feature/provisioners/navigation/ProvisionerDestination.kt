@@ -17,6 +17,7 @@ data class ProvisionerContent(val uuid: Uuid) : Parcelable
 
 @Composable
 fun ProvisionerScreenRoute(
+    snackbarHostState: SnackbarHostState,
     index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
@@ -25,6 +26,7 @@ fun ProvisionerScreenRoute(
     save: () -> Unit
 ) {
     ProvisionerRoute(
+        snackbarHostState = snackbarHostState,
         index = index,
         provisioner = provisioner,
         provisionerData = provisionerData,
