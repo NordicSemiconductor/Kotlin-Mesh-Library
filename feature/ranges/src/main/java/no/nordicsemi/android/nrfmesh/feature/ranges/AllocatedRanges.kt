@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.minGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.minSceneNumber
 import no.nordicsemi.kotlin.mesh.core.model.minUnicastAddress
+import no.nordicsemi.kotlin.mesh.core.model.overlap
 
 @Composable
 fun AllocatedRanges(
@@ -36,7 +36,7 @@ fun AllocatedRanges(
     title: String,
     ranges: List<Range>,
     otherRanges: List<Range>,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     TwoLineRangeListItem(
         modifier = Modifier.clickable { onClick() },
@@ -67,7 +67,7 @@ fun AllocatedRanges(
                 // Mark conflicting ranges
                 markRanges(
                     color = conflictingColor,
-                    ranges = ranges.intersect(otherRanges.toSet()).toList()
+                    ranges = ranges.overlap(other = otherRanges)
                 )
             }
         }
@@ -80,7 +80,7 @@ internal fun AllocatedRange(
     title: String,
     range: Range,
     otherRanges: List<Range>,
-    onClick: (Range) -> Unit
+    onClick: (Range) -> Unit,
 ) {
     TwoLineRangeListItem(
         modifier = Modifier.clickable { onClick(range) },
@@ -106,7 +106,7 @@ internal fun AllocatedRange(
                 // Mark own ranges
                 markRange(color = ownRangeColor, range = range)
                 // Mark conflicting ranges
-                markRanges(color = conflictingColor, ranges = otherRanges)
+                markRanges(color = conflictingColor, ranges = range.overlap(other = otherRanges))
             }
         }
     )
