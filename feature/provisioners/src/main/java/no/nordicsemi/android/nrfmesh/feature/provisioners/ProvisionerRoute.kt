@@ -325,16 +325,6 @@ private fun UnicastAddress(
                                 }
                             )
                             IconButton(
-                                onClick = { onUnassignClick = !onUnassignClick },
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.RemoveModerator,
-                                        contentDescription = null,
-                                        tint = Color.Red.copy(alpha = 0.6f)
-                                    )
-                                }
-                            )
-                            IconButton(
                                 enabled = value.text.isNotEmpty(),
                                 onClick = {
                                     keyboardController?.hide()
@@ -369,6 +359,16 @@ private fun UnicastAddress(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
                                         tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                    )
+                                }
+                            )
+                            IconButton(
+                                onClick = { onUnassignClick = !onUnassignClick },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.RemoveModerator,
+                                        contentDescription = null,
+                                        tint = Color.Red.copy(alpha = 0.6f)
                                     )
                                 }
                             )
