@@ -119,8 +119,8 @@ abstract class BaseGattBearer<
         if (servicesObserver != null) return
         // Observe the connection state
         centralManager.connect(peripheral = peripheral)
-
-        return suspendCancellableCoroutine { continuation ->
+        configurePeripheral(peripheral)
+        suspendCancellableCoroutine { continuation ->
             var suspended = true
             // Start observing the discovered services
             servicesObserver = peripheral.services()
@@ -140,6 +140,11 @@ abstract class BaseGattBearer<
                 }
                 .launchIn(scope = scope)
         }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    protected open suspend fun configurePeripheral(peripheral: P){
+        // Empty
     }
 
     override suspend fun close() {
