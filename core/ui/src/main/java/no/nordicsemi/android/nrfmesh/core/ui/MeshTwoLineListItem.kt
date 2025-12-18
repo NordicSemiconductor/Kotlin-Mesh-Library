@@ -85,7 +85,7 @@ fun MeshTwoLineListItem(
                 .size(24.dp),
             imageVector = imageVector,
             contentDescription = null,
-            tint = LocalContentColor.current.copy(alpha = 0.6f)
+            tint = MaterialTheme.colorScheme.primary
         )
         Column(
             modifier = Modifier

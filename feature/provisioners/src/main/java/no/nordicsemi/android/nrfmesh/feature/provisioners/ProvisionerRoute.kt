@@ -28,7 +28,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedCard
@@ -81,7 +81,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.minus
 import no.nordicsemi.kotlin.mesh.core.model.overlaps
 import no.nordicsemi.kotlin.mesh.core.model.plus
-import no.nordicsemi.kotlin.mesh.core.model.plusAssign
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
@@ -250,7 +249,7 @@ private fun UnicastAddress(
                 modifier = Modifier.padding(start = 12.dp),
                 imageVector = Icons.Outlined.Lan,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
             Crossfade(targetState = onEditClick, label = "Address") { state ->
                 when (state) {
@@ -289,7 +288,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteSweep,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -323,7 +322,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -361,7 +360,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -371,7 +370,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.RemoveModerator,
                                         contentDescription = null,
-                                        tint = Color.Red.copy(alpha = 0.6f)
+                                        tint = Color.Red
                                     )
                                 }
                             )
@@ -398,7 +397,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.Edit,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
