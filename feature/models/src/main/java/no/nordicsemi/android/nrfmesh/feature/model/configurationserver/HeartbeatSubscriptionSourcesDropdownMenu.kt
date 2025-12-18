@@ -48,7 +48,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionSourcesDropdownMen
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
                 text = stringResource(R.string.label_unicast_sources)
             )
-            otherNodes.forEachIndexed { index, otherNode ->
+            otherNodes.forEach { otherNode ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -60,9 +60,6 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionSourcesDropdownMen
                     },
                     onClick = { onSourceSelected(otherNode.primaryUnicastAddress) }
                 )
-                if (index < otherNodes.size) {
-                    HorizontalDivider()
-                }
             }
         }
     )
