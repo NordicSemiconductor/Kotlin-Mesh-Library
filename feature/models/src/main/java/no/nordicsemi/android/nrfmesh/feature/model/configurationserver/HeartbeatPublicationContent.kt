@@ -174,6 +174,7 @@ internal fun HeartBeatPublicationContent(
                                 title = stringResource(R.string.label_heartbeat_publication)
                             )
                             MeshOutlinedButton(
+                                enabled = destination != null,
                                 onClick = {
                                     send(
                                         ConfigHeartbeatPublicationSet(

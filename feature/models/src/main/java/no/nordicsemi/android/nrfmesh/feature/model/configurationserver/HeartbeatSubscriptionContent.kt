@@ -212,6 +212,7 @@ internal fun HeartBeatSubscriptionContent(
                                 title = stringResource(R.string.label_heartbeat_subscription)
                             )
                             MeshOutlinedButton(
+                                enabled = source != null && destination != null,
                                 onClick = {
                                     send(
                                         ConfigHeartbeatSubscriptionSet(
