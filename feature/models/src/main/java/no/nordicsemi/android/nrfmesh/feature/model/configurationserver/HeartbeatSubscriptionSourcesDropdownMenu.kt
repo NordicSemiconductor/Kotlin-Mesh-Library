@@ -53,15 +53,9 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionSourcesDropdownMen
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshTwoLineListItem(
+                        MeshSingleLineListItem(
                             imageVector = Icons.Outlined.Start,
-                            title = otherNode.name,
-                            subtitle = otherNode.primaryUnicastAddress.address.toHexString(
-                                format = HexFormat {
-                                    number.prefix = "0x"
-                                    upperCase = true
-                                }
-                            )
+                            title = otherNode.name
                         )
                     },
                     onClick = { onSourceSelected(otherNode.primaryUnicastAddress) }
