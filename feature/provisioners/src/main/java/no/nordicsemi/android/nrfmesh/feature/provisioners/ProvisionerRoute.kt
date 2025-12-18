@@ -294,7 +294,7 @@ private fun UnicastAddress(
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Characters
                         ),
-                        regex = Regex("[0-9A-Fa-f]{0,4}"),
+                        regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                         isError = error,
                         content = {
                             IconButton(
