@@ -215,8 +215,8 @@ data class Node internal constructor(
             network?.updateTimestamp()
         }
 
-    val primaryElement: Element?
-        get() = elements.firstOrNull()
+    val primaryElement: Element
+        get() = elements.first()
 
     val elementsCount: Int
         get() = elements.size
