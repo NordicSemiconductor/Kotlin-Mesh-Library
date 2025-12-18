@@ -207,6 +207,7 @@ internal fun HeartBeatPublicationContent(
                     SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
                         network = model.parentElement?.parentNode?.network,
+                        model = model,
                         destination = destination,
                         onDestinationSelected = { destination = it },
                         onAddGroupClicked = onAddGroupClicked
@@ -301,6 +302,7 @@ private fun NetworkKeysRow(
 @Composable
 private fun DestinationRow(
     network: MeshNetwork?,
+    model: Model,
     destination: HeartbeatPublicationDestination?,
     onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
     onAddGroupClicked: () -> Unit,
@@ -336,6 +338,7 @@ private fun DestinationRow(
         )
         HeartbeatPublicationDestinationsDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onDestinationSelected = {

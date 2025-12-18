@@ -58,15 +58,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshTwoLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.SportsScore,
                             title = node.name,
                             subtitle = node.primaryUnicastAddress.address.toHexString(
                                 format = HexFormat {
@@ -91,38 +83,22 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.GroupWork,
-                                    contentDescription = null
-                                )
-                            },
+                        MeshTwoLineListItem(
+                            imageVector = Icons.Outlined.GroupWork,
                             title = network
                                 ?.group(address = destination.address)?.name
                                 ?: destination.toHexString(),
                         )
                     },
-                    onClick = { onDestinationSelected(destination as HeartbeatSubscriptionDestination) }
+                    onClick = { onDestinationSelected(destination) }
                 )
             }
             DropdownMenuItem(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 text = {
-                    MeshSingleLineListItem(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .padding(end = 8.dp),
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
+                    MeshTwoLineListItem(
+                        imageVector = Icons.Outlined.Add,
                         title = stringResource(R.string.add_group)
                     )
                 },
