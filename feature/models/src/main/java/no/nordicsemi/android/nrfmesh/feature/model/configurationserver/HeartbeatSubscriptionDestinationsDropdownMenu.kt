@@ -50,28 +50,20 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
         content = {
             Text(
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                text = stringResource(R.string.label_elements)
+                text = stringResource(R.string.label_unicast_destinations)
             )
             model.parentElement?.parentNode?.let { node ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshTwoLineListItem(
+                        MeshSingleLineListItem(
                             imageVector = Icons.Outlined.SportsScore,
-                            title = node.name,
-                            subtitle = node.primaryUnicastAddress.address.toHexString(
-                                format = HexFormat {
-                                    number.prefix = ""
-                                    upperCase = true
-                                }
-                            )
+                            title = node.name
                         )
                     },
                     onClick = { onDestinationSelected(node.primaryUnicastAddress) }
                 )
-            }
-            elements.forEach { element ->
             }
             HorizontalDivider()
             Text(
@@ -83,7 +75,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshTwoLineListItem(
+                        MeshSingleLineListItem(
                             imageVector = Icons.Outlined.GroupWork,
                             title = network
                                 ?.group(address = destination.address)?.name
@@ -97,7 +89,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 text = {
-                    MeshTwoLineListItem(
+                    MeshSingleLineListItem(
                         imageVector = Icons.Outlined.Add,
                         title = stringResource(R.string.add_group)
                     )
@@ -115,21 +107,11 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.GroupWork,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.GroupWork,
                             title = destination.name(),
                         )
                     },
-                    onClick = {
-                        onDestinationSelected(destination)
-                    }
+                    onClick = { onDestinationSelected(destination) }
                 )
             }
         }

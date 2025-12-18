@@ -2,14 +2,22 @@
 
 package no.nordicsemi.android.nrfmesh.core.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -28,6 +36,40 @@ fun MeshSingleLineListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         leadingComposable()
+        Text(
+            modifier = Modifier.weight(weight = 1f),
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = titleTextOverflow
+        )
+        trailingComposable()
+    }
+}
+
+
+@Composable
+fun MeshSingleLineListItem(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
+    trailingComposable: @Composable () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 60.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(start = 28.dp, end = 16.dp)
+                .size(24.dp),
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = LocalContentColor.current.copy(alpha = 0.6f)
+        )
         Text(
             modifier = Modifier.weight(weight = 1f),
             text = title,

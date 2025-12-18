@@ -50,22 +50,16 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
         content = {
             Text(
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                text = stringResource(R.string.label_elements)
+                text = stringResource(R.string.label_unicast_destinations)
             )
             otherNodes.forEach { otherNode ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshTwoLineListItem(
+                        MeshSingleLineListItem(
                             imageVector = Icons.Outlined.SportsScore,
                             title = otherNode.name,
-                            subtitle = otherNode.primaryUnicastAddress.address.toHexString(
-                                format = HexFormat {
-                                    number.prefix = "0x"
-                                    upperCase = true
-                                }
-                            )
                         )
                     },
                     onClick = { onDestinationSelected(otherNode.primaryUnicastAddress) }
@@ -81,7 +75,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
-                        MeshTwoLineListItem(
+                        MeshSingleLineListItem(
                             imageVector = Icons.Outlined.SportsScore,
                             title = network
                                 ?.group(address = destination.address.address)?.name
@@ -118,15 +112,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.SportsScore,
                             title = destination.name(),
                         )
                     },

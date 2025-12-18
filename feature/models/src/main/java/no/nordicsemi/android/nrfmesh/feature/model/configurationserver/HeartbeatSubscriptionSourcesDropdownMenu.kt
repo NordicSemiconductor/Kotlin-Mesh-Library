@@ -46,7 +46,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionSourcesDropdownMen
         content = {
             Text(
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                text = stringResource(R.string.label_elements)
+                text = stringResource(R.string.label_unicast_sources)
             )
             otherNodes.forEachIndexed { index, otherNode ->
                 DropdownMenuItem(
