@@ -69,8 +69,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioners.R
-import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
-import no.nordicsemi.android.nrfmesh.feature.ranges.RangesScreen
+import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges.AllocatedRanges
+import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges.RangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner

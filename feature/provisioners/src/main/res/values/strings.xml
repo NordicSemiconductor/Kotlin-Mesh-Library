@@ -18,10 +18,6 @@
     <string name="label_device_key">Device Key</string>
     <string name="label_ttl">TTL</string>
     <string name="label_allocated_ranges">Allocated Ranges</string>
-    <string name="label_unicast_range">Unicast Range</string>
-    <string name="label_group_range">Group Range</string>
-    <string name="label_scene_range">Scene Range</string>
-    <string name="label_unknown">Unknown</string>
 
     <string name="label_unassign_address">Unassign Address</string>
     <string name="unassign_address_rationale">Unassigning the address of the provisioner will
@@ -40,4 +36,25 @@
     <string name="label_set_as_local_provisioner">Set as Local Provisioner</string>
     <string name="label_no_provisioners_available">No provisioners currently added</string>
     <string name="message_local_provisioner_set">%1$s has been set as the local provisioner.</string>
+
+    <string name="label_unicast_range">Unicast Range</string>
+    <string name="label_group_range">Group Range</string>
+    <string name="label_scene_range">Scene Range</string>
+    <string name="label_unknown">Unknown</string>
+
+    <string name="action_add_range">Add Range</string>
+    <string name="no_ranges_currently_added">No range currently added.</string>
+    <string name="label_range_deleted">Range deleted.</string>
+    <string name="title_new_range">New Range</string>
+    <string name="label_new_range_rationale">Enter lower and upper bounds as a 4–character
+        hexadecimal value. \n\nValid range: 0x0001 – 0x7FFF</string>
+    <string name="label_overlapping_ranges_rationale">Overlapping ranges merge automatically.</string>
+    <string name="label_lower_bound">Lower bound</string>
+    <string name="label_upper_bound">Upper bound</string>
+    <string name="label_resolve">Resolve</string>
+    <string name="title_edit_ranges">Edit Ranges</string>
+    <string name="title_edit_range">Edit Range</string>
+    <string name="label_add_range">Add Range</string>
+    <string name="label_save">Save</string>
+    <string name="label_allocate">Allocate</string>
 </resources>

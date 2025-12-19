@@ -54,7 +54,6 @@ dependencies {
     implementation(project(":feature:application-keys"))
     implementation(project(":feature:scenes"))
     implementation(project(":feature:provisioners"))
-    implementation(project(":feature:ranges"))
     implementation(project(":feature:export"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
