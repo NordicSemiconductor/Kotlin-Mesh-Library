@@ -24,13 +24,13 @@ platform :android do
   end
 
   desc "Deploy build to internal channel."
-    lane :deployInternal do
-      gradle(task: "clean bundleRelease")
-      upload_to_play_store(
-        track: 'internal',
-        aab: 'app/build/outputs/bundle/release/app-release.aab',
-        skip_upload_apk: true
-      )
+  lane :deployInternal do
+    gradle(task: "clean bundleRelease")
+    upload_to_play_store(
+      track: 'internal',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_apk: true
+    )
   end
 
 end
