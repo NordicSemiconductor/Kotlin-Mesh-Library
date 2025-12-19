@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.ranges
+package no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
