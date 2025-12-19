@@ -23,12 +23,12 @@ platform :android do
     gradle(task: "releaseStagingRepositories")
   end
 
-  desc "Deploy build to Internal channel."
+  desc "Deploy build to internal channel."
     lane :deployInternal do
       gradle(task: "clean bundleRelease")
       upload_to_play_store(
         track: 'internal',
-        aab: 'app/build/outputs/bundle/release/app-release.aab'
+        aab: 'app/build/outputs/bundle/release/app-release.aab',
         skip_upload_apk: true
       )
   end
