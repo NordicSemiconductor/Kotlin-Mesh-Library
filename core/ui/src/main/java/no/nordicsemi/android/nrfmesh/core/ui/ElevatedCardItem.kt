@@ -441,7 +441,8 @@ fun ElevatedCardItemHexTextField(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteSweep,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -468,7 +469,7 @@ fun ElevatedCardItemHexTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -488,7 +489,7 @@ fun ElevatedCardItemHexTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
