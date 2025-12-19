@@ -72,7 +72,6 @@ internal fun ScenesRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier.defaultMinSize(minWidth = 150.dp),
@@ -115,8 +114,8 @@ internal fun ScenesRoute(
 
                 false -> LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
+                        .fillMaxSize()
+                        .consumeWindowInsets(paddingValues = paddingValues)
                     // Removed in favor of padding in SwipeToDismissKey so that hiding an item will not leave any gaps
                     //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
@@ -172,7 +171,7 @@ private fun SwipeToDismissScene(
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         // Added instead of using Arrangement.spacedBy to avoid leaving gaps when an item is swiped away.
-        modifier = Modifier.padding(bottom = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
