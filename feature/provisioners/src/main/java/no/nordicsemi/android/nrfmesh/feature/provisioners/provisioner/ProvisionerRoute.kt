@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.feature.provisioners
+package no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner
 
 import android.content.Context
 import androidx.compose.animation.Crossfade
@@ -68,6 +68,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.feature.provisioners.R
 import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
 import no.nordicsemi.android.nrfmesh.feature.ranges.RangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress

@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
-import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionerRoute
+import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ProvisionerRoute
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
