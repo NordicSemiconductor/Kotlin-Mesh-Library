@@ -93,64 +93,57 @@ internal fun ProvisionersRoute(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-        ) {
-            when (provisioners.isEmpty()) {
-                true -> MeshNoItemsAvailable(
-                    modifier = Modifier.fillMaxSize(),
-                    imageVector = Icons.Outlined.PersonOutline,
-                    title = stringResource(id = R.string.label_no_provisioners_available)
-                )
+        when (provisioners.isEmpty()) {
+            true -> MeshNoItemsAvailable(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Outlined.PersonOutline,
+                title = stringResource(id = R.string.label_no_provisioners_available)
+            )
 
-                false -> LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .consumeWindowInsets(paddingValues = paddingValues),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    // Removed in favor of padding in SwipeToDismissProvisioner so that hiding an item will not leave any gaps
-                    //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                ) {
-                    itemsIndexed(
-                        items = provisioners,
-                        key = { _, item -> item.id }
-                    ) { index, item ->
-                        var visibility by remember { mutableStateOf(true) }
-                        if (index == 0) {
-                            SectionTitle(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                title = stringResource(id = R.string.label_this_provisioner)
-                            )
-                        }
-                        if (index == 1) {
-                            SectionTitle(
-                                modifier = Modifier.padding(bottom = 8.dp),
-                                title = stringResource(id = R.string.label_other_provisioner)
-                            )
-                        }
-                        AnimatedVisibility(visibility) {
-                            SwipeToDismissProvisioner(
-                                index = index,
-                                provisioner = item,
-                                scope = scope,
-                                context = context,
-                                snackbarHostState = snackbarHostState,
-                                isSelected = selectedProvisionerUuid == item.uuid && highlightSelectedItem,
-                                onProvisionerClicked = onProvisionerClicked,
-                                onSwiped = {
-                                    visibility = false
-                                    onSwiped(it)
-                                },
-                                onUndoClicked = {
-                                    visibility = true
-                                    onUndoClicked(it)
-                                },
-                                remove = remove,
-                                isOnlyProvisioner = provisioners.size == 1,
-                            )
-                        }
+            false -> LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .consumeWindowInsets(paddingValues = paddingValues),
+                // Removed in favor of padding in SwipeToDismissProvisioner so that hiding an item will not leave any gaps
+                //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            ) {
+                itemsIndexed(
+                    items = provisioners,
+                    key = { _, item -> item.id }
+                ) { index, item ->
+                    var visibility by remember { mutableStateOf(true) }
+                    if (index == 0) {
+                        SectionTitle(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            title = stringResource(id = R.string.label_this_provisioner)
+                        )
+                    }
+                    if (index == 1) {
+                        SectionTitle(
+                            modifier = Modifier.padding(bottom = 8.dp),
+                            title = stringResource(id = R.string.label_other_provisioner)
+                        )
+                    }
+                    AnimatedVisibility(visibility) {
+                        SwipeToDismissProvisioner(
+                            index = index,
+                            provisioner = item,
+                            scope = scope,
+                            context = context,
+                            snackbarHostState = snackbarHostState,
+                            isSelected = selectedProvisionerUuid == item.uuid && highlightSelectedItem,
+                            onProvisionerClicked = onProvisionerClicked,
+                            onSwiped = {
+                                visibility = false
+                                onSwiped(it)
+                            },
+                            onUndoClicked = {
+                                visibility = true
+                                onUndoClicked(it)
+                            },
+                            remove = remove,
+                            isOnlyProvisioner = provisioners.size == 1,
+                        )
                     }
                 }
             }
@@ -176,7 +169,7 @@ private fun SwipeToDismissProvisioner(
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         // Added instead of using Arrangement.spacedBy to avoid leaving gaps when an item is swiped away.
-        modifier = Modifier.padding(bottom = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
