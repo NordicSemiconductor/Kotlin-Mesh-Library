@@ -68,7 +68,6 @@ internal fun NetworkKeysRoute(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier.defaultMinSize(minWidth = 150.dp),

@@ -70,7 +70,6 @@ internal fun ApplicationKeysRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier.defaultMinSize(minWidth = 150.dp),
