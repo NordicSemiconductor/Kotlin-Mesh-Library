@@ -278,9 +278,7 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     )
                 }
 
-                is ConfigNetKeyGet -> {
-                    ConfigNetKeyList(networkKeys = meshNetwork.networkKeys)
-                }
+                is ConfigNetKeyGet -> ConfigNetKeyList(networkKeys = meshNetwork.networkKeys)
 
                 is ConfigAppKeyAdd -> {
                     val networkKeyIndex = request.index
