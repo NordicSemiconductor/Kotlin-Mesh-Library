@@ -94,7 +94,7 @@ data class ApplicationKey internal constructor(
     @OptIn(ExperimentalUuidApi::class)
     val isInUse: Boolean
         get() = network?.run {
-            nodes.filter { it != localProvisioner }
+            nodes.filter { it.uuid != localProvisioner?.uuid }
                 .any { it.knows(key = this@ApplicationKey) }
         } ?: false
 

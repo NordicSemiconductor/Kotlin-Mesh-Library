@@ -175,9 +175,9 @@ data class NetworkKey internal constructor(
             // OR
             // The network key is known by any of the nodes in the network.
              val hasBoundAppKey = _applicationKeys
-                .any { it.boundNetworkKey == this@NetworkKey }
+                .any { it.boundNetKeyIndex == index }
             val knownByRemoteNode = nodes
-                .filter { it != localProvisioner }
+                .filter { it.uuid != localProvisioner?.uuid }
                 .any { it.knows(key = this@NetworkKey) }
             hasBoundAppKey || knownByRemoteNode
         } ?: false
