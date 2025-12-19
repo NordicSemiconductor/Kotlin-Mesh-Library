@@ -39,8 +39,11 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
     onAddGroupClicked: () -> Unit,
 ) {
-    val elements = network?.nodes.orEmpty().flatMap { it.elements }
-    val groups = network?.groups.orEmpty().map { it.address as HeartbeatSubscriptionDestination }
+    val groups = network
+        ?.groups
+        .orEmpty()
+        .filter { it.address is HeartbeatSubscriptionDestination }
+        .map { it.address as HeartbeatSubscriptionDestination }
     DropdownMenu(
         modifier = Modifier
             .exposedDropdownSize()
