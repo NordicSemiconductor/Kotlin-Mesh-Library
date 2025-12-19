@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -106,16 +108,17 @@ internal fun ConfigNetKeysScreen(
                 isRefreshing = isRefreshing
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    SectionTitle(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        title = stringResource(R.string.label_added_network_keys)
-                    )
                     when (addedNetworkKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                         ) {
+                            item {
+                                SectionTitle(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    title = stringResource(R.string.label_added_network_keys)
+                                )
+                            }
                             items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
                                 SwipeToDismissKey(
                                     key = key,
@@ -128,6 +131,7 @@ internal fun ConfigNetKeysScreen(
                                     }
                                 )
                             }
+                            item { Spacer(modifier = Modifier.size(size = 16.dp)) }
                         }
 
                         false -> MeshNoItemsAvailable(
@@ -231,6 +235,7 @@ private fun SwipeToDismissKey(
     // Hold the current state from the Swipe to Dismiss composable
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(

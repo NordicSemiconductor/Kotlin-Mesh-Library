@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -112,42 +114,41 @@ internal fun ConfigAppKeysScreen(
                 },
                 isRefreshing = isRefreshing
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    SectionTitle(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        title = stringResource(R.string.label_added_application_keys)
-                    )
-
-                    when (node.applicationKeys.isNotEmpty()) {
-                        true -> LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
-                        ) {
-                            items(
-                                items = node.applicationKeys,
-                                key = { it.index.toInt() + 1 }
-                            ) { key ->
-                                SwipeToDismissKey(
-                                    key = key,
-                                    context = context,
-                                    scope = scope,
-                                    snackbarHostState = snackbarHostState,
-                                    onSwiped = {
-                                        if (!messageState.isInProgress())
-                                            send(ConfigAppKeyDelete(key = key))
-                                    }
-                                )
-                            }
+                when (node.applicationKeys.isNotEmpty()) {
+                    true -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+                    ) {
+                        item {
+                            SectionTitle(
+                                modifier = Modifier.padding(top = 8.dp),
+                                title = stringResource(R.string.label_added_application_keys)
+                            )
                         }
-
-                        false -> MeshNoItemsAvailable(
-                            modifier = Modifier.fillMaxSize(),
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = stringResource(R.string.label_no_app_keys_added),
-                            rationale = stringResource(R.string.label_no_app_keys_added_rationale)
-                        )
+                        items(
+                            items = node.applicationKeys,
+                            key = { it.index.toInt() + 1 }
+                        ) { key ->
+                            SwipeToDismissKey(
+                                key = key,
+                                context = context,
+                                scope = scope,
+                                snackbarHostState = snackbarHostState,
+                                onSwiped = {
+                                    if (!messageState.isInProgress())
+                                        send(ConfigAppKeyDelete(key = key))
+                                }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.size(size = 16.dp)) }
                     }
+
+                    false -> MeshNoItemsAvailable(
+                        modifier = Modifier.fillMaxSize(),
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = stringResource(R.string.label_no_app_keys_added),
+                        rationale = stringResource(R.string.label_no_app_keys_added_rationale)
+                    )
                 }
             }
         }
@@ -243,6 +244,7 @@ private fun SwipeToDismissKey(
     val dismissState = rememberSwipeToDismissBoxState()
 
     SwipeToDismissBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
