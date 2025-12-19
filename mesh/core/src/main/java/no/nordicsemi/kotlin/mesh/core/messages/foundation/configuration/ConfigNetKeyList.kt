@@ -18,10 +18,11 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * @constructor Constructs the ConfigNetKeyGet message.
  */
 class ConfigNetKeyList(
-    val networkKeyIndexes: Array<KeyIndex>
+    val networkKeyIndexes: Array<KeyIndex>,
 ) : ConfigResponse {
     override val opCode: UInt = Initializer.opCode
-    override val parameters: ByteArray? = null
+    override val parameters: ByteArray
+        get() = ConfigMessage.encode(indexes = networkKeyIndexes)
 
     constructor(networkKeys: List<NetworkKey>) : this(
         networkKeyIndexes = networkKeys.map {
@@ -29,8 +30,20 @@ class ConfigNetKeyList(
         }.toTypedArray()
     )
 
-    override fun toString() = "ConfigNetKeyList(opCode: $opCode, networkKeyIndex: ${
-        networkKeyIndexes.joinToString(separator = ", ", transform = { it.toString() })
+    override fun toString() = "ConfigNetKeyList(opCode: ${
+        opCode.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, networkKeyIndex: ${
+        parameters.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
     })"
 
     companion object Initializer : ConfigMessageInitializer {
