@@ -30,6 +30,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -270,7 +271,8 @@ private fun NetworkKeyRow(
                         content = {
                             Icon(
                                 imageVector = Icons.Outlined.ArrowDropDown,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     )

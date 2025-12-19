@@ -25,22 +25,32 @@ internal class ProvisionersViewModel @Inject internal constructor(
 ) : ViewModel() {
 
     private lateinit var network: MeshNetwork
-    private var selectedProvisioner: Uuid? = null
 
     private val _uiState = MutableStateFlow(ProvisionersScreenUiState())
     val uiState: StateFlow<ProvisionersScreenUiState> = _uiState.asStateFlow()
 
     init {
-        repository.network.onEach { network ->
-            this.network = network
-            val provisioners = network.provisioners.map { ProvisionerData(it) }
-            _uiState.value = ProvisionersScreenUiState(provisioners = provisioners)
-        }.launchIn(viewModelScope)
+        observeNetwork()
     }
 
     override fun onCleared() {
-        super.onCleared()
         removeProvisioners()
+        super.onCleared()
+    }
+
+    private fun observeNetwork() {
+        repository.network.onEach { network ->
+            this.network = network
+            _uiState.update { state ->
+                state.copy(
+                    provisioners = network.provisioners
+                        .map { ProvisionerData(provisioner = it) }
+                        // Filter out the provisioners that are marked for deletion.
+                        .filter { it !in state.provisionersToBeRemoved },
+
+                    )
+            }
+        }.launchIn(scope = viewModelScope)
     }
 
     /**
@@ -72,13 +82,8 @@ internal class ProvisionersViewModel @Inject internal constructor(
      * @param provisioner Provisioner to be deleted.
      */
     internal fun onSwiped(provisioner: ProvisionerData) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    provisioners = it.provisioners - provisioner,
-                    provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner
-                )
-            }
+        _uiState.update {
+            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved + provisioner)
         }
     }
 
@@ -89,53 +94,35 @@ internal class ProvisionersViewModel @Inject internal constructor(
      * @param provisioner Scene to be reverted.
      */
     internal fun onUndoSwipe(provisioner: ProvisionerData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            network.provisioners
-                .indexOfFirst { it.uuid == provisioner.uuid }
-                .takeIf { it >= 0 }
-                ?.let { index ->
-                    val provisioners = state.provisioners
-                        .toMutableList()
-                        .also { it.add(index, provisioner) }
-                        .toList()
-                    _uiState.value = state.copy(
-                        provisioners = provisioners,
-                        provisionersToBeRemoved = state.provisionersToBeRemoved - provisioner
-                    )
-                }
+        _uiState.update {
+            it.copy(provisionersToBeRemoved = it.provisionersToBeRemoved - provisioner)
         }
     }
 
     /**
      * Remove a given scene from the network.
      *
-     * @param item Scene to be removed.
+     * @param provisioner Scene to be removed.
      */
-    internal fun remove(item: ProvisionerData) {
-        viewModelScope.launch {
-            val state = _uiState.value
-            network.run {
-                provisioner(uuid = item.uuid)?.let { provisioner ->
-                    remove(provisioner)
-                    save()
-                }
-            }
-            _uiState.value = state.copy(
-                provisionersToBeRemoved = state.provisionersToBeRemoved - item
+    internal fun remove(provisioner: ProvisionerData) {
+        _uiState.update { state ->
+            state.copy(
+                provisioners = state.provisioners - provisioner,
+                provisionersToBeRemoved = state.provisionersToBeRemoved - provisioner
             )
         }
+        network.removeProvisionerWithUuid(uuid = provisioner.uuid)
+        // In addition lets remove the provisioners queued for deletion as well.
+        removeProvisioners()
     }
 
     /**
      * Removes the provisioners that are queued for deletion.
      */
     private fun removeProvisioners() {
-        _uiState.value.provisionersToBeRemoved.forEach { item ->
-            network.run {
-                provisioner(uuid = item.uuid)?.let { provisioner ->
-                    remove(provisioner)
-                }
+        runCatching {
+            _uiState.value.provisionersToBeRemoved.forEach { provisioner ->
+                network.removeProvisionerWithUuid(uuid = provisioner.uuid)
             }
         }
         save()
@@ -150,14 +137,14 @@ internal class ProvisionersViewModel @Inject internal constructor(
 
     @OptIn(ExperimentalUuidApi::class)
     fun selectProvisioner(uuid: Uuid) {
-        selectedProvisioner = uuid
+        _uiState.update { it.copy(selectedProvisionerUuid = uuid) }
     }
-
-    fun isCurrentlySelectedProvisioner(uuid: Uuid) = selectedProvisioner == uuid
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @ConsistentCopyVisibility
 data class ProvisionersScreenUiState internal constructor(
     val provisioners: List<ProvisionerData> = listOf(),
     val provisionersToBeRemoved: List<ProvisionerData> = listOf(),
+    val selectedProvisionerUuid: Uuid? = null,
 )

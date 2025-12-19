@@ -110,7 +110,7 @@ private fun NonClickableElevatedCardItem(
             },
             title = title,
             subtitle = subtitle,
-            subtitleMaxLines =  subtitleMaxLines,
+            subtitleMaxLines = subtitleMaxLines,
             trailingComposable = titleAction
         )
         if (supportingText != null)
@@ -177,7 +177,7 @@ private fun ClickableElevatedCardItem(
             },
             title = title,
             subtitle = subtitle,
-            subtitleMaxLines =  subtitleMaxLines,
+            subtitleMaxLines = subtitleMaxLines,
             trailingComposable = titleAction
         )
         if (supportingText != null)
@@ -306,7 +306,8 @@ fun ElevatedCardItemTextField(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteSweep,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -333,7 +334,7 @@ fun ElevatedCardItemTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -353,7 +354,7 @@ fun ElevatedCardItemTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -440,7 +441,8 @@ fun ElevatedCardItemHexTextField(
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteSweep,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -467,7 +469,7 @@ fun ElevatedCardItemHexTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -487,7 +489,7 @@ fun ElevatedCardItemHexTextField(
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )

@@ -21,23 +21,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatSubscriptionDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdownMenu(
     network: MeshNetwork?,
+    model: Model,
     expanded: Boolean,
     onDismissed: () -> Unit,
     onDestinationSelected: (HeartbeatSubscriptionDestination) -> Unit,
-    onAddGroupClicked: () -> Unit
+    onAddGroupClicked: () -> Unit,
 ) {
-    val elements = network?.nodes.orEmpty().flatMap { it.elements }
-    val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
+    val groups = network
+        ?.groups
+        .orEmpty()
+        .filter { it.address is HeartbeatSubscriptionDestination }
+        .map { it.address as HeartbeatSubscriptionDestination }
     DropdownMenu(
         modifier = Modifier
             .exposedDropdownSize()
@@ -47,29 +53,19 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
         content = {
             Text(
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                text = stringResource(R.string.label_elements)
+                text = stringResource(R.string.label_unicast_destinations)
             )
-            elements.forEach { element ->
+            model.parentElement?.parentNode?.let { node ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
-                            title = element.name?.let {
-                                "$it: 0x${element.unicastAddress.toHexString()}"
-                            } ?: element.unicastAddress.toHexString()
+                            imageVector = Icons.Outlined.SportsScore,
+                            title = node.name
                         )
                     },
-                    onClick = { onDestinationSelected(element.unicastAddress) }
+                    onClick = { onDestinationSelected(node.primaryUnicastAddress) }
                 )
             }
             HorizontalDivider()
@@ -83,21 +79,13 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.GroupWork,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.GroupWork,
                             title = network
                                 ?.group(address = destination.address)?.name
                                 ?: destination.toHexString(),
                         )
                     },
-                    onClick = { onDestinationSelected(destination as HeartbeatSubscriptionDestination) }
+                    onClick = { onDestinationSelected(destination) }
                 )
             }
             DropdownMenuItem(
@@ -105,15 +93,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 text = {
                     MeshSingleLineListItem(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .padding(end = 8.dp),
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
+                        imageVector = Icons.Outlined.Add,
                         title = stringResource(R.string.add_group)
                     )
                 },
@@ -130,21 +110,11 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatSubscriptionDestinationsDropdo
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.GroupWork,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.GroupWork,
                             title = destination.name(),
                         )
                     },
-                    onClick = {
-                        onDestinationSelected(destination)
-                    }
+                    onClick = { onDestinationSelected(destination) }
                 )
             }
         }

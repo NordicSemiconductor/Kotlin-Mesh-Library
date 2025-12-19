@@ -1,6 +1,9 @@
 package no.nordicsemi.android.nrfmesh.feature.model.common
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,31 +11,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,7 +54,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionAdd
@@ -265,20 +266,64 @@ private fun SubscriptionRow(
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val context = LocalContext.current
-    var shouldDismiss by remember { mutableStateOf(false) }
-    var showSnackbar by remember { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            shouldDismiss = handleValueChange(model = model, address = address)
-            if (!shouldDismiss) {
-                showSnackbar = true
+    val dismissState = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        state = dismissState,
+        backgroundContent = {
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.Settled,
+                    SwipeToDismissBoxValue.StartToEnd,
+                    SwipeToDismissBoxValue.EndToStart,
+                        -> if (!shouldDismiss(
+                            model = model,
+                            address = address
+                        )
+                    ) Color.Gray else Color.Red
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                    Alignment.CenterStart
+                else Alignment.CenterEnd
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
             }
-            shouldDismiss
         },
-        positionalThreshold = { it * 0.5f }
-    )
-    SwipeDismissItem(
-        dismissState = dismissState,
+        onDismiss = {
+            if (!shouldDismiss(model = model, address = address)) {
+                scope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    dismissState.reset()
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(R.string.label_primary_element_subscription_error)
+                    )
+                }
+            } else {
+                scope.launch {
+                    send(
+                        if (address is VirtualAddress) {
+                            ConfigModelSubscriptionVirtualAddressDelete(
+                                elementAddress = model.parentElement?.unicastAddress!!,
+                                address = address,
+                                model = model
+                            )
+                        } else {
+                            ConfigModelSubscriptionDelete(
+                                elementAddress = model.parentElement?.unicastAddress!!,
+                                address = address.address,
+                                model = model
+                            )
+                        }
+                    )
+                }
+            }
+        },
         content = {
             ElevatedCardItem(
                 imageVector = Icons.Outlined.GroupWork,
@@ -290,44 +335,9 @@ private fun SubscriptionRow(
             )
         }
     )
-    if (shouldDismiss) {
-        LaunchedEffect(snackbarHostState) {
-            scope.launch {
-                send(
-                    if (address is VirtualAddress) {
-                        ConfigModelSubscriptionVirtualAddressDelete(
-                            elementAddress = model.parentElement?.unicastAddress!!,
-                            address = address,
-                            model = model
-                        )
-                    } else {
-                        ConfigModelSubscriptionDelete(
-                            elementAddress = model.parentElement?.unicastAddress!!,
-                            address = address.address,
-                            model = model
-                        )
-                    }
-                )
-            }
-        }
-    }
-
-    if (showSnackbar) {
-        LaunchedEffect(snackbarHostState) {
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.label_primary_element_subscription_error)
-                ).also {
-                    if (it == SnackbarResult.Dismissed) {
-                        showSnackbar = false
-                    }
-                }
-            }
-        }
-    }
 }
 
-private fun handleValueChange(model: Model, address: SubscriptionAddress) =
+private fun shouldDismiss(model: Model, address: SubscriptionAddress) =
     when (model.parentElement?.isPrimary == true) {
         true -> address !is AllNodes
         else -> true

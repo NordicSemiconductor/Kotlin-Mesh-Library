@@ -37,22 +37,18 @@ internal fun GroupDetailPane(
             send = send
         )
 
-        else -> PlaceHolder(
-            content = {
-                if (models.isNotEmpty()) {
-                    PlaceHolder(
-                        modifier = Modifier.fillMaxSize(),
-                        imageVector = Icons.Outlined.Info,
-                        text = stringResource(id = R.string.label_select_model_rationale)
-                    )
-                } else {
-                    PlaceHolder(
-                        modifier = Modifier.fillMaxSize(),
-                        imageVector = Icons.Outlined.Info,
-                        text = stringResource(id = R.string.label_no_models_subscribed_rationale)
-                    )
-                }
-            }
-        )
+        else -> if (models.isNotEmpty()) {
+            PlaceHolder(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Outlined.Info,
+                text = stringResource(id = R.string.label_select_model_rationale)
+            )
+        } else {
+            PlaceHolder(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Outlined.Info,
+                text = stringResource(id = R.string.label_no_models_subscribed_rationale)
+            )
+        }
     }
 }

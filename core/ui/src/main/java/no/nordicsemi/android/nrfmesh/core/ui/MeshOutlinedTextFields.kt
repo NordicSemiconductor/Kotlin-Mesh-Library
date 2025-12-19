@@ -53,7 +53,15 @@ fun MeshOutlinedTextField(
             enabled = enabled,
             prefix = prefix,
             value = value,
-            onValueChange = onValueChanged,
+            onValueChange = { value ->
+                regex?.let {
+                    if(it.matches(value.text)) {
+                        onValueChanged(value)
+                    }
+                } ?: run {
+                    onValueChanged(value)
+                }
+            },
             label = label,
             placeholder = placeholder,
             trailingIcon = internalTrailingIcon,

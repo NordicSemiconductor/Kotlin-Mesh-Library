@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,7 +84,7 @@ fun MeshTwoLineListItem(
                 .size(24.dp),
             imageVector = imageVector,
             contentDescription = null,
-            tint = LocalContentColor.current.copy(alpha = 0.6f)
+            tint = MaterialTheme.colorScheme.primary
         )
         Column(
             modifier = Modifier

@@ -1,12 +1,11 @@
-package no.nordicsemi.android.nrfmesh.feature.provisioners
+package no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,16 +28,17 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.convertToString
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
@@ -64,11 +65,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForProvisioner
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.ranges.AllocatedRanges
-import no.nordicsemi.android.nrfmesh.feature.ranges.RangesScreen
+import no.nordicsemi.android.nrfmesh.feature.provisioners.R
+import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges.AllocatedRanges
+import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges.RangesScreen
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
@@ -85,115 +87,113 @@ import kotlin.uuid.ExperimentalUuidApi
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisionerRoute(
+    snackbarHostState: SnackbarHostState,
     index: Int,
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
-    otherProvisioners: List<Provisioner>,
     moveProvisioner: (Provisioner, Int) -> Unit,
     save: () -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var isCurrentlyEditable by rememberSaveable(inputs = arrayOf(provisioner.uuid)) {
         mutableStateOf(true)
     }
-    Scaffold(
-        modifier = Modifier.background(color = Color.Red),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-                .verticalScroll(state = rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-        ) {
-            SectionTitle(
-                modifier = Modifier.padding(top = 8.dp),
-                title = stringResource(id = R.string.label_provisioner)
-            )
-            Name(
-                name = provisionerData.name,
-                onNameChanged = {
-                    provisioner.name = it
-                    save()
-                },
-                isCurrentlyEditable = isCurrentlyEditable,
-                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-            )
-            UnicastAddress(
-                snackbarHostState = snackbarHostState,
-                keyboardController = keyboardController,
-                provisioner = provisioner,
-                address = provisionerData.address,
-                isCurrentlyEditable = isCurrentlyEditable,
-                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
-                save = save,
-            )
-            if (provisionerData.hasConfigurationCapabilities) {
-                DeviceKey(key = provisionerData.deviceKey)
-            }
-            if(index != 0) {
-                MoveProvisioner(index = index, provisioner = provisioner, moveProvisioner = moveProvisioner)
-            }
-            SectionTitle(title = stringResource(R.string.label_allocated_ranges))
-            UnicastRanges(
-                snackbarHostState = snackbarHostState,
-                provisionerData = provisionerData,
-                otherRanges = otherProvisioners.flatMap { it.allocatedUnicastRanges },
-                allocate = {
-                    runCatching { provisioner.allocate(it) }
-                        .onSuccess { save() }
-                },
-                updateRange = { range, newRange ->
-                    runCatching { provisioner.update(range = range, newRange = newRange) }
-                        .onSuccess { save() }
-                },
-                onRemoved = {
-                    // TODO show snackbar
-                    runCatching { provisioner.remove(range = it) }
-                        .onSuccess { save() }
-                }
-            )
-            GroupRanges(
-                snackbarHostState = snackbarHostState,
-                provisionerData = provisionerData,
-                otherRanges = otherProvisioners.flatMap { it.allocatedGroupRanges },
-                allocate = {
-                    runCatching { provisioner.allocate(range = it) }
-                        .onSuccess { save() }
-                },
-                updateRange = { range, newRange ->
-                    runCatching { provisioner.update(range = range, newRange = newRange) }
-                        .onSuccess { save() }
-                },
-                onRemoved = {
-                    // TODO show snackbar
-                    runCatching { provisioner.remove(range = it) }
-                        .onSuccess { save() }
-                }
-            )
-            SceneRanges(
-                snackbarHostState = snackbarHostState,
-                provisionerData = provisionerData,
-                otherRanges = otherProvisioners.flatMap { it.allocatedSceneRanges },
-                allocate = {
-                    runCatching { provisioner.allocate(it) }
-                        .onSuccess { save() }
-                },
-                updateRange = { range, newRange ->
-                    runCatching { provisioner.update(range = range, newRange = newRange) }
-                        .onSuccess { save() }
-                },
-                onRemoved = {
-                    // TODO show snackbar
-                    runCatching { provisioner.remove(range = it) }
-                        .onSuccess { save() }
-                }
-            )
-            AddressRangeLegendsForProvisioner()
-            Spacer(modifier = Modifier.size(16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+        SectionTitle(
+            modifier = Modifier.padding(top = 8.dp),
+            title = stringResource(id = R.string.label_provisioner)
+        )
+        Name(
+            name = provisionerData.name,
+            onNameChanged = {
+                provisioner.name = it
+                save()
+            },
+            isCurrentlyEditable = isCurrentlyEditable,
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+        )
+        UnicastAddress(
+            snackbarHostState = snackbarHostState,
+            keyboardController = keyboardController,
+            provisioner = provisioner,
+            address = provisionerData.address,
+            isCurrentlyEditable = isCurrentlyEditable,
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable },
+            save = save,
+        )
+        if (provisionerData.hasConfigurationCapabilities) {
+            DeviceKey(key = provisionerData.deviceKey)
         }
+        if (index != 0) {
+            MoveProvisioner(
+                context = LocalContext.current,
+                scope = scope,
+                snackbarHostState = snackbarHostState,
+                index = index,
+                provisioner = provisioner,
+                moveProvisioner = moveProvisioner
+            )
+        }
+        SectionTitle(title = stringResource(R.string.label_allocated_ranges))
+        UnicastRanges(
+            scope = scope,
+            snackbarHostState = snackbarHostState,
+            provisioner = provisioner,
+            provisionerData = provisionerData,
+            otherRanges = provisioner.otherUnicastRanges,
+            allocate = {
+                runCatching { provisioner.allocate(it) }
+                    .onSuccess { save() }
+            },
+            onRemoved = {
+                // TODO show snackbar
+                runCatching { provisioner.remove(range = it) }
+                    .onSuccess { save() }
+            },
+            save = save
+        )
+        GroupRanges(
+            scope = scope,
+            snackbarHostState = snackbarHostState,
+            provisioner = provisioner,
+            provisionerData = provisionerData,
+            otherRanges = provisioner.otherGroupRanges,
+            allocate = {
+                runCatching { provisioner.allocate(range = it) }
+                    .onSuccess { save() }
+            },
+            onRemoved = {
+                // TODO show snackbar
+                runCatching { provisioner.remove(range = it) }
+                    .onSuccess { save() }
+            },
+            save = save
+        )
+        SceneRanges(
+            scope = scope,
+            snackbarHostState = snackbarHostState,
+            provisioner = provisioner,
+            provisionerData = provisionerData,
+            otherRanges = provisioner.otherSceneRanges,
+            allocate = {
+                runCatching { provisioner.allocate(it) }
+                    .onSuccess { save() }
+            },
+            onRemoved = {
+                // TODO show snackbar
+                runCatching { provisioner.remove(range = it) }
+                    .onSuccess { save() }
+            },
+            save = save
+        )
+        AddressRangeLegendsForProvisioner()
+        Spacer(modifier = Modifier.size(16.dp))
     }
 }
 
@@ -250,11 +250,11 @@ private fun UnicastAddress(
                 modifier = Modifier.padding(start = 12.dp),
                 imageVector = Icons.Outlined.Lan,
                 contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
+                tint = MaterialTheme.colorScheme.primary
             )
             Crossfade(targetState = onEditClick, label = "Address") { state ->
                 when (state) {
-                    true -> MeshOutlinedTextField(
+                    true -> MeshOutlinedHexTextField(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onFocus = onEditClick,
                         value = value,
@@ -289,7 +289,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteSweep,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -297,7 +297,7 @@ private fun UnicastAddress(
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Characters
                         ),
-                        regex = Regex("[0-9A-Fa-f]{0,4}"),
+                        regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                         isError = error,
                         content = {
                             IconButton(
@@ -305,26 +305,25 @@ private fun UnicastAddress(
                                 onClick = {
                                     onEditClick = !onEditClick
                                     onEditableStateChanged()
-                                    value = TextFieldValue(
-                                        text = initialValue,
-                                        selection = TextRange(initialValue.length)
-                                    )
+                                    value = if (provisioner.hasConfigurationCapabilities) {
+                                        TextFieldValue(
+                                            text = address?.toHexString() ?: "",
+                                            selection = TextRange(
+                                                index = (address?.toHexString() ?: "").length
+                                            )
+                                        )
+                                    } else {
+                                        TextFieldValue(
+                                            text = initialValue,
+                                            selection = TextRange(index = initialValue.length)
+                                        )
+                                    }
                                 },
                                 content = {
                                     Icon(
                                         imageVector = Icons.Outlined.Close,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                                    )
-                                }
-                            )
-                            IconButton(
-                                onClick = { onUnassignClick = !onUnassignClick },
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.RemoveModerator,
-                                        contentDescription = null,
-                                        tint = Color.Red.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -362,7 +361,17 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.Check,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+                            IconButton(
+                                onClick = { onUnassignClick = !onUnassignClick },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.RemoveModerator,
+                                        contentDescription = null,
+                                        tint = Color.Red
                                     )
                                 }
                             )
@@ -389,7 +398,7 @@ private fun UnicastAddress(
                                     Icon(
                                         imageVector = Icons.Outlined.Edit,
                                         contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.6f)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             )
@@ -443,6 +452,9 @@ private fun DeviceKey(key: String?) {
 
 @Composable
 fun MoveProvisioner(
+    context: Context,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
     index: Int,
     provisioner: Provisioner,
     moveProvisioner: (Provisioner, Int) -> Unit,
@@ -456,7 +468,16 @@ fun MoveProvisioner(
             Checkbox(
                 checked = checked,
                 onCheckedChange = {
-                    moveProvisioner(provisioner, if(it) 0 else index)
+                    moveProvisioner(provisioner, if (it) 0 else index)
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(
+                                R.string.message_local_provisioner_set,
+                                provisioner.name
+                            ),
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                 }
             )
         }
@@ -466,18 +487,21 @@ fun MoveProvisioner(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun UnicastRanges(
+    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<UnicastRange>,
     allocate: (Range) -> Unit,
-    updateRange: (Range, Range) -> Unit,
     onRemoved: (Range) -> Unit,
+    save: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
     var showUnicastRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
-        mutableStateOf<List<Range>>(provisionerData.unicastRanges)
+        mutableStateOf(provisionerData.unicastRanges.toMutableList<Range>())
     }
+    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.Lan,
@@ -489,33 +513,55 @@ private fun UnicastRanges(
     }
     if (showUnicastRanges) {
         ModalBottomSheet(
+            sheetState = sheetState,
+            properties = ModalBottomSheetProperties(
+                shouldDismissOnBackPress = !overlaps,
+                shouldDismissOnClickOutside = !overlaps
+            ),
             onDismissRequest = { showUnicastRanges = false },
+            sheetGesturesEnabled = !overlaps,
             content = {
                 RangesScreen(
                     snackbarHostState = snackbarHostState,
                     title = stringResource(id = R.string.label_unicast_ranges),
                     ranges = ranges,
                     otherRanges = otherRanges,
+                    overlaps = overlaps,
                     addRange = { start, end ->
-                        scope.launch {
-                            val range = (UnicastAddress(start)..UnicastAddress(end))
-                            ranges = ranges + range
-                            if (!ranges.overlaps(otherRanges)) {
-                                allocate(range)
+                        val range = UnicastAddress(address = start)..UnicastAddress(address = end)
+                        ranges = ranges.plus(other = range).toMutableList()
+                    },
+                    onRangeUpdated = { start, end ->
+                        val newRange =
+                            UnicastAddress(address = start)..UnicastAddress(address = end)
+                        ranges = ranges.plus(other = newRange).toMutableList()
+                    },
+                    onSwiped = { ranges = ranges.minus(other = it).toMutableList() },
+                    isValidBound = { UnicastAddress.isValid(address = it) },
+                    resolve = {
+                        ranges = ranges.minus(other = otherRanges).toMutableList()
+
+                    },
+                    save = {
+                        runCatching {
+                            provisioner.allocate(ranges = ranges)
+                        }.onSuccess {
+                            scope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                if(!sheetState.isVisible){
+                                    showUnicastRanges = false
+                                }
+                            }
+                        }.onFailure {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = it.message ?: "Failed to allocate ranges",
+                                    duration = SnackbarDuration.Short
+                                )
                             }
                         }
-                    },
-                    onRangeUpdated = { range, start, end ->
-                        updateRange(range, (UnicastAddress(start)..UnicastAddress(end)))
-                    },
-                    onSwiped = { range ->
-                        ranges = ranges - range as UnicastRange
-                        onRemoved(range)
-                    },
-                    onUndoClicked = {},
-                    remove = onRemoved,
-                    isValidBound = { UnicastAddress.isValid(address = it) },
-                    resolve = { ranges = ranges - otherRanges }
+                    }
                 )
             }
         )
@@ -525,17 +571,20 @@ private fun UnicastRanges(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun GroupRanges(
+    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<GroupRange>,
     allocate: (Range) -> Unit,
-    updateRange: (Range, Range) -> Unit,
     onRemoved: (Range) -> Unit,
+    save: () -> Unit,
 ) {
     var showGroupRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
-        mutableStateOf<List<Range>>(provisionerData.groupRanges)
+        mutableStateOf(provisionerData.groupRanges.toMutableList<Range>())
     }
+    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.GroupWork,
@@ -554,24 +603,32 @@ private fun GroupRanges(
                     title = stringResource(id = R.string.label_group_ranges),
                     ranges = ranges,
                     otherRanges = otherRanges,
+                    overlaps = overlaps,
                     addRange = { start, end ->
-                        val range = (GroupAddress(start)..GroupAddress(end))
-                        ranges = ranges + range
-                        if (!ranges.overlaps(otherRanges)) {
-                            allocate(range)
-                        }
+                        val range = GroupAddress(address = start)..GroupAddress(address = end)
+                        ranges = ranges.plus(other = range).toMutableList()
                     },
-                    onRangeUpdated = { range, start, end ->
-                        updateRange(range, (GroupAddress(start)..GroupAddress(end)))
+                    onRangeUpdated = { start, end ->
+                        val newRange = GroupAddress(address = start)..GroupAddress(address = end)
+                        ranges = ranges.plus(other = newRange).toMutableList()
                     },
-                    onSwiped = { range ->
-                        ranges = ranges - range as GroupRange
-                        onRemoved(range)
-                    },
-                    onUndoClicked = {},
-                    remove = onRemoved,
+                    onSwiped = { ranges = ranges.minus(other = it).toMutableList() },
                     isValidBound = { GroupAddress.isValid(address = it) },
-                    resolve = { ranges = ranges - otherRanges }
+                    resolve = { ranges = ranges.minus(other = otherRanges).toMutableList() },
+                    save = {
+                        runCatching {
+                            provisioner.allocate(ranges = ranges)
+                        }.onSuccess {
+                            save()
+                        }.onFailure {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = it.message ?: "Failed to allocate ranges",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                    }
                 )
             }
         )
@@ -581,19 +638,20 @@ private fun GroupRanges(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun SceneRanges(
+    scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
+    provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<SceneRange>,
     allocate: (Range) -> Unit,
-    updateRange: (Range, Range) -> Unit,
     onRemoved: (Range) -> Unit,
+    save: () -> Unit,
 ) {
     var showSceneRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
-        mutableStateOf<List<Range>>(
-            provisionerData.sceneRanges
-        )
+        mutableStateOf(provisionerData.sceneRanges.toMutableList<Range>())
     }
+    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.AutoAwesome,
@@ -612,24 +670,32 @@ private fun SceneRanges(
                     title = stringResource(id = R.string.label_scene_ranges),
                     ranges = ranges,
                     otherRanges = otherRanges,
+                    overlaps = overlaps,
                     addRange = { start, end ->
                         val range = SceneRange(firstScene = start, lastScene = end)
-                        ranges = ranges + range
-                        if (!ranges.overlaps(otherRanges)) {
-                            allocate(range)
-                        }
+                        ranges = ranges.plus(other = range).toMutableList()
                     },
-                    onRangeUpdated = { range, start, end ->
-                        updateRange(range, SceneRange(firstScene = start, lastScene = end))
+                    onRangeUpdated = { start, end ->
+                        val newRange = SceneRange(firstScene = start, lastScene = end)
+                        ranges = ranges.plus(other = newRange).toMutableList()
                     },
-                    onSwiped = { range ->
-                        ranges = ranges - range as SceneRange
-                        onRemoved(range)
-                    },
-                    onUndoClicked = {},
-                    remove = onRemoved,
+                    onSwiped = { ranges = ranges.minus(other = it).toMutableList() },
                     isValidBound = { Scene.isValid(sceneNumber = it) },
-                    resolve = { ranges = ranges - otherRanges }
+                    resolve = { ranges = ranges.minus(other = otherRanges).toMutableList() },
+                    save = {
+                        runCatching {
+                            provisioner.allocate(ranges = ranges)
+                        }.onSuccess {
+                            save()
+                        }.onFailure {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = it.message ?: "Failed to allocate ranges",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                    }
                 )
             }
         )

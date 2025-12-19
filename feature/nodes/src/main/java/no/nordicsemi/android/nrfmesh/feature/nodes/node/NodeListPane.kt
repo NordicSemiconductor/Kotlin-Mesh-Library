@@ -147,7 +147,6 @@ internal fun NodeListPane(
             ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
             SectionTitle(title = stringResource(id = R.string.label_remove_node))
             RemoveNode(
-                messageState = messageState,
                 navigateBack = navigateBack,
                 removeNode = removeNode
             )
@@ -506,7 +505,6 @@ private fun ResetRow(
 
 @Composable
 private fun RemoveNode(
-    messageState: MessageState,
     removeNode: () -> Unit,
     navigateBack: () -> Unit,
 ) {
@@ -523,8 +521,7 @@ private fun RemoveNode(
             text = stringResource(R.string.label_remove),
             buttonIcon = Icons.Outlined.DeleteForever,
             buttonIconTint = Color.Red,
-            textColor = Color.Red,
-            enabled = !messageState.isInProgress()
+            textColor = Color.Red
         )
     }
     if (showResetDialog) {

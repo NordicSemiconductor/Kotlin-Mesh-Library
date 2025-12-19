@@ -174,6 +174,7 @@ internal fun HeartBeatPublicationContent(
                                 title = stringResource(R.string.label_heartbeat_publication)
                             )
                             MeshOutlinedButton(
+                                enabled = destination != null,
                                 onClick = {
                                     send(
                                         ConfigHeartbeatPublicationSet(
@@ -207,6 +208,7 @@ internal fun HeartBeatPublicationContent(
                     SectionTitle(title = stringResource(R.string.label_destination))
                     DestinationRow(
                         network = model.parentElement?.parentNode?.network,
+                        model = model,
                         destination = destination,
                         onDestinationSelected = { destination = it },
                         onAddGroupClicked = onAddGroupClicked
@@ -272,15 +274,7 @@ private fun NetworkKeysRow(
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                         text = {
                             MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.VpnKey,
-                                        contentDescription = null
-                                    )
-                                },
+                                imageVector = Icons.Outlined.VpnKey,
                                 title = key.name,
                             )
                         },
@@ -301,6 +295,7 @@ private fun NetworkKeysRow(
 @Composable
 private fun DestinationRow(
     network: MeshNetwork?,
+    model: Model,
     destination: HeartbeatPublicationDestination?,
     onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
     onAddGroupClicked: () -> Unit,
@@ -336,6 +331,7 @@ private fun DestinationRow(
         )
         HeartbeatPublicationDestinationsDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onDestinationSelected = {

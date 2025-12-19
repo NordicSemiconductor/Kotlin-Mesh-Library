@@ -27,7 +27,6 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:ranges"))
     implementation(project(":mesh:core"))
 
 }

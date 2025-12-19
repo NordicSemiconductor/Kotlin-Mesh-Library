@@ -22,8 +22,7 @@ class AndroidGattBearer(
     peripheral = peripheral
 ) {
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun open() {
-        super.open()
+    override suspend fun configurePeripheral(peripheral: Peripheral) {
         // Request highest connection parameters after connect in the super.open()
         peripheral.requestHighestValueLength()
     }

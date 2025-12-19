@@ -99,7 +99,6 @@ class ProvisioningViewModel @Inject constructor(
                         identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
                     }
                 }.onCompletion {
-                    println("What happened here: $it")
                     _uiState.value = _uiState.value.copy(
                         provisionerState = Disconnected(unprovisionedDevice = device)
                     )

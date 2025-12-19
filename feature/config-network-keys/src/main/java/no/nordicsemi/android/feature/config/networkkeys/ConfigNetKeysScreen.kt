@@ -2,9 +2,12 @@ package no.nordicsemi.android.feature.config.networkkeys
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,6 +26,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,8 +57,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.android.nrfmesh.feature.config.networkkeys.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
@@ -105,7 +113,8 @@ internal fun ConfigNetKeysScreen(
                     when (addedNetworkKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
                         ) {
                             items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
                                 SwipeToDismissKey(
@@ -182,18 +191,31 @@ internal fun ConfigNetKeysScreen(
                         snackbarHostState.showSnackbar(
                             message = context.getString(R.string.label_network_key_deleted),
                             duration = SnackbarDuration.Short,
-                        )
+                        ).also {
+                            when (it) {
+                                SnackbarResult.Dismissed,
+                                SnackbarResult.ActionPerformed,
+                                    -> resetMessageState()
+                            }
+                        }
                     } else if (messageState.message is ConfigNetKeyAdd) {
                         snackbarHostState.showSnackbar(
                             message = context.getString(R.string.label_network_key_added),
                             duration = SnackbarDuration.Short,
-                        )
+                        ).also {
+                            when (it) {
+                                SnackbarResult.Dismissed,
+                                SnackbarResult.ActionPerformed,
+                                    -> resetMessageState()
+                            }
+                        }
                     }
                 }
             }
         }
 
-        else -> { /* Do nothing */ }
+        else -> { /* Do nothing */
+        }
     }
 }
 
@@ -207,32 +229,47 @@ private fun SwipeToDismissKey(
     onSwiped: (NetworkKey) -> Unit,
 ) {
     // Hold the current state from the Swipe to Dismiss composable
-    var shouldNotDismiss by remember { mutableStateOf(false) }
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            if (key.index.toUInt() == 0.toUInt()) {
-                shouldNotDismiss = true
-                false
-            } else {
-                onSwiped(key)
-                true
+    val dismissState = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.Settled,
+                    SwipeToDismissBoxValue.StartToEnd,
+                    SwipeToDismissBoxValue.EndToStart,
+                        -> if (key.isInUse) Color.Gray else Color.Red
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = color, shape = CardDefaults.elevatedShape)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                    Alignment.CenterStart
+                else Alignment.CenterEnd
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
             }
         },
-        positionalThreshold = { it * 0.5f }
+        onDismiss = {
+            if (key.isInUse) {
+                scope.launch { dismissState.reset() }
+                scope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            R.string.label_network_key_in_use,
+                            key.name
+                        ),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            } else {
+                onSwiped(key)
+            }
+        },
+        content = { key.Row() }
     )
-    SwipeDismissItem(
-        dismissState = dismissState, content = { key.Row() }
-    )
-
-    if (shouldNotDismiss) {
-        LaunchedEffect(snackbarHostState) {
-            showSnackbar(
-                scope = scope,
-                snackbarHostState = snackbarHostState,
-                message = context.getString(R.string.error_cannot_delete_primary_network_key),
-                duration = SnackbarDuration.Short,
-                onDismissed = { shouldNotDismiss = false }
-            )
-        }
-    }
 }

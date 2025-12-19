@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.outlined.ChangeCircle
 import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.AlertDialogDefaults
@@ -99,6 +100,7 @@ private fun IvIndex(
             MeshOutlinedButton(
                 text = stringResource(R.string.label_change_iv_index),
                 enabled = isIvIndexChangeAllowed,
+                buttonIcon = Icons.Outlined.ChangeCircle,
                 onClick = { showIvIndexDialog = true }
             )
         }

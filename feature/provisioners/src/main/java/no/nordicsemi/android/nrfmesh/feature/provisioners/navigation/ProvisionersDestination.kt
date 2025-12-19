@@ -3,6 +3,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioners.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,7 +22,9 @@ data object ProvisionersContent : Parcelable
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ProvisionersScreenRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
+    onProvisionerClicked: (Uuid) -> Unit,
     navigateToProvisioner: (Uuid) -> Unit,
     navigateUp: () -> Unit,
 ) {
@@ -29,19 +32,24 @@ fun ProvisionersScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionersRoute(
         highlightSelectedItem = highlightSelectedItem,
+        selectedProvisionerUuid = uiState.selectedProvisionerUuid,
         provisioners = uiState.provisioners,
         onAddProvisionerClicked = viewModel::addProvisioner,
+        onProvisionerClicked = {
+            viewModel.selectProvisioner(uuid = it)
+            onProvisionerClicked(it)
+        },
+        navigateToProvisioner = {
+            viewModel.selectProvisioner(uuid = it)
+            navigateToProvisioner(it)
+        },
         onSwiped = {
-            viewModel.onSwiped(it)
-            if (viewModel.isCurrentlySelectedProvisioner(uuid = it.uuid)) {
+            viewModel.onSwiped(provisioner = it)
+            if (uiState.selectedProvisionerUuid == it.uuid) {
                 navigateUp()
             }
         },
         onUndoClicked = viewModel::onUndoSwipe,
-        remove = viewModel::remove,
-        navigateToProvisioner = {
-            viewModel.selectProvisioner(uuid = it)
-            navigateToProvisioner(it)
-        }
+        remove = viewModel::remove
     )
 }

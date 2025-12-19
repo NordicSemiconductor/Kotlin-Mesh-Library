@@ -103,10 +103,3 @@ fun showSnackbar(
     }
 }
 
-fun dismissSnackbar(
-    snackbarHostState: SnackbarHostState
-) {
-    // Dismiss any snackbar that's been shown already.
-    snackbarHostState.currentSnackbarData?.dismiss()
-}
-

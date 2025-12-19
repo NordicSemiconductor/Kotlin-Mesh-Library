@@ -212,6 +212,7 @@ internal fun HeartBeatSubscriptionContent(
                                 title = stringResource(R.string.label_heartbeat_subscription)
                             )
                             MeshOutlinedButton(
+                                enabled = source != null && destination != null,
                                 onClick = {
                                     send(
                                         ConfigHeartbeatSubscriptionSet(
@@ -331,6 +332,7 @@ private fun SourceRow(
         )
         HeartbeatSubscriptionSourcesDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onSourceSelected = {
@@ -383,6 +385,7 @@ private fun DestinationRow(
         )
         HeartbeatSubscriptionDestinationsDropdownMenu(
             network = network,
+            model = model,
             expanded = expanded,
             onDismissed = { expanded = !expanded },
             onDestinationSelected = {

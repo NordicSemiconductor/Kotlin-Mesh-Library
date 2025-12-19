@@ -20,3 +20,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting { *; }
+-keep class no.nordicsemi.kotlin.mesh.** { *; }
+-dontwarn no.nordicsemi.kotlin.mesh.**

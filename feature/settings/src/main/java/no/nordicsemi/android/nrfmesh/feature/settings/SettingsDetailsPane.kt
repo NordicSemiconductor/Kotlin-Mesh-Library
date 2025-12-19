@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,6 +31,7 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun SettingsDetailsPane(
     content: Any?,
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     navigateToProvisioner: (Uuid) -> Unit,
     navigateToNetworkKey: (KeyIndex) -> Unit,
@@ -39,18 +41,23 @@ internal fun SettingsDetailsPane(
 ) {
     when (content) {
         is ProvisionersContent, is ProvisionerContent -> ProvisionersScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
+            onProvisionerClicked = navigateToProvisioner,
             navigateToProvisioner = navigateToProvisioner,
             navigateUp = navigateUp
         )
 
         is NetworkKeysContent, is NetworkKeyContent -> NetworkKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onNetworkKeyClicked = navigateToNetworkKey,
+            navigateToKey = navigateToNetworkKey,
             navigateUp = navigateUp
         )
 
         is ApplicationKeysContent, is ApplicationKeyContent -> ApplicationKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
             onApplicationKeyClicked = navigateToApplicationKey,
             navigateToKey = navigateToApplicationKey,
@@ -58,7 +65,9 @@ internal fun SettingsDetailsPane(
         )
 
         is ScenesContent, is SceneContent -> ScenesScreenRoute(
+            snackbarHostState = snackbarHostState,
             highlightSelectedItem = highlightSelectedItem,
+            onSceneClicked = navigateToScene,
             navigateToScene = navigateToScene,
             navigateUp = navigateUp
         )

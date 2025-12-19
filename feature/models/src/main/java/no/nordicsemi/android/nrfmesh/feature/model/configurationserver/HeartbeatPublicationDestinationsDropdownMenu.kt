@@ -12,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBoxScope
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,22 +19,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.mesh.core.model.HeartbeatPublicationDestination
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdownMenu(
     network: MeshNetwork?,
+    model: Model,
     expanded: Boolean,
     onDismissed: () -> Unit,
     onDestinationSelected: (HeartbeatPublicationDestination) -> Unit,
     onAddGroupClicked: () -> Unit,
 ) {
-    val elements = network?.nodes.orEmpty().flatMap { it.elements }
-    val groups = network?.groups.orEmpty().map { it.address as HeartbeatPublicationDestination }
+    val node = model.parentElement?.parentNode ?: return
+    val otherNodes = network?.nodes?.filter { it != node }.orEmpty()
+    val groups = network?.groups?.filter { it.address !is VirtualAddress }.orEmpty()
     DropdownMenu(
         modifier = Modifier
             .exposedDropdownSize()
@@ -45,31 +49,19 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
         content = {
             Text(
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                text = stringResource(R.string.label_elements)
+                text = stringResource(R.string.label_unicast_destinations)
             )
-            elements.forEach { element ->
+            otherNodes.forEach { otherNode ->
                 DropdownMenuItem(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
-                            title = element.name?.let {
-                                "$it: 0x${element.unicastAddress.toHexString()}"
-                            } ?: element.unicastAddress.toHexString()
+                            imageVector = Icons.Outlined.SportsScore,
+                            title = otherNode.name,
                         )
                     },
-                    onClick = {
-                        onDestinationSelected(element.unicastAddress)
-                    }
+                    onClick = { onDestinationSelected(otherNode.primaryUnicastAddress) }
                 )
             }
             HorizontalDivider()
@@ -83,37 +75,26 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.SportsScore,
                             title = network
-                                ?.group(address = destination.address)?.name
-                                ?: destination.toHexString(),
+                                ?.group(address = destination.address.address)?.name
+                                ?: destination.address.address.toHexString(
+                                    format = HexFormat {
+                                        number.prefix = "0x"
+                                        upperCase = true
+                                    }
+                                ),
                         )
                     },
-                    onClick = { onDestinationSelected(destination) }
+                    onClick = { onDestinationSelected(destination.address as HeartbeatPublicationDestination) }
                 )
             }
             DropdownMenuItem(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 text = {
-                    MeshSingleLineListItem(
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .padding(end = 8.dp),
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
+                    MeshTwoLineListItem(
+                        imageVector = Icons.Outlined.Add,
                         title = stringResource(R.string.add_group)
                     )
                 },
@@ -130,15 +111,7 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     text = {
                         MeshSingleLineListItem(
-                            leadingComposable = {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(end = 8.dp),
-                                    imageVector = Icons.Outlined.SportsScore,
-                                    contentDescription = null
-                                )
-                            },
+                            imageVector = Icons.Outlined.SportsScore,
                             title = destination.name(),
                         )
                     },

@@ -60,7 +60,7 @@ internal fun ApplicationKeyRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     val applicationKey by remember(key.index) { derivedStateOf { ApplicationKeyData(key = key) } }
-    var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.boundNetKeyIndex.toInt()) }
+    var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.index.toInt()) }
     Scaffold(
         modifier = Modifier.background(color = Color.Red),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -103,7 +103,7 @@ internal fun ApplicationKeyRoute(
                     onClick = {
                         if (!applicationKey.isInUse) {
                             boundNetKeyIndex = networkKey.index.toInt()
-                            key.boundNetKeyIndex = networkKey.index
+                            key.bind(networkKey = networkKey)
                             save()
                         } else showSnackbar(
                             scope = coroutineScope,
@@ -131,7 +131,7 @@ internal fun ApplicationKeyRoute(
 }
 
 @Composable
-fun Name(
+private fun Name(
     name: String,
     onNameChanged: (String) -> Unit,
     isCurrentlyEditable: Boolean,
@@ -150,7 +150,7 @@ fun Name(
 
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
-fun Key(
+private fun Key(
     key: ByteArray,
     onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
@@ -182,7 +182,7 @@ fun Key(
 
 @OptIn(ExperimentalStdlibApi::class)
 @Composable
-fun OldKey(oldKey: ByteArray?) {
+private fun OldKey(oldKey: ByteArray?) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
@@ -205,7 +205,7 @@ fun OldKey(oldKey: ByteArray?) {
 }
 
 @Composable
-fun KeyIndex(index: KeyIndex) {
+private fun KeyIndex(index: KeyIndex) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.FormatListNumbered,

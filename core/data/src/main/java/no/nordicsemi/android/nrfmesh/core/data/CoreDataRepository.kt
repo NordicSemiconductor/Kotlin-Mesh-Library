@@ -229,7 +229,7 @@ class CoreDataRepository @Inject constructor(
      * @param boundNetworkKey Bound Network Key
      */
     fun addApplicationKey(
-        name: String = "Application Key ${meshNetwork.applicationKeys.size}",
+        name: String = "Application Key ${meshNetwork.applicationKeys.size + 1}",
         boundNetworkKey: NetworkKey,
     ): ApplicationKey = meshNetwork.add(
         name = name,

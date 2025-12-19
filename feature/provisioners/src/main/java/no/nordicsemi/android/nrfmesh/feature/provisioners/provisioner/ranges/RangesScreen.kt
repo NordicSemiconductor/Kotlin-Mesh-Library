@@ -1,12 +1,17 @@
-package no.nordicsemi.android.nrfmesh.feature.ranges
+package no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.ranges
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,34 +22,33 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -53,17 +57,14 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForRanges
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwipeDismissItem
-import no.nordicsemi.android.nrfmesh.core.ui.isDismissed
-import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.android.nrfmesh.feature.provisioners.R
 import no.nordicsemi.kotlin.mesh.core.model.GroupRange
 import no.nordicsemi.kotlin.mesh.core.model.Range
 import no.nordicsemi.kotlin.mesh.core.model.SceneRange
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
-import no.nordicsemi.kotlin.mesh.core.model.overlaps
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
 @Composable
@@ -72,15 +73,14 @@ fun RangesScreen(
     title: String,
     ranges: List<Range>,
     otherRanges: List<Range>,
+    overlaps: Boolean,
     isValidBound: (UShort) -> Boolean,
     addRange: (start: UShort, end: UShort) -> Unit,
-    onRangeUpdated: (Range, UShort, UShort) -> Unit,
-    onUndoClicked: (Range) -> Unit,
+    onRangeUpdated: (UShort, UShort) -> Unit,
     onSwiped: (Range) -> Unit,
-    remove: (Range) -> Unit,
     resolve: () -> Unit,
+    save: () -> Unit,
 ) {
-    val context = LocalContext.current
     var showAddRangeDialog by remember { mutableStateOf(false) }
     var rangeToEdit by remember { mutableStateOf<Range?>(null) }
     Column {
@@ -93,72 +93,93 @@ fun RangesScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
             ) {
-                OutlinedButton(
+                MeshOutlinedButton(
+                    buttonIcon = Icons.Outlined.Add,
+                    text = stringResource(R.string.label_add_range),
                     onClick = {
                         rangeToEdit = null
                         showAddRangeDialog = true
                     }
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Outlined.Add, contentDescription = null)
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = stringResource(R.string.label_add_range)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                AnimatedVisibility(visible = ranges.overlaps(otherRanges)) {
-                    OutlinedButton(
-                        onClick = resolve,
+                )
+                AnimatedVisibility(visible = overlaps) {
+                    MeshOutlinedButton(
                         border = BorderStroke(width = 1.dp, color = Color.Red),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.AutoFixHigh,
-                                contentDescription = null,
-                                tint = Color.Red
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 8.dp),
-                                text = stringResource(R.string.label_resolve),
-                                color = Color.Red
-                            )
-                        }
-                    }
+                        buttonIcon = Icons.Outlined.AutoFixHigh,
+                        buttonIconTint = Color.Red,
+                        text = stringResource(R.string.label_resolve),
+                        textColor = Color.Red,
+                        onClick = resolve
+                    )
                 }
+                MeshOutlinedButton(
+                    enabled = !overlaps,
+                    buttonIcon = Icons.Outlined.Gavel,
+                    text = stringResource(R.string.label_allocate),
+                    onClick = save
+                )
             }
         }
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.6f, false),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             if (ranges.isNotEmpty()) {
-                items(items = ranges) { range ->
+                items(items = ranges, key = { it.hashCode() }) { range ->
                     // Hold the current state from the Swipe to Dismiss composable
-                    val currentItem by rememberUpdatedState(newValue = range)
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        positionalThreshold = { it * 0.5f }
-                    )
-                    SwipeDismissItem(
-                        dismissState = dismissState,
+                    // val currentItem by rememberUpdatedState(newValue = range)
+                    val dismissState = rememberSwipeToDismissBoxState()
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            val color by animateColorAsState(
+                                when (dismissState.targetValue) {
+                                    SwipeToDismissBoxValue.Settled,
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> Color.Red
+                                }
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(color = color, shape = CardDefaults.elevatedShape)
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
+                                    Alignment.CenterStart
+                                else Alignment.CenterEnd
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = "null"
+                                )
+                            }
+                        },
+                        onDismiss = { onSwiped(range) },
                         content = {
                             OutlinedCard {
                                 AllocatedRange(
                                     imageVector = range.toImageVector(),
-                                    title = "0x${
-                                        range.low.toByteArray().toHexString()
-                                    } - 0x${range.high.toByteArray().toHexString()}",
+                                    title = "${
+                                        range.low.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "0x"
+                                                upperCase = true
+                                            }
+                                        )
+                                    } - ${
+                                        range.high.toHexString(
+                                            format = HexFormat {
+                                                number.prefix = "0x"
+                                                upperCase = true
+                                            }
+                                        )
+                                    }",
                                     range = range,
                                     otherRanges = otherRanges.filter { it.overlap(range) != null },
                                     onClick = {
@@ -169,29 +190,11 @@ fun RangesScreen(
                             }
                         }
                     )
-                    if (dismissState.isDismissed()) {
-                        LaunchedEffect(snackbarHostState) {
-                            onSwiped(currentItem)
-                            snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.label_range_deleted),
-                                actionLabel = context.getString(R.string.action_undo),
-                                withDismissAction = true,
-                                duration = SnackbarDuration.Long
-                            ).also {
-                                when (it) {
-                                    SnackbarResult.Dismissed -> remove(currentItem)
-                                    SnackbarResult.ActionPerformed -> {
-                                        dismissState.reset()
-                                        onUndoClicked(currentItem)
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             } else {
                 item {
                     MeshNoItemsAvailable(
+                        modifier = Modifier.fillMaxSize(),
                         imageVector = Icons.Outlined.AutoAwesome,
                         title = stringResource(R.string.no_ranges_currently_added)
                     )
@@ -215,9 +218,7 @@ fun RangesScreen(
                     onDismissRequest = { showAddRangeDialog = false },
                     range = range,
                     isValidBound = isValidBound,
-                    onConfirmClicked = { oldRange, low, high ->
-                        onRangeUpdated(oldRange, low, high)
-                    }
+                    onConfirmClicked = onRangeUpdated
                 )
             } ?: AddRangeDialog(
                 isValidBound = isValidBound,
@@ -234,6 +235,8 @@ private fun AddRangeDialog(
     onDismissRequest: () -> Unit,
     onConfirmClicked: (start: UShort, end: UShort) -> Unit,
 ) {
+    var low by remember { mutableStateOf<UShort?>(null) }
+    var high by remember { mutableStateOf<UShort?>(null) }
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
@@ -245,7 +248,8 @@ private fun AddRangeDialog(
     var endInFocus by rememberSaveable { mutableStateOf(false) }
     var invalidStart by rememberSaveable { mutableStateOf(false) }
     var invalidEnd by rememberSaveable { mutableStateOf(false) }
-    var supportingErrorText by rememberSaveable { mutableStateOf("") }
+    var supportingErrorTextStart by rememberSaveable { mutableStateOf("") }
+    var supportingErrorTextEnd by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
         properties = DialogProperties(usePlatformDefaultWidth = true),
@@ -265,7 +269,7 @@ private fun AddRangeDialog(
         title = stringResource(R.string.title_new_range),
         error = invalidStart ||
                 invalidEnd ||
-                start.text.trim().isBlank() ||
+                start.text.isBlank() ||
                 end.text.trim().isBlank(),
         content = {
             Column {
@@ -286,8 +290,21 @@ private fun AddRangeDialog(
                         if (start.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidStart = !isValidBound(start.text.toUShort(radix = 16))
+                                if (!invalidStart) {
+                                    supportingErrorTextStart = ""
+                                    invalidStart = false
+                                }
+                            }.onSuccess {
+                                if (!invalidStart) {
+                                    low = start.text.toUShort(radix = 16)
+                                    if (high != null && low!! > high!!) {
+                                        supportingErrorTextStart =
+                                            "Lower bound must be <= upper bound"
+                                        invalidStart = true
+                                    }
+                                }
                             }.onFailure { throwable ->
-                                supportingErrorText = throwable.message ?: ""
+                                supportingErrorTextStart = throwable.message ?: ""
                                 invalidStart = true
                             }
                         }
@@ -304,17 +321,17 @@ private fun AddRangeDialog(
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                     isError = invalidStart,
                     supportingText = {
                         if (invalidStart)
                             Text(
-                                text = supportingErrorText,
+                                text = supportingErrorTextStart,
                                 color = MaterialTheme.colorScheme.error
                             )
                     }
                 )
-                Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(8.dp))
                 MeshOutlinedHexTextField(
                     modifier = Modifier.clickable {
                         startInFocus = false
@@ -330,8 +347,21 @@ private fun AddRangeDialog(
                         if (end.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
+                                if (!invalidEnd) {
+                                    supportingErrorTextEnd = ""
+                                    invalidEnd = false
+                                }
+                            }.onSuccess {
+                                if (!invalidEnd) {
+                                    high = end.text.toUShort(radix = 16)
+                                    if (low != null && high!! < low!!) {
+                                        supportingErrorTextEnd =
+                                            "Upper bound must be >= to lower bound"
+                                        invalidEnd = true
+                                    }
+                                }
                             }.onFailure { throwable ->
-                                supportingErrorText = throwable.message ?: ""
+                                supportingErrorTextEnd = throwable.message ?: ""
                                 invalidEnd = true
                             }
                         }
@@ -348,12 +378,12 @@ private fun AddRangeDialog(
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                     isError = invalidEnd,
                     supportingText = {
                         if (invalidEnd)
                             Text(
-                                text = supportingErrorText,
+                                text = supportingErrorTextEnd,
                                 color = MaterialTheme.colorScheme.error
                             )
                     }
@@ -369,37 +399,43 @@ private fun UpdateRangeDialog(
     onDismissRequest: () -> Unit,
     range: Range,
     isValidBound: (UShort) -> Boolean,
-    onConfirmClicked: (Range, UShort, UShort) -> Unit,
+    onConfirmClicked: (UShort, UShort) -> Unit,
 ) {
+    var low by remember { mutableStateOf<UShort?>(null) }
+    var high by remember { mutableStateOf<UShort?>(null) }
     var start by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(range.low.toByteArray().toHexString()))
+        mutableStateOf(
+            TextFieldValue(
+                range.low.toHexString(format = HexFormat.UpperCase)
+            )
+        )
     }
     var end by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(range.high.toByteArray().toHexString()))
+        mutableStateOf(
+            TextFieldValue(
+                range.high.toHexString(format = HexFormat.UpperCase)
+            )
+        )
     }
     var startInFocus by rememberSaveable { mutableStateOf(false) }
     var endInFocus by rememberSaveable { mutableStateOf(false) }
     var invalidStart by rememberSaveable { mutableStateOf(false) }
     var invalidEnd by rememberSaveable { mutableStateOf(false) }
-    var supportingErrorText by rememberSaveable { mutableStateOf("") }
+    var supportingErrorTextStart by rememberSaveable { mutableStateOf("") }
+    var supportingErrorTextEnd by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
-        onDismissRequest = { onDismissRequest() },
-        properties = DialogProperties(usePlatformDefaultWidth = true),
+        onDismissRequest = onDismissRequest,
         onConfirmClick = {
-            val startValue = start.text.trim()
-            val endValue = end.text.trim()
-            if (startValue.isNotBlank() && endValue.isNotBlank()) {
-                onDismissRequest()
-                onConfirmClicked(
-                    range,
-                    startValue.toUShort(radix = 16),
-                    endValue.toUShort(radix = 16)
-                )
+            if (start.text.trim().isNotBlank() && end.text.trim().isNotBlank()) {
+                val startValue = start.text.trim().toUShort(radix = 16)
+                val endValue = end.text.trim().toUShort(radix = 16)
+                runCatching { onConfirmClicked(startValue, endValue) }
+                    .onSuccess { onDismissRequest() }
             }
         },
         onDismissClick = { onDismissRequest() },
         icon = Icons.Outlined.SwapHoriz,
-        title = stringResource(R.string.title_new_range),
+        title = stringResource(R.string.title_edit_range),
         error = invalidStart || invalidEnd ||
                 start.text
                     .trim()
@@ -429,11 +465,33 @@ private fun UpdateRangeDialog(
                         if (start.text.trim().isNotEmpty()) {
                             runCatching {
                                 invalidStart = !isValidBound(start.text.toUShort(radix = 16))
+                                if (!invalidStart) {
+                                    supportingErrorTextStart = ""
+                                    invalidStart = false
+                                }
+                            }.onSuccess {
+                                if (!invalidStart) {
+                                    low = start.text.toUShort(radix = 16)
+                                    if (high != null && low!! > high!!) {
+                                        supportingErrorTextStart =
+                                            "Lower bound must be <= upper bound"
+                                        invalidStart = true
+                                    }
+                                }
                             }.onFailure { throwable ->
-                                supportingErrorText = throwable.message ?: ""
+                                supportingErrorTextStart = throwable.message ?: ""
                                 invalidStart = true
                             }
                         }
+                        if (start.text.trim().isNotEmpty()) {
+                            runCatching {
+                                invalidStart = !isValidBound(start.text.toUShort(radix = 16))
+                            }.onFailure { throwable ->
+                                supportingErrorTextStart = throwable.message ?: ""
+                                invalidStart = true
+                            }
+                        }
+
                     },
                     internalTrailingIcon = {
                         IconButton(
@@ -446,12 +504,12 @@ private fun UpdateRangeDialog(
                             }
                         ) { Icon(imageVector = Icons.Outlined.Clear, contentDescription = null) }
                     },
-                    regex = Regex("[0-9A-Fa-f]{0,4}"),
+                    regex = Regex("^[0-9A-Fa-f]{0,4}$"),
                     isError = invalidStart,
                     supportingText = {
                         if (invalidStart)
                             Text(
-                                text = supportingErrorText,
+                                text = supportingErrorTextStart,
                                 color = MaterialTheme.colorScheme.error
                             )
                     }
@@ -474,7 +532,7 @@ private fun UpdateRangeDialog(
                             runCatching {
                                 invalidEnd = !isValidBound(end.text.toUShort(radix = 16))
                             }.onFailure { throwable ->
-                                supportingErrorText = throwable.message ?: ""
+                                supportingErrorTextEnd = throwable.message ?: ""
                                 invalidEnd = true
                             }
                         }
@@ -495,7 +553,7 @@ private fun UpdateRangeDialog(
                     supportingText = {
                         if (invalidEnd)
                             Text(
-                                text = supportingErrorText,
+                                text = supportingErrorTextEnd,
                                 color = MaterialTheme.colorScheme.error
                             )
                     }

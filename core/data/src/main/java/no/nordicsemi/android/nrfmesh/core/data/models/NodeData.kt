@@ -140,7 +140,7 @@ data class NodeData internal constructor(
         excluded = node.excluded,
         heartbeatPublication = node.heartbeatPublication,
         heartbeatSubscription = node.heartbeatSubscription,
-        primaryElementData = node.primaryElement?.let { ElementData(it) },
+        primaryElementData = ElementData(node.primaryElement),
         elementsCount = node.elementsCount,
         addresses = node.addresses,
         unicastRange = node.unicastRange,

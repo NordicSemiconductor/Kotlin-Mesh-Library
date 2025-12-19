@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.application.keys.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,6 +18,7 @@ data object ApplicationKeysContent : Parcelable
 
 @Composable
 fun ApplicationKeysScreenRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     onApplicationKeyClicked: (KeyIndex) -> Unit,
     navigateToKey: (KeyIndex) -> Unit,
@@ -25,21 +27,26 @@ fun ApplicationKeysScreenRoute(
     val viewModel = hiltViewModel<ApplicationKeysViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ApplicationKeysRoute(
+        snackbarHostState = snackbarHostState,
         highlightSelectedItem = highlightSelectedItem,
+        selectedKeyIndex = uiState.selectedKeyIndex,
         keys = uiState.keys,
         onAddKeyClicked = viewModel::addApplicationKey,
         onApplicationKeyClicked = {
-            viewModel.selectKeyIndex(it)
+            viewModel.selectKeyIndex(keyIndex = it)
             onApplicationKeyClicked(it)
         },
-        navigateToKey = navigateToKey,
+        navigateToKey = {
+            viewModel.selectKeyIndex(keyIndex = it)
+            navigateToKey(it)
+        },
         onSwiped = {
             viewModel.onSwiped(it)
-            if(viewModel.isCurrentlySelectedKey(it.index)) {
+            if(uiState.selectedKeyIndex == it.index) {
                 navigateUp()
             }
         },
         onUndoClicked = viewModel::onUndoSwipe,
-        remove = { viewModel.remove(it) }
+        remove = viewModel::remove
     )
 }

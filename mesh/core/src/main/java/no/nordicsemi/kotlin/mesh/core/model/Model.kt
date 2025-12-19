@@ -6,7 +6,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
-import kotlin.UShort
 import kotlin.uuid.ExperimentalUuidApi
 
 /**
@@ -137,16 +136,15 @@ class Model internal constructor(
     val subscribe: List<SubscriptionAddress>
         get() {
             // A model may be additionally subscribed to any special address
-            // except from All Nodes.
-            if (!_subscribe.contains(AllNodes)) {
-                // Models on the primary Element are always subscribed to the All Nodes
-                // address.
-                if (parentElement?.isPrimary == true) {
-                    _subscribe.add(AllNodes as SubscriptionAddress)
-                }
-            }
-            return _subscribe
+            // except from All Nodes and Models on the primary Element are always subscribed to the
+            // All Nodes address.
+            return _subscribe.takeIf{
+                !it.contains(element = AllNodes) && parentElement?.isPrimary == true
+            }?.let {
+                _subscribe + AllNodes as SubscriptionAddress
+            } ?: _subscribe
         }
+
     var publish: Publish?
         get() = _publish
         internal set(value) {
