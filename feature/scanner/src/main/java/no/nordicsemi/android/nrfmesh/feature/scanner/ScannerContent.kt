@@ -1,12 +1,18 @@
 package no.nordicsemi.android.nrfmesh.feature.scanner
 
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.common.scanner.R.*
 import no.nordicsemi.android.common.scanner.rememberFilterState
 import no.nordicsemi.android.common.scanner.view.DeviceListItem
 import no.nordicsemi.android.common.scanner.view.ScannerView
@@ -33,6 +39,7 @@ fun ScannerContent(
     onScanResultSelected: (ScanResult) -> Unit,
 ) {
     ScannerView(
+        modifier = Modifier.padding(horizontal = 16.dp),
         state = rememberFilterState(filter = { ServiceUuid(uuid = service.uuid) }),
         onScanningStateChanged = {},
         deviceItem = { scanResult ->
@@ -74,7 +81,7 @@ fun ScannerContent(
                                 )
                             } ?: run {
                                 DeviceListItem(
-                                    iconPainter = painterResource(no.nordicsemi.android.common.scanner.R.drawable.ic_mesh),
+                                    iconPainter = painterResource(drawable.ic_mesh),
                                     title = scanResult.advertisingData.name
                                         ?: scanResult.peripheral.name
                                         ?: stringResource(R.string.label_unknown_device),

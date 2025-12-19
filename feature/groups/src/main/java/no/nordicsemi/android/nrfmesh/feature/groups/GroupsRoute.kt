@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.groups
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -10,21 +9,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GroupWork
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.common.ui.view.CircularIcon
 import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
@@ -51,20 +46,7 @@ internal fun GroupsRoute(
                 ) { group ->
                     MeshItem(
                         modifier = Modifier.fillMaxWidth(),
-                        icon = {
-                            Icon(
-                                modifier = Modifier
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                                    .size(size = 36.dp)
-                                    .padding(all = 4.dp),
-                                imageVector = Icons.Outlined.GroupWork,
-                                tint = Color.White,
-                                contentDescription = null
-                            )
-                        },
+                        icon = { CircularIcon(imageVector = Icons.Outlined.GroupWork) },
                         title = group.name,
                         subtitle = group.address.run {
                             when (this) {
@@ -102,20 +84,7 @@ internal fun GroupsRoute(
             )
             uiState.groups.forEach { group ->
                 MeshItem(
-                    icon = {
-                        Icon(
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
-                                .size(size = 36.dp)
-                                .padding(all = 4.dp),
-                            imageVector = Icons.Outlined.GroupWork,
-                            tint = Color.White,
-                            contentDescription = null
-                        )
-                    },
+                    icon = { CircularIcon(imageVector = Icons.Outlined.GroupWork) },
                     title = group.name,
                     subtitle = group.address.run {
                         if (this is GroupAddress) {
