@@ -80,15 +80,15 @@ fun ScannerContent(
                                     )
                                 )
                             } ?: run {
-                                DeviceListItem(
-                                    iconPainter = painterResource(drawable.ic_mesh),
-                                    title = scanResult.advertisingData.name
-                                        ?: scanResult.peripheral.name
-                                        ?: stringResource(R.string.label_unknown_device),
-                                    subtitle = networkIdentity()
-                                        ?.createMatchingDescription(networkKeys = networkKeys)
-                                        ?: return@run,
-                                )
+                                networkIdentity()?.matches(networkKeys = networkKeys)?.let { netKey ->
+                                    DeviceListItem(
+                                        iconPainter = painterResource(drawable.ic_mesh),
+                                        title = scanResult.advertisingData.name
+                                            ?: scanResult.peripheral.name
+                                            ?: stringResource(R.string.label_unknown_device),
+                                        subtitle = netKey.name
+                                    )
+                                }
                             }
                         }
 
@@ -98,21 +98,3 @@ fun ScannerContent(
         onScanResultSelected = onScanResultSelected
     )
 }
-
-private fun NodeIdentity.createMatchingSubtitle(nodes: List<Node>) =
-    matches(nodes = nodes)?.primaryUnicastAddress?.address?.let {
-        "Unicast Address: ${
-            it.toHexString(
-                format = HexFormat {
-                    number.prefix = "0x"
-                    upperCase = true
-                }
-            )
-        }"
-    } ?: "Node Identity: ${toHexString()}"
-
-
-private fun NetworkIdentity?.createMatchingDescription(networkKeys: List<NetworkKey>) = this
-    ?.takeIf { matches(networkKeys = networkKeys) != null }
-    ?.let { "Network Identity: ${toHexString()}" }
-
