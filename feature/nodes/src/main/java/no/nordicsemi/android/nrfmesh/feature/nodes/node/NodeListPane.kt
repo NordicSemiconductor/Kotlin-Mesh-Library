@@ -63,6 +63,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Proxy
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
+import java.util.Locale.ROOT
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -351,10 +352,7 @@ private fun Security(node: NodeInfoListData) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Security,
         title = stringResource(R.string.label_security),
-        subtitle = when (node.elements.isEmpty()) {
-            true -> node.security.toString()
-            false -> stringResource(id = R.string.unknown)
-        }
+        subtitle = node.security.toString().replaceFirstChar { it.titlecase(locale = ROOT) }
     )
 }
 
