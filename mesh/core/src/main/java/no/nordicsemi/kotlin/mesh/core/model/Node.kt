@@ -460,6 +460,15 @@ data class Node internal constructor(
         _netKeys = netKeyIndexes.map { NodeKey(it, false) }
             .toMutableList()
             .apply { sortBy { it.index } }
+        // Remove any Application Keys bound to Network Keys which are not in the provided
+        // netKeyIndexes list.
+        _appKeys = _appKeys.filter { nodeKey ->
+            applicationKey(index = nodeKey.index)
+                ?.let { netKeyIndexes.contains(it.boundNetKeyIndex) }
+                // Keep the app key if it cannot be found, if used with "== true" unknown keys  will
+                // be removed.
+                ?: true
+        }.toMutableList()
         // if an insecure Node received a Network Key, make sure to lower the minSecurity field of
         // all the keys in it.
         if (security is Insecure) {
