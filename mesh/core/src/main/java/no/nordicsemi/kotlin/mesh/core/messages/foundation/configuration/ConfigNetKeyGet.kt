@@ -6,7 +6,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 
 /**
- * This message is used to get a network key from the mesh network.
+ * This message is used to list the network keys from a given node.
  *
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
@@ -19,7 +19,12 @@ class ConfigNetKeyGet : AcknowledgedConfigMessage {
 
     override val responseOpCode = ConfigNetKeyList.opCode
 
-    override fun toString() = "ConfigNetKeyGet(opCode: $opCode)"
+    override fun toString() = "ConfigNetKeyGet(opCode: ${
+        opCode.toHexString(format = HexFormat {
+            number.prefix = "0x"
+            upperCase = true
+        })
+    })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8042u
