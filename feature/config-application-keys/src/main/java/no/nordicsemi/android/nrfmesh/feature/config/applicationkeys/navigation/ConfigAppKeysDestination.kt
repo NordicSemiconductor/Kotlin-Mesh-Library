@@ -18,6 +18,7 @@ fun ConfigAppKeysScreenRoute(
     availableAppKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
+    readApplicationKeys: () -> Unit,
     messageState: MessageState,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -27,6 +28,7 @@ fun ConfigAppKeysScreenRoute(
         availableApplicationKeys = availableAppKeys,
         onAddAppKeyClicked = onAddAppKeyClicked,
         navigateToApplicationKeys = navigateToApplicationKeys,
+        readApplicationKeys = readApplicationKeys,
         messageState = messageState,
         send = send,
         resetMessageState = resetMessageState

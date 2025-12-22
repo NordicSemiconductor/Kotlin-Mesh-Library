@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,10 +25,13 @@ import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyList
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
@@ -214,6 +218,40 @@ internal class NodeViewModel @Inject internal constructor(
             }.getOrElse {
                 _uiState.value = _uiState.value.copy(
                     messageState = Failed(message = message, error = it),
+                    isRefreshing = false
+                )
+            }
+        }
+    }
+
+    internal fun readApplicationKeys() {
+        viewModelScope.launch {
+            var message: ConfigAppKeyGet? = null
+            try {
+                selectedNode.networkKeys.forEach {
+                    message = ConfigAppKeyGet(index = it.index)
+                    _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
+                    repository.send(selectedNode, message)?.let { response ->
+                        _uiState.value = _uiState.value.copy(
+                            messageState = Completed(
+                                message = message,
+                                response = response as ConfigResponse
+                            ),
+                            isRefreshing = false
+                        )
+                    } ?: run {
+                        _uiState.value = _uiState.value.copy(
+                            messageState = Failed(
+                                message = message,
+                                error = IllegalStateException("No response received")
+                            ),
+                            isRefreshing = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    messageState = Failed(message = message, error = e),
                     isRefreshing = false
                 )
             }
