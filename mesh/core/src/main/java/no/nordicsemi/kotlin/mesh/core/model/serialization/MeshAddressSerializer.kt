@@ -34,7 +34,7 @@ internal object MeshAddressSerializer : KSerializer<MeshAddress> {
         encoder.encodeString(
             value = when (value) {
                 is VirtualAddress -> value.uuid.encode()
-                else -> value.address.toHexString()
+                else -> value.address.toHexString(format = HexFormat.UpperCase)
             }
         )
     }

@@ -30,6 +30,6 @@ internal object KeySerializer : KSerializer<ByteArray> {
     }
 
     override fun serialize(encoder: Encoder, value: ByteArray) {
-        encoder.encodeString(value.toHexString())
+        encoder.encodeString(value.toHexString(format = HexFormat.UpperCase))
     }
 }

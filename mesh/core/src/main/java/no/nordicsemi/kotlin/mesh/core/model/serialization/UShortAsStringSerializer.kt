@@ -28,6 +28,6 @@ internal object UShortAsStringSerializer : KSerializer<UShort> {
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun serialize(encoder: Encoder, value: UShort) {
-        encoder.encodeString(value = value.toHexString())
+        encoder.encodeString(value = value.toHexString(format = HexFormat.UpperCase))
     }
 }

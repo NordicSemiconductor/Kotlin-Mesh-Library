@@ -29,6 +29,6 @@ internal object LocationAsStringSerializer : KSerializer<Location> {
     }
 
     override fun serialize(encoder: Encoder, value: Location) {
-        encoder.encodeString(value = value.value.toHexString())
+        encoder.encodeString(value = value.value.toHexString(format = HexFormat.UpperCase))
     }
 }
