@@ -75,6 +75,7 @@ internal fun ConfigAppKeysScreen(
     availableApplicationKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
+    readApplicationKeys: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
@@ -104,14 +105,7 @@ internal fun ConfigAppKeysScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .consumeWindowInsets(paddingValues = paddingValues),
-                onRefresh = {
-                    send(
-                        ConfigAppKeyGet(
-                            key = node.networkKeys.firstOrNull()
-                                ?: throw IllegalStateException("No network keys added to this node")
-                        )
-                    )
-                },
+                onRefresh = { readApplicationKeys() },
                 isRefreshing = isRefreshing
             ) {
                 when (node.applicationKeys.isNotEmpty()) {

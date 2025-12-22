@@ -50,7 +50,7 @@ interface ConfigMessage : MeshMessage {
                 // Encode a pair of Key Indexes into 3 bytes.
                 val first = indexes.first()
                 val second = indexes.drop(1).first()
-                val pair = ((first shl 12) or second).toUInt()
+                val pair = ((first.toUInt() shl 12) or second.toUInt())
                 val encodedPair = pair.toByteArray(order = ByteOrder.LITTLE_ENDIAN).let {
                     it.copyOfRange(0, it.size - 1)
                 }
@@ -64,9 +64,9 @@ interface ConfigMessage : MeshMessage {
          * Decodes number of Key Indexes from the given Data from the given offset. This will decode
          * as many Indexes as possible, until the end of data is reached.
          *
-         * @param limit:  Maximum number of Key Indexes to decode.
-         * @param data:   The data from where the indexes should be read.
-         * @param offset: The offset from where to read the indexes.
+         * @param limit    Maximum number of Key Indexes to decode.
+         * @param data     The data from where the indexes should be read.
+         * @param offset   The offset from where to read the indexes.
          * @returns Decoded Key Indexes.
          */
         fun decode(limit: Int = 10000, data: ByteArray, offset: Int): Array<KeyIndex> = when {
@@ -77,9 +77,12 @@ interface ConfigMessage : MeshMessage {
 
             else -> {
                 val first: KeyIndex =
-                    ((data[offset + 2] shl 4) or (data[offset + 1].toInt() shr 4)).toUShort()
+                    (((data[offset + 2].toInt() and 0xFF) shl 4) or
+                            ((data[offset + 1].toInt() and 0xFF) shr 4)).toUShort()
+
                 val second: KeyIndex =
-                    (((data[offset + 1] and 0x0F) shl 8) or data[offset].toInt()).toUShort()
+                    ((((data[offset + 1].toInt() and 0x0F) shl 8) or
+                            (data[offset].toInt() and 0xFF))).toUShort()
                 arrayOf(first, second) + decode(limit - 2, data, offset + 3)
             }
         }

@@ -21,7 +21,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * [NetworkKey] that are known to the Node. This message is a response to the [ConfigAppKeyGet]
  *
  * @property applicationKeyIndexes   Index of the application key.
- * @property index         Index of the network key.
+ * @property index                   Index of the network key.
  * @property status                  Status of the message.
  * @property opCode                  Message op code.
  * @property parameters              Message parameters.

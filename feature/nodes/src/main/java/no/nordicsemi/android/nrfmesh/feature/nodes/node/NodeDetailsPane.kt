@@ -37,6 +37,7 @@ internal fun NodeDetailsPane(
     availableApplicationKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
+    readApplicationKeys: () -> Unit,
     navigateToModel: (Model) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     messageState: MessageState,
@@ -69,6 +70,7 @@ internal fun NodeDetailsPane(
             navigateToApplicationKeys = navigateToApplicationKeys,
             messageState = messageState,
             resetMessageState = resetMessageState,
+            readApplicationKeys = readApplicationKeys,
             send = send
         )
 

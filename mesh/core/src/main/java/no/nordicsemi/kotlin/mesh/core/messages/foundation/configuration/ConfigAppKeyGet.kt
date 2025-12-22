@@ -20,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * @constructor Constructs the ConfigAppKeyAdd message.
  */
 class ConfigAppKeyGet(
-    override val index: KeyIndex
+    override val index: KeyIndex,
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
     override val opCode: UInt = Initializer.opCode
 
@@ -38,7 +38,21 @@ class ConfigAppKeyGet(
         index = key.index
     )
 
-    override fun toString() = "ConfigAppKeyGet(networkKeyIndex: $index)"
+    override fun toString() = "ConfigAppKeyGet(opCode: ${
+        opCode.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, parameters: ${
+        parameters.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8001u

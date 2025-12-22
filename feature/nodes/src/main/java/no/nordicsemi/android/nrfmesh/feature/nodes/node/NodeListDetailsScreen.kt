@@ -35,6 +35,7 @@ internal fun NodeListDetailsScreen(
     onItemSelected: (ClickableNodeInfoItem) -> Unit,
     onAddNetworkKeyClicked: () -> Unit,
     onAddAppKeyClicked: () -> Unit,
+    readApplicationKeys: () -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
@@ -114,6 +115,7 @@ internal fun NodeListDetailsScreen(
                         },
                         availableApplicationKeys = uiState.availableAppKeys,
                         onAddAppKeyClicked = onAddAppKeyClicked,
+                        readApplicationKeys = readApplicationKeys,
                         navigateToApplicationKeys = {
                             appState.navigateToSettings(
                                 listItem = ClickableSetting.APPLICATION_KEYS
