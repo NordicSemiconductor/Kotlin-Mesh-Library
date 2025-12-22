@@ -309,8 +309,12 @@ private fun ProductIdentifier(productIdentifier: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.QrCode,
         title = stringResource(R.string.label_product_identifier),
-        subtitle = productIdentifier?.toHexString()?.uppercase()
-            ?: stringResource(R.string.unknown),
+        subtitle = productIdentifier?.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        ) ?: stringResource(R.string.unknown),
     )
 }
 
@@ -321,7 +325,12 @@ private fun ProductVersion(productVersion: UShort?) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Numbers,
         title = stringResource(R.string.label_product_version),
-        subtitle = productVersion?.toHexString()?.uppercase() ?: stringResource(R.string.unknown),
+        subtitle = productVersion?.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        ) ?: stringResource(R.string.unknown),
     )
 }
 
