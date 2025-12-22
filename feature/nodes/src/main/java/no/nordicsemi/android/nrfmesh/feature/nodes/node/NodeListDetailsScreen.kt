@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -40,14 +41,18 @@ internal fun NodeListDetailsScreen(
     resetMessageState: () -> Unit,
     save: () -> Unit,
     navigateBack: () -> Unit,
-    removeNode: () -> Unit
+    removeNode: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val navigator = rememberListDetailPaneScaffoldNavigator().also {
         appState.nodeNavigator = it
     }
+    val paneExpansionState = rememberPaneExpansionState().apply {
+        setFirstPaneProportion(0.4f)
+    }
     when (uiState.nodeState) {
         is NodeState.Success -> NavigableListDetailPaneScaffold(
+            paneExpansionState = paneExpansionState,
             modifier = Modifier.windowInsetsPadding(WindowInsets()),
             navigator = navigator,
             listPane = {
