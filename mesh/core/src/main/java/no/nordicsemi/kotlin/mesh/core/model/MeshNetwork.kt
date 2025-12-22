@@ -174,6 +174,7 @@ data class MeshNetwork internal constructor(
             return null
         }
 
+    @Transient
     internal var _localElements = mutableListOf(Element(location = Location.MAIN))
         set(elements) {
             // Ensures the indexes are correct
