@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -30,9 +31,13 @@ internal fun GroupListDetailScreen(
     val navigator = rememberListDetailPaneScaffoldNavigator().also {
         appState.groupsNavigator = it
     }
+    val paneExpansionState = rememberPaneExpansionState().apply {
+        setFirstPaneProportion(0.4f)
+    }
     when (uiState) {
         is GroupState.Success -> {
             NavigableListDetailPaneScaffold(
+                paneExpansionState = paneExpansionState,
                 navigator = navigator,
                 listPane = {
                     AnimatedPane {

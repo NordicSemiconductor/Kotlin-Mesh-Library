@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.settings.navigation
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -47,8 +48,12 @@ internal fun SettingsListDetailsScreen(
     val navigator = rememberListDetailPaneScaffoldNavigator().also {
         appState.settingsNavigator = it
     }
+    val paneExpansionState = rememberPaneExpansionState().apply {
+        setFirstPaneProportion(0.4f)
+    }
     when (uiState.networkState) {
         is MeshNetworkState.Success -> NavigableListDetailPaneScaffold(
+            paneExpansionState = paneExpansionState,
             navigator = navigator,
             defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
             listPane = {
