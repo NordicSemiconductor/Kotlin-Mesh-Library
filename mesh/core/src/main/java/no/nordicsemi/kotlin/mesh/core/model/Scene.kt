@@ -32,6 +32,8 @@ data class Scene internal constructor(
             MeshNetwork.onChange(oldValue = _name, newValue = value) { network?.updateTimestamp() }
             _name = value
         }
+
+    @SerialName(value = "addresses")
     internal var _addresses: MutableList<UnicastAddress> = mutableListOf()
     val addresses: List<UnicastAddress>
         get() = _addresses
