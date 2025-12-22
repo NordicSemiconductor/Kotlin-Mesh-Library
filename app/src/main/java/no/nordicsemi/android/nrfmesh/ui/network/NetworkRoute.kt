@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -427,24 +428,14 @@ fun NetworkRoute(
                 content = {
                     SectionTitle(
                         modifier = Modifier.padding(vertical = 8.dp),
-                        title = stringResource(R.string.label_select_provisioner),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .padding(horizontal = 16.dp),
-                        text = stringResource(R.string.label_select_provisioner_rationale)
+                        title = stringResource(R.string.label_select_provisioner_rationale),
+                        style = MaterialTheme.typography.titleMedium
                     )
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp),
-                        modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        items(
-                            items = provisioners,
-                            key = { it.uuid.hashCode() }
-                        ) {
+                        items(items = provisioners, key = { it.uuid.toString() }) {
                             ElevatedCardItem(
                                 imageVector = Icons.Filled.PersonPin,
                                 title = it.name,
