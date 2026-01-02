@@ -169,8 +169,8 @@ data class MeshNetwork internal constructor(
     val nextAvailableApplicationKeyIndex: KeyIndex?
         get() {
             if (_applicationKeys.isEmpty()) return 0u
-            val nextKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            val appKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
+            if (appKeyIndex.isValidKeyIndex()) return appKeyIndex
             return null
         }
 
