@@ -93,7 +93,10 @@ internal fun DeviceCapabilities(
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
-        SectionTitle(title = stringResource(R.string.title_provisioning_data))
+        SectionTitle(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(R.string.title_provisioning_data)
+        )
         UnicastAddressRow(
             context = context,
             scope = scope,
@@ -112,7 +115,10 @@ internal fun DeviceCapabilities(
             networkKey = state.parameters.networkKey,
             onNetworkKeyClick = onNetworkKeyClicked
         )
-        SectionTitle(title = stringResource(R.string.title_device_capabilities))
+        SectionTitle(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(R.string.title_device_capabilities)
+        )
         ElementsRow(
             title = stringResource(R.string.label_element_count),
             subtitle = "${state.capabilities.numberOfElements}"
