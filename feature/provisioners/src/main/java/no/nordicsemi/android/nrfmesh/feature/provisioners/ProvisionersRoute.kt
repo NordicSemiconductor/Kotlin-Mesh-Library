@@ -7,10 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,9 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -60,6 +55,7 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun ProvisionersRoute(
+    snackbarHostState: SnackbarHostState,
     highlightSelectedItem: Boolean,
     selectedProvisionerUuid: Uuid?,
     provisioners: List<ProvisionerData>,
@@ -72,27 +68,7 @@ internal fun ProvisionersRoute(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        modifier = Modifier.background(color = Color.Red),
-        contentWindowInsets = WindowInsets(top = 8.dp),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                text = { Text(text = stringResource(R.string.label_add_provisioner)) },
-                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    runCatching {
-                        onAddProvisionerClicked()
-                    }.onSuccess {
-                        navigateToProvisioner(it.uuid)
-                    }
-                },
-                expanded = true
-            )
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
         when (provisioners.isEmpty()) {
             true -> MeshNoItemsAvailable(
                 modifier = Modifier.fillMaxSize(),
@@ -101,9 +77,8 @@ internal fun ProvisionersRoute(
             )
 
             false -> LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .consumeWindowInsets(paddingValues = paddingValues),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp),
                 // Removed in favor of padding in SwipeToDismissProvisioner so that hiding an item will not leave any gaps
                 //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {
@@ -114,13 +89,15 @@ internal fun ProvisionersRoute(
                     var visibility by remember { mutableStateOf(true) }
                     if (index == 0) {
                         SectionTitle(
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
                             title = stringResource(id = R.string.label_this_provisioner)
                         )
                     }
                     if (index == 1) {
                         SectionTitle(
-                            modifier = Modifier.padding(bottom = 8.dp),
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .padding(horizontal = 16.dp),
                             title = stringResource(id = R.string.label_other_provisioner)
                         )
                     }
@@ -148,6 +125,22 @@ internal fun ProvisionersRoute(
                 }
             }
         }
+        ExtendedFloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .defaultMinSize(minWidth = 150.dp),
+            text = { Text(text = stringResource(R.string.label_add_provisioner)) },
+            icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+            onClick = {
+                runCatching {
+                    onAddProvisionerClicked()
+                }.onSuccess {
+                    navigateToProvisioner(it.uuid)
+                }
+            },
+            expanded = true
+        )
     }
 }
 
@@ -169,7 +162,9 @@ private fun SwipeToDismissProvisioner(
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         // Added instead of using Arrangement.spacedBy to avoid leaving gaps when an item is swiped away.
-        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(

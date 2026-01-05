@@ -7,9 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -71,87 +68,86 @@ internal fun ScenesRoute(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                text = { Text(text = stringResource(R.string.label_add_scene)) },
-                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    runCatching {
-                        onAddSceneClicked()
-                    }.onSuccess { scene ->
-                        navigateToScene(scene.number)
-                    }.onFailure {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = when (it) {
-                                    is NoSceneRangeAllocated -> it.message ?: context.getString(
-                                        R.string.error_allocate_scene_range_to_provisioner
-                                    )
-
-                                    else -> it.message ?: context.getString(R.string.unknown_error)
-                                }
-                            )
-                        }
-                    }
-                },
-                expanded = true
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (scenes.isEmpty()) {
+            true -> MeshNoItemsAvailable(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Outlined.AutoAwesome,
+                title = stringResource(R.string.no_scenes_currently_added)
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-        ) {
-            when (scenes.isEmpty()) {
-                true -> MeshNoItemsAvailable(
-                    modifier = Modifier.fillMaxSize(),
-                    imageVector = Icons.Outlined.AutoAwesome,
-                    title = stringResource(R.string.no_scenes_currently_added)
-                )
 
-                false -> LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .consumeWindowInsets(paddingValues = paddingValues)
-                    // Removed in favor of padding in SwipeToDismissKey so that hiding an item will not leave any gaps
-                    //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                ) {
-                    item {
-                        SectionTitle(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            title = stringResource(id = R.string.label_scenes)
+            false -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+                // Removed in favor of padding in SwipeToDismissKey so that hiding an item will not leave any gaps
+                // verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            ) {
+                item {
+                    SectionTitle(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        title = stringResource(id = R.string.label_scenes)
+                    )
+                }
+                items(items = scenes, key = { it.id }) { scene ->
+                    val isSelected =
+                        highlightSelectedItem && scene.number == selectedSceneNumber
+                    var visibility by remember { mutableStateOf(true) }
+                    AnimatedVisibility(visible = visibility) {
+                        SwipeToDismissScene(
+                            scope = scope,
+                            context = context,
+                            snackbarHostState = snackbarHostState,
+                            scene = scene,
+                            isSelected = isSelected,
+                            onSceneClicked = onSceneClicked,
+                            onSwiped = {
+                                visibility = false
+                                onSwiped(it)
+                            },
+                            onUndoClicked = {
+                                visibility = true
+                                onUndoClicked(it)
+                            },
+                            remove = remove
                         )
-                    }
-                    items(items = scenes, key = { it.id }) { scene ->
-                        val isSelected =
-                            highlightSelectedItem && scene.number == selectedSceneNumber
-                        var visibility by remember { mutableStateOf(true) }
-                        AnimatedVisibility(visible = visibility) {
-                            SwipeToDismissScene(
-                                scope = scope,
-                                context = context,
-                                snackbarHostState = snackbarHostState,
-                                scene = scene,
-                                isSelected = isSelected,
-                                onSceneClicked = onSceneClicked,
-                                onSwiped = {
-                                    visibility = false
-                                    onSwiped(it)
-                                },
-                                onUndoClicked = {
-                                    visibility = true
-                                    onUndoClicked(it)
-                                },
-                                remove = remove
-                            )
-                        }
                     }
                 }
             }
         }
+        ExtendedFloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .defaultMinSize(minWidth = 150.dp),
+            text = { Text(text = stringResource(R.string.label_add_scene)) },
+            icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+            onClick = {
+                runCatching {
+                    onAddSceneClicked()
+                }.onSuccess { scene ->
+                    navigateToScene(scene.number)
+                }.onFailure { t ->
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = when (t) {
+                                is NoSceneRangeAllocated -> t.message ?: context.getString(
+                                    R.string.error_allocate_scene_range_to_provisioner
+                                )
+
+                                else -> t.message ?: context.getString(R.string.unknown_error)
+                            }
+                        )
+                    }
+                }
+            },
+            expanded = true
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }
 
@@ -171,7 +167,9 @@ private fun SwipeToDismissScene(
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         // Added instead of using Arrangement.spacedBy to avoid leaving gaps when an item is swiped away.
-        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
@@ -179,7 +177,7 @@ private fun SwipeToDismissScene(
                     SwipeToDismissBoxValue.Settled,
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
-                        -> if (scene.isInUse) Color.Gray else Color.Red
+                    -> if (scene.isInUse) Color.Gray else Color.Red
                 }
             )
             Box(
