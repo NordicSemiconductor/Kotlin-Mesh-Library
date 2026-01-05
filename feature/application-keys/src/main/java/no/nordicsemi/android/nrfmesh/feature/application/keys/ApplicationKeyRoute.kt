@@ -2,11 +2,9 @@
 
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -19,12 +17,11 @@ import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,18 +29,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -51,53 +46,51 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @Composable
 internal fun ApplicationKeyRoute(
+    snackbarHostState: SnackbarHostState,
     key: ApplicationKey,
     networkKeys: List<NetworkKey>,
     save: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val errorMessage = stringResource(R.string.error_cannot_change_bound_net_key)
     var isCurrentlyEditable by rememberSaveable { mutableStateOf(true) }
     val applicationKey by remember(key.index) { derivedStateOf { ApplicationKeyData(key = key) } }
-    var boundNetKeyIndex by remember(key.index) { mutableIntStateOf(key.index.toInt()) }
-    Scaffold(
-        modifier = Modifier.background(color = Color.Red),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-                .verticalScroll(state = rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-        ) {
-            SectionTitle(
-                modifier = Modifier.padding(top = 8.dp),
-                title = stringResource(id = R.string.label_application_key)
-            )
-            Name(
-                name = applicationKey.name,
-                onNameChanged = {
-                    key.name = it
-                    save()
-                },
-                isCurrentlyEditable = isCurrentlyEditable,
-                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-            )
-            Key(
-                key = applicationKey.key,
-                onKeyChanged = {
-                    key.setKey(key = it)
-                    save()
-                },
-                isCurrentlyEditable = isCurrentlyEditable,
-                onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
-            )
-            OldKey(oldKey = applicationKey.oldKey)
-            KeyIndex(index = applicationKey.index)
-            SectionTitle(title = stringResource(R.string.label_bound_network_key))
-            networkKeys.forEach { networkKey ->
+    var boundNetKeyIndex by remember(key.index) {
+        mutableIntStateOf(key.boundNetworkKey.index.toInt())
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+        SectionTitle(
+            modifier = Modifier.padding(top = 8.dp),
+            title = stringResource(id = R.string.label_application_key)
+        )
+        Name(
+            name = applicationKey.name,
+            onNameChanged = {
+                key.name = it
+                save()
+            },
+            isCurrentlyEditable = isCurrentlyEditable,
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+        )
+        Key(
+            key = applicationKey.key,
+            onKeyChanged = {
+                key.setKey(key = it)
+                save()
+            },
+            isCurrentlyEditable = isCurrentlyEditable,
+            onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
+        )
+        OldKey(oldKey = applicationKey.oldKey)
+        KeyIndex(index = applicationKey.index)
+        SectionTitle(title = stringResource(R.string.label_bound_network_key))
+        networkKeys.forEach { networkKey ->
+            key(networkKey.index) {
                 ElevatedCardItem(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     onClick = {
@@ -105,12 +98,9 @@ internal fun ApplicationKeyRoute(
                             boundNetKeyIndex = networkKey.index.toInt()
                             key.bind(networkKey = networkKey)
                             save()
-                        } else showSnackbar(
-                            scope = coroutineScope,
-                            snackbarHostState = snackbarHostState,
-                            message = context.getString(R.string.error_cannot_change_bound_net_key),
-                            withDismissAction = true
-                        )
+                        } else scope.launch {
+                            snackbarHostState.showSnackbar(message = errorMessage)
+                        }
                     },
                     imageVector = Icons.Outlined.VpnKey,
                     title = networkKey.name,
@@ -157,8 +147,8 @@ private fun Key(
     onEditableStateChanged: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val clipboard = LocalClipboard.current
+    val applicationKeyLabel = stringResource(id = R.string.label_application_key)
     ElevatedCardItemTextField(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -167,7 +157,7 @@ private fun Key(
                     scope = scope,
                     clipboard = clipboard,
                     text = key.toHexString(format = HexFormat.UpperCase),
-                    label = context.getString(R.string.label_application_key)
+                    label = applicationKeyLabel
                 )
             },
         imageVector = Icons.Outlined.VpnKey,
@@ -184,8 +174,8 @@ private fun Key(
 @Composable
 private fun OldKey(oldKey: ByteArray?) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val clipboard = LocalClipboard.current
+    val oldKeyLabel = stringResource(id = R.string.label_old_key)
     ApplicationKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AssistWalker,
@@ -197,7 +187,7 @@ private fun OldKey(oldKey: ByteArray?) {
                     scope = scope,
                     clipboard = clipboard,
                     text = oldKey.toHexString(format = HexFormat.UpperCase),
-                    label = context.getString(R.string.label_old_key)
+                    label = oldKeyLabel
                 )
             }
         }
