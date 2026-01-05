@@ -79,7 +79,9 @@ internal fun ModelScreen(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
     ) {
         SectionTitle(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .padding(horizontal = 16.dp),
             title = stringResource(R.string.label_model)
         )
         CommonInformation(model = model)

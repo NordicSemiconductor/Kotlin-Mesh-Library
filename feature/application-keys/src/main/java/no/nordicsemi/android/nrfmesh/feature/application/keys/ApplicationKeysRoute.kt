@@ -76,7 +76,7 @@ internal fun ApplicationKeysRoute(
 
                 false -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
                     // Removed in favor of padding in SwipeToDismissKey so that hiding an item will
                     // not leave any gaps
                     // verticalArrangement = Arrangement.spacedBy(space = 8.dp)

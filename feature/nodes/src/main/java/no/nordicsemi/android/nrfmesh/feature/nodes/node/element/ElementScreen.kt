@@ -55,7 +55,9 @@ internal fun ElementScreen(
             .verticalScroll(state = rememberScrollState())
     ) {
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .padding(horizontal = 16.dp),
             title = stringResource(id = R.string.label_element)
         )
         NameRow(
@@ -70,7 +72,9 @@ internal fun ElementScreen(
         Spacer(modifier = Modifier.size(size = 8.dp))
         LocationRow(location = element.location)
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .padding(horizontal = 16.dp),
             title = stringResource(id = R.string.label_models)
         )
         element.models.forEachIndexed { index, model ->

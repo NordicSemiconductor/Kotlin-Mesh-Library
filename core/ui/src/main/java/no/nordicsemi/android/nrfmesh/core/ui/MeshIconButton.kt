@@ -5,6 +5,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -47,7 +48,7 @@ fun MeshIconButton(
                 Icon(
                     imageVector = buttonIcon,
                     contentDescription = null,
-                    tint = buttonIconTint ?: LocalContentColor.current,
+                    tint = buttonIconTint ?: MaterialTheme.colorScheme.primary,
                 )
             }
         }

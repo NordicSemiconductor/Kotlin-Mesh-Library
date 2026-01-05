@@ -89,7 +89,10 @@ fun RangesScreen(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            SectionTitle(title = title)
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = title
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

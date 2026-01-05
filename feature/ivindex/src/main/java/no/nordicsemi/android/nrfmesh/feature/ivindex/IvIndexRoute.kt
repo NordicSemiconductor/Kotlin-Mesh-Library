@@ -50,7 +50,7 @@ fun IvIndexRoute(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
         SectionTitle(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
             title = stringResource(R.string.label_iv_index)
         )
         IvIndex(

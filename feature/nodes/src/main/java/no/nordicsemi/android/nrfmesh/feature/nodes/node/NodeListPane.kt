@@ -101,7 +101,9 @@ internal fun NodeListPane(
             verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         ) {
             SectionTitle(
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .padding(horizontal = 16.dp),
                 title = stringResource(R.string.label_node)
             )
             NodeNameRow(
@@ -112,7 +114,10 @@ internal fun NodeListPane(
                 }
             )
             AddressRow(address = nodeData.address)
-            SectionTitle(title = stringResource(id = R.string.title_keys))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_keys)
+            )
             DeviceKeyRow(deviceKey = nodeData.deviceKey)
             NetworkKeysRow(
                 count = nodeData.networkKeyCount,
@@ -126,7 +131,10 @@ internal fun NodeListPane(
                         && highlightSelectedItem,
                 onApplicationKeysClicked = { onApplicationKeysClicked(nodeData.uuid) }
             )
-            SectionTitle(title = stringResource(id = R.string.title_elements))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_elements)
+            )
             nodeData.elements.forEachIndexed { index, element ->
                 ElementRow(
                     element = element,
@@ -136,17 +144,35 @@ internal fun NodeListPane(
                     onElementsClicked = { onElementClicked(element.unicastAddress.address) }
                 )
             }
-            SectionTitle(title = stringResource(id = R.string.title_node_information))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_node_information)
+            )
             NodeInformationRow(nodeData)
-            SectionTitle(title = stringResource(id = R.string.title_time_to_live))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_time_to_live)
+            )
             DefaultTtlRow(ttl = nodeData.defaultTtl, messageState = messageState, send = send)
-            SectionTitle(title = stringResource(id = R.string.title_proxy_state))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_proxy_state)
+            )
             ProxyStateRow(messageState = messageState, proxy = nodeData.features.proxy, send = send)
-            SectionTitle(title = stringResource(id = R.string.title_exclusions))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_exclusions)
+            )
             ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
-            SectionTitle(title = stringResource(id = R.string.label_reset_node))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.label_reset_node)
+            )
             ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
-            SectionTitle(title = stringResource(id = R.string.label_remove_node))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.label_remove_node)
+            )
             RemoveNode(
                 navigateBack = navigateBack,
                 removeNode = removeNode

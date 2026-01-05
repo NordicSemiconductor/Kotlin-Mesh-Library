@@ -111,7 +111,9 @@ internal fun ConfigAppKeysScreen(
                     ) {
                         item {
                             SectionTitle(
-                                modifier = Modifier.padding(top = 8.dp),
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .padding(horizontal = 16.dp),
                                 title = stringResource(R.string.label_added_application_keys)
                             )
                         }
