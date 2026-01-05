@@ -111,7 +111,6 @@ internal fun ProxyRoute(
                 )
                 FilterSection(
                     nodes = uiState.nodes,
-                    networkKeys = uiState.networkKeys,
                     groups = uiState.groups,
                     type = uiState.filterType,
                     addresses = uiState.addresses,
@@ -151,6 +150,7 @@ private fun ProxyFilterInfo(
             sheetState = proxyScannerSheetState
         ) {
             SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 title = stringResource(R.string.label_proxies),
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -238,7 +238,6 @@ private fun NetworkConnectionState.describe() = when (this) {
 private fun FilterSection(
     nodes: List<Node>,
     groups: List<Group>,
-    networkKeys: List<NetworkKey>,
     type: ProxyFilterType?,
     addresses: List<ProxyFilterAddress> = emptyList(),
     limitReached: Boolean,
@@ -261,7 +260,10 @@ private fun FilterSection(
                 .padding(end = 16.dp)
                 .padding(vertical = 8.dp),
         ) {
-            SectionTitle(title = stringResource(R.string.label_filter_type))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(R.string.label_filter_type)
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -312,7 +314,7 @@ private fun FilterSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             SectionTitle(
-                modifier = Modifier.weight(weight = 1f),
+                modifier = Modifier.weight(weight = 1f).padding(horizontal = 16.dp),
                 title = stringResource(R.string.label_filter_type)
             )
             MeshOutlinedButton(

@@ -61,7 +61,7 @@ internal fun GroupListPane(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         SectionTitle(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
             title = stringResource(id = R.string.label_group)
         )
         NodeNameRow(
@@ -78,7 +78,10 @@ internal fun GroupListPane(
             deleteGroup = { deleteGroup(group) }
         )
         if (groupInfo.models.isNotEmpty()) {
-            SectionTitle(title = stringResource(id = R.string.label_subscribed_models))
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.label_subscribed_models)
+            )
             groupInfo.models.forEach { entry ->
                 ModelRow(
                     models = entry.value,

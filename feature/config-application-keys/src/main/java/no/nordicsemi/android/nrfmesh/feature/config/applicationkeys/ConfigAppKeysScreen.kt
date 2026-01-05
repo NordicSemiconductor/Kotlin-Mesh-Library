@@ -6,8 +6,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
@@ -26,7 +24,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -39,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -70,6 +66,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigAppKeysScreen(
+    snackbarHostState: SnackbarHostState,
     node: Node,
     messageState: MessageState,
     availableApplicationKeys: List<ApplicationKey>,
@@ -81,14 +78,13 @@ internal fun ConfigAppKeysScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     val isRefreshing by rememberSaveable {
         mutableStateOf(messageState.isInProgress() && messageState.message is ConfigAppKeyGet)
     }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        // snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             AnimatedVisibility(visible = !showBottomSheet) {
                 ExtendedFloatingActionButton(
@@ -115,7 +111,9 @@ internal fun ConfigAppKeysScreen(
                     ) {
                         item {
                             SectionTitle(
-                                modifier = Modifier.padding(top = 8.dp),
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .padding(horizontal = 16.dp),
                                 title = stringResource(R.string.label_added_application_keys)
                             )
                         }
@@ -154,7 +152,22 @@ internal fun ConfigAppKeysScreen(
             messageState = messageState,
             keys = availableApplicationKeys,
             onAppKeyClicked = { send(ConfigAppKeyAdd(key = it)) },
-            onAddApplicationKeyClicked = onAddAppKeyClicked,
+            onAddApplicationKeyClicked = {
+                runCatching {
+                    onAddAppKeyClicked
+                }.onFailure {
+                    scope.launch {
+                        bottomSheetState.hide()
+                        snackbarHostState.showSnackbar(
+                            message = it.describe()
+                        )
+                    }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) {
+                            showBottomSheet = false
+                        }
+                    }
+                }
+            },
             navigateToApplicationKeys = {
                 scope.launch {
                     bottomSheetState.hide()

@@ -106,7 +106,7 @@ internal fun ProvisionerRoute(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         SectionTitle(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
             title = stringResource(id = R.string.label_provisioner)
         )
         Name(
@@ -140,7 +140,10 @@ internal fun ProvisionerRoute(
                 moveProvisioner = moveProvisioner
             )
         }
-        SectionTitle(title = stringResource(R.string.label_allocated_ranges))
+        SectionTitle(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(R.string.label_allocated_ranges)
+        )
         UnicastRanges(
             scope = scope,
             snackbarHostState = snackbarHostState,

@@ -152,25 +152,35 @@ data class MeshNetwork internal constructor(
     /**
      * THe next available network key index, or null if the index 4095 is already in use.
      *
-     * Note: this method does not search for gaps in key indexes, takes next after the last one.
+     * Note: This method searches for any available key index that is not used,looking for gaps in
+     * the key indexes. If there are no gaps, the next available key index will be the first one
+     * after the last one.
      */
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
             if (_networkKeys.isEmpty()) return 0u
-            val nextKeyIndex = (_networkKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            for(index in 0..4095) {
+                val keyIndex = index.toUShort()
+                if (!_networkKeys.any { it.index == keyIndex }) return keyIndex
+            }
             return null
         }
 
     /**
      * Returns the next available application key index that can be used
      * when construction an application key.
+     *
+     * Note: This method searches for any available key index that is not used,looking for gaps in
+     * the key indexes. If there are no gaps, the next available key index will be the first one
+     * after the last one.
      */
     val nextAvailableApplicationKeyIndex: KeyIndex?
         get() {
             if (_applicationKeys.isEmpty()) return 0u
-            val nextKeyIndex = (_applicationKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            for (index in 0..4095) {
+                val appKeyIndex = index.toUShort()
+                if (!_applicationKeys.any { it.index == appKeyIndex }) return appKeyIndex
+            }
             return null
         }
 

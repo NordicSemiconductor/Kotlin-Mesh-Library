@@ -75,7 +75,7 @@ private fun SettingsScreen(
             .verticalScroll(state = rememberScrollState())
     ) {
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(vertical = 8.dp),
             title = stringResource(R.string.label_configuration)
         )
         NetworkNameRow(name = settingsListData.name, onNameChanged = onNameChanged)
@@ -105,7 +105,7 @@ private fun SettingsScreen(
         )
         LastModifiedTimeRow(timestamp = settingsListData.timestamp)
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(vertical = 8.dp),
             title = stringResource(R.string.label_about)
         )
         VersionNameRow()

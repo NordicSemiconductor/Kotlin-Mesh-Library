@@ -22,7 +22,6 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
@@ -52,6 +51,7 @@ import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.common.unsubscribedGroups
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.models.R
@@ -93,35 +93,35 @@ internal fun Subscriptions(
         verticalAlignment = Alignment.CenterVertically
     ) {
         SectionTitle(
-            modifier = Modifier.weight(weight = 1f),
+            modifier = Modifier
+                .weight(weight = 1f)
+                .padding(horizontal = 16.dp),
             title = stringResource(R.string.label_subscriptions)
         )
-        IconButton(
+        MeshIconButton(
             onClick = {
                 when (model.modelId) {
                     is SigModelId -> send(ConfigSigModelSubscriptionGet(model = model))
                     is VendorModelId -> send(ConfigVendorModelSubscriptionGet(model = model))
                 }
             },
-            content = {
-                Icon(
-                    imageVector = Icons.Outlined.Refresh,
-                    contentDescription = null
-                )
-            }
+            buttonIcon = Icons.Outlined.Refresh,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    (messageState.message is ConfigSigModelSubscriptionGet ||
+                            messageState.message is ConfigVendorModelSubscriptionGet),
         )
-        IconButton(
+        MeshIconButton(
             onClick = { showDeleteAllDialog = true },
-            content = {
-                Icon(
-                    imageVector = Icons.Outlined.DeleteSweep,
-                    contentDescription = null
-                )
-            }
+            buttonIcon = Icons.Outlined.DeleteSweep,
+            enabled = !messageState.isInProgress(),
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigModelSubscriptionDeleteAll,
         )
-        IconButton(
+        MeshIconButton(
             onClick = { showBottomSheet = true },
-            content = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) }
+            buttonIcon = Icons.Outlined.Add,
+            enabled = !messageState.isInProgress(),
         )
     }
     if (model.subscribe.isNotEmpty()) {
@@ -173,7 +173,9 @@ internal fun Subscriptions(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     SectionTitle(
-                        modifier = Modifier.weight(weight = 1f),
+                        modifier = Modifier
+                            .weight(weight = 1f)
+                            .padding(horizontal = 16.dp),
                         title = stringResource(R.string.label_groups)
                     )
                     MeshOutlinedButton(

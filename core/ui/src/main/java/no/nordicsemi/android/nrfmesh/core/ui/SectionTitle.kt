@@ -15,7 +15,7 @@ fun SectionTitle(
     style: TextStyle = MaterialTheme.typography.labelLarge
 ) {
     Text(
-        modifier = modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+        modifier = modifier.padding(vertical = 8.dp),
         text = title,
         style = style
     )

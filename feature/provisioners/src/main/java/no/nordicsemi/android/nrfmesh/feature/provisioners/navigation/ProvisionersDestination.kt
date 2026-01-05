@@ -31,6 +31,7 @@ fun ProvisionersScreenRoute(
     val viewModel = hiltViewModel<ProvisionersViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ProvisionersRoute(
+        snackbarHostState = snackbarHostState,
         highlightSelectedItem = highlightSelectedItem,
         selectedProvisionerUuid = uiState.selectedProvisionerUuid,
         provisioners = uiState.provisioners,

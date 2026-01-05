@@ -60,7 +60,10 @@ internal fun NetworkKeyRoute(
             .verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SectionTitle(title = stringResource(id = R.string.label_network_key))
+        SectionTitle(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(id = R.string.label_network_key)
+        )
         Name(
             name = key.name,
             onNameChanged = {

@@ -65,7 +65,7 @@ internal fun GroupItems(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         SectionTitle(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp).padding(horizontal = 16.dp),
             title = stringResource(id = R.string.goup_controls)
         )
         FlowRow(

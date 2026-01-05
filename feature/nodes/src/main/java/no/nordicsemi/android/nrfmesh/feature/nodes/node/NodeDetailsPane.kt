@@ -3,6 +3,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun NodeDetailsPane(
+    snackbarHostState: SnackbarHostState,
     navigator: ThreePaneScaffoldNavigator<Any>,
     node: Node,
     availableNetworkKeys: List<NetworkKey>,
@@ -64,6 +66,7 @@ internal fun NodeDetailsPane(
         )
 
         is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
+            snackbarHostState = snackbarHostState,
             node = node,
             availableAppKeys = availableApplicationKeys,
             onAddAppKeyClicked = onAddAppKeyClicked,

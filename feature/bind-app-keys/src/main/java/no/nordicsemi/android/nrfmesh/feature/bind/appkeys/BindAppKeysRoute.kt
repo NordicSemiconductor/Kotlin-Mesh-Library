@@ -45,7 +45,9 @@ fun BindAppKeysRoute(
     ) {
         SectionTitle(
             title = stringResource(R.string.label_bound_app_keys),
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .padding(horizontal = 16.dp)
         )
         when (addedKeys.isNotEmpty()) {
             true -> LazyColumn(

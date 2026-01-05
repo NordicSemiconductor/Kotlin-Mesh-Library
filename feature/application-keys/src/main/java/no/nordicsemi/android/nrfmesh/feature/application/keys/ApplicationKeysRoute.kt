@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import android.content.Context
@@ -9,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,9 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -47,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -69,28 +65,8 @@ internal fun ApplicationKeysRoute(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                text = { Text(text = stringResource(R.string.label_add_key)) },
-                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    runCatching {
-                        onAddKeyClicked()
-                    }.onSuccess {
-                        navigateToKey(it.index)
-                    }
-                },
-                expanded = true
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             when (keys.isEmpty()) {
                 true -> MeshNoItemsAvailable(
                     modifier = Modifier.fillMaxSize(),
@@ -99,11 +75,11 @@ internal fun ApplicationKeysRoute(
                 )
 
                 false -> LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    // Removed in favor of padding in SwipeToDismissKey so that hiding an item will not leave any gaps
-                    //verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                    // Removed in favor of padding in SwipeToDismissKey so that hiding an item will
+                    // not leave any gaps
+                    // verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
                     item {
                         SectionTitle(
@@ -112,8 +88,7 @@ internal fun ApplicationKeysRoute(
                         )
                     }
                     items(items = keys, key = { it.id }) { key ->
-                        val isSelected =
-                            highlightSelectedItem && key.index == selectedKeyIndex
+                        val isSelected = highlightSelectedItem && key.index == selectedKeyIndex
                         var visibility by remember { mutableStateOf(true) }
                         AnimatedVisibility(visibility) {
                             SwipeToDismissKey(
@@ -138,6 +113,26 @@ internal fun ApplicationKeysRoute(
                 }
             }
         }
+        ExtendedFloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .defaultMinSize(minWidth = 150.dp),
+            text = { Text(text = stringResource(R.string.label_add_key)) },
+            icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+            onClick = {
+                runCatching {
+                    onAddKeyClicked()
+                }.onSuccess {
+                    navigateToKey(it.index)
+                }.onFailure {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = it.describe())
+                    }
+                }
+            },
+            expanded = true
+        )
     }
 }
 

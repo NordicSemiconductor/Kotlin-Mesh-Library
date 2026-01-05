@@ -53,6 +53,7 @@ internal fun SettingsExtraPane(
         )
 
         is ApplicationKeyContent -> ApplicationKeyScreenRoute(
+            snackbarHostState = snackbarHostState,
             key = network.applicationKey(index = content.keyIndex) ?: return,
             networkKeys = network.networkKeys,
             save = save

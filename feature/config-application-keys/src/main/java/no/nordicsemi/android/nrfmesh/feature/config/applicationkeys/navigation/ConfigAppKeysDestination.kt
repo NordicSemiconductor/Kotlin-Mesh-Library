@@ -1,6 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
@@ -14,6 +15,7 @@ data object ConfigAppKeysRoute : Parcelable
 
 @Composable
 fun ConfigAppKeysScreenRoute(
+    snackbarHostState: SnackbarHostState,
     node: Node,
     availableAppKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
@@ -24,6 +26,7 @@ fun ConfigAppKeysScreenRoute(
     resetMessageState: () -> Unit,
 ) {
     ConfigAppKeysScreen(
+        snackbarHostState = snackbarHostState,
         node = node,
         availableApplicationKeys = availableAppKeys,
         onAddAppKeyClicked = onAddAppKeyClicked,

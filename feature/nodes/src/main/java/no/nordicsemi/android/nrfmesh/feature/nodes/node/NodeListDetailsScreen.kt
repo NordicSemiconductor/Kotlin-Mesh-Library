@@ -104,6 +104,7 @@ internal fun NodeListDetailsScreen(
             detailPane = {
                 AnimatedPane {
                     NodeDetailsPane(
+                        snackbarHostState = appState.snackbarHostState,
                         navigator = navigator,
                         node = uiState.nodeState.node,
                         availableNetworkKeys = uiState.availableNetworkKeys,

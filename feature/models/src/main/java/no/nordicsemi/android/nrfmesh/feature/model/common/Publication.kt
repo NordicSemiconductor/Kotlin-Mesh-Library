@@ -115,7 +115,9 @@ internal fun Publication(
         verticalAlignment = Alignment.CenterVertically
     ) {
         SectionTitle(
-            modifier = Modifier.weight(weight = 1f),
+            modifier = Modifier
+                .weight(weight = 1f)
+                .padding(horizontal = 16.dp),
             title = stringResource(R.string.label_publication)
         )
         MeshIconButton(
