@@ -157,8 +157,10 @@ data class MeshNetwork internal constructor(
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
             if (_networkKeys.isEmpty()) return 0u
-            val nextKeyIndex = (_networkKeys.last().index + 1u).toUShort()
-            if (nextKeyIndex.isValidKeyIndex()) return nextKeyIndex
+            for(index in 0..4095) {
+                val keyIndex = index.toUShort()
+                if (!_networkKeys.any { it.index == keyIndex }) return keyIndex
+            }
             return null
         }
 
