@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,9 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -67,28 +64,8 @@ internal fun NetworkKeysRoute(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                text = { Text(text = stringResource(R.string.label_add_key)) },
-                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    runCatching {
-                        onAddKeyClicked()
-                    }.onSuccess {
-                        navigateToKey(it.index)
-                    }
-                },
-                expanded = true
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(paddingValues = paddingValues)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             when (keys.isEmpty()) {
                 true -> MeshNoItemsAvailable(
                     modifier = Modifier.fillMaxSize(),
@@ -111,8 +88,7 @@ internal fun NetworkKeysRoute(
                             )
                         }
                         items(items = keys, key = { it.id }) { key ->
-                            val isSelected =
-                                highlightSelectedItem && key.index == selectedKeyIndex
+                            val isSelected = highlightSelectedItem && key.index == selectedKeyIndex
                             var visibility by remember { mutableStateOf(true) }
                             AnimatedVisibility(visibility) {
                                 SwipeToDismissKey(
@@ -137,6 +113,22 @@ internal fun NetworkKeysRoute(
                     }
             }
         }
+        ExtendedFloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .defaultMinSize(minWidth = 150.dp),
+            text = { Text(text = stringResource(R.string.label_add_key)) },
+            icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+            onClick = {
+                runCatching {
+                    onAddKeyClicked()
+                }.onSuccess {
+                    navigateToKey(it.index)
+                }
+            },
+            expanded = true
+        )
     }
 }
 
@@ -164,7 +156,7 @@ private fun SwipeToDismissKey(
                     SwipeToDismissBoxValue.Settled,
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
-                        -> if (key.isInUse) Color.Gray else Color.Red
+                    -> if (key.isInUse) Color.Gray else Color.Red
                 }
             )
             Box(
@@ -233,27 +225,4 @@ private fun SwipeToDismissKey(
             )
         }
     )
-}
-
-private fun handleValueChange(
-    scope: CoroutineScope,
-    context: Context,
-    snackbarHostState: SnackbarHostState,
-    key: NetworkKeyData,
-) = when {
-    key.isPrimary -> {
-        scope.launch {
-            snackbarHostState.showSnackbar(message = context.getString(R.string.error_cannot_delete_primary_network_key))
-        }
-        false
-    }
-
-    key.isInUse -> {
-        scope.launch {
-            snackbarHostState.showSnackbar(message = context.getString(R.string.error_cannot_delete_key_in_use))
-        }
-        false
-    }
-
-    else -> true
 }
