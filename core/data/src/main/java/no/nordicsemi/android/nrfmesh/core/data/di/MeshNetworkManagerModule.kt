@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshNetworkStorage
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
@@ -20,10 +20,10 @@ object MeshNetworkManagerModule {
     fun provideMeshManager(
         meshNetworkStorage: MeshNetworkStorage,
         meshNetworkPropertiesStorage: MeshSecurePropertiesStorage,
-        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
     ) = MeshNetworkManager(
         storage = meshNetworkStorage,
         secureProperties = meshNetworkPropertiesStorage,
-        dispatcher = defaultDispatcher
+        ioDispatcher = ioDispatcher
     )
 }

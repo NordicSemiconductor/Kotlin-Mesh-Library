@@ -21,7 +21,7 @@ object CentralManagerModule {
     @Singleton
     fun provideCentralManager(
         @ApplicationContext context: Context,
-        @DefaultDispatcher ioDispatcher: CoroutineDispatcher,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
     ) = CentralManager.native(
         context = context,
         scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)

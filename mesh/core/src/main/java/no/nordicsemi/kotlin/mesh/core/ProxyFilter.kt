@@ -215,10 +215,13 @@ internal sealed interface ProxyFilterEventHandler {
  * @property mutex Mutex for internal synchronization
  * @property manager Mesh network manager
  */
-class ProxyFilter internal constructor(val scope: CoroutineScope, val manager: MeshNetworkManager) :
-    ProxyFilterEventHandler {
+class ProxyFilter internal constructor(
+    val scope: CoroutineScope,
+    val manager: MeshNetworkManager,
+) : ProxyFilterEventHandler {
 
-    private val _proxyFilterStateFlow = MutableStateFlow<ProxyFilterState>(value = ProxyFilterState.Unknown)
+    private val _proxyFilterStateFlow =
+        MutableStateFlow<ProxyFilterState>(value = ProxyFilterState.Unknown)
     val proxyFilterStateFlow = _proxyFilterStateFlow.asStateFlow()
 
     // A mutex for internal synchronization.

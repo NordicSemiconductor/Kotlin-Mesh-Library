@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
-import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
 import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidGattBearer
@@ -74,7 +74,6 @@ class CoreDataRepository @Inject constructor(
     private val preferences: DataStore<Preferences>,
     private val meshNetworkManager: MeshNetworkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
     private val storage: SceneStatesDataStoreStorage,
     private val centralManager: CentralManager,
 ) : Logger {
@@ -137,7 +136,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Loads an existing mesh network or creates a new one.
      */
-    suspend fun load() = withContext(ioDispatcher) {
+    suspend fun load() = withContext(context = ioDispatcher) {
         val meshNetwork = if (!meshNetworkManager.load()) {
             createNewMeshNetwork()
         } else {
@@ -286,7 +285,7 @@ class CoreDataRepository @Inject constructor(
      * @return [ProvisioningBearer] instance
      */
     suspend fun connectOverPbGattBearer(device: Peripheral) =
-        withContext(defaultDispatcher) {
+        withContext(context = ioDispatcher) {
             if (bearer is AndroidGattBearer) bearer?.close()
             AndroidPbGattBearer(
                 centralManager = centralManager,
@@ -305,14 +304,15 @@ class CoreDataRepository @Inject constructor(
      * @return [ProvisioningBearer]  instance
      */
     suspend fun connectOverGattBearer(peripheral: Peripheral) =
-        withContext(defaultDispatcher) {
+        withContext(context = ioDispatcher) {
             if (bearer is AndroidPbGattBearer) bearer?.close()
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
             )
             AndroidGattBearer(
                 centralManager = centralManager,
-                peripheral = peripheral
+                peripheral = peripheral,
+                ioDispatcher = ioDispatcher
             ).also { it ->
                 it.logger = this@CoreDataRepository
                 meshNetworkManager.meshBearer = it
@@ -329,6 +329,7 @@ class CoreDataRepository @Inject constructor(
                 ioScope.launch {
                     it.state.first { it is BearerEvent.Closed }
                     meshNetworkManager.proxyFilter.proxyDidDisconnect()
+                    delay(3000)
                     connectToProxy(meshNetwork)
                 }
             }
@@ -337,7 +338,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Disconnects from the proxy node.
      */
-    suspend fun disconnect() = withContext(defaultDispatcher) {
+    suspend fun disconnect() = withContext(context = ioDispatcher) {
         bearer?.let { bearer ->
             if (bearer.isOpen) {
                 bearer.close()
@@ -459,11 +460,13 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match a proxy node.
      * @param enabled     True to enable, false to disable.
      */
-    suspend fun enableAutoConnectProxy(meshNetwork: MeshNetwork?, enabled: Boolean) {
-        _proxyConnectionStateFlow.value =
-            _proxyConnectionStateFlow.value.copy(autoConnect = enabled)
-        preferences.edit { preferences ->
-            preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
+    fun enableAutoConnectProxy(meshNetwork: MeshNetwork?, enabled: Boolean) {
+        ioScope.launch {
+            _proxyConnectionStateFlow.value =
+                _proxyConnectionStateFlow.value.copy(autoConnect = enabled)
+            preferences.edit { preferences ->
+                preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
+            }
         }
         if (enabled) startAutomaticConnectivity(meshNetwork)
     }
@@ -473,7 +476,7 @@ class CoreDataRepository @Inject constructor(
      *
      * @param message Proxy configuration message to be sent.
      */
-    suspend fun send(message: ProxyConfigurationMessage) = withContext(defaultDispatcher) {
+    suspend fun send(message: ProxyConfigurationMessage) = withContext(context = ioDispatcher) {
         meshNetworkManager.send(message)
     }
 
@@ -484,7 +487,7 @@ class CoreDataRepository @Inject constructor(
      * @param message Message to be sent.
      */
     suspend fun send(node: Node, message: AcknowledgedConfigMessage) =
-        withContext(context = defaultDispatcher) {
+        withContext(context = ioDispatcher) {
             if (node.primaryUnicastAddress == meshNetwork.localProvisioner?.node?.primaryUnicastAddress)
                 meshNetworkManager.sendToLocalNode(message = message)
             else
@@ -498,7 +501,7 @@ class CoreDataRepository @Inject constructor(
      * @param unackedMessage Unacknowledged mesh message to be sent.
      */
     suspend fun send(model: Model, unackedMessage: UnacknowledgedMeshMessage) = withContext(
-        context = defaultDispatcher
+        context = ioDispatcher
     ) {
         meshNetworkManager.send(
             model = model,
@@ -519,7 +522,7 @@ class CoreDataRepository @Inject constructor(
      * @param key            Application key to be used for sending the message.
      */
     suspend fun send(group: Group, unackedMessage: UnacknowledgedMeshMessage, key: ApplicationKey) =
-        withContext(context = defaultDispatcher) {
+        withContext(context = ioDispatcher) {
             meshNetworkManager.send(group = group, message = unackedMessage, key = key)
         }
 
@@ -530,7 +533,7 @@ class CoreDataRepository @Inject constructor(
      * @param ackedMessage Unacknowledged mesh message to be sent.
      */
     suspend fun send(model: Model, ackedMessage: AcknowledgedMeshMessage) = withContext(
-        context = defaultDispatcher
+        context = ioDispatcher
     ) {
         meshNetworkManager.send(
             model = model,

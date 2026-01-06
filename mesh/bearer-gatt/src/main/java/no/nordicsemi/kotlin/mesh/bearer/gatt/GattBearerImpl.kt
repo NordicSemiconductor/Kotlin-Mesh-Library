@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
+import kotlinx.coroutines.CoroutineDispatcher
 import no.nordicsemi.kotlin.ble.client.CentralManager
 import no.nordicsemi.kotlin.ble.client.Peripheral
 import no.nordicsemi.kotlin.ble.client.ScanResult
@@ -24,12 +25,14 @@ open class GattBearerImpl<
         EX : Peripheral.Executor<ID>,
         F : CentralManager.ScanFilterScope,
         SR : ScanResult<*, *>,
->(
+        >(
     peripheral: P,
     centralManager: C,
+    ioDispatcher: CoroutineDispatcher,
 ) : BaseGattBearer<ID, C, P, EX, F, SR>(
     centralManager = centralManager,
-    peripheral = peripheral
+    peripheral = peripheral,
+    ioDispatcher = ioDispatcher
 ), MeshBearer {
     override val supportedTypes: Array<PduTypes> =
         arrayOf(PduTypes.NetworkPdu, PduTypes.MeshBeacon, PduTypes.ProxyConfiguration)

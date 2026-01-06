@@ -30,6 +30,6 @@ object MeshSceneStatesDataStoreModule {
         serializer = ProtoSceneStatesDataStoreSerializer,
         produceFile = { context.dataStoreFile(DATA_STORE_FILE_NAME) },
         corruptionHandler = null,
-        scope = CoroutineScope(ioDispatcher + SupervisorJob())
+        scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     )
 }
