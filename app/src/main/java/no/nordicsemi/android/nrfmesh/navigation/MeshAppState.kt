@@ -50,14 +50,12 @@ import kotlin.uuid.Uuid
 fun rememberMeshAppState(
     scope: CoroutineScope = rememberCoroutineScope(),
     navController: NavHostController = rememberNavController(),
-    snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass
+    snackbarHostState: SnackbarHostState
 ): MeshAppState = remember(navController) {
     MeshAppState(
         scope = scope,
         navController = navController,
-        snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -66,12 +64,10 @@ fun rememberMeshAppState(
 class MeshAppState(
     val scope: CoroutineScope,
     navController: NavHostController,
-    snackbarHostState: SnackbarHostState,
-    windowSizeClass: WindowSizeClass
+    snackbarHostState: SnackbarHostState
 ) : AppState(
     navController = navController,
-    snackbarHostState = snackbarHostState,
-    windowSizeClass = windowSizeClass
+    snackbarHostState = snackbarHostState
 ) {
     val meshTopLevelDestinations: List<MeshTopLevelDestination> = MeshTopLevelDestination.entries
 
