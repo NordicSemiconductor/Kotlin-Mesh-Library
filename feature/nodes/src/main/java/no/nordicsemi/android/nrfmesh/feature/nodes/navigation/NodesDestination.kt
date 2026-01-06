@@ -13,6 +13,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.navigateToNode
+import kotlin.uuid.ExperimentalUuidApi
 
 @Serializable
 data object NodesBaseRoute
@@ -25,6 +26,7 @@ fun NavController.navigateToNodes(navOptions: NavOptions? = null) = navigate(
     navOptions = navOptions
 )
 
+@OptIn(ExperimentalUuidApi::class)
 fun NavGraphBuilder.nodesGraph(
     appState: AppState,
     nodeGraph: NavGraphBuilder.() -> Unit,
@@ -37,7 +39,7 @@ fun NavGraphBuilder.nodesGraph(
             NodesRoute(
                 appState = appState,
                 uiState = uiState,
-                navigateToNode = { appState.navController.navigateToNode(node = it) },
+                navigateToNode = { appState.navController.navigateToNode(uuid = it) },
                 onSwiped = { },
                 onUndoClicked = { },
                 remove = { }

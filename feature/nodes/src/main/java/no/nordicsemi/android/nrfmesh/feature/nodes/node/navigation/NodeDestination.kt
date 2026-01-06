@@ -11,17 +11,11 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListDetailsScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
-import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Serializable
 data class NodeRoute(val uuid: String)
-
-@OptIn(ExperimentalUuidApi::class)
-fun NavController.navigateToNode(node: Node, navOptions: NavOptions? = null) = navigateToNode(
-    uuid = node.uuid, navOptions = navOptions
-)
 
 @OptIn(ExperimentalUuidApi::class)
 fun NavController.navigateToNode(uuid: Uuid, navOptions: NavOptions? = null) = navigate(
