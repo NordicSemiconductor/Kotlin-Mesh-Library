@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -95,7 +96,8 @@ class CoreDataRepository @Inject constructor(
     val ivUpdateTestMode: Boolean
         get() = meshNetworkManager.networkParameters.ivUpdateTestMode
 
-    private val scope = CoroutineScope(context = defaultDispatcher)
+    private val ioScope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
+
 
     init {
         // Initialize the mesh network manager logger
@@ -104,14 +106,16 @@ class CoreDataRepository @Inject constructor(
         observeNetworkChanges()
         // Observe proxy connection state changes
         observerAutomaticProxyConnectionState()
+
+        initNetwork()
     }
 
     private fun observeNetworkChanges() {
         network.onEach {
             meshNetwork = it
             // Start automatic connectivity
-            startAutomaticConnectivity(meshNetwork = it)
-        }.launchIn(scope = scope)
+            // startAutomaticConnectivity(meshNetwork = it)
+        }.launchIn(scope = ioScope)
 
     }
 
@@ -120,7 +124,14 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
-        }.launchIn(scope = scope)
+        }.launchIn(scope = ioScope)
+    }
+
+    private fun initNetwork() {
+        ioScope.launch {
+            val network = load()
+            startAutomaticConnectivity(meshNetwork = network)
+        }
     }
 
     /**
@@ -158,7 +169,7 @@ class CoreDataRepository @Inject constructor(
                 Model(
                     modelId = SigModelId(modelIdentifier = Model.GENERIC_ON_OFF_SERVER_MODEL_ID),
                     handler = GenericOnOffServer(
-                        dispatcher = defaultDispatcher,
+                        ioDispatcher = ioDispatcher,
                         storage = storage,
                         defaultTransitionTimeServer = defaultTransitionTimeServer
                     )
@@ -242,8 +253,7 @@ class CoreDataRepository @Inject constructor(
      * Saves the mesh network.
      */
     fun save() {
-        CoroutineScope(context = ioDispatcher)
-            .launch { meshNetworkManager.save() }
+        ioScope.launch { meshNetworkManager.save() }
     }
 
     /**
@@ -282,9 +292,9 @@ class CoreDataRepository @Inject constructor(
                 centralManager = centralManager,
                 peripheral = device
             ).also {
+                it.logger = this@CoreDataRepository
                 it.open()
                 bearer = it
-                it.logger = this@CoreDataRepository
             }
         }
 
@@ -308,17 +318,18 @@ class CoreDataRepository @Inject constructor(
                 meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()
-                if (it.isOpen) {
-                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
-                        .value.copy(
-                            connectionState = NetworkConnectionState.Connected(
-                                peripheral = peripheral
-                            )
+                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
+                    .value.copy(
+                        connectionState = NetworkConnectionState.Connected(
+                            peripheral = peripheral
                         )
+                    )
 
-                    // Wait for the bearer to disconnect
+                // Wait for the bearer to disconnect
+                ioScope.launch {
                     it.state.first { it is BearerEvent.Closed }
                     meshNetworkManager.proxyFilter.proxyDidDisconnect()
+                    connectToProxy(meshNetwork)
                 }
             }
         }
@@ -343,8 +354,10 @@ class CoreDataRepository @Inject constructor(
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
-    suspend fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
-        connectToProxy(meshNetwork)
+    fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
+        ioScope.launch {
+            connectToProxy(meshNetwork)
+        }
     }
 
     /**
@@ -409,19 +422,27 @@ class CoreDataRepository @Inject constructor(
             .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
             .first {
                 val serviceData = it.advertisingData.serviceData[MeshProxyService.uuid]
-                serviceData?.takeIf {
-                    serviceData.isNotEmpty()
-                }?.let { data ->
-                    meshNetwork?.let { network ->
-                        data.run {
-                            when {
-                                nodeIdentity() != null -> network.matches(nodeIdentity()!!)
-                                networkIdentity() != null -> network.matches(networkIdentity()!!)
-                                else -> false
-                            }
-                        }
+                serviceData
+                    ?.takeIf { serviceData.isNotEmpty() }
+                    ?.let { data ->
+                        meshNetwork
+                            ?.let { network ->
+                                data
+                                    .run {
+                                        when {
+                                            nodeIdentity() != null -> network.matches(
+                                                nodeIdentity = nodeIdentity()!!
+                                            )
+
+                                            networkIdentity() != null -> network.matches(
+                                                networkId = networkIdentity()!!
+                                            )
+
+                                            else -> false
+                                        }
+                                    }
+                            } == false
                     } == false
-                } == false
             }.peripheral
     } catch (e: Exception) {
         log(
