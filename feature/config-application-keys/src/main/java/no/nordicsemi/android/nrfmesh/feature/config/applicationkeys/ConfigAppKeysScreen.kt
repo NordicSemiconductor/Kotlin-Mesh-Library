@@ -126,7 +126,7 @@ internal fun ConfigAppKeysScreen(
                                         snackbarHostState.currentSnackbarData?.dismiss()
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                message = context.getString(R.string.label_application_key_deleted),
+                                                message = context.getString(R.string.label_application_key_deleting),
                                                 duration = SnackbarDuration.Short,
                                             )
                                         }
