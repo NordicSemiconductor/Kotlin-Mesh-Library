@@ -19,6 +19,7 @@
     <string name="label_cancel">Cancel</string>
     <string name="label_application_keys">Application Keys</string>
     <string name="label_added_application_keys">Added Application Keys</string>
+    <string name="label_application_key_deleting">Deleting application key...</string>
     <string name="label_application_key_deleted">Application key deleted.</string>
     <string name="label_undo">Undo</string>
     <string name="label_settings">Settings</string>
@@ -26,4 +27,6 @@
     <string name="label_no_app_keys_added_rationale">Add an Application Key to a node and bind to a model to send application messages.</string>
     <string name="label_generate">Generate</string>
     <string name="label_application_key_added">Application Key added</string>
+    <string name="label_remove_key">Remove Key</string>
+    <string name="label_remove_key_confirmation">The selected key is bound to one or more models in the Node. When removed, it will be unbound automatically, and the models may stop working. \n\nDo you wish to continue?</string>
 </resources>

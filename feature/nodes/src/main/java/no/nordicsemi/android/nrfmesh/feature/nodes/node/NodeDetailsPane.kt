@@ -56,7 +56,8 @@ internal fun NodeDetailsPane(
         )
 
         is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysRoute(
-            addedNetworkKeys = node.networkKeys,
+            snackbarHostState = snackbarHostState,
+            node = node,
             availableNetworkKeys = availableNetworkKeys,
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
