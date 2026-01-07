@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -88,79 +86,79 @@ internal fun ConfigNetKeysScreen(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     var keyToDelete by remember { mutableStateOf<NetworkKey?>(null) }
-    Scaffold(
-        floatingActionButton = {
-            AnimatedVisibility(visible = !showBottomSheet) {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    text = { Text(text = stringResource(R.string.label_add_key)) },
-                    icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
-                    onClick = { showBottomSheet = true },
-                    expanded = true
-                )
-            }
-        },
-        content = { paddingValues ->
-            PullToRefreshBox(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .consumeWindowInsets(paddingValues = paddingValues),
-                onRefresh = { send(ConfigNetKeyGet()) },
-                isRefreshing = isRefreshing
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    when (node.networkKeys.isNotEmpty()) {
-                        true -> LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                        ) {
-                            item {
-                                SectionTitle(
-                                    modifier = Modifier
-                                        .padding(top = 8.dp)
-                                        .padding(horizontal = 16.dp),
-                                    title = stringResource(R.string.label_added_network_keys)
-                                )
-                            }
-                            items(items = node.networkKeys, key = { it.index.toInt() + 1 }) { key ->
-                                // Hold the current state from the Swipe to Dismiss composable
-                                val dismissState = rememberSwipeToDismissBoxState()
-                                SwipeToDismissKey(
-                                    dismissState = dismissState,
-                                    key = key,
-                                    onSwiped = {
-                                        if (node.knows(key = key)) {
-                                            keyToDelete = key
-                                            showDeleteConfirmationDialog = true
-                                            scope.launch { dismissState.reset() }
-                                        } else {
-                                            if (!messageState.isInProgress()) {
-                                                send(ConfigNetKeyDelete(key = key))
-                                                snackbarHostState.currentSnackbarData?.dismiss()
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        message = context.getString(R.string.label_network_key_deleting),
-                                                        duration = SnackbarDuration.Short,
-                                                    )
-                                                }
 
+    Box(modifier = Modifier.fillMaxSize()){
+        PullToRefreshBox(
+            modifier = Modifier.fillMaxSize(),
+            onRefresh = { send(ConfigNetKeyGet()) },
+            isRefreshing = isRefreshing
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                when (node.networkKeys.isNotEmpty()) {
+                    true -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    ) {
+                        item {
+                            SectionTitle(
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .padding(horizontal = 16.dp),
+                                title = stringResource(R.string.label_added_network_keys)
+                            )
+                        }
+                        items(items = node.networkKeys, key = { it.index.toInt() + 1 }) { key ->
+                            // Hold the current state from the Swipe to Dismiss composable
+                            val dismissState = rememberSwipeToDismissBoxState()
+                            SwipeToDismissKey(
+                                dismissState = dismissState,
+                                key = key,
+                                onSwiped = {
+                                    if (node.knows(key = key)) {
+                                        keyToDelete = key
+                                        showDeleteConfirmationDialog = true
+                                        scope.launch { dismissState.reset() }
+                                    } else {
+                                        if (!messageState.isInProgress()) {
+                                            send(ConfigNetKeyDelete(key = key))
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = context.getString(R.string.label_network_key_deleting),
+                                                    duration = SnackbarDuration.Short,
+                                                )
                                             }
+
                                         }
                                     }
-                                )
-                            }
-                            item { Spacer(modifier = Modifier.size(size = 16.dp)) }
+                                }
+                            )
                         }
-
-                        false -> MeshNoItemsAvailable(
-                            imageVector = Icons.Outlined.VpnKey,
-                            title = context.getString(R.string.label_no_keys_added)
-                        )
+                        item { Spacer(modifier = Modifier.size(size = 16.dp)) }
                     }
+
+                    false -> MeshNoItemsAvailable(
+                        imageVector = Icons.Outlined.VpnKey,
+                        title = context.getString(R.string.label_no_keys_added)
+                    )
                 }
             }
         }
-    )
+        AnimatedVisibility(
+            visible = !showBottomSheet,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            ExtendedFloatingActionButton(
+                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                text = { Text(text = stringResource(R.string.label_add_key)) },
+                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+                onClick = { showBottomSheet = true },
+                expanded = true
+            )
+        }
+    }
 
     if (showBottomSheet) {
         BottomSheetNetworkKeys(
