@@ -329,7 +329,10 @@ class CoreDataRepository @Inject constructor(
                 ioScope.launch {
                     it.state.first { it is BearerEvent.Closed }
                     meshNetworkManager.proxyFilter.proxyDidDisconnect()
-                    delay(3000)
+                    // We add a slight delay here before connecting again if the connection drops
+                    // Note: connection will only be established if automatic connectivity is
+                    // enabled as per the implementation.
+                    delay(timeMillis = 1500)
                     connectToProxy(meshNetwork)
                 }
             }
@@ -366,7 +369,7 @@ class CoreDataRepository @Inject constructor(
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
-    private tailrec suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
+    private suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
         val autoConnectProxy = _proxyConnectionStateFlow.value.autoConnect
         if (!autoConnectProxy) return
         if (connectionRequested) return
@@ -400,12 +403,12 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 connectionState = NetworkConnectionState.Disconnected
             )
+        } finally {
             connectionRequested = false
-            return
         }
-        connectionRequested = false
-        // Retry connecting
-        connectToProxy(meshNetwork)
+        // Let's observe the connectivity in the connectOverGattBearer to restart connecting
+        // // Retry connecting
+        // connectToProxy(meshNetwork)
     }
 
     /**
