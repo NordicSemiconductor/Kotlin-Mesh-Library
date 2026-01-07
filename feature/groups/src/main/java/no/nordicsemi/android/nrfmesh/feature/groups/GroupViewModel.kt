@@ -6,8 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -29,7 +30,12 @@ internal class GroupViewModel @Inject internal constructor(
     private val groupAddress = savedStateHandle.toRoute<GroupRoute>().address.toUShort(radix = 16)
     private var group: Group? = null
     private val _uiState = MutableStateFlow(GroupScreenUiState())
-    val uiState: StateFlow<GroupScreenUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<GroupScreenUiState> = _uiState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = GroupScreenUiState()
+        )
 
     private lateinit var network: MeshNetwork
 

@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -22,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NetKeySelectorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: CoreDataRepository
+    private val repository: CoreDataRepository,
 ) : ViewModel(), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
@@ -33,7 +35,12 @@ class NetKeySelectorViewModel @Inject constructor(
             ?: 0u
 
     private var _uiState = MutableStateFlow(NetworkKeySelectionScreenUiState())
-    internal val uiState = _uiState.asStateFlow()
+    internal val uiState = _uiState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = NetworkKeySelectionScreenUiState()
+        )
 
     init {
         viewModelScope.launch {

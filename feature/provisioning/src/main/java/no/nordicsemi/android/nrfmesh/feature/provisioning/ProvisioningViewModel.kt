@@ -7,11 +7,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
@@ -58,7 +59,12 @@ class ProvisioningViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         ProvisioningScreenUiState(provisionerState = Scanning)
     )
-    internal val uiState = _uiState.asStateFlow()
+    internal val uiState = _uiState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ProvisioningScreenUiState(provisionerState = Scanning)
+        )
 
     init {
         observeNetwork()
