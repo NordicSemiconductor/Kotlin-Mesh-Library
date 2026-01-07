@@ -63,7 +63,7 @@ class GenericOnOffServer(
 
             state.transition?.takeIf { it.remainingTime > 0.milliseconds }?.let { transition ->
                 scope.launch {
-                    delay(transition.remainingTime)
+                    delay(duration = transition.remainingTime)
                     // If state hasn't changed since
                     if (state.transition?.start == transition.start) {
                         state = GenericState(state.transition?.targetValue ?: state.value)

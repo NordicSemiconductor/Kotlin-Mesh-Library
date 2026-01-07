@@ -830,7 +830,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                     type = PduType.NETWORK_PDU,
                     ttl = ttl
                 )
-                delay(segmentTransmissionInterval)
+                delay(duration = segmentTransmissionInterval)
             } catch (e: Exception) {
                 logger?.w(LogCategory.LOWER_TRANSPORT) { "$e" }
                 break
