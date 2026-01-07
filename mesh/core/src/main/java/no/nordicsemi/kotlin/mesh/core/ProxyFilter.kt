@@ -392,20 +392,17 @@ class ProxyFilter internal constructor(
     }
 
     override suspend fun onNewProxyConnected() {
-        scope.launch {
-            onNewNetworkCreated()
-            logger?.i(LogCategory.PROXY) { "New Proxy connected." }
-            manager.network?.localProvisioner?.let { provisioner ->
-                when (initializeState) {
-                    ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
-                    ProxyFilterSetup.EXCLUSION_LIST -> {
-                        setType(type = ProxyFilterType.REJECT_LIST)
-                        add(addresses = addresses)
-                    }
-
-                    ProxyFilterSetup.INCLUSION_LIST -> add(addresses = addresses)
+        onNewNetworkCreated()
+        logger?.i(LogCategory.PROXY) { "New Proxy connected." }
+        manager.network?.localProvisioner?.let { provisioner ->
+            setType(type = ProxyFilterType.REJECT_LIST)
+            when (initializeState) {
+                ProxyFilterSetup.INCLUSION_LIST -> add(addresses = addresses)
+                ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
+                ProxyFilterSetup.EXCLUSION_LIST -> {
                 }
             }
+            add(addresses = addresses)
         }
     }
 
