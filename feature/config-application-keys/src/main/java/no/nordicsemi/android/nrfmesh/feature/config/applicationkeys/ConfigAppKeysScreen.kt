@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +28,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -36,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -51,6 +54,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
@@ -83,6 +87,8 @@ internal fun ConfigAppKeysScreen(
     }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
+    var keyToDelete by remember { mutableStateOf<ApplicationKey?>(null) }
     Scaffold(
         // snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -121,14 +127,28 @@ internal fun ConfigAppKeysScreen(
                             items = node.applicationKeys,
                             key = { it.index.toInt() + 1 }
                         ) { key ->
+                            // Hold the current state from the Swipe to Dismiss composable
+                            val dismissState = rememberSwipeToDismissBoxState()
                             SwipeToDismissKey(
+                                dismissState = dismissState,
                                 key = key,
-                                context = context,
-                                scope = scope,
-                                snackbarHostState = snackbarHostState,
                                 onSwiped = {
-                                    if (!messageState.isInProgress())
-                                        send(ConfigAppKeyDelete(key = key))
+                                    if (node.knows(it)) {
+                                        keyToDelete = it
+                                        showDeleteConfirmationDialog = true
+                                        scope.launch { dismissState.reset() }
+                                    } else {
+                                        if (!messageState.isInProgress()) {
+                                            send(ConfigAppKeyDelete(key = key))
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = context.getString(R.string.label_application_key_deleted),
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -189,6 +209,30 @@ internal fun ConfigAppKeysScreen(
             }
         )
     }
+
+    if (showDeleteConfirmationDialog) {
+        MeshAlertDialog(
+            onDismissRequest = {
+                keyToDelete = null
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
+            },
+            icon = Icons.Outlined.DeleteForever,
+            iconColor = Color.Red,
+            title = stringResource(R.string.label_remove_key),
+            text = stringResource(id = R.string.label_remove_key_confirmation),
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismissClick = {
+                keyToDelete = null
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
+            },
+            confirmButtonText = stringResource(R.string.label_ok),
+            onConfirmClick = {
+                keyToDelete?.let { send(ConfigAppKeyDelete(key = it)) }
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
+            }
+        )
+    }
+
     when (messageState) {
         is Failed -> MeshMessageStatusDialog(
             text = messageState.error.describe(),
@@ -241,15 +285,10 @@ internal fun ConfigAppKeysScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
+    dismissState: SwipeToDismissBoxState,
     key: ApplicationKey,
-    context: Context,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
     onSwiped: (ApplicationKey) -> Unit,
 ) {
-    // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberSwipeToDismissBoxState()
-
     SwipeToDismissBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
@@ -274,32 +313,7 @@ private fun SwipeToDismissKey(
                 Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
             }
         },
-        onDismiss = {
-            if (key.isInUse) {
-                scope.launch {
-                    dismissState.reset()
-                }
-                snackbarHostState.currentSnackbarData?.dismiss()
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = context.getString(
-                            R.string.label_app_key_in_use,
-                            key.name
-                        ),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-            } else {
-                onSwiped(key)
-                snackbarHostState.currentSnackbarData?.dismiss()
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.label_application_key_deleted),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-            }
-        },
+        onDismiss = { onSwiped(key) },
         content = { key.Row() }
     )
 }
