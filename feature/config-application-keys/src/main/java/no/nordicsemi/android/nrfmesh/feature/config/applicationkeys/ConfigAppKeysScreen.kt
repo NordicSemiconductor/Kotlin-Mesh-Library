@@ -184,9 +184,7 @@ internal fun ConfigAppKeysScreen(
                 }.onFailure {
                     scope.launch {
                         bottomSheetState.hide()
-                        snackbarHostState.showSnackbar(
-                            message = it.describe()
-                        )
+                        snackbarHostState.showSnackbar(message = it.describe())
                     }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) {
                             showBottomSheet = false
@@ -198,9 +196,9 @@ internal fun ConfigAppKeysScreen(
                 scope.launch {
                     bottomSheetState.hide()
                 }.invokeOnCompletion {
+                    navigateToApplicationKeys()
                     if (!bottomSheetState.isVisible) {
                         showBottomSheet = false
-                        navigateToApplicationKeys()
                     }
                 }
             },
