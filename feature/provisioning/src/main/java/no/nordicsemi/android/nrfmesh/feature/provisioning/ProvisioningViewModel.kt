@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
@@ -45,6 +47,7 @@ import javax.inject.Inject
 class ProvisioningViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel(), Logger {
 
     private lateinit var meshNetwork: MeshNetwork
@@ -116,7 +119,8 @@ class ProvisioningViewModel @Inject constructor(
         provisioningManager = ProvisioningManager(
             unprovisionedDevice = unprovisionedDevice,
             meshNetwork = meshNetwork,
-            bearer = bearer
+            bearer = bearer,
+            ioDispatcher = dispatcher
         ).apply { logger = this@ProvisioningViewModel }
 
         provisioningManager.provision(attentionTimer = 10u)

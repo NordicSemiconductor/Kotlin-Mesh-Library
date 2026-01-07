@@ -26,7 +26,7 @@ class SceneStatesDataStoreStorage @Inject constructor(
     private val store: DataStore<ProtoSceneStatesDataStore>,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : GenericOnOffStateStorage, GenericLevelStateStorage {
-    private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
+     private val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
 
     @OptIn(ExperimentalUuidApi::class)
     private suspend fun sceneStates(uuid: Uuid, sceneNumber: SceneNumber) = store.data

@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -78,9 +79,9 @@ import kotlin.uuid.ExperimentalUuidApi
 class MeshNetworkManager(
     private val storage: Storage,
     internal val secureProperties: SecurePropertiesStorage,
-    internal val dispatcher: CoroutineDispatcher,
+    internal val ioDispatcher: CoroutineDispatcher,
 ) : Publisher {
-    internal val scope = CoroutineScope(dispatcher)
+    internal val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     private val mutex by lazy { Mutex() }
     private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
     val meshNetwork = _meshNetwork.asSharedFlow()

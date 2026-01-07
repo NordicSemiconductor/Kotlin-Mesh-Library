@@ -31,9 +31,6 @@ class NetworkViewModel @Inject constructor(
     internal val uiState: StateFlow<NetworkScreenUiState> = _uiState.asStateFlow()
 
     init {
-        // Loads a mesh network on view model creation
-        loadNetwork()
-
         // Observes the mesh network for any changes i.e. network reset etc.
         repository.network
             .onEach {
@@ -48,16 +45,6 @@ class NetworkViewModel @Inject constructor(
         super.onCleared()
         viewModelScope.launch {
             repository.disconnect()
-        }
-    }
-
-    /**
-     * Loads the network
-     */
-    private fun loadNetwork() {
-        viewModelScope.launch {
-            meshNetwork = repository.load()
-            repository.startAutomaticConnectivity(meshNetwork)
         }
     }
 

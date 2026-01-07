@@ -31,12 +31,14 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 internal fun NodesRoute(
     appState: AppState,
     uiState: NodesScreenUiState,
-    navigateToNode: (Node) -> Unit,
+    navigateToNode: (Uuid) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit,
@@ -50,10 +52,11 @@ internal fun NodesRoute(
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun NodesScreen(
     uiState: NodesScreenUiState,
-    navigateToNode: (Node) -> Unit,
+    navigateToNode: (Uuid) -> Unit,
     onSwiped: (Node) -> Unit,
     onUndoClicked: (Node) -> Unit,
     remove: (Node) -> Unit,
@@ -69,7 +72,7 @@ private fun NodesScreen(
         false -> Nodes(
             coroutineScope = coroutineScope,
             nodes = uiState.nodes,
-            navigateToNode = navigateToNode,
+            navigateToNode = { navigateToNode(it.uuid) },
             onSwiped = onSwiped,
             onUndoClicked = onUndoClicked,
             remove = remove

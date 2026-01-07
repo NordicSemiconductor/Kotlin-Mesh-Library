@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.bearer.gatt
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,8 +56,9 @@ abstract class BaseGattBearer<
         >(
     protected val centralManager: C,
     protected val peripheral: P,
+    ioDispatcher: CoroutineDispatcher,
 ) : GattBearer {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     private val _pdus = MutableSharedFlow<Pdu>()
     override val pdus: Flow<Pdu> = _pdus.asSharedFlow()
     private val _state = MutableStateFlow<BearerEvent>(BearerEvent.Closed(BearerError.Closed()))
@@ -143,7 +145,7 @@ abstract class BaseGattBearer<
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    protected open suspend fun configurePeripheral(peripheral: P){
+    protected open suspend fun configurePeripheral(peripheral: P) {
         // Empty
     }
 

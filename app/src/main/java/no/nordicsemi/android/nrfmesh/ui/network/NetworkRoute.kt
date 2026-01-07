@@ -98,7 +98,6 @@ import kotlin.uuid.Uuid
 )
 @Composable
 fun NetworkRoute(
-    windowSizeClass: WindowSizeClass,
     provisioners: List<Provisioner>,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
@@ -110,10 +109,7 @@ fun NetworkRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val appState = rememberMeshAppState(
-        snackbarHostState = snackbarHostState,
-        windowSizeClass = windowSizeClass
-    )
+    val appState = rememberMeshAppState(snackbarHostState = snackbarHostState)
     val currentDestination = appState.currentDestination
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)

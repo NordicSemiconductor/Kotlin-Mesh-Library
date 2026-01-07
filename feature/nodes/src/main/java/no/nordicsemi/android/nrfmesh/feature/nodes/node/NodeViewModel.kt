@@ -69,7 +69,7 @@ internal class NodeViewModel @Inject internal constructor(
 
     private fun observeNetworkChanges() {
         repository.network.onEach {
-            val state = it.node(nodeUuid)?.let { node ->
+            val state = it.node(uuid = nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
                 NodeState.Success(
                     node = node,
@@ -110,8 +110,8 @@ internal class NodeViewModel @Inject internal constructor(
         repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
                 // Add a small delay to ensure proxy filter is set up before sending the message.
-                sleep(1000)
                 if (!selectedNode.isCompositionDataReceived) {
+                    delay(timeMillis = 1000)
                     onRefresh()
                 }
             }

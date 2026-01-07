@@ -19,7 +19,7 @@ class MeshNetworkTest {
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
         secureProperties = TestPropertiesStorage(),
-        dispatcher = TODO()
+        ioDispatcher = TODO()
     )
     private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))

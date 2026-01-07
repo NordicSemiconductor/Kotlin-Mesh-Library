@@ -35,7 +35,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SecurePropertiesStorage {
 
-    private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
+    private val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
 
     /**
      * Creates a default [ProtoSecurePropertiesMap] with a single entry for the given [uuid].

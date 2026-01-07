@@ -7,7 +7,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.SceneStatesDataStoreStorage
@@ -26,14 +25,12 @@ object CoreDataRepositoryModule {
         centralManager: CentralManager,
         meshNetworkManager: MeshNetworkManager,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
         storage: SceneStatesDataStoreStorage
     ) = CoreDataRepository(
         preferences = preferences,
         centralManager = centralManager,
         meshNetworkManager = meshNetworkManager,
         storage = storage,
-        ioDispatcher = ioDispatcher,
-        defaultDispatcher = defaultDispatcher
+        ioDispatcher = ioDispatcher
     )
 }

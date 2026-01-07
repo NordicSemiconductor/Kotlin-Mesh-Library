@@ -409,7 +409,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             Random.nextInt(20, 500).toDuration(DurationUnit.MILLISECONDS)
         }
         scope.launch {
-            delay(delay)
+            delay(duration = delay)
             logger?.i(LogCategory.ACCESS) { "Sending $pdu" }
             networkManager.upperTransportLayer.send(accessPdu = pdu, ttl = null, keySet = keySet)
         }

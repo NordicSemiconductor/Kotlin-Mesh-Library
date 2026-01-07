@@ -67,16 +67,15 @@ internal class ProxyViewModel @Inject internal constructor(
             )
         }
 
-        repository.proxyFilter.proxyFilterStateFlow.onEach { proxyFilterState ->
-            println("ProxyViewModel: proxyFilterState: $proxyFilterState")
-            when (proxyFilterState) {
+        repository.proxyFilter.proxyFilterStateFlow.onEach { state ->
+            when (state) {
                 is ProxyFilterState.ProxyFilterUpdated -> {
                     val addresses = mutableListOf<ProxyFilterAddress>()
-                    addresses.addAll(proxyFilterState.addresses)
+                    addresses.addAll(state.addresses)
                     _uiState.update {
                         it.copy(
-                            filterType = proxyFilterState.type,
-                            addresses = proxyFilterState.addresses.toList(),
+                            filterType = state.type,
+                            addresses = state.addresses.toList(),
                             isProxyLimitReached = false
                         )
                     }
@@ -85,7 +84,7 @@ internal class ProxyViewModel @Inject internal constructor(
                 is ProxyFilterState.ProxyFilterLimitReached -> {
                     _uiState.update {
                         it.copy(
-                            filterType = proxyFilterState.type,
+                            filterType = state.type,
                             isProxyLimitReached = true
                         )
                     }
@@ -94,7 +93,7 @@ internal class ProxyViewModel @Inject internal constructor(
                 is ProxyFilterState.ProxyFilterUpdateAcknowledged -> {
                     _uiState.update {
                         it.copy(
-                            filterType = proxyFilterState.type,
+                            filterType = state.type,
                             addresses = repository.proxyFilter.addresses.toList(),
                         )
                     }
@@ -127,18 +126,14 @@ internal class ProxyViewModel @Inject internal constructor(
     }
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            if (enabled) {
-                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
-            }
+        if (enabled) {
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
         }
     }
 
     internal fun onLocationEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            if (enabled) {
-                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
-            }
+        if (enabled) {
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
         }
     }
 

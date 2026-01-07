@@ -29,7 +29,7 @@ data class NodeInfoListData(
     val uuid: Uuid,
     val name: String,
     val address: UnicastAddress,
-    val deviceKey: ByteArray?,
+    val deviceKey: String?,
     val networkKeyCount: Int,
     val appKeyCount: Int,
     val elements: List<ElementListData>,
@@ -46,7 +46,7 @@ data class NodeInfoListData(
         uuid = node.uuid,
         name = node.name,
         address = node.primaryUnicastAddress,
-        deviceKey = node.deviceKey,
+        deviceKey = node.deviceKey?.toHexString(format = HexFormat.UpperCase),
         networkKeyCount = node.netKeys.size,
         appKeyCount = node.appKeys.size,
         elements = node.elements.map { ElementListData(element = it) },
@@ -70,11 +70,13 @@ data class NodeInfoListData(
  */
 data class ElementListData(
     val name: String?,
+    val index: Int,
     val unicastAddress: UnicastAddress,
     val models: List<ModelData>,
 ) {
     constructor(element: Element) : this(
         name = element.name,
+        index = element.index,
         unicastAddress = element.unicastAddress,
         models = element.models.map { ModelData(it) },
     )

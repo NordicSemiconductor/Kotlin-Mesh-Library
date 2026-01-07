@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.layers
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
@@ -107,7 +106,7 @@ internal class NetworkManager internal constructor(
     override val networkManagerEventFlow
         get() = _networkManagerEventFlow.asSharedFlow()
 
-    private val handlerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val ioScope = CoroutineScope(context = SupervisorJob() + manager.ioDispatcher)
 
     /**
      * Awaits and returns the mesh pdu received by the bearer.

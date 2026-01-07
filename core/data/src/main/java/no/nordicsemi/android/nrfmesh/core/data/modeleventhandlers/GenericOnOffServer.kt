@@ -2,9 +2,10 @@ package no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.common.di.DefaultDispatcher
+import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.storage.GenericOnOffStateStorage
 import no.nordicsemi.kotlin.mesh.core.MessageComposer
 import no.nordicsemi.kotlin.mesh.core.ModelError
@@ -26,11 +27,11 @@ import kotlin.time.toDuration
 import kotlin.uuid.ExperimentalUuidApi
 
 class GenericOnOffServer(
-    @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val storage: GenericOnOffStateStorage,
     private val defaultTransitionTimeServer: GenericDefaultTransitionTimeServer,
 ) : StoredWithSceneModelEventHandler() {
-    private val scope = CoroutineScope(context = dispatcher)
+    private val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     override val messageTypes: Map<UInt, HasInitializer> = mapOf(
         GenericOnOffGet.opCode to GenericOnOffGet.Initializer,
         GenericOnOffSet.opCode to GenericOnOffSet.Initializer,
@@ -62,7 +63,7 @@ class GenericOnOffServer(
 
             state.transition?.takeIf { it.remainingTime > 0.milliseconds }?.let { transition ->
                 scope.launch {
-                    delay(transition.remainingTime)
+                    delay(duration = transition.remainingTime)
                     // If state hasn't changed since
                     if (state.transition?.start == transition.start) {
                         state = GenericState(state.transition?.targetValue ?: state.value)

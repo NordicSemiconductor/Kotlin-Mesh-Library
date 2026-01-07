@@ -16,7 +16,6 @@ import kotlin.uuid.Uuid
  * @property navController          The [NavHostController] that will be used to navigate between
  * @property snackbarHostState      The [SnackbarHostState] that will be used to show snackbars.
  *                                  destinations of the application.
- * @property windowSizeClass        The current window size class.
  * @property nodeNavigator          Three Pane Scaffold Navigator used for navigating the node
  *                                  graph.
  * @property groupsNavigator        Three Pane Scaffold Navigator used for navigating the group
@@ -29,8 +28,7 @@ import kotlin.uuid.Uuid
 @Stable
 abstract class AppState(
     val navController: NavHostController,
-    val snackbarHostState: SnackbarHostState,
-    val windowSizeClass: WindowSizeClass,
+    val snackbarHostState: SnackbarHostState
 ) {
     var nodeNavigator: ThreePaneScaffoldNavigator<Any>? = null
     var groupsNavigator: ThreePaneScaffoldNavigator<Any>? = null
