@@ -1,19 +1,22 @@
 package no.nordicsemi.android.feature.config.networkkeys.navigation
 
 import android.os.Parcelable
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysScreen
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @Parcelize
 data object ConfigNetKeysRoute : Parcelable
 
 @Composable
 fun ConfigNetKeysRoute(
-    addedNetworkKeys: List<NetworkKey>,
+    snackbarHostState: SnackbarHostState,
+    node: Node,
     availableNetworkKeys: List<NetworkKey>,
     messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
@@ -23,7 +26,8 @@ fun ConfigNetKeysRoute(
 ) {
     ConfigNetKeysScreen(
         messageState = messageState,
-        addedNetworkKeys = addedNetworkKeys,
+        snackbarHostState = snackbarHostState,
+        node = node,
         availableNetworkKeys = availableNetworkKeys,
         onAddNetworkKeyClicked = onAddNetworkKeyClicked,
         navigateToNetworkKeys = navigateToNetworkKeys,

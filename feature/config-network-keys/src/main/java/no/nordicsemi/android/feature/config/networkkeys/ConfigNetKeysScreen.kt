@@ -1,13 +1,11 @@
 package no.nordicsemi.android.feature.config.networkkeys
 
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
@@ -19,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,10 +25,10 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -49,12 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.Row
@@ -66,11 +65,13 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
+import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigNetKeysScreen(
-    addedNetworkKeys: List<NetworkKey>,
+    snackbarHostState: SnackbarHostState,
+    node: Node,
     availableNetworkKeys: List<NetworkKey>,
     messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
@@ -80,14 +81,14 @@ internal fun ConfigNetKeysScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     val isRefreshing by rememberSaveable {
         mutableStateOf(messageState.isInProgress() && messageState.message is ConfigNetKeyGet)
     }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
+    var keyToDelete by remember { mutableStateOf<NetworkKey?>(null) }
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             AnimatedVisibility(visible = !showBottomSheet) {
                 ExtendedFloatingActionButton(
@@ -108,7 +109,7 @@ internal fun ConfigNetKeysScreen(
                 isRefreshing = isRefreshing
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    when (addedNetworkKeys.isNotEmpty()) {
+                    when (node.networkKeys.isNotEmpty()) {
                         true -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(space = 8.dp)
@@ -121,15 +122,30 @@ internal fun ConfigNetKeysScreen(
                                     title = stringResource(R.string.label_added_network_keys)
                                 )
                             }
-                            items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
+                            items(items = node.networkKeys, key = { it.index.toInt() + 1 }) { key ->
+                                // Hold the current state from the Swipe to Dismiss composable
+                                val dismissState = rememberSwipeToDismissBoxState()
                                 SwipeToDismissKey(
+                                    dismissState = dismissState,
                                     key = key,
-                                    context = context,
-                                    scope = scope,
-                                    snackbarHostState = snackbarHostState,
                                     onSwiped = {
-                                        if (!messageState.isInProgress())
-                                            send(ConfigNetKeyDelete(key = key))
+                                        if (node.knows(key = key)) {
+                                            keyToDelete = key
+                                            showDeleteConfirmationDialog = true
+                                            scope.launch { dismissState.reset() }
+                                        } else {
+                                            if (!messageState.isInProgress()) {
+                                                send(ConfigNetKeyDelete(key = key))
+                                                snackbarHostState.currentSnackbarData?.dismiss()
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = context.getString(R.string.label_network_key_deleting),
+                                                        duration = SnackbarDuration.Short,
+                                                    )
+                                                }
+
+                                            }
+                                        }
                                     }
                                 )
                             }
@@ -151,7 +167,16 @@ internal fun ConfigNetKeysScreen(
             bottomSheetState = bottomSheetState,
             messageState = messageState,
             keys = availableNetworkKeys,
-            onNetworkKeyClicked = { send(ConfigNetKeyAdd(key = it)) },
+            onNetworkKeyClicked = { key ->
+                scope.launch {
+                    bottomSheetState.hide()
+                }.invokeOnCompletion {
+                    send(ConfigNetKeyAdd(key = key))
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
+            },
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = {
                 scope.launch {
@@ -171,6 +196,29 @@ internal fun ConfigNetKeysScreen(
                         showBottomSheet = false
                     }
                 }
+            }
+        )
+    }
+
+    if (showDeleteConfirmationDialog) {
+        MeshAlertDialog(
+            onDismissRequest = {
+                keyToDelete = null
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
+            },
+            icon = Icons.Outlined.DeleteForever,
+            iconColor = Color.Red,
+            title = stringResource(R.string.label_remove_key),
+            text = stringResource(id = R.string.label_remove_key_confirmation),
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismissClick = {
+                keyToDelete = null
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
+            },
+            confirmButtonText = stringResource(R.string.label_ok),
+            onConfirmClick = {
+                keyToDelete?.let { send(ConfigNetKeyDelete(key = it)) }
+                showDeleteConfirmationDialog = !showDeleteConfirmationDialog
             }
         )
     }
@@ -228,14 +276,10 @@ internal fun ConfigNetKeysScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
+    dismissState: SwipeToDismissBoxState,
     key: NetworkKey,
-    context: Context,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
     onSwiped: (NetworkKey) -> Unit,
 ) {
-    // Hold the current state from the Swipe to Dismiss composable
-    val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
@@ -260,23 +304,7 @@ private fun SwipeToDismissKey(
                 Icon(imageVector = Icons.Outlined.Delete, contentDescription = "null")
             }
         },
-        onDismiss = {
-            if (key.isInUse) {
-                scope.launch { dismissState.reset() }
-                scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    snackbarHostState.showSnackbar(
-                        message = context.getString(
-                            R.string.label_network_key_in_use,
-                            key.name
-                        ),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-            } else {
-                onSwiped(key)
-            }
-        },
+        onDismiss = { onSwiped(key) },
         content = { key.Row() }
     )
 }
