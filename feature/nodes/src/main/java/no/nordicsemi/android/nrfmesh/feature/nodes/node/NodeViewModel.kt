@@ -110,8 +110,8 @@ internal class NodeViewModel @Inject internal constructor(
         repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
                 // Add a small delay to ensure proxy filter is set up before sending the message.
-                sleep(1000)
                 if (!selectedNode.isCompositionDataReceived) {
+                    delay(timeMillis = 1000)
                     onRefresh()
                 }
             }
