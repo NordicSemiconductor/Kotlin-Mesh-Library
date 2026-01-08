@@ -26,9 +26,16 @@ internal class SecureNetworkBeacon(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "SecureNetworkBeacon(pdu: ${pdu.toHexString()}, Network Key Index: ${networkKey.index}, " +
-                "validForKeyRefreshProcedure: $validForKeyRefreshProcedure, " +
-                "keyRefreshFlag: $keyRefreshFlag, ivIndex=$ivIndex)"
+        return "SecureNetworkBeacon(pdu: ${
+            pdu.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, Network Key Index: ${networkKey.index}, " +
+        "validForKeyRefreshProcedure: $validForKeyRefreshProcedure, " +
+        "keyRefreshFlag: $keyRefreshFlag, ivIndex=$ivIndex)"
     }
 }
 
