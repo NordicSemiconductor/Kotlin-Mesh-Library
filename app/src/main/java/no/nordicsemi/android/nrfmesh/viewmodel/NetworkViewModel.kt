@@ -6,10 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
@@ -28,7 +29,12 @@ class NetworkViewModel @Inject constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private val _uiState = MutableStateFlow(NetworkScreenUiState())
-    internal val uiState: StateFlow<NetworkScreenUiState> = _uiState.asStateFlow()
+    internal val uiState: StateFlow<NetworkScreenUiState> = _uiState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = NetworkScreenUiState()
+        )
 
     init {
         // Observes the mesh network for any changes i.e. network reset etc.
@@ -91,10 +97,10 @@ class NetworkViewModel @Inject constructor(
                             shouldSelectProvisioner = true
                         )
                     } ?: run {
-                        storage.storeLocalProvisioner(
-                            uuid = meshNetwork.uuid,
-                            localProvisionerUuid = meshNetwork.provisioners.first().uuid
-                        )
+                    storage.storeLocalProvisioner(
+                        uuid = meshNetwork.uuid,
+                        localProvisionerUuid = meshNetwork.provisioners.first().uuid
+                    )
                 }
             }
             // Let's save the imported network

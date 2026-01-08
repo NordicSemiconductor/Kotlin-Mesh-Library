@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
@@ -35,7 +37,12 @@ internal class ProxyViewModel @Inject internal constructor(
 ) : ViewModel() {
     private var meshNetwork: MeshNetwork? = null
     private val _uiState = MutableStateFlow(ProxyScreenUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState = _uiState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ProxyScreenUiState()
+        )
 
     init {
         observeNetwork()
