@@ -58,7 +58,7 @@ internal open class ControlMessage(
                 upperCase = true
             }
         )
-    },  networkKey: ${networkKey.index}, ivIndex: $ivIndex, ttl: $ttl)"
+    },  networkKey: ${networkKey.name}, ivIndex: $ivIndex, ttl: $ttl)"
 
     /**
      * Creates a Control Message.
