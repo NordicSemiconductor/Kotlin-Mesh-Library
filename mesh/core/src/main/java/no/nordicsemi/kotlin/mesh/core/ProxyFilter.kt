@@ -132,13 +132,13 @@ enum class ProxyFilterSetup {
      * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.ACCEPT_LIST]
      * with the given set of addresses.
      */
-    INCLUSION_LIST,
+    ACCEPT_LIST,
 
     /**
      * The Proxy Filter on each connected Proxy Node will be set to [ProxyFilterType.REJECT_LIST]
      * with the given set of addresses.
      */
-    EXCLUSION_LIST
+    REJECT_LIST
 }
 
 internal sealed interface ProxyFilterEventHandler {
@@ -392,17 +392,22 @@ class ProxyFilter internal constructor(
     }
 
     override suspend fun onNewProxyConnected() {
-        onNewNetworkCreated()
-        logger?.i(LogCategory.PROXY) { "New Proxy connected." }
-        manager.network?.localProvisioner?.let { provisioner ->
-            setType(type = ProxyFilterType.REJECT_LIST)
-            when (initializeState) {
-                ProxyFilterSetup.INCLUSION_LIST -> add(addresses = addresses)
-                ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
-                ProxyFilterSetup.EXCLUSION_LIST -> {
+        scope.launch {
+            onNewNetworkCreated()
+            logger?.i(LogCategory.PROXY) { "New Proxy connected." }
+            manager.network?.localProvisioner?.let { provisioner ->
+                when (initializeState) {
+                    ProxyFilterSetup.AUTOMATIC -> setup(provisioner = provisioner)
+                    ProxyFilterSetup.ACCEPT_LIST -> {
+                        setType(type = ProxyFilterType.ACCEPT_LIST)
+                        add(addresses = addresses)
+                    }
+                    ProxyFilterSetup.REJECT_LIST -> {
+                        setType(type = ProxyFilterType.REJECT_LIST)
+                        add(addresses = addresses)
+                    }
                 }
             }
-            add(addresses = addresses)
         }
     }
 
