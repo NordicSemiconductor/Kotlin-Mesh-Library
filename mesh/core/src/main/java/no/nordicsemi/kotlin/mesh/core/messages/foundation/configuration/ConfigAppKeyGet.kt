@@ -13,7 +13,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * This message is used to request all the application key indexes that are bound to a given network
  * key.
  *
- * @property index      Index of the bound network key.
+ * @property index                Index of the bound network key.
  * @property opCode               Message op code.
  * @property parameters           Message parameters.
  * @property responseOpCode       Op Code of the response message.

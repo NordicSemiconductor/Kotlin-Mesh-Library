@@ -30,14 +30,13 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 class ConfigAppKeyList(
     override val index: KeyIndex,
     val applicationKeyIndexes: Array<KeyIndex>,
-    override val status: ConfigMessageStatus
+    override val status: ConfigMessageStatus,
 ) : ConfigResponse, ConfigStatusMessage, ConfigNetKeyMessage {
 
     override val opCode = Initializer.opCode
-    override val parameters: ByteArray
-        get() = status.value.toByteArray() +
-                encodeNetKeyIndex(keyIndex = index) +
-                ConfigMessage.encode(indexes = applicationKeyIndexes)
+    override val parameters = status.value.toByteArray() +
+            encodeNetKeyIndex(keyIndex = index) +
+            ConfigMessage.encode(indexes = applicationKeyIndexes)
 
     /**
      * Constructs the ConfigAppKeyList message.
@@ -77,24 +76,18 @@ class ConfigAppKeyList(
         override val opCode = 0x8002u
 
         /**
-         * Initializes the ConfigAppKeyStatus message.
+         * Initializes the ConfigAppKeyList message.
          *
          * @param parameters Message parameters.
          * @return ConfigAppKeyList or null if the parameters are invalid.
          */
         override fun init(parameters: ByteArray?): BaseMeshMessage? = parameters?.takeIf {
-            it.size >= 4
+            it.size >= 3
         }?.let { params ->
             val status = ConfigMessageStatus.from(params.first().toUByte()) ?: return null
             ConfigAppKeyList(
-                index = decodeNetKeyIndex(
-                    data = parameters,
-                    offset = 1
-                ),
-                applicationKeyIndexes = ConfigMessage.decode(
-                    data = params,
-                    offset = 3
-                ),
+                index = decodeNetKeyIndex(data = parameters, offset = 1),
+                applicationKeyIndexes = ConfigMessage.decode(data = params, offset = 3),
                 status = status
             )
         }
