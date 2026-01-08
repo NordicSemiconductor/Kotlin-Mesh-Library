@@ -182,7 +182,15 @@ abstract class BaseGattBearer<
         require(supports(type)) { throw BearerError.PduTypeNotSupported() }
         require(isOpen) { throw BearerError.Closed() }
         proxyProtocolHandler.segment(pdu, type, mtu)
-            .forEach { dataInCharacteristic?.write(it, WriteType.WITHOUT_RESPONSE) }
+            .forEach {
+                dataInCharacteristic
+                    ?.write(it, WriteType.WITHOUT_RESPONSE)
+                    ?: run {
+                        logger?.e(category = LogCategory.BEARER) {
+                            "Error: dataInCharacteristic is null"
+                        }
+                    }
+            }
     }
 
     /**
