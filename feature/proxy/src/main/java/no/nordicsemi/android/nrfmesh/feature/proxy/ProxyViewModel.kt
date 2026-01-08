@@ -115,32 +115,42 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onAutoConnectToggled(enabled: Boolean) {
         viewModelScope.launch {
-            repository.enableAutoConnectProxy(meshNetwork = meshNetwork, enabled = enabled)
+            repository.toggleAutomaticConnection(enabled = enabled)
+            if (enabled) {
+                repository.startAutomaticConnectivity(meshNetwork)
+            }
         }
     }
 
     internal fun connect(result: ScanResult) {
         viewModelScope.launch {
-            with(repository) {
-                disconnect()
-                connectOverGattBearer(peripheral = result.peripheral)
-            }
+            repository.disconnect()
+            repository.connectOverGattBearer(peripheral = result.peripheral)
         }
     }
 
     internal fun disconnect() {
-        viewModelScope.launch { repository.disconnect() }
+        viewModelScope.launch {
+            repository.toggleAutomaticConnection(enabled = false)
+            // When disconnecting we should disable automatic connectivity
+            // If not the app will reconnect again
+            repository.disconnect()
+        }
     }
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
         if (enabled) {
-            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+            viewModelScope.launch {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+            }
         }
     }
 
     internal fun onLocationEnabled(enabled: Boolean) {
         if (enabled) {
-            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+            viewModelScope.launch {
+                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+            }
         }
     }
 

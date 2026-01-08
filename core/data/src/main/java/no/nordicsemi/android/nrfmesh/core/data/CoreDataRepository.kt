@@ -129,7 +129,8 @@ class CoreDataRepository @Inject constructor(
     private fun initNetwork() {
         ioScope.launch {
             val network = load()
-            startAutomaticConnectivity(meshNetwork = network)
+            // Connect to the proxy node if automatic connectivity is enabled
+            connectToProxy(meshNetwork = network)
         }
     }
 
@@ -279,87 +280,29 @@ class CoreDataRepository @Inject constructor(
     ).also { meshNetworkManager.save() }
 
     /**
-     * Connects to the unprovisioned node over PB-Gatt bearer.
+     * Enables or disables automatic connectivity to a proxy node.
      *
-     * @param device  Server device
-     * @return [ProvisioningBearer] instance
+     * @param meshNetwork Mesh network required to match a proxy node.
+     * @param enabled     True to enable, false to disable.
      */
-    suspend fun connectOverPbGattBearer(device: Peripheral) =
+    suspend fun toggleAutomaticConnection(enabled: Boolean): Unit =
         withContext(context = ioDispatcher) {
-            if (bearer is AndroidGattBearer) bearer?.close()
-            AndroidPbGattBearer(
-                centralManager = centralManager,
-                peripheral = device
-            ).also {
-                it.logger = this@CoreDataRepository
-                it.open()
-                bearer = it
+            _proxyConnectionStateFlow.value =
+                _proxyConnectionStateFlow.value.copy(autoConnect = enabled)
+            preferences.edit { preferences ->
+                preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
             }
         }
-
-    /**
-     * Connects to the provisioned node over Gatt bearer.
-     *
-     * @param peripheral       Server device
-     * @return [ProvisioningBearer]  instance
-     */
-    suspend fun connectOverGattBearer(peripheral: Peripheral) =
-        withContext(context = ioDispatcher) {
-            if (bearer is AndroidPbGattBearer) bearer?.close()
-            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
-            )
-            AndroidGattBearer(
-                centralManager = centralManager,
-                peripheral = peripheral,
-                ioDispatcher = ioDispatcher
-            ).also { it ->
-                it.logger = this@CoreDataRepository
-                meshNetworkManager.meshBearer = it
-                bearer = it
-                it.open()
-                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
-                    .value.copy(
-                        connectionState = NetworkConnectionState.Connected(
-                            peripheral = peripheral
-                        )
-                    )
-
-                // Wait for the bearer to disconnect
-                ioScope.launch {
-                    it.state.first { it is BearerEvent.Closed }
-                    meshNetworkManager.proxyFilter.proxyDidDisconnect()
-                    // We add a slight delay here before connecting again if the connection drops
-                    // Note: connection will only be established if automatic connectivity is
-                    // enabled as per the implementation.
-                    delay(timeMillis = 1500)
-                    connectToProxy(meshNetwork)
-                }
-            }
-        }
-
-    /**
-     * Disconnects from the proxy node.
-     */
-    suspend fun disconnect() = withContext(context = ioDispatcher) {
-        bearer?.let { bearer ->
-            if (bearer.isOpen) {
-                bearer.close()
-                // bearer.state.first { it is BearerEvent.Closed }
-                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                    connectionState = NetworkConnectionState.Disconnected
-                )
-            }
-        }
-    }
 
     /**
      * Starts automatic connectivity to the proxy node.
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
-    fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
-        ioScope.launch {
+    suspend fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
+        val autoConnectProxy = _proxyConnectionStateFlow.value.autoConnect
+        if (!autoConnectProxy) return
+        withContext(context = ioDispatcher) {
             connectToProxy(meshNetwork)
         }
     }
@@ -370,11 +313,9 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     private suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
-        val autoConnectProxy = _proxyConnectionStateFlow.value.autoConnect
-        if (!autoConnectProxy) return
+        require(bearer == null || !bearer!!.isOpen) { return }
         if (connectionRequested) return
         connectionRequested = true
-        require(bearer == null || !bearer!!.isOpen) { return }
         val peripheral = scanForProxy(meshNetwork)
         // If the peripheral is null, it means that the proxy node was not found or scanning failed.
         // If so we can safely return here and retry later.
@@ -458,20 +399,82 @@ class CoreDataRepository @Inject constructor(
     }
 
     /**
-     * Enables or disables automatic connectivity to a proxy node.
+     * Connects to the unprovisioned node over PB-Gatt bearer.
      *
-     * @param meshNetwork Mesh network required to match a proxy node.
-     * @param enabled     True to enable, false to disable.
+     * @param device  Server device
+     * @return [ProvisioningBearer] instance
      */
-    fun enableAutoConnectProxy(meshNetwork: MeshNetwork?, enabled: Boolean) {
-        ioScope.launch {
-            _proxyConnectionStateFlow.value =
-                _proxyConnectionStateFlow.value.copy(autoConnect = enabled)
-            preferences.edit { preferences ->
-                preferences[PreferenceKeys.PROXY_AUTO_CONNECT] = enabled
+    suspend fun connectOverPbGattBearer(device: Peripheral) =
+        withContext(context = ioDispatcher) {
+            if (bearer is AndroidGattBearer) bearer?.close()
+            AndroidPbGattBearer(
+                centralManager = centralManager,
+                peripheral = device
+            ).also {
+                it.logger = this@CoreDataRepository
+                it.open()
+                bearer = it
             }
         }
-        if (enabled) startAutomaticConnectivity(meshNetwork)
+
+    /**
+     * Connects to the provisioned node over Gatt bearer.
+     *
+     * @param peripheral       Server device
+     * @return [ProvisioningBearer]  instance
+     */
+    suspend fun connectOverGattBearer(peripheral: Peripheral) =
+        withContext(context = ioDispatcher) {
+            if (bearer is AndroidPbGattBearer) bearer?.close()
+            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
+            )
+            AndroidGattBearer(
+                centralManager = centralManager,
+                peripheral = peripheral,
+                ioDispatcher = ioDispatcher
+            ).also { it ->
+                it.logger = this@CoreDataRepository
+                meshNetworkManager.meshBearer = it
+                bearer = it
+                it.open()
+                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
+                    .value.copy(
+                        connectionState = NetworkConnectionState.Connected(
+                            peripheral = peripheral
+                        )
+                    )
+
+                // Wait for the bearer to disconnect
+                ioScope.launch {
+                    it.state.first { it is BearerEvent.Closed }
+                    bearer = null
+                    meshNetworkManager.proxyFilter.proxyDidDisconnect()
+                    // We add a slight delay here before connecting again if the connection drops
+                    // Note: connection will only be established if automatic connectivity is
+                    // enabled as per the implementation.
+                    delay(timeMillis = 1500)
+                    startAutomaticConnectivity(meshNetwork)
+                }
+            }
+        }
+
+    /**
+     * Disconnects from the proxy node.
+     */
+    suspend fun disconnect() = withContext(context = ioDispatcher) {
+        bearer?.let { bearer ->
+            if (bearer.isOpen) {
+                bearer.close()
+                // bearer.state.first { it is BearerEvent.Closed }
+                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
+                    connectionState = NetworkConnectionState.Disconnected
+                )
+            }
+        }.also {
+            // Bearer null
+            bearer = null
+        }
     }
 
     /**
