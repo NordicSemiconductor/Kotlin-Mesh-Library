@@ -1,8 +1,10 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Features
+import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Security
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
@@ -30,8 +32,8 @@ data class NodeInfoListData(
     val name: String,
     val address: UnicastAddress,
     val deviceKey: String?,
-    val networkKeyCount: Int,
-    val appKeyCount: Int,
+    val netKeys: List<NetworkKey>,
+    val appKeys: List<ApplicationKey>,
     val elements: List<ElementListData>,
     val companyIdentifier: UShort?,
     val productIdentifier: UShort?,
@@ -47,8 +49,8 @@ data class NodeInfoListData(
         name = node.name,
         address = node.primaryUnicastAddress,
         deviceKey = node.deviceKey?.toHexString(format = HexFormat.UpperCase),
-        networkKeyCount = node.netKeys.size,
-        appKeyCount = node.appKeys.size,
+        netKeys = node.networkKeys.toList(),
+        appKeys = node.applicationKeys.toList(),
         elements = node.elements.map { ElementListData(element = it) },
         companyIdentifier = node.companyIdentifier,
         productIdentifier = node.productIdentifier,
