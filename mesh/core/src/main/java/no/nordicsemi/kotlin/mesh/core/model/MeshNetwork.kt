@@ -620,6 +620,9 @@ data class MeshNetwork internal constructor(
         require(force || key.network == this) { throw DoesNotBelongToNetwork() }
         require(force || !key.isInUse) { throw KeyInUse() }
         _networkKeys.removeAt(index = index)
+        // Remove the key from the local node
+        localProvisioner?.node?.removeNetKey(index = key.index)
+        updateTimestamp()
     }
 
     /**
@@ -723,12 +726,15 @@ data class MeshNetwork internal constructor(
      * @throws [KeyInUse] if the key is known to any node in the
      */
     @Throws(DoesNotBelongToNetwork::class, KeyInUse::class)
-    fun removeApplicationKeyAtIndex(index: Int, force: Boolean = false) {
+    internal fun removeApplicationKeyAtIndex(index: Int, force: Boolean = false) {
         // Return as no op if the key does not exist
         val key = applicationKeys.getOrNull(index) ?: return
         require(force || key.network == this) { throw DoesNotBelongToNetwork() }
         require(force || !key.isInUse) { throw KeyInUse() }
         _applicationKeys.removeAt(index = index)
+        // Remove the key from the local node
+        localProvisioner?.node?.removeAppKey(index = key.index)
+        updateTimestamp()
     }
 
     /**
