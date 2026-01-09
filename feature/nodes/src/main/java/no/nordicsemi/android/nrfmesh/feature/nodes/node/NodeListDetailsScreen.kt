@@ -114,7 +114,11 @@ internal fun NodeListDetailsScreen(
                                 listItem = ClickableSetting.NETWORK_KEYS
                             )
                         },
-                        availableApplicationKeys = uiState.availableAppKeys,
+                        addedAppKeys = uiState.availableAppKeys,
+                        addedApplicationKeys = uiState.nodeState.nodeInfoListData.appKeys,
+                        isKeyInUse = {
+                            uiState.nodeState.node.knowsModelsBoundToApplicationKey(key = it)
+                        },
                         onAddAppKeyClicked = onAddAppKeyClicked,
                         readApplicationKeys = readApplicationKeys,
                         navigateToApplicationKeys = {

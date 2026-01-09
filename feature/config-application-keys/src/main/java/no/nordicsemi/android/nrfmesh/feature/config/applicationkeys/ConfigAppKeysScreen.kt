@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +33,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,18 +61,18 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAp
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
-import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigAppKeysScreen(
     snackbarHostState: SnackbarHostState,
-    node: Node,
+    addedApplicationKeys: List<ApplicationKey>,
     messageState: MessageState,
     availableApplicationKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     readApplicationKeys: () -> Unit,
+    isKeyInUse:(ApplicationKey) -> Boolean,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
@@ -93,30 +93,31 @@ internal fun ConfigAppKeysScreen(
             onRefresh = { readApplicationKeys() },
             isRefreshing = isRefreshing
         ) {
-            when (node.applicationKeys.isNotEmpty()) {
+            when (addedApplicationKeys.isNotEmpty()) {
                 true -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                 ) {
                     item {
                         SectionTitle(
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .padding(horizontal = 16.dp),
+                            modifier = Modifier.padding(top = 8.dp),
                             title = stringResource(R.string.label_added_application_keys)
                         )
                     }
                     items(
-                        items = node.applicationKeys,
-                        key = { it.index.toInt() + 1 }
+                        items = addedApplicationKeys,
+                        key = { it.hashCode() }
                     ) { key ->
                         // Hold the current state from the Swipe to Dismiss composable
                         val dismissState = rememberSwipeToDismissBoxState()
+                        val isInUse = isKeyInUse(key)
                         SwipeToDismissKey(
+                            isInUse = isInUse,
                             dismissState = dismissState,
                             key = key,
                             onSwiped = {
-                                if (node.knows(it)) {
+                                if (isInUse) {
                                     keyToDelete = it
                                     showDeleteConfirmationDialog = true
                                     scope.launch { dismissState.reset() }
@@ -169,47 +170,41 @@ internal fun ConfigAppKeysScreen(
             messageState = messageState,
             keys = availableApplicationKeys,
             onAppKeyClicked = { key ->
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
-                    send(ConfigAppKeyAdd(key = key))
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
+                scope
+                    .launch { bottomSheetState.hide() }
+                    .invokeOnCompletion {
+                        send(ConfigAppKeyAdd(key = key))
+                        if (!bottomSheetState.isVisible) showBottomSheet = false
                     }
-                }
             },
             onAddApplicationKeyClicked = {
                 runCatching {
-                    onAddAppKeyClicked
-                }.onFailure {
-                    scope.launch {
-                        bottomSheetState.hide()
-                        snackbarHostState.showSnackbar(message = it.describe())
-                    }.invokeOnCompletion {
-                        if (!bottomSheetState.isVisible) {
-                            showBottomSheet = false
+                    onAddAppKeyClicked()
+                    scope
+                        .launch {
+                            bottomSheetState.hide()
+                        }.invokeOnCompletion {
+                            if (!bottomSheetState.isVisible) showBottomSheet = false
                         }
-                    }
+                }.onFailure {
+                    scope
+                        .launch {
+                            snackbarHostState.showSnackbar(message = it.describe())
+                        }
                 }
             },
             navigateToApplicationKeys = {
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
-                    navigateToApplicationKeys()
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
+                scope
+                    .launch { bottomSheetState.hide() }
+                    .invokeOnCompletion {
+                        navigateToApplicationKeys()
+                        if (!bottomSheetState.isVisible) showBottomSheet = false
                     }
-                }
             },
             onDismissClick = {
-                scope.launch {
-                    bottomSheetState.hide()
-                }.invokeOnCompletion {
-                    if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
-                    }
-                }
+                scope
+                    .launch { bottomSheetState.hide() }
+                    .invokeOnCompletion { if (!bottomSheetState.isVisible) showBottomSheet = false }
             }
         )
     }
@@ -254,29 +249,35 @@ internal fun ConfigAppKeysScreen(
                     onDismissRequest = resetMessageState,
                 )
 
-                false -> LaunchedEffect(snackbarHostState) {
+                false -> scope.launch {
                     if (messageState.message is ConfigAppKeyDelete) {
-                        snackbarHostState.showSnackbar(
-                            message = context.getString(R.string.label_application_key_deleted),
-                            duration = SnackbarDuration.Short,
-                        ).also { result ->
-                            when (result) {
-                                SnackbarResult.Dismissed,
-                                SnackbarResult.ActionPerformed,
-                                    -> resetMessageState()
+                        snackbarHostState.run {
+                            showSnackbar(
+                                message = context.getString(R.string.label_application_key_deleted),
+                                duration = SnackbarDuration.Short,
+                            ).also { result ->
+                                when (result) {
+                                    SnackbarResult.Dismissed,
+                                    SnackbarResult.ActionPerformed,
+                                        -> resetMessageState()
+                                }
                             }
                         }
                     } else if (messageState.message is ConfigAppKeyAdd) {
-                        snackbarHostState.showSnackbar(
-                            message = context.getString(R.string.label_application_key_added),
-                            duration = SnackbarDuration.Short,
-                        ).also { result ->
-                            when (result) {
-                                SnackbarResult.Dismissed,
-                                SnackbarResult.ActionPerformed,
-                                    -> resetMessageState()
+                        snackbarHostState
+                            .run {
+                                currentSnackbarData?.dismiss()
+                                showSnackbar(
+                                    message = context.getString(R.string.label_application_key_added),
+                                    duration = SnackbarDuration.Short,
+                                ).also { result ->
+                                    when (result) {
+                                        SnackbarResult.Dismissed,
+                                        SnackbarResult.ActionPerformed,
+                                            -> resetMessageState()
+                                    }
+                                }
                             }
-                        }
                     }
                 }
             }
@@ -289,12 +290,12 @@ internal fun ConfigAppKeysScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
+    isInUse: Boolean,
     dismissState: SwipeToDismissBoxState,
     key: ApplicationKey,
     onSwiped: (ApplicationKey) -> Unit,
 ) {
     SwipeToDismissBox(
-        modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
@@ -302,7 +303,7 @@ private fun SwipeToDismissKey(
                     SwipeToDismissBoxValue.Settled,
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
-                        -> if (key.isInUse) Color.Gray else Color.Red
+                        -> if (isInUse) Color.Gray else Color.Red
                 }
             )
             Box(

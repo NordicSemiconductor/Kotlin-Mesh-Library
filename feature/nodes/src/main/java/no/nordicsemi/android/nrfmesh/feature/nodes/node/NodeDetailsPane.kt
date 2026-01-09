@@ -36,7 +36,9 @@ internal fun NodeDetailsPane(
     availableNetworkKeys: List<NetworkKey>,
     onAddNetworkKeyClicked: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
-    availableApplicationKeys: List<ApplicationKey>,
+    addedAppKeys: List<ApplicationKey>,
+    addedApplicationKeys: List<ApplicationKey>,
+    isKeyInUse: (ApplicationKey) -> Boolean,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     readApplicationKeys: () -> Unit,
@@ -68,8 +70,9 @@ internal fun NodeDetailsPane(
 
         is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
             snackbarHostState = snackbarHostState,
-            node = node,
-            availableAppKeys = availableApplicationKeys,
+            availableAppKeys = addedAppKeys,
+            addedAppKeys = addedApplicationKeys,
+            isKeyInUse = isKeyInUse,
             onAddAppKeyClicked = onAddAppKeyClicked,
             navigateToApplicationKeys = navigateToApplicationKeys,
             messageState = messageState,

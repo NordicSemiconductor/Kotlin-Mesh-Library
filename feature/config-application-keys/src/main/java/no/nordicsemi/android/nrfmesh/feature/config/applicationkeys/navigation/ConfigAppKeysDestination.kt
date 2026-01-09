@@ -16,22 +16,24 @@ data object ConfigAppKeysRoute : Parcelable
 @Composable
 fun ConfigAppKeysScreenRoute(
     snackbarHostState: SnackbarHostState,
-    node: Node,
     availableAppKeys: List<ApplicationKey>,
+    addedAppKeys: List<ApplicationKey>,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     readApplicationKeys: () -> Unit,
+    isKeyInUse:(ApplicationKey) -> Boolean,
     messageState: MessageState,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
     ConfigAppKeysScreen(
         snackbarHostState = snackbarHostState,
-        node = node,
         availableApplicationKeys = availableAppKeys,
+        addedApplicationKeys = addedAppKeys,
         onAddAppKeyClicked = onAddAppKeyClicked,
         navigateToApplicationKeys = navigateToApplicationKeys,
         readApplicationKeys = readApplicationKeys,
+        isKeyInUse = isKeyInUse,
         messageState = messageState,
         send = send,
         resetMessageState = resetMessageState
