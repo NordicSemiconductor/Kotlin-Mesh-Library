@@ -93,7 +93,7 @@ data class Node internal constructor(
     @Serializable(with = UuidSerializer::class)
     val uuid: Uuid,
     @SerialName(value = "name")
-    private var _name:String = "nRF Mesh Node",
+    private var _name: String = "nRF Mesh Node",
     @Serializable(with = KeySerializer::class)
     val deviceKey: ByteArray?,
     @SerialName(value = "unicastAddress")
@@ -403,7 +403,7 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addNetKey(index: KeyIndex) {
-         if(!_netKeys.has(index = index))
+        if (!_netKeys.has(index = index))
             _netKeys.add(NodeKey(index = index, _updated = false))
         network?.let {
             if (security is Insecure) {
@@ -465,8 +465,8 @@ data class Node internal constructor(
         _appKeys = _appKeys.filter { nodeKey ->
             applicationKey(index = nodeKey.index)
                 ?.let { netKeyIndexes.contains(it.boundNetKeyIndex) }
-                // Keep the app key if it cannot be found, if used with "== true" unknown keys  will
-                // be removed.
+            // Keep the app key if it cannot be found, if used with "== true" unknown keys  will
+            // be removed.
                 ?: true
         }.toMutableList()
         // if an insecure Node received a Network Key, make sure to lower the minSecurity field of
@@ -520,11 +520,12 @@ data class Node internal constructor(
      * @param key     Application key to be added.
      * @return        True if success or false if the key already exists.
      */
-    internal fun add(key: ApplicationKey) = NodeKey(key = key).run {
-        when {
-            _appKeys.contains(this) -> false
-            else -> {
-                _appKeys.add(this)
+    internal fun add(key: ApplicationKey): Boolean {
+        val k = NodeKey(key = key)
+        return when (appKeys.contains(k)) {
+            true -> false
+            false -> {
+                _appKeys.add(k)
                 network?.updateTimestamp()
                 true
             }
@@ -538,7 +539,7 @@ data class Node internal constructor(
      * @param index Network Key index.
      */
     internal fun addAppKey(index: KeyIndex) {
-        if(!_appKeys.has(index = index)) {
+        if (!_appKeys.has(index = index)) {
             _appKeys.add(NodeKey(index, false))
         }
         network?.updateTimestamp()
@@ -811,6 +812,10 @@ data class Node internal constructor(
      * @return true if the key is known by the node or false otherwise.
      */
     fun knowsNetworkKeyIndex(index: KeyIndex) = netKeys.any { it.index == index }
+
+    fun knowsModelsBoundToApplicationKey(key: ApplicationKey) = elements.any {
+        it.contains(key = key)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
