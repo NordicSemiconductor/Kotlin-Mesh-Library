@@ -165,7 +165,7 @@ private fun Key(
             },
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = key.toHexString(),
+        subtitle = key.toHexString(format = HexFormat.UpperCase),
         onValueChanged = { onKeyChanged(it.toByteArray()) },
         isEditable = isCurrentlyEditable,
         onEditableStateChanged = onEditableStateChanged,
