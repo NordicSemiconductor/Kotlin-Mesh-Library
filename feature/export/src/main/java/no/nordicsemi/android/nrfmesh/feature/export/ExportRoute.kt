@@ -133,11 +133,17 @@ private fun ExportScreen(
             }
         } else {
             uiState.apply {
-                SectionTitle(title = stringResource(R.string.label_provisioners))
+                SectionTitle(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    title = stringResource(R.string.label_provisioners)
+                )
                 provisionerItemStates.forEach { state ->
                     ProvisionerRow(state = state, onProvisionerSelected = onProvisionerSelected)
                 }
-                SectionTitle(title = stringResource(R.string.label_network_keys))
+                SectionTitle(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    title = stringResource(R.string.label_network_keys)
+                )
                 networkKeyItemStates.forEach { state ->
                     NetworkKeyRow(state = state, onNetworkKeySelected = onNetworkKeySelected)
                 }
