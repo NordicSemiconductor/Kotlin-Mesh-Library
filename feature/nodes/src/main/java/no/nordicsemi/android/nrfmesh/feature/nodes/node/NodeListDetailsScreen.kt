@@ -116,8 +116,8 @@ internal fun NodeListDetailsScreen(
                         },
                         addedAppKeys = uiState.availableAppKeys,
                         addedApplicationKeys = uiState.nodeState.nodeInfoListData.appKeys,
-                        isKeyInUse = {
-                            uiState.nodeState.node.knowsModelsBoundToApplicationKey(key = it)
+                        isAppKeyInUse = {
+                            uiState.nodeState.node.containsModelsBoundToApplicationKey(key = it)
                         },
                         onAddAppKeyClicked = onAddAppKeyClicked,
                         readApplicationKeys = readApplicationKeys,

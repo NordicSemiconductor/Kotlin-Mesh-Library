@@ -814,13 +814,13 @@ data class Node internal constructor(
     fun knowsNetworkKeyIndex(index: KeyIndex) = netKeys.any { it.index == index }
 
     /**
-     * Checks if the given Application Key known by any of the elements of the node. This allows to
-     * find out if a particular key is bound to any of its models.
+     * Checks if the given Application Key is contained in any of the elements of the node.
+     * This allows to find out if a particular key is bound to any of its models.
      *
      * @param key Application Key.
      * @return true if the key is known by the node or false otherwise.
      */
-    fun knowsModelsBoundToApplicationKey(key: ApplicationKey) = elements.any {
+    fun containsModelsBoundToApplicationKey(key: ApplicationKey) = elements.any {
         it.contains(key = key)
     }
 
