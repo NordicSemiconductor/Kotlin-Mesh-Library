@@ -66,6 +66,7 @@ import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 @Composable
 internal fun ConfigAppKeysScreen(
     snackbarHostState: SnackbarHostState,
+    isLocalProvisionerNode: Boolean,
     addedApplicationKeys: List<ApplicationKey>,
     messageState: MessageState,
     availableApplicationKeys: List<ApplicationKey>,
@@ -180,12 +181,13 @@ internal fun ConfigAppKeysScreen(
             onAddApplicationKeyClicked = {
                 runCatching {
                     onAddAppKeyClicked()
-                    scope
-                        .launch {
-                            bottomSheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!bottomSheetState.isVisible) showBottomSheet = false
-                        }
+                    if(isLocalProvisionerNode) {
+                        scope
+                            .launch { bottomSheetState.hide() }
+                            .invokeOnCompletion {
+                                if (!bottomSheetState.isVisible) showBottomSheet = false
+                            }
+                    }
                 }.onFailure {
                     scope.launch { snackbarHostState.showSnackbar(message = it.describe()) }
                 }
