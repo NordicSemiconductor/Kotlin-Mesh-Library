@@ -108,6 +108,10 @@ internal fun NodeListDetailsScreen(
                         navigator = navigator,
                         node = uiState.nodeState.node,
                         availableNetworkKeys = uiState.availableNetworkKeys,
+                        addedNetworkKeys = uiState.nodeState.nodeInfoListData.netKeys,
+                        isNetKeyInUse = {
+                            uiState.nodeState.node.containsApplicationKeyBoundToNetworkKey(key = it)
+                        },
                         onAddNetworkKeyClicked = onAddNetworkKeyClicked,
                         navigateToNetworkKeys = {
                             appState.navigateToSettings(

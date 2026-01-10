@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,16 +64,17 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyGet
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.Node
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ConfigNetKeysScreen(
     snackbarHostState: SnackbarHostState,
-    node: Node,
+    isLocalProvisionerNode: Boolean,
+    addedNetworkKeys: List<NetworkKey>,
     availableNetworkKeys: List<NetworkKey>,
     messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
+    isKeyInUse:(NetworkKey) -> Boolean,
     navigateToNetworkKeys: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
@@ -87,16 +89,17 @@ internal fun ConfigNetKeysScreen(
     var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     var keyToDelete by remember { mutableStateOf<NetworkKey?>(null) }
 
-    Box(modifier = Modifier.fillMaxSize()){
+    Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             onRefresh = { send(ConfigNetKeyGet()) },
             isRefreshing = isRefreshing
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                when (node.networkKeys.isNotEmpty()) {
+                when (addedNetworkKeys.isNotEmpty()) {
                     true -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                     ) {
                         item {
@@ -107,14 +110,16 @@ internal fun ConfigNetKeysScreen(
                                 title = stringResource(R.string.label_added_network_keys)
                             )
                         }
-                        items(items = node.networkKeys, key = { it.index.toInt() + 1 }) { key ->
+                        items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
                             // Hold the current state from the Swipe to Dismiss composable
                             val dismissState = rememberSwipeToDismissBoxState()
+                            val isInUse = isKeyInUse(key)
                             SwipeToDismissKey(
+                                isInUse = isInUse,
                                 dismissState = dismissState,
                                 key = key,
                                 onSwiped = {
-                                    if (node.knows(key = key)) {
+                                    if (isInUse) {
                                         keyToDelete = key
                                         showDeleteConfirmationDialog = true
                                         scope.launch { dismissState.reset() }
@@ -175,7 +180,21 @@ internal fun ConfigNetKeysScreen(
                     }
                 }
             },
-            onAddNetworkKeyClicked = onAddNetworkKeyClicked,
+            onAddNetworkKeyClicked = {
+                runCatching {
+                    onAddNetworkKeyClicked()
+                    if(isLocalProvisionerNode){
+                        scope
+                            .launch {
+                                bottomSheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!bottomSheetState.isVisible) showBottomSheet = false
+                            }
+                    }
+                }.onFailure {
+                    scope.launch { snackbarHostState.showSnackbar(message = it.describe()) }
+                }
+            },
             navigateToNetworkKeys = {
                 scope.launch {
                     bottomSheetState.hide()
@@ -274,12 +293,12 @@ internal fun ConfigNetKeysScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissKey(
+    isInUse: Boolean,
     dismissState: SwipeToDismissBoxState,
     key: NetworkKey,
     onSwiped: (NetworkKey) -> Unit,
 ) {
     SwipeToDismissBox(
-        modifier = Modifier.padding(horizontal = 16.dp),
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
@@ -287,7 +306,7 @@ private fun SwipeToDismissKey(
                     SwipeToDismissBoxValue.Settled,
                     SwipeToDismissBoxValue.StartToEnd,
                     SwipeToDismissBoxValue.EndToStart,
-                        -> if (key.isInUse) Color.Gray else Color.Red
+                        -> if (isInUse) Color.Gray else Color.Red
                 }
             )
             Box(

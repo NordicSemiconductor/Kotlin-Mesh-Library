@@ -814,6 +814,17 @@ data class Node internal constructor(
     fun knowsNetworkKeyIndex(index: KeyIndex) = netKeys.any { it.index == index }
 
     /**
+     *  Returns whether the Node has at least one Application Key bound
+     *  to the given Network Key.
+     *
+     *  @param key Network Key to check binding.
+     *  @returns true if at least one Application Key known to this Node is bound to the given
+     *  Network Key.
+     */
+    fun containsApplicationKeyBoundToNetworkKey(key: NetworkKey) =
+        applicationKeys.contains(networkKey = key)
+
+    /**
      * Checks if the given Application Key is contained in any of the elements of the node.
      * This allows to find out if a particular key is bound to any of its models.
      *

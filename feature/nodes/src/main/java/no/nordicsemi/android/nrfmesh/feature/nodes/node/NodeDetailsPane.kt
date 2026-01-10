@@ -34,11 +34,13 @@ internal fun NodeDetailsPane(
     navigator: ThreePaneScaffoldNavigator<Any>,
     node: Node,
     availableNetworkKeys: List<NetworkKey>,
+    addedNetworkKeys: List<NetworkKey>,
+    isNetKeyInUse:(NetworkKey) -> Boolean,
     onAddNetworkKeyClicked: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
     addedAppKeys: List<ApplicationKey>,
     addedApplicationKeys: List<ApplicationKey>,
-    isKeyInUse: (ApplicationKey) -> Boolean,
+    isAppKeyInUse: (ApplicationKey) -> Boolean,
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     readApplicationKeys: () -> Unit,
@@ -59,8 +61,10 @@ internal fun NodeDetailsPane(
 
         is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysRoute(
             snackbarHostState = snackbarHostState,
-            node = node,
+            isLocalProvisionerNode = node.isLocalProvisioner,
             availableNetworkKeys = availableNetworkKeys,
+            addedNetworkKeys = addedNetworkKeys,
+            isKeyInUse = isNetKeyInUse,
             onAddNetworkKeyClicked = onAddNetworkKeyClicked,
             navigateToNetworkKeys = navigateToNetworkKeys,
             messageState = messageState,
@@ -70,9 +74,10 @@ internal fun NodeDetailsPane(
 
         is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
             snackbarHostState = snackbarHostState,
+            isLocalProvisionerNode = node.isLocalProvisioner,
             availableAppKeys = addedAppKeys,
             addedAppKeys = addedApplicationKeys,
-            isKeyInUse = isKeyInUse,
+            isKeyInUse = isAppKeyInUse,
             onAddAppKeyClicked = onAddAppKeyClicked,
             navigateToApplicationKeys = navigateToApplicationKeys,
             messageState = messageState,

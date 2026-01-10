@@ -7,6 +7,7 @@ import kotlinx.parcelize.Parcelize
 import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysScreen
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 
@@ -16,10 +17,12 @@ data object ConfigNetKeysRoute : Parcelable
 @Composable
 fun ConfigNetKeysRoute(
     snackbarHostState: SnackbarHostState,
-    node: Node,
+    isLocalProvisionerNode: Boolean,
     availableNetworkKeys: List<NetworkKey>,
+    addedNetworkKeys: List<NetworkKey>,
     messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
+    isKeyInUse:(NetworkKey) -> Boolean,
     navigateToNetworkKeys: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit
@@ -27,9 +30,11 @@ fun ConfigNetKeysRoute(
     ConfigNetKeysScreen(
         messageState = messageState,
         snackbarHostState = snackbarHostState,
-        node = node,
+        isLocalProvisionerNode = isLocalProvisionerNode,
         availableNetworkKeys = availableNetworkKeys,
+        addedNetworkKeys = addedNetworkKeys,
         onAddNetworkKeyClicked = onAddNetworkKeyClicked,
+        isKeyInUse = isKeyInUse,
         navigateToNetworkKeys = navigateToNetworkKeys,
         send = send,
         resetMessageState = resetMessageState
