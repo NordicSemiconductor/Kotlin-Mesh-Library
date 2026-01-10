@@ -125,7 +125,7 @@ internal fun NodeListPane(
             item { DeviceKeyRow(deviceKey = nodeData.deviceKey ?: stringResource(R.string.unknown)) }
             item {
                 NetworkKeysRow(
-                    count = nodeData.networkKeyCount,
+                    count = nodeData.netKeys.size,
                     isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
                             && highlightSelectedItem,
                     onNetworkKeysClicked = { onNetworkKeysClicked(nodeData.uuid) }
@@ -133,7 +133,7 @@ internal fun NodeListPane(
             }
             item {
                 ApplicationKeysRow(
-                    count = nodeData.appKeyCount,
+                    count = nodeData.appKeys.size,
                     isSelected = selectedItem == ClickableNodeInfoItem.ApplicationKeys
                             && highlightSelectedItem,
                     onApplicationKeysClicked = { onApplicationKeysClicked(nodeData.uuid) }

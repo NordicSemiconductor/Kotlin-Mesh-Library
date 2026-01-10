@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
@@ -72,18 +73,20 @@ internal class NodeViewModel @Inject internal constructor(
 
     private fun observeNetworkChanges() {
         repository.network.onEach {
-            val state = it.node(uuid = nodeUuid)?.let { node ->
+            val nodeState = it.node(uuid = nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
                 NodeState.Success(
                     node = node,
                     nodeInfoListData = NodeInfoListData(node = node)
                 )
             } ?: NodeState.Error(Throwable("Node not found"))
-            _uiState.value = _uiState.value.copy(
-                nodeState = state,
-                availableNetworkKeys = selectedNode.unknownNetworkKeys(),
-                availableAppKeys = selectedNode.unknownApplicationKeys()
-            )
+            _uiState.update { state ->
+                state.copy(
+                    nodeState = nodeState,
+                    availableNetworkKeys = selectedNode.unknownNetworkKeys(),
+                    availableAppKeys = selectedNode.unknownApplicationKeys()
+                )
+            }
             meshNetwork = it // update the local network instance
         }.launchIn(scope = viewModelScope)
     }

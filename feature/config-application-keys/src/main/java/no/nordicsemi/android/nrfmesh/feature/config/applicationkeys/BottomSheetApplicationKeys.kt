@@ -85,7 +85,7 @@ fun BottomSheetApplicationKeys(
                     .padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {
-                items(items = keys) { key ->
+                items(items = keys, key = { it.index.toInt() + 1 }) { key ->
                     val showProgress =
                         (messageState.message as? ConfigAppKeyAdd)?.keyIndex == key.index &&
                                 messageState.isInProgress()

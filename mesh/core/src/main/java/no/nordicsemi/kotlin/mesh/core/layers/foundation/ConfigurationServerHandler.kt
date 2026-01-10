@@ -268,9 +268,6 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                         meshNetwork.removeNetworkKeyAtIndex(index = index.toInt(), force = true)
                     }
 
-                    // Remove the key from the local node too
-                    localNode.removeNetKey(index = index)
-
                     // Return success
                     return ConfigNetKeyStatus(
                         request = request,
@@ -407,9 +404,6 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
                     runCatching {
                         meshNetwork.removeApplicationKeyWithIndex(index = keyIndex, force = true)
                     }
-
-                    // Remove the key from the local node
-                    localNode.removeAppKey(index = keyIndex)
 
                     // Respond with SUCCESS
                     ConfigAppKeyStatus(
