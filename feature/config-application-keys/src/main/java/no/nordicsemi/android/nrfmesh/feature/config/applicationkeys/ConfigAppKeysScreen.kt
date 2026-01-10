@@ -187,10 +187,7 @@ internal fun ConfigAppKeysScreen(
                             if (!bottomSheetState.isVisible) showBottomSheet = false
                         }
                 }.onFailure {
-                    scope
-                        .launch {
-                            snackbarHostState.showSnackbar(message = it.describe())
-                        }
+                    scope.launch { snackbarHostState.showSnackbar(message = it.describe()) }
                 }
             },
             navigateToApplicationKeys = {
