@@ -90,6 +90,9 @@ class MeshNetworkManager(
     internal var network: MeshNetwork? = null
         private set
 
+    internal var observeNetworkManagerEvents: Job? = null
+    internal var observeMeshMessages: Job? = null
+
     internal var networkManager: NetworkManager? = null
         private set(value) {
             field = value
@@ -1075,29 +1078,47 @@ class MeshNetworkManager(
      */
     @OptIn(ExperimentalUuidApi::class)
     private fun observeNetworkManagerEvents() {
-        networkManager?.networkManagerEventFlow?.onEach {
-            when (it) {
-                NetworkManagerEvent.OnNetworkChanged -> save()
-                NetworkManagerEvent.OnNetworkReset -> {
-                    network?.localProvisioner?.let { provisioner ->
-                        val localElements = this@MeshNetworkManager.localElements
-                        provisioner.network = null
-                        create(provisioner = provisioner)
-                        this@MeshNetworkManager.localElements = localElements
-                    }
+        if (observeNetworkManagerEvents == null || observeNetworkManagerEvents?.isActive == false) {
+            runCatching {
+                observeNetworkManagerEvents = scope.launch {
+                    networkManager?.networkManagerEventFlow?.onEach {
+                        when (it) {
+                            NetworkManagerEvent.OnNetworkChanged -> save()
+                            NetworkManagerEvent.OnNetworkReset -> {
+                                network?.localProvisioner?.let { provisioner ->
+                                    val localElements = this@MeshNetworkManager.localElements
+                                    provisioner.network = null
+                                    create(provisioner = provisioner)
+                                    this@MeshNetworkManager.localElements = localElements
+                                }
+                            }
+                        }
+                    }?.launchIn(scope = scope)
+                }
+            }.onFailure {
+                logger?.w(category = LogCategory.FOUNDATION_MODEL) {
+                    "Error while observing network manager events: ${it.message}"
                 }
             }
-        }?.launchIn(scope = scope)
+        }
     }
 
     /**
      * Observes incoming mesh messages.
      */
     private fun observeMeshMessages() {
-        networkManager?.incomingMeshMessages?.onEach {
-            if (it.message is AccessMessage) {
-                _incomingMeshMessages.emit(it.message)
+        if (observeMeshMessages == null || observeMeshMessages?.isActive == false) {
+            runCatching {
+                observeMeshMessages = networkManager?.incomingMeshMessages?.onEach {
+                    if (it.message is AccessMessage) {
+                        _incomingMeshMessages.emit(it.message)
+                    }
+                }?.launchIn(scope = scope)
+            }.onFailure {
+                logger?.w(category = LogCategory.FOUNDATION_MODEL) {
+                    "Error while observing incoming mesh messages: ${it.message}"
+                }
             }
-        }?.launchIn(scope = scope)
+        }
     }
 }
