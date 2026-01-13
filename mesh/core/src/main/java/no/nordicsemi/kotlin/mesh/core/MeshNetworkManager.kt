@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -109,8 +110,7 @@ class MeshNetworkManager(
             field = value
             networkManager?.bearer = value
         }
-    var proxyFilter: ProxyFilter
-        internal set
+    val proxyFilter: ProxyFilter = ProxyFilter(scope = scope, manager = this)
 
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
@@ -152,10 +152,6 @@ class MeshNetworkManager(
             networkManager?.accessLayer?.reinitializePublishers()
         }
 
-    init {
-        proxyFilter = ProxyFilter(scope = scope, manager = this)
-    }
-
     /**
      * Loads the network from the storage provided by the user.
      *
@@ -170,6 +166,7 @@ class MeshNetworkManager(
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
+        println("Loading completed")
         proxyFilter.onNewNetworkCreated()
         true
     } == true
