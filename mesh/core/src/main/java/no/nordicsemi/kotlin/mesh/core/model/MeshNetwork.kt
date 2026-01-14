@@ -159,7 +159,7 @@ data class MeshNetwork internal constructor(
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
             if (_networkKeys.isEmpty()) return 0u
-            for(index in 0..4095) {
+            for (index in 0..4095) {
                 val keyIndex = index.toUShort()
                 if (!_networkKeys.any { it.index == keyIndex }) return keyIndex
             }
@@ -203,9 +203,9 @@ data class MeshNetwork internal constructor(
                         address = node.primaryUnicastAddress
                     )
                     if (availableElementsCount < elements.size) {
-                        availableElements = elements.dropLast(
-                            n = elements.size - availableElementsCount
-                        ).toMutableList()
+                        availableElements = elements
+                            .dropLast(n = elements.size - availableElementsCount)
+                            .toMutableList()
                     }
                     // Assign the Elements to the Provisioner's node
                     node.set(elements = availableElements)
@@ -483,20 +483,56 @@ data class MeshNetwork internal constructor(
         require(to >= 0 && to < _provisioners.size) {
             throw IllegalArgumentException("Invalid 'to' index!")
         }
-        require(from != to) {
-            return
-        }
+        require(from != to) { return }
         try {
-            val provisioner = removeProvisioner(index = from)
-            _provisioners.add(
-                to, provisioner.apply {
-                    network = this@MeshNetwork
+            val oldLocalProvisioner = if (from == 0 || to == 0) localProvisioner else null
+            val provisioner = _provisioners.removeAt(index = from)
+
+            // The target index must be modified if the Provisioner is being moved below, as it was
+            // removed and other Provisioners were already moved to fill the space.
+            val newToIndex = if (to > from + 1) to - 1 else to
+            if (newToIndex < _provisioners.size)
+                _provisioners.add(index = to, element = provisioner)
+            else _provisioners.add(element = provisioner)
+            updateTimestamp()
+            // If a local Provisioner was moved, it's Composition Data must be cleared, as most
+            // probably it will be exported to another phone, which will have it's own manufacturer,
+            // Elements, etc.
+            if (newToIndex == 0 || from == 0) {
+                oldLocalProvisioner?.node?.apply {
+                    companyIdentifier = null
+                    productIdentifier = null
+                    versionIdentifier = null
+                    defaultTTL = null
+                    // After exporting and importing the mesh network configuration on
+                    // another phone, that phone will update the local Elements array.
+                    // As the final Elements count is unknown at this place, just add
+                    // the required Element.
+                    elements.forEach { element ->
+                        element.parentNode = null
+                        element.index = 0
+                    }
+                    set(elements = listOf(Element.primaryElement))
                 }
-            ).also {
-                updateTimestamp()
+            }
+            // If a Provisioner was moved to index 0 it becomes the new local Provisioner. The local
+            // Provisioner is, by definition, aware of all Network and Application Keys currently
+            // existing in the network.
+            if (newToIndex == 0 || from == 0) {
+                localProvisioner?.node?.apply {
+                    companyIdentifier = 0x00E0u // Google
+                    productIdentifier = null
+                    versionIdentifier = null
+                    defaultTTL = null
+                    // After exporting and importing the mesh network configuration on
+                    // another phone, that phone will update the local Elements array.
+                    // As the final Elements count is unknown at this place, just add
+                    // the required Element.
+                    val elements = _localElements
+                    _localElements = elements
+                }
             }
         } catch (e: Exception) {
-            println("Error while moving provisioner: ${e.message}")
             throw IllegalStateException("Error while moving provisioner!", e)
         }
     }
