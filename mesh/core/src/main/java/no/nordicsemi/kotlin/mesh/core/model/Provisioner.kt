@@ -466,7 +466,7 @@ data class Provisioner internal constructor(
                 assignNetKeys(network.networkKeys)
                 assignAppKeys(network.applicationKeys)
                 network.localProvisioner?.takeIf {
-                    it == this@Provisioner
+                    it.uuid == this@Provisioner.uuid
                 }?.let {
                     add(elements = network.localElements)
                     companyIdentifier = 0x00E0u // Google
