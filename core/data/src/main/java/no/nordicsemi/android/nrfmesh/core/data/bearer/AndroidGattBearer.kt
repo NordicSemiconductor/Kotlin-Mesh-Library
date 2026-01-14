@@ -6,6 +6,7 @@ import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.ConjunctionFilterScope
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
+import no.nordicsemi.kotlin.ble.core.WriteType
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearerImpl
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -29,5 +30,6 @@ class AndroidGattBearer(
     override suspend fun configurePeripheral(peripheral: Peripheral) {
         // Request highest connection parameters after connect in the super.open()
         peripheral.requestHighestValueLength()
+        mtu = peripheral.maximumWriteValueLength(WriteType.WITHOUT_RESPONSE)
     }
 }
