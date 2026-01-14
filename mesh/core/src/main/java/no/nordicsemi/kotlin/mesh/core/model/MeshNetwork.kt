@@ -412,8 +412,12 @@ data class MeshNetwork internal constructor(
         require(_provisioners.size > 1) { throw CannotRemove() }
 
         val localProvisionerRemoved = index == 0
-        val provisioner = _provisioners.removeAt(index = index)
-            .also { it.network = null }
+        val provisioner = _provisioners
+            .removeAt(index = index)
+            .also {
+                removeNode(uuid = it.uuid)
+                it.network = null
+            }
 
         // If the old local Provisioner has been removed, and a new one has been set in it's place,
         // it needs the properties to be updated.
@@ -421,7 +425,7 @@ data class MeshNetwork internal constructor(
             localProvisioner?.node?.apply {
                 assignNetKeys(networkKeys)
                 assignAppKeys(applicationKeys)
-                companyIdentifier = 0x00E0u
+                companyIdentifier = 0x00E0u // Google
                 replayProtectionCount = maxUnicastAddress
                 // The Element adding has to be done this way. Some Elements may get cut
                 // by the property observer when Element addresses overlap other Node's
