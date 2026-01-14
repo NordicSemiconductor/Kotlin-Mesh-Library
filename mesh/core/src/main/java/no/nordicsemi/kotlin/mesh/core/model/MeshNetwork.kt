@@ -159,7 +159,7 @@ data class MeshNetwork internal constructor(
     val nextAvailableNetworkKeyIndex: KeyIndex?
         get() {
             if (_networkKeys.isEmpty()) return 0u
-            for(index in 0..4095) {
+            for (index in 0..4095) {
                 val keyIndex = index.toUShort()
                 if (!_networkKeys.any { it.index == keyIndex }) return keyIndex
             }
@@ -203,9 +203,9 @@ data class MeshNetwork internal constructor(
                         address = node.primaryUnicastAddress
                     )
                     if (availableElementsCount < elements.size) {
-                        availableElements = elements.dropLast(
-                            n = elements.size - availableElementsCount
-                        ).toMutableList()
+                        availableElements = elements
+                            .dropLast(n = elements.size - availableElementsCount)
+                            .toMutableList()
                     }
                     // Assign the Elements to the Provisioner's node
                     node.set(elements = availableElements)
@@ -412,8 +412,12 @@ data class MeshNetwork internal constructor(
         require(_provisioners.size > 1) { throw CannotRemove() }
 
         val localProvisionerRemoved = index == 0
-        val provisioner = _provisioners.removeAt(index = index)
-            .also { it.network = null }
+        val provisioner = _provisioners
+            .removeAt(index = index)
+            .also {
+                removeNode(uuid = it.uuid)
+                it.network = null
+            }
 
         // If the old local Provisioner has been removed, and a new one has been set in it's place,
         // it needs the properties to be updated.
@@ -421,7 +425,7 @@ data class MeshNetwork internal constructor(
             localProvisioner?.node?.apply {
                 assignNetKeys(networkKeys)
                 assignAppKeys(applicationKeys)
-                companyIdentifier = 0x00E0u
+                companyIdentifier = 0x00E0u // Google
                 replayProtectionCount = maxUnicastAddress
                 // The Element adding has to be done this way. Some Elements may get cut
                 // by the property observer when Element addresses overlap other Node's
@@ -479,20 +483,56 @@ data class MeshNetwork internal constructor(
         require(to >= 0 && to < _provisioners.size) {
             throw IllegalArgumentException("Invalid 'to' index!")
         }
-        require(from != to) {
-            return
-        }
+        require(from != to) { return }
         try {
-            val provisioner = removeProvisioner(index = from)
-            _provisioners.add(
-                to, provisioner.apply {
-                    network = this@MeshNetwork
+            val oldLocalProvisioner = if (from == 0 || to == 0) localProvisioner else null
+            val provisioner = _provisioners.removeAt(index = from)
+
+            // The target index must be modified if the Provisioner is being moved below, as it was
+            // removed and other Provisioners were already moved to fill the space.
+            val newToIndex = if (to > from + 1) to - 1 else to
+            if (newToIndex < _provisioners.size)
+                _provisioners.add(index = to, element = provisioner)
+            else _provisioners.add(element = provisioner)
+            updateTimestamp()
+            // If a local Provisioner was moved, it's Composition Data must be cleared, as most
+            // probably it will be exported to another phone, which will have it's own manufacturer,
+            // Elements, etc.
+            if (newToIndex == 0 || from == 0) {
+                oldLocalProvisioner?.node?.apply {
+                    companyIdentifier = null
+                    productIdentifier = null
+                    versionIdentifier = null
+                    defaultTTL = null
+                    // After exporting and importing the mesh network configuration on
+                    // another phone, that phone will update the local Elements array.
+                    // As the final Elements count is unknown at this place, just add
+                    // the required Element.
+                    elements.forEach { element ->
+                        element.parentNode = null
+                        element.index = 0
+                    }
+                    set(elements = listOf(Element.primaryElement))
                 }
-            ).also {
-                updateTimestamp()
+            }
+            // If a Provisioner was moved to index 0 it becomes the new local Provisioner. The local
+            // Provisioner is, by definition, aware of all Network and Application Keys currently
+            // existing in the network.
+            if (newToIndex == 0 || from == 0) {
+                localProvisioner?.node?.apply {
+                    companyIdentifier = 0x00E0u // Google
+                    productIdentifier = null
+                    versionIdentifier = null
+                    defaultTTL = null
+                    // After exporting and importing the mesh network configuration on
+                    // another phone, that phone will update the local Elements array.
+                    // As the final Elements count is unknown at this place, just add
+                    // the required Element.
+                    val elements = _localElements
+                    _localElements = elements
+                }
             }
         } catch (e: Exception) {
-            println("Error while moving provisioner: ${e.message}")
             throw IllegalStateException("Error while moving provisioner!", e)
         }
     }
@@ -842,7 +882,7 @@ data class MeshNetwork internal constructor(
      * @param node Node to be removed.
      */
     fun remove(node: Node) {
-        removeNode(node.uuid)
+        removeNode(uuid = node.uuid)
     }
 
     /**
@@ -851,9 +891,9 @@ data class MeshNetwork internal constructor(
      * @param uuid Uuid of the node to be removed.
      */
     internal fun removeNode(uuid: Uuid) {
-        _nodes.find {
-            it.uuid == uuid
-        }?.let { node ->
+        _nodes
+            .find { it.uuid == uuid }
+            ?.let { node ->
             _nodes.remove(node)
             // Remove unicast addresses of all node's elements from the scene
             _scenes.forEach { it.remove(node.addresses) }
@@ -861,7 +901,11 @@ data class MeshNetwork internal constructor(
             // cannot be assigned to another node until the IV index is incremented by 2 which
             // effectively resets the Sequence number used by all the nodes in the network.
             _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
-        }.also { updateTimestamp() }
+            // As the node is removed from the network and is no longer part of the network,
+            // clear it's network reference.
+            node.network = null
+            updateTimestamp()
+        }
     }
 
     /**
