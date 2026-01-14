@@ -101,9 +101,9 @@ abstract class BaseGattBearer<
         when {
             dataInChar != null && dataOutChar != null -> {
                 dataInCharacteristic = dataInChar
-                subscribe(dataOutCharacteristic = dataOutChar)
                 // Marks device as ready
                 onOpened()
+                subscribe(dataOutCharacteristic = dataOutChar)
             }
 
             else -> {

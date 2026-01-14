@@ -2,6 +2,7 @@ package no.nordicsemi.kotlin.mesh.core
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -89,6 +90,9 @@ class MeshNetworkManager(
     internal var network: MeshNetwork? = null
         private set
 
+    internal var observeNetworkManagerEvents: Job? = null
+    internal var observeMeshMessages: Job? = null
+
     internal var networkManager: NetworkManager? = null
         private set(value) {
             field = value
@@ -109,8 +113,7 @@ class MeshNetworkManager(
             field = value
             networkManager?.bearer = value
         }
-    var proxyFilter: ProxyFilter
-        internal set
+    val proxyFilter: ProxyFilter = ProxyFilter(scope = scope, manager = this)
 
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
@@ -152,10 +155,6 @@ class MeshNetworkManager(
             networkManager?.accessLayer?.reinitializePublishers()
         }
 
-    init {
-        proxyFilter = ProxyFilter(scope = scope, manager = this)
-    }
-
     /**
      * Loads the network from the storage provided by the user.
      *
@@ -170,6 +169,7 @@ class MeshNetworkManager(
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
+        println("Loading completed")
         proxyFilter.onNewNetworkCreated()
         true
     } == true
@@ -1078,29 +1078,47 @@ class MeshNetworkManager(
      */
     @OptIn(ExperimentalUuidApi::class)
     private fun observeNetworkManagerEvents() {
-        networkManager?.networkManagerEventFlow?.onEach {
-            when (it) {
-                NetworkManagerEvent.OnNetworkChanged -> save()
-                NetworkManagerEvent.OnNetworkReset -> {
-                    network?.localProvisioner?.let { provisioner ->
-                        val localElements = this@MeshNetworkManager.localElements
-                        provisioner.network = null
-                        create(provisioner = provisioner)
-                        this@MeshNetworkManager.localElements = localElements
-                    }
+        if (observeNetworkManagerEvents == null || observeNetworkManagerEvents?.isActive == false) {
+            runCatching {
+                observeNetworkManagerEvents = scope.launch {
+                    networkManager?.networkManagerEventFlow?.onEach {
+                        when (it) {
+                            NetworkManagerEvent.OnNetworkChanged -> save()
+                            NetworkManagerEvent.OnNetworkReset -> {
+                                network?.localProvisioner?.let { provisioner ->
+                                    val localElements = this@MeshNetworkManager.localElements
+                                    provisioner.network = null
+                                    create(provisioner = provisioner)
+                                    this@MeshNetworkManager.localElements = localElements
+                                }
+                            }
+                        }
+                    }?.launchIn(scope = scope)
+                }
+            }.onFailure {
+                logger?.w(category = LogCategory.FOUNDATION_MODEL) {
+                    "Error while observing network manager events: ${it.message}"
                 }
             }
-        }?.launchIn(scope = scope)
+        }
     }
 
     /**
      * Observes incoming mesh messages.
      */
     private fun observeMeshMessages() {
-        networkManager?.incomingMeshMessages?.onEach {
-            if (it.message is AccessMessage) {
-                _incomingMeshMessages.emit(it.message)
+        if (observeMeshMessages == null || observeMeshMessages?.isActive == false) {
+            runCatching {
+                observeMeshMessages = networkManager?.incomingMeshMessages?.onEach {
+                    if (it.message is AccessMessage) {
+                        _incomingMeshMessages.emit(it.message)
+                    }
+                }?.launchIn(scope = scope)
+            }.onFailure {
+                logger?.w(category = LogCategory.FOUNDATION_MODEL) {
+                    "Error while observing incoming mesh messages: ${it.message}"
+                }
             }
-        }?.launchIn(scope = scope)
+        }
     }
 }
