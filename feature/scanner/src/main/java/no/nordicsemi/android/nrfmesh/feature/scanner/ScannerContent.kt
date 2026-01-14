@@ -59,8 +59,6 @@ fun ScannerContent(
                                     subtitle = device.uuid.toString().uppercase()
                                 )
                             }
-                    }.onFailure {
-                        println("Failed to parse device: ${it.localizedMessage}")
                     }
                 }
 

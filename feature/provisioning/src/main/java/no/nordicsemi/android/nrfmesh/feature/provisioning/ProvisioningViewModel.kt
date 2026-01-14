@@ -250,7 +250,6 @@ class ProvisioningViewModel @Inject constructor(
                     )
                 )
             )
-            println("We are here: ${_uiState.value.provisionerState}")
         }
     }
 

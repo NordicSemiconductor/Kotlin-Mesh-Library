@@ -169,7 +169,6 @@ class MeshNetworkManager(
         this@MeshNetworkManager.network = meshNetwork
         _meshNetwork.emit(meshNetwork)
         networkManager = NetworkManager(this)
-        println("Loading completed")
         proxyFilter.onNewNetworkCreated()
         true
     } == true

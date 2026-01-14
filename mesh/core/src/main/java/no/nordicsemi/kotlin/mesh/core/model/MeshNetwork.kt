@@ -550,7 +550,6 @@ data class MeshNetwork internal constructor(
     fun move(provisioner: Provisioner, to: Int) {
         require(provisioner.network == this) { throw DoesNotBelongToNetwork() }
         _provisioners.indexOf(provisioner).takeIf { it > -1 }?.let { from ->
-            println("Moving provisioner from $from to $to")
             moveProvisioner(from = from, to = to)
         }
     }
