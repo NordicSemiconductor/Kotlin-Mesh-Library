@@ -846,7 +846,7 @@ data class MeshNetwork internal constructor(
      * @param node Node to be removed.
      */
     fun remove(node: Node) {
-        removeNode(node.uuid)
+        removeNode(uuid = node.uuid)
     }
 
     /**
@@ -855,9 +855,9 @@ data class MeshNetwork internal constructor(
      * @param uuid Uuid of the node to be removed.
      */
     internal fun removeNode(uuid: Uuid) {
-        _nodes.find {
-            it.uuid == uuid
-        }?.let { node ->
+        _nodes
+            .find { it.uuid == uuid }
+            ?.let { node ->
             _nodes.remove(node)
             // Remove unicast addresses of all node's elements from the scene
             _scenes.forEach { it.remove(node.addresses) }
@@ -865,7 +865,11 @@ data class MeshNetwork internal constructor(
             // cannot be assigned to another node until the IV index is incremented by 2 which
             // effectively resets the Sequence number used by all the nodes in the network.
             _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
-        }.also { updateTimestamp() }
+            // As the node is removed from the network and is no longer part of the network,
+            // clear it's network reference.
+            node.network = null
+            updateTimestamp()
+        }
     }
 
     /**
