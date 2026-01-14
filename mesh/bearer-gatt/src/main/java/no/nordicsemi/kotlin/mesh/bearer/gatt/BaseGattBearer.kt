@@ -4,7 +4,6 @@ package no.nordicsemi.kotlin.mesh.bearer.gatt
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -71,7 +70,7 @@ abstract class BaseGattBearer<
     )
     override var isOpen: Boolean = false
         internal set
-    private var mtu: Int = DEFAULT_MTU
+    protected var mtu: Int = DEFAULT_MTU
 
     private val proxyProtocolHandler = ProxyProtocolHandler()
     protected var dataInCharacteristic: RemoteCharacteristic? = null
@@ -171,20 +170,19 @@ abstract class BaseGattBearer<
     private fun onClosed() {
         if (isOpen) {
             isOpen = false
-            _state.value = BearerEvent.Closed(
-                error = BearerError.Closed()
-            )
+            _state.value = BearerEvent.Closed(error = BearerError.Closed())
             logger?.v(LogCategory.BEARER) { "Bearer closed" }
         }
     }
 
     override suspend fun send(pdu: ByteArray, type: PduType) {
-        require(supports(type)) { throw BearerError.PduTypeNotSupported() }
+        require(supports(type = type)) { throw BearerError.PduTypeNotSupported() }
         require(isOpen) { throw BearerError.Closed() }
-        proxyProtocolHandler.segment(pdu, type, mtu)
+
+        proxyProtocolHandler.segment(data = pdu, type = type, mtu = mtu)
             .forEach {
                 dataInCharacteristic
-                    ?.write(it, WriteType.WITHOUT_RESPONSE)
+                    ?.write(data = it, writeType = WriteType.WITHOUT_RESPONSE)
                     ?: run {
                         logger?.e(category = LogCategory.BEARER) {
                             "Error: dataInCharacteristic is null"
@@ -210,8 +208,8 @@ abstract class BaseGattBearer<
                     "Unsubscribed from: $dataOutCharacteristic"
                 }
             }
-            .launchIn(scope)
-        dataOutCharacteristic.setNotifying(true)
+            .launchIn(scope = scope)
+        dataOutCharacteristic.setNotifying(enabled = true)
     }
 
     companion object {
