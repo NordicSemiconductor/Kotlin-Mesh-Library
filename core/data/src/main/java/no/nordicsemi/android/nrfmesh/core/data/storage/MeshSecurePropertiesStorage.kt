@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.ProtoIvIndex
 import no.nordicsemi.android.nrfmesh.core.data.ProtoSecureProperties
@@ -71,11 +72,13 @@ class MeshSecurePropertiesStorage @Inject constructor(
      * @return [ProtoSecurePropertiesMap] for the given [uuid].
      */
     @OptIn(ExperimentalUuidApi::class)
-    private suspend fun secureProperties(uuid: Uuid) = securePropertiesStore.data
-        .firstOrNull()
-        ?.properties
-        ?.get(key = uuid.toString())
-        ?: createProtoSecurePropertiesMap(uuid = uuid).properties[uuid.toString()]
+    private suspend fun secureProperties(uuid: Uuid) = withContext(ioDispatcher) {
+        securePropertiesStore.data
+            .firstOrNull()
+            ?.properties
+            ?.get(key = uuid.toString())
+            ?: createProtoSecurePropertiesMap(uuid = uuid).properties[uuid.toString()]
+    }
 
     /**
      * Stores the given secure properties for a given network.
@@ -97,54 +100,59 @@ class MeshSecurePropertiesStorage @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun storeLocalProvisioner(uuid: Uuid, localProvisionerUuid: Uuid) {
-        securePropertiesStore.updateData { securePropertiesMap ->
-            val propertiesMap = securePropertiesMap
-                .properties
-                .toMutableMap()
-            var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties(
-                localProvisionerUuid = localProvisionerUuid.toString()
-            )
-            properties = properties.copy(localProvisionerUuid = localProvisionerUuid.toString())
-            propertiesMap[uuid.toString()] = properties
-            securePropertiesMap.copy(properties = propertiesMap.toMap())
+    override suspend fun storeLocalProvisioner(uuid: Uuid, localProvisionerUuid: Uuid): Unit =
+        withContext(context = ioDispatcher) {
+            securePropertiesStore.updateData { securePropertiesMap ->
+                val propertiesMap = securePropertiesMap
+                    .properties
+                    .toMutableMap()
+                var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties(
+                    localProvisionerUuid = localProvisionerUuid.toString()
+                )
+                properties = properties.copy(localProvisionerUuid = localProvisionerUuid.toString())
+                propertiesMap[uuid.toString()] = properties
+                securePropertiesMap.copy(properties = propertiesMap.toMap())
+            }
         }
-    }
 
     @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
-    override suspend fun ivIndex(uuid: Uuid): IvIndex = secureProperties(uuid = uuid)
-        ?.ivIndex?.toIvIndex() ?: IvIndex().also {
-        storeIvIndex(uuid, it)
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    override suspend fun storeIvIndex(uuid: Uuid, ivIndex: IvIndex) {
-        securePropertiesStore.updateData { securePropertiesMap ->
-            val propertiesMap = securePropertiesMap
-                .properties
-                .toMutableMap()
-            var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
-            properties = properties.copy(ivIndex = ivIndex.toProtoIvIndex())
-            propertiesMap[uuid.toString()] = properties
-            securePropertiesMap.copy(properties = propertiesMap.toMap())
+    override suspend fun ivIndex(uuid: Uuid): IvIndex = withContext(context = ioDispatcher) {
+        secureProperties(uuid = uuid)
+            ?.ivIndex?.toIvIndex() ?: IvIndex().also {
+            storeIvIndex(uuid, it)
         }
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun nextSequenceNumber(uuid: Uuid, address: UnicastAddress): UInt {
-        // Lets get the sequence number from the data store for a given address or 0 if it doesn't
-        // exist
-        val sequenceNumber = secureProperties(uuid = uuid)
-            ?.sequenceNumbers
-            ?.get(key = address.address.toInt())?.toUInt() ?: 0u
-        // Increment the sequence number and store it back to the data store
-        storeNextSequenceNumber(
-            uuid = uuid,
-            address = address,
-            sequenceNumber = (sequenceNumber + 1u)
-        )
-        return sequenceNumber
-    }
+    override suspend fun storeIvIndex(uuid: Uuid, ivIndex: IvIndex): Unit =
+        withContext(context = ioDispatcher) {
+            securePropertiesStore.updateData { securePropertiesMap ->
+                val propertiesMap = securePropertiesMap
+                    .properties
+                    .toMutableMap()
+                var properties = propertiesMap[uuid.toString()] ?: ProtoSecureProperties()
+                properties = properties.copy(ivIndex = ivIndex.toProtoIvIndex())
+                propertiesMap[uuid.toString()] = properties
+                securePropertiesMap.copy(properties = propertiesMap.toMap())
+            }
+        }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun nextSequenceNumber(uuid: Uuid, address: UnicastAddress): UInt =
+        withContext(context = ioDispatcher) {
+            // Lets get the sequence number from the data store for a given address or 0 if it doesn't
+            // exist
+            val sequenceNumber = secureProperties(uuid = uuid)
+                ?.sequenceNumbers
+                ?.get(key = address.address.toInt())?.toUInt() ?: 0u
+            // Increment the sequence number and store it back to the data store
+            storeNextSequenceNumber(
+                uuid = uuid,
+                address = address,
+                sequenceNumber = (sequenceNumber + 1u)
+            )
+            sequenceNumber
+        }
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun storeNextSequenceNumber(
@@ -184,7 +192,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
             ?.last?.toULong() //?: 0uL
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun storeLastSeqAuthValue(
+    override fun storeLastSeqAuthValue(
         uuid: Uuid,
         source: UnicastAddress,
         lastSeqAuth: ULong,
@@ -216,7 +224,7 @@ class MeshSecurePropertiesStorage @Inject constructor(
             ?.previous?.toULong() ?: 0uL
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun storePreviousSeqAuthValue(
+    override fun storePreviousSeqAuthValue(
         uuid: Uuid,
         source: UnicastAddress,
         seqAuth: ULong,
