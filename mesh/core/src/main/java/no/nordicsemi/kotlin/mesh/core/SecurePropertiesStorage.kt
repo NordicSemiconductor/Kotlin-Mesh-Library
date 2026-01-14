@@ -87,7 +87,7 @@ interface SecurePropertiesStorage {
      * @param source      Source address.
      */
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun storeLastSeqAuthValue(uuid: Uuid, source: UnicastAddress, lastSeqAuth: ULong)
+    fun storeLastSeqAuthValue(uuid: Uuid, source: UnicastAddress, lastSeqAuth: ULong)
 
     /**
      * Returns the previous SeqAuth value for the given source address.
@@ -108,7 +108,7 @@ interface SecurePropertiesStorage {
      * @param source  Source address.
      */
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun storePreviousSeqAuthValue(uuid: Uuid, source: UnicastAddress, seqAuth: ULong)
+    fun storePreviousSeqAuthValue(uuid: Uuid, source: UnicastAddress, seqAuth: ULong)
 
     /**
      * Stores the local provisioner for a given network. This can be used to restore the
