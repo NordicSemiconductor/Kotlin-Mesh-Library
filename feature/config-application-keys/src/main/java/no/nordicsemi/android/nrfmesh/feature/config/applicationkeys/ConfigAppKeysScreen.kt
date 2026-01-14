@@ -79,9 +79,6 @@ internal fun ConfigAppKeysScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val isRefreshing by rememberSaveable {
-        mutableStateOf(messageState.isInProgress() && messageState.message is ConfigAppKeyGet)
-    }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
@@ -92,7 +89,7 @@ internal fun ConfigAppKeysScreen(
             modifier = Modifier
                 .fillMaxSize(),
             onRefresh = { readApplicationKeys() },
-            isRefreshing = isRefreshing
+            isRefreshing = messageState.isInProgress() && messageState.message is ConfigAppKeyGet
         ) {
             when (addedApplicationKeys.isNotEmpty()) {
                 true -> LazyColumn(

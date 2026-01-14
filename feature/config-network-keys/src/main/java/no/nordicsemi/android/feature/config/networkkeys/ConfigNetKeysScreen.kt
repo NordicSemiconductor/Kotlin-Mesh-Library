@@ -74,16 +74,13 @@ internal fun ConfigNetKeysScreen(
     availableNetworkKeys: List<NetworkKey>,
     messageState: MessageState,
     onAddNetworkKeyClicked: () -> Unit,
-    isKeyInUse:(NetworkKey) -> Boolean,
+    isKeyInUse: (NetworkKey) -> Boolean,
     navigateToNetworkKeys: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val isRefreshing by rememberSaveable {
-        mutableStateOf(messageState.isInProgress() && messageState.message is ConfigNetKeyGet)
-    }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmationDialog by rememberSaveable { mutableStateOf(false) }
@@ -93,7 +90,7 @@ internal fun ConfigNetKeysScreen(
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             onRefresh = { send(ConfigNetKeyGet()) },
-            isRefreshing = isRefreshing
+            isRefreshing = messageState.isInProgress() && messageState.message is ConfigNetKeyGet
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 when (addedNetworkKeys.isNotEmpty()) {
@@ -183,7 +180,7 @@ internal fun ConfigNetKeysScreen(
             onAddNetworkKeyClicked = {
                 runCatching {
                     onAddNetworkKeyClicked()
-                    if(isLocalProvisionerNode){
+                    if (isLocalProvisionerNode) {
                         scope
                             .launch {
                                 bottomSheetState.hide()
