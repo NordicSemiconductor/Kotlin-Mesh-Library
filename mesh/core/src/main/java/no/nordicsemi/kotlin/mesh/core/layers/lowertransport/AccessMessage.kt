@@ -97,7 +97,7 @@ internal open class AccessMessage(
          * @return an AccessMessage or null if the pdu is invalid.
          */
         fun init(pdu: NetworkPdu): AccessMessage {
-            // Minimum length of a Access Message is 6 bytes:
+            // Minimum length of an Access Message is 6 bytes:
             // * 1 byte for SEG | AKF | AID
             // * at least one byte of Upper Transport Layer payload
             // * 4 or 8 bytes of TransMIC
