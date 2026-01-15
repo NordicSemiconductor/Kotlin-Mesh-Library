@@ -85,7 +85,10 @@ private fun Request(
     var acknowledged by rememberSaveable { mutableStateOf(false) }
     var sixtyFourBitTransmic by rememberSaveable { mutableStateOf(false) }
     var forceSegmentation by rememberSaveable { mutableStateOf(false) }
-    SectionTitle(title = stringResource(R.string.label_request))
+    SectionTitle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(R.string.label_request)
+    )
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(
             modifier = Modifier
@@ -344,7 +347,10 @@ private fun Request(
 
 @Composable
 private fun Response(messageState: MessageState) {
-    SectionTitle(title = stringResource(R.string.label_response))
+    SectionTitle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(R.string.label_response)
+    )
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
