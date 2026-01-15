@@ -47,8 +47,18 @@ private fun ModelIdRow(modelId: ModelId) {
         imageVector = Icons.Outlined.Numbers,
         title = stringResource(R.string.label_model_identifier),
         subtitle = when (modelId) {
-            is SigModelId -> modelId.modelIdentifier.toHexString()
-            is VendorModelId -> modelId.modelIdentifier.toHexString()
+            is SigModelId -> modelId.modelIdentifier.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+            is VendorModelId -> modelId.modelIdentifier.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
         }
     )
 }

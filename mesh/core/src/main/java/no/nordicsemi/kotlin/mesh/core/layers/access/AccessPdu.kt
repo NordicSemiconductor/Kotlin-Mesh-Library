@@ -51,9 +51,7 @@ internal data class AccessPdu(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "Access PDU (opCode: " +
             "${opCode.toHexString(format = HexFormat {
-                number {
-                    prefix = "0x"
-                }
+                number.prefix = "0x"
                 upperCase = true
             })}, " +
             "parameters: ${parameters.toHexString(format = HexFormat {
