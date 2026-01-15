@@ -780,7 +780,7 @@ data class MeshNetwork internal constructor(
      * Returns the provisioner's node or null, if the provisioner is not a part of the network or
      * does not have an address assigned.
      *
-     * @param provisioner Provisioner who's node is to be returned.
+     * @param provisioner Provisioner whose node is to be returned.
      * @return Null if the provisioner is not a part of the network or if the provisioner does not
      *         have an address assigned.
      */
