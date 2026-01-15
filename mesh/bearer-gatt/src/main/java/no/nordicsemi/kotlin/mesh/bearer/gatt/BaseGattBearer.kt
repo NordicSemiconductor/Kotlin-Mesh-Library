@@ -182,6 +182,9 @@ abstract class BaseGattBearer<
         proxyProtocolHandler.segment(data = pdu, type = type, mtu = mtu)
             .forEach {
                 dataInCharacteristic
+                    ?.also {
+                        logger?.v(LogCategory.BEARER) { "-> ${pdu.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
+                    }
                     ?.write(data = it, writeType = WriteType.WITHOUT_RESPONSE)
                     ?: run {
                         logger?.e(category = LogCategory.BEARER) {
@@ -200,10 +203,12 @@ abstract class BaseGattBearer<
         // Call subscribe first before setting notifying to avoid missing packets
         dataOutCharacteristic.subscribe()
             .onEach {
+                logger?.v(LogCategory.BEARER) { "<- ${it.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
                 proxyProtocolHandler
                     .reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }
-            }.onCompletion {
+            }
+            .onCompletion {
                 logger?.v(LogCategory.BEARER) {
                     "Unsubscribed from: $dataOutCharacteristic"
                 }
