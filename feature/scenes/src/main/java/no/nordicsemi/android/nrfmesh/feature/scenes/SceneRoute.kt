@@ -24,7 +24,7 @@ internal fun SceneRoute(
 ) {
     Column {
         SectionTitle(
-            modifier = Modifier.padding(vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).padding(vertical = 8.dp),
             title = stringResource(id = R.string.label_scene)
         )
         Name(
