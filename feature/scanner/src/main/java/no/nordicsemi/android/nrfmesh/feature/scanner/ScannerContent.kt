@@ -1,18 +1,16 @@
 package no.nordicsemi.android.nrfmesh.feature.scanner
 
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.common.scanner.R.*
+import no.nordicsemi.android.common.scanner.R.drawable
 import no.nordicsemi.android.common.scanner.rememberFilterState
 import no.nordicsemi.android.common.scanner.view.DeviceListItem
 import no.nordicsemi.android.common.scanner.view.ScannerView
@@ -22,8 +20,6 @@ import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshService
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
-import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
