@@ -150,7 +150,7 @@ private fun Request(
                             )
                         }
                     },
-                    regex = Regex("^[0-9A-Fa-f]?$"),
+                    regex = Regex(pattern = "^[0-9A-Fa-f]?$"),
                 )
             }
             MeshOutlinedHexTextField(
@@ -170,7 +170,7 @@ private fun Request(
                     }
                 ),
                 label = { Text(text = stringResource(R.string.label_parameters)) },
-                regex = Regex("[0-9A-Fa-f]"),
+                regex = Regex(pattern = "^[0-9A-Fa-f]*$"),
             )
             MeshSingleLineListItem(
                 modifier = Modifier.fillMaxSize(),
