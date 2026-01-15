@@ -190,8 +190,7 @@ data class Page0(
                 val location = Location.from(value = rawValue)
                 val sigModelsByteCount = compositionData.getInt(
                     offset = offset + 2,
-                    format = IntFormat.UINT8,
-                    order = ByteOrder.LITTLE_ENDIAN
+                    format = IntFormat.UINT8
                 ) * 2
                 val vendorModelsByteCount = compositionData.getInt(
                     offset = offset + 3,
