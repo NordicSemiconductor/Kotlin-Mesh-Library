@@ -310,7 +310,7 @@ data class MeshNetwork internal constructor(
      * @param provisioner provisioner to check.
      * @return true if the provisioner exists.
      */
-    internal fun has(provisioner: Provisioner) = provisioner(uuid = uuid) != null
+    internal fun has(provisioner: Provisioner) = provisioner(uuid = provisioner.uuid) != null
 
     /**
      * Adds the given [Provisioner] to the list of provisioners in the network.
