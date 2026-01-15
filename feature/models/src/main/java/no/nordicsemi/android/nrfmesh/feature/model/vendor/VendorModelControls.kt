@@ -143,7 +143,7 @@ private fun Request(
                     isError = !isOpCodeValid,
                     label = { Text(text = stringResource(R.string.label_6_bit_op_code)) },
                     supportingText = {
-                        if (opCodeError.isNotEmpty()) {
+                        if (!isOpCodeValid) {
                             Text(
                                 text = opCodeError,
                                 color = MaterialTheme.colorScheme.error
@@ -187,7 +187,7 @@ private fun Request(
                 ),
                 label = { Text(text = stringResource(R.string.label_parameters)) },
                 supportingText = {
-                    if (areParametersValid) {
+                    if (!areParametersValid) {
                         Text(
                             text = parametersError,
                             color = MaterialTheme.colorScheme.error
@@ -254,7 +254,8 @@ private fun Request(
                                         }
                                     }
                                 }.onFailure { _ ->
-                                    opCodeError = context.getString(R.string.label_invalid_vendor_op_code_range)
+                                    opCodeError =
+                                        context.getString(R.string.label_invalid_vendor_op_code_range)
                                 }
                             }
                         }
@@ -268,7 +269,7 @@ private fun Request(
                     isError = !isResponseOpCodeValid,
                     label = { Text(text = stringResource(R.string.label_6_bit_response_op_code)) },
                     supportingText = {
-                        if (responseOpCodeError.isNotEmpty()) {
+                        if (!isResponseOpCodeValid) {
                             Text(
                                 text = responseOpCodeError,
                                 color = MaterialTheme.colorScheme.error
@@ -357,11 +358,12 @@ private fun Request(
                 },
                 enabled = !messageState.isInProgress() && if (acknowledged) {
                     isOpCodeValid &&
+                            areParametersValid &&
                             isResponseOpCodeValid &&
                             opCode.text.isNotEmpty() &&
                             responseOpCode.text.isNotEmpty()
                 } else {
-                    isOpCodeValid && opCode.text.isNotEmpty()
+                    isOpCodeValid && opCode.text.isNotEmpty() && parameters.text.isNotEmpty() && areParametersValid
                 },
                 content = { Text(text = stringResource(R.string.label_send)) }
             )
