@@ -225,8 +225,7 @@ data class Page0(
                 }
                 offset += sigModelsByteCount
 
-
-                for (i in offset until offset + vendorModelsByteCount step 2) {
+                for (i in offset until offset + vendorModelsByteCount step 4) {
                     element.add(
                         Model(
                             modelId = VendorModelId(
