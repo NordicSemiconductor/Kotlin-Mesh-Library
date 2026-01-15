@@ -129,4 +129,7 @@
     <string name="unknown">Unknown</string>
     <string name="label_unicast_destinations">Unicast Destinations</string>
     <string name="label_unicast_sources">Unicast Sources</string>
+    <string name="label_error_incorrect_hex_value">Incorrect hex value</string>
+    <string name="label_empty" />
+    <string name="label_invalid_vendor_op_code_range">Invalid Op Code. Valid range 0x00 - 0x3F</string>
 </resources>

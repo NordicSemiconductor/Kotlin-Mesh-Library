@@ -1,7 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model.vendor
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -39,11 +39,11 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.models.R
+import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
-import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 
 @Composable
 internal fun VendorModelControls(
@@ -65,6 +65,7 @@ private fun Request(
     messageState: MessageState,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
 ) {
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var isOpCodeFocused by rememberSaveable { mutableStateOf(false) }
     var isParametersFocused by rememberSaveable { mutableStateOf(false) }
@@ -77,6 +78,8 @@ private fun Request(
     var parameters by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = ""))
     }
+    var areParametersValid by rememberSaveable { mutableStateOf(true) }
+    var parametersError by rememberSaveable { mutableStateOf("") }
     var responseOpCode by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = ""))
     }
@@ -90,10 +93,7 @@ private fun Request(
         title = stringResource(R.string.label_request)
     )
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Column(
-            modifier = Modifier
-                .padding(all = 16.dp),
-        ) {
+        Column(modifier = Modifier.padding(all = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -123,10 +123,10 @@ private fun Request(
                                 opCodeError = it.text.toUByte(radix = 16).let { code ->
                                     if (code > 0x3Fu) {
                                         isOpCodeValid = false
-                                        "Invalid Op Code. Valid range 0x00 - 0x3F"
+                                        context.getString(R.string.label_invalid_vendor_op_code_range)
                                     } else {
                                         isOpCodeValid = true
-                                        ""
+                                        context.getString(R.string.label_empty)
                                     }
                                 }
                             }.onFailure { _ ->
@@ -143,7 +143,7 @@ private fun Request(
                     isError = !isOpCodeValid,
                     label = { Text(text = stringResource(R.string.label_6_bit_op_code)) },
                     supportingText = {
-                        if (opCodeError.isNotEmpty()) {
+                        if (!isOpCodeValid) {
                             Text(
                                 text = opCodeError,
                                 color = MaterialTheme.colorScheme.error
@@ -162,7 +162,23 @@ private fun Request(
                 onFocus = isParametersFocused,
                 showPrefix = true,
                 value = parameters,
-                onValueChanged = { parameters = it },
+                isError = !areParametersValid,
+                onValueChanged = {
+                    parameters = it
+                    if (parameters.text.isNotEmpty()) {
+                        if (parameters.text.length % 2 == 0) {
+                            areParametersValid = true
+                            parametersError = context.getString(R.string.label_empty)
+                        } else {
+                            areParametersValid = false
+                            parametersError = context
+                                .getString(R.string.label_error_incorrect_hex_value)
+                        }
+                    } else {
+                        areParametersValid = true
+                        parametersError = ""
+                    }
+                },
                 keyboardActions = KeyboardActions(
                     onDone = {
                         isParametersFocused = false
@@ -170,6 +186,14 @@ private fun Request(
                     }
                 ),
                 label = { Text(text = stringResource(R.string.label_parameters)) },
+                supportingText = {
+                    if (!areParametersValid) {
+                        Text(
+                            text = parametersError,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
                 regex = Regex(pattern = "^[0-9A-Fa-f]*$"),
             )
             MeshSingleLineListItem(
@@ -223,14 +247,15 @@ private fun Request(
                                     responseOpCodeError = it.text.toUByte(radix = 16).let { code ->
                                         if (code > 0x3Fu) {
                                             isResponseOpCodeValid = false
-                                            "Invalid Op Code. Valid range 0x00 - 0x3F"
+                                            context.getString(R.string.label_invalid_vendor_op_code_range)
                                         } else {
                                             isResponseOpCodeValid = true
-                                            ""
+                                            context.getString(R.string.label_empty)
                                         }
                                     }
                                 }.onFailure { _ ->
-                                    opCodeError = "Invalid Op Code. Valid range 0x00 - 0x3F"
+                                    opCodeError =
+                                        context.getString(R.string.label_invalid_vendor_op_code_range)
                                 }
                             }
                         }
@@ -244,7 +269,7 @@ private fun Request(
                     isError = !isResponseOpCodeValid,
                     label = { Text(text = stringResource(R.string.label_6_bit_response_op_code)) },
                     supportingText = {
-                        if (responseOpCodeError.isNotEmpty()) {
+                        if (!isResponseOpCodeValid) {
                             Text(
                                 text = responseOpCodeError,
                                 color = MaterialTheme.colorScheme.error
@@ -333,11 +358,12 @@ private fun Request(
                 },
                 enabled = !messageState.isInProgress() && if (acknowledged) {
                     isOpCodeValid &&
+                            areParametersValid &&
                             isResponseOpCodeValid &&
                             opCode.text.isNotEmpty() &&
                             responseOpCode.text.isNotEmpty()
                 } else {
-                    isOpCodeValid && opCode.text.isNotEmpty()
+                    isOpCodeValid && opCode.text.isNotEmpty() && parameters.text.isNotEmpty() && areParametersValid
                 },
                 content = { Text(text = stringResource(R.string.label_send)) }
             )
