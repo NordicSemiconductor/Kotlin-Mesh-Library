@@ -130,7 +130,7 @@ class CoreDataRepository @Inject constructor(
         ioScope.launch {
             val network = load()
             // Connect to the proxy node if automatic connectivity is enabled
-            connectToProxy(meshNetwork = network)
+            startAutomaticConnectivity(meshNetwork = meshNetwork)
         }
     }
 
