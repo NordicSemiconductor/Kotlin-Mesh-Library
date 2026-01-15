@@ -190,18 +190,14 @@ data class Page0(
                 val location = Location.from(value = rawValue)
                 val sigModelsByteCount = compositionData.getInt(
                     offset = offset + 2,
-                    format = IntFormat.UINT8,
-                    order = ByteOrder.LITTLE_ENDIAN
+                    format = IntFormat.UINT8
                 ) * 2
                 val vendorModelsByteCount = compositionData.getInt(
                     offset = offset + 3,
                     format = IntFormat.UINT8
                 ) * 4
 
-                require(
-                    compositionData.size >=
-                            (offset + 3 + sigModelsByteCount + vendorModelsByteCount)
-                ) {
+                require(compositionData.size >= (offset + 3 + sigModelsByteCount + vendorModelsByteCount)) {
                     return null
                 }
 
@@ -225,8 +221,7 @@ data class Page0(
                 }
                 offset += sigModelsByteCount
 
-
-                for (i in offset until offset + vendorModelsByteCount step 2) {
+                for (i in offset until offset + vendorModelsByteCount step 4) {
                     element.add(
                         Model(
                             modelId = VendorModelId(
