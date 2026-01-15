@@ -173,6 +173,10 @@ fun NetworkContent(
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showNetworkInitBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var networkInitSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
@@ -459,6 +463,20 @@ fun NetworkContent(
                 },
                 onDismissClick = { showResetNetworkDialog = false },
                 onDismissRequest = { showResetNetworkDialog = false }
+            )
+        }
+        if (showNetworkInitBottomSheet) {
+            ModalBottomSheet(
+                sheetState = exportSheetState,
+                onDismissRequest = { showExportBottomSheet = false },
+                sheetGesturesEnabled = false,
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = false,
+                    shouldDismissOnClickOutside = false
+                ),
+                content = {
+                    NetworkWizard()
+                }
             )
         }
         if (showExportBottomSheet) {
