@@ -31,8 +31,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.messages.SimpleOnOffGet
+import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.messages.SimpleOnOffStatus
 import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.vendor.AcknowledgedVendorMessageImpl
 import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.vendor.UnacknowledgedVendorMessageImpl
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedHexTextField
@@ -40,6 +44,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.models.R
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessageSecurity
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -379,7 +384,11 @@ private fun Response(messageState: MessageState) {
     )
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+            ) {
                 MeshSingleLineListItem(
                     modifier = Modifier.weight(weight = 1f),
                     leadingComposable = {
@@ -394,25 +403,26 @@ private fun Response(messageState: MessageState) {
                     title = stringResource(R.string.label_op_code)
                 )
                 Text(
-                    text = when (messageState.message) {
-                        is AcknowledgedVendorMessageImpl -> messageState
-                            .response
-                            ?.opCode
-                            ?.toHexString(
-                                format = HexFormat {
-                                    number {
-                                        prefix = "0x"
-                                        removeLeadingZeros = true
-                                    }
-                                    upperCase = true
+                    text = messageState.response?.opCode
+                        // Cut 0xC0 and the Company ID
+                        ?.let { opCode -> (opCode shr 16 and 0x3Fu) }
+                        // Print as Hex
+                        ?.toHexString(
+                            format = HexFormat {
+                                number {
+                                    prefix = "0x"
+                                    removeLeadingZeros = true
                                 }
-                            ) ?: ""
-
-                        else -> ""
-                    }
+                                upperCase = true
+                            }
+                        ) ?: ""
                 )
             }
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+            ) {
                 MeshSingleLineListItem(
                     modifier = Modifier.weight(weight = 1f),
                     leadingComposable = {
@@ -427,24 +437,20 @@ private fun Response(messageState: MessageState) {
                     title = stringResource(R.string.label_status)
                 )
                 Text(
-                    text = when (messageState.message) {
-                        is AcknowledgedVendorMessageImpl -> messageState
-                            .response
-                            ?.parameters
-                            ?.toHexString(
-                                format = HexFormat {
-                                    number {
-                                        prefix = "0x"
-                                        removeLeadingZeros = true
-                                    }
-                                    upperCase = true
-                                }
-                            ) ?: ""
-
-                        else -> ""
-                    }
+                    text = messageState.response?.parameters?.toHexString(prefixOx = true) ?: ""
                 )
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun ResponsePreview() {
+    Response(
+        messageState = Completed(
+            message = SimpleOnOffGet(),
+            response = SimpleOnOffStatus(isOn = true),
+        )
+    )
 }
