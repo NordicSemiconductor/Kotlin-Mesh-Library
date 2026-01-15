@@ -111,11 +111,15 @@ fun NetworkRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberMeshAppState(snackbarHostState = snackbarHostState)
     val currentDestination = appState.currentDestination
-    val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showNetworkInitBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var networkInitSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
     val navigationSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
         adaptiveInfo = currentWindowAdaptiveInfo()
@@ -381,6 +385,18 @@ fun NetworkRoute(
                 onDismissRequest = { showResetNetworkDialog = false }
             )
         }
+        if (showNetworkInitBottomSheet) {
+            ModalBottomSheet(
+                sheetState = exportSheetState,
+                onDismissRequest = { showExportBottomSheet = false },
+                sheetGesturesEnabled = false,
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = false,
+                    shouldDismissOnClickOutside = false
+                ),
+                content = { NetworkWizard() }
+            )
+        }
         if (showExportBottomSheet) {
             ModalBottomSheet(
                 sheetState = exportSheetState,
@@ -423,7 +439,9 @@ fun NetworkRoute(
                 onDismissRequest = { },
                 content = {
                     SectionTitle(
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(vertical = 8.dp),
                         title = stringResource(R.string.label_select_provisioner_rationale),
                         style = MaterialTheme.typography.titleMedium
                     )
