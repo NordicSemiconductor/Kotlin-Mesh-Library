@@ -197,10 +197,7 @@ data class Page0(
                     format = IntFormat.UINT8
                 ) * 4
 
-                require(
-                    compositionData.size >=
-                            (offset + 3 + sigModelsByteCount + vendorModelsByteCount)
-                ) {
+                require(compositionData.size >= (offset + 3 + sigModelsByteCount + vendorModelsByteCount)) {
                     return null
                 }
 
