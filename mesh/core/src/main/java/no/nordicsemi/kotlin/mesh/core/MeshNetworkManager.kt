@@ -297,14 +297,14 @@ class MeshNetworkManager(
      * @param key The Network Key to check.
      */
     internal fun ensureNetworkKeyExists(key: NetworkKey) {
-        proxyFilter.proxy
-            ?.takeIf { it.knows(key = key) }
-            ?.let {
+        proxyFilter.proxy?.let { node ->
+            if (!node.knows(key = key)) {
                 logger?.w(category = LogCategory.PROXY) {
-                    "${it.name} cannot relay messages using ${key.name}, messages will be sent " +
+                    "${node.name} cannot relay messages using ${key.name}, messages will be sent " +
                             "only to the local Node."
                 }
-            } ?: run {
+            }
+        } ?: run {
             logger?.w(category = LogCategory.PROXY) {
                 "No GATT Proxy connected, message will be sent only to the local Node."
             }
