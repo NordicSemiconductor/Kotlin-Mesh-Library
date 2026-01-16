@@ -56,17 +56,19 @@ data class ConfigModelPublicationStatus(
         }
 
     /**
-     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     * Convenience constructor to create the ConfigModelPublicationStatus message that reports that
+     * there is no publication.
      *
      * @param request The [ConfigAnyModelMessage] message that this is a response to.
      */
+    @Suppress("unused")
     constructor(request: ConfigAnyModelMessage) : this(request = request, publish = null)
 
     /**
      * Convenience constructor to create the ConfigModelPublicationStatus message.
      *
      * @param request [ConfigAnyModelMessage] message that this is a response to.
-     * @param publish Publication state.
+     * @param publish Publication state. Setting a null value will clear the publication state.
      */
     constructor(request: ConfigAnyModelMessage, publish: Publish?) : this(
         status = ConfigMessageStatus.SUCCESS,
@@ -88,6 +90,27 @@ data class ConfigModelPublicationStatus(
         modelIdentifier = request.modelIdentifier,
         companyIdentifier = request.companyIdentifier,
         publish = Publish()
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
+     * @param request ConfigModelPublicationSet is the given request from the remote node.
+     */
+    constructor(request: ConfigModelPublicationSet) : this(
+        request = request,
+        publish = request.publish
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
+     * @param request ConfigModelPublicationVirtualAddressSet is the given request from the remote
+     *                node.
+     */
+    constructor(request: ConfigModelPublicationVirtualAddressSet) : this(
+        request = request,
+        publish = request.publish
     )
 
     override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
