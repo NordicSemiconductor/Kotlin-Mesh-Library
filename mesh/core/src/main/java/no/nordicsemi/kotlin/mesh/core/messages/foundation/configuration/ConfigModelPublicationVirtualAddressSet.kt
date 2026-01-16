@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.getUuid
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -26,7 +27,7 @@ import kotlin.uuid.ExperimentalUuidApi
 /**
  * This message is used to set the publication state of a model.
  *
- * @property publish               Contains the publication state.
+ * @property publish               Contains the publication state with a VirtualAddress
  */
 @OptIn(ExperimentalUuidApi::class)
 data class ConfigModelPublicationVirtualAddressSet(
@@ -65,9 +66,7 @@ data class ConfigModelPublicationVirtualAddressSet(
      */
     @Throws(IllegalArgumentException::class)
     constructor(publish: Publish, model: Model) : this(
-        publish = if (publish.address is VirtualAddress) publish else throw IllegalArgumentException(
-            "Address must be VirtualAddress or consider sending ConfigModelPublicationSet"
-        ),
+        publish = publish,
         elementAddress = model.parentElement?.unicastAddress
             ?: throw IllegalArgumentException("Element address cannot be null"),
         modelIdentifier = when (model.modelId) {
@@ -76,6 +75,14 @@ data class ConfigModelPublicationVirtualAddressSet(
         },
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
     )
+
+    init {
+        // Ensures that the address is a VirtualAddress
+        // If not, consider sending [ConfigModelPublicationSet]
+        require(publish.address is VirtualAddress) {
+            "Address must be VirtualAddress or consider sending ConfigModelPublicationSet"
+        }
+    }
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x801Au
@@ -86,22 +93,20 @@ data class ConfigModelPublicationVirtualAddressSet(
             val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
             val label = VirtualAddress(uuid = params.getUuid(offset = 2))
             val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
-            val flag = (params.getUShort(offset = 19) and 0x10u).toInt() shr 4
+            val flag = (params[19] and 0x10).toInt() shr 4
             val ttl = params[20].toUByte()
-            val periodSteps = (params.getUShort(offset = 21) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((params[21].toInt() shr 6))
+            val periodSteps = (params[21] and 0x3F).toUByte()
+            val periodResolution = StepResolution.from(value = (params[21] ushr 6).toUByte())
             val count = (params[22] and 0x07).toUByte()
-            val intervalSteps = (params[22].toInt() shr 3).toUByte()
-
+            val intervalSteps = (params[22] ushr 3).toUByte()
             val publish = Publish(
                 address = label,
                 index = index,
-                credentials = Credentials.from(flag),
+                credentials = Credentials.from(credential = flag),
                 ttl = ttl,
-                period = PublishPeriod(periodSteps, periodResolution),
+                period = PublishPeriod(steps = periodSteps, resolution = periodResolution),
                 retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
             )
-
             if (params.size == 27) {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
@@ -113,7 +118,7 @@ data class ConfigModelPublicationVirtualAddressSet(
                         offset = 25,
                         order = ByteOrder.LITTLE_ENDIAN
                     ),
-                    elementAddress = UnicastAddress(elementAddress)
+                    elementAddress = UnicastAddress(address = elementAddress)
                 )
             } else {
                 ConfigModelPublicationVirtualAddressSet(
@@ -123,7 +128,7 @@ data class ConfigModelPublicationVirtualAddressSet(
                         offset = 23,
                         order = ByteOrder.LITTLE_ENDIAN
                     ),
-                    elementAddress = UnicastAddress(elementAddress)
+                    elementAddress = UnicastAddress(address = elementAddress)
                 )
             }
         }

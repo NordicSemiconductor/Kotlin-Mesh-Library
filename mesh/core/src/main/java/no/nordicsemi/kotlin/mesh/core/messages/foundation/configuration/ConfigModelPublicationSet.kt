@@ -3,7 +3,9 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
+import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -27,7 +29,7 @@ import kotlin.experimental.or
  *
  * @property publish               Contains the publication state.
  */
-data class ConfigModelPublicationSet(
+class ConfigModelPublicationSet(
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
     override val elementAddress: UnicastAddress,
@@ -129,22 +131,22 @@ data class ConfigModelPublicationSet(
             it.size == 11 || it.size == 13
         }?.let { params ->
             val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
-            val address =
-                MeshAddress.create(params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN))
-            val index = params.getUShort(4) and 0x0FFFu
-            val flag = (params.getUShort(5) and 0x10u).toInt() shr 4
+            val address = MeshAddress.create(
+                address = params.getUShort(offset = 2, order = ByteOrder.LITTLE_ENDIAN)
+            )
+            val index = params.getUShort(offset = 4, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+            val flag = (params[5] and 0x10).toInt() shr 4
             val ttl = params[6].toUByte()
-            val periodSteps = (params.getUShort(7) and 0x3Fu).toUByte()
-            val periodResolution = StepResolution.from((params[7].toInt() shr 6))
-            val period = PublishPeriod(periodSteps, periodResolution)
+            val periodSteps = (params[7] and 0x3F).toUByte()
+            val periodResolution = StepResolution.from(value = (params[7] ushr 6).toUByte())
+            val period = PublishPeriod(steps = periodSteps, resolution = periodResolution)
             val count = (params[8] and 0x07).toUByte()
-            val intervalSteps = (params[8].toInt() shr 3).toUByte()
-
+            val intervalSteps = (params[8] ushr 3).toUByte()
             val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
             val publish = Publish(
                 address = address as PublicationAddress,
                 index = index,
-                credentials = Credentials.from(flag),
+                credentials = Credentials.from(credential = flag),
                 ttl = ttl,
                 period = period,
                 retransmit = retransmit
@@ -161,14 +163,14 @@ data class ConfigModelPublicationSet(
                         offset = 11,
                         order = ByteOrder.LITTLE_ENDIAN
                     ),
-                    elementAddress = UnicastAddress(elementAddress)
+                    elementAddress = UnicastAddress(address = elementAddress)
                 )
             } else {
                 ConfigModelPublicationSet(
                     publish = publish,
                     companyIdentifier = null,
                     modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
-                    elementAddress = UnicastAddress(elementAddress)
+                    elementAddress = UnicastAddress(address = elementAddress)
                 )
             }
         }
