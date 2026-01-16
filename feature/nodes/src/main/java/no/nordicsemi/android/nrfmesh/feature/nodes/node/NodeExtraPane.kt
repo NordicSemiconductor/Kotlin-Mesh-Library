@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
+import no.nordicsemi.android.nrfmesh.core.data.models.NodeData
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
@@ -30,6 +31,7 @@ internal fun NodeExtraPane(
     snackbarHostState: SnackbarHostState,
     content: Any?,
     node: Node,
+    nodeData: NodeInfoListData,
     messageState: MessageState,
     nodeIdentityStatus: List<NodeIdentityStatus>,
     send: (AcknowledgedConfigMessage) -> Unit,
@@ -40,10 +42,16 @@ internal fun NodeExtraPane(
     navigateToConfigApplicationKeys: (Uuid) -> Unit,
 ) {
     when (content) {
-        is ModelRouteKey -> ModelScreenRoute(
+        is ModelRouteKey -> {
+        ModelScreenRoute(
             snackbarHostState = snackbarHostState,
             model = node.element(address = content.address)
                 ?.model(modelId = content.modelId)
+                ?: return,
+            modelData = nodeData.elements
+                .firstOrNull { it.unicastAddress.address == content.address }
+                ?.models
+                ?.firstOrNull { model -> model.modelId.id == content.modelId }
                 ?: return,
             messageState = messageState,
             nodeIdentityStates = nodeIdentityStatus,
@@ -54,28 +62,29 @@ internal fun NodeExtraPane(
             navigateToGroups = navigateToGroups,
             navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
         )
-
-        is ApplicationKeysContent -> ApplicationKeysScreenRoute(
-            snackbarHostState = snackbarHostState,
-            highlightSelectedItem = false,
-            onApplicationKeyClicked = {
-                send(
-                    ConfigAppKeyAdd(
-                        key = node.network?.applicationKey(it)
-                            ?: throw IllegalStateException(
-                                "Unable to find application key with index $it"
-                            )
-                    )
-                )
-            },
-            navigateToKey = {},
-            navigateUp = {}
-        )
-
-        else -> PlaceHolder(
-            modifier = Modifier.fillMaxSize(),
-            imageVector = Icons.Outlined.Info,
-            text = stringResource(R.string.label_select_node_item_rationale)
-        )
     }
+
+    is ApplicationKeysContent -> ApplicationKeysScreenRoute(
+    snackbarHostState = snackbarHostState,
+    highlightSelectedItem = false,
+    onApplicationKeyClicked = {
+        send(
+            ConfigAppKeyAdd(
+                key = node.network?.applicationKey(it)
+                    ?: throw IllegalStateException(
+                        "Unable to find application key with index $it"
+                    )
+            )
+        )
+    },
+    navigateToKey = {},
+    navigateUp = {}
+    )
+
+    else -> PlaceHolder(
+    modifier = Modifier.fillMaxSize(),
+    imageVector = Icons.Outlined.Info,
+    text = stringResource(R.string.label_select_node_item_rationale)
+    )
+}
 }

@@ -107,6 +107,7 @@ internal fun NodeListDetailsScreen(
                         snackbarHostState = appState.snackbarHostState,
                         navigator = navigator,
                         node = uiState.nodeState.node,
+                        nodeInfoListData = uiState.nodeState.nodeInfoListData,
                         availableNetworkKeys = uiState.availableNetworkKeys,
                         addedNetworkKeys = uiState.nodeState.nodeInfoListData.netKeys,
                         isNetKeyInUse = {
@@ -155,6 +156,7 @@ internal fun NodeListDetailsScreen(
                     NodeExtraPane(
                         snackbarHostState = appState.snackbarHostState,
                         node = uiState.nodeState.node,
+                        nodeData = uiState.nodeState.nodeInfoListData,
                         messageState = uiState.messageState,
                         nodeIdentityStatus = uiState.nodeIdentityStates,
                         content = content,

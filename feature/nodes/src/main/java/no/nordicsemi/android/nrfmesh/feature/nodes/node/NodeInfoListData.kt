@@ -13,9 +13,7 @@ import kotlin.uuid.Uuid
 
 /**
  * Defines a data object that is used to display the ui state of the Node Info List.
- * @property name                          Name of the node.
- * @property networkKeyCount               Number of network keys in the network.
- * @property appKeyCount                   Number of application keys in the network.
+ * @property name                          Name of the node.\
  * @property elements                      List of elements in the node.
  * @property companyIdentifier             Company identifier of the node.
  * @property productIdentifier             Product identifier of the node.

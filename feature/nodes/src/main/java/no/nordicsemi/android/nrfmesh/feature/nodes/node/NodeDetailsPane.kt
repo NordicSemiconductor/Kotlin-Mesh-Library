@@ -33,6 +33,7 @@ internal fun NodeDetailsPane(
     snackbarHostState: SnackbarHostState,
     navigator: ThreePaneScaffoldNavigator<Any>,
     node: Node,
+    nodeInfoListData: NodeInfoListData,
     availableNetworkKeys: List<NetworkKey>,
     addedNetworkKeys: List<NetworkKey>,
     isNetKeyInUse:(NetworkKey) -> Boolean,
@@ -53,6 +54,7 @@ internal fun NodeDetailsPane(
     when (val content = navigator.currentDestination?.contentKey) {
         is ElementModelRoute -> ElementScreen(
             element = node.element(address = content.address) ?: return,
+            elementData = nodeInfoListData.elements.firstOrNull{ it.unicastAddress.address == content.address} ?: return,
             highlightSelectedItem = navigator.isDetailPaneVisible() &&
                     navigator.isExtraPaneVisible(),
             navigateToModel = navigateToModel,

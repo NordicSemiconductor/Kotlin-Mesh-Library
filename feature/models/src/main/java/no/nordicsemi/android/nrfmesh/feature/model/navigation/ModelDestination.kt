@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
+import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.android.nrfmesh.feature.model.ModelScreen
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
@@ -16,6 +17,7 @@ import kotlin.uuid.Uuid
 fun ModelScreenRoute(
     snackbarHostState: SnackbarHostState,
     model: Model,
+    modelData: ModelData,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     requestNodeIdentityStates: (Model) -> Unit = {},
@@ -28,6 +30,7 @@ fun ModelScreenRoute(
     ModelScreen(
         snackbarHostState = snackbarHostState,
         model = model,
+        modelData = modelData,
         messageState = messageState,
         nodeIdentityStates = nodeIdentityStates,
         requestNodeIdentityStates = requestNodeIdentityStates,

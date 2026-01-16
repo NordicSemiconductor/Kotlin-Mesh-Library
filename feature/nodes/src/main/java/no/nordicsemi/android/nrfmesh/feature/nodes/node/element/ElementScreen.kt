@@ -30,6 +30,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.ElementListData
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.Location
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -41,13 +42,11 @@ import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 @Composable
 internal fun ElementScreen(
     element: Element,
+    elementData: ElementListData,
     highlightSelectedItem: Boolean,
     navigateToModel: (Model) -> Unit,
     save: () -> Unit,
 ) {
-    val elementData by remember(element.unicastAddress) {
-        derivedStateOf { ElementData(element = element) }
-    }
     var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
     Column(
         modifier = Modifier
