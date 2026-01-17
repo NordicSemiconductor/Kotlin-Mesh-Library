@@ -55,7 +55,7 @@ internal data class AccessPdu(
                 upperCase = true
             })}, " +
             "parameters: ${parameters.toHexString(format = HexFormat {
-                number.prefix = "0x"
+                bytes.bytePrefix = "0x"
                 upperCase = true
             })})"
 

@@ -17,8 +17,8 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
  * @property index              The index property contains an integer from 0 to 255 that represents
  *                              the numeric order of the element within this node and a node has
  *                              at-least one element which is called the primary element.
- * @property parentNode         Parent node that an element may belong to.
  * @property unicastAddress     Address of the element.
+ * @property isPrimary          True if the element is the primary element.
  * @constructor Creates an Element object.
  */
 data class ElementData(
@@ -27,7 +27,7 @@ data class ElementData(
     val location: Location,
     val models: List<ModelData>,
     val unicastAddress: UnicastAddress,
-    val isPrimary: Boolean
+    val isPrimary: Boolean,
 ) {
 
     /**
@@ -39,7 +39,7 @@ data class ElementData(
         name = element.name,
         index = element.index,
         location = element.location,
-        models = element.models.map { ModelData(it) },
+        models = element.models.map { ModelData(model = it) },
         unicastAddress = element.unicastAddress,
         isPrimary = element.isPrimary
     )

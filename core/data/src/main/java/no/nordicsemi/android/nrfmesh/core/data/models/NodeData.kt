@@ -114,7 +114,7 @@ data class NodeData internal constructor(
     val isCompositionDataReceived: Boolean,
     val isProvisioner: Boolean,
     val isLocalProvisioner: Boolean,
-    val provisioner: ProvisionerData?
+    val provisioner: ProvisionerData?,
 ) {
     constructor(node: Node) : this(
         uuid = node.uuid,
@@ -122,12 +122,12 @@ data class NodeData internal constructor(
         deviceKey = node.deviceKey,
         netKeys = node.netKeys,
         appKeys = node.appKeys,
-        elements = node.elements.map { ElementData(it) },
+        elements = node.elements.map { ElementData(element = it) },
         primaryUnicastAddress = node.primaryUnicastAddress,
         security = node.security,
         configComplete = node.configComplete,
-        networkKeys = node.networkKeys.map { NetworkKeyData(it) },
-        applicationKeys = node.applicationKeys.map { ApplicationKeyData(it) },
+        networkKeys = node.networkKeys.map { NetworkKeyData(key = it) },
+        applicationKeys = node.applicationKeys.map { ApplicationKeyData(key = it) },
         companyIdentifier = node.companyIdentifier,
         productIdentifier = node.productIdentifier,
         versionIdentifier = node.versionIdentifier,
@@ -140,7 +140,7 @@ data class NodeData internal constructor(
         excluded = node.excluded,
         heartbeatPublication = node.heartbeatPublication,
         heartbeatSubscription = node.heartbeatSubscription,
-        primaryElementData = ElementData(node.primaryElement),
+        primaryElementData = ElementData(element = node.primaryElement),
         elementsCount = node.elementsCount,
         addresses = node.addresses,
         unicastRange = node.unicastRange,
@@ -148,7 +148,7 @@ data class NodeData internal constructor(
         isCompositionDataReceived = node.isCompositionDataReceived,
         isProvisioner = node.isProvisioner,
         isLocalProvisioner = node.isLocalProvisioner,
-        provisioner = node.provisioner?.let { ProvisionerData(it) }
+        provisioner = node.provisioner?.let { ProvisionerData(provisioner = it) }
     )
 
     override fun equals(other: Any?): Boolean {

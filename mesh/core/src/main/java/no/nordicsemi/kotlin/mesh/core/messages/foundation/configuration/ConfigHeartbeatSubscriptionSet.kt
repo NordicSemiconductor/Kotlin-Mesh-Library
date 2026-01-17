@@ -25,16 +25,17 @@ import java.nio.ByteOrder
 class ConfigHeartbeatSubscriptionSet(
     val source: HeartbeatSubscriptionSource,
     val destination: HeartbeatSubscriptionDestination,
-    val periodLog: UByte
+    val periodLog: UByte,
 ) : AcknowledgedConfigMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode = ConfigHeartbeatSubscriptionStatus.opCode
-    override val parameters: ByteArray = source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+    override val parameters = source.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             destination.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
             periodLog.toByte()
 
-    val isSubscriptionEnabled : Boolean
-        get() = source !is UnassignedAddress && destination !is UnassignedAddress && periodLog > 0u
+    val isSubscriptionEnabled = source !is UnassignedAddress && destination !is UnassignedAddress
+            && periodLog > 0u
+
     /**
      * Constructs a ConfigHeartbeatSubscriptionSet message that will disable receiving and
      * processing of Heartbeat messages.
@@ -46,8 +47,21 @@ class ConfigHeartbeatSubscriptionSet(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigHeartbeatSubscriptionSet opCode ${opCode.toHexString()}, " +
-            "parameters: ${parameters.toHexString()}"
+    override fun toString() = "ConfigHeartbeatSubscriptionSet(source: ${
+        source.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, destination: ${
+        destination.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, periodLog: $periodLog)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x803Bu

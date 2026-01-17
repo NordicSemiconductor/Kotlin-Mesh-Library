@@ -28,8 +28,7 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
     override val opCode = Initializer.opCode
     override val parameters = byteArrayOf(((count and 0x07.toUByte()) or (steps shl 3)).toByte())
 
-    val interval: Duration
-        get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
+    val interval: Duration = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
 
     /**
      * Convenience constructor.
@@ -42,8 +41,7 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigNetworkTransmitStatus(opCode: 0x${opCode.toHexString()} " +
-            "parameters: ${parameters.toHexString()})"
+    override fun toString() = "ConfigNetworkTransmitStatus(count: $count, steps: $steps)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8025u

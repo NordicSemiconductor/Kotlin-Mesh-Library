@@ -37,7 +37,7 @@ class UnknownMessage(
             }
         )}, parameters: 0x${parameters.toHexString(
             format = HexFormat {
-                number.prefix = "0x"
+                bytes.bytePrefix = "0x"
                 upperCase = true
             }
         )})"

@@ -41,6 +41,9 @@ enum class StepResolution(val value: UByte) {
 
         /**
          * Returns the StepResolution for the given number of steps.
+         *
+         * @param value Encoded step resolution
+         * @return StepResolution for the given number of steps.
          */
         @Throws(IllegalArgumentException::class)
         fun from(value: UByte): StepResolution = entries.first { it.value == value }

@@ -30,21 +30,8 @@ class ConfigNetKeyList(
         }.toTypedArray()
     )
 
-    override fun toString() = "ConfigNetKeyList(opCode: ${
-        opCode.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    }, networkKeyIndex: ${
-        parameters.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    })"
+    override fun toString() =
+        "ConfigNetKeyList(networkKeyIndexes: ${networkKeyIndexes.joinToString(separator = ", ")})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8043u

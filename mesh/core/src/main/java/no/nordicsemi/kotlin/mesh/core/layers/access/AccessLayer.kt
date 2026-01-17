@@ -808,7 +808,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
                 model = model,
                 request = message,
                 source = source,
-                destination = MeshAddress.create(destination)
+                destination = MeshAddress.create(address = destination)
             )
         )
     }.getOrNull()
@@ -818,7 +818,7 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
             model = model,
             message = message,
             source = source,
-            destination = MeshAddress.create(destination)
+            destination = MeshAddress.create(address = destination)
         )
     )
 

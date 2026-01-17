@@ -31,6 +31,7 @@ import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.common.isVendorModel
+import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -57,6 +58,7 @@ internal fun ModelScreen(
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
     model: Model,
+    modelData: ModelData,
     send: (AcknowledgedConfigMessage) -> Unit,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
@@ -98,18 +100,25 @@ internal fun ModelScreen(
         if (model.supportsModelPublication != false && model.supportsModelSubscription != false) {
             BoundApplicationKeys(
                 model = model,
+                modelData = modelData,
                 navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
                 send = send
             )
         }
         if (model.supportsModelPublication != false) {
-            Publication(messageState = messageState, model = model, send = send)
+            Publication(
+                messageState = messageState,
+                model = model,
+                modelData = modelData,
+                send = send
+            )
         }
         if (model.supportsModelSubscription != false) {
             Subscriptions(
                 snackbarHostState = snackbarHostState,
                 messageState = messageState,
                 model = model,
+                modelData = modelData,
                 navigateToGroups = navigateToGroups,
                 send = send
             )
@@ -168,17 +177,18 @@ internal fun ModelScreen(
 @Composable
 internal fun BoundApplicationKeys(
     model: Model,
+    modelData: ModelData,
     navigateToConfigApplicationKeys: (Uuid) -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val bottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = model.boundApplicationKeys.isEmpty())
+        rememberModalBottomSheetState(skipPartiallyExpanded = modelData.boundApplicationKeys.isEmpty())
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
-        subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
+        subtitle = "${modelData.boundApplicationKeys.size} key(s) are bound",
         onClick = { showBottomSheet = !showBottomSheet }
     )
     if (showBottomSheet) {

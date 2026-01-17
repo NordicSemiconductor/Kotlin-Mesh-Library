@@ -49,6 +49,7 @@ import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.fixedGroupAddressesForSubscriptions
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.common.unsubscribedGroups
+import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
@@ -78,6 +79,7 @@ internal fun Subscriptions(
     snackbarHostState: SnackbarHostState,
     messageState: MessageState,
     model: Model,
+    modelData: ModelData,
     navigateToGroups: () -> Unit,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
@@ -124,8 +126,8 @@ internal fun Subscriptions(
             enabled = !messageState.isInProgress(),
         )
     }
-    if (model.subscribe.isNotEmpty()) {
-        model.subscribe.forEach {
+    if (modelData.subscribe.isNotEmpty()) {
+        modelData.subscribe.forEach {
             // A key is used to ensure that the items are stable and do not cause recomposition
             // issues.
             key(it.address) {

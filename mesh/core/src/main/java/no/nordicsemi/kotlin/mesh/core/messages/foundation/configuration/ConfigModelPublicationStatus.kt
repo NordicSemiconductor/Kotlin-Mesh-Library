@@ -3,6 +3,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toByteArray
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageStatus
@@ -21,6 +22,7 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import java.nio.ByteOrder
+import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
@@ -28,7 +30,7 @@ import kotlin.experimental.or
  *
  * @property publish               Contains the publication state.
  */
-data class ConfigModelPublicationStatus(
+class ConfigModelPublicationStatus(
     override val status: ConfigMessageStatus = ConfigMessageStatus.SUCCESS,
     override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
@@ -39,7 +41,8 @@ data class ConfigModelPublicationStatus(
 
     override val parameters: ByteArray
         get() {
-            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            var data = status.value.toByteArray() +
+                    elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                     publish.address.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             data += (publish.index and 0xFFu).toByte()
             data += (publish.index.toInt() shr 8).toByte() or
@@ -56,17 +59,19 @@ data class ConfigModelPublicationStatus(
         }
 
     /**
-     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     * Convenience constructor to create the ConfigModelPublicationStatus message that reports that
+     * there is no publication.
      *
      * @param request The [ConfigAnyModelMessage] message that this is a response to.
      */
+    @Suppress("unused")
     constructor(request: ConfigAnyModelMessage) : this(request = request, publish = null)
 
     /**
      * Convenience constructor to create the ConfigModelPublicationStatus message.
      *
      * @param request [ConfigAnyModelMessage] message that this is a response to.
-     * @param publish Publication state.
+     * @param publish Publication state. Setting a null value will clear the publication state.
      */
     constructor(request: ConfigAnyModelMessage, publish: Publish?) : this(
         status = ConfigMessageStatus.SUCCESS,
@@ -83,11 +88,32 @@ data class ConfigModelPublicationStatus(
      * @param status  Status of the request.
      */
     constructor(request: ConfigAnyModelMessage, status: ConfigMessageStatus) : this(
-        status = ConfigMessageStatus.SUCCESS,
+        status = status,
         elementAddress = request.elementAddress,
         modelIdentifier = request.modelIdentifier,
         companyIdentifier = request.companyIdentifier,
         publish = Publish()
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
+     * @param request ConfigModelPublicationSet is the given request from the remote node.
+     */
+    constructor(request: ConfigModelPublicationSet) : this(
+        request = request,
+        publish = request.publish
+    )
+
+    /**
+     * Convenience constructor to create the ConfigModelPublicationStatus message.
+     *
+     * @param request ConfigModelPublicationVirtualAddressSet is the given request from the remote
+     *                node.
+     */
+    constructor(request: ConfigModelPublicationVirtualAddressSet) : this(
+        request = request,
+        publish = request.publish
     )
 
     override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
@@ -145,50 +171,49 @@ data class ConfigModelPublicationStatus(
          * @return A ConfigModelPublicationSet message or null if parameters are invalid.
          */
         override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            (it.size == 12 || it.size == 14)
+            it.size == 12 || it.size == 14
         }?.let { params ->
-            ConfigMessageStatus.from(params[0].toUByte())?.let { status ->
-                val elementAddress = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
-                val address =
-                    MeshAddress.create(params.getUShort(3, order = ByteOrder.LITTLE_ENDIAN))
-                val index =
-                    params.getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
-                val flag = (params[6].toUByte() and 0x10u) shr 4
-                val ttl = params[7].toUByte()
-                val periodSteps = params[8].toUByte() and 0x3Fu
-                val periodResolution = StepResolution.from(value = (params[8].toUByte() shr 6))
-                val period = PublishPeriod(periodSteps, periodResolution)
-                val count = params[9].toUByte() and 0x07u
-                val intervalSteps = params[9].toUByte() shr 3
-
-                val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
-                val publish = Publish(
-                    address = address as PublicationAddress,
-                    index = index,
-                    credentials = Credentials.from(flag.toInt()),
-                    ttl = ttl,
-                    period = period,
-                    retransmit = retransmit
-                )
-
-                val modelIdentifier: UShort
-                var companyIdentifier: UShort? = null
-
-                if (params.size == 14) {
-                    companyIdentifier =
-                        params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
-                    modelIdentifier = params.getUShort(offset = 12, order = ByteOrder.LITTLE_ENDIAN)
-                } else {
-                    modelIdentifier = params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
+            ConfigMessageStatus.from(value = params[0].toUByte())
+                ?.let { status ->
+                    val elementAddress = params
+                        .getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN)
+                    val address = MeshAddress
+                        .create(
+                            address = params
+                                .getUShort(offset = 3, order = ByteOrder.LITTLE_ENDIAN)
+                        )
+                    val index = params
+                        .getUShort(offset = 5, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+                    val flag = (params[6] and 0x10) shr 4
+                    val ttl = params[7].toUByte()
+                    val periodSteps = params[8].toUByte() and 0x3Fu
+                    val periodResolution = StepResolution.from(value = (params[8] ushr 6).toUByte())
+                    val period = PublishPeriod(steps = periodSteps, resolution = periodResolution)
+                    val count = params[9].toUByte() and 0x07u
+                    val intervalSteps = (params[9] ushr 3).toUByte()
+                    val retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
+                    val publish = Publish(
+                        address = address as PublicationAddress,
+                        index = index,
+                        credentials = Credentials.from(credential = flag.toInt()),
+                        ttl = ttl,
+                        period = period,
+                        retransmit = retransmit
+                    )
+                    ConfigModelPublicationStatus(
+                        status = status,
+                        publish = publish,
+                        companyIdentifier = if (params.size == 14) {
+                            params.getUShort(offset = 10, order = ByteOrder.LITTLE_ENDIAN)
+                        } else null,
+                        modelIdentifier = params
+                            .getUShort(
+                                offset = if (params.size == 14) 12 else 10,
+                                order = ByteOrder.LITTLE_ENDIAN
+                            ),
+                        elementAddress = UnicastAddress(address = elementAddress)
+                    )
                 }
-                ConfigModelPublicationStatus(
-                    status = status,
-                    publish = publish,
-                    companyIdentifier = companyIdentifier,
-                    modelIdentifier = modelIdentifier,
-                    elementAddress = UnicastAddress(elementAddress)
-                )
-            }
         }
     }
 }

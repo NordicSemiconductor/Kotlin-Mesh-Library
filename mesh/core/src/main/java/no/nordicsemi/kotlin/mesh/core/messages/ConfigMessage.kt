@@ -2,8 +2,6 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
-import no.nordicsemi.kotlin.data.or
-import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.decode
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessage.ConfigMessageUtils.encode
@@ -14,9 +12,8 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
-import kotlin.uuid.Uuid
-import kotlin.experimental.and
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
 /**
