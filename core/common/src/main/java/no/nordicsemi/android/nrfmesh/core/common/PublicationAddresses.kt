@@ -14,9 +14,7 @@ fun Model.publishDestination() = publish?.let {
 /**
  * Returns a list of groups that is not already subscribed to this model.
  */
-fun Model.publishKey() = boundApplicationKeys.firstOrNull {
-    it.index == publish?.index
-} ?: throw IllegalArgumentException("Application key not found")
+fun Model.publishKey() = boundApplicationKeys.firstOrNull { it.index == publish?.index }
 
 
 /**
