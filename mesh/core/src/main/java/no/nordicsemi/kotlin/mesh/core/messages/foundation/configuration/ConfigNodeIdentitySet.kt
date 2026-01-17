@@ -36,8 +36,8 @@ class ConfigNodeIdentitySet(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString(): String = "ConfigNodeIdentityGet(opCode: 0x${opCode.toHexString()}, " +
-            "parameters: ${parameters.toHexString()})"
+    override fun toString(): String = "ConfigNodeIdentityGet(index: $index, " +
+            "nodeIdentityState: $identityState})"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8047u

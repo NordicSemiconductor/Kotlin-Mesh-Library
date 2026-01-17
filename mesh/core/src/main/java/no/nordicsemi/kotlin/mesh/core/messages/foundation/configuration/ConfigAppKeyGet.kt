@@ -38,21 +38,7 @@ class ConfigAppKeyGet(
         index = key.index
     )
 
-    override fun toString() = "ConfigAppKeyGet(opCode: ${
-        opCode.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    }, parameters: ${
-        parameters.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    })"
+    override fun toString() = "ConfigAppKeyGet(index: $index)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8001u
