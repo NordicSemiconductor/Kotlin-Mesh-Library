@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.getUShort
-import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
@@ -94,6 +93,33 @@ class ConfigModelPublicationSet(
         publish = Publish()
     )
 
+    override fun toString() = "ConfigModelPublicationSet(" +
+            "companyIdentifier: ${
+                companyIdentifier?.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                ) ?: "null"
+            }, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "elementAddress: ${
+                elementAddress.address.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "publish: $publish)"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x03u
 
@@ -151,28 +177,17 @@ class ConfigModelPublicationSet(
                 period = period,
                 retransmit = retransmit
             )
-
-            if (params.size == 13) {
-                ConfigModelPublicationSet(
-                    publish = publish,
-                    companyIdentifier = params.getUShort(
-                        offset = 9,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    ),
-                    modelIdentifier = params.getUShort(
-                        offset = 11,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    ),
-                    elementAddress = UnicastAddress(address = elementAddress)
-                )
-            } else {
-                ConfigModelPublicationSet(
-                    publish = publish,
-                    companyIdentifier = null,
-                    modelIdentifier = params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN),
-                    elementAddress = UnicastAddress(address = elementAddress)
-                )
-            }
+            ConfigModelPublicationSet(
+                publish = publish,
+                companyIdentifier = if (params.size == 13)
+                    params.getUShort(offset = 9, order = ByteOrder.LITTLE_ENDIAN)
+                else null,
+                modelIdentifier = params.getUShort(
+                    offset = if (params.size == 13) 11 else 9,
+                    order = ByteOrder.LITTLE_ENDIAN
+                ),
+                elementAddress = UnicastAddress(address = elementAddress)
+            )
         }
     }
 }

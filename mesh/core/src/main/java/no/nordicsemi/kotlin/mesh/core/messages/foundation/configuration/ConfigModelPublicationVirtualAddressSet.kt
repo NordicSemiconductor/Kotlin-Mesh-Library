@@ -87,50 +87,38 @@ data class ConfigModelPublicationVirtualAddressSet(
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x801Au
 
-        override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 25 || it.size == 27
-        }?.let { params ->
-            val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
-            val label = VirtualAddress(uuid = params.getUuid(offset = 2))
-            val index = params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
-            val flag = (params[19] and 0x10).toInt() shr 4
-            val ttl = params[20].toUByte()
-            val periodSteps = (params[21] and 0x3F).toUByte()
-            val periodResolution = StepResolution.from(value = (params[21] ushr 6).toUByte())
-            val count = (params[22] and 0x07).toUByte()
-            val intervalSteps = (params[22] ushr 3).toUByte()
-            val publish = Publish(
-                address = label,
-                index = index,
-                credentials = Credentials.from(credential = flag),
-                ttl = ttl,
-                period = PublishPeriod(steps = periodSteps, resolution = periodResolution),
-                retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
-            )
-            if (params.size == 27) {
-                ConfigModelPublicationVirtualAddressSet(
-                    publish = publish,
-                    companyIdentifier = params.getUShort(
-                        offset = 23,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    ),
-                    modelIdentifier = params.getUShort(
-                        offset = 25,
-                        order = ByteOrder.LITTLE_ENDIAN
-                    ),
-                    elementAddress = UnicastAddress(address = elementAddress)
+        override fun init(parameters: ByteArray?) = parameters
+            ?.takeIf { it.size == 25 || it.size == 27 }
+            ?.let { params ->
+                val elementAddress = params.getUShort(offset = 0, order = ByteOrder.LITTLE_ENDIAN)
+                val label = VirtualAddress(uuid = params.getUuid(offset = 2))
+                val index =
+                    params.getUShort(offset = 18, order = ByteOrder.LITTLE_ENDIAN) and 0x0FFFu
+                val flag = (params[19] and 0x10).toInt() shr 4
+                val ttl = params[20].toUByte()
+                val periodSteps = (params[21] and 0x3F).toUByte()
+                val periodResolution = StepResolution.from(value = (params[21] ushr 6).toUByte())
+                val count = (params[22] and 0x07).toUByte()
+                val intervalSteps = (params[22] ushr 3).toUByte()
+                val publish = Publish(
+                    address = label,
+                    index = index,
+                    credentials = Credentials.from(credential = flag),
+                    ttl = ttl,
+                    period = PublishPeriod(steps = periodSteps, resolution = periodResolution),
+                    retransmit = Retransmit(count = count, intervalSteps = intervalSteps)
                 )
-            } else {
                 ConfigModelPublicationVirtualAddressSet(
                     publish = publish,
-                    companyIdentifier = null,
+                    companyIdentifier = if (params.size == 27)
+                        params.getUShort(offset = 23, order = ByteOrder.LITTLE_ENDIAN)
+                    else null,
                     modelIdentifier = params.getUShort(
-                        offset = 23,
+                        offset = if (params.size == 27) 25 else 23,
                         order = ByteOrder.LITTLE_ENDIAN
                     ),
                     elementAddress = UnicastAddress(address = elementAddress)
                 )
             }
-        }
     }
 }
