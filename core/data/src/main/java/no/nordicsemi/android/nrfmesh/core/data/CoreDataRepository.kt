@@ -23,6 +23,7 @@ import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
 import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidGattBearer
 import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidPbGattBearer
+import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.SimpleOnOffClientHandler
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffServer
@@ -193,7 +194,8 @@ class CoreDataRepository @Inject constructor(
                     modelId = VendorModelId(
                         modelIdentifier = VendorModelIds.SIMPLE_ON_OFF_CLIENT_MODEL_ID,
                         companyIdentifier = NORDIC_SEMICONDUCTOR_COMPANY_ID
-                    )
+                    ),
+                    handler = SimpleOnOffClientHandler(this)
                 )
             )
         )

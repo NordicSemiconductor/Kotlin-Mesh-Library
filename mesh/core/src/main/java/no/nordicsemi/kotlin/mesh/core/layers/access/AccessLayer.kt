@@ -762,7 +762,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 }
 
 /**
- * Attempts to decodes the given AccessPdu. The Model Handler must support the opcode to specify to
+ * Attempts to decode the given AccessPdu. The Model Handler must support the opcode to specify to
  * which type should the message be decoded.
  *
  * @param accessPdu Access PDU received.

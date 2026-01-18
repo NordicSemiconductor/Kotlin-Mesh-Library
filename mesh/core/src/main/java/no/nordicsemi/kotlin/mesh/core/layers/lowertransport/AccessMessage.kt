@@ -4,6 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.layers.lowertransport
 
 import no.nordicsemi.kotlin.data.hasBitCleared
 import no.nordicsemi.kotlin.data.hasBitSet
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.exception.InvalidPdu
 import no.nordicsemi.kotlin.mesh.core.layers.network.NetworkPdu
 import no.nordicsemi.kotlin.mesh.core.layers.uppertransport.UpperTransportPdu
@@ -79,14 +80,7 @@ internal open class AccessMessage(
             }"
         } ?: "0"
     }, szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
-            "data: ${
-                upperTransportPdu.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            })"
+            "data: ${upperTransportPdu.toHexString(prefixOx = true)})"
 
     internal companion object {
 
@@ -97,7 +91,7 @@ internal open class AccessMessage(
          * @return an AccessMessage or null if the pdu is invalid.
          */
         fun init(pdu: NetworkPdu): AccessMessage {
-            // Minimum length of a Access Message is 6 bytes:
+            // Minimum length of an Access Message is 6 bytes:
             // * 1 byte for SEG | AKF | AID
             // * at least one byte of Upper Transport Layer payload
             // * 4 or 8 bytes of TransMIC
