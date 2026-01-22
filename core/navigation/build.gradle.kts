@@ -9,6 +9,12 @@ android {
     namespace = "no.nordicsemi.android.nrfmesh.core.navigation"
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
