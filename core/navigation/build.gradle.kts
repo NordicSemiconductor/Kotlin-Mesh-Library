@@ -12,6 +12,9 @@ android {
 dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    api(libs.androidx.lifecycle.viewmodel.navigation3.android)
+    api(libs.androidx.navigation3.runtime)
+
     implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":core:common"))

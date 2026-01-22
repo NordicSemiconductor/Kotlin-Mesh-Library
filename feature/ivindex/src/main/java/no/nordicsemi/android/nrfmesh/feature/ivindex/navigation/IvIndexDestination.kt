@@ -1,26 +1,34 @@
 package no.nordicsemi.android.nrfmesh.feature.ivindex.navigation
 
-import android.os.Parcelable
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.parcelize.Parcelize
-import no.nordicsemi.android.nrfmesh.feature.ivindex.IvIndexRoute
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+import no.nordicsemi.android.nrfmesh.feature.ivindex.IvIndexScreen
 import no.nordicsemi.android.nrfmesh.feature.ivindex.IvIndexViewModel
 
-@Parcelize
-data object IvIndexContent : Parcelable
+@Serializable
+data object IvIndexContentKey : NavKey
 
-@Composable
-fun IvIndexScreenRoute() {
-    val viewModel = hiltViewModel<IvIndexViewModel>()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    IvIndexRoute(
-        isIvIndexChangeAllowed = uiState.isIvIndexChangeAllowed,
-        ivIndex = uiState.ivIndex,
-        onIvIndexChanged = viewModel::onIvIndexChanged,
-        onIvIndexTestModeToggled = viewModel::toggleIvUpdateTestMode,
-        testMode = uiState.testMode
-    )
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+fun EntryProviderScope<NavKey>.ivIndexEntry() {
+    entry<IvIndexContentKey>(metadata = ListDetailSceneStrategy.detailPane()) {
+        val viewModel = hiltViewModel<IvIndexViewModel, IvIndexViewModel.Factory>(
+            key = "IvIndexViewModel"
+        ) { factory ->
+            factory.create()
+        }
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        IvIndexScreen(
+            isIvIndexChangeAllowed = uiState.isIvIndexChangeAllowed,
+            ivIndex = uiState.ivIndex,
+            onIvIndexChanged = viewModel::onIvIndexChanged,
+            onIvIndexTestModeToggled = viewModel::toggleIvUpdateTestMode,
+            testMode = uiState.testMode
+        )
+    }
 }

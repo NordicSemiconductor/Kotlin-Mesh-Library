@@ -115,7 +115,10 @@ private fun Controls(
     var percent by rememberSaveable { mutableFloatStateOf(0f) }
     var acknowledged by rememberSaveable { mutableStateOf(false) }
     var levelOption by rememberSaveable { mutableIntStateOf(GenericLevelOptions.LEVEL.value) }
-    SectionTitle(title = stringResource(R.string.label_controls))
+    SectionTitle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(R.string.label_controls)
+    )
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
@@ -276,7 +279,9 @@ private fun Status(
         verticalAlignment = Alignment.CenterVertically
     ) {
         SectionTitle(
-            modifier = Modifier.weight(weight = 1f),
+            modifier = Modifier
+                .weight(weight = 1f)
+                .padding(horizontal = 16.dp),
             title = stringResource(R.string.label_status)
         )
         MeshIconButton(

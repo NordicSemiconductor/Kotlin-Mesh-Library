@@ -52,7 +52,6 @@ import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.publishDestination
 import no.nordicsemi.android.nrfmesh.core.common.publishKey
-import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
@@ -92,22 +91,21 @@ import kotlin.time.DurationUnit
 internal fun Publication(
     messageState: MessageState,
     model: Model,
-    modelData: ModelData,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var destination by remember { mutableStateOf(modelData.publish?.address) }
-    var keyIndex by remember { mutableIntStateOf(modelData.publish?.index?.toInt() ?: 0) }
-    var ttl by remember { mutableIntStateOf(modelData.publish?.ttl?.toInt() ?: 5) }
+    var destination by remember { mutableStateOf(model.publish?.address) }
+    var keyIndex by remember { mutableIntStateOf(model.publish?.index?.toInt() ?: 0) }
+    var ttl by remember { mutableIntStateOf(model.publish?.ttl?.toInt() ?: 5) }
     var publishPeriod by remember {
-        mutableStateOf(modelData.publish?.period ?: PublishPeriod.disabled)
+        mutableStateOf(model.publish?.period ?: PublishPeriod.disabled)
     }
     var credentials by remember {
-        mutableStateOf(modelData.publish?.credentials ?: MasterSecurity)
+        mutableStateOf(model.publish?.credentials ?: MasterSecurity)
     }
-    var retransmit by remember { mutableStateOf(modelData.publish?.retransmit) }
+    var retransmit by remember { mutableStateOf(model.publish?.retransmit) }
 
     Row(
         modifier = Modifier
@@ -145,7 +143,7 @@ internal fun Publication(
         )
     }
 
-    if (modelData.publish != null) {
+    if (model.publish != null) {
         ElevatedCardItem(
             modifier = Modifier.padding(horizontal = 16.dp),
             imageVector = Icons.Outlined.SportsScore,
@@ -172,7 +170,9 @@ internal fun Publication(
                     verticalAlignment = Alignment.CenterVertically,
                     content = {
                         SectionTitle(
-                            modifier = Modifier.weight(weight = 1f),
+                            modifier = Modifier
+                                .weight(weight = 1f)
+                                .padding(horizontal = 16.dp),
                             title = stringResource(R.string.label_publication),
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -232,7 +232,12 @@ internal fun Publication(
                         selectedKeyIndex = keyIndex,
                         onApplicationKeySelected = { keyIndex = it }
                     )
-                    SectionTitle(title = stringResource(R.string.label_destination))
+                    SectionTitle(
+                        modifier = Modifier
+                            .weight(weight = 1f)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(R.string.label_destination)
+                    )
                     Destination(
                         network = model.parentElement?.parentNode?.network,
                         destinations = model.publicationDestinations(),

@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,10 +17,9 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import javax.inject.Inject
 
-@HiltViewModel
-class NetworkKeysViewModel @Inject internal constructor(
+@HiltViewModel(assistedFactory = NetworkKeysViewModel.Factory::class)
+class NetworkKeysViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
 
@@ -42,7 +43,7 @@ class NetworkKeysViewModel @Inject internal constructor(
 
     private fun observeNetwork() {
         repository.network.onEach { network ->
-            this@NetworkKeysViewModel.network = network
+            this.network = network
             _uiState.update { state ->
                 state.copy(
                     keys = network.networkKeys
@@ -126,11 +127,16 @@ class NetworkKeysViewModel @Inject internal constructor(
             state.copy(selectedKeyIndex = keyIndex)
         }
     }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): NetworkKeysViewModel
+    }
 }
 
 @ConsistentCopyVisibility
 data class NetworkKeysScreenUiState internal constructor(
     val keys: List<NetworkKeyData> = listOf(),
     val keysToBeRemoved: List<NetworkKeyData> = listOf(),
-    val selectedKeyIndex: KeyIndex? = null
+    val selectedKeyIndex: KeyIndex? = null,
 )

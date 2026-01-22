@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,12 +43,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,22 +65,33 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
+import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
+import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
+import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.groups.navigation.navigateToGroup
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.navigateToProvisioning
+import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
+import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
+import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
+import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsEntry
+import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesEntry
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningEntry
+import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
+import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
-import no.nordicsemi.android.nrfmesh.navigation.MeshNavHost
-import no.nordicsemi.android.nrfmesh.navigation.MeshTopLevelDestination
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
@@ -110,7 +121,6 @@ fun NetworkRoute(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberMeshAppState(snackbarHostState = snackbarHostState)
-    val currentDestination = appState.currentDestination
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -120,6 +130,7 @@ fun NetworkRoute(
     val navigationSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
         adaptiveInfo = currentWindowAdaptiveInfo()
     )
+    val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationSuiteType = navigationSuiteType,
         navigationItemVerticalArrangement = Arrangement.Center,
@@ -127,23 +138,26 @@ fun NetworkRoute(
             navigationRailContainerColor = ShortNavigationBarDefaults.containerColor,
         ),
         navigationItems = {
-            appState.meshTopLevelDestinations.forEach { destination ->
-                val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+            MESH_TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                val selected = navKey == appState.navigationState.currentTopLevelKey
                 NavigationSuiteItem(
                     selected = selected,
-                    onClick = { appState.navigateToTopLevelDestination(destination) },
+                    onClick = {
+                        if (!selected)
+                            navigator.navigate(key = navKey)
+                    },
                     icon = {
                         Icon(
                             imageVector = when (selected) {
-                                true -> destination.selectedIcon
-                                false -> destination.unselectedIcon
+                                true -> navItem.selectedIcon
+                                false -> navItem.unselectedIcon
                             },
                             contentDescription = null
                         )
                     },
                     label = {
                         Text(
-                            stringResource(destination.iconTextId),
+                            text = stringResource(navItem.iconTextId),
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -158,7 +172,7 @@ fun NetworkRoute(
                     title = { Text(text = appState.title) },
                     backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                     showBackButton = appState.showBackButton,
-                    onNavigationButtonClick = appState::onBackPressed,
+                    onNavigationButtonClick = navigator::goBack,
                     actions = {
                         DisplayDropdown(
                             appState = appState,
@@ -166,7 +180,6 @@ fun NetworkRoute(
                             onExpandPressed = { menuExpanded = true },
                             onDismissRequest = { menuExpanded = false },
                             importNetwork = { uri, contentResolver ->
-                                appState.clearBackStack()
                                 importNetwork(uri, contentResolver)
                             },
                             navigateToExport = {
@@ -182,46 +195,55 @@ fun NetworkRoute(
                 )
             },
             floatingActionButton = {
-                appState.currentMeshTopLevelDestination?.let { dst ->
-                    when (dst) {
-                        MeshTopLevelDestination.NODES -> ExtendedFloatingActionButton(
-                            text = { Text(text = stringResource(R.string.label_add_node)) },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Add,
-                                    contentDescription = null
-                                )
-                            },
-                            onClick = {
-                                appState.navController
-                                    .navigateToProvisioning(navOptions = navOptions { })
-                            },
-                            expanded = true
-                        )
+                when (appState.navigationState.currentKey) {
+                    is NodesKey -> ExtendedFloatingActionButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                        text = { Text(text = stringResource(R.string.label_add_node)) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Add,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigator.navigate(key = ProvisioningKey) },
+                        expanded = true
+                    )
 
-                        MeshTopLevelDestination.GROUPS -> ExtendedFloatingActionButton(
-                            text = { Text(text = stringResource(R.string.label_add_group)) },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Add,
-                                    contentDescription = null
-                                )
-                            },
-                            onClick = { showAddGroupDialog = true },
-                            expanded = true
-                        )
+                    is GroupsKey -> ExtendedFloatingActionButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                        text = { Text(text = stringResource(R.string.label_add_group)) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Add,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { showAddGroupDialog = true },
+                        expanded = true
+                    )
 
-                        else -> {}
-                    }
+                    else -> {}
                 }
             }
         ) { padding ->
-            MeshNavHost(
-                appState = appState,
+
+            val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+            val entryProvider = entryProvider {
+                nodesEntry(appState = appState, navigator = navigator)
+                provisioningEntry(appState = appState, navigator = navigator)
+                groupsEntry(appState = appState, navigator = navigator)
+                groupEntry(appState = appState, navigator = navigator)
+                groupControlsEntry(appState = appState, navigator = navigator)
+                proxyEntry(appState = appState, navigator = navigator)
+                settingsEntry(appState = appState, navigator = navigator)
+            }
+            NavDisplay(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues = padding),
-                onBackPressed = appState::onBackPressed
+                entries = appState.navigationState.toEntries(entryProvider = entryProvider),
+                sceneStrategy = litDetailStrategy,
+                onBack = { navigator.goBack() }
             )
         }
 
@@ -294,8 +316,11 @@ fun NetworkRoute(
                                     onAddGroupClicked(group)
                                         .also {
                                             showAddGroupDialog = false
-                                            appState.navController
-                                                .navigateToGroup(address = group.address)
+                                            navigator.navigate(
+                                                key = GroupKey(
+                                                    address = group.address.toHexString()
+                                                )
+                                            )
                                         }
                                 }.onFailure {
                                     scope.launch {
@@ -338,8 +363,11 @@ fun NetworkRoute(
                                             )
                                             onAddGroupClicked(group).also {
                                                 showAddGroupDialog = false
-                                                appState.navController
-                                                    .navigateToGroup(address = group.address)
+                                                navigator.navigate(
+                                                    key = GroupKey(
+                                                        address = group.address.toHexString()
+                                                    )
+                                                )
                                             }
                                         }.onFailure {
                                             scope.launch {
@@ -371,7 +399,7 @@ fun NetworkRoute(
                 text = stringResource(R.string.label_reset_network_rationale),
                 onConfirmClick = {
                     scope.launch {
-                        appState.clearBackStack()
+                        // appState.clearBackStack()
                     }.invokeOnCompletion {
                         showResetNetworkDialog = false
                         resetNetwork()
@@ -473,8 +501,8 @@ private fun DisplayDropdown(
             importNetwork(uri, context.contentResolver)
         }
     }
-    appState.currentMeshTopLevelDestination?.takeIf {
-        it == MeshTopLevelDestination.SETTINGS
+    appState.navigationState.currentKey.takeIf {
+        it is SettingsKey
     }?.let {
         Box(
             modifier = Modifier
@@ -541,9 +569,3 @@ private fun DisplayDropdown(
         }
     }
 }
-
-private fun NavDestination?.isTopLevelDestinationInHierarchy(
-    destination: MeshTopLevelDestination,
-) = this?.hierarchy?.any {
-    it.route?.contains(destination.name, true) == true
-} == true

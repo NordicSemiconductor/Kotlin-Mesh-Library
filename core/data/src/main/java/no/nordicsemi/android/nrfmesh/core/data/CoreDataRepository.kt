@@ -232,7 +232,7 @@ class CoreDataRepository @Inject constructor(
      * Adds a network key to the network.
      */
     fun addNetworkKey(): NetworkKey = meshNetwork
-        .add(name = "Network Key ${meshNetwork.networkKeys.size}")
+        .add(name = "Network Key ${meshNetwork.nextAvailableNetworkKeyIndex}")
         .also { save() }
 
     /**

@@ -36,6 +36,7 @@ dependencies {
     implementation("androidx.compose.material3.adaptive:adaptive:1.2.0")
     implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0")
     implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0")
+    implementation(libs.androidx.compose.adaptive.navigation3)
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))

@@ -1,9 +1,10 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,6 @@ import no.nordicsemi.android.nrfmesh.core.common.unknownApplicationKeys
 import no.nordicsemi.android.nrfmesh.core.common.unknownNetworkKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.NodeRoute
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -33,29 +33,24 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
-import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-@HiltViewModel
-internal class NodeViewModel @Inject internal constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = NodeViewModel.Factory::class)
+internal class NodeViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
+    @Assisted uuid: String,
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val nodeUuid = savedStateHandle
-        .toRoute<NodeRoute>()
-        .let { Uuid.parse(uuidString = it.uuid) }
+    private val nodeUuid = Uuid.parse(uuidString = uuid)
 
     private val _uiState = MutableStateFlow(NodeScreenUiState())
     val uiState: StateFlow<NodeScreenUiState> = _uiState
@@ -264,62 +259,9 @@ internal class NodeViewModel @Inject internal constructor(
         }
     }
 
-    internal fun requestNodeIdentityStates(model: Model) {
-        viewModelScope.launch {
-            val element = model.parentElement ?: throw IllegalStateException("Element not found")
-            if (shouldUpdateNodeIdentityState()) {
-                _uiState.value = _uiState.value.copy(
-                    nodeIdentityStates = createNodeIdentityStates(model = model)
-                )
-            }
-            val uiState = _uiState.value
-            val nodeIdentityStates = uiState.nodeIdentityStates.toMutableList()
-            val keys = element.parentNode?.networkKeys ?: emptyList()
-
-            var message: ConfigNodeIdentityGet? = null
-            var response: ConfigNodeIdentityStatus? = null
-            try {
-                keys.forEach { key ->
-                    message = ConfigNodeIdentityGet(index = key.index)
-                    _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
-                    response = repository.send(
-                        node = element.parentNode!!,
-                        message = message
-                    ) as ConfigNodeIdentityStatus
-
-                    response.let { status ->
-                        val index = nodeIdentityStates.indexOfFirst { state ->
-                            state.networkKey.index == status.index
-                        }
-                        nodeIdentityStates[index] = nodeIdentityStates[index]
-                            .copy(nodeIdentityState = status.identity)
-                    }
-                }
-                _uiState.value = _uiState.value.copy(
-                    messageState = Completed(
-                        message = ConfigNodeIdentityGet(index = keys.first().index),
-                        response = response as ConfigNodeIdentityStatus
-                    ),
-                    nodeIdentityStates = nodeIdentityStates.toList()
-                )
-            } catch (ex: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = ex),
-                    isRefreshing = false,
-                )
-            }
-        }
-    }
-
     internal fun resetMessageState() {
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
-
-    internal fun addNetworkKey() = repository.addNetworkKey()
-
-    internal fun addApplicationKey() = repository.addApplicationKey(
-        boundNetworkKey = meshNetwork.networkKeys.first()
-    )
 
     internal fun removeNode() {
         meshNetwork.remove(node = selectedNode)
@@ -331,9 +273,14 @@ internal class NodeViewModel @Inject internal constructor(
             repository.save()
         }
     }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(uuid: String): NodeViewModel
+    }
 }
 
-sealed interface NodeState {
+internal sealed interface NodeState {
 
     data object Loading : NodeState
 
