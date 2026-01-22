@@ -14,6 +14,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+
+/**
+ * Represents the top level navigation items.
+ *
+ * @property selectedIcon    Icon to show when this item is selected
+ * @property unselectedIcon  Icon to show when this item is not selected
+ * @property iconTextId      String resource
+ * @property titleTextId     String resource
+ */
 data class MeshTopLevelNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
@@ -21,6 +30,9 @@ data class MeshTopLevelNavItem(
     @StringRes val titleTextId: Int,
 )
 
+/**
+ * Top level nodes navigation item.
+ */
 val NODES = MeshTopLevelNavItem(
     selectedIcon = Icons.Filled.Hive,
     unselectedIcon = Icons.Outlined.Hive,
@@ -28,6 +40,9 @@ val NODES = MeshTopLevelNavItem(
     titleTextId = R.string.label_nav_bar_nodes
 )
 
+/**
+ * Top level groups navigation item.
+ */
 val GROUPS = MeshTopLevelNavItem(
     selectedIcon = Icons.Filled.GroupWork,
     unselectedIcon = Icons.Outlined.GroupWork,
@@ -35,6 +50,9 @@ val GROUPS = MeshTopLevelNavItem(
     titleTextId = R.string.label_nav_bar_groups,
 )
 
+/**
+ * Top level proxy navigation item.
+ */
 val PROXY = MeshTopLevelNavItem(
     selectedIcon = Icons.Filled.Hub,
     unselectedIcon = Icons.Outlined.Hub,
@@ -42,6 +60,9 @@ val PROXY = MeshTopLevelNavItem(
     titleTextId = R.string.label_nav_bar_proxy,
 )
 
+/**
+ * Top level settings navigation item.
+ */
 val SETTINGS = MeshTopLevelNavItem(
     selectedIcon = Icons.Filled.Settings,
     unselectedIcon = Icons.Outlined.Settings,
@@ -49,16 +70,34 @@ val SETTINGS = MeshTopLevelNavItem(
     titleTextId = R.string.label_nav_bar_settings,
 )
 
+/**
+ * Unique key identifying [NODES] top level navigation item.
+ */
 @Serializable
-object NodesKey: NavKey
-@Serializable
-object GroupsKey: NavKey
-@Serializable
-object ProxyKey: NavKey
-@Serializable
-data class SettingsKey(val setting: ClickableSetting? = null): NavKey
+object NodesKey : NavKey
 
-val MESH_TOP_LEVEL_NAV_ITEMS = mapOf (
+/**
+ * Unique key identifying [GROUPS] top level navigation item.
+ */
+@Serializable
+object GroupsKey : NavKey
+
+/**
+ * Unique key identifying [PROXY] top level navigation item.
+ */
+@Serializable
+object ProxyKey : NavKey
+
+/**
+ * Unique key identifying [SETTINGS] top level navigation item.
+ */
+@Serializable
+data class SettingsKey(val setting: ClickableSetting? = null) : NavKey
+
+/**
+ * Map of top level navigation items.
+ */
+val MESH_TOP_LEVEL_NAV_ITEMS = mapOf(
     NodesKey to NODES,
     GroupsKey to GROUPS,
     ProxyKey to PROXY,
