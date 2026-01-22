@@ -22,16 +22,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlin.time.Instant
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.isListPaneVisible
-import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Composable
 internal fun SettingsListScreen(

@@ -46,7 +46,7 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
                 AppKeyState.Success(key = key)
             } ?: AppKeyState.Error(throwable = IllegalStateException("Application Key not found."))
             _uiState.update { state ->
-                state.copy(keyState = keyState)
+                state.copy(keyState = keyState, networkKeys = network.networkKeys)
             }
         }.launchIn(scope = viewModelScope)
     }

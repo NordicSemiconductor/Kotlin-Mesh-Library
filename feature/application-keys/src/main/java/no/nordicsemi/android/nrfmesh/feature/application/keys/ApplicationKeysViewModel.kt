@@ -20,8 +20,8 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = ApplicationKeysViewModel.Factory::class)
-internal class ApplicationKeysViewModel @AssistedInject internal constructor(
+@HiltViewModel
+internal class ApplicationKeysViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
 
@@ -131,11 +131,6 @@ internal class ApplicationKeysViewModel @AssistedInject internal constructor(
         _uiState.update { state ->
             state.copy(selectedKeyIndex = keyIndex)
         }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(): ApplicationKeysViewModel
     }
 }
 

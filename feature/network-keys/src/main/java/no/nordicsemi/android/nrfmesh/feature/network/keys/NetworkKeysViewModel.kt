@@ -17,9 +17,10 @@ import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = NetworkKeysViewModel.Factory::class)
-class NetworkKeysViewModel @AssistedInject internal constructor(
+@HiltViewModel
+class NetworkKeysViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
 
@@ -126,11 +127,6 @@ class NetworkKeysViewModel @AssistedInject internal constructor(
         _uiState.update { state ->
             state.copy(selectedKeyIndex = keyIndex)
         }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(): NetworkKeysViewModel
     }
 }
 
