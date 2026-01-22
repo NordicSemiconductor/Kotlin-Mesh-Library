@@ -4,19 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavKey
-import kotlinx.serialization.Serializable
-import no.nordicsemi.android.nrfmesh.feature.export.ExportRoute
+import no.nordicsemi.android.nrfmesh.feature.export.ExportScreenContent
 import no.nordicsemi.android.nrfmesh.feature.export.ExportViewModel
 
-@Serializable
-data object ExportKey : NavKey
-
 @Composable
-fun ExportScreenRoute(onDismissRequest: () -> Unit, onExportCompleted: (String) -> Unit) {
+fun ExportScreen(onDismissRequest: () -> Unit, onExportCompleted: (String) -> Unit) {
     val viewModel = hiltViewModel<ExportViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ExportRoute(
+    ExportScreenContent(
         uiState = uiState,
         onExportOptionSelected = viewModel::onExportOptionSelected,
         onNetworkKeySelected = viewModel::onNetworkKeySelected,
