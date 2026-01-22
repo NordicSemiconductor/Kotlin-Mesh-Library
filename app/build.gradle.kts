@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.compose.adaptive.navigation3)
+    implementation(libs.androidx.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.compose.material3.window.size.class1)
 
     implementation(libs.timber)
     implementation(libs.slf4j.simple)

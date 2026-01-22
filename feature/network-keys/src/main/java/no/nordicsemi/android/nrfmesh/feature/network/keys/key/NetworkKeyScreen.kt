@@ -73,12 +73,13 @@ internal fun NetworkKeyContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 8.dp)
             .verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SectionTitle(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .padding(horizontal = 16.dp),
             title = stringResource(id = R.string.label_network_key)
         )
         Name(

@@ -34,37 +34,6 @@ data class ModelRouteKey(val modelId: UInt, val address: UShort) : Parcelable
 @Serializable
 data class ModelKey(val address: HexString, val modelId: HexString) : NavKey
 
-@OptIn(ExperimentalUuidApi::class)
-@Composable
-fun ModelScreenRoute(
-    snackbarHostState: SnackbarHostState,
-    model: Model,
-    modelData: ModelData,
-    messageState: MessageState,
-    nodeIdentityStates: List<NodeIdentityStatus>,
-    requestNodeIdentityStates: (Model) -> Unit = {},
-    resetMessageState: () -> Unit,
-    navigateToGroups: () -> Unit,
-    navigateToConfigApplicationKeys: (Uuid) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit,
-    sendApplicationMessage: (Model, MeshMessage) -> Unit,
-) {
-    ModelScreen(
-        snackbarHostState = snackbarHostState,
-        model = model,
-        modelData = modelData,
-        messageState = messageState,
-        nodeIdentityStates = nodeIdentityStates,
-        requestNodeIdentityStates = requestNodeIdentityStates,
-        onAddGroupClicked = {},
-        resetMessageState = resetMessageState,
-        navigateToGroups = navigateToGroups,
-        navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-        send = send,
-        sendApplicationMessage = sendApplicationMessage
-    )
-}
-
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class)
 fun EntryProviderScope<NavKey>.modelEntry(appState: AppState, navigator: Navigator) {
     entry<ModelKey>(metadata = ListDetailSceneStrategy.extraPane()) { key ->

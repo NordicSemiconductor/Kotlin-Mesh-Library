@@ -69,7 +69,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
-internal fun NodeListPane(
+internal fun NodeListScreen(
     messageState: MessageState,
     nodeData: NodeInfoListData,
     node: Node,

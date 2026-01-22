@@ -12,17 +12,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeysKey
-import no.nordicsemi.android.feature.config.networkkeys.navigation.configNetKeysEntry
+import no.nordicsemi.android.feature.config.networkkeys.ConfigNetKeysKey
+import no.nordicsemi.android.feature.config.networkkeys.configNetKeysEntry
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodeKey
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysKey
-import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.configAppKeysEntry
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysKey
+import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.configAppKeysEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListPane
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.ClickableNodeInfoItem
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementKey
@@ -50,7 +51,7 @@ fun EntryProviderScope<NavKey>.nodeEntry(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.nodeState) {
             is NodeState.Success -> {
-                NodeListPane(
+                NodeListScreen(
                     messageState = uiState.messageState,
                     nodeData = (uiState.nodeState as NodeState.Success).nodeInfoListData,
                     node = (uiState.nodeState as NodeState.Success).node,
@@ -58,34 +59,16 @@ fun EntryProviderScope<NavKey>.nodeEntry(
                     isRefreshing = uiState.isRefreshing,
                     onRefresh = viewModel::onRefresh,
                     onNetworkKeysClicked = {
+                        viewModel.onItemSelected(item = ClickableNodeInfoItem.NetworkKeys)
                         navigator.navigate(key = ConfigNetKeysKey(uuid = it.toString()))
-                        //scope.launch {
-                        //    onItemSelected(ClickableNodeInfoItem.NetworkKeys)
-                        //    navigator.navigateTo(
-                        //        pane = ListDetailPaneScaffoldRole.Detail,
-                        //        contentKey = ConfigNetKeysRoute
-                        //    )
-                        //}
                     },
                     onApplicationKeysClicked = {
+                        viewModel.onItemSelected(item = ClickableNodeInfoItem.ApplicationKeys)
                         navigator.navigate(key = ConfigAppKeysKey(uuid = it.toString()))
-                        //scope.launch {
-                        //    onItemSelected(ClickableNodeInfoItem.ApplicationKeys)
-                        //    navigator.navigateTo(
-                        //        pane = ListDetailPaneScaffoldRole.Detail,
-                        //        contentKey = ConfigAppKeysRoute
-                        //    )
-                        //}
                     },
                     onElementClicked = {
+                        viewModel.onItemSelected(item = ClickableNodeInfoItem.Element(address = it))
                         navigator.navigate(key = ElementKey(address = it.toHexString()))
-                        //scope.launch {
-                        //    onItemSelected(ClickableNodeInfoItem.Element(it))
-                        //    navigator.navigateTo(
-                        //        pane = ListDetailPaneScaffoldRole.Detail,
-                        //        contentKey = ElementRouteKey(address = it)
-                        //    )
-                        //}
                     },
                     onExcluded = viewModel::onExcluded,
                     selectedItem = uiState.selectedNodeInfoItem,
