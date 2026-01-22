@@ -14,6 +14,7 @@ dependencies {
     implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.compose.adaptive.navigation3)
 
     implementation("androidx.compose.material3:material3:1.4.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.4.0")

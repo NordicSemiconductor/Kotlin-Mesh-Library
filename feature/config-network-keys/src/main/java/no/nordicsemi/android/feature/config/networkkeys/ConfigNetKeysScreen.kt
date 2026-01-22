@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -92,56 +91,55 @@ internal fun ConfigNetKeysScreen(
             onRefresh = { send(ConfigNetKeyGet()) },
             isRefreshing = messageState.isInProgress() && messageState.message is ConfigNetKeyGet
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                when (addedNetworkKeys.isNotEmpty()) {
-                    true -> LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                    ) {
-                        item {
-                            SectionTitle(
-                                modifier = Modifier.padding(top = 8.dp),
-                                title = stringResource(R.string.label_added_network_keys)
-                            )
-                        }
-                        items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
-                            // Hold the current state from the Swipe to Dismiss composable
-                            val dismissState = rememberSwipeToDismissBoxState()
-                            val isInUse = isKeyInUse(key)
-                            SwipeToDismissKey(
-                                isInUse = isInUse,
-                                dismissState = dismissState,
-                                key = key,
-                                onSwiped = {
-                                    if (isInUse) {
-                                        keyToDelete = key
-                                        showDeleteConfirmationDialog = true
-                                        scope.launch { dismissState.reset() }
-                                    } else {
-                                        if (!messageState.isInProgress()) {
-                                            send(ConfigNetKeyDelete(key = key))
-                                            snackbarHostState.currentSnackbarData?.dismiss()
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = context.getString(R.string.label_network_key_deleting),
-                                                    duration = SnackbarDuration.Short,
-                                                )
-                                            }
-
+            when (addedNetworkKeys.isNotEmpty()) {
+                true -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                ) {
+                    item {
+                        SectionTitle(
+                            modifier = Modifier.padding(top = 8.dp),
+                            title = stringResource(R.string.label_added_network_keys)
+                        )
+                    }
+                    items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
+                        // Hold the current state from the Swipe to Dismiss composable
+                        val dismissState = rememberSwipeToDismissBoxState()
+                        val isInUse = isKeyInUse(key)
+                        SwipeToDismissKey(
+                            isInUse = isInUse,
+                            dismissState = dismissState,
+                            key = key,
+                            onSwiped = {
+                                if (isInUse) {
+                                    keyToDelete = key
+                                    showDeleteConfirmationDialog = true
+                                    scope.launch { dismissState.reset() }
+                                } else {
+                                    if (!messageState.isInProgress()) {
+                                        send(ConfigNetKeyDelete(key = key))
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = context.getString(R.string.label_network_key_deleting),
+                                                duration = SnackbarDuration.Short,
+                                            )
                                         }
+
                                     }
                                 }
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.size(size = 16.dp)) }
+                            }
+                        )
                     }
-
-                    false -> MeshNoItemsAvailable(
-                        imageVector = Icons.Outlined.VpnKey,
-                        title = context.getString(R.string.label_no_keys_added)
-                    )
+                    item { Spacer(modifier = Modifier.size(size = 16.dp)) }
                 }
+
+                false -> MeshNoItemsAvailable(
+                    modifier = Modifier.fillMaxSize(),
+                    imageVector = Icons.Outlined.VpnKey,
+                    title = stringResource(R.string.label_no_keys_added)
+                )
             }
         }
         AnimatedVisibility(

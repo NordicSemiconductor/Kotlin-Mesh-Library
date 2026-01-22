@@ -14,10 +14,10 @@ import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.core.ui.isDetailPaneVisible
 import no.nordicsemi.android.nrfmesh.core.ui.isExtraPaneVisible
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysRoute
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysScreenRoute
-import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContent
+import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.ElementModelRoute
@@ -61,7 +61,7 @@ internal fun NodeDetailsPane(
             save = save
         )
 
-        is ConfigNetKeysRoute, NetworkKeysContent -> ConfigNetKeysRoute(
+        is ConfigNetKeysRoute, NetworkKeysContentKey -> ConfigNetKeysRoute(
             snackbarHostState = snackbarHostState,
             isLocalProvisionerNode = node.isLocalProvisioner,
             availableNetworkKeys = availableNetworkKeys,
@@ -74,7 +74,7 @@ internal fun NodeDetailsPane(
             send = send
         )
 
-        is ConfigAppKeysRoute, ApplicationKeysContent -> ConfigAppKeysScreenRoute(
+        is ConfigAppKeysRoute, ApplicationKeysContentKey -> ConfigAppKeysScreenRoute(
             snackbarHostState = snackbarHostState,
             isLocalProvisionerNode = node.isLocalProvisioner,
             availableAppKeys = addedAppKeys,

@@ -203,12 +203,16 @@ internal fun HeartBeatSubscriptionContent(
                     verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
                             SectionTitle(
-                                modifier = Modifier.weight(weight = 1f),
+                                modifier = Modifier
+                                    .weight(weight = 1f)
+                                    .padding(horizontal = 16.dp),
                                 title = stringResource(R.string.label_heartbeat_subscription)
                             )
                             MeshOutlinedButton(

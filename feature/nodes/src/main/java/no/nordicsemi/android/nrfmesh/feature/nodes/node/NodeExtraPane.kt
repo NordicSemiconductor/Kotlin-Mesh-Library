@@ -9,9 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
-import no.nordicsemi.android.nrfmesh.core.data.models.NodeData
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
-import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContent
+import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelScreenRoute
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
@@ -64,7 +63,7 @@ internal fun NodeExtraPane(
         )
     }
 
-    is ApplicationKeysContent -> ApplicationKeysScreenRoute(
+    is ApplicationKeysContentKey -> ApplicationKeysScreenRoute(
     snackbarHostState = snackbarHostState,
     highlightSelectedItem = false,
     onApplicationKeyClicked = {
