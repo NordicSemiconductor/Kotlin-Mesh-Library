@@ -47,7 +47,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 
 @Composable
-fun ExportRoute(
+internal fun ExportScreenContent(
     uiState: ExportScreenUiState,
     onExportOptionSelected: (ExportOption) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,
@@ -62,7 +62,7 @@ fun ExportRoute(
         contract = ActivityResultContracts.CreateDocument(stringResource(R.string.document_type)),
         onResult = { it?.let { export(context.contentResolver, it) } }
     )
-    ExportScreen(
+    ExportContent(
         uiState = uiState,
         onExportOptionSelected = onExportOptionSelected,
         onNetworkKeySelected = onNetworkKeySelected,
@@ -75,7 +75,7 @@ fun ExportRoute(
 }
 
 @Composable
-private fun ExportScreen(
+private fun ExportContent(
     uiState: ExportScreenUiState,
     onExportOptionSelected: (ExportOption) -> Unit,
     onNetworkKeySelected: (NetworkKey, Boolean) -> Unit,

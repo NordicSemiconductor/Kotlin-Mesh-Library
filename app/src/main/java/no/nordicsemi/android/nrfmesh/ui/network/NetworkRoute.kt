@@ -81,7 +81,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreenRoute
+import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
@@ -414,7 +414,7 @@ fun NetworkRoute(
                 sheetState = exportSheetState,
                 onDismissRequest = { showExportBottomSheet = false },
                 content = {
-                    ExportScreenRoute(
+                    ExportScreen(
                         onDismissRequest = {
                             scope.launch { exportSheetState.hide() }
                                 .invokeOnCompletion {
