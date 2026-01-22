@@ -44,8 +44,8 @@ class SimpleOnOffClientHandler(private val repository: CoreDataRepository) : Mod
                     val elementName = element.name ?: "Element 0x${element.index + 1}"
                     val string = if(unchangedState) "is" else "changed to"
                     repository.log(
-                        message = "Status of Simple OnOff on $elementName in $nodeName $string : " +
-                                "${(event.response as SimpleOnOffStatus).isOn}",
+                        message = { "Status of Simple OnOff on $elementName in $nodeName $string : " +
+                                "${(event.response as SimpleOnOffStatus).isOn}" },
                         category = LogCategory.MODEL,
                         level = LogLevel.APPLICATION
                     )
@@ -67,8 +67,8 @@ class SimpleOnOffClientHandler(private val repository: CoreDataRepository) : Mod
                 val nodeName = node?.name ?: "Unknown Device"
                 val elementName = element.name ?: "Element 0x${element.index + 1}"
                 repository.log(
-                    message = "Status of Simple OnOff on $elementName in $nodeName, isOn: " +
-                            "${(event.message as SimpleOnOffStatus).isOn}",
+                    message = { "Status of Simple OnOff on $elementName in $nodeName, isOn: " +
+                            "${(event.message as SimpleOnOffStatus).isOn}" },
                     category = LogCategory.MODEL,
                     level = LogLevel.APPLICATION
                 )

@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
@@ -35,7 +33,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.LogLevel
-import no.nordicsemi.kotlin.mesh.logger.Logger
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningManager
@@ -48,8 +45,8 @@ import javax.inject.Inject
 class ProvisioningViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-) : ViewModel(), Logger {
+    @param:IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
@@ -127,7 +124,7 @@ class ProvisioningViewModel @Inject constructor(
             meshNetwork = meshNetwork,
             bearer = bearer,
             ioDispatcher = dispatcher
-        ).apply { logger = this@ProvisioningViewModel }
+        ).apply { logger = repository }
 
         provisioningManager.provision(attentionTimer = 10u)
             .onEach { state ->
@@ -135,8 +132,8 @@ class ProvisioningViewModel @Inject constructor(
                     provisionerState = Provisioning(unprovisionedDevice, state)
                 )
             }.catch { throwable ->
-                log(
-                    message = "Error while provisioning $throwable",
+                repository.log(
+                    message = { "Error while provisioning $throwable" },
                     category = LogCategory.PROVISIONING,
                     level = LogLevel.ERROR
                 )
@@ -306,10 +303,6 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun onProvisioningFailed() {
         disconnect()
-    }
-
-    override fun log(message: String, category: LogCategory, level: LogLevel) {
-        Log.println(level.toAndroidLogLevel(), category.category, message)
     }
 }
 

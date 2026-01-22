@@ -7,43 +7,44 @@ interface Logger {
 
     /**
      * Invoked whenever a new log entry is to be saved.
+     *
      * Important: It is NOT safe to update the UI from this method as multiple threads may log.
      *
-     * @param message  Message.
+     * @param message  Message builder.
      * @param category Message category.
      * @param level    Log level.
-     * */
-    fun log(message: String, category: LogCategory, level: LogLevel)
+     */
+    fun log(message: () -> String, category: LogCategory, level: LogLevel)
 
     fun d(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.DEBUG)
+        log(message, category, LogLevel.DEBUG)
     }
 
     fun v(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.VERBOSE)
+        log(message, category, LogLevel.VERBOSE)
     }
 
     fun i(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.INFO)
+        log(message, category, LogLevel.INFO)
     }
 
     fun a(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.APPLICATION)
+        log(message, category, LogLevel.APPLICATION)
     }
 
     fun w(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.WARNING)
+        log(message, category, LogLevel.WARNING)
     }
 
     fun w(category: LogCategory, throwable: Throwable) {
-        log(throwable.toString(), category, LogLevel.WARNING)
+        log({ throwable.toString() }, category, LogLevel.WARNING)
     }
 
     fun e(category: LogCategory, message: () -> String) {
-        log(message(), category, LogLevel.ERROR)
+        log(message, category, LogLevel.ERROR)
     }
 
     fun e(category: LogCategory, throwable: Throwable) {
-        log(throwable.toString(), category, LogLevel.ERROR)
+        log({ throwable.toString() }, category, LogLevel.ERROR)
     }
 }
