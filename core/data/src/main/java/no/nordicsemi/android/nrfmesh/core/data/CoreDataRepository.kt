@@ -323,7 +323,7 @@ class CoreDataRepository @Inject constructor(
         // If so we can safely return here and retry later.
         if (peripheral == null) {
             log(
-                message = "Proxy node not found",
+                message = { "Proxy node not found" },
                 category = LogCategory.BEARER,
                 level = LogLevel.INFO
             )
@@ -339,7 +339,7 @@ class CoreDataRepository @Inject constructor(
             connectOverGattBearer(peripheral = peripheral)
         } catch (e: Exception) {
             log(
-                message = "Failed to connect to proxy node: ${e.message}",
+                message = { "Failed to connect to proxy node: ${e.message}" },
                 category = LogCategory.BEARER,
                 level = LogLevel.ERROR
             )
@@ -393,7 +393,7 @@ class CoreDataRepository @Inject constructor(
             }.peripheral
     } catch (e: Exception) {
         log(
-            message = "Failed to scan for proxy node: ${e.message}",
+            message = { "Failed to scan for proxy node: ${e.message}" },
             category = LogCategory.BEARER,
             level = LogLevel.ERROR
         )
@@ -557,8 +557,8 @@ class CoreDataRepository @Inject constructor(
     private fun isDestinedToLocalNode(destination: UnicastAddress?) =
         destination == meshNetwork.localProvisioner?.node?.primaryUnicastAddress
 
-    override fun log(message: String, category: LogCategory, level: LogLevel) {
-        Log.println(level.toAndroidLogLevel(), category.category, message)
+    override fun log(message: () -> String, category: LogCategory, level: LogLevel) {
+        Log.println(level.toAndroidLogLevel(), category.category, message())
     }
 
     /**
