@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,8 +25,8 @@ import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SettingsViewModel.Factory::class)
+class SettingsViewModel @AssistedInject constructor(
     private val repository: CoreDataRepository,
     private val storage: MeshSecurePropertiesStorage,
     savedStateHandle: SavedStateHandle,
@@ -82,23 +84,13 @@ class SettingsViewModel @Inject constructor(
         save()
     }
 
-    /**
-     * Moves the provisioner to a new index in the list.
-     */
-    @OptIn(ExperimentalUuidApi::class)
-    fun moveProvisioner(provisioner: Provisioner, newIndex: Int) {
-        viewModelScope.launch {
-            network.move(provisioner = provisioner, to = newIndex)
-            storage.storeLocalProvisioner(
-                uuid = network.uuid,
-                localProvisionerUuid = provisioner.uuid
-            )
-            repository.save()
-        }
-    }
-
     fun save() {
         repository.save()
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): SettingsViewModel
     }
 }
 

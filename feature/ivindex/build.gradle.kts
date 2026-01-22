@@ -19,4 +19,5 @@ dependencies {
     implementation(project(":mesh:core"))
 
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
+    implementation(libs.androidx.compose.adaptive.navigation3)
 }

@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,7 +44,7 @@ class NetworkKeysViewModel @Inject internal constructor(
 
     private fun observeNetwork() {
         repository.network.onEach { network ->
-            this@NetworkKeysViewModel.network = network
+            this.network = network
             _uiState.update { state ->
                 state.copy(
                     keys = network.networkKeys
@@ -132,5 +134,5 @@ class NetworkKeysViewModel @Inject internal constructor(
 data class NetworkKeysScreenUiState internal constructor(
     val keys: List<NetworkKeyData> = listOf(),
     val keysToBeRemoved: List<NetworkKeyData> = listOf(),
-    val selectedKeyIndex: KeyIndex? = null
+    val selectedKeyIndex: KeyIndex? = null,
 )

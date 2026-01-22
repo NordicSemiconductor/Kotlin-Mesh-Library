@@ -86,8 +86,7 @@ internal fun ConfigAppKeysScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             onRefresh = { readApplicationKeys() },
             isRefreshing = messageState.isInProgress() && messageState.message is ConfigAppKeyGet
         ) {

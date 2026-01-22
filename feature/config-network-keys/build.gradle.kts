@@ -9,16 +9,7 @@ android {
 }
 
 dependencies {
-
-    testImplementation(libs.junit4)
-    testImplementation(libs.kotlin.junit)
-    testImplementation(libs.androidx.test.ext)
-    testImplementation(libs.androidx.test.rules)
-
-    androidTestImplementation(libs.junit4)
-    androidTestImplementation(libs.kotlin.junit)
-    androidTestImplementation(libs.androidx.test.ext)
-    androidTestImplementation(libs.androidx.test.rules)
+    implementation(libs.androidx.compose.adaptive.navigation3)
 
     implementation(nordic.kotlin.data)
 
@@ -30,4 +21,13 @@ dependencies {
     implementation(project(":feature:network-keys"))
     implementation(project(":mesh:core"))
 
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.junit)
+    testImplementation(libs.androidx.test.ext)
+    testImplementation(libs.androidx.test.rules)
+
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.kotlin.junit)
+    androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.test.rules)
 }

@@ -893,18 +893,18 @@ data class MeshNetwork internal constructor(
         _nodes
             .find { it.uuid == uuid }
             ?.let { node ->
-            _nodes.remove(node)
-            // Remove unicast addresses of all node's elements from the scene
-            _scenes.forEach { it.remove(node.addresses) }
-            // When a Node is removed from the network, the unicast addresses that were in used
-            // cannot be assigned to another node until the IV index is incremented by 2 which
-            // effectively resets the Sequence number used by all the nodes in the network.
-            _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
-            // As the node is removed from the network and is no longer part of the network,
-            // clear it's network reference.
-            node.network = null
-            updateTimestamp()
-        }
+                _nodes.remove(node)
+                // Remove unicast addresses of all node's elements from the scene
+                _scenes.forEach { it.remove(node.addresses) }
+                // When a Node is removed from the network, the unicast addresses that were in used
+                // cannot be assigned to another node until the IV index is incremented by 2 which
+                // effectively resets the Sequence number used by all the nodes in the network.
+                _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
+                // As the node is removed from the network and is no longer part of the network,
+                // clear it's network reference.
+                node.network = null
+                updateTimestamp()
+            }
     }
 
     /**
@@ -1596,10 +1596,8 @@ data class MeshNetwork internal constructor(
      * @param elementAddress Address of the element.
      * @return Element if found or null otherwise.
      */
-    fun element(elementAddress: Address): Element? {
-        return nodes.flatMap { it.elements }
-            .firstOrNull { it.unicastAddress.address == elementAddress }
-    }
+    fun element(elementAddress: Address) = nodes.flatMap { it.elements }
+        .firstOrNull { it.unicastAddress.address == elementAddress }
 
     /**
      * Checks if the given provisioner is a part of the network.

@@ -13,6 +13,7 @@ dependencies {
 
     implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

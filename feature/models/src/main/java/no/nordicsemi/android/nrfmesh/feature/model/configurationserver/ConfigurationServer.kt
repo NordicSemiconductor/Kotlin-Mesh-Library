@@ -105,7 +105,10 @@ internal fun ConfigurationServer(
         send = send,
         requestNodeIdentityStates = requestNodeIdentityStates
     )
-    SectionTitle(title = stringResource(id = R.string.title_heartbeat))
+    SectionTitle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(id = R.string.title_heartbeat)
+    )
     HeartBeatSubscriptionRow(
         messageState = messageState,
         model = model,

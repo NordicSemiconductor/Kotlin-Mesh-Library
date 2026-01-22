@@ -1,0 +1,95 @@
+package no.nordicsemi.android.nrfmesh.feature.scenes.navigation
+
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesScreen
+import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
+import no.nordicsemi.android.nrfmesh.feature.scenes.scene.navigation.SceneContentKey
+import no.nordicsemi.android.nrfmesh.feature.scenes.scene.navigation.sceneEntry
+import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
+
+@Serializable
+data object ScenesContentKey : NavKey
+
+@Composable
+fun ScenesScreenRoute(
+    snackbarHostState: SnackbarHostState,
+    highlightSelectedItem: Boolean,
+    onSceneClicked: (SceneNumber) -> Unit,
+    navigateToScene: (SceneNumber) -> Unit,
+    navigateUp: () -> Unit,
+) {
+    val viewModel = hiltViewModel<ScenesViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ScenesScreen(
+        snackbarHostState = snackbarHostState,
+        highlightSelectedItem = highlightSelectedItem,
+        selectedSceneNumber = uiState.selectedSceneNumber,
+        scenes = uiState.scenes,
+        onAddSceneClicked = viewModel::addScene,
+        onSceneClicked = {
+            viewModel.selectScene(number = it)
+            onSceneClicked(it)
+        },
+        navigateToScene = {
+            viewModel.selectScene(it)
+            navigateToScene(it)
+        },
+        onSwiped = {
+            viewModel.onSwiped(scene = it)
+            if (uiState.selectedSceneNumber == it.number) {
+                navigateUp()
+            }
+        },
+        onUndoClicked = viewModel::onUndoSwipe,
+        remove = viewModel::remove
+    )
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+fun EntryProviderScope<NavKey>.scenesEntry(appState: AppState, navigator: Navigator) {
+    entry<ScenesContentKey>(
+        metadata = ListDetailSceneStrategy.detailPane()
+    ) {
+        val viewModel = hiltViewModel<ScenesViewModel, ScenesViewModel.Factory>(
+            key = "ScenesViewModel"
+        ) { factory ->
+            factory.create()
+        }
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        ScenesScreen(
+            snackbarHostState = appState.snackbarHostState,
+            highlightSelectedItem = false,
+            selectedSceneNumber = uiState.selectedSceneNumber,
+            scenes = uiState.scenes,
+            onAddSceneClicked = viewModel::addScene,
+            onSceneClicked = {
+                viewModel.selectScene(number = it)
+                navigator.navigate(key = SceneContentKey(number = it))
+            },
+            navigateToScene = {
+                viewModel.selectScene(it)
+                navigator.navigate(key = SceneContentKey(number = it))
+            },
+            onSwiped = {
+                viewModel.onSwiped(scene = it)
+                if (uiState.selectedSceneNumber == it.number) {
+                    navigator.goBack()
+                }
+            },
+            onUndoClicked = viewModel::onUndoSwipe,
+            remove = viewModel::remove
+        )
+    }
+    sceneEntry(appState = appState, navigator = navigator)
+}
