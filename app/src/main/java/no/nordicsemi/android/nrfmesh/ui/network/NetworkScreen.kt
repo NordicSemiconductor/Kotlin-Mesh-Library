@@ -73,6 +73,7 @@ import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
+import no.nordicsemi.android.nrfmesh.core.navigation.NODES
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
@@ -108,7 +109,7 @@ import kotlin.uuid.Uuid
     ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class
 )
 @Composable
-fun NetworkRoute(
+fun NetworkScreen(
     provisioners: List<Provisioner>,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
@@ -399,7 +400,7 @@ fun NetworkRoute(
                 text = stringResource(R.string.label_reset_network_rationale),
                 onConfirmClick = {
                     scope.launch {
-                        // appState.clearBackStack()
+                        navigator.navigate(key = NodesKey)
                     }.invokeOnCompletion {
                         showResetNetworkDialog = false
                         resetNetwork()
