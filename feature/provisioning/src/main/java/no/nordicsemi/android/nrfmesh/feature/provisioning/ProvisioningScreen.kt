@@ -68,7 +68,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-internal fun ProvisioningRoute(
+internal fun ProvisioningScreen(
     uiState: ProvisioningScreenUiState,
     beginProvisioning: (ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -90,7 +90,7 @@ internal fun ProvisioningRoute(
     ) {
         disconnect()
     }
-    ProvisionerScreen(
+    ProvisionerContent(
         uiState = uiState,
         beginProvisioning = beginProvisioning,
         onNameChanged = onNameChanged,
@@ -107,7 +107,7 @@ internal fun ProvisioningRoute(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
-private fun ProvisionerScreen(
+private fun ProvisionerContent(
     uiState: ProvisioningScreenUiState,
     beginProvisioning: (ScanResult) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -163,6 +163,7 @@ private fun ProvisionerScreen(
                         runCatching { showAuthenticationDialog = true }
                             .onFailure {
                                 scope.launch {
+
                                     snackbarHostState.showSnackbar(
                                         message = it.message
                                             ?: context.getString(R.string.label_unknown_error)
