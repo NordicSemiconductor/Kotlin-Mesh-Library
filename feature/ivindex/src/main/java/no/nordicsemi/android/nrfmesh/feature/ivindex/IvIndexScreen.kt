@@ -162,15 +162,7 @@ private fun IvIndex(
                     )
                     MeshSingleLineListItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        leadingComposable = {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .padding(end = 8.dp),
-                                imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
-                                contentDescription = null
-                            )
-                        },
+                        imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
                         title = stringResource(R.string.label_iv_update_state),
                         trailingComposable = {
                             Switch(

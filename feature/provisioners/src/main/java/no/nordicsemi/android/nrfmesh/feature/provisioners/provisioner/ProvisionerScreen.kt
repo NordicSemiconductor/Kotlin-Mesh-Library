@@ -173,15 +173,6 @@ private fun ProvisionerContent(
             provisioner = provisioner,
             provisionerData = provisionerData,
             otherRanges = provisioner.otherUnicastRanges,
-            allocate = {
-                runCatching { provisioner.allocate(it) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            },
             save = save
         )
         GroupRanges(
@@ -190,15 +181,6 @@ private fun ProvisionerContent(
             provisioner = provisioner,
             provisionerData = provisionerData,
             otherRanges = provisioner.otherGroupRanges,
-            allocate = {
-                runCatching { provisioner.allocate(range = it) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            },
             save = save
         )
         SceneRanges(
@@ -207,15 +189,6 @@ private fun ProvisionerContent(
             provisioner = provisioner,
             provisionerData = provisionerData,
             otherRanges = provisioner.otherSceneRanges,
-            allocate = {
-                runCatching { provisioner.allocate(it) }
-                    .onSuccess { save() }
-            },
-            onRemoved = {
-                // TODO show snackbar
-                runCatching { provisioner.remove(range = it) }
-                    .onSuccess { save() }
-            },
             save = save
         )
         AddressRangeLegendsForProvisioner()
@@ -518,8 +491,6 @@ private fun UnicastRanges(
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<UnicastRange>,
-    allocate: (Range) -> Unit,
-    onRemoved: (Range) -> Unit,
     save: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -527,7 +498,9 @@ private fun UnicastRanges(
     var ranges by remember(key1 = provisionerData.uuid) {
         mutableStateOf(provisionerData.unicastRanges.toMutableList<Range>())
     }
-    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
+    val overlaps by remember {
+        derivedStateOf { ranges.overlaps(other = otherRanges) }
+    }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.Lan,
@@ -572,6 +545,7 @@ private fun UnicastRanges(
                         runCatching {
                             provisioner.allocate(ranges = ranges)
                         }.onSuccess {
+                            save()
                             scope.launch {
                                 sheetState.hide()
                             }.invokeOnCompletion {
@@ -602,15 +576,15 @@ private fun GroupRanges(
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<GroupRange>,
-    allocate: (Range) -> Unit,
-    onRemoved: (Range) -> Unit,
     save: () -> Unit,
 ) {
     var showGroupRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
         mutableStateOf(provisionerData.groupRanges.toMutableList<Range>())
     }
-    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
+    val overlaps by remember {
+        derivedStateOf { ranges.overlaps(other = otherRanges) }
+    }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.GroupWork,
@@ -669,15 +643,15 @@ private fun SceneRanges(
     provisioner: Provisioner,
     provisionerData: ProvisionerData,
     otherRanges: List<SceneRange>,
-    allocate: (Range) -> Unit,
-    onRemoved: (Range) -> Unit,
     save: () -> Unit,
 ) {
     var showSceneRanges by rememberSaveable { mutableStateOf(false) }
     var ranges by remember(key1 = provisionerData.uuid) {
         mutableStateOf(provisionerData.sceneRanges.toMutableList<Range>())
     }
-    val overlaps by derivedStateOf { ranges.overlaps(other = otherRanges) }
+    val overlaps by remember {
+        derivedStateOf { ranges.overlaps(other = otherRanges) }
+    }
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         AllocatedRanges(
             imageVector = Icons.Outlined.AutoAwesome,

@@ -178,15 +178,7 @@ private fun Controls(
                 )
                 MeshSingleLineListItem(
                     modifier = Modifier.fillMaxSize(),
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 16.dp),
-                            imageVector = Icons.Outlined.Verified,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
+                    imageVector = Icons.Outlined.Verified,
                     title = stringResource(R.string.label_acknowledged),
                     trailingComposable = {
                         Switch(

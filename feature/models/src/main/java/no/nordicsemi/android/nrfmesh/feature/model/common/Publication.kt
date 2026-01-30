@@ -1,19 +1,26 @@
 package no.nordicsemi.android.nrfmesh.feature.model.common
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SportsScore
@@ -27,6 +34,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -38,11 +46,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
+import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.common.publishDestination
 import no.nordicsemi.android.nrfmesh.core.common.publishKey
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -57,6 +70,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.model.configurationserver.toFloat
 import no.nordicsemi.android.nrfmesh.feature.models.R
@@ -83,6 +97,7 @@ import no.nordicsemi.kotlin.mesh.core.model.StepResolution
 import no.nordicsemi.kotlin.mesh.core.model.UnassignedAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
 import kotlin.math.roundToInt
 import kotlin.time.DurationUnit
 
@@ -239,8 +254,7 @@ internal fun Publication(
                         title = stringResource(R.string.label_destination)
                     )
                     Destination(
-                        network = model.parentElement?.parentNode?.network,
-                        destinations = model.publicationDestinations(),
+                        model = model,
                         destination = destination,
                         onDestinationSelected = { destination = it }
                     )
@@ -266,11 +280,11 @@ internal fun Publication(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Destination(
-    network: MeshNetwork?,
-    destinations: List<PublicationAddress>,
+    model: Model,
     destination: PublicationAddress?,
     onDestinationSelected: (PublicationAddress) -> Unit,
 ) {
+    val network = model.parentElement?.parentNode?.network ?: return
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -284,20 +298,27 @@ private fun Destination(
             imageVector = Icons.Outlined.SportsScore,
             title = when (destination) {
                 is UnicastAddress -> network
-                    ?.node(address = destination.address)
-                    ?.name ?: destination.toHexString()
+                    .node(address = destination.address)
+                    ?.name
+                    ?: destination.toHexString()
 
                 is AllRelays -> stringResource(R.string.label_all_relays)
                 is AllFriends -> stringResource(R.string.label_all_friends)
                 is AllProxies -> stringResource(R.string.label_all_proxies)
                 is AllNodes -> stringResource(R.string.label_all_nodes)
-                is GroupAddress -> network?.group(address = destination.address)?.name
+                is GroupAddress -> network
+                    .group(address = destination.address)?.name
                     ?: destination.toHexString()
 
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_destination)
             },
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = destination?.let { "0x${it.toHexString()}" } ?: ""
         )
         DropdownMenu(
@@ -305,46 +326,99 @@ private fun Destination(
             expanded = expanded,
             onDismissRequest = { expanded = !expanded },
             content = {
-                destinations.forEachIndexed { index, destination ->
-                    DropdownMenuItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                        text = {
-                            MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.SportsScore,
-                                        contentDescription = null
-                                    )
-                                },
-                                title = when (destination) {
-                                    is UnicastAddress -> network
-                                        ?.node(address = destination.address)?.name
-                                        ?: destination.toHexString()
-
-                                    is AllRelays -> stringResource(R.string.label_all_relays)
-                                    is AllFriends -> stringResource(R.string.label_all_friends)
-                                    is AllProxies -> stringResource(R.string.label_all_proxies)
-                                    is AllNodes -> stringResource(R.string.label_all_nodes)
-                                    is GroupAddress -> network
-                                        ?.group(address = destination.address)?.name
-                                        ?: destination.toHexString()
-
-                                    is VirtualAddress -> stringResource(R.string.label_virtual_address)
-                                    is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
-                                },
-                            )
-                        },
-                        onClick = {
-                            onDestinationSelected(destination)
-                            expanded = !expanded
-                        }
+                model.parentElement?.parentNode?.network?.let { network ->
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                        text = stringResource(R.string.label_unicast_destinations)
                     )
-                    if (index < destinations.size - 1) {
-                        HorizontalDivider()
+                    network.nodes.forEach { node ->
+                        var isListExpanded by rememberSaveable { mutableStateOf(false) }
+                        MeshSingleLineListItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            imageVector = Icons.Outlined.SportsScore,
+                            title = node.name,
+                            trailingComposable = {
+                                IconButton(
+                                    onClick = { isListExpanded = !isListExpanded },
+                                    content = {
+                                        Icon(
+                                            modifier = Modifier.rotate(
+                                                if (isListExpanded) 180f else 0f
+                                            ),
+                                            imageVector = Icons.Outlined.ArrowDropDown,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                        if (isListExpanded) {
+                            node.elements.forEach { element ->
+                                MeshTwoLineListItem(
+                                    modifier = Modifier
+                                        .exposedDropdownSize()
+                                        .clickable {
+                                            onDestinationSelected(element.unicastAddress as PublicationAddress)
+                                            isListExpanded = !isListExpanded
+                                            expanded = !expanded
+                                        },
+                                    leadingComposable = {
+                                        Spacer(modifier = Modifier.width(width = 56.dp))
+                                    },
+                                    title = element.name
+                                        ?: stringResource(R.string.label_unknown),
+                                    subtitle = "0x${element.unicastAddress.toHexString()}"
+                                )
+                            }
+                        }
+                    }
+                    HorizontalDivider()
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                        text = stringResource(R.string.label_groups)
+                    )
+                    network
+                        .groups
+                        .takeIf { it.isNotEmpty() }
+                        ?.let {
+                            it.forEach { destination ->
+                                MeshSingleLineListItem(
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .clickable {
+                                            onDestinationSelected(destination.address as PublicationAddress)
+                                            expanded = !expanded
+                                        },
+                                    imageVector = Icons.Outlined.SportsScore,
+                                    title = destination.name
+                                )
+                            }
+                        }
+                    MeshSingleLineListItem(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+
+                            },
+                        imageVector = Icons.Outlined.Add,
+                        title = stringResource(R.string.label_add_group)
+                    )
+                    HorizontalDivider()
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                        text = stringResource(R.string.label_fixed_group_addresses)
+                    )
+                    fixedGroupAddresses.forEach {destination ->
+                        MeshSingleLineListItem(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .clickable {
+                                    onDestinationSelected(destination as PublicationAddress)
+                                    expanded = !expanded
+                                },
+                            imageVector = Icons.Outlined.GroupWork,
+                            title = destination.name()
+                        )
                     }
                 }
             }
@@ -370,7 +444,12 @@ private fun ApplicationKeys(
             onClick = { expanded = true },
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_application_key),
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = keys.firstOrNull {
                 it.index == selectedKeyIndex.toUShort()
             }?.name ?: stringResource(R.string.label_unknown)
@@ -386,15 +465,7 @@ private fun ApplicationKeys(
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                         text = {
                             MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(horizontal = 8.dp)
-                                            .padding(end = 8.dp),
-                                        imageVector = Icons.Outlined.VpnKey,
-                                        contentDescription = null
-                                    )
-                                },
+                                imageVector = Icons.Outlined.VpnKey,
                                 title = key.name,
                             )
                         },
@@ -533,6 +604,7 @@ private fun FriendshipCredential(
         title = stringResource(id = R.string.label_friendship_credentials_flag),
         titleAction = {
             Switch(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 checked = credentials is FriendshipSecurity,
                 onCheckedChange = {
                     onCredentialsChanged(
@@ -618,14 +690,9 @@ private fun RetransmissionCountAndInterval(
  * Returns the list of possible addresses that can be selected as a destination address for a
  * publication message for a given non ConfigurationServer Model.
  */
-private fun Model.publicationDestinations(): List<PublicationAddress> {
-    require(!isConfigurationServer) {
-        throw IllegalStateException("Configuration server cannot send publish messages")
-    }
-    val network = parentElement?.parentNode?.network
-    val nodes = network?.nodes.orEmpty().map { it.primaryUnicastAddress }
-    val groups = network?.groups.orEmpty().map { it.address as PublicationAddress }
-    return nodes + groups + listOf<PublicationAddress>(
+fun Model.groupPublicationDestinations(network: MeshNetwork): List<PublicationAddress> {
+    val groups = network.groups.map { it.address as PublicationAddress }
+    return groups + listOf<PublicationAddress>(
         AllRelays, AllFriends, AllProxies, AllNodes
     )
 }

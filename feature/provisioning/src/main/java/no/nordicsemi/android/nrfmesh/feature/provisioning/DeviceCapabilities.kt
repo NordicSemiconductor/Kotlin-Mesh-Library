@@ -296,14 +296,7 @@ private fun NetworkKeyRow(
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                         text = {
                             MeshSingleLineListItem(
-                                leadingComposable = {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(end = 16.dp),
-                                        imageVector = Icons.Outlined.VpnKey,
-                                        contentDescription = null
-                                    )
-                                },
+                                imageVector = Icons.Outlined.VpnKey,
                                 title = key.name
                             )
                         },

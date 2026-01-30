@@ -90,6 +90,7 @@ internal fun ModelScreen(
         CommonInformation(model = model)
         if (model.isConfigurationServer) {
             ConfigurationServer(
+                snackbarHostState = snackbarHostState,
                 messageState = messageState,
                 model = model,
                 nodeIdentityStates = nodeIdentityStates,
@@ -246,6 +247,7 @@ internal fun ModelScreen(
                 CommonInformation(model = model)
                 if (model.isConfigurationServer) {
                     ConfigurationServer(
+                        snackbarHostState = snackbarHostState,
                         messageState = messageState,
                         model = model,
                         nodeIdentityStates = nodeIdentityStates,

@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 
 @Composable
 fun ElevatedCardItem(
@@ -98,16 +99,7 @@ private fun NonClickableElevatedCardItem(
         colors = colors
     ) {
         MeshTwoLineListItem(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(end = 16.dp),
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
+            imageVector = imageVector,
             title = title,
             subtitle = subtitle,
             subtitleMaxLines = subtitleMaxLines,
@@ -165,16 +157,8 @@ private fun ClickableElevatedCardItem(
         colors = colors
     ) {
         MeshTwoLineListItem(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            leadingComposable = {
-                Icon(
-                    modifier = Modifier.padding(end = 16.dp),
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
+            modifier = Modifier,
+            imageVector = imageVector,
             title = title,
             subtitle = subtitle,
             subtitleMaxLines = subtitleMaxLines,
@@ -196,51 +180,6 @@ private fun ClickableElevatedCardItem(
                 it()
             }
         }
-        actions?.let {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                it()
-            }
-        }
-    }
-}
-
-@Composable
-fun ElevatedCardItem(
-    modifier: Modifier = Modifier,
-    colors: CardColors = CardDefaults.outlinedCardColors(),
-    onClick: () -> Unit,
-    image: @Composable () -> Unit,
-    title: String,
-    titleAction: @Composable () -> Unit = {},
-    subtitle: String? = null,
-    supportingText: String? = null,
-    actions: @Composable (RowScope?.() -> Unit)? = null,
-) {
-    OutlinedCard(
-        modifier = modifier,
-        onClick = onClick,
-        colors = colors
-    ) {
-        MeshTwoLineListItem(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            leadingComposable = { image() },
-            title = title,
-            subtitle = subtitle,
-            trailingComposable = titleAction
-        )
-        if (supportingText != null)
-            Text(
-                modifier = Modifier.padding(start = 58.dp, end = 16.dp, bottom = 16.dp),
-                text = supportingText,
-                style = MaterialTheme.typography.bodyMedium
-            )
         actions?.let {
             Row(
                 modifier = Modifier
@@ -279,7 +218,7 @@ fun ElevatedCardItemTextField(
     OutlinedCard(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                modifier = Modifier.padding(start = 12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 imageVector = imageVector,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
@@ -362,12 +301,12 @@ fun ElevatedCardItemTextField(
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+                        // modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = value.text,
                         trailingComposable = {
                             IconButton(
-                                modifier = Modifier.padding(start = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp),
                                 enabled = isEditable,
                                 onClick = {
                                     onEditClick = !onEditClick
@@ -497,7 +436,7 @@ fun ElevatedCardItemHexTextField(
                     )
 
                     false -> MeshTwoLineListItem(
-                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+                        // modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = if (prefix != null) "0x${value.text}" else value.text,
                         trailingComposable = {

@@ -133,7 +133,7 @@ internal fun ApplicationKeyContent(
                     titleAction = {
                         if (networkKey.index.toInt() == boundNetKeyIndex) {
                             Icon(
-                                modifier = Modifier.padding(start = 16.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp),
                                 imageVector = Icons.Outlined.CheckCircleOutline,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.surfaceTint

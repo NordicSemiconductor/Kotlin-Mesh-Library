@@ -50,14 +50,8 @@ fun NetKeyItem(key: NetworkKey, isSelected: Boolean, onKeySelected: (KeyIndex) -
         modifier = Modifier.clickable {
             onKeySelected(key.index)
         },
-        leadingComposable = {
-            Icon(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                imageVector = Icons.Outlined.VpnKey,
-                contentDescription = null,
-                tint = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        }, title = key.name,
+        imageVector = Icons.Outlined.VpnKey,
+        title = key.name,
         subtitle = key.key.toHexString(),
         trailingComposable = {
             Checkbox(checked = isSelected, onCheckedChange = { if (it) onKeySelected(key.index) })

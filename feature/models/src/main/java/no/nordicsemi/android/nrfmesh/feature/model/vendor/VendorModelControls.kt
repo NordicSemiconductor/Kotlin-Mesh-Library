@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Segment
+import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Verified
@@ -203,14 +204,7 @@ private fun Request(
             )
             MeshSingleLineListItem(
                 modifier = Modifier.fillMaxSize(),
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier.padding(end = 16.dp),
-                        imageVector = Icons.Outlined.Verified,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
+                imageVector = Icons.Outlined.Verified,
                 title = stringResource(R.string.label_acknowledged),
                 trailingComposable = {
                     Switch(
@@ -286,15 +280,7 @@ private fun Request(
             }
             MeshSingleLineListItem(
                 modifier = Modifier.fillMaxSize(),
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 16.dp),
-                        imageVector = Icons.Outlined.Security,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
+                imageVector = Icons.Outlined.Verified,
                 title = stringResource(R.string.label_64_bit_transmic),
                 trailingComposable = {
                     Switch(
@@ -306,15 +292,7 @@ private fun Request(
             )
             MeshSingleLineListItem(
                 modifier = Modifier.fillMaxSize(),
-                leadingComposable = {
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 16.dp),
-                        imageVector = Icons.AutoMirrored.Outlined.Segment,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.6f)
-                    )
-                },
+                imageVector = Icons.AutoMirrored.Outlined.Segment,
                 title = stringResource(R.string.label_force_segmentation),
                 trailingComposable = {
                     Switch(
@@ -383,63 +361,40 @@ private fun Response(messageState: MessageState) {
         title = stringResource(R.string.label_response)
     )
     OutlinedCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-            ) {
-                MeshSingleLineListItem(
-                    modifier = Modifier.weight(weight = 1f),
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 16.dp),
-                            imageVector = Icons.Outlined.Code,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = stringResource(R.string.label_op_code)
-                )
-                Text(
-                    text = messageState.response?.opCode
-                        // Cut 0xC0 and the Company ID
-                        ?.let { opCode -> (opCode shr 16 and 0x3Fu) }
-                        // Print as Hex
-                        ?.toHexString(
-                            format = HexFormat {
-                                number {
-                                    prefix = "0x"
-                                    removeLeadingZeros = true
+        Column(modifier = Modifier.padding(vertical = 16.dp)) {
+            MeshSingleLineListItem(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Code,
+                title = stringResource(R.string.label_op_code),
+                trailingComposable = {
+                    Text(
+                        text = messageState.response?.opCode
+                            // Cut 0xC0 and the Company ID
+                            ?.let { opCode -> (opCode shr 16 and 0x3Fu) }
+                            // Print as Hex
+                            ?.toHexString(
+                                format = HexFormat {
+                                    number {
+                                        prefix = "0x"
+                                        removeLeadingZeros = true
+                                    }
+                                    upperCase = true
                                 }
-                                upperCase = true
-                            }
-                        ) ?: ""
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-            ) {
-                MeshSingleLineListItem(
-                    modifier = Modifier.weight(weight = 1f),
-                    leadingComposable = {
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 16.dp),
-                            imageVector = Icons.Outlined.Verified,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.6f)
-                        )
-                    },
-                    title = stringResource(R.string.label_status)
-                )
-                Text(
-                    text = messageState.response?.parameters?.toHexString(prefixOx = true) ?: ""
-                )
-            }
+                            ) ?: ""
+                    )
+                }
+            )
+            MeshSingleLineListItem(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                imageVector = Icons.Outlined.Verified,
+                title = stringResource(R.string.label_status),
+                trailingComposable = {
+                    Text(
+                        text = messageState.response?.parameters?.toHexString(prefixOx = true)
+                            ?: ""
+                    )
+                }
+            )
         }
     }
 }

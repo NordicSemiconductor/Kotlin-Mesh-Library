@@ -9,7 +9,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodeKey
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
-import no.nordicsemi.android.nrfmesh.feature.nodes.NodesRoute
+import no.nordicsemi.android.nrfmesh.feature.nodes.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.nodeEntry
 import kotlin.uuid.ExperimentalUuidApi
@@ -19,13 +19,11 @@ fun EntryProviderScope<NavKey>.nodesEntry(appState: AppState, navigator: Navigat
     entry<NodesKey> {
         val viewModel = hiltViewModel<NodesViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        NodesRoute(
-            appState = appState,
+        NodesScreen(
             uiState = uiState,
-            navigateToNode = { navigator.navigate(key = NodeKey(nodeUuid = it.toString())) },
-            onSwiped = { },
-            onUndoClicked = { },
-            remove = { }
+            navigateToNode = {
+                navigator.navigate(key = NodeKey(nodeUuid = it.toString()))
+            }
         )
     }
     nodeEntry(appState = appState, navigator = navigator)

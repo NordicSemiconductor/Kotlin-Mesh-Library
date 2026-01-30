@@ -1,5 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.model.configurationserver
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -52,16 +53,14 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                 text = stringResource(R.string.label_unicast_destinations)
             )
             otherNodes.forEach { otherNode ->
-                DropdownMenuItem(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                    text = {
-                        MeshSingleLineListItem(
-                            imageVector = Icons.Outlined.SportsScore,
-                            title = otherNode.name,
-                        )
-                    },
-                    onClick = { onDestinationSelected(otherNode.primaryUnicastAddress) }
+                MeshSingleLineListItem(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            onDestinationSelected(otherNode.primaryUnicastAddress)
+                        },
+                    imageVector = Icons.Outlined.SportsScore,
+                    title = otherNode.name,
                 )
             }
             HorizontalDivider()
@@ -70,35 +69,22 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                 text = stringResource(R.string.label_groups)
             )
             groups.forEach { destination ->
-                DropdownMenuItem(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                    text = {
-                        MeshSingleLineListItem(
-                            imageVector = Icons.Outlined.SportsScore,
-                            title = network
-                                ?.group(address = destination.address.address)?.name
-                                ?: destination.address.address.toHexString(
-                                    format = HexFormat {
-                                        number.prefix = "0x"
-                                        upperCase = true
-                                    }
-                                ),
-                        )
-                    },
-                    onClick = { onDestinationSelected(destination.address as HeartbeatPublicationDestination) }
+                MeshSingleLineListItem(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            onDestinationSelected(destination.address as HeartbeatPublicationDestination)
+                        },
+                    imageVector = Icons.Outlined.SportsScore,
+                    title = destination.name,
                 )
             }
-            DropdownMenuItem(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                text = {
-                    MeshTwoLineListItem(
-                        imageVector = Icons.Outlined.Add,
-                        title = stringResource(R.string.add_group)
-                    )
-                },
-                onClick = onAddGroupClicked
+            MeshSingleLineListItem(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clickable { onAddGroupClicked() },
+                imageVector = Icons.Outlined.Add,
+                title = stringResource(R.string.add_group)
             )
             HorizontalDivider()
             Text(
@@ -106,16 +92,12 @@ internal fun ExposedDropdownMenuBoxScope.HeartbeatPublicationDestinationsDropdow
                 text = stringResource(R.string.label_fixed_group_addresses)
             )
             fixedGroupAddresses.forEach { destination ->
-                DropdownMenuItem(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                    text = {
-                        MeshSingleLineListItem(
-                            imageVector = Icons.Outlined.SportsScore,
-                            title = destination.name(),
-                        )
-                    },
-                    onClick = { onDestinationSelected(destination) }
+                MeshSingleLineListItem(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable { onAddGroupClicked() },
+                    imageVector = Icons.Outlined.SportsScore,
+                    title = destination.name(),
                 )
             }
         }

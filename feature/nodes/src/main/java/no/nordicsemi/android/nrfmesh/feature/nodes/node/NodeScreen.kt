@@ -25,10 +25,11 @@ import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -50,7 +51,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.core.ui.SwitchWithIcon
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
@@ -122,7 +122,11 @@ internal fun NodeListScreen(
                     title = stringResource(id = R.string.title_keys)
                 )
             }
-            item { DeviceKeyRow(deviceKey = nodeData.deviceKey ?: stringResource(R.string.unknown)) }
+            item {
+                DeviceKeyRow(
+                    deviceKey = nodeData.deviceKey ?: stringResource(R.string.unknown)
+                )
+            }
             item {
                 NetworkKeysRow(
                     count = nodeData.netKeys.size,
@@ -171,14 +175,26 @@ internal fun NodeListScreen(
                     title = stringResource(id = R.string.title_time_to_live)
                 )
             }
-            item { DefaultTtlRow(ttl = nodeData.defaultTtl, messageState = messageState, send = send) }
+            item {
+                DefaultTtlRow(
+                    ttl = nodeData.defaultTtl,
+                    messageState = messageState,
+                    send = send
+                )
+            }
             item {
                 SectionTitle(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     title = stringResource(id = R.string.title_proxy_state)
                 )
             }
-            item { ProxyStateRow(messageState = messageState, proxy = nodeData.features.proxy, send = send) }
+            item {
+                ProxyStateRow(
+                    messageState = messageState,
+                    proxy = nodeData.features.proxy,
+                    send = send
+                )
+            }
             item {
                 SectionTitle(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -324,7 +340,7 @@ private fun ElementRow(
 private fun CompanyIdentifier(companyIdentifier: UShort?) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Work,
+        imageVector = Icons.Outlined.WorkOutline,
         title = stringResource(R.string.label_company_identifier),
         subtitle = companyIdentifier
             ?.let {
@@ -439,10 +455,14 @@ private fun ProxyStateRow(
         imageVector = Icons.Outlined.Hub,
         title = stringResource(R.string.label_gatt_proxy_state),
         titleAction = {
-            SwitchWithIcon(isChecked = isEnabled, onCheckedChange = {
-                if (!it) showProxyStateDialog = true
-                else send(ConfigGattProxySet(FeatureState.Enabled))
-            })
+            Switch(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                checked = isEnabled,
+                onCheckedChange = {
+                    if (!it) showProxyStateDialog = true
+                    else send(ConfigGattProxySet(FeatureState.Enabled))
+                }
+            )
         },
         subtitle = "Proxy state is ${if (isEnabled) "enabled" else "disabled"}",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
@@ -483,8 +503,9 @@ private fun ExclusionRow(isExcluded: Boolean, onExcluded: (Boolean) -> Unit) {
         imageVector = Icons.Outlined.Block,
         title = stringResource(R.string.label_exclude_node),
         titleAction = {
-            SwitchWithIcon(
-                isChecked = isExcluded,
+            Switch(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                checked = isExcluded,
                 onCheckedChange = onExcluded
             )
         },

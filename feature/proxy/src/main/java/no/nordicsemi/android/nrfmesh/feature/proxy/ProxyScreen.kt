@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.proxy
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +18,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeviceHub
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -46,6 +50,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -60,6 +65,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
+import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
@@ -226,7 +232,7 @@ private fun AutomaticConnectionRow(
         title = stringResource(R.string.label_automatic_connection),
         titleAction = {
             Switch(
-                modifier = Modifier.padding(start = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 checked = proxyConnectionState.autoConnect,
                 onCheckedChange = { onAutoConnectToggled(it) }
             )
@@ -411,7 +417,7 @@ private fun FilterSection(
         MeshMessageStatusDialog(
             text = stringResource(R.string.label_proxy_filter_limit_reached),
             showDismissButton = true,
-            onDismissRequest = resetMessageState,
+            onDismissRequest = resetMessageState
         )
     }
     if (showBottomSheet) {
@@ -496,16 +502,10 @@ private fun Addresses(
             modifier = Modifier.padding(top = 8.dp),
             text = stringResource(R.string.label_elements)
         )
-        nodes.flatMap { it.elements }.forEach { element ->
-            AddressRow(
-                name = element.name ?: stringResource(R.string.label_unknown),
-                subtitle = element.parentNode?.name ?: element.unicastAddress.address.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                ),
-                onClick = { onAddressClicked(element.unicastAddress as ProxyFilterAddress) }
+        nodes.forEach { element ->
+            ExpandableAddressRow(
+                node = element,
+                onClick = onAddressClicked
             )
         }
         if (groups.isNotEmpty()) {
@@ -544,6 +544,58 @@ private fun AddressRow(
         title = name,
         subtitle = subtitle,
         onClick = onClick
+    )
+}
+
+@Composable
+private fun ExpandableAddressRow(
+    node: Node,
+    onClick: ((ProxyFilterAddress) -> Unit),
+) {
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
+    ElevatedCardItem(
+        imageVector = Icons.Outlined.DeviceHub,
+        title = node.name,
+        subtitle = node.primaryUnicastAddress.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        ),
+        titleAction = {
+            IconButton(
+                onClick = { isExpanded = !isExpanded },
+                content = {
+                    Icon(
+                        modifier = Modifier.rotate(degrees = if (isExpanded) 180f else 0f),
+                        imageVector = Icons.Outlined.ArrowDropDown,
+                        contentDescription = null
+                    )
+                }
+            )
+        },
+        body = if (isExpanded) {
+            {
+                node.elements.forEach { element ->
+                    MeshTwoLineListItem(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clickable {
+                                onClick(element.unicastAddress as ProxyFilterAddress)
+                                isExpanded = !isExpanded
+                            },
+                        title = element.name ?: stringResource(R.string.label_unknown),
+                        imageVector = Icons.Outlined.Lan,
+                        subtitle = element.unicastAddress.address.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
+                    )
+                }
+            }
+        } else null
     )
 }
 

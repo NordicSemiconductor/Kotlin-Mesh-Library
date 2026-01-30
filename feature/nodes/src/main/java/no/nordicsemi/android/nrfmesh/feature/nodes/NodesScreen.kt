@@ -23,9 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.common.ui.view.CircularIcon
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
@@ -35,34 +33,10 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-internal fun NodesRoute(
-    appState: AppState,
+internal fun NodesScreen(
     uiState: NodesScreenUiState,
     navigateToNode: (Uuid) -> Unit,
-    onSwiped: (Node) -> Unit,
-    onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit,
 ) {
-    NodesScreen(
-        uiState = uiState,
-        navigateToNode = navigateToNode,
-        onSwiped = onSwiped,
-        onUndoClicked = onUndoClicked,
-        remove = remove
-    )
-}
-
-@OptIn(ExperimentalUuidApi::class)
-@Composable
-private fun NodesScreen(
-    uiState: NodesScreenUiState,
-    navigateToNode: (Uuid) -> Unit,
-    onSwiped: (Node) -> Unit,
-    onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit,
-) {
-    val coroutineScope = rememberCoroutineScope()
-
     when (uiState.nodes.isEmpty()) {
         true -> MeshNoItemsAvailable(
             imageVector = Icons.Outlined.AutoAwesome,
@@ -70,12 +44,8 @@ private fun NodesScreen(
         )
 
         false -> Nodes(
-            coroutineScope = coroutineScope,
             nodes = uiState.nodes,
-            navigateToNode = { navigateToNode(it.uuid) },
-            onSwiped = onSwiped,
-            onUndoClicked = onUndoClicked,
-            remove = remove
+            navigateToNode = { navigateToNode(it.uuid) }
         )
     }
 }
@@ -83,13 +53,10 @@ private fun NodesScreen(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
 @Composable
 private fun Nodes(
-    coroutineScope: CoroutineScope,
     nodes: List<Node>,
     navigateToNode: (Node) -> Unit,
-    onSwiped: (Node) -> Unit,
-    onUndoClicked: (Node) -> Unit,
-    remove: (Node) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     if (isCompactWidth()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

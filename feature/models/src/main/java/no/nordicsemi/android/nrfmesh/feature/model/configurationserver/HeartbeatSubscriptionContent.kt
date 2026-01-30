@@ -242,13 +242,19 @@ internal fun HeartBeatSubscriptionContent(
                         periodLog = periodLog,
                         onPeriodLogChanged = { periodLog = it }
                     )
-                    SectionTitle(title = stringResource(R.string.label_source))
+                    SectionTitle(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        title = stringResource(R.string.label_source)
+                    )
                     SourceRow(
                         model = model,
                         source = source,
                         onSourceSelected = { source = it }
                     )
-                    SectionTitle(title = stringResource(R.string.label_destination))
+                    SectionTitle(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        title = stringResource(R.string.label_destination)
+                    )
                     DestinationRow(
                         model = model,
                         destination = destination,
@@ -331,7 +337,12 @@ private fun SourceRow(
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_source)
             },
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = source?.let { "0x${it.toHexString()}" } ?: "",
         )
         HeartbeatSubscriptionSourcesDropdownMenu(
@@ -384,7 +395,12 @@ private fun DestinationRow(
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_destination)
             },
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = destination?.let { "0x${it.toHexString()}" } ?: "",
         )
         HeartbeatSubscriptionDestinationsDropdownMenu(
