@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.ivindex
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,8 +20,8 @@ import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 
-@HiltViewModel
-class IvIndexViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = IvIndexViewModel.Factory::class)
+class IvIndexViewModel @AssistedInject constructor(
     private val repository: CoreDataRepository,
     private val storage: MeshSecurePropertiesStorage,
 ) : ViewModel() {
@@ -72,6 +74,11 @@ class IvIndexViewModel @Inject constructor(
     internal fun toggleIvUpdateTestMode(flag: Boolean) {
         repository.toggleIvUpdateTestMode(flag = flag)
         _uiState.value = _uiState.value.copy(testMode = flag)
+    }
+
+    @AssistedFactory
+    internal interface Factory {
+        fun create(): IvIndexViewModel
     }
 }
 

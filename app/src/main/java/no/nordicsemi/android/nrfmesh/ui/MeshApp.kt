@@ -2,16 +2,16 @@ package no.nordicsemi.android.nrfmesh.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.nrfmesh.ui.network.NetworkRoute
+import no.nordicsemi.android.nrfmesh.ui.network.NetworkScreen
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
 
 @Composable
 fun MeshApp() {
     val viewModel = hiltViewModel<NetworkViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    NetworkRoute(
+    NetworkScreen(
         provisioners = uiState.provisioners,
         shouldSelectProvisioner = uiState.shouldSelectProvisioner,
         onProvisionerSelected = viewModel::onProvisionerSelected,

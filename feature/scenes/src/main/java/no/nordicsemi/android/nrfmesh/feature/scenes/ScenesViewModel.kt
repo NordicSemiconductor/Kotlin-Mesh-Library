@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.scenes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,15 +15,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.SceneData
+import no.nordicsemi.android.nrfmesh.feature.scenes.scene.SceneViewModel
+import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 import javax.inject.Inject
 
-@HiltViewModel
-internal class ScenesViewModel @Inject internal constructor(
+@HiltViewModel(assistedFactory = ScenesViewModel.Factory::class)
+internal class ScenesViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
-
     private lateinit var network: MeshNetwork
     private val _uiState = MutableStateFlow(ScenesScreenUiState())
     val uiState: StateFlow<ScenesScreenUiState> = _uiState
@@ -125,6 +128,11 @@ internal class ScenesViewModel @Inject internal constructor(
         _uiState.update { state ->
             state.copy(selectedSceneNumber = number)
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): ScenesViewModel
     }
 }
 

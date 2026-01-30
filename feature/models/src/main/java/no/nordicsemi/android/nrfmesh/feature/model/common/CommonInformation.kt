@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Numbers
-import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -67,7 +67,7 @@ private fun ModelIdRow(modelId: ModelId) {
 private fun Company(modelId: ModelId) {
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.Work,
+        imageVector = Icons.Outlined.WorkOutline,
         title = stringResource(id = R.string.label_company),
         subtitle = when (modelId) {
             is SigModelId -> "Bluetooth SIG"

@@ -64,7 +64,9 @@ sealed class MeshAddress : HasAddress {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toHexString(): HexString = address.toByteArray().toHexString()
+    override fun toHexString(): HexString = address
+        .toByteArray()
+        .toHexString(format = HexFormat.UpperCase)
 
     companion object {
 
@@ -135,7 +137,7 @@ object UnassignedAddress : MeshAddress(),
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class UnicastAddress(
-    override val address: Address
+    override val address: Address,
 ) : MeshAddress(),
     PublicationAddress,
     HeartbeatPublicationDestination,
@@ -187,7 +189,7 @@ data class UnicastAddress(
 @OptIn(ExperimentalUuidApi::class)
 @Serializable(with = MeshAddressSerializer::class)
 data class VirtualAddress(
-    val uuid: Uuid
+    val uuid: Uuid,
 ) : MeshAddress(),
     PrimaryGroupAddress,
     ParentGroupAddress,
@@ -221,7 +223,7 @@ data class VirtualAddress(
  */
 @Serializable(with = MeshAddressSerializer::class)
 data class GroupAddress(
-    override val address: Address
+    override val address: Address,
 ) : MeshAddress(),
     PrimaryGroupAddress,
     ParentGroupAddress,

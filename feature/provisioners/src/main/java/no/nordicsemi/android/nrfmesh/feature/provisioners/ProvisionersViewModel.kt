@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.provisioners
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,8 +23,8 @@ import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
-@HiltViewModel
-internal class ProvisionersViewModel @Inject internal constructor(
+@HiltViewModel(assistedFactory = ProvisionersViewModel.Factory::class)
+internal class ProvisionersViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
 
@@ -145,6 +147,11 @@ internal class ProvisionersViewModel @Inject internal constructor(
     @OptIn(ExperimentalUuidApi::class)
     fun selectProvisioner(uuid: Uuid) {
         _uiState.update { it.copy(selectedProvisionerUuid = uuid) }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(): ProvisionersViewModel
     }
 }
 

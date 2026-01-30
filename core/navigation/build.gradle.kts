@@ -9,9 +9,18 @@ android {
     namespace = "no.nordicsemi.android.nrfmesh.core.navigation"
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    api(libs.androidx.lifecycle.viewmodel.navigation3.android)
+    api(libs.androidx.navigation3.runtime)
+
     implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":core:common"))
@@ -19,5 +28,4 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0")
 }

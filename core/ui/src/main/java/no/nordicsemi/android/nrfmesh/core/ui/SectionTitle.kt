@@ -6,17 +6,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun SectionTitle(
     modifier: Modifier = Modifier,
     title: String,
-    style: TextStyle = MaterialTheme.typography.labelLarge
+    style: TextStyle = MaterialTheme.typography.labelLarge,
+    titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
+    maxLines: Int = 1,
 ) {
     Text(
         modifier = modifier.padding(vertical = 8.dp),
         text = title,
-        style = style
+        style = style,
+        maxLines = maxLines,
+        overflow = titleTextOverflow
     )
 }
