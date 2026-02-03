@@ -9,8 +9,6 @@ android {
 }
 
 dependencies {
-
-    implementation(libs.androidx.compose.adaptive.navigation3)
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
     testImplementation(libs.androidx.test.ext)

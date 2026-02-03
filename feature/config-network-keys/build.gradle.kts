@@ -9,8 +9,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.compose.adaptive.navigation3)
-
     implementation(nordic.kotlin.data)
 
     implementation(project(":core:common"))

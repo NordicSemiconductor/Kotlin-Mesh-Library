@@ -10,11 +10,8 @@ android {
 }
 
 dependencies {
-
     implementation(nordic.kotlin.data)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.compose.adaptive.navigation3)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

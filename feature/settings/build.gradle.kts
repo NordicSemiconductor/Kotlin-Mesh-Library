@@ -13,8 +13,6 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.androidx.compose.adaptive.navigation3)
-
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
