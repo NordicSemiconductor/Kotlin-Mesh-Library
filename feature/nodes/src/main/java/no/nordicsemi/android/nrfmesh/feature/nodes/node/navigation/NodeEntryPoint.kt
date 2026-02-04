@@ -23,7 +23,7 @@ import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.configAppKeysEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.ClickableNodeInfoItem
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeListScreen
+import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementKey
@@ -51,7 +51,7 @@ fun EntryProviderScope<NavKey>.nodeEntry(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.nodeState) {
             is NodeState.Success -> {
-                NodeListScreen(
+                NodeScreen(
                     messageState = uiState.messageState,
                     nodeData = (uiState.nodeState as NodeState.Success).nodeInfoListData,
                     node = (uiState.nodeState as NodeState.Success).node,
