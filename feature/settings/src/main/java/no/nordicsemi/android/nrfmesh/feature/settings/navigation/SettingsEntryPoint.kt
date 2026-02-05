@@ -45,7 +45,7 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
         val viewModel = hiltViewModel<SettingsViewModel, SettingsViewModel.Factory>(
             key = "SettingsViewModel"
         ) { factory ->
-            factory.create()
+            factory.create(setting = key.setting)
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SettingsListScreen(
@@ -55,7 +55,7 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
             navigateToProvisioners = {
                 viewModel.onItemSelected(ClickableSetting.PROVISIONERS)
                 navigator.navigate(key = ProvisionersContentKey)
-                                     },
+            },
             navigateToNetworkKeys = {
                 viewModel.onItemSelected(ClickableSetting.NETWORK_KEYS)
                 navigator.navigate(key = NetworkKeysContentKey)
