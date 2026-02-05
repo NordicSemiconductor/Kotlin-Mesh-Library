@@ -43,7 +43,7 @@ fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigat
                 it.create(address = address)
             }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        GroupInformationScreen(
+        GroupScreen(
             uiState = uiState,
             snackbarHostState = appState.snackbarHostState,
             onModelClicked = { modelId, index ->

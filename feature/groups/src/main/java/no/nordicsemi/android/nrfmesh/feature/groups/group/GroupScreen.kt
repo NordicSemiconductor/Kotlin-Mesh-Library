@@ -45,7 +45,7 @@ import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import kotlin.uuid.ExperimentalUuidApi
 
 @Composable
-internal fun GroupInformationScreen(
+internal fun GroupScreen(
     snackbarHostState: SnackbarHostState,
     uiState: GroupScreenUiState,
     onModelClicked: (ModelId, Int) -> Unit,
