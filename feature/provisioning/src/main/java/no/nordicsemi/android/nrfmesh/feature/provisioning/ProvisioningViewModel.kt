@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.core.navigation.MeshNavigationDestination
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connecting
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Disconnected
@@ -26,7 +24,6 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Scann
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
-import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -43,16 +40,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
-    val savedStateHandle: SavedStateHandle,
     private val repository: CoreDataRepository,
     @param:IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var provisioningManager: ProvisioningManager
-
     private var unprovisionedDevice: UnprovisionedDevice? = null
-    private var keyIndex: KeyIndex = 0u
     private val _uiState = MutableStateFlow(
         ProvisioningScreenUiState(provisionerState = Scanning)
     )
@@ -65,7 +58,6 @@ class ProvisioningViewModel @Inject constructor(
 
     init {
         observeNetwork()
-        observeNetKeySelector()
     }
 
     /**
@@ -165,29 +157,6 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     /**
-     * Observers the result of the NetKeySelector destination.
-     */
-    private fun observeNetKeySelector() {
-        savedStateHandle.getStateFlow(
-            key = MeshNavigationDestination.ARG,
-            initialValue = "0"
-        ).onEach { index ->
-            val state = _uiState.value
-            keyIndex = index.toInt().toUShort()
-            state.provisionerState.let {
-                if (it is Provisioning) {
-                    if (it.state is ProvisioningState.CapabilitiesReceived) {
-                        it.state.parameters.networkKey = meshNetwork.networkKeys.find { key ->
-                            keyIndex == key.index
-                        } ?: throw Throwable("Network key not found")
-                        _uiState.value = state.copy(provisionerState = it)
-                    }
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    /**
      * Invoked when the user changes the name of the device.
      *
      * @param name New name to be assigned to the device.
@@ -236,14 +205,13 @@ class ProvisioningViewModel @Inject constructor(
             provisionerState.state is ProvisioningState.CapabilitiesReceived
         ) {
             val provisioningState = provisionerState.state
-            val p = provisioningState.parameters.apply {
-                networkKey = key
-            }
-            //provisioningState = provisioningState.copy(parameters = parameters)
+            val provisioningParameters = provisioningState
+                .parameters
+                .apply { networkKey = key }
             _uiState.value = _uiState.value.copy(
                 provisionerState = provisionerState.copy(
                     state = provisioningState.copy(
-                        parameters = p
+                        parameters = provisioningParameters
                     )
                 )
             )
@@ -263,9 +231,6 @@ class ProvisioningViewModel @Inject constructor(
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
                             parameters.authMethod = authMethod
-                            parameters.networkKey = meshNetwork.networkKeys.find { key ->
-                                0.toUShort() == key.index
-                            } ?: throw Throwable("Network key not found")
                             start(parameters)
                         }
                     }
@@ -328,5 +293,5 @@ sealed class ProvisionerState {
 internal data class ProvisioningScreenUiState(
     val networkKeys: List<NetworkKey> = emptyList(),
     val nodes: List<Node> = emptyList(),
-    val provisionerState: ProvisionerState
+    val provisionerState: ProvisionerState,
 )
