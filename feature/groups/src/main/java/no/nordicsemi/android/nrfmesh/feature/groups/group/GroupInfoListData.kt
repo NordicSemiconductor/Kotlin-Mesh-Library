@@ -11,7 +11,7 @@ import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
  * @property address        Address of the group.
  * @property models         List of models subscribed to the group.
  */
-data class GroupInfoListData(
+internal data class GroupInfoListData(
     val name: String,
     val address: PrimaryGroupAddress,
     val models: Map<ModelId, List<Model>>,
