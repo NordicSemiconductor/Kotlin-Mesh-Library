@@ -11,9 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
+import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListData
+import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -27,7 +30,7 @@ class NetworkViewModel @Inject constructor(
     private val repository: CoreDataRepository,
     private val storage: MeshSecurePropertiesStorage,
 ) : ViewModel() {
-    private lateinit var meshNetwork: MeshNetwork
+    private var meshNetwork: MeshNetwork? = null
     private val _uiState = MutableStateFlow(NetworkScreenUiState())
     internal val uiState: StateFlow<NetworkScreenUiState> = _uiState
         .stateIn(
@@ -37,14 +40,22 @@ class NetworkViewModel @Inject constructor(
         )
 
     init {
+        observeNetworkChanges()
+    }
+
+    private fun observeNetworkChanges() {
         // Observes the mesh network for any changes i.e. network reset etc.
         repository.network
             .onEach {
+                _uiState.update { state ->
+                    state.copy(
+                        networkState = MeshNetworkState.Success(network = it),
+                        counter = state.counter + 1
+                    )
+                }
                 meshNetwork = it
-                _uiState.value = _uiState.value.copy(provisioners = it.provisioners)
             }
             .launchIn(scope = viewModelScope)
-
     }
 
     override fun onCleared() {
@@ -63,12 +74,14 @@ class NetworkViewModel @Inject constructor(
     internal fun onProvisionerSelected(provisioner: Provisioner) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(shouldSelectProvisioner = false)
-            meshNetwork.move(provisioner = provisioner, to = 0)
-            storage.storeLocalProvisioner(
-                uuid = meshNetwork.uuid,
-                localProvisionerUuid = provisioner.uuid
-            )
-            repository.save()
+            meshNetwork?.let { meshNetwork ->
+                meshNetwork.move(provisioner = provisioner, to = 0)
+                storage.storeLocalProvisioner(
+                    uuid = meshNetwork.uuid,
+                    localProvisionerUuid = provisioner.uuid
+                )
+                repository.save()
+            }
         }
     }
 
@@ -86,22 +99,18 @@ class NetworkViewModel @Inject constructor(
                     bufferedReader.readText()
                 }
             } ?: ""
-            meshNetwork = repository.importMeshNetwork(networkJson.encodeToByteArray())
-
+            val meshNetwork = repository.importMeshNetwork(networkJson.encodeToByteArray())
+            this@NetworkViewModel.meshNetwork = meshNetwork
             if (!meshNetwork.restoreLocalProvisioner(storage = storage)) {
                 meshNetwork
                     .takeIf { it.provisioners.size > 1 }
-                    ?.let {
-                        _uiState.value = _uiState.value.copy(
-                            provisioners = it.provisioners,
-                            shouldSelectProvisioner = true
+                    ?.let { _uiState.value = _uiState.value.copy(shouldSelectProvisioner = true) }
+                    ?: run {
+                        storage.storeLocalProvisioner(
+                            uuid = meshNetwork.uuid,
+                            localProvisionerUuid = meshNetwork.provisioners.first().uuid
                         )
-                    } ?: run {
-                    storage.storeLocalProvisioner(
-                        uuid = meshNetwork.uuid,
-                        localProvisionerUuid = meshNetwork.provisioners.first().uuid
-                    )
-                }
+                    }
             }
             // Let's save the imported network
             repository.save()
@@ -113,13 +122,16 @@ class NetworkViewModel @Inject constructor(
     }
 
     internal fun nextAvailableGroupAddress(): GroupAddress {
-        val provisioner = meshNetwork.provisioners.firstOrNull()
-        require(provisioner != null) { throw IllegalArgumentException("No provisioner found") }
-        return meshNetwork.nextAvailableGroup(provisioner)
+        val provisioner = meshNetwork?.provisioners?.firstOrNull()
+        require(provisioner != null) {
+            throw IllegalArgumentException("No provisioner found")
+        }
+        return meshNetwork?.nextAvailableGroup(provisioner)
             ?: throw IllegalArgumentException("No available group address found for ${provisioner.name}")
     }
 
     fun onAddGroupClicked(group: Group) {
+        val meshNetwork = meshNetwork ?: throw NoNetwork()
         meshNetwork.add(group)
         viewModelScope.launch {
             repository.save()
@@ -127,7 +139,13 @@ class NetworkViewModel @Inject constructor(
     }
 }
 
+internal sealed interface MeshNetworkState {
+    data object Loading : MeshNetworkState
+    data class Success(val network: MeshNetwork) : MeshNetworkState
+}
+
 internal data class NetworkScreenUiState(
-    val provisioners: List<Provisioner> = emptyList(),
+    val networkState: MeshNetworkState = MeshNetworkState.Loading,
     val shouldSelectProvisioner: Boolean = false,
+    val counter: Int = 0
 )

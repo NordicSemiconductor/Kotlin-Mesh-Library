@@ -42,14 +42,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,15 +73,16 @@ import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
-import no.nordicsemi.android.nrfmesh.core.navigation.NODES
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
+import no.nordicsemi.android.nrfmesh.core.navigation.rememberNavigationState
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
@@ -94,46 +95,98 @@ import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
+import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
+import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
+import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class,
-    ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class
-)
 @Composable
-fun NetworkScreen(
-    provisioners: List<Provisioner>,
+internal fun NetworkScreen(
+    uiState: NetworkScreenUiState,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
     onAddGroupClicked: (Group) -> Unit,
     nextAvailableGroupAddress: () -> GroupAddress,
+    isCompactWidth: Boolean = isCompactWidth(),
+) {
+    when (uiState.networkState) {
+        MeshNetworkState.Loading -> {}
+        is MeshNetworkState.Success -> {
+            val context = LocalContext.current
+            val snackbarHostState = remember { SnackbarHostState() }
+            val navigationState = rememberNavigationState(
+                startKey = NodesKey,
+                topLevelKeys = MESH_TOP_LEVEL_NAV_ITEMS.keys
+            )
+            val appState = rememberMeshAppState(
+                snackbarHostState = snackbarHostState,
+                navigationState = navigationState
+            )
+            val topAppBarTitle by remember(
+                key1 = navigationState.currentKey,
+                key2 = uiState.networkState.network.createKeysForAppTitles()
+            ) {
+                derivedStateOf {
+                    title(
+                        context = context,
+                        network = uiState.networkState.network,
+                        navigationState = navigationState,
+                        isCompactWidth = isCompactWidth
+                    )
+                }
+            }
+            NetworkContent(
+                appState = appState,
+                network = uiState.networkState.network,
+                shouldSelectProvisioner = shouldSelectProvisioner,
+                onProvisionerSelected = onProvisionerSelected,
+                importNetwork = importNetwork,
+                resetNetwork = resetNetwork,
+                onAddGroupClicked = onAddGroupClicked,
+                nextAvailableGroupAddress = nextAvailableGroupAddress,
+                topAppBarTitle = topAppBarTitle
+            )
+        }
+    }
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class,
+    ExperimentalMaterial3AdaptiveApi::class, ExperimentalTime::class
+)
+@Composable
+fun NetworkContent(
+    appState: MeshAppState,
+    network: MeshNetwork,
+    shouldSelectProvisioner: Boolean,
+    onProvisionerSelected: (provisioner: Provisioner) -> Unit,
+    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    resetNetwork: () -> Unit,
+    onAddGroupClicked: (Group) -> Unit,
+    nextAvailableGroupAddress: () -> GroupAddress,
+    topAppBarTitle: String,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val appState = rememberMeshAppState(snackbarHostState = snackbarHostState)
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
     var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
-    val navigationSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
-        adaptiveInfo = currentWindowAdaptiveInfo()
-    )
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
-        navigationSuiteType = navigationSuiteType,
         navigationItemVerticalArrangement = Arrangement.Center,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationRailContainerColor = ShortNavigationBarDefaults.containerColor,
@@ -143,10 +196,7 @@ fun NetworkScreen(
                 val selected = navKey == appState.navigationState.currentTopLevelKey
                 NavigationSuiteItem(
                     selected = selected,
-                    onClick = {
-                        if (!selected)
-                            navigator.navigate(key = navKey)
-                    },
+                    onClick = { if (!selected) navigator.navigate(key = navKey) },
                     icon = {
                         Icon(
                             imageVector = when (selected) {
@@ -167,10 +217,10 @@ fun NetworkScreen(
         }
     ) {
         Scaffold(
-            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
             topBar = {
                 NordicAppBar(
-                    title = { Text(text = appState.title) },
+                    title = { Text(text = topAppBarTitle) },
                     backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                     showBackButton = appState.showBackButton,
                     onNavigationButtonClick = navigator::goBack,
@@ -227,7 +277,6 @@ fun NetworkScreen(
                 }
             }
         ) { padding ->
-
             val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
             val entryProvider = entryProvider {
                 nodesEntry(appState = appState, navigator = navigator)
@@ -280,7 +329,7 @@ fun NetworkScreen(
                             if (it.text.isNotEmpty()) {
                                 if (GroupAddress.isValid(it.text.toUShort(16))) {
                                     isError = false
-                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                    appState.snackbarHostState.currentSnackbarData?.dismiss()
                                 } else {
                                     isError = true
                                     errorMessage =
@@ -325,7 +374,7 @@ fun NetworkScreen(
                                         }
                                 }.onFailure {
                                     scope.launch {
-                                        snackbarHostState.showSnackbar(
+                                        appState.snackbarHostState.showSnackbar(
                                             message = when (it) {
                                                 is GroupAlreadyExists -> context
                                                     .getString(R.string.label_group_already_exists)
@@ -372,7 +421,7 @@ fun NetworkScreen(
                                             }
                                         }.onFailure {
                                             scope.launch {
-                                                snackbarHostState.showSnackbar(
+                                                appState.snackbarHostState.showSnackbar(
                                                     message = it.message
                                                         ?: context.getString(R.string.label_failed_to_add_group),
                                                     duration = SnackbarDuration.Short
@@ -427,7 +476,7 @@ fun NetworkScreen(
                         onExportCompleted = { message ->
                             scope.launch {
                                 exportSheetState.hide()
-                                snackbarHostState.showSnackbar(
+                                appState.snackbarHostState.showSnackbar(
                                     message = message,
                                     duration = SnackbarDuration.Short
                                 )
@@ -462,7 +511,7 @@ fun NetworkScreen(
                         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp),
                     ) {
-                        items(items = provisioners, key = { it.uuid.toString() }) {
+                        items(items = network.provisioners, key = { it.uuid.toString() }) {
                             ElevatedCardItem(
                                 imageVector = Icons.Filled.PersonPin,
                                 title = it.name,

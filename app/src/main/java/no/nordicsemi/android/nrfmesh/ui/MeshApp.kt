@@ -12,7 +12,7 @@ fun MeshApp() {
     val viewModel = hiltViewModel<NetworkViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     NetworkScreen(
-        provisioners = uiState.provisioners,
+        uiState = uiState,
         shouldSelectProvisioner = uiState.shouldSelectProvisioner,
         onProvisionerSelected = viewModel::onProvisionerSelected,
         importNetwork = viewModel::importNetwork,
