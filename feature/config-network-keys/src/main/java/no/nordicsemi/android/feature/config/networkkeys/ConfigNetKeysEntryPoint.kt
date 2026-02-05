@@ -12,6 +12,7 @@ import no.nordicsemi.android.feature.config.networkkeys.navigation.ConfigNetKeys
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 
 @Serializable
@@ -23,7 +24,9 @@ fun EntryProviderScope<NavKey>.configNetKeysEntry(
     navigator: Navigator,
 ) {
     entry<ConfigNetKeysKey>(
-        metadata = ListDetailSceneStrategy.detailPane()
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = NodeListDetailSceneKey
+        )
     ) {
         val uuid = it.uuid
         val viewModel =

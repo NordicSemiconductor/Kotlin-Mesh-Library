@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.ApplicationKeyScreen
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.ApplicationKeyViewModel
 import no.nordicsemi.kotlin.data.HexString
@@ -24,7 +25,9 @@ data class ApplicationKeyContentKey(val keyIndex: HexString) : NavKey {
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.applicationKeyEntry(appState: AppState, navigator: Navigator) {
     entry<ApplicationKeyContentKey>(
-        metadata = ListDetailSceneStrategy.extraPane()
+        metadata = ListDetailSceneStrategy.extraPane(
+            sceneKey = SettingsListDetailSceneKey
+        )
     ) { key ->
         val viewModel = hiltViewModel<ApplicationKeyViewModel, ApplicationKeyViewModel.Factory>(
             key = "ApplicationKeyViewModel:${key.keyIndex}"

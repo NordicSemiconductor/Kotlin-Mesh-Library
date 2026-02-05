@@ -12,11 +12,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysEntry
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContentKey
@@ -34,14 +37,17 @@ import no.nordicsemi.android.nrfmesh.feature.settings.SettingsViewModel
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navigator) {
     entry<SettingsKey>(
-        metadata = ListDetailSceneStrategy.listPane {
-            PlaceHolder(
-                modifier = Modifier.fillMaxSize(),
-                imageVector = Icons.Outlined.Settings,
-                text = stringResource(R.string.label_select_settings_item_rationale)
-            )
-        }
-    ) {
+        metadata = ListDetailSceneStrategy.listPane(
+            sceneKey = SettingsListDetailSceneKey,
+            detailPlaceholder = {
+                PlaceHolder(
+                    modifier = Modifier.fillMaxSize(),
+                    imageVector = Icons.Outlined.Settings,
+                    text = stringResource(R.string.label_select_settings_item_rationale)
+                )
+            }
+        )
+    ) { key ->
         val viewModel = hiltViewModel<SettingsViewModel, SettingsViewModel.Factory>(
             key = "SettingsViewModel"
         ) { factory ->

@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.model.ModelScreen
 import no.nordicsemi.android.nrfmesh.feature.model.ModelViewModel
 import no.nordicsemi.kotlin.data.HexString
@@ -26,7 +27,11 @@ data class ModelKey(val address: HexString, val modelId: HexString) : NavKey
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalUuidApi::class)
 fun EntryProviderScope<NavKey>.modelEntry(appState: AppState, navigator: Navigator) {
-    entry<ModelKey>(metadata = ListDetailSceneStrategy.extraPane()) { key ->
+    entry<ModelKey>(
+        metadata = ListDetailSceneStrategy.extraPane(
+            sceneKey = NodeListDetailSceneKey
+        )
+    ) { key ->
         val address = key.address
         val modelId = key.modelId
         val modelRouteKey = ModelRouteKey(

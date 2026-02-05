@@ -17,7 +17,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.groups.R
-import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupInformationScreen
+import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupViewModel
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.GroupControlsKey
 import no.nordicsemi.kotlin.data.HexString
@@ -29,13 +29,16 @@ data class GroupKey(val address: HexString) : NavKey
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigator) {
     entry<GroupKey>(
-        metadata = ListDetailSceneStrategy.listPane {
-            PlaceHolder(
-                modifier = Modifier.fillMaxSize(),
-                imageVector = Icons.Outlined.Info,
-                text = stringResource(id = R.string.label_no_models_subscribed_rationale)
-            )
-        }
+        metadata = ListDetailSceneStrategy.listPane(
+            sceneKey = GroupKey,
+            detailPlaceholder = {
+                PlaceHolder(
+                    modifier = Modifier.fillMaxSize(),
+                    imageVector = Icons.Outlined.Info,
+                    text = stringResource(id = R.string.label_no_models_subscribed_rationale)
+                )
+            }
+        )
     ) { key ->
         val address = key.address
         val viewModel =

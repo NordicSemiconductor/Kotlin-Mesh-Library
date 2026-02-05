@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesScreen
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
 import no.nordicsemi.android.nrfmesh.feature.scenes.scene.navigation.SceneContentKey
@@ -21,7 +22,9 @@ data object ScenesContentKey : NavKey
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.scenesEntry(appState: AppState, navigator: Navigator) {
     entry<ScenesContentKey>(
-        metadata = ListDetailSceneStrategy.detailPane()
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = SettingsListDetailSceneKey
+        )
     ) {
         val viewModel = hiltViewModel<ScenesViewModel, ScenesViewModel.Factory>(
             key = "ScenesViewModel"
@@ -53,5 +56,5 @@ fun EntryProviderScope<NavKey>.scenesEntry(appState: AppState, navigator: Naviga
             remove = viewModel::remove
         )
     }
-    sceneEntry(appState = appState, navigator = navigator)
+    sceneEntry(appState = appState)
 }

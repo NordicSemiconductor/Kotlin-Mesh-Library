@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.ivindex.IvIndexScreen
 import no.nordicsemi.android.nrfmesh.feature.ivindex.IvIndexViewModel
 
@@ -16,7 +17,11 @@ data object IvIndexContentKey : NavKey
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.ivIndexEntry() {
-    entry<IvIndexContentKey>(metadata = ListDetailSceneStrategy.detailPane()) {
+    entry<IvIndexContentKey>(
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = SettingsListDetailSceneKey
+        )
+    ) {
         val viewModel = hiltViewModel<IvIndexViewModel, IvIndexViewModel.Factory>(
             key = "IvIndexViewModel"
         ) { factory ->

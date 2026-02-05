@@ -11,6 +11,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.navigation.GroupsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.GroupControlsScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.GroupControlsViewModel
@@ -23,7 +24,11 @@ data class GroupControlsKey(val address: HexString, val modelId: HexString) : Na
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.groupControlsEntry(appState: AppState, navigator: Navigator) {
-    entry<GroupControlsKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+    entry<GroupControlsKey>(
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = GroupsListDetailSceneKey
+        )
+    ) { key ->
         val address = key.address
         val id = key.modelId
         val viewModel = hiltViewModel<GroupControlsViewModel, GroupControlsViewModel.Factory>(

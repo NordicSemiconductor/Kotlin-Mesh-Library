@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysViewModel
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.navigation.ApplicationKeyContentKey
@@ -21,7 +22,9 @@ data object ApplicationKeysContentKey : NavKey
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.applicationKeysEntry(appState: AppState, navigator: Navigator) {
     entry<ApplicationKeysContentKey>(
-        metadata = ListDetailSceneStrategy.detailPane()
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = SettingsListDetailSceneKey
+        )
     ) {
         val viewModel = hiltViewModel<ApplicationKeysViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()

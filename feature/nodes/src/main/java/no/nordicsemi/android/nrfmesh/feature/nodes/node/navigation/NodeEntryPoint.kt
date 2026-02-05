@@ -17,8 +17,10 @@ import no.nordicsemi.android.feature.config.networkkeys.configNetKeysEntry
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodeKey
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.configAppKeysEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
@@ -36,13 +38,16 @@ fun EntryProviderScope<NavKey>.nodeEntry(
     navigator: Navigator,
 ) {
     entry<NodeKey>(
-        metadata = ListDetailSceneStrategy.listPane {
-            PlaceHolder(
-                modifier = Modifier.fillMaxSize(),
-                imageVector = Icons.Outlined.Info,
-                text = stringResource(R.string.label_select_node_item_rationale)
-            )
-        }
+        metadata = ListDetailSceneStrategy.listPane(
+            sceneKey = NodeListDetailSceneKey,
+            detailPlaceholder = {
+                PlaceHolder(
+                    modifier = Modifier.fillMaxSize(),
+                    imageVector = Icons.Outlined.Info,
+                    text = stringResource(R.string.label_select_node_item_rationale)
+                )
+            }
+        )
     ) { key ->
         val uuid = key.nodeUuid
         val viewModel = hiltViewModel<NodeViewModel, NodeViewModel.Factory>(key = uuid) {

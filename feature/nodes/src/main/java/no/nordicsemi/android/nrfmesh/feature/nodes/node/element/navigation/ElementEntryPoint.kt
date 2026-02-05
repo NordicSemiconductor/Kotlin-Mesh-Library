@@ -10,6 +10,8 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeListDetailSceneKey
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelKey
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.modelEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementScreen
@@ -23,7 +25,9 @@ data class ElementKey(val address: HexString) : NavKey
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.elementEntry(appState: AppState, navigator: Navigator) {
     entry<ElementKey>(
-        metadata = ListDetailSceneStrategy.detailPane()
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = NodeListDetailSceneKey
+        )
     ) { key ->
         val address = key.address
         val viewModel = hiltViewModel<ElementViewModel, ElementViewModel.Factory>(key = address) {

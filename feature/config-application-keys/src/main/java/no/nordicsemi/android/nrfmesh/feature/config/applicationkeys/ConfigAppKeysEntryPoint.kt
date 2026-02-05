@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.navigation.ConfigAppKeysViewModel
 
@@ -23,7 +24,9 @@ fun EntryProviderScope<NavKey>.configAppKeysEntry(
     navigator: Navigator,
 ) {
     entry<ConfigAppKeysKey>(
-        metadata = ListDetailSceneStrategy.detailPane()
+        metadata = ListDetailSceneStrategy.detailPane(
+            sceneKey = NodeListDetailSceneKey
+        )
     ) { key ->
         val uuid = key.uuid
         val viewModel = hiltViewModel<ConfigAppKeysViewModel, ConfigAppKeysViewModel.Factory>(
