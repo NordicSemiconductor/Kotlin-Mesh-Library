@@ -75,7 +75,8 @@ internal fun title(
             ?: return context.getString(R.string.label_unknown)
         val modelId = element.model(key.modelId.toUInt(radix = 16))
             ?: return context.getString(R.string.label_unknown)
-        "${node.name} -> ${element.name} -> ${modelId.name}"
+        /*"${node.name} -> ${element.name} -> ${modelId.name}"*/
+        modelId.name ?: context.getString(R.string.label_unknown)
     }
 
     is GroupsKey -> context.getString(R.string.label_groups)
