@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.application.keys.ApplicationKeysViewModel
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.navigation.ApplicationKeyContentKey
@@ -30,7 +31,7 @@ fun EntryProviderScope<NavKey>.applicationKeysEntry(appState: AppState, navigato
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ApplicationKeysScreen(
             snackbarHostState = appState.snackbarHostState,
-            highlightSelectedItem = false,
+            highlightSelectedItem = !isCompactWidth() && appState.navigationState.currentKey is ApplicationKeyContentKey,
             selectedKeyIndex = uiState.selectedKeyIndex,
             keys = uiState.keys,
             onAddKeyClicked = viewModel::addApplicationKey,

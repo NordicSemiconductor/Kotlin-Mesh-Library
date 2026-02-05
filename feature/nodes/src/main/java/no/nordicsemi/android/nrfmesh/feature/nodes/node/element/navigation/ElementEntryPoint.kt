@@ -36,7 +36,7 @@ fun EntryProviderScope<NavKey>.elementEntry(appState: AppState, navigator: Navig
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ElementScreen(
             elementState = uiState.elementState,
-            highlightSelectedItem = !isCompactWidth(),
+            highlightSelectedItem = !isCompactWidth() && appState.navigationState.currentKey is ModelKey,
             navigateToModel = {
                 navigator.navigate(
                     key = ModelKey(
