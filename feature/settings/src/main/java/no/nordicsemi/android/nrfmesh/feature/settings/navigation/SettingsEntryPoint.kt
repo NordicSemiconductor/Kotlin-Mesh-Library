@@ -50,8 +50,8 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SettingsListScreen(
             uiState = uiState,
-            onItemSelected = viewModel::onItemSelected,
             onNameChanged = viewModel::onNameChanged,
+            highlightSelectedItem = !isCompactWidth(),
             navigateToProvisioners = {
                 viewModel.onItemSelected(ClickableSetting.PROVISIONERS)
                 navigator.navigate(key = ProvisionersContentKey)

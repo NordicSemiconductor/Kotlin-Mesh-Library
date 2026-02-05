@@ -55,7 +55,7 @@ fun EntryProviderScope<NavKey>.nodeEntry(
                     messageState = uiState.messageState,
                     nodeData = (uiState.nodeState as NodeState.Success).nodeInfoListData,
                     node = (uiState.nodeState as NodeState.Success).node,
-                    highlightSelectedItem = appState.navigationState.currentKey == NodeKey,
+                    highlightSelectedItem = !isCompactWidth(),
                     isRefreshing = uiState.isRefreshing,
                     onRefresh = viewModel::onRefresh,
                     onNetworkKeysClicked = {
