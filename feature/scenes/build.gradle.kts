@@ -10,7 +10,6 @@ android {
 }
 
 dependencies {
-
     implementation(nordic.kotlin.data)
 
     testImplementation(libs.junit4)

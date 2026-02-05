@@ -23,13 +23,52 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MeshTwoLineListItem(
     modifier: Modifier = Modifier,
+    title: String,
+    titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
+    subtitle: String? = null,
+    subtitleMaxLines: Int = 1,
+    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 80.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(weight = 1f)
+                .padding(vertical = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = titleTextOverflow
+            )
+            if (!subtitle.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = subtitleMaxLines,
+                    overflow = subtitleTextOverflow
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MeshTwoLineListItem(
+    modifier: Modifier = Modifier,
     leadingComposable: @Composable () -> Unit = {},
     title: String,
     titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     subtitle: String? = null,
-    trailingComposable: @Composable () -> Unit = {},
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
+    trailingComposable: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -71,37 +110,26 @@ fun MeshTwoLineListItem(
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
     subtitleTextOverflow: TextOverflow = TextOverflow.Clip,
+    trailingComposable: @Composable () -> Unit = {},
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 80.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier
-                .padding(start = 28.dp, end = 16.dp)
-                .size(24.dp),
-            imageVector = imageVector,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Column(
-            modifier = Modifier
-                .padding(vertical = 28.dp)
-        ) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-            if (!subtitle.isNullOrEmpty()){
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = subtitleMaxLines,
-                    overflow = subtitleTextOverflow
-                )
-            }
-        }
-    }
+    MeshTwoLineListItem(
+        modifier = modifier,
+        leadingComposable = {
+            Icon(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .size(24.dp),
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = title,
+        subtitle = subtitle,
+        subtitleMaxLines = subtitleMaxLines,
+        subtitleTextOverflow = subtitleTextOverflow,
+        trailingComposable = trailingComposable
+    )
 }
 
 

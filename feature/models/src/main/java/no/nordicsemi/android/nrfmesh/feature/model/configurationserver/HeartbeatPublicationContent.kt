@@ -170,7 +170,9 @@ internal fun HeartBeatPublicationContent(
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
                             SectionTitle(
-                                modifier = Modifier.weight(weight = 1f),
+                                modifier = Modifier
+                                    .weight(weight = 1f)
+                                    .padding(horizontal = 16.dp),
                                 title = stringResource(R.string.label_heartbeat_publication)
                             )
                             MeshOutlinedButton(
@@ -205,7 +207,10 @@ internal fun HeartBeatPublicationContent(
                         selectedKeyIndex = keyIndex,
                         onNetworkKeySelected = { keyIndex = it }
                     )
-                    SectionTitle(title = stringResource(R.string.label_destination))
+                    SectionTitle(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        title = stringResource(R.string.label_destination)
+                    )
                     DestinationRow(
                         network = model.parentElement?.parentNode?.network,
                         model = model,
@@ -258,7 +263,12 @@ private fun NetworkKeysRow(
             onClick = { expanded = true },
             imageVector = Icons.Outlined.VpnKey,
             title = stringResource(R.string.label_network_key),
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = network?.networkKeys?.firstOrNull {
                 it.index == selectedKeyIndex.toUShort()
             }?.name ?: stringResource(R.string.label_unknown)
@@ -326,7 +336,12 @@ private fun DestinationRow(
                 is UnassignedAddress -> stringResource(R.string.label_unassigned_address)
                 else -> stringResource(R.string.label_select_destination)
             },
-            titleAction = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            titleAction = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    expanded = expanded
+                )
+            },
             subtitle = destination?.let { "0x${it.toHexString()}" } ?: ""
         )
         HeartbeatPublicationDestinationsDropdownMenu(

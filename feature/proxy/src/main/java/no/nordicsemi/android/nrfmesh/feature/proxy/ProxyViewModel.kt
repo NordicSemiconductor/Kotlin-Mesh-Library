@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -24,10 +23,7 @@ import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.RemoveAddressesFromFilter
-import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
-import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.ProxyFilterAddress
 import javax.inject.Inject
 
@@ -37,7 +33,7 @@ internal class ProxyViewModel @Inject internal constructor(
 ) : ViewModel() {
     private var meshNetwork: MeshNetwork? = null
     private val _uiState = MutableStateFlow(ProxyScreenUiState())
-    val uiState = _uiState
+    internal val uiState = _uiState
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -49,14 +45,10 @@ internal class ProxyViewModel @Inject internal constructor(
     }
 
     private fun observeNetwork() {
-        repository.network.onEach {
-            meshNetwork = it
+        repository.network.onEach { network ->
+            meshNetwork = network
             _uiState.update {
-                it.copy(
-                    nodes = meshNetwork?.nodes?.toList() ?: emptyList(),
-                    networkKeys = meshNetwork?.networkKeys?.toList() ?: emptyList(),
-                    groups = meshNetwork?.groups?.toList() ?: emptyList()
-                )
+                it.copy(meshNetworkState = MeshNetworkState.Success(network = network))
             }
         }.launchIn(scope = viewModelScope)
 
@@ -191,10 +183,16 @@ internal class ProxyViewModel @Inject internal constructor(
     }
 }
 
+internal sealed interface MeshNetworkState {
+
+    data object Loading : MeshNetworkState
+
+    data class Success(val network: MeshNetwork) : MeshNetworkState
+
+}
+
 internal data class ProxyScreenUiState(
-    val nodes: List<Node> = emptyList(),
-    val networkKeys: List<NetworkKey> = emptyList(),
-    val groups: List<Group> = emptyList(),
+    val meshNetworkState: MeshNetworkState = MeshNetworkState.Loading,
     val proxyConnectionState: ProxyConnectionState = ProxyConnectionState(),
     val addresses: List<ProxyFilterAddress> = emptyList(),
     val filterType: ProxyFilterType? = null,

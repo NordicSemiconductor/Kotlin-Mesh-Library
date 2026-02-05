@@ -2,6 +2,8 @@ package no.nordicsemi.android.nrfmesh.feature.application.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -60,7 +62,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
      * Adds an application key to the network.
      */
     internal fun addApplicationKey(
-        name: String = "Application Key ${_uiState.value.keys.size}",
+        name: String = "Application Key ${network.nextAvailableApplicationKeyIndex}",
         boundNetworkKey: NetworkKey = network.networkKeys.first(),
     ) = repository.addApplicationKey(name = name, boundNetworkKey = boundNetworkKey)
 

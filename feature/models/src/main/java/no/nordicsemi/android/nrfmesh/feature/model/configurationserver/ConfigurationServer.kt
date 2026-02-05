@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material.icons.outlined.WifiTethering
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +22,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicSliderDefaults
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
@@ -65,6 +69,7 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun ConfigurationServer(
+    snackbarHostState: SnackbarHostState,
     model: Model,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
@@ -73,6 +78,7 @@ internal fun ConfigurationServer(
     onAddGroupClicked: () -> Unit,
 ) {
     RelayFeature(
+        snackbarHostState = snackbarHostState,
         messageState = messageState,
         relayRetransmit = model.parentElement?.parentNode?.relayRetransmit,
         relay = model.parentElement?.parentNode?.features?.relay,
@@ -105,7 +111,10 @@ internal fun ConfigurationServer(
         send = send,
         requestNodeIdentityStates = requestNodeIdentityStates
     )
-    SectionTitle(title = stringResource(id = R.string.title_heartbeat))
+    SectionTitle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(id = R.string.title_heartbeat)
+    )
     HeartBeatSubscriptionRow(
         messageState = messageState,
         model = model,
@@ -124,11 +133,14 @@ internal fun ConfigurationServer(
 
 @Composable
 private fun RelayFeature(
+    snackbarHostState: SnackbarHostState,
     messageState: MessageState,
     relayRetransmit: RelayRetransmit?,
     relay: Relay?,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var retransmissions by remember {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
     }
@@ -197,16 +209,25 @@ private fun RelayFeature(
                 buttonIcon = Icons.Outlined.Upload,
                 text = stringResource(R.string.label_set_relay),
                 onClick = {
-                    send(
-                        ConfigRelaySet(
-                            relayRetransmit = RelayRetransmit(
-                                count = retransmissions.roundToInt(),
-                                interval = interval.roundToInt()
+                    runCatching {
+                        send(
+                            ConfigRelaySet(
+                                relayRetransmit = RelayRetransmit(
+                                    count = retransmissions.roundToInt(),
+                                    interval = interval.roundToInt()
+                                )
                             )
                         )
-                    )
+                    }.onFailure {
+                        scope.launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar(
+                                message = it.message ?: context.getString(R.string.label_unknown)
+                            )
+                        }
+                    }
                 },
-                enabled = !messageState.isInProgress() //&& relay?.state?.isSupported == true
+                enabled = !messageState.isInProgress() && relay?.state?.isSupported == true
             )
         }
     )
@@ -311,6 +332,7 @@ private fun SecureNetworkBeacon(
         title = stringResource(R.string.label_snb),
         titleAction = {
             Switch(
+                modifier = Modifier.padding(end = 16.dp),
                 enabled = !messageState.isInProgress(),
                 checked = snb,
                 onCheckedChange = { send(ConfigBeaconSet(enable = it)) }
@@ -341,6 +363,7 @@ private fun FriendFeature(
         title = stringResource(R.string.label_friend),
         titleAction = {
             Switch(
+                modifier = Modifier.padding(end = 16.dp),
                 enabled = !messageState.isInProgress(),
                 checked = friend?.state?.isEnabled ?: false,
                 onCheckedChange = { send(ConfigFriendSet(enable = it)) }
@@ -372,6 +395,7 @@ private fun ProxyStateRow(
         title = stringResource(R.string.label_gatt_proxy),
         titleAction = {
             Switch(
+                modifier = Modifier.padding(end = 16.dp),
                 enabled = !messageState.isInProgress(),
                 checked = proxy?.state == FeatureState.Enabled,
                 onCheckedChange = {

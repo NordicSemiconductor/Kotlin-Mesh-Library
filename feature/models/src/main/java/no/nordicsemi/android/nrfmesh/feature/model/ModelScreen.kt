@@ -35,7 +35,7 @@ import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysRoute
+import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysScreen
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
 import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
@@ -57,8 +57,7 @@ internal fun ModelScreen(
     snackbarHostState: SnackbarHostState,
     messageState: MessageState,
     nodeIdentityStates: List<NodeIdentityStatus>,
-    model: Model,
-    modelData: ModelData,
+    modelState: ModelState,
     send: (AcknowledgedConfigMessage) -> Unit,
     sendApplicationMessage: (Model, MeshMessage) -> Unit,
     requestNodeIdentityStates: (Model) -> Unit,
@@ -74,102 +73,141 @@ internal fun ModelScreen(
     // The reason for applying to the parent composable is to avoid scrolling directly to the
     // TextField when focused.
     // See issue: https://issuetracker.google.com/issues/445720462
-    Column(
-        modifier = Modifier
-            .verticalScroll(state = rememberScrollState())
-            .focusable(),
-        verticalArrangement = Arrangement.spacedBy(space = 8.dp),
-    ) {
-        SectionTitle(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .padding(horizontal = 16.dp),
-            title = stringResource(R.string.label_model)
-        )
-        CommonInformation(model = model)
-        if (model.isConfigurationServer) {
-            ConfigurationServer(
-                messageState = messageState,
-                model = model,
-                nodeIdentityStates = nodeIdentityStates,
-                send = send,
-                requestNodeIdentityStates = requestNodeIdentityStates,
-                onAddGroupClicked = onAddGroupClicked,
-            )
-        }
-        if (model.supportsModelPublication != false && model.supportsModelSubscription != false) {
-            BoundApplicationKeys(
-                model = model,
-                modelData = modelData,
-                navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
-                send = send
-            )
-        }
-        if (model.supportsModelPublication != false) {
-            Publication(
-                messageState = messageState,
-                model = model,
-                modelData = modelData,
-                send = send
-            )
-        }
-        if (model.supportsModelSubscription != false) {
-            Subscriptions(
-                snackbarHostState = snackbarHostState,
-                messageState = messageState,
-                model = model,
-                modelData = modelData,
-                navigateToGroups = navigateToGroups,
-                send = send
-            )
-        }
-        if (model.isGenericOnOffServer()) {
-            GenericOnOffServer(
-                model = model,
-                messageState = messageState,
-                sendApplicationMessage = sendApplicationMessage
-            )
-        }
-        if (model.isGenericLevelServer()) {
-            GenericLevelServer(
-                model = model,
-                messageState = messageState,
-                sendApplicationMessage = sendApplicationMessage
-            )
-        }
+    when (modelState) {
+        is ModelState.Success -> {
+            val model = modelState.model
+            Column(
+                modifier = Modifier
+                    .verticalScroll(state = rememberScrollState())
+                    .focusable(),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+            ) {
+                SectionTitle(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .padding(horizontal = 16.dp),
+                    title = stringResource(R.string.label_model)
+                )
+                CommonInformation(model = model)
+                if (model.isConfigurationServer) {
+                    ConfigurationServer(
+                        snackbarHostState = snackbarHostState,
+                        messageState = messageState,
+                        model = model,
+                        nodeIdentityStates = nodeIdentityStates,
+                        send = send,
+                        requestNodeIdentityStates = requestNodeIdentityStates,
+                        onAddGroupClicked = onAddGroupClicked,
+                    )
+                }
+                if (model.supportsModelPublication != false && model.supportsModelSubscription != false) {
+                    BoundApplicationKeys(
+                        model = model,
+                        navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
+                        send = send
+                    )
+                }
+                if (model.supportsModelPublication != false) {
+                    Publication(
+                        messageState = messageState,
+                        model = model,
+                        send = send
+                    )
+                }
+                if (model.supportsModelSubscription != false) {
+                    Subscriptions(
+                        snackbarHostState = snackbarHostState,
+                        messageState = messageState,
+                        model = model,
+                        navigateToGroups = navigateToGroups,
+                        send = send
+                    )
+                }
+                if (model.isGenericOnOffServer()) {
+                    GenericOnOffServer(
+                        model = model,
+                        messageState = messageState,
+                        sendApplicationMessage = sendApplicationMessage
+                    )
+                }
+                if (model.isGenericLevelServer()) {
+                    GenericLevelServer(
+                        model = model,
+                        messageState = messageState,
+                        sendApplicationMessage = sendApplicationMessage
+                    )
+                }
 
-        if (model.isVendorModel()) {
-            VendorModelControls(
-                model = model,
-                messageState = messageState,
-                sendApplicationMessage = sendApplicationMessage
-            )
-        }
-        Spacer(modifier = Modifier.size(size = 8.dp))
-    }
+                if (model.isVendorModel()) {
+                    VendorModelControls(
+                        model = model,
+                        messageState = messageState,
+                        sendApplicationMessage = sendApplicationMessage
+                    )
+                }
+                Spacer(modifier = Modifier.size(size = 8.dp))
+            }
 
-    when (messageState) {
-        is Failed -> MeshMessageStatusDialog(
-            text = messageState.error.describe(),
-            showDismissButton = !messageState.didFail(),
-            onDismissRequest = resetMessageState,
-        )
-
-        is Completed -> {
-            messageState.response?.takeIf {
-                (it is ConfigStatusMessage && !it.isSuccess)
-            }?.let {
-                MeshMessageStatusDialog(
-                    text = (messageState.response as ConfigStatusMessage).message,
-                    showDismissButton = true,
+            when (messageState) {
+                is Failed -> MeshMessageStatusDialog(
+                    text = messageState.error.describe(),
+                    showDismissButton = !messageState.didFail(),
                     onDismissRequest = resetMessageState,
                 )
+
+                is Completed -> {
+                    messageState.response?.takeIf {
+                        (it is ConfigStatusMessage && !it.isSuccess)
+                    }?.let {
+                        MeshMessageStatusDialog(
+                            text = (messageState.response as ConfigStatusMessage).message,
+                            showDismissButton = true,
+                            onDismissRequest = resetMessageState,
+                        )
+                    }
+                }
+
+                else -> {
+
+                }
             }
         }
 
-        else -> {
+        else -> {}
+    }
+}
 
-        }
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
+@Composable
+internal fun BoundApplicationKeys(
+    model: Model,
+    navigateToConfigApplicationKeys: (Uuid) -> Unit,
+    send: (AcknowledgedConfigMessage) -> Unit,
+) {
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = model.boundApplicationKeys.isEmpty()
+    )
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    ElevatedCardItem(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        imageVector = Icons.Outlined.AddLink,
+        title = stringResource(R.string.label_bind_application_keys),
+        subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
+        onClick = { showBottomSheet = !showBottomSheet }
+    )
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = bottomSheetState,
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
+            content = {
+                BindAppKeysScreen(
+                    model = model,
+                    send = send,
+                    navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
+                )
+            }
+        )
     }
 }
 
@@ -197,7 +235,7 @@ internal fun BoundApplicationKeys(
             sheetState = bottomSheetState,
             onDismissRequest = { showBottomSheet = !showBottomSheet },
             content = {
-                BindAppKeysRoute(
+                BindAppKeysScreen(
                     model = model,
                     send = send,
                     navigateToConfigApplicationKeys = navigateToConfigApplicationKeys

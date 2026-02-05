@@ -1,7 +1,7 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
-    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -9,7 +9,6 @@ android {
 }
 
 dependencies {
-
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
     testImplementation(libs.androidx.test.ext)
