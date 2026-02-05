@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesScreen
 import no.nordicsemi.android.nrfmesh.feature.scenes.ScenesViewModel
 import no.nordicsemi.android.nrfmesh.feature.scenes.scene.navigation.SceneContentKey
@@ -34,7 +35,7 @@ fun EntryProviderScope<NavKey>.scenesEntry(appState: AppState, navigator: Naviga
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ScenesScreen(
             snackbarHostState = appState.snackbarHostState,
-            highlightSelectedItem = false,
+            highlightSelectedItem =  !isCompactWidth() && appState.navigationState.currentKey is SceneContentKey,
             selectedSceneNumber = uiState.selectedSceneNumber,
             scenes = uiState.scenes,
             onAddSceneClicked = viewModel::addScene,

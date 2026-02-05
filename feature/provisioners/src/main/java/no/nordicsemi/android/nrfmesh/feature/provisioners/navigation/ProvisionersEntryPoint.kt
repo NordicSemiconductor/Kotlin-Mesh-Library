@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
+import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersScreen
 import no.nordicsemi.android.nrfmesh.feature.provisioners.ProvisionersViewModel
 import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.navigation.ProvisionerContentKey
@@ -37,7 +38,7 @@ fun EntryProviderScope<NavKey>.provisionersEntry(appState: AppState, navigator: 
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ProvisionersScreen(
             snackbarHostState = appState.snackbarHostState,
-            highlightSelectedItem = false,
+            highlightSelectedItem =  !isCompactWidth() && appState.navigationState.currentKey is ProvisionerContentKey,
             selectedProvisionerUuid = uiState.selectedProvisionerUuid,
             provisioners = uiState.provisioners,
             onAddProvisionerClicked = viewModel::addProvisioner,
