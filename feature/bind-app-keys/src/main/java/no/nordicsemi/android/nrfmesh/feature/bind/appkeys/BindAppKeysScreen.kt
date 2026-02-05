@@ -33,7 +33,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
-fun BindAppKeysRoute(
+fun BindAppKeysScreen(
     model: Model,
     addedKeys: List<ApplicationKey> = model.parentElement?.parentNode?.applicationKeys.orEmpty(),
     navigateToConfigApplicationKeys: (Uuid) -> Unit,
