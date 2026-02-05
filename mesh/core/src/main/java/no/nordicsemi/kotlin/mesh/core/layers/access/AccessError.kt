@@ -21,7 +21,7 @@ sealed class AccessError : Exception() {
         is Timeout -> "Request timed out."
         is Cancelled -> "Message cancelled."
         is MessageSendingFailed -> "Message sending failed: ${error.message}"
-        is CannotRelay -> "Network Key not known to the connected GATT Proxy."
+        is CannotRelay -> "No GATT Proxy Node is connected or the connected Proxy does not know the Network Key used to secure this message."
         is InvalidKey -> "Cannot decrypt message with the given Key."
         is NoAppKeysBoundToModel -> "No Application Keys bound to the Model."
     }
