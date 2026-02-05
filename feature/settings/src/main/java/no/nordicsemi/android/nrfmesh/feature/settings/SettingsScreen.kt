@@ -34,7 +34,7 @@ import kotlin.time.Instant
 @Composable
 internal fun SettingsListScreen(
     uiState: SettingsScreenUiState,
-    onItemSelected: (ClickableSetting) -> Unit,
+    highlightSelectedItem: Boolean,
     onNameChanged: (String) -> Unit,
     navigateToProvisioners: () -> Unit,
     navigateToNetworkKeys: () -> Unit,
@@ -44,16 +44,16 @@ internal fun SettingsListScreen(
 ) {
     when (uiState.networkState) {
         is MeshNetworkState.Success -> {
-            SettingsListPane(
+            SettingsScreen(
                 settingsListData = uiState.networkState.settingsListData,
                 selectedSetting = uiState.selectedSetting,
-                highlightSelectedItem = false,
+                highlightSelectedItem = highlightSelectedItem,
                 onNameChanged = onNameChanged,
-                navigateToProvisioners = navigateToProvisioners,
-                navigateToNetworkKeys = navigateToNetworkKeys,
-                navigateToApplicationKeys = navigateToApplicationKeys,
-                navigateToScenes = navigateToScenes,
-                navigateToIvIndex = navigateToIvIndex
+                onProvisionersClicked = navigateToProvisioners,
+                onNetworkKeysClicked = navigateToNetworkKeys,
+                onApplicationKeysClicked = navigateToApplicationKeys,
+                onScenesClicked = navigateToScenes,
+                onIvIndexClicked = navigateToIvIndex
             )
         }
 
@@ -61,31 +61,6 @@ internal fun SettingsListScreen(
 
         }
     }
-}
-
-@Composable
-internal fun SettingsListPane(
-    settingsListData: SettingsListData,
-    selectedSetting: ClickableSetting?,
-    highlightSelectedItem: Boolean,
-    onNameChanged: (String) -> Unit,
-    navigateToProvisioners: () -> Unit,
-    navigateToNetworkKeys: () -> Unit,
-    navigateToApplicationKeys: () -> Unit,
-    navigateToScenes: () -> Unit,
-    navigateToIvIndex: () -> Unit,
-) {
-    SettingsScreen(
-        settingsListData = settingsListData,
-        selectedSetting = selectedSetting,
-        highlightSelectedItem = highlightSelectedItem,
-        onNameChanged = onNameChanged,
-        onProvisionersClicked = navigateToProvisioners,
-        onNetworkKeysClicked = navigateToNetworkKeys,
-        onApplicationKeysClicked = navigateToApplicationKeys,
-        onScenesClicked = navigateToScenes,
-        onIvIndexClicked = navigateToIvIndex
-    )
 }
 
 @OptIn(ExperimentalTime::class)
