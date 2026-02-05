@@ -65,7 +65,6 @@ class ProvisioningViewModel @Inject constructor(
 
     init {
         observeNetwork()
-        observeNetKeySelector()
     }
 
     /**
@@ -165,29 +164,6 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     /**
-     * Observers the result of the NetKeySelector destination.
-     */
-    private fun observeNetKeySelector() {
-        savedStateHandle.getStateFlow(
-            key = MeshNavigationDestination.ARG,
-            initialValue = "0"
-        ).onEach { index ->
-            val state = _uiState.value
-            keyIndex = index.toInt().toUShort()
-            state.provisionerState.let {
-                if (it is Provisioning) {
-                    if (it.state is ProvisioningState.CapabilitiesReceived) {
-                        it.state.parameters.networkKey = meshNetwork.networkKeys.find { key ->
-                            keyIndex == key.index
-                        } ?: throw Throwable("Network key not found")
-                        _uiState.value = state.copy(provisionerState = it)
-                    }
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    /**
      * Invoked when the user changes the name of the device.
      *
      * @param name New name to be assigned to the device.
@@ -236,14 +212,13 @@ class ProvisioningViewModel @Inject constructor(
             provisionerState.state is ProvisioningState.CapabilitiesReceived
         ) {
             val provisioningState = provisionerState.state
-            val p = provisioningState.parameters.apply {
-                networkKey = key
-            }
-            //provisioningState = provisioningState.copy(parameters = parameters)
+            val provisioningParameters = provisioningState
+                .parameters
+                .apply { networkKey = key }
             _uiState.value = _uiState.value.copy(
                 provisionerState = provisionerState.copy(
                     state = provisioningState.copy(
-                        parameters = p
+                        parameters = provisioningParameters
                     )
                 )
             )
@@ -263,9 +238,6 @@ class ProvisioningViewModel @Inject constructor(
                     if (it.state is ProvisioningState.CapabilitiesReceived) {
                         it.state.run {
                             parameters.authMethod = authMethod
-                            parameters.networkKey = meshNetwork.networkKeys.find { key ->
-                                0.toUShort() == key.index
-                            } ?: throw Throwable("Network key not found")
                             start(parameters)
                         }
                     }
