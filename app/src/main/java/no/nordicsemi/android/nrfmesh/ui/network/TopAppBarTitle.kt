@@ -58,11 +58,9 @@ internal fun title(
     is NodeKey -> network.node(uuid = Uuid.parse(uuidString = key.nodeUuid))?.name
         ?: context.getString(R.string.label_unknown)
 
-    is ConfigNetKeysKey -> if (isCompactWidth) context.getString(R.string.label_network_keys)
-    else context.getString(R.string.label_nodes)
+    is ConfigNetKeysKey -> context.getString(R.string.label_network_keys)
 
-    is ConfigAppKeysKey -> if (isCompactWidth) context.getString(R.string.label_application_keys)
-    else context.getString(R.string.label_nodes)
+    is ConfigAppKeysKey -> context.getString(R.string.label_application_keys)
 
     is ElementKey -> network.node(address = key.address.toUShort(radix = 16))?.name
         ?: context.getString(R.string.label_unknown)
@@ -75,8 +73,7 @@ internal fun title(
             ?: return context.getString(R.string.label_unknown)
         val modelId = element.model(key.modelId.toUInt(radix = 16))
             ?: return context.getString(R.string.label_unknown)
-        /*"${node.name} -> ${element.name} -> ${modelId.name}"*/
-        modelId.name ?: context.getString(R.string.label_unknown)
+        "${node.name} -> ${element.name} -> ${modelId.name}"
     }
 
     is GroupsKey -> context.getString(R.string.label_groups)
