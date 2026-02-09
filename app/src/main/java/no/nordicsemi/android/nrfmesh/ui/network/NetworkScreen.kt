@@ -76,7 +76,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
-import no.nordicsemi.android.nrfmesh.core.navigation.rememberNavigationState
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -94,7 +93,6 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisionin
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
-import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
@@ -111,6 +109,7 @@ import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
+    appState: MeshAppState,
     uiState: NetworkScreenUiState,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
@@ -124,24 +123,15 @@ internal fun NetworkScreen(
         MeshNetworkState.Loading -> {}
         is MeshNetworkState.Success -> {
             val context = LocalContext.current
-            val snackbarHostState = remember { SnackbarHostState() }
-            val navigationState = rememberNavigationState(
-                startKey = NodesKey,
-                topLevelKeys = MESH_TOP_LEVEL_NAV_ITEMS.keys
-            )
-            val appState = rememberMeshAppState(
-                snackbarHostState = snackbarHostState,
-                navigationState = navigationState
-            )
             val topAppBarTitle by remember(
-                key1 = navigationState.currentKey,
+                key1 = appState.navigationState.currentKey,
                 key2 = uiState.networkState.network.createKeysForAppTitles()
             ) {
                 derivedStateOf {
                     title(
                         context = context,
                         network = uiState.networkState.network,
-                        navigationState = navigationState,
+                        navigationState = appState.navigationState,
                         isCompactWidth = isCompactWidth
                     )
                 }
