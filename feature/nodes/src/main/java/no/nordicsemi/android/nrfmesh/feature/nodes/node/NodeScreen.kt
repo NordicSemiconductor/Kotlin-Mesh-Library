@@ -41,12 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -256,8 +254,8 @@ private fun AddressRow(address: UnicastAddress) {
 @Composable
 private fun DeviceKeyRow(deviceKey: String) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val clipboard = LocalClipboard.current
+    val message = stringResource(R.string.label_device_key)
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.VpnKey,
@@ -268,7 +266,7 @@ private fun DeviceKeyRow(deviceKey: String) {
                 scope = scope,
                 clipboard = clipboard,
                 text = deviceKey,
-                label = context.getString(R.string.label_device_key)
+                label = message
             )
         }
     )
@@ -479,9 +477,7 @@ private fun ProxyStateRow(
     }
     if (showProxyStateDialog) {
         MeshAlertDialog(
-            onDismissRequest = {
-                showProxyStateDialog = false
-            },
+            onDismissRequest = { showProxyStateDialog = false },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
@@ -490,9 +486,7 @@ private fun ProxyStateRow(
                 send(ConfigGattProxySet(state = FeatureState.Disabled))
                 showProxyStateDialog = false
             },
-            onDismissClick = {
-                showProxyStateDialog = false
-            }
+            onDismissClick = { showProxyStateDialog = false }
         )
     }
 }
