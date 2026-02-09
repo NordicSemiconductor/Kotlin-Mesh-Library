@@ -63,6 +63,13 @@ class SettingsViewModel @AssistedInject constructor(
     }
 
     /**
+     * Resets the selected setting to null.
+     */
+    internal fun resetSelectedSetting() {
+        _uiState.update { it.copy(selectedSetting = null) }
+    }
+
+    /**
      * Invoked when the name of the network is changed.
      *
      * @param name Name of the network.
