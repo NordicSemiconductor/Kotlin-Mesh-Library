@@ -15,7 +15,6 @@ dependencies {
 
     implementation(project(":core:common"))
     implementation(project(":core:navigation"))
-    implementation(libs.androidx.compose.adaptive)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
