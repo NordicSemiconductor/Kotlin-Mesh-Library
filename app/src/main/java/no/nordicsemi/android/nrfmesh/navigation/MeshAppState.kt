@@ -23,6 +23,7 @@ import no.nordicsemi.android.nrfmesh.feature.provisioners.provisioner.navigation
 import no.nordicsemi.android.nrfmesh.feature.scenes.navigation.ScenesContentKey
 import no.nordicsemi.android.nrfmesh.feature.scenes.scene.navigation.SceneContentKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementKey
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -64,6 +65,7 @@ class MeshAppState(
             is ConfigAppKeysKey,
             is ElementKey,
             is ModelKey,
+            is ProvisioningKey,
                 -> true
 
             else -> false
