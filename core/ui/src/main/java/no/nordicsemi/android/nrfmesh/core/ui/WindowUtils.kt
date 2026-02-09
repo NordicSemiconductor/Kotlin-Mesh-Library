@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 fun isCompactWidth(): Boolean {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     return when {
-        windowSizeClass.isWidthAtLeastBreakpoint(widthDpBreakpoint = 840.dp.value.toInt()) ||
-        windowSizeClass.isWidthAtLeastBreakpoint(widthDpBreakpoint = 600.dp.value.toInt()) -> false
+        windowSizeClass.isWidthAtLeastBreakpoint(widthDpBreakpoint = 840.dp.value.toInt()) -> false
+        windowSizeClass.isWidthAtLeastBreakpoint(widthDpBreakpoint = 600.dp.value.toInt()) -> true
         else -> true
     }
 }

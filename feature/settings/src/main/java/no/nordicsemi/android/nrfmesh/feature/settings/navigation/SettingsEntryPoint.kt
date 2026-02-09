@@ -12,7 +12,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.ClickableSetting
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
@@ -53,11 +52,22 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
         ) { factory ->
             factory.create(setting = key.setting)
         }
+
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SettingsListScreen(
             uiState = uiState,
             onNameChanged = viewModel::onNameChanged,
-            highlightSelectedItem = !isCompactWidth(),
+            highlightSelectedItem = !isCompactWidth() &&
+                    // If the settings tab is not selected and no item is selected upon back press
+                    // we clear the last selected setting
+                    if (appState.navigationState.currentTopLevelKey !is SettingsKey) {
+                        val shouldNotHighlight = appState.navigationState.subStacks
+                            .filterKeys { it is SettingsKey }
+                            .entries
+                            .size == 1
+                        if (shouldNotHighlight) viewModel.resetSelectedSetting()
+                        shouldNotHighlight
+                    } else true,
             navigateToProvisioners = {
                 viewModel.onItemSelected(ClickableSetting.PROVISIONERS)
                 navigator.navigate(key = ProvisionersContentKey)

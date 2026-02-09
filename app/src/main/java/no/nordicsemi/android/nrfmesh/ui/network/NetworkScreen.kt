@@ -38,11 +38,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
@@ -67,6 +65,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
@@ -76,7 +75,6 @@ import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
-import no.nordicsemi.android.nrfmesh.core.navigation.rememberNavigationState
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -94,7 +92,6 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisionin
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
-import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
@@ -111,6 +108,7 @@ import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
+    appState: MeshAppState,
     uiState: NetworkScreenUiState,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
@@ -124,24 +122,15 @@ internal fun NetworkScreen(
         MeshNetworkState.Loading -> {}
         is MeshNetworkState.Success -> {
             val context = LocalContext.current
-            val snackbarHostState = remember { SnackbarHostState() }
-            val navigationState = rememberNavigationState(
-                startKey = NodesKey,
-                topLevelKeys = MESH_TOP_LEVEL_NAV_ITEMS.keys
-            )
-            val appState = rememberMeshAppState(
-                snackbarHostState = snackbarHostState,
-                navigationState = navigationState
-            )
             val topAppBarTitle by remember(
-                key1 = navigationState.currentKey,
+                key1 = appState.navigationState.currentKey,
                 key2 = uiState.networkState.network.createKeysForAppTitles()
             ) {
                 derivedStateOf {
                     title(
                         context = context,
                         network = uiState.networkState.network,
-                        navigationState = navigationState,
+                        navigationState = appState.navigationState,
                         isCompactWidth = isCompactWidth
                     )
                 }
@@ -216,6 +205,22 @@ fun NetworkContent(
             }
         }
     ) {
+        val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+        val entryProvider = entryProvider {
+            nodesEntry(appState = appState, navigator = navigator)
+            provisioningEntry(appState = appState, navigator = navigator)
+            groupsEntry(appState = appState, navigator = navigator)
+            groupEntry(appState = appState, navigator = navigator)
+            groupControlsEntry(appState = appState, navigator = navigator)
+            proxyEntry()
+            settingsEntry(appState = appState, navigator = navigator)
+        }
+        val entries = appState.navigationState.toEntries(entryProvider = entryProvider)
+        val sceneState = rememberSceneState(entries = entries, sceneStrategy = litDetailStrategy, onBack = {
+                navigator.goBack()
+            }
+        )
+        val scene = sceneState.currentScene
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
             topBar = {
@@ -223,7 +228,14 @@ fun NetworkContent(
                     title = { Text(text = topAppBarTitle) },
                     backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                     showBackButton = appState.showBackButton,
-                    onNavigationButtonClick = navigator::goBack,
+                    onNavigationButtonClick = {
+                        // TODO to be clarified as of now uses the backbutton behaviour from tbe NavDisplay's NavigationBackHandler
+                        // If `enabled` becomes stale (e.g., it was set to false but a gesture was
+                        // dispatched in the same frame), this may result in no entries being popped
+                        // due to entries.size being smaller than scene.previousEntries.size
+                        // but that's preferable to crashing with an IndexOutOfBoundsException
+                        repeat(entries.size - scene.previousEntries.size) { navigator.goBack() }
+                    },
                     actions = {
                         DisplayDropdown(
                             appState = appState,
@@ -277,23 +289,13 @@ fun NetworkContent(
                 }
             }
         ) { padding ->
-            val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
-            val entryProvider = entryProvider {
-                nodesEntry(appState = appState, navigator = navigator)
-                provisioningEntry(appState = appState, navigator = navigator)
-                groupsEntry(appState = appState, navigator = navigator)
-                groupEntry(appState = appState, navigator = navigator)
-                groupControlsEntry(appState = appState, navigator = navigator)
-                proxyEntry()
-                settingsEntry(appState = appState, navigator = navigator)
-            }
             NavDisplay(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues = padding),
                 entries = appState.navigationState.toEntries(entryProvider = entryProvider),
                 sceneStrategy = litDetailStrategy,
-                onBack = { navigator.goBack() }
+                onBack = navigator::goBack
             )
         }
 
