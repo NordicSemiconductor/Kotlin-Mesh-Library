@@ -205,6 +205,7 @@ private fun IvIndexUpdateTestMode(testMode: Boolean, onIvIndexTestModeToggled: (
         subtitle = if (testMode) "Active" else "Inactive",
         titleAction = {
             Switch(
+                modifier = Modifier.padding(end = 16.dp),
                 checked = testMode,
                 onCheckedChange = { onIvIndexTestModeToggled(it) }
             )
