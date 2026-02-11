@@ -321,7 +321,7 @@ fun NetworkContent(
                 icon = Icons.Outlined.GroupWork,
                 title = stringResource(R.string.label_add_group),
                 text = stringResource(R.string.label_add_group_rationale),
-                onDismissRequest = { showResetNetworkDialog = false },
+                onDismissRequest = { showAddGroupDialog = false },
                 content = {
                     MeshOutlinedTextField(
                         value = address,
