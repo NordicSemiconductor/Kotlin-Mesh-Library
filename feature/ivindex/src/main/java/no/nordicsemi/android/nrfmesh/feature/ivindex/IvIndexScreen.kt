@@ -3,7 +3,9 @@ package no.nordicsemi.android.nrfmesh.feature.ivindex
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.outlined.ChangeCircle
@@ -48,9 +50,14 @@ fun IvIndexScreen(
     onIvIndexTestModeToggled: (Boolean) -> Unit,
     testMode: Boolean,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
+    Column(
+        modifier = Modifier.verticalScroll(state = rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
         SectionTitle(
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp),
             title = stringResource(R.string.label_iv_index)
         )
         IvIndex(
