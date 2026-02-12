@@ -20,6 +20,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.R
 import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupViewModel
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.GroupControlsKey
+import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
 import no.nordicsemi.kotlin.data.HexString
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -67,4 +68,5 @@ fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigat
             save = viewModel::save
         )
     }
+    groupControlsEntry(appState = appState, navigator = navigator)
 }
