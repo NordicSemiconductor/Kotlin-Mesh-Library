@@ -11,6 +11,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.feature.groups.GroupsScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.GroupsViewModel
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
+import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
@@ -25,4 +26,5 @@ fun EntryProviderScope<NavKey>.groupsEntry(appState: AppState, navigator: Naviga
             }
         )
     }
+    groupEntry(appState = appState, navigator = navigator)
 }
