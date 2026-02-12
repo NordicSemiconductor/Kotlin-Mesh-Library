@@ -15,10 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
-import no.nordicsemi.android.nrfmesh.feature.settings.SettingsListData
-import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Group
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import java.io.BufferedReader
@@ -119,23 +115,6 @@ class NetworkViewModel @Inject constructor(
 
     internal fun resetNetwork() {
         viewModelScope.launch { repository.resetNetwork() }
-    }
-
-    internal fun nextAvailableGroupAddress(): GroupAddress {
-        val provisioner = meshNetwork?.provisioners?.firstOrNull()
-        require(provisioner != null) {
-            throw IllegalArgumentException("No provisioner found")
-        }
-        return meshNetwork?.nextAvailableGroup(provisioner)
-            ?: throw IllegalArgumentException("No available group address found for ${provisioner.name}")
-    }
-
-    fun onAddGroupClicked(group: Group) {
-        val meshNetwork = meshNetwork ?: throw NoNetwork()
-        meshNetwork.add(group)
-        viewModelScope.launch {
-            repository.save()
-        }
     }
 }
 
