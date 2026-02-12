@@ -206,7 +206,6 @@ fun NetworkContent(
             provisioningEntry(appState = appState, navigator = navigator)
             groupsEntry(appState = appState, navigator = navigator)
             groupEntry(appState = appState, navigator = navigator)
-            groupControlsEntry(appState = appState, navigator = navigator)
             proxyEntry()
             settingsEntry(appState = appState, navigator = navigator)
         }
