@@ -52,4 +52,7 @@
     <string name="label_settings">Settings</string>
     <string name="label_proxy">Proxy</string>
     <string name="label_iv_index">IV Index</string>
+    <string name="label_app_welcome_rationale">nRF Mesh Allows to provision, configure and control Bluetooth Mesh devices.</string>
+    <string name="label_start_creating">Start by creating a new mesh network</string>
+    <string name="label_continue">Continue</string>
 </resources>
