@@ -51,17 +51,19 @@ internal fun NodesScreen(
             title = stringResource(R.string.no_nodes_currently_added)
         )
 
-        false -> NodesList(
+        false -> Nodes(
             nodes = uiState.nodes,
-            navigateToNode = { navigateToNode(it.uuid) }
+            navigateToNode = navigateToNode,
+            addNode = addNode
         )
     }
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 private fun Nodes(
     nodes: List<Node>,
-    navigateToNode: (Node) -> Unit,
+    navigateToNode: (Uuid) -> Unit,
     addNode: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -91,7 +93,7 @@ private fun Nodes(
 @Composable
 private fun NodesList(
     nodes: List<Node>,
-    navigateToNode: (Node) -> Unit,
+    navigateToNode: (Uuid) -> Unit,
 ) {
 
     if (isCompactWidth()) {
@@ -114,7 +116,7 @@ private fun NodesList(
                                     upperCase = true
                                 }
                             ),
-                        onClick = { navigateToNode(node) },
+                        onClick = { navigateToNode(node.uuid) },
                     )
                 }
             }
@@ -147,7 +149,7 @@ private fun NodesList(
                                 upperCase = true
                             }
                         ),
-                    onClick = { navigateToNode(node) },
+                    onClick = { navigateToNode(node.uuid) },
                 )
             }
             Spacer(
