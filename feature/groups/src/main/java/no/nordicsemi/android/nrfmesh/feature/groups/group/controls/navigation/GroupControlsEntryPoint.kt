@@ -23,7 +23,7 @@ import kotlin.uuid.ExperimentalUuidApi
 data class GroupControlsKey(val address: HexString, val modelId: HexString) : NavKey, Parcelable
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.groupControlsEntry(appState: AppState, navigator: Navigator) {
+internal fun EntryProviderScope<NavKey>.groupControlsEntry(appState: AppState, navigator: Navigator) {
     entry<GroupControlsKey>(
         metadata = ListDetailSceneStrategy.detailPane(
             sceneKey = GroupsListDetailSceneKey
