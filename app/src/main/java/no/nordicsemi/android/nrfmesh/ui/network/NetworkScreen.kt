@@ -94,14 +94,8 @@ import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
-import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
-import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
-import no.nordicsemi.kotlin.mesh.core.model.Group
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
-import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -114,8 +108,6 @@ internal fun NetworkScreen(
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
-    onAddGroupClicked: (Group) -> Unit,
-    nextAvailableGroupAddress: () -> GroupAddress,
     isCompactWidth: Boolean = isCompactWidth(),
 ) {
     when (uiState.networkState) {
@@ -142,8 +134,6 @@ internal fun NetworkScreen(
                 onProvisionerSelected = onProvisionerSelected,
                 importNetwork = importNetwork,
                 resetNetwork = resetNetwork,
-                onAddGroupClicked = onAddGroupClicked,
-                nextAvailableGroupAddress = nextAvailableGroupAddress,
                 topAppBarTitle = topAppBarTitle
             )
         }
@@ -162,8 +152,6 @@ fun NetworkContent(
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
-    onAddGroupClicked: (Group) -> Unit,
-    nextAvailableGroupAddress: () -> GroupAddress,
     topAppBarTitle: String,
 ) {
     val scope = rememberCoroutineScope()
