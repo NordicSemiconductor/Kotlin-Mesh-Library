@@ -262,19 +262,6 @@ fun NetworkContent(
             },
             floatingActionButton = {
                 when (appState.navigationState.currentKey) {
-                    is NodesKey -> ExtendedFloatingActionButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                        text = { Text(text = stringResource(R.string.label_add_node)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
-                        onClick = { navigator.navigate(key = ProvisioningKey) },
-                        expanded = true
-                    )
-
                     is GroupsKey -> ExtendedFloatingActionButton(
                         modifier = Modifier.defaultMinSize(minWidth = 150.dp),
                         text = { Text(text = stringResource(R.string.label_add_group)) },

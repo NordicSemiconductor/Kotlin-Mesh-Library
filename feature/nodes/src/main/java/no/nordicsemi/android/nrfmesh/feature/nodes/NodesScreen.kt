@@ -3,10 +3,12 @@
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,13 +18,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.dropUnlessResumed
 import no.nordicsemi.android.common.ui.view.CircularIcon
 import no.nordicsemi.android.nrfmesh.core.ui.MeshItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshNoItemsAvailable
@@ -36,6 +42,7 @@ import kotlin.uuid.Uuid
 internal fun NodesScreen(
     uiState: NodesScreenUiState,
     navigateToNode: (Uuid) -> Unit,
+    addNode: () -> Unit,
 ) {
     when (uiState.nodes.isEmpty()) {
         true -> MeshNoItemsAvailable(
@@ -43,20 +50,46 @@ internal fun NodesScreen(
             title = stringResource(R.string.no_nodes_currently_added)
         )
 
-        false -> Nodes(
+        false -> NodesList(
             nodes = uiState.nodes,
             navigateToNode = { navigateToNode(it.uuid) }
         )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
 @Composable
 private fun Nodes(
     nodes: List<Node>,
     navigateToNode: (Node) -> Unit,
+    addNode: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    Box(modifier = Modifier.fillMaxSize()) {
+        NodesList(
+            nodes = nodes,
+            navigateToNode = navigateToNode
+        )
+        ExtendedFloatingActionButton(
+            modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+            text = { Text(text = stringResource(R.string.label_add_node)) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = null
+                )
+            },
+            onClick = dropUnlessResumed { addNode() },
+            expanded = true
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
+@Composable
+private fun NodesList(
+    nodes: List<Node>,
+    navigateToNode: (Node) -> Unit,
+) {
+
     if (isCompactWidth()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
