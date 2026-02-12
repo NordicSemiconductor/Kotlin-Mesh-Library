@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.GroupWork
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +70,7 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
+import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
@@ -83,6 +87,7 @@ import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesEntry
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningEntry
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
@@ -168,6 +173,10 @@ fun NetworkContent(
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showNetworkInitBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var networkInitSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
@@ -250,6 +259,24 @@ fun NetworkContent(
                         )
                     }
                 )
+            },
+            floatingActionButton = {
+                when (appState.navigationState.currentKey) {
+                    is GroupsKey -> ExtendedFloatingActionButton(
+                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                        text = { Text(text = stringResource(R.string.label_add_group)) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Add,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { showAddGroupDialog = true },
+                        expanded = true
+                    )
+
+                    else -> {}
+                }
             }
         ) { padding ->
             NavDisplay(
@@ -284,7 +311,7 @@ fun NetworkContent(
                 icon = Icons.Outlined.GroupWork,
                 title = stringResource(R.string.label_add_group),
                 text = stringResource(R.string.label_add_group_rationale),
-                onDismissRequest = { showAddGroupDialog = false },
+                onDismissRequest = { showResetNetworkDialog = false },
                 content = {
                     MeshOutlinedTextField(
                         value = address,
@@ -422,6 +449,20 @@ fun NetworkContent(
                 },
                 onDismissClick = { showResetNetworkDialog = false },
                 onDismissRequest = { showResetNetworkDialog = false }
+            )
+        }
+        if (showNetworkInitBottomSheet) {
+            ModalBottomSheet(
+                sheetState = exportSheetState,
+                onDismissRequest = { showExportBottomSheet = false },
+                sheetGesturesEnabled = false,
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = false,
+                    shouldDismissOnClickOutside = false
+                ),
+                content = {
+                    NetworkWizard()
+                }
             )
         }
         if (showExportBottomSheet) {
