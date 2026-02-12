@@ -166,7 +166,6 @@ fun NetworkContent(
     nextAvailableGroupAddress: () -> GroupAddress,
     topAppBarTitle: String,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
@@ -214,7 +213,6 @@ fun NetworkContent(
             nodesEntry(appState = appState, navigator = navigator)
             provisioningEntry(appState = appState, navigator = navigator)
             groupsEntry(appState = appState, navigator = navigator)
-            groupEntry(appState = appState, navigator = navigator)
             proxyEntry()
             settingsEntry(appState = appState, navigator = navigator)
         }
@@ -259,24 +257,6 @@ fun NetworkContent(
                         )
                     }
                 )
-            },
-            floatingActionButton = {
-                when (appState.navigationState.currentKey) {
-                    is GroupsKey -> ExtendedFloatingActionButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                        text = { Text(text = stringResource(R.string.label_add_group)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
-                        onClick = { showAddGroupDialog = true },
-                        expanded = true
-                    )
-
-                    else -> {}
-                }
             }
         ) { padding ->
             NavDisplay(
@@ -286,151 +266,6 @@ fun NetworkContent(
                 entries = appState.navigationState.toEntries(entryProvider = entryProvider),
                 sceneStrategy = litDetailStrategy,
                 onBack = navigator::goBack
-            )
-        }
-
-        if (showAddGroupDialog) {
-            var isError by rememberSaveable { mutableStateOf(false) }
-            var errorMessage by remember { mutableStateOf("") }
-            val initialValue by remember {
-                mutableStateOf(
-                    nextAvailableGroupAddress()
-                        .address
-                        .toHexString(format = HexFormat.UpperCase)
-                )
-            }
-            var address by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-                mutableStateOf(
-                    TextFieldValue(
-                        text = initialValue,
-                        selection = TextRange(initialValue.length)
-                    )
-                )
-            }
-            MeshAlertDialog(
-                icon = Icons.Outlined.GroupWork,
-                title = stringResource(R.string.label_add_group),
-                text = stringResource(R.string.label_add_group_rationale),
-                onDismissRequest = { showResetNetworkDialog = false },
-                content = {
-                    MeshOutlinedTextField(
-                        value = address,
-                        onValueChanged = {
-                            isError = false
-                            address = it
-                            if (it.text.isNotEmpty()) {
-                                if (GroupAddress.isValid(it.text.toUShort(16))) {
-                                    isError = false
-                                    appState.snackbarHostState.currentSnackbarData?.dismiss()
-                                } else {
-                                    isError = true
-                                    errorMessage =
-                                        context.getString(R.string.label_invalid_group_address)
-                                }
-                            }
-                        },
-                        label = { Text(text = stringResource(id = R.string.address)) },
-                        supportingText = {
-                            if (isError) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Characters
-                        ),
-                        regex = Regex("^[0-9A-Fa-f]{0,4}$"),
-                        isError = isError,
-                    )
-                    Row(
-                        modifier = Modifier.padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
-                    ) {
-                        TextButton(
-                            onClick = {
-                                runCatching {
-                                    val group = Group(
-                                        address = VirtualAddress(uuid = Uuid.random()),
-                                        _name = "New Group"
-                                    )
-                                    onAddGroupClicked(group)
-                                        .also {
-                                            showAddGroupDialog = false
-                                            navigator.navigate(
-                                                key = GroupKey(
-                                                    address = group.address.toHexString()
-                                                )
-                                            )
-                                        }
-                                }.onFailure {
-                                    scope.launch {
-                                        appState.snackbarHostState.showSnackbar(
-                                            message = when (it) {
-                                                is GroupAlreadyExists -> context
-                                                    .getString(R.string.label_group_already_exists)
-
-                                                is GroupInUse -> context
-                                                    .getString(R.string.label_group_in_use)
-
-                                                else -> it.message ?: context
-                                                    .getString(R.string.label_failed_to_add_group)
-                                            },
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            },
-                            content = {
-                                Text(text = stringResource(R.string.label_virtual_label))
-                            }
-                        )
-                        Spacer(modifier = Modifier.weight(weight = 1f))
-                        TextButton(
-                            onClick = { showAddGroupDialog = false },
-                            content = { Text(text = stringResource(R.string.label_cancel)) }
-                        )
-                        TextButton(
-                            onClick = {
-                                if (address.text.isNotEmpty()) {
-                                    if (GroupAddress.isValid(address.text.toUShort(16))) {
-                                        isError = false
-                                        runCatching {
-                                            val group = Group(
-                                                address = MeshAddress.create(
-                                                    address = address.text.toUShort(radix = 16)
-                                                ) as GroupAddress,
-                                                _name = "New Group"
-                                            )
-                                            onAddGroupClicked(group).also {
-                                                showAddGroupDialog = false
-                                                navigator.navigate(
-                                                    key = GroupKey(
-                                                        address = group.address.toHexString()
-                                                    )
-                                                )
-                                            }
-                                        }.onFailure {
-                                            scope.launch {
-                                                appState.snackbarHostState.showSnackbar(
-                                                    message = it.message
-                                                        ?: context.getString(R.string.label_failed_to_add_group),
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                            }
-                                        }
-                                    } else {
-                                        isError = true
-                                        errorMessage =
-                                            context.getString(R.string.label_invalid_group_address)
-                                    }
-                                }
-                            },
-                            content = { Text(text = stringResource(R.string.label_add)) }
-                        )
-                    }
-                }
             )
         }
         if (showResetNetworkDialog) {
