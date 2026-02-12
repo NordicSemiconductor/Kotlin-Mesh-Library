@@ -21,8 +21,7 @@ fun MeshApp() {
         topLevelKeys = MESH_TOP_LEVEL_NAV_ITEMS.keys
     )
     val appState = rememberMeshAppState(
-        snackbarHostState = snackbarHostState,
-        navigationState = navigationState
+        snackbarHostState = snackbarHostState, navigationState = navigationState
     )
     val viewModel = hiltViewModel<NetworkViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -32,8 +31,6 @@ fun MeshApp() {
         shouldSelectProvisioner = uiState.shouldSelectProvisioner,
         onProvisionerSelected = viewModel::onProvisionerSelected,
         importNetwork = viewModel::importNetwork,
-        resetNetwork = viewModel::resetNetwork,
-        onAddGroupClicked = viewModel::onAddGroupClicked,
-        nextAvailableGroupAddress = viewModel::nextAvailableGroupAddress
+        resetNetwork = viewModel::resetNetwork
     )
 }

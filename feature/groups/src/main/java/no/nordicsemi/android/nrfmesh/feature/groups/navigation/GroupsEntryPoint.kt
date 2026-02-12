@@ -20,10 +20,11 @@ fun EntryProviderScope<NavKey>.groupsEntry(appState: AppState, navigator: Naviga
         val viewModel = hiltViewModel<GroupsViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         GroupsScreen(
+             snackbarHostState = appState.snackbarHostState,
             uiState = uiState,
-            navigateToGroup = {
-                navigator.navigate(key = GroupKey(address = it.toHexString()))
-            }
+            navigateToGroup = { navigator.navigate(key = GroupKey(address = it.toHexString())) },
+            onAddGroupClicked = viewModel::addGroup,
+            nextAvailableGroupAddress = viewModel::nextAvailableGroupAddress
         )
     }
     groupEntry(appState = appState, navigator = navigator)
