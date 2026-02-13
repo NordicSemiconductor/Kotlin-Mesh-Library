@@ -19,11 +19,11 @@ import androidx.compose.material.icons.outlined.VpnKey
  * @property scenes          Number of scenes.
  */
 interface NetworkProperties{
-    val networkKeys: Int
-    val applicationKeys: Int
-    val groups: Int
-    val virtualGroups: Int
-    val scenes: Int
+    val networkKeys: Int?
+    val applicationKeys: Int?
+    val groups: Int?
+    val virtualGroups: Int?
+    val scenes: Int?
 }
 
 /**
@@ -67,7 +67,13 @@ sealed class Configuration {
     /**
      * Import configuration.
      */
-    data object Import : Configuration()
+    data object Import : Configuration(), NetworkProperties {
+        override val networkKeys = null
+        override val applicationKeys = null
+        override val groups = null
+        override val virtualGroups = null
+        override val scenes = null
+    }
 }
 
 
