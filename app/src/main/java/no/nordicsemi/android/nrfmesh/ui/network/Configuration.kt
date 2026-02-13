@@ -35,7 +35,7 @@ sealed class Configuration {
      * Empty configuration.
      */
     data object Empty : Configuration(), NetworkProperties {
-        override val networkKeys = 0
+        override val networkKeys = 1
         override val applicationKeys = 0
         override val groups = 0
         override val virtualGroups = 0
