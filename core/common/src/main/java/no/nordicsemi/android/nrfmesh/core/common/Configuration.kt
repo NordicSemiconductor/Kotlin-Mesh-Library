@@ -1,4 +1,4 @@
-package no.nordicsemi.android.nrfmesh.ui.network
+package no.nordicsemi.android.nrfmesh.core.common
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.ImportExport
 import androidx.compose.material.icons.outlined.VpnKey
+import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
 /**
  * Network properties
@@ -18,7 +19,7 @@ import androidx.compose.material.icons.outlined.VpnKey
  * @property virtualGroups   Number of virtual groups.
  * @property scenes          Number of scenes.
  */
-interface NetworkProperties{
+sealed interface NetworkProperties {
     val networkKeys: Int?
     val applicationKeys: Int?
     val groups: Int?
@@ -29,7 +30,18 @@ interface NetworkProperties{
 /**
  * Defines the network configuration used by the Network Wizard
  */
-sealed class Configuration {
+sealed class Configuration : NetworkProperties {
+
+    /**
+     * Generate network keys.
+     */
+    abstract fun generateNetworkKeys(): List<ByteArray>
+
+    /**
+     * Generate application keys.
+     */
+    abstract fun generateApplicationKeys(): List<ByteArray>
+
 
     /**
      * Empty configuration.
@@ -40,29 +52,57 @@ sealed class Configuration {
         override val groups = 0
         override val virtualGroups = 0
         override val scenes = 0
+
+        override fun generateNetworkKeys(): List<ByteArray> = listOf(Crypto.generateRandomKey())
+
+        override fun generateApplicationKeys(): List<ByteArray> = emptyList()
     }
 
     /**
      * Custom configuration.
      */
-    data class  Custom(
+    data class Custom(
         override val networkKeys: Int = 1,
         override val applicationKeys: Int = 1,
         override val groups: Int = 3,
         override val virtualGroups: Int = 1,
         override val scenes: Int = 4,
-    ) : Configuration(), NetworkProperties
+    ) : Configuration(), NetworkProperties {
+
+        override fun generateNetworkKeys() = List(size = networkKeys) {
+            Crypto.generateRandomKey()
+        }
+
+        override fun generateApplicationKeys() = List(size = networkKeys) {
+            Crypto.generateRandomKey()
+        }
+    }
 
     /**
      * Debug configuration.
      */
     data class Debug(
         override val networkKeys: Int = 1,
-        override val applicationKeys: Int = 0,
+        override val applicationKeys: Int = 1,
         override val groups: Int = 3,
         override val virtualGroups: Int = 1,
         override val scenes: Int = 4,
-    ) : Configuration(), NetworkProperties
+    ) : Configuration(), NetworkProperties {
+
+        override fun generateNetworkKeys() = generateStaticKeys(size = networkKeys)
+
+        override fun generateApplicationKeys() = generateStaticKeys(size = applicationKeys)
+
+        /**
+         * Generate static keys incremented by 1. This is used for creating debug networks
+         */
+        private fun generateStaticKeys(size: Int) = List(size = size) { sizeIndex ->
+            ByteArray(size = 16) { byteIndex ->
+                if (byteIndex == 15) (sizeIndex + 1).toByte()
+                else 0.toByte()
+            }
+        }
+    }
 
     /**
      * Import configuration.
@@ -73,6 +113,10 @@ sealed class Configuration {
         override val groups = null
         override val virtualGroups = null
         override val scenes = null
+
+        override fun generateNetworkKeys(): List<ByteArray> = emptyList()
+
+        override fun generateApplicationKeys(): List<ByteArray> = emptyList()
     }
 }
 
@@ -80,7 +124,7 @@ sealed class Configuration {
 /**
  * Returns the icon for the configuration.
  */
-internal fun Configuration.icon() = when (this) {
+fun Configuration.icon() = when (this) {
     is Configuration.Empty -> Icons.Outlined.HourglassEmpty
     is Configuration.Custom -> Icons.Outlined.DashboardCustomize
     is Configuration.Debug -> Icons.Outlined.BugReport
@@ -90,7 +134,7 @@ internal fun Configuration.icon() = when (this) {
 /**
  * Returns the description for the configuration.
  */
-internal fun Configuration.description(): String {
+fun Configuration.description(): String {
     return when (this) {
         is Configuration.Empty -> "Empty"
         is Configuration.Custom -> "Custom"
@@ -139,7 +183,7 @@ fun ConfigurationProperty.icon() = when (this) {
 /**
  * Action
  */
-enum class Action{
+enum class Action {
     /**
      * Add action.
      */
