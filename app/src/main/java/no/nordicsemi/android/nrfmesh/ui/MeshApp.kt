@@ -1,36 +1,35 @@
 package no.nordicsemi.android.nrfmesh.ui
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
-import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
-import no.nordicsemi.android.nrfmesh.core.navigation.rememberNavigationState
-import no.nordicsemi.android.nrfmesh.navigation.rememberMeshAppState
-import no.nordicsemi.android.nrfmesh.ui.network.NetworkScreen
-import no.nordicsemi.android.nrfmesh.viewmodel.NetworkViewModel
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
+import no.nordicsemi.android.nrfmesh.ui.network.NetworkScreenKey
+import no.nordicsemi.android.nrfmesh.ui.network.networkScreenEntry
+import no.nordicsemi.android.nrfmesh.ui.network.wizard.NetworkWizardKey
+import no.nordicsemi.android.nrfmesh.ui.network.wizard.networkWizardEntry
 
 @Composable
 fun MeshApp() {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val navigationState = rememberNavigationState(
-        startKey = NodesKey,
-        topLevelKeys = MESH_TOP_LEVEL_NAV_ITEMS.keys
-    )
-    val appState = rememberMeshAppState(
-        snackbarHostState = snackbarHostState, navigationState = navigationState
-    )
-    val viewModel = hiltViewModel<NetworkViewModel>()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    NetworkScreen(
-        appState = appState,
-        uiState = uiState,
-        shouldSelectProvisioner = uiState.shouldSelectProvisioner,
-        onProvisionerSelected = viewModel::onProvisionerSelected,
-        importNetwork = viewModel::importNetwork,
-        resetNetwork = viewModel::resetNetwork
+    val bStack = rememberNavBackStack(NetworkScreenKey)
+    NavDisplay(
+        backStack = bStack,
+        entryProvider = entryProvider {
+            networkScreenEntry(
+                navigateToWizard = {
+                    // Add the wizard to the back stack as the latest screen to be displayed
+                    bStack.add(NetworkWizardKey)
+                    // Remove the NetworkScreenKey from the backstack as navigating to the wizard
+                    // should not allow going back
+                    bStack.remove(NetworkScreenKey)
+                }
+            )
+            networkWizardEntry(
+                navigateToNetwork = {
+                    bStack.add(NetworkScreenKey)
+                    bStack.remove(NetworkWizardKey)
+                }
+            )
+        }
     )
 }

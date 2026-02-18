@@ -309,9 +309,12 @@ private fun Groups(
             )
         }
     }
-    if (uiState.groups.isEmpty()) MeshNoItemsAvailable(
-        imageVector = Icons.Outlined.GroupWork,
-        title = stringResource(R.string.label_no_groups_currently_added),
-        rationale = stringResource(R.string.label_no_groups_currently_added_rationale),
-    )
+    if (uiState.groups.isEmpty()) {
+        MeshNoItemsAvailable(
+            modifier = Modifier.fillMaxSize(),
+            imageVector = Icons.Outlined.GroupWork,
+            title = stringResource(R.string.label_no_groups_currently_added),
+            rationale = stringResource(R.string.label_no_groups_currently_added_rationale),
+        )
+    }
 }
