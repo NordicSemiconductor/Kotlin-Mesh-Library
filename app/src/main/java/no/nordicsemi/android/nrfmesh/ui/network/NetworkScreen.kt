@@ -1,34 +1,22 @@
 package no.nordicsemi.android.nrfmesh.ui.network
 
-import android.content.ContentResolver
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +27,6 @@ import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
@@ -47,6 +34,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,10 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.rememberSceneState
@@ -70,24 +56,17 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
-import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
-import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
-import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
-import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
-import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesEntry
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningEntry
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
@@ -98,7 +77,6 @@ import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
@@ -106,12 +84,16 @@ internal fun NetworkScreen(
     uiState: NetworkScreenUiState,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
-    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
+    navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
+    resetMeshNetworkUiState: () -> Unit,
 ) {
     when (uiState.networkState) {
-        MeshNetworkState.Loading -> {}
+        MeshNetworkState.Loading -> {
+
+        }
+
         is MeshNetworkState.Success -> {
             val context = LocalContext.current
             val topAppBarTitle by remember(
@@ -132,17 +114,30 @@ internal fun NetworkScreen(
                 network = uiState.networkState.network,
                 shouldSelectProvisioner = shouldSelectProvisioner,
                 onProvisionerSelected = onProvisionerSelected,
-                importNetwork = importNetwork,
                 resetNetwork = resetNetwork,
+                navigateToWizard = navigateToWizard,
                 topAppBarTitle = topAppBarTitle
             )
+        }
+
+        MeshNetworkState.NoNetwork -> {
+            LaunchedEffect(uiState.networkState) {
+                if (uiState.networkState is MeshNetworkState.NoNetwork) {
+                    println("AAA No Network, navigating to wizard")
+                    navigateToWizard()
+                    resetMeshNetworkUiState()
+                }
+            }
         }
     }
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class,
-    ExperimentalMaterial3AdaptiveApi::class, ExperimentalTime::class
+    ExperimentalMaterial3Api::class,
+    ExperimentalStdlibApi::class,
+    ExperimentalUuidApi::class,
+    ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalTime::class
 )
 @Composable
 fun NetworkContent(
@@ -150,9 +145,9 @@ fun NetworkContent(
     network: MeshNetwork,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
-    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
     topAppBarTitle: String,
+    navigateToWizard: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -160,11 +155,6 @@ fun NetworkContent(
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
-    var showNetworkInitBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var networkInitSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-    var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationItemVerticalArrangement = Arrangement.Center,
@@ -182,8 +172,7 @@ fun NetworkContent(
                             imageVector = when (selected) {
                                 true -> navItem.selectedIcon
                                 false -> navItem.unselectedIcon
-                            },
-                            contentDescription = null
+                            }, contentDescription = null
                         )
                     },
                     label = {
@@ -205,10 +194,8 @@ fun NetworkContent(
             settingsEntry(appState = appState, navigator = navigator)
         }
         val entries = appState.navigationState.toEntries(entryProvider = entryProvider)
-        val sceneState = rememberSceneState(entries = entries, sceneStrategy = litDetailStrategy, onBack = {
-                navigator.goBack()
-            }
-        )
+        val sceneState = rememberSceneState(
+            entries = entries, sceneStrategy = litDetailStrategy, onBack = { navigator.goBack() })
         val scene = sceneState.currentScene
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
@@ -218,7 +205,8 @@ fun NetworkContent(
                     backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                     showBackButton = appState.showBackButton,
                     onNavigationButtonClick = {
-                        // TODO to be clarified as of now uses the backbutton behaviour from tbe NavDisplay's NavigationBackHandler
+                        // TODO to be clarified as of now uses the back button behaviour from tbe
+                        //  NavDisplay's NavigationBackHandler
                         // If `enabled` becomes stale (e.g., it was set to false but a gesture was
                         // dispatched in the same frame), this may result in no entries being popped
                         // due to entries.size being smaller than scene.previousEntries.size
@@ -231,14 +219,7 @@ fun NetworkContent(
                             menuExpanded = menuExpanded,
                             onExpandPressed = { menuExpanded = true },
                             onDismissRequest = { menuExpanded = false },
-                            importNetwork = { uri, contentResolver ->
-                                importNetwork(uri, contentResolver)
-                            },
-                            navigateToExport = {
-                                menuExpanded = false
-                                showExportBottomSheet = true
-                            },
-                            resetNetwork = {
+                            onResetNetworkClicked = {
                                 menuExpanded = false
                                 showResetNetworkDialog = true
                             }
@@ -264,66 +245,44 @@ fun NetworkContent(
                 text = stringResource(R.string.label_reset_network_rationale),
                 onConfirmClick = {
                     scope.launch {
-                        navigator.navigate(key = NodesKey)
-                    }.invokeOnCompletion {
                         showResetNetworkDialog = false
+                    }.invokeOnCompletion {
                         resetNetwork()
+                        navigateToWizard()
                     }
                 },
                 onDismissClick = { showResetNetworkDialog = false },
-                onDismissRequest = { showResetNetworkDialog = false }
-            )
-        }
-        if (showNetworkInitBottomSheet) {
-            ModalBottomSheet(
-                sheetState = exportSheetState,
-                onDismissRequest = { showExportBottomSheet = false },
-                sheetGesturesEnabled = false,
-                properties = ModalBottomSheetProperties(
-                    shouldDismissOnBackPress = false,
-                    shouldDismissOnClickOutside = false
-                ),
-                content = {
-                    NetworkWizard()
-                }
-            )
+                onDismissRequest = { showResetNetworkDialog = false })
         }
         if (showExportBottomSheet) {
             ModalBottomSheet(
                 sheetState = exportSheetState,
                 onDismissRequest = { showExportBottomSheet = false },
                 content = {
-                    ExportScreen(
-                        onDismissRequest = {
-                            scope.launch { exportSheetState.hide() }
-                                .invokeOnCompletion {
-                                    if (!exportSheetState.isVisible) {
-                                        showExportBottomSheet = false
-                                    }
-                                }
-                        },
-                        onExportCompleted = { message ->
-                            scope.launch {
-                                exportSheetState.hide()
-                                appState.snackbarHostState.showSnackbar(
-                                    message = message,
-                                    duration = SnackbarDuration.Short
-                                )
-                            }.invokeOnCompletion {
-                                if (!exportSheetState.isVisible) {
-                                    showExportBottomSheet = false
-                                }
+                    ExportScreen(onDismissRequest = {
+                        scope.launch { exportSheetState.hide() }.invokeOnCompletion {
+                            if (!exportSheetState.isVisible) {
+                                showExportBottomSheet = false
                             }
                         }
-                    )
-                }
-            )
+                    }, onExportCompleted = { message ->
+                        scope.launch {
+                            exportSheetState.hide()
+                            appState.snackbarHostState.showSnackbar(
+                                message = message, duration = SnackbarDuration.Short
+                            )
+                        }.invokeOnCompletion {
+                            if (!exportSheetState.isVisible) {
+                                showExportBottomSheet = false
+                            }
+                        }
+                    })
+                })
         }
         if (shouldSelectProvisioner) {
             ModalBottomSheet(
                 properties = ModalBottomSheetProperties(
-                    shouldDismissOnBackPress = false,
-                    shouldDismissOnClickOutside = false
+                    shouldDismissOnBackPress = false, shouldDismissOnClickOutside = false
                 ),
                 sheetState = selectProvisionerSheetState,
                 sheetGesturesEnabled = false,
@@ -342,16 +301,13 @@ fun NetworkContent(
                     ) {
                         items(items = network.provisioners, key = { it.uuid.toString() }) {
                             ElevatedCardItem(
-                                imageVector = Icons.Filled.PersonPin,
-                                title = it.name,
-                                onClick = {
+                                imageVector = Icons.Filled.PersonPin, title = it.name, onClick = {
                                     onProvisionerSelected(it)
-                                    scope.launch { exportSheetState.hide() }
-                                        .invokeOnCompletion {
-                                            if (!exportSheetState.isVisible) {
-                                                showExportBottomSheet = false
-                                            }
+                                    scope.launch { exportSheetState.hide() }.invokeOnCompletion {
+                                        if (!exportSheetState.isVisible) {
+                                            showExportBottomSheet = false
                                         }
+                                    }
                                 }
                             )
                         }
@@ -368,21 +324,15 @@ private fun DisplayDropdown(
     menuExpanded: Boolean,
     onExpandPressed: () -> Unit,
     onDismissRequest: () -> Unit,
-    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
-    navigateToExport: () -> Unit,
-    resetNetwork: () -> Unit,
+    onResetNetworkClicked: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            importNetwork(uri, context.contentResolver)
-        }
-    }
-    appState.navigationState.currentKey.takeIf {
-        it is SettingsKey
-    }?.let {
+    // We have to consider two conditions when displaying the dropdown in the settings screen
+    // 1. Current key destination is settings key
+    // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
+    //    are in the settings screen
+    if (appState.navigationState.currentKey is SettingsKey ||
+        appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+    ) {
         Box(
             modifier = Modifier
                 .padding(start = 16.dp)
@@ -390,42 +340,8 @@ private fun DisplayDropdown(
         ) {
             IconButton(
                 onClick = onExpandPressed,
-                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) }
-            )
+                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) })
             DropdownMenu(expanded = menuExpanded, onDismissRequest = onDismissRequest) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_import)
-                            )
-                        }
-                    },
-                    onClick = {
-                        fileLauncher.launch("application/json")
-                        onDismissRequest()
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Upload, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_export)
-                            )
-                        }
-                    },
-                    onClick = navigateToExport
-                )
                 DropdownMenuItem(
                     text = {
                         Row(
@@ -442,7 +358,7 @@ private fun DisplayDropdown(
                             )
                         }
                     },
-                    onClick = resetNetwork
+                    onClick = dropUnlessResumed { onResetNetworkClicked() }
                 )
             }
         }

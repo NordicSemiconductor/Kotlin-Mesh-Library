@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import no.nordicsemi.android.nrfmesh.core.common.Configuration
 import no.nordicsemi.android.nrfmesh.core.common.Utils.toAndroidLogLevel
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
@@ -57,6 +58,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
+import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
@@ -66,6 +68,7 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 private object PreferenceKeys {
     val PROXY_AUTO_CONNECT = booleanPreferencesKey("proxy_auto_connect")
@@ -98,7 +101,6 @@ class CoreDataRepository @Inject constructor(
 
     private val ioScope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
 
-
     init {
         // Initialize the mesh network manager logger
         meshNetworkManager.logger = this
@@ -106,8 +108,6 @@ class CoreDataRepository @Inject constructor(
         observeNetworkChanges()
         // Observe proxy connection state changes
         observerAutomaticProxyConnectionState()
-
-        initNetwork()
     }
 
     private fun observeNetworkChanges() {
@@ -127,30 +127,85 @@ class CoreDataRepository @Inject constructor(
         }.launchIn(scope = ioScope)
     }
 
-    private fun initNetwork() {
-        ioScope.launch {
-            val network = load()
-            // Connect to the proxy node if automatic connectivity is enabled
-            startAutomaticConnectivity(meshNetwork = meshNetwork)
-        }
-    }
-
     /**
      * Loads an existing mesh network or creates a new one.
      */
     suspend fun load() = withContext(context = ioDispatcher) {
-        val meshNetwork = if (!meshNetworkManager.load()) {
-            createNewMeshNetwork()
+        if (meshNetworkManager.load()) {
+            onMeshNetworkChanged()
+            true
         } else {
-            meshNetworkManager.meshNetwork.first()
+            false
         }
-        onMeshNetworkChanged()
-        meshNetwork
     }
 
     /**
-     * Invoked when the mesh network has changed. This will setup the local elements and
-     * reinitialise the connection to the proxy node. This will ensure that the user is connected to
+     * Creates a new mesh network.
+     * @return MeshNetwork
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun createNewMeshNetwork(
+        configuration: Configuration = Configuration.Empty,
+    ) = withContext(context = ioDispatcher) {
+        meshNetworkManager.create(
+            provisioner = Provisioner(name = createProvisionerName()).apply {
+                allocate(
+                    range = UnicastRange(
+                        lowAddress = UnicastAddress(address = 0x0001),
+                        highAddress = UnicastAddress(address = 0x199B)
+                    )
+                )
+                allocate(
+                    range = GroupRange(
+                        lowAddress = GroupAddress(address = 0xC000),
+                        highAddress = GroupAddress(address = 0xCC9A)
+                    )
+                )
+                allocate(range = SceneRange(firstScene = 0x0001u, lastScene = 0x3333u))
+            },
+            networkKeys = configuration.generateNetworkKeys()
+        ).also { meshNetwork ->
+            configuration.generateApplicationKeys().forEachIndexed { index, key ->
+                meshNetwork.add(
+                    name = "Application Key ${index + 1}",
+                    key = key,
+                    boundNetworkKey = meshNetwork.networkKeys.first()
+                )
+            }
+
+            for (group in 0 until configuration.groups!!) {
+                val groupAddress = meshNetwork.nextAvailableGroup(
+                    provisioner = meshNetwork.provisioners.first()
+                ) ?: continue
+                meshNetwork.add(group = Group(_name = "Group ${group + 1}", address = groupAddress))
+            }
+            val groupSize = meshNetwork.groups.size + (configuration.virtualGroups ?: 0)
+            for (index in meshNetwork.groups.size until groupSize) {
+                meshNetwork.add(
+                    group = Group(
+                        _name = "Group ${index + 1}",
+                        address = VirtualAddress(uuid = Uuid.random())
+                    )
+                )
+            }
+
+            for (scene in 0 until configuration.scenes!!) {
+                val sceneAddress = meshNetwork.nextAvailableScene(
+                    provisioner = meshNetwork.provisioners.first()
+                ) ?: continue
+                meshNetwork.add(name = "Scene $scene", number = sceneAddress)
+            }
+        }.also {
+            meshNetwork = it
+            ioScope.launch {
+                startAutomaticConnectivity(it)
+            }
+        }
+    }
+
+    /**
+     * Invoked when the mesh network has changed. This will set up the local elements and
+     * reinitialize the connection to the proxy node. This will ensure that the user is connected to
      * the correct network.
      */
     private fun onMeshNetworkChanged() {
@@ -215,7 +270,7 @@ class CoreDataRepository @Inject constructor(
     /**
      * Imports a mesh network.
      */
-    suspend fun importMeshNetwork(data: ByteArray) = meshNetworkManager.import(data)
+    suspend fun importMeshNetwork(data: ByteArray) = meshNetworkManager.import(array = data)
 
     /**
      * Exports a mesh network.
@@ -223,10 +278,7 @@ class CoreDataRepository @Inject constructor(
     fun exportNetwork(configuration: NetworkConfiguration) =
         meshNetworkManager.export(configuration = configuration)
 
-    suspend fun resetNetwork() = createNewMeshNetwork().also {
-        onMeshNetworkChanged()
-        save()
-    }
+    suspend fun resetNetwork() = meshNetworkManager.clear()
 
     /**
      * Adds a network key to the network.
@@ -257,29 +309,6 @@ class CoreDataRepository @Inject constructor(
     fun save() {
         ioScope.launch { meshNetworkManager.save() }
     }
-
-    /**
-     * Creates a new mesh network.
-     * @return MeshNetwork
-     */
-    @OptIn(ExperimentalUuidApi::class)
-    private suspend fun createNewMeshNetwork() = meshNetworkManager.create(
-        provisioner = Provisioner(name = createProvisionerName()).apply {
-            allocate(
-                range = UnicastRange(
-                    lowAddress = UnicastAddress(address = 0x0001),
-                    highAddress = UnicastAddress(address = 0x199B)
-                )
-            )
-            allocate(
-                range = GroupRange(
-                    lowAddress = GroupAddress(address = 0xC000),
-                    highAddress = GroupAddress(address = 0xCC9A)
-                )
-            )
-            allocate(range = SceneRange(firstScene = 0x0001u, lastScene = 0x3333u))
-        }
-    ).also { meshNetworkManager.save() }
 
     /**
      * Enables or disables automatic connectivity to a proxy node.
@@ -315,6 +344,7 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     private suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
+        require(meshNetwork != null) { return }
         require(bearer == null || !bearer!!.isOpen) { return }
         if (connectionRequested) return
         connectionRequested = true

@@ -30,7 +30,7 @@ import kotlin.uuid.ExperimentalUuidApi
  *                                 provisioned using the Secure Provisioning procedure, then the
  *                                 value of minSecurity property for the subnet is set to “secure”;
  *                                 otherwise, the value of the minSecurity is set to “insecure”.
- * @property name                  Human-readable name for the the mesh subnet associated with this
+ * @property name                  Human-readable name for the mesh subnet associated with this
  *                                 network key.
  * @property phase                 The phase property represents the [KeyRefreshPhase] for the
  *                                 subnet associated with this network key.
@@ -76,7 +76,7 @@ data class NetworkKey internal constructor(
      * @param index   The index property contains an integer from 0 to 4095 that represents the
      *                NetKey index for this network key.
      * @param key     128-bit key.
-     * @param name    Human readable name for the the mesh subnet associated with this network key.
+     * @param name    Human-readable name for the mesh subnet associated with this network key.
      */
     internal constructor(
         name: String = "Primary Network Key",
