@@ -66,18 +66,24 @@ internal fun title(
     else network.node(uuid = Uuid.parse(uuidString = key.uuid))?.name
         ?: context.getString(R.string.label_unknown)
 
-    is ElementKey -> network.node(address = key.address.toUShort(radix = 16))?.name
+    is ElementKey -> if (isCompactWidth)
+        network.element(elementAddress = key.address.toUShort(radix = 16))?.name
+        ?: context.getString(R.string.label_unknown)
+    else network.node(address = key.address.toUShort(radix = 16))?.name
         ?: context.getString(R.string.label_unknown)
 
     is ModelKey -> {
         val address = key.address.toUShort(radix = 16)
-        val node = network.node(address = address)
-            ?: return context.getString(R.string.label_unknown)
-        val element = node.element(address = address)
-            ?: return context.getString(R.string.label_unknown)
-        val modelId = element.model(key.modelId.toUInt(radix = 16))
-            ?: return context.getString(R.string.label_unknown)
-        modelId.name ?: context.getString(R.string.label_unknown)
+        if (isCompactWidth) {
+            val node = network.node(address = address)
+                ?: return context.getString(R.string.label_unknown)
+            val element = node.element(address = address)
+                ?: return context.getString(R.string.label_unknown)
+            val modelId = element.model(key.modelId.toUInt(radix = 16))
+                ?: return context.getString(R.string.label_unknown)
+            modelId.name ?: context.getString(R.string.label_unknown)
+        } else network.element(elementAddress = address)?.name
+            ?: context.getString(R.string.label_unknown)
     }
 
     is GroupsKey -> context.getString(R.string.label_groups)
@@ -89,6 +95,7 @@ internal fun title(
 
     is ProvisionersContentKey -> if (isCompactWidth) context.getString(R.string.label_provisioners)
     else context.getString(R.string.label_settings)
+
     is ProvisionerContentKey -> network.provisioner(Uuid.parse(uuidString = key.uuid))?.name
         ?: context.getString(R.string.label_unknown)
 
