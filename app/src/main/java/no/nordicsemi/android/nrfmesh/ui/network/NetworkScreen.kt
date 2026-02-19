@@ -23,13 +23,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -158,9 +156,6 @@ fun NetworkContent(
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationItemVerticalArrangement = Arrangement.Center,
-        navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationRailContainerColor = ShortNavigationBarDefaults.containerColor,
-        ),
         navigationItems = {
             MESH_TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
                 val selected = navKey == appState.navigationState.currentTopLevelKey
