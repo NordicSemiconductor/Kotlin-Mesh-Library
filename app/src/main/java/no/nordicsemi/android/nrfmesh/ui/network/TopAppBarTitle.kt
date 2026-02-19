@@ -68,7 +68,7 @@ internal fun title(
 
     is ElementKey -> if (isCompactWidth)
         network.element(elementAddress = key.address.toUShort(radix = 16))?.name
-        ?: context.getString(R.string.label_unknown)
+            ?: context.getString(R.string.label_unknown)
     else network.node(address = key.address.toUShort(radix = 16))?.name
         ?: context.getString(R.string.label_unknown)
 
@@ -109,8 +109,9 @@ internal fun title(
     is ApplicationKeysContentKey -> if (isCompactWidth) context.getString(R.string.label_application_keys)
     else context.getString(R.string.label_settings)
 
-    is ApplicationKeyContentKey -> network.applicationKey(index = key.keyIndex.toUShort(radix = 16))?.name
-        ?: context.getString(R.string.label_unknown)
+    is ApplicationKeyContentKey -> network.applicationKey(
+        index = key.keyIndex.toUShort(radix = 16)
+    )?.name ?: context.getString(R.string.label_unknown)
 
     is ScenesContentKey -> if (isCompactWidth) context.getString(R.string.label_scenes)
     else context.getString(R.string.label_settings)
