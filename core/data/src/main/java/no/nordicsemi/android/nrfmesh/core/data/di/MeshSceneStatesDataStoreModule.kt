@@ -6,22 +6,22 @@ import androidx.datastore.dataStoreFile
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.storage.ProtoSceneStatesDataStoreSerializer
-import javax.inject.Singleton
 
 private const val DATA_STORE_FILE_NAME = "scene_states_proto.pb"
 
-@InstallIn(SingletonComponent::class)
+@InstallIn(ActivityRetainedComponent::class)
 @Module
 object MeshSceneStatesDataStoreModule {
 
-    @Singleton
+    @ActivityRetainedScoped
     @Provides
     fun provideSceneStatesDataStore(
         @ApplicationContext context: Context,
