@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Configuration
 import no.nordicsemi.android.nrfmesh.core.common.ConfigurationProperty
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import java.io.BufferedReader
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -217,14 +216,7 @@ class NetworkWizardViewModel @Inject constructor(
     @OptIn(ExperimentalUuidApi::class)
     internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
         viewModelScope.launch {
-            val networkJson = contentResolver.openInputStream(uri)?.use { inputStream ->
-                BufferedReader(inputStream.reader()).use { bufferedReader ->
-                    bufferedReader.readText()
-                }
-            } ?: ""
-            repository.importMeshNetwork(networkJson.encodeToByteArray())
-            // Let's save the imported network
-            repository.save()
+            repository.importNetwork(uri = uri, contentResolver = contentResolver)
             resetCurrentUiState()
         }
     }
