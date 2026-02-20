@@ -3,16 +3,10 @@ package no.nordicsemi.android.nrfmesh.core.common
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.DashboardCustomize
-import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Drafts
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.GroupWork
-import androidx.compose.material.icons.outlined.HourglassEmpty
-import androidx.compose.material.icons.outlined.ModeEdit
-import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material.icons.outlined.VpnKey
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 
@@ -131,7 +125,7 @@ sealed class Configuration : NetworkProperties {
  * Returns the icon for the configuration.
  */
 fun Configuration.icon() = when (this) {
-    is Configuration.Empty -> Icons.Outlined.Drafts
+    is Configuration.Empty -> Icons.Outlined.CheckBoxOutlineBlank
     is Configuration.Custom -> Icons.Outlined.DashboardCustomize
     is Configuration.Debug -> Icons.Outlined.BugReport
     is Configuration.Import -> Icons.Outlined.Download
