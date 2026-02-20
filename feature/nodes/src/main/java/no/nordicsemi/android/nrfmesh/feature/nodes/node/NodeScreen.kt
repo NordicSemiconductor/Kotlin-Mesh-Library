@@ -33,6 +33,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -548,8 +549,10 @@ private fun ResetRow(
             }
         )
     }
-    if (messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
-        navigateBack()
+    LaunchedEffect(messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
+        if (messageState.didSucceed() && messageState.response is ConfigNodeResetStatus) {
+            navigateBack()
+        }
     }
 }
 

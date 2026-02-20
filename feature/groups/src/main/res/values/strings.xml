@@ -22,4 +22,13 @@
     <string name="label_delete_group_rationale">Removes this group from the network</string>
     <string name="label_delete">Delete</string>
     <string name="label_models1">model(s)</string>
+    <string name="label_invalid_group_address">Invalid group address</string>
+    <string name="label_group_in_use">Group in use</string>
+    <string name="label_group_already_exists">Group already exists</string>
+    <string name="label_failed_to_add_group">Failed to add group</string>
+    <string name="label_add_group_rationale">Select the type of Address to create a group with.</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="label_add">Add</string>
+    <string name="label_group_address">Group Address</string>
+    <string name="label_virtual_label">Virtual Label</string>
 </resources>

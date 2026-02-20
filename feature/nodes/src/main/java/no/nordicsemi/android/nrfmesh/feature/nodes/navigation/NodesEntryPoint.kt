@@ -12,6 +12,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.NodesViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.navigation.nodeEntry
+import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
@@ -21,9 +22,8 @@ fun EntryProviderScope<NavKey>.nodesEntry(appState: AppState, navigator: Navigat
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         NodesScreen(
             uiState = uiState,
-            navigateToNode = {
-                navigator.navigate(key = NodeKey(nodeUuid = it.toString()))
-            }
+            navigateToNode = { navigator.navigate(key = NodeKey(nodeUuid = it.toString())) },
+            addNode = { navigator.navigate(key = ProvisioningKey) }
         )
     }
     nodeEntry(appState = appState, navigator = navigator)

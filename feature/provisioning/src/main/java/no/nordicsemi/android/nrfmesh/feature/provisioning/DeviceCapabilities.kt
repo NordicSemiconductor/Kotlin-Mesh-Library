@@ -210,13 +210,7 @@ private fun UnicastAddressRow(
     ElevatedCardItemHexTextField(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Lan,
-        prefix = {
-            Text(
-                modifier = Modifier
-                    .padding(end = 8.dp),
-                text = stringResource(R.string.label_hex_prefix)
-            )
-        },
+        prefix = { Text(modifier = Modifier.padding(end = 8.dp), text = stringResource(R.string.label_hex_prefix)) },
         title = stringResource(id = R.string.label_unicast_address),
         subtitle = address.toHexString(format = HexFormat.UpperCase),
         placeholder = stringResource(id = R.string.label_name),

@@ -253,7 +253,7 @@ data class MeshNetwork internal constructor(
      * beacon, in which case calling this method is not necessary.
      *
      * Note: If there are no Nodes in the network except the Provisioner, it is not possible to
-     *       revert IV Index to smaller value (at least not using the public API). If you set a IV
+     *       revert IV Index to smaller value (at least not using the public API). If you set an IV
      *       Index that's too high, the app will not be able to communicate with the mesh network.
      *       Always use the current IV Index of the mesh network.
      *
@@ -419,7 +419,7 @@ data class MeshNetwork internal constructor(
                 it.network = null
             }
 
-        // If the old local Provisioner has been removed, and a new one has been set in it's place,
+        // If the old local Provisioner has been removed, and a new one has been set in its place,
         // it needs the properties to be updated.
         if (localProvisionerRemoved) {
             localProvisioner?.node?.apply {
@@ -442,7 +442,7 @@ data class MeshNetwork internal constructor(
      * Removes the given provisioner from the list of provisioners in the network.
      *
      * @param provisioner Provisioner to be removed.
-     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(DoesNotBelongToNetwork::class, CannotRemove::class)
@@ -455,7 +455,7 @@ data class MeshNetwork internal constructor(
      * Removes the provisioner with the given Uuid from the list of provisioners in the network.
      *
      * @param uuid Uuid of the provisioner to be removed.
-     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws DoesNotBelongToNetwork if provisioner does not belong to this network.
      * @throws CannotRemove if there is only one provisioner.
      * @throws NoSuchElementException if a provisioner with the given Uuid was not found.
      */
@@ -472,7 +472,7 @@ data class MeshNetwork internal constructor(
      * @param from      Current index of the provisioner.
      * @param to        Destination index, the provisioner must be moved to.
      * @return Provisioner that was removed.
-     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(DoesNotBelongToNetwork::class)
@@ -496,7 +496,7 @@ data class MeshNetwork internal constructor(
             else _provisioners.add(element = provisioner)
             updateTimestamp()
             // If a local Provisioner was moved, it's Composition Data must be cleared, as most
-            // probably it will be exported to another phone, which will have it's own manufacturer,
+            // probably it will be exported to another phone, which will have its own manufacturer,
             // Elements, etc.
             if (newToIndex == 0 || from == 0) {
                 oldLocalProvisioner?.node?.apply {
@@ -543,7 +543,7 @@ data class MeshNetwork internal constructor(
      * @param provisioner   Provisioner to be removed.
      * @param to            Destination index, the provisioner must be moved to.
      * @return Provisioner that was removed.
-     * @throws DoesNotBelongToNetwork if the the provisioner does not belong to this network.
+     * @throws DoesNotBelongToNetwork if the provisioner does not belong to this network.
      * @throws CannotRemove if there is only one provisioner.
      */
     @Throws(DoesNotBelongToNetwork::class)
@@ -756,7 +756,7 @@ data class MeshNetwork internal constructor(
     }
 
     /**
-     * Removes a Application Key at the given index from the list of Application Keys in the mesh
+     * Removes an Application Key at the given index from the list of Application Keys in the mesh
      * network.
      *
      * @param index index of the Application Key in the list of Application Keys.
@@ -790,17 +790,6 @@ data class MeshNetwork internal constructor(
         node(uuid = provisioner.uuid)
     } catch (e: DoesNotBelongToNetwork) {
         null
-    }
-
-    /**
-     * Returns the provisioned node for an unprovisioned device.
-     *
-     * @param device Unprovisioned node.
-     * @return provisioned Node matching the unprovisioned device.
-     */
-    @Suppress("KDocUnresolvedReference")
-    fun node(/*device:UnprovisionedDevice*/): Node {
-        TODO("return node(device.uuid)")
     }
 
     /**
@@ -860,7 +849,7 @@ data class MeshNetwork internal constructor(
         DoesNotBelongToNetwork::class
     )
     fun add(node: Node) {
-        // Ensure the node does not exists already.
+        // Ensure the node does not exist already.
         require(_nodes.none { it.uuid == node.uuid }) { throw NodeAlreadyExists() }
         // Verify if the address range is available for the new Node.
         require(isAddressAvailable(address = node.primaryUnicastAddress, node = node)) {
@@ -868,7 +857,7 @@ data class MeshNetwork internal constructor(
         }
         // Ensure the Network Key exists.
         require(node.netKeys.isNotEmpty()) { throw NoNetworkKeysAdded() }
-        // Make sure the network contains a Network Key with he same Key Index.
+        // Make sure the network contains a Network Key with the same Key Index.
         require(_networkKeys.any { it.index == node.netKeys.first().index }) {
             throw DoesNotBelongToNetwork()
         }
@@ -896,12 +885,12 @@ data class MeshNetwork internal constructor(
                 _nodes.remove(node)
                 // Remove unicast addresses of all node's elements from the scene
                 _scenes.forEach { it.remove(node.addresses) }
-                // When a Node is removed from the network, the unicast addresses that were in used
-                // cannot be assigned to another node until the IV index is incremented by 2 which
+                // When a Node is removed from the network, the unicast addresses that were used
+                // cannot be assigned to another node until the IV index is incremented by 2. This
                 // effectively resets the Sequence number used by all the nodes in the network.
                 _networkExclusions.add(ExclusionList(ivIndex.index).apply { exclude(node) })
                 // As the node is removed from the network and is no longer part of the network,
-                // clear it's network reference.
+                // clear its network reference.
                 node.network = null
                 updateTimestamp()
             }
@@ -1136,7 +1125,7 @@ data class MeshNetwork internal constructor(
 
                 address = usedAddress + 1
 
-                // If the new address is outside of the range, go to the next one.
+                // If the new address is outside the range, go to the next one.
                 if (address + elementCount - 1 > range.highAddress) break
             }
             // If the range has available space, return the address.
@@ -1149,7 +1138,7 @@ data class MeshNetwork internal constructor(
      * Returns the next available Group from the Provisioner's range that can be assigned to
      * a new Group.
      *
-     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @param provisioner Provisioner, whose range is to be used for address generation.
      * @return The next available group address that can be assigned to a new Scene, or null, if
      *         there are no more available numbers in the allocated range.
      * @throws [NoGroupRangeAllocated] if no scene range is allocated to the provisioner.
@@ -1178,7 +1167,7 @@ data class MeshNetwork internal constructor(
                 // Else, move the address to the next available address.
                 groupAddress = (group.address as GroupAddress) + 1
 
-                // If the new scene number is outside of the range, go to the next one.
+                // If the new scene number is outside the range, go to the next one.
                 if (groupAddress > groupRange.highAddress) break
             }
 
@@ -1193,7 +1182,7 @@ data class MeshNetwork internal constructor(
      * Returns the next available Scene number from the Provisioner's range that can be assigned to
      * a new Scene.
      *
-     * @param provisioner Provisioner, who's range is to be used for address generation.
+     * @param provisioner Provisioner, whose range is to be used for address generation.
      * @return The next available Scene number that can be assigned to a new Scene, or null, if
      *         there are no more available numbers in the allocated range.
      * @throws [NoSceneRangeAllocated] if no scene range is allocated to the provisioner.
@@ -1222,7 +1211,7 @@ data class MeshNetwork internal constructor(
                 // Else, move the address to the next available address.
                 scene = (sceneObject.number + 1u).toUShort()
 
-                // If the new scene number is outside of the range, go to the next one.
+                // If the new scene number is outside the range, go to the next one.
                 if (scene > range.lastScene) break
             }
 
@@ -1318,7 +1307,7 @@ data class MeshNetwork internal constructor(
             }
             lastUpperBound = range.high.toInt()
         }
-        // If if we didn't return earlier, check after the last range and if the requested size
+        // If we didn't return earlier, check after the last range and if the requested size
         // hasn't been found, return the best found.
         val availableSize = bound.high.toInt() - lastUpperBound
         val bestSize = bestRange?.diff?.toInt() ?: 0
@@ -1332,7 +1321,7 @@ data class MeshNetwork internal constructor(
     }
 
     /**
-     * Creates [UnicastRange], [GroupRange] or a [SceneRange] based on the given [bound] type].
+     * Creates [UnicastRange], [GroupRange] or a [SceneRange] based on the given [bound] type.
      *
      * @param bound Address range bound.
      * @param low Low address.

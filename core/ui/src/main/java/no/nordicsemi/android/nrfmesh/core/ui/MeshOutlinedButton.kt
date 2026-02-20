@@ -54,13 +54,11 @@ fun MeshOutlinedButton(
                     color = buttonIconTint ?: ProgressIndicatorDefaults.circularColor
                 )
             } else {
-                buttonIcon.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = null,
-                        tint = buttonIconTint ?: LocalContentColor.current,
-                    )
-                }
+                Icon(
+                    imageVector = buttonIcon,
+                    contentDescription = null,
+                    tint = buttonIconTint ?: LocalContentColor.current,
+                )
             }
             Text(modifier = modifier.padding(start = 8.dp), text = text, color = textColor)
         }
