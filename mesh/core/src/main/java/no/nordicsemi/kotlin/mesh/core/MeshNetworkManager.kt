@@ -180,12 +180,10 @@ class MeshNetworkManager(
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        mutex.withLock {
-            export()?.also {
-                storage.save(network = it)
-                this@MeshNetworkManager.network
-                    ?.let { network -> _meshNetwork.emit(value = network) }
-            }
+        export()?.also {
+            mutex.withLock { storage.save(network = it) }
+            this@MeshNetworkManager.network
+                ?.let { network -> _meshNetwork.emit(value = network) }
         }
     }
 
@@ -231,7 +229,7 @@ class MeshNetworkManager(
     ): MeshNetwork {
         // Check if the Network Key is of valid length
         networkKeys.forEach {
-            if (it.size != 16){
+            if (it.size != 16) {
                 logger?.e(category = LogCategory.FOUNDATION_MODEL) {
                     "Key length must be 16 bytes"
                 }
