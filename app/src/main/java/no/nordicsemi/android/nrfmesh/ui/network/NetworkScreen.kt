@@ -1,5 +1,9 @@
 package no.nordicsemi.android.nrfmesh.ui.network
 
+import android.content.ContentResolver
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +17,9 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -82,6 +88,7 @@ internal fun NetworkScreen(
     uiState: NetworkScreenUiState,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
+    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
     navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
@@ -112,6 +119,7 @@ internal fun NetworkScreen(
                 network = uiState.networkState.network,
                 shouldSelectProvisioner = shouldSelectProvisioner,
                 onProvisionerSelected = onProvisionerSelected,
+                importNetwork = importNetwork,
                 resetNetwork = resetNetwork,
                 navigateToWizard = navigateToWizard,
                 topAppBarTitle = topAppBarTitle
@@ -143,6 +151,7 @@ fun NetworkContent(
     network: MeshNetwork,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
+    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     resetNetwork: () -> Unit,
     topAppBarTitle: String,
     navigateToWizard: () -> Unit,
@@ -214,6 +223,13 @@ fun NetworkContent(
                             menuExpanded = menuExpanded,
                             onExpandPressed = { menuExpanded = true },
                             onDismissRequest = { menuExpanded = false },
+                            importNetwork = { uri, contentResolver ->
+                                importNetwork(uri, contentResolver)
+                            },
+                            navigateToExport = {
+                                menuExpanded = false
+                                showExportBottomSheet = true
+                            },
                             onResetNetworkClicked = {
                                 menuExpanded = false
                                 showResetNetworkDialog = true
@@ -319,8 +335,18 @@ private fun DisplayDropdown(
     menuExpanded: Boolean,
     onExpandPressed: () -> Unit,
     onDismissRequest: () -> Unit,
+    importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
     onResetNetworkClicked: () -> Unit,
+    navigateToExport: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val fileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            importNetwork(uri, context.contentResolver)
+        }
+    }
     // We have to consider two conditions when displaying the dropdown in the settings screen
     // 1. Current key destination is settings key
     // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
@@ -337,6 +363,39 @@ private fun DisplayDropdown(
                 onClick = onExpandPressed,
                 content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) })
             DropdownMenu(expanded = menuExpanded, onDismissRequest = onDismissRequest) {
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
+                            Text(
+                                modifier = Modifier.padding(start = 16.dp),
+                                text = stringResource(R.string.label_import)
+                            )
+                        }
+                    },
+                    onClick = {
+                        fileLauncher.launch("application/json")
+                        onDismissRequest()
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Upload, contentDescription = null)
+                            Text(
+                                modifier = Modifier.padding(start = 16.dp),
+                                text = stringResource(R.string.label_export)
+                            )
+                        }
+                    },
+                    onClick = navigateToExport
+                )
                 DropdownMenuItem(
                     text = {
                         Row(

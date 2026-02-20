@@ -1,5 +1,7 @@
 package no.nordicsemi.android.nrfmesh.viewmodel
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -90,6 +92,19 @@ class NetworkViewModel @Inject constructor(
                 )
                 repository.save()
             }
+        }
+    }
+
+    /**
+     * Imports a network from a given Uri.
+     *
+     * @param uri                  URI of the file.
+     * @param contentResolver      Content resolver.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
+        viewModelScope.launch {
+            repository.importNetwork(uri = uri, contentResolver = contentResolver)
         }
     }
 
