@@ -4,7 +4,10 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,9 +33,10 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -39,6 +44,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicGreen
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.common.Action
 import no.nordicsemi.android.nrfmesh.core.common.Configuration
@@ -47,35 +54,51 @@ import no.nordicsemi.android.nrfmesh.core.common.NetworkProperties
 import no.nordicsemi.android.nrfmesh.core.common.description
 import no.nordicsemi.android.nrfmesh.core.common.icon
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
+import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.nodes.R.drawable
+import no.nordicsemi.android.nrfmesh.ui.network.ImportState
 
 @Composable
-fun NetworkWizardScreen(
+internal fun NetworkWizardScreen(
     configurations: List<Configuration>,
     configuration: Configuration,
     onConfigurationSelected: (Configuration) -> Unit,
     add: (ConfigurationProperty) -> Unit,
     remove: (ConfigurationProperty) -> Unit,
     onContinuePressed: () -> Unit,
+    importState: ImportState,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    navigateToNetwork: () -> Unit,
+    onImportErrorAcknowledged: () -> Unit,
 ) {
     val context = LocalContext.current
     val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) {
-        it?.let { uri ->
-            importNetwork(uri, context.contentResolver)
-        } ?: onConfigurationSelected(Configuration.Empty)
+        contract = ActivityResultContracts.GetContent(),
+        onResult = {
+            if (it != null) {
+                importNetwork(it, context.contentResolver)
+            }
+        }
+    )
+    LaunchedEffect(importState) {
+        if(importState is ImportState.Completed && importState.error == null){
+            navigateToNetwork()
+        }
     }
     Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = if (!isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceVariant
+                else MaterialTheme.colorScheme.background
+            ),
         horizontalArrangement = Arrangement.Center
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(fraction = if (!isCompactWidth()) 0.4f else 1f)
+                .fillMaxWidth(fraction = if (!isCompactWidth()) 0.5f else 1f)
                 .fillMaxHeight()
                 .verticalScroll(state = rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -106,12 +129,7 @@ fun NetworkWizardScreen(
                             index = index,
                             count = configurations.size
                         ),
-                        onClick = {
-                            if (config is Configuration.Import) {
-                                fileLauncher.launch("application/json")
-                            }
-                            onConfigurationSelected(config)
-                        },
+                        onClick = { onConfigurationSelected(config) },
                         selected = config == configuration,
                         icon = {
                             SegmentedButtonDefaults.Icon(active = config == configuration) {
@@ -125,14 +143,22 @@ fun NetworkWizardScreen(
                         label = { Text(text = config.description()) }
                     )
                 }
+                Spacer(modifier = Modifier.size(size = 16.dp))
+                MeshOutlinedButton(
+                    buttonIcon = Icons.Outlined.Download,
+                    text = stringResource(R.string.label_import),
+                    border = BorderStroke(width = 1.dp, color = nordicGreen),
+                    buttonIconTint = nordicGreen,
+                    textColor = nordicGreen,
+                    onClick = { fileLauncher.launch("application/json") }
+                )
             }
             ConfigurationProperty.entries.forEach { property ->
                 val networkProperties = configuration as NetworkProperties
                 ElevatedCardItem(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp)
-                        .alpha(if (configuration is Configuration.Import) 0f else 1f),
+                        .padding(bottom = 8.dp),
                     imageVector = property.icon(),
                     title = property.description(),
                     titleAction = {
@@ -146,22 +172,12 @@ fun NetworkWizardScreen(
                                     ConfigurationProperty.SCENES -> "${networkProperties.scenes}"
                                 }
                             )
-                            when (configuration) {
-                                is Configuration.Empty,
-                                is Configuration.Custom,
-                                is Configuration.Debug,
-                                    -> {
-                                    Manage(
-                                        configuration = configuration,
-                                        property = property,
-                                        add = add,
-                                        remove = remove
-                                    )
-                                }
-
-                                else -> {}
-
-                            }
+                            Manage(
+                                configuration = configuration,
+                                property = property,
+                                add = add,
+                                remove = remove
+                            )
                         }
                     },
                     subtitle = when (configuration) {
@@ -181,11 +197,32 @@ fun NetworkWizardScreen(
             Spacer(modifier = Modifier.size(size = 16.dp))
             MeshOutlinedButton(
                 buttonIcon = Icons.AutoMirrored.Outlined.ArrowForward,
+                buttonIconTint = nordicGreen,
+                border = BorderStroke(width = 1.dp, color = nordicGreen),
+                textColor = nordicGreen,
                 text = stringResource(R.string.label_continue),
-                onClick = dropUnlessResumed { onContinuePressed() }
+                onClick = dropUnlessResumed {
+                    onContinuePressed()
+                    navigateToNetwork()
+                }
             )
             Spacer(modifier = Modifier.size(size = 72.dp))
         }
+    }
+
+    if(importState is ImportState.Completed && importState.error != null) {
+        MeshAlertDialog(
+            icon = Icons.Outlined.Download,
+            iconColor = Color.Red,
+            title = stringResource(R.string.label_import),
+            text = importState.error.message?.let {
+                stringResource(R.string.label_error_while_importing_a_network, it)
+            } ?: stringResource(R.string.label_unknown_error_while_importing),
+            confirmButtonText = stringResource(android.R.string.ok),
+            onConfirmClick = onImportErrorAcknowledged,
+            dismissButtonText = null,
+            onDismissRequest = onImportErrorAcknowledged
+        )
     }
 }
 

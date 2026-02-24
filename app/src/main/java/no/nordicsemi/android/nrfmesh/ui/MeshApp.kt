@@ -11,23 +11,23 @@ import no.nordicsemi.android.nrfmesh.ui.network.wizard.networkWizardEntry
 
 @Composable
 fun MeshApp() {
-    val bStack = rememberNavBackStack(NetworkScreenKey)
+    val backStack = rememberNavBackStack(NetworkScreenKey)
     NavDisplay(
-        backStack = bStack,
+        backStack = backStack,
         entryProvider = entryProvider {
             networkScreenEntry(
                 navigateToWizard = {
                     // Add the wizard to the back stack as the latest screen to be displayed
-                    bStack.add(NetworkWizardKey)
+                    backStack.add(NetworkWizardKey)
                     // Remove the NetworkScreenKey from the backstack as navigating to the wizard
                     // should not allow going back
-                    bStack.remove(NetworkScreenKey)
+                    backStack.remove(NetworkScreenKey)
                 }
             )
             networkWizardEntry(
                 navigateToNetwork = {
-                    bStack.add(NetworkScreenKey)
-                    bStack.remove(NetworkWizardKey)
+                    backStack.add(NetworkScreenKey)
+                    backStack.remove(NetworkWizardKey)
                 }
             )
         }

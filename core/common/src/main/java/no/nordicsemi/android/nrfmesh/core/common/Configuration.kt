@@ -5,7 +5,6 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.DashboardCustomize
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.VpnKey
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
@@ -20,11 +19,11 @@ import no.nordicsemi.kotlin.mesh.crypto.Crypto
  * @property scenes          Number of scenes.
  */
 sealed interface NetworkProperties {
-    val networkKeys: Int?
-    val applicationKeys: Int?
-    val groups: Int?
-    val virtualGroups: Int?
-    val scenes: Int?
+    val networkKeys: Int
+    val applicationKeys: Int
+    val groups: Int
+    val virtualGroups: Int
+    val scenes: Int
 }
 
 /**
@@ -41,7 +40,6 @@ sealed class Configuration : NetworkProperties {
      * Generate application keys.
      */
     abstract fun generateApplicationKeys(): List<ByteArray>
-
 
     /**
      * Empty configuration.
@@ -103,21 +101,6 @@ sealed class Configuration : NetworkProperties {
             }
         }
     }
-
-    /**
-     * Import configuration.
-     */
-    data object Import : Configuration(), NetworkProperties {
-        override val networkKeys = null
-        override val applicationKeys = null
-        override val groups = null
-        override val virtualGroups = null
-        override val scenes = null
-
-        override fun generateNetworkKeys(): List<ByteArray> = emptyList()
-
-        override fun generateApplicationKeys(): List<ByteArray> = emptyList()
-    }
 }
 
 
@@ -128,7 +111,6 @@ fun Configuration.icon() = when (this) {
     is Configuration.Empty -> Icons.Outlined.CheckBoxOutlineBlank
     is Configuration.Custom -> Icons.Outlined.DashboardCustomize
     is Configuration.Debug -> Icons.Outlined.BugReport
-    is Configuration.Import -> Icons.Outlined.Download
 }
 
 /**
@@ -139,7 +121,6 @@ fun Configuration.description(): String {
         is Configuration.Empty -> "Empty"
         is Configuration.Custom -> "Custom"
         is Configuration.Debug -> "Debug"
-        is Configuration.Import -> "Import"
     }
 }
 

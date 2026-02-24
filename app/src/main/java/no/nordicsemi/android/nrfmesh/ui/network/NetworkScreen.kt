@@ -89,6 +89,7 @@ internal fun NetworkScreen(
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    onImportErrorAcknowledged: () -> Unit,
     resetNetwork: () -> Unit,
     navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
@@ -119,17 +120,18 @@ internal fun NetworkScreen(
                 network = uiState.networkState.network,
                 shouldSelectProvisioner = shouldSelectProvisioner,
                 onProvisionerSelected = onProvisionerSelected,
+                importState = uiState.importState,
                 importNetwork = importNetwork,
                 resetNetwork = resetNetwork,
                 navigateToWizard = navigateToWizard,
-                topAppBarTitle = topAppBarTitle
+                topAppBarTitle = topAppBarTitle,
+                onImportErrorAcknowledged = onImportErrorAcknowledged
             )
         }
 
         MeshNetworkState.NoNetwork -> {
             LaunchedEffect(uiState.networkState) {
                 if (uiState.networkState is MeshNetworkState.NoNetwork) {
-                    println("AAA No Network, navigating to wizard")
                     navigateToWizard()
                     resetMeshNetworkUiState()
                 }
@@ -146,12 +148,14 @@ internal fun NetworkScreen(
     ExperimentalTime::class
 )
 @Composable
-fun NetworkContent(
+private fun NetworkContent(
     appState: MeshAppState,
     network: MeshNetwork,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
+    importState: ImportState,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    onImportErrorAcknowledged: () -> Unit,
     resetNetwork: () -> Unit,
     topAppBarTitle: String,
     navigateToWizard: () -> Unit,
@@ -264,6 +268,20 @@ fun NetworkContent(
                 },
                 onDismissClick = { showResetNetworkDialog = false },
                 onDismissRequest = { showResetNetworkDialog = false })
+        }
+        if(importState is ImportState.Completed && importState.error != null) {
+            MeshAlertDialog(
+                icon = Icons.Outlined.Download,
+                iconColor = Color.Red,
+                title = stringResource(R.string.label_import),
+                text = importState.error.message?.let {
+                    stringResource(R.string.label_error_while_importing_a_network, it)
+                } ?: stringResource(R.string.label_unknown_error_while_importing),
+                confirmButtonText = stringResource(android.R.string.ok),
+                onConfirmClick = onImportErrorAcknowledged,
+                dismissButtonText = null,
+                onDismissRequest = onImportErrorAcknowledged
+            )
         }
         if (showExportBottomSheet) {
             ModalBottomSheet(

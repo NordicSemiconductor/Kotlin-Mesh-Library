@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Configuration
 import no.nordicsemi.android.nrfmesh.core.common.ConfigurationProperty
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.ui.network.ImportState
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -198,13 +199,24 @@ class NetworkWizardViewModel @Inject constructor(
         return newList.toList()
     }
 
-    fun onContinuePressed() {
+    /**
+     * Called when the user clicks the continue button after selecting a configuration.
+     */
+    internal fun onContinuePressed() {
         viewModelScope.launch {
             val configuration = _uiState.value.configuration
             repository.createNewMeshNetwork(configuration = configuration)
             repository.save()
-            resetCurrentUiState(navigateToNetwork = true)
+            resetWizardState()
         }
+    }
+
+    internal fun resetWizardState() {
+        _uiState.update { NetworkWizardUiState() }
+    }
+
+    internal fun onImportErrorAcknowledged() {
+        _uiState.update { it.copy(importState = ImportState.Unknown) }
     }
 
     /**
@@ -216,24 +228,25 @@ class NetworkWizardViewModel @Inject constructor(
     @OptIn(ExperimentalUuidApi::class)
     internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
         viewModelScope.launch {
-            repository.importNetwork(uri = uri, contentResolver = contentResolver)
-            resetCurrentUiState()
+            runCatching {
+                _uiState.update { it.copy(importState = ImportState.Importing) }
+                repository.importNetwork(uri = uri, contentResolver = contentResolver)
+                _uiState.update { it.copy(importState = ImportState.Completed()) }
+            }.onFailure {
+                _uiState.update { state ->
+                    state.copy(importState = ImportState.Completed(error = Error(it)))
+                }
+            }
         }
     }
-
-    private fun resetCurrentUiState(navigateToNetwork: Boolean = false) {
-        _uiState.update { NetworkWizardUiState(navigateToNetwork = navigateToNetwork) }
-    }
 }
-
 
 internal data class NetworkWizardUiState(
     val configurations: List<Configuration> = listOf(
         Configuration.Empty,
         Configuration.Custom(),
-        Configuration.Debug(),
-        Configuration.Import
+        Configuration.Debug()
     ),
     val configuration: Configuration = Configuration.Empty,
-    val navigateToNetwork: Boolean = false,
+    val importState: ImportState = ImportState.Unknown,
 )

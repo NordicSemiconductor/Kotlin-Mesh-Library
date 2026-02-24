@@ -48,4 +48,7 @@
     <string name="label_app_welcome_rationale">nRF Mesh Allows to provision, configure and control Bluetooth Mesh devices.</string>
     <string name="label_start_creating">Let\'s start by creating a new mesh network.</string>
     <string name="label_continue">Continue</string>
+    <string name="label_import_network">Import Network</string>
+    <string name="label_unknown_error_while_importing">Unknown error occurred while importing a Network.</string>
+    <string name="label_error_while_importing_a_network">Error while importing a network: \n\n%1$s</string>
 </resources>
