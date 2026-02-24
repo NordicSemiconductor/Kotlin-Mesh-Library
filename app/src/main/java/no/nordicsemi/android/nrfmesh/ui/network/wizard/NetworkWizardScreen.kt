@@ -1,12 +1,14 @@
 package no.nordicsemi.android.nrfmesh.ui.network.wizard
 
 import android.content.ContentResolver
+import android.graphics.drawable.shapes.OvalShape
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
@@ -38,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +60,7 @@ import no.nordicsemi.android.nrfmesh.core.common.description
 import no.nordicsemi.android.nrfmesh.core.common.icon
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
+import no.nordicsemi.android.nrfmesh.core.ui.MeshIconButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.nodes.R.drawable
@@ -83,7 +89,7 @@ internal fun NetworkWizardScreen(
         }
     )
     LaunchedEffect(importState) {
-        if(importState is ImportState.Completed && importState.error == null){
+        if (importState is ImportState.Completed && importState.error == null) {
             navigateToNetwork()
         }
     }
@@ -144,14 +150,22 @@ internal fun NetworkWizardScreen(
                     )
                 }
                 Spacer(modifier = Modifier.size(size = 16.dp))
-                MeshOutlinedButton(
-                    buttonIcon = Icons.Outlined.Download,
-                    text = stringResource(R.string.label_import),
-                    border = BorderStroke(width = 1.dp, color = nordicGreen),
-                    buttonIconTint = nordicGreen,
-                    textColor = nordicGreen,
-                    onClick = { fileLauncher.launch("application/json") }
-                )
+                if (isCompactWidth()) {
+                    MeshIconButton(
+                        buttonIcon = Icons.Outlined.Download,
+                        buttonIconTint = MaterialTheme.colorScheme.primary,
+                        onClick = { fileLauncher.launch("application/json") }
+                    )
+                } else {
+                    MeshOutlinedButton(
+                        buttonIcon = Icons.Outlined.Download,
+                        text = stringResource(R.string.label_import),
+                        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
+                        buttonIconTint = MaterialTheme.colorScheme.primary,
+                        textColor = MaterialTheme.colorScheme.primary,
+                        onClick = { fileLauncher.launch("application/json") }
+                    )
+                }
             }
             ConfigurationProperty.entries.forEach { property ->
                 val networkProperties = configuration as NetworkProperties
@@ -210,7 +224,7 @@ internal fun NetworkWizardScreen(
         }
     }
 
-    if(importState is ImportState.Completed && importState.error != null) {
+    if (importState is ImportState.Completed && importState.error != null) {
         MeshAlertDialog(
             icon = Icons.Outlined.Download,
             iconColor = Color.Red,
