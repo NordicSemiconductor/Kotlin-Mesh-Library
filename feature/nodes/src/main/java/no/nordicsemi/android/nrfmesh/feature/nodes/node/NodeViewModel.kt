@@ -26,17 +26,11 @@ import no.nordicsemi.android.nrfmesh.core.common.unknownNetworkKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
-import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.uuid.ExperimentalUuidApi
@@ -56,7 +50,7 @@ internal class NodeViewModel @AssistedInject internal constructor(
     val uiState: StateFlow<NodeScreenUiState> = _uiState
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
             initialValue = NodeScreenUiState()
         )
 
@@ -120,28 +114,6 @@ internal class NodeViewModel @AssistedInject internal constructor(
     }
 
     /**
-     * Returns if the NodeIdentityState for this should be updated/refreshed.
-     *
-     * @return true if the NodeIdentityState should be updated, false otherwise.
-     */
-    private fun shouldUpdateNodeIdentityState(): Boolean =
-        _uiState.value.nodeIdentityStates.isEmpty()
-
-    /**
-     * Creates a list of NodeIdentityStatus objects for each network key.
-     *
-     * @return List of NodeIdentityStatus objects.
-     */
-    private fun createNodeIdentityStates(model: Model) =
-        model.parentElement?.parentNode?.networkKeys
-            ?.map { key ->
-                NodeIdentityStatus(
-                    networkKey = key,
-                    nodeIdentityState = null
-                )
-            } ?: emptyList()
-
-    /**
      * Called when the user pulls down to refresh the node details.
      */
     internal fun onRefresh() {
@@ -193,74 +165,6 @@ internal class NodeViewModel @AssistedInject internal constructor(
                 )
             }
         }
-    }
-
-    internal fun send(model: Model, message: MeshMessage) {
-        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
-        viewModelScope.launch {
-            runCatching {
-                if (message is AcknowledgedMeshMessage) {
-                    val response = repository.send(model = model, ackedMessage = message)
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Completed(
-                            message = message,
-                            response = response as? MeshResponse
-                        )
-                    )
-
-                } else {
-                    repository.send(
-                        model = model,
-                        unackedMessage = message as UnacknowledgedMeshMessage
-                    )
-                    _uiState.value =
-                        _uiState.value.copy(messageState = Completed(message = message))
-                }
-            }.getOrElse {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = it),
-                    isRefreshing = false
-                )
-            }
-        }
-    }
-
-    internal fun readApplicationKeys() {
-        viewModelScope.launch {
-            var message: ConfigAppKeyGet? = null
-            try {
-                selectedNode.networkKeys.forEach {
-                    message = ConfigAppKeyGet(index = it.index)
-                    _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
-                    repository.send(selectedNode, message)?.let { response ->
-                        _uiState.value = _uiState.value.copy(
-                            messageState = Completed(
-                                message = message,
-                                response = response as ConfigResponse
-                            ),
-                            isRefreshing = false
-                        )
-                    } ?: run {
-                        _uiState.value = _uiState.value.copy(
-                            messageState = Failed(
-                                message = message,
-                                error = IllegalStateException("No response received")
-                            ),
-                            isRefreshing = false
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = e),
-                    isRefreshing = false
-                )
-            }
-        }
-    }
-
-    internal fun resetMessageState() {
-        _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 
     internal fun removeNode() {

@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.withLock
 import no.nordicsemi.kotlin.mesh.bearer.MeshBearer
 import no.nordicsemi.kotlin.mesh.bearer.Transmitter
 import no.nordicsemi.kotlin.mesh.core.exception.ImportError
+import no.nordicsemi.kotlin.mesh.core.exception.InvalidKeyLength
 import no.nordicsemi.kotlin.mesh.core.exception.NoNetwork
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManager
 import no.nordicsemi.kotlin.mesh.core.layers.NetworkManagerEvent
@@ -54,9 +55,9 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.MeshNetworkSerializer.
 import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfiguration
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
-import kotlin.uuid.Uuid
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * MeshNetworkManager is the entry point to the Mesh library.
@@ -161,29 +162,28 @@ class MeshNetworkManager(
      * @return true if the configuration was successfully loaded or false otherwise.
      */
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun load() = storage.load().takeIf { it.isNotEmpty() }?.let {
-        val meshNetwork = deserialize(it).apply {
-            // Load the IvIndex from the secure properties storage.
-            ivIndex = secureProperties.ivIndex(uuid = uuid)
-        }
-        this@MeshNetworkManager.network = meshNetwork
-        _meshNetwork.emit(meshNetwork)
-        networkManager = NetworkManager(this)
-        proxyFilter.onNewNetworkCreated()
-        true
-    } == true
+    suspend fun load() = storage
+        .load()
+        .takeIf { it.isNotEmpty() }
+        ?.let {
+            val meshNetwork = deserialize(it)
+                // Load the IvIndex from the secure properties storage.
+                .apply { ivIndex = secureProperties.ivIndex(uuid = uuid) }
+            this@MeshNetworkManager.network = meshNetwork
+            _meshNetwork.emit(value = meshNetwork)
+            networkManager = NetworkManager(manager = this)
+            proxyFilter.onNewNetworkCreated()
+            true
+        } == true
 
     /**
      * Saves the network in the local storage provided by the user.
      */
     suspend fun save() {
-        mutex.withLock {
-            export()?.also {
-                storage.save(it)
-                this@MeshNetworkManager.network?.let { network ->
-                    _meshNetwork.emit(network)
-                }
-            }
+        export()?.also {
+            mutex.withLock { storage.save(network = it) }
+            this@MeshNetworkManager.network
+                ?.let { network -> _meshNetwork.emit(value = network) }
         }
     }
 
@@ -194,13 +194,21 @@ class MeshNetworkManager(
      * @param name Name of the mesh network.
      * @param uuid 128-bit Universally Unique Identifier (Uuid), which allows differentiation among
      *             multiple mesh networks.
+     * @throws InvalidKeyLength if the key length is invalid.
      */
     @OptIn(ExperimentalUuidApi::class)
+    @Throws(InvalidKeyLength::class)
     suspend fun create(
         name: String = "Mesh Network",
         uuid: Uuid = Uuid.random(),
         provisionerName: String = "Mesh Provisioner",
-    ) = create(name = name, uuid = uuid, provisioner = Provisioner(name = provisionerName))
+        networkKeys: List<ByteArray> = emptyList(),
+    ) = create(
+        name = name,
+        uuid = uuid,
+        provisioner = Provisioner(name = provisionerName),
+        networkKeys = networkKeys
+    )
 
     /**
      * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
@@ -209,31 +217,66 @@ class MeshNetworkManager(
      * @param name Name of the mesh network.
      * @param uuid 128-bit UUID of the mesh network.
      * @param provisioner Provisioner to be added to the network.
+     * @throws InvalidKeyLength if the key length is invalid.
      */
     @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
+    @Throws(InvalidKeyLength::class)
     suspend fun create(
         name: String = "Mesh Network",
         uuid: Uuid = Uuid.random(),
         provisioner: Provisioner,
-    ) = MeshNetwork(uuid = uuid, _name = name).also {
-        it.add(name = "Primary Network Key", index = 0u)
-        it.add(provisioner)
-        network = it
-        networkManager = NetworkManager(this)
-        // Store the IvIndex of the newly created network.
-        secureProperties.storeLocalProvisioner(
-            uuid = uuid,
-            localProvisionerUuid = it.provisioners.first().uuid
-        )
-        secureProperties.storeIvIndex(
-            uuid = it.uuid,
-            ivIndex = it.ivIndex
-        )
-        _meshNetwork.emit(it)
+        networkKeys: List<ByteArray> = emptyList(),
+    ): MeshNetwork {
+        // Check if the Network Key is of valid length
+        networkKeys.forEach {
+            if (it.size != 16) {
+                logger?.e(category = LogCategory.FOUNDATION_MODEL) {
+                    "Key length must be 16 bytes"
+                }
+                throw InvalidKeyLength()
+            }
+        }
+
+        return MeshNetwork(uuid = uuid, _name = name).also {
+            if (networkKeys.isNotEmpty()) {
+                networkKeys.forEachIndexed { index, key ->
+                    it.add(
+                        name = if (index == 0) "Primary Network Key" else "Network Key $index",
+                        key = key
+                    )
+                }
+            } else {
+                it.add(name = "Primary Network Key", index = 0u)
+            }
+            it.add(provisioner)
+            network = it
+            networkManager = NetworkManager(this)
+            // Store the IvIndex of the newly created network.
+            secureProperties.storeLocalProvisioner(
+                uuid = uuid,
+                localProvisionerUuid = it.provisioners.first().uuid
+            )
+            secureProperties.storeIvIndex(
+                uuid = it.uuid,
+                ivIndex = it.ivIndex
+            )
+            _meshNetwork.emit(it)
+        }
     }
 
     /**
-     * Imports a Mesh Network from a byte array containing a Json defined by the Mesh Configuration
+     * Forgets the currently loaded mesh network and saves the state
+     */
+    suspend fun clear() {
+        network = null
+        networkManager = null
+        mutex.withLock {
+            storage.save(network = byteArrayOf())
+        }
+    }
+
+    /**
+     * Imports a Mesh Network from a byte array containing a JSON defined by the Mesh Configuration
      * Database profile.
      *
      * @return a mesh network configuration decoded from the given byte array.
@@ -254,15 +297,13 @@ class MeshNetworkManager(
     }
 
     /**
-     * Exports a mesh network to a Json defined by the Mesh Configuration Database Profile based
+     * Exports a mesh network to a JSON defined by the Mesh Configuration Database Profile based
      * on the given configuration.
      *
      * @param configuration Specifies if the network should be fully exported or partially.
      * @return Bytearray containing the Mesh network configuration.
      */
-    fun export(
-        configuration: NetworkConfiguration = NetworkConfiguration.Full,
-    ) = network?.let {
+    fun export(configuration: NetworkConfiguration = NetworkConfiguration.Full) = network?.let {
         serialize(
             network = it,
             configuration = configuration
@@ -585,7 +626,7 @@ class MeshNetworkManager(
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidDestination if the Model does not belong to an Element.
      * @throws ModelNotBoundToAppKey if the model is not bound to any application key.
-     * @throws InvalidSource if the Local Provisioner has not Unicast Address assigned.
+     * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.
      * @throws InvalidElement if the element does not belong to the local node.
      * @throws InvalidTtl if the TTL value is invalid.
      */
@@ -741,16 +782,16 @@ class MeshNetworkManager(
      * The `destination` must be a Unicast Address, otherwise the method throws an
      * [InvalidDestination] error.
      *
-     * @param message         Message to be sent.
-     * @param destination     Destination Unicast Address.
-     * @param initialTtl      Initial TTL (Time To Live) value of the message. If `nil`, the default
-     *                        Node TTL will be used.
-     * @throws NoNetwork If the mesh network has not been created.
-     * @throws InvalidSource Local Node does not have configuration capabilities (no Unicast Address
-     *                       assigned).
-     * @throws InvalidDestination Destination address is not a Unicast Address or it belongs to an
-     *                            unknown Node.
-     * @throws CannotDelete When trying to delete the last Network Key on the device.
+     * @param message                Message to be sent.
+     * @param destination            Destination Unicast Address.
+     * @param initialTtl             Initial TTL (Time To Live) value of the message. If `nil`,
+     *                               the default Node TTL will be used.
+     * @throws NoNetwork             If the mesh network has not been created.
+     * @throws InvalidSource         Local Node does not have configuration capabilities (no Unicast
+     *                               Address assigned).
+     * @throws InvalidDestination    Destination address is not a Unicast Address, or it belongs to
+     *                               an unknown Node.
+     * @throws CannotDelete          When trying to delete the last Network Key on the device.
      * @returns Message handle that can be used to cancel sending.
      * @throws NoNetwork if the mesh network has not been created.
      * @throws InvalidSource if the Local Provisioner has no Unicast Address assigned.

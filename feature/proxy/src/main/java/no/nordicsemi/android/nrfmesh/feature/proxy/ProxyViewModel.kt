@@ -108,9 +108,9 @@ internal class ProxyViewModel @Inject internal constructor(
     internal fun onAutoConnectToggled(enabled: Boolean) {
         viewModelScope.launch {
             repository.toggleAutomaticConnection(enabled = enabled)
-            if (enabled) {
-                repository.startAutomaticConnectivity(meshNetwork)
-            }
+            // if (enabled) {
+            //     repository.startAutomaticConnectivity(meshNetwork)
+            // }
         }
     }
 
@@ -132,17 +132,13 @@ internal class ProxyViewModel @Inject internal constructor(
 
     internal fun onBluetoothEnabled(enabled: Boolean) {
         if (enabled) {
-            viewModelScope.launch {
-                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
-            }
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
         }
     }
 
     internal fun onLocationEnabled(enabled: Boolean) {
         if (enabled) {
-            viewModelScope.launch {
-                repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
-            }
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
         }
     }
 

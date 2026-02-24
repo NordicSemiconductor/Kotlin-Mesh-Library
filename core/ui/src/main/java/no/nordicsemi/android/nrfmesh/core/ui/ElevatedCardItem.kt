@@ -350,7 +350,7 @@ fun ElevatedCardItemHexTextField(
     OutlinedCard(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                modifier = Modifier.padding(start = 12.dp),
+                modifier = Modifier.padding(start = 16.dp),
                 imageVector = imageVector,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
@@ -434,7 +434,7 @@ fun ElevatedCardItemHexTextField(
                     )
 
                     false -> MeshTwoLineListItem(
-                        // modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
                         subtitle = if (prefix != null) "0x${value.text}" else value.text,
                         trailingComposable = {

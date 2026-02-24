@@ -149,6 +149,7 @@ class ExportViewModel @Inject internal constructor(
                             )
                         }
                     )
+
                     contentResolver.openOutputStream(uri)?.run {
                         write(data)
                         close()

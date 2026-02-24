@@ -8,45 +8,37 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,10 +51,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.rememberSceneState
@@ -70,41 +60,27 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
-import no.nordicsemi.android.nrfmesh.core.navigation.GroupsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
-import no.nordicsemi.android.nrfmesh.core.navigation.NodesKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
-import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.export.navigation.ExportScreen
-import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.groupControlsEntry
-import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
-import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.groupEntry
 import no.nordicsemi.android.nrfmesh.feature.groups.navigation.groupsEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.navigation.nodesEntry
-import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.ProvisioningKey
 import no.nordicsemi.android.nrfmesh.feature.provisioning.navigation.provisioningEntry
 import no.nordicsemi.android.nrfmesh.feature.proxy.navigation.proxyEntry
 import no.nordicsemi.android.nrfmesh.feature.settings.navigation.settingsEntry
 import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
-import no.nordicsemi.kotlin.mesh.core.exception.GroupAlreadyExists
-import no.nordicsemi.kotlin.mesh.core.exception.GroupInUse
-import no.nordicsemi.kotlin.mesh.core.model.Group
-import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
-import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
@@ -113,13 +89,17 @@ internal fun NetworkScreen(
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    onImportErrorAcknowledged: () -> Unit,
     resetNetwork: () -> Unit,
-    onAddGroupClicked: (Group) -> Unit,
-    nextAvailableGroupAddress: () -> GroupAddress,
+    navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
+    resetMeshNetworkUiState: () -> Unit,
 ) {
     when (uiState.networkState) {
-        MeshNetworkState.Loading -> {}
+        MeshNetworkState.Loading -> {
+
+        }
+
         is MeshNetworkState.Success -> {
             val context = LocalContext.current
             val topAppBarTitle by remember(
@@ -140,46 +120,55 @@ internal fun NetworkScreen(
                 network = uiState.networkState.network,
                 shouldSelectProvisioner = shouldSelectProvisioner,
                 onProvisionerSelected = onProvisionerSelected,
+                importState = uiState.importState,
                 importNetwork = importNetwork,
                 resetNetwork = resetNetwork,
-                onAddGroupClicked = onAddGroupClicked,
-                nextAvailableGroupAddress = nextAvailableGroupAddress,
-                topAppBarTitle = topAppBarTitle
+                navigateToWizard = navigateToWizard,
+                topAppBarTitle = topAppBarTitle,
+                onImportErrorAcknowledged = onImportErrorAcknowledged
             )
+        }
+
+        MeshNetworkState.NoNetwork -> {
+            LaunchedEffect(uiState.networkState) {
+                if (uiState.networkState is MeshNetworkState.NoNetwork) {
+                    navigateToWizard()
+                    resetMeshNetworkUiState()
+                }
+            }
         }
     }
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class, ExperimentalUuidApi::class,
-    ExperimentalMaterial3AdaptiveApi::class, ExperimentalTime::class
+    ExperimentalMaterial3Api::class,
+    ExperimentalStdlibApi::class,
+    ExperimentalUuidApi::class,
+    ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalTime::class
 )
 @Composable
-fun NetworkContent(
+private fun NetworkContent(
     appState: MeshAppState,
     network: MeshNetwork,
     shouldSelectProvisioner: Boolean,
     onProvisionerSelected: (provisioner: Provisioner) -> Unit,
+    importState: ImportState,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    onImportErrorAcknowledged: () -> Unit,
     resetNetwork: () -> Unit,
-    onAddGroupClicked: (Group) -> Unit,
-    nextAvailableGroupAddress: () -> GroupAddress,
     topAppBarTitle: String,
+    navigateToWizard: () -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
-    var showAddGroupDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationItemVerticalArrangement = Arrangement.Center,
-        navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationRailContainerColor = ShortNavigationBarDefaults.containerColor,
-        ),
         navigationItems = {
             MESH_TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
                 val selected = navKey == appState.navigationState.currentTopLevelKey
@@ -191,8 +180,7 @@ fun NetworkContent(
                             imageVector = when (selected) {
                                 true -> navItem.selectedIcon
                                 false -> navItem.unselectedIcon
-                            },
-                            contentDescription = null
+                            }, contentDescription = null
                         )
                     },
                     label = {
@@ -210,16 +198,12 @@ fun NetworkContent(
             nodesEntry(appState = appState, navigator = navigator)
             provisioningEntry(appState = appState, navigator = navigator)
             groupsEntry(appState = appState, navigator = navigator)
-            groupEntry(appState = appState, navigator = navigator)
-            groupControlsEntry(appState = appState, navigator = navigator)
             proxyEntry()
             settingsEntry(appState = appState, navigator = navigator)
         }
         val entries = appState.navigationState.toEntries(entryProvider = entryProvider)
-        val sceneState = rememberSceneState(entries = entries, sceneStrategy = litDetailStrategy, onBack = {
-                navigator.goBack()
-            }
-        )
+        val sceneState = rememberSceneState(
+            entries = entries, sceneStrategy = litDetailStrategy, onBack = { navigator.goBack() })
         val scene = sceneState.currentScene
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
@@ -229,7 +213,8 @@ fun NetworkContent(
                     backButtonIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                     showBackButton = appState.showBackButton,
                     onNavigationButtonClick = {
-                        // TODO to be clarified as of now uses the backbutton behaviour from tbe NavDisplay's NavigationBackHandler
+                        // TODO to be clarified as of now uses the back button behaviour from tbe
+                        //  NavDisplay's NavigationBackHandler
                         // If `enabled` becomes stale (e.g., it was set to false but a gesture was
                         // dispatched in the same frame), this may result in no entries being popped
                         // due to entries.size being smaller than scene.previousEntries.size
@@ -249,44 +234,13 @@ fun NetworkContent(
                                 menuExpanded = false
                                 showExportBottomSheet = true
                             },
-                            resetNetwork = {
+                            onResetNetworkClicked = {
                                 menuExpanded = false
                                 showResetNetworkDialog = true
                             }
                         )
                     }
                 )
-            },
-            floatingActionButton = {
-                when (appState.navigationState.currentKey) {
-                    is NodesKey -> ExtendedFloatingActionButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                        text = { Text(text = stringResource(R.string.label_add_node)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
-                        onClick = { navigator.navigate(key = ProvisioningKey) },
-                        expanded = true
-                    )
-
-                    is GroupsKey -> ExtendedFloatingActionButton(
-                        modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                        text = { Text(text = stringResource(R.string.label_add_group)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null
-                            )
-                        },
-                        onClick = { showAddGroupDialog = true },
-                        expanded = true
-                    )
-
-                    else -> {}
-                }
             }
         ) { padding ->
             NavDisplay(
@@ -298,151 +252,6 @@ fun NetworkContent(
                 onBack = navigator::goBack
             )
         }
-
-        if (showAddGroupDialog) {
-            var isError by rememberSaveable { mutableStateOf(false) }
-            var errorMessage by remember { mutableStateOf("") }
-            val initialValue by remember {
-                mutableStateOf(
-                    nextAvailableGroupAddress()
-                        .address
-                        .toHexString(format = HexFormat.UpperCase)
-                )
-            }
-            var address by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-                mutableStateOf(
-                    TextFieldValue(
-                        text = initialValue,
-                        selection = TextRange(initialValue.length)
-                    )
-                )
-            }
-            MeshAlertDialog(
-                icon = Icons.Outlined.GroupWork,
-                title = stringResource(R.string.label_add_group),
-                text = stringResource(R.string.label_add_group_rationale),
-                onDismissRequest = { showAddGroupDialog = false },
-                content = {
-                    MeshOutlinedTextField(
-                        value = address,
-                        onValueChanged = {
-                            isError = false
-                            address = it
-                            if (it.text.isNotEmpty()) {
-                                if (GroupAddress.isValid(it.text.toUShort(16))) {
-                                    isError = false
-                                    appState.snackbarHostState.currentSnackbarData?.dismiss()
-                                } else {
-                                    isError = true
-                                    errorMessage =
-                                        context.getString(R.string.label_invalid_group_address)
-                                }
-                            }
-                        },
-                        label = { Text(text = stringResource(id = R.string.address)) },
-                        supportingText = {
-                            if (isError) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Characters
-                        ),
-                        regex = Regex("^[0-9A-Fa-f]{0,4}$"),
-                        isError = isError,
-                    )
-                    Row(
-                        modifier = Modifier.padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
-                    ) {
-                        TextButton(
-                            onClick = {
-                                runCatching {
-                                    val group = Group(
-                                        address = VirtualAddress(uuid = Uuid.random()),
-                                        _name = "New Group"
-                                    )
-                                    onAddGroupClicked(group)
-                                        .also {
-                                            showAddGroupDialog = false
-                                            navigator.navigate(
-                                                key = GroupKey(
-                                                    address = group.address.toHexString()
-                                                )
-                                            )
-                                        }
-                                }.onFailure {
-                                    scope.launch {
-                                        appState.snackbarHostState.showSnackbar(
-                                            message = when (it) {
-                                                is GroupAlreadyExists -> context
-                                                    .getString(R.string.label_group_already_exists)
-
-                                                is GroupInUse -> context
-                                                    .getString(R.string.label_group_in_use)
-
-                                                else -> it.message ?: context
-                                                    .getString(R.string.label_failed_to_add_group)
-                                            },
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            },
-                            content = {
-                                Text(text = stringResource(R.string.label_virtual_label))
-                            }
-                        )
-                        Spacer(modifier = Modifier.weight(weight = 1f))
-                        TextButton(
-                            onClick = { showAddGroupDialog = false },
-                            content = { Text(text = stringResource(R.string.label_cancel)) }
-                        )
-                        TextButton(
-                            onClick = {
-                                if (address.text.isNotEmpty()) {
-                                    if (GroupAddress.isValid(address.text.toUShort(16))) {
-                                        isError = false
-                                        runCatching {
-                                            val group = Group(
-                                                address = MeshAddress.create(
-                                                    address = address.text.toUShort(radix = 16)
-                                                ) as GroupAddress,
-                                                _name = "New Group"
-                                            )
-                                            onAddGroupClicked(group).also {
-                                                showAddGroupDialog = false
-                                                navigator.navigate(
-                                                    key = GroupKey(
-                                                        address = group.address.toHexString()
-                                                    )
-                                                )
-                                            }
-                                        }.onFailure {
-                                            scope.launch {
-                                                appState.snackbarHostState.showSnackbar(
-                                                    message = it.message
-                                                        ?: context.getString(R.string.label_failed_to_add_group),
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                            }
-                                        }
-                                    } else {
-                                        isError = true
-                                        errorMessage =
-                                            context.getString(R.string.label_invalid_group_address)
-                                    }
-                                }
-                            },
-                            content = { Text(text = stringResource(R.string.label_add)) }
-                        )
-                    }
-                }
-            )
-        }
         if (showResetNetworkDialog) {
             MeshAlertDialog(
                 icon = Icons.Outlined.RestartAlt,
@@ -451,14 +260,27 @@ fun NetworkContent(
                 text = stringResource(R.string.label_reset_network_rationale),
                 onConfirmClick = {
                     scope.launch {
-                        navigator.navigate(key = NodesKey)
-                    }.invokeOnCompletion {
                         showResetNetworkDialog = false
+                    }.invokeOnCompletion {
                         resetNetwork()
+                        navigateToWizard()
                     }
                 },
                 onDismissClick = { showResetNetworkDialog = false },
-                onDismissRequest = { showResetNetworkDialog = false }
+                onDismissRequest = { showResetNetworkDialog = false })
+        }
+        if(importState is ImportState.Completed && importState.error != null) {
+            MeshAlertDialog(
+                icon = Icons.Outlined.Download,
+                iconColor = Color.Red,
+                title = stringResource(R.string.label_import),
+                text = importState.error.message?.let {
+                    stringResource(R.string.label_error_while_importing_a_network, it)
+                } ?: stringResource(R.string.label_unknown_error_while_importing),
+                confirmButtonText = stringResource(android.R.string.ok),
+                onConfirmClick = onImportErrorAcknowledged,
+                dismissButtonText = null,
+                onDismissRequest = onImportErrorAcknowledged
             )
         }
         if (showExportBottomSheet) {
@@ -466,37 +288,30 @@ fun NetworkContent(
                 sheetState = exportSheetState,
                 onDismissRequest = { showExportBottomSheet = false },
                 content = {
-                    ExportScreen(
-                        onDismissRequest = {
-                            scope.launch { exportSheetState.hide() }
-                                .invokeOnCompletion {
-                                    if (!exportSheetState.isVisible) {
-                                        showExportBottomSheet = false
-                                    }
-                                }
-                        },
-                        onExportCompleted = { message ->
-                            scope.launch {
-                                exportSheetState.hide()
-                                appState.snackbarHostState.showSnackbar(
-                                    message = message,
-                                    duration = SnackbarDuration.Short
-                                )
-                            }.invokeOnCompletion {
-                                if (!exportSheetState.isVisible) {
-                                    showExportBottomSheet = false
-                                }
+                    ExportScreen(onDismissRequest = {
+                        scope.launch { exportSheetState.hide() }.invokeOnCompletion {
+                            if (!exportSheetState.isVisible) {
+                                showExportBottomSheet = false
                             }
                         }
-                    )
-                }
-            )
+                    }, onExportCompleted = { message ->
+                        scope.launch {
+                            exportSheetState.hide()
+                            appState.snackbarHostState.showSnackbar(
+                                message = message, duration = SnackbarDuration.Short
+                            )
+                        }.invokeOnCompletion {
+                            if (!exportSheetState.isVisible) {
+                                showExportBottomSheet = false
+                            }
+                        }
+                    })
+                })
         }
         if (shouldSelectProvisioner) {
             ModalBottomSheet(
                 properties = ModalBottomSheetProperties(
-                    shouldDismissOnBackPress = false,
-                    shouldDismissOnClickOutside = false
+                    shouldDismissOnBackPress = false, shouldDismissOnClickOutside = false
                 ),
                 sheetState = selectProvisionerSheetState,
                 sheetGesturesEnabled = false,
@@ -515,16 +330,13 @@ fun NetworkContent(
                     ) {
                         items(items = network.provisioners, key = { it.uuid.toString() }) {
                             ElevatedCardItem(
-                                imageVector = Icons.Filled.PersonPin,
-                                title = it.name,
-                                onClick = {
+                                imageVector = Icons.Filled.PersonPin, title = it.name, onClick = {
                                     onProvisionerSelected(it)
-                                    scope.launch { exportSheetState.hide() }
-                                        .invokeOnCompletion {
-                                            if (!exportSheetState.isVisible) {
-                                                showExportBottomSheet = false
-                                            }
+                                    scope.launch { exportSheetState.hide() }.invokeOnCompletion {
+                                        if (!exportSheetState.isVisible) {
+                                            showExportBottomSheet = false
                                         }
+                                    }
                                 }
                             )
                         }
@@ -542,8 +354,8 @@ private fun DisplayDropdown(
     onExpandPressed: () -> Unit,
     onDismissRequest: () -> Unit,
     importNetwork: (uri: Uri, contentResolver: ContentResolver) -> Unit,
+    onResetNetworkClicked: () -> Unit,
     navigateToExport: () -> Unit,
-    resetNetwork: () -> Unit,
 ) {
     val context = LocalContext.current
     val fileLauncher = rememberLauncherForActivityResult(
@@ -553,9 +365,13 @@ private fun DisplayDropdown(
             importNetwork(uri, context.contentResolver)
         }
     }
-    appState.navigationState.currentKey.takeIf {
-        it is SettingsKey
-    }?.let {
+    // We have to consider two conditions when displaying the dropdown in the settings screen
+    // 1. Current key destination is settings key
+    // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
+    //    are in the settings screen
+    if (appState.navigationState.currentKey is SettingsKey ||
+        appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+    ) {
         Box(
             modifier = Modifier
                 .padding(start = 16.dp)
@@ -563,8 +379,7 @@ private fun DisplayDropdown(
         ) {
             IconButton(
                 onClick = onExpandPressed,
-                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) }
-            )
+                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) })
             DropdownMenu(expanded = menuExpanded, onDismissRequest = onDismissRequest) {
                 DropdownMenuItem(
                     text = {
@@ -615,7 +430,7 @@ private fun DisplayDropdown(
                             )
                         }
                     },
-                    onClick = resetNetwork
+                    onClick = dropUnlessResumed { onResetNetworkClicked() }
                 )
             }
         }

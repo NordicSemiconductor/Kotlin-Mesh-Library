@@ -11,22 +11,22 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
-import javax.inject.Singleton
 
 
 private const val USER_PREFERENCES = "user_preferences"
 
-@InstallIn(SingletonComponent::class)
+@InstallIn(ActivityRetainedComponent::class)
 @Module
 object DataStoreModule {
 
-    @Singleton
+    @ActivityRetainedScoped
     @Provides
     fun providePreferencesDataStore(@ApplicationContext appContext: Context, @IoDispatcher ioDispatcher: CoroutineDispatcher): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
