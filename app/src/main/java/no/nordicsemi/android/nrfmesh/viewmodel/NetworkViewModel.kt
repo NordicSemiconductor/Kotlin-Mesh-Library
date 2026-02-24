@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
+import no.nordicsemi.android.nrfmesh.ui.network.ImportState
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import javax.inject.Inject
@@ -104,7 +105,15 @@ class NetworkViewModel @Inject constructor(
     @OptIn(ExperimentalUuidApi::class)
     internal fun importNetwork(uri: Uri, contentResolver: ContentResolver) {
         viewModelScope.launch {
-            repository.importNetwork(uri = uri, contentResolver = contentResolver)
+            runCatching {
+                _uiState.update { it.copy(importState = ImportState.Importing) }
+                repository.importNetwork(uri = uri, contentResolver = contentResolver)
+                _uiState.update { it.copy(importState = ImportState.Completed()) }
+            }.onFailure {
+                _uiState.update { state ->
+                    state.copy(importState = ImportState.Completed(error = Error(it)))
+                }
+            }
         }
     }
 
@@ -127,10 +136,14 @@ class NetworkViewModel @Inject constructor(
         viewModelScope.launch { repository.resetNetwork() }
     }
 
-    fun resetMeshNetworkUiState() {
+    internal fun resetMeshNetworkUiState() {
         _uiState.update {
             it.copy(networkState = MeshNetworkState.Loading)
         }
+    }
+
+    internal fun onImportErrorAcknowledged() {
+        _uiState.update { it.copy(importState = ImportState.Unknown) }
     }
 }
 
@@ -144,4 +157,5 @@ internal data class NetworkScreenUiState(
     val networkState: MeshNetworkState = MeshNetworkState.Loading,
     val shouldSelectProvisioner: Boolean = false,
     val counter: Int = 0,
+    val importState: ImportState = ImportState.Unknown,
 )
