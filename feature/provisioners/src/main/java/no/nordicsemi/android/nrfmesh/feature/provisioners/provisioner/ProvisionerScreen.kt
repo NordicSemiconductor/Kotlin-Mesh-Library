@@ -555,6 +555,7 @@ private fun UnicastRanges(
                             }
                         }.onFailure {
                             scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
                                 snackbarHostState.showSnackbar(
                                     message = it.message ?: "Failed to allocate ranges",
                                     duration = SnackbarDuration.Short
@@ -622,6 +623,7 @@ private fun GroupRanges(
                             save()
                         }.onFailure {
                             scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
                                 snackbarHostState.showSnackbar(
                                     message = it.message ?: "Failed to allocate ranges",
                                     duration = SnackbarDuration.Short
@@ -689,6 +691,7 @@ private fun SceneRanges(
                             save()
                         }.onFailure {
                             scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
                                 snackbarHostState.showSnackbar(
                                     message = it.message ?: "Failed to allocate ranges",
                                     duration = SnackbarDuration.Short

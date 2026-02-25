@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.DataObject
+import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material.icons.outlined.Update
@@ -41,6 +42,7 @@ internal fun SettingsListScreen(
     navigateToApplicationKeys: () -> Unit,
     navigateToScenes: () -> Unit,
     navigateToIvIndex: () -> Unit,
+    navigateToDeveloperSettings: () -> Unit,
 ) {
     when (uiState.networkState) {
         is MeshNetworkState.Success -> {
@@ -49,11 +51,12 @@ internal fun SettingsListScreen(
                 selectedSetting = uiState.selectedSetting,
                 highlightSelectedItem = highlightSelectedItem,
                 onNameChanged = onNameChanged,
-                onProvisionersClicked = navigateToProvisioners,
-                onNetworkKeysClicked = navigateToNetworkKeys,
-                onApplicationKeysClicked = navigateToApplicationKeys,
-                onScenesClicked = navigateToScenes,
-                onIvIndexClicked = navigateToIvIndex
+                onProvisionersPressed = navigateToProvisioners,
+                onNetworkKeysPressed = navigateToNetworkKeys,
+                onApplicationKeysPressed = navigateToApplicationKeys,
+                onScenesPressed = navigateToScenes,
+                onIvIndexPressed = navigateToIvIndex,
+                onDeveloperSettingsPressed = navigateToDeveloperSettings
             )
         }
 
@@ -70,11 +73,12 @@ private fun SettingsScreen(
     selectedSetting: ClickableSetting?,
     highlightSelectedItem: Boolean,
     onNameChanged: (String) -> Unit,
-    onProvisionersClicked: () -> Unit,
-    onNetworkKeysClicked: () -> Unit,
-    onApplicationKeysClicked: () -> Unit,
-    onScenesClicked: () -> Unit,
-    onIvIndexClicked: () -> Unit,
+    onProvisionersPressed: () -> Unit,
+    onNetworkKeysPressed: () -> Unit,
+    onApplicationKeysPressed: () -> Unit,
+    onScenesPressed: () -> Unit,
+    onIvIndexPressed: () -> Unit,
+    onDeveloperSettingsPressed: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -91,28 +95,35 @@ private fun SettingsScreen(
         ProvisionersRow(
             count = settingsListData.provisioners.size,
             isSelected = selectedSetting == ClickableSetting.PROVISIONERS && highlightSelectedItem,
-            onProvisionersClicked = onProvisionersClicked
+            onProvisionersPressed = onProvisionersPressed
         )
         NetworkKeysRow(
             count = settingsListData.networkKeys.size,
             isSelected = selectedSetting == ClickableSetting.NETWORK_KEYS && highlightSelectedItem,
-            onNetworkKeysClicked = onNetworkKeysClicked
+            onNetworkKeysPressed = onNetworkKeysPressed
         )
         ApplicationKeysRow(
             count = settingsListData.appKeys.size,
             isSelected = selectedSetting == ClickableSetting.APPLICATION_KEYS && highlightSelectedItem,
-            onApplicationKeysClicked = onApplicationKeysClicked
+            onApplicationKeysPressed = onApplicationKeysPressed
         )
         ScenesRow(
             count = settingsListData.scenes.size,
             isSelected = selectedSetting == ClickableSetting.SCENES && highlightSelectedItem,
-            onScenesClicked = onScenesClicked
+            onScenesPressed = onScenesPressed
         )
         IvIndexRow(
             isSelected = selectedSetting == ClickableSetting.IV_INDEX && highlightSelectedItem,
-            onIvIndexClicked = onIvIndexClicked
+            onIvIndexPressed = onIvIndexPressed
         )
         LastModifiedTimeRow(timestamp = settingsListData.timestamp)
+        SectionTitle(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(vertical = 8.dp),
+            title = stringResource(R.string.label_advanced)
+        )
+        DeveloperSettingsRow(onDeveloperSettingsPressed = onDeveloperSettingsPressed)
         SectionTitle(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -141,7 +152,7 @@ private fun NetworkNameRow(name: String, onNameChanged: (String) -> Unit) {
 private fun ProvisionersRow(
     count: Int,
     isSelected: Boolean,
-    onProvisionersClicked: () -> Unit,
+    onProvisionersPressed: () -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -154,7 +165,7 @@ private fun ProvisionersRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = onProvisionersClicked,
+        onClick = onProvisionersPressed,
         imageVector = Icons.Outlined.Groups,
         title = stringResource(R.string.label_provisioners),
         subtitle = "$count ${if (count == 1) "provisioner" else "provisioners"} available"
@@ -165,7 +176,7 @@ private fun ProvisionersRow(
 private fun NetworkKeysRow(
     count: Int,
     isSelected: Boolean,
-    onNetworkKeysClicked: () -> Unit,
+    onNetworkKeysPressed: () -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -178,7 +189,7 @@ private fun NetworkKeysRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = onNetworkKeysClicked,
+        onClick = onNetworkKeysPressed,
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_network_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -189,7 +200,7 @@ private fun NetworkKeysRow(
 private fun ApplicationKeysRow(
     count: Int,
     isSelected: Boolean,
-    onApplicationKeysClicked: () -> Unit,
+    onApplicationKeysPressed: () -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -202,7 +213,7 @@ private fun ApplicationKeysRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = onApplicationKeysClicked,
+        onClick = onApplicationKeysPressed,
         imageVector = Icons.Outlined.VpnKey,
         title = stringResource(R.string.label_application_keys),
         subtitle = "$count ${if (count == 1) "key" else "keys"} available"
@@ -213,7 +224,7 @@ private fun ApplicationKeysRow(
 private fun ScenesRow(
     count: Int,
     isSelected: Boolean,
-    onScenesClicked: () -> Unit,
+    onScenesPressed: () -> Unit,
 ) {
     ElevatedCardItem(
         modifier = Modifier
@@ -226,7 +237,7 @@ private fun ScenesRow(
 
             else -> CardDefaults.outlinedCardColors()
         },
-        onClick = onScenesClicked,
+        onClick = onScenesPressed,
         imageVector = Icons.Outlined.AutoAwesome,
         title = stringResource(R.string.label_scenes),
         subtitle = "$count ${if (count == 1) "scene" else "scenes"} available"
@@ -234,7 +245,7 @@ private fun ScenesRow(
 }
 
 @Composable
-private fun IvIndexRow(isSelected: Boolean, onIvIndexClicked: () -> Unit) {
+private fun IvIndexRow(isSelected: Boolean, onIvIndexPressed: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -248,7 +259,7 @@ private fun IvIndexRow(isSelected: Boolean, onIvIndexClicked: () -> Unit) {
         },
         imageVector = Icons.AutoMirrored.Outlined.List,
         title = stringResource(R.string.label_iv_index),
-        onClick = onIvIndexClicked
+        onClick = onIvIndexPressed
     )
 }
 
@@ -266,6 +277,20 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
         )
     )
 }
+
+@OptIn(ExperimentalTime::class)
+@Composable
+private fun DeveloperSettingsRow(onDeveloperSettingsPressed: () -> Unit) {
+    ElevatedCardItem(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        imageVector = Icons.Outlined.DeveloperMode,
+        title = stringResource(R.string.label_developer_settings),
+        onClick = onDeveloperSettingsPressed
+    )
+}
+
 
 @Composable
 private fun VersionNameRow() {
