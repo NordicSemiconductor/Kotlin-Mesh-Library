@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.DataObject
-import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Subtitles
@@ -257,7 +257,7 @@ private fun IvIndexRow(isSelected: Boolean, onIvIndexPressed: () -> Unit) {
 
             else -> CardDefaults.outlinedCardColors()
         },
-        imageVector = Icons.Outlined.FormatListNumbered,
+        imageVector = Icons.AutoMirrored.Outlined.List,
         title = stringResource(R.string.label_iv_index),
         onClick = onIvIndexPressed
     )
