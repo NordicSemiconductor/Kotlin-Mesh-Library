@@ -109,7 +109,7 @@ fun MeshTwoLineListItem(
     title: String,
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
-    subtitleTextOverflow: TextOverflow = TextOverflow.Clip,
+    subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     trailingComposable: @Composable () -> Unit = {},
 ) {
     MeshTwoLineListItem(
