@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import no.nordicsemi.android.common.theme.nordicGreen
@@ -143,7 +144,13 @@ internal fun NetworkWizardScreen(
                                 )
                             }
                         },
-                        label = { Text(text = config.description()) }
+                        label = {
+                            Text(
+                                text = config.description(),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.size(size = 16.dp))
