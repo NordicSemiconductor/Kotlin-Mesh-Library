@@ -307,6 +307,7 @@ private fun Status(
         title = stringResource(R.string.label_target),
         titleAction = {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = (messageState.response as? GenericOnOffStatus)?.let {
                     it.remainingTime
                     when {
@@ -322,7 +323,7 @@ private fun Status(
 
                         else -> stringResource(R.string.label_na)
                     }
-                } ?: stringResource(R.string.label_unknown),
+                } ?: stringResource(R.string.label_unknown).uppercase(),
             )
         }
     )
