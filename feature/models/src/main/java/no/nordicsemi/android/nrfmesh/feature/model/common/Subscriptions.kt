@@ -64,6 +64,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigMo
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigSigModelSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigVendorModelSubscriptionGet
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
+import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.Model
@@ -222,34 +223,38 @@ internal fun Subscriptions(
                                 }
                             )
                         } else {
-                            if (model.parentElement?.isPrimary == false && item !is AllNodes) {
-                                ElevatedCardItem(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    imageVector = Icons.Outlined.GroupWork,
-                                    title = (item as FixedGroupAddress).name(),
-                                    onClick = {
-                                        scope.launch {
-                                            bottomSheetState.hide()
-                                        }.invokeOnCompletion {
-                                            if (!bottomSheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
+                            ElevatedCardItem(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                imageVector = Icons.Outlined.GroupWork,
+                                title = (item as FixedGroupAddress).name(),
+                                onClick = {
+                                    scope.launch {
+                                        bottomSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        if (!bottomSheetState.isVisible) {
+                                            showBottomSheet = false
                                         }
-                                        send(
-                                            ConfigModelSubscriptionAdd(
-                                                address = item as SubscriptionAddress,
-                                                model = model
-                                            )
-                                        )
                                     }
-                                )
-                            }
+                                    send(
+                                        ConfigModelSubscriptionAdd(
+                                            address = item as SubscriptionAddress,
+                                            model = model
+                                        )
+                                    )
+                                }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.size(size = 8.dp))
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        text = stringResource(R.string.label_subscribe_addresses_rationale),
+                        text = stringResource(
+                            when (model.parentElement?.isPrimary) {
+                                true -> R.string.label_subscribe_addresses_rationale_primary_element
+                                else -> R.string.label_subscribe_addresses_rationale_non_primary_element
+                            }
+                        ),
+
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
