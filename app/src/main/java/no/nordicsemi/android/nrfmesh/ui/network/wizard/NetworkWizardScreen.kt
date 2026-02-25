@@ -116,7 +116,10 @@ internal fun NetworkWizardScreen(
                 text = stringResource(R.string.label_app_welcome_rationale),
                 textAlign = TextAlign.Center
             )
-            Text(text = stringResource(R.string.label_start_creating))
+            Text(
+                text = stringResource(R.string.label_start_creating),
+                textAlign = TextAlign.Center
+            )
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
