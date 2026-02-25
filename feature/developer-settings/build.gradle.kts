@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.settings"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.developer"
 }
 
 dependencies {
@@ -16,13 +16,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
-    api(project(":feature:export"))
-    api(project(":feature:provisioners"))
-    api(project(":feature:network-keys"))
-    api(project(":feature:application-keys"))
-    api(project(":feature:scenes"))
-    api(project(":feature:ivindex"))
-    api(project(":feature:developer-settings"))
+
     implementation(project(":mesh:core"))
 
     testImplementation(libs.junit4)
