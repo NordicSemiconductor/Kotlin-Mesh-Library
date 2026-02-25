@@ -25,10 +25,6 @@ fun EntryProviderScope<NavKey>.developerSettingsEntry(appState: AppState) {
     ) {
         val viewModel = hiltViewModel<DeveloperSettingsViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        DeveloperSettingsScreen(
-            developerSettings = uiState.settings,
-            onQuickProvisioningEnabled = viewModel::onQuickProvisioningEnabled,
-            onAlwaysReconfigure = viewModel::onAlwaysReconfigure
-        )
+        DeveloperSettingsScreen(developerSettings = uiState.settings)
     }
 }
