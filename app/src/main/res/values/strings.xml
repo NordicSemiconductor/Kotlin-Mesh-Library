@@ -28,7 +28,7 @@
     <string name="label_empty" />
     <string name="label_add_node">Add Node</string>
     <string name="label_add_group">Add Group</string>
-    <string name="label_reset_network_rationale">Resetting a network will erase the network configuration and will make the network unusable. This will also require you to hard reset the nodes.\n\nDo you wish to continue?</string>
+    <string name="label_reset_network_rationale">Resetting a network will erase all network data. Make sure you export it first.\n\nDo you wish to continue?</string>
     <string name="label_create">Create</string>
     <string name="label_address">Address</string>
     <string name="label_add">Add</string>
