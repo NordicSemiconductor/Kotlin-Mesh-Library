@@ -134,35 +134,41 @@ internal class NodeViewModel @AssistedInject internal constructor(
     }
 
     internal fun onItemSelected(item: ClickableNodeInfoItem) {
-        _uiState.value = _uiState.value.copy(selectedNodeInfoItem = item)
+        _uiState.update { it.copy(selectedNodeInfoItem = item) }
     }
 
     internal fun send(message: AcknowledgedConfigMessage) {
-        _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
+        _uiState.update { it.copy(messageState = Sending(message = message)) }
         viewModelScope.launch {
             try {
                 repository.send(selectedNode, message)?.let { response ->
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Completed(
-                            message = message,
-                            response = response as ConfigResponse
-                        ),
-                        isRefreshing = false
-                    )
+                    _uiState.update {
+                        it.copy(
+                            messageState = Completed(
+                                message = message,
+                                response = response as ConfigResponse
+                            ),
+                            isRefreshing = false
+                        )
+                    }
                 } ?: run {
-                    _uiState.value = _uiState.value.copy(
-                        messageState = Failed(
-                            message = message,
-                            error = IllegalStateException("No response received")
-                        ),
+                    _uiState.update {
+                        it.copy(
+                            messageState = Failed(
+                                message = message,
+                                error = IllegalStateException("No response received")
+                            ),
+                            isRefreshing = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        messageState = Failed(message = message, error = e),
                         isRefreshing = false
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    messageState = Failed(message = message, error = e),
-                    isRefreshing = false
-                )
             }
         }
     }
