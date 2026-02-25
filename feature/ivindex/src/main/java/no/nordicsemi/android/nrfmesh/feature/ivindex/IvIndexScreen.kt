@@ -117,19 +117,24 @@ private fun IvIndex(
         MeshAlertDialog(
             onDismissRequest = { showIvIndexDialog = false },
             onConfirmClick = {
-                runCatching {
-                    onIvIndexChanged(
-                        ivIndexValue.text.toUIntOrNull() ?: 0u,
-                        ivIndexUpdateState
-                    )
-                }.onSuccess {
-                    showIvIndexDialog = false
-                }.onFailure {
+                if(ivIndexValue.text.isBlank()){
                     isError = true
-                    errorMessage = if (it is IvIndexTooSmall) {
-                        context.getString(R.string.label_iv_index_too_small_error)
-                    } else {
-                        context.getString(R.string.label_unknown_error)
+                    errorMessage = context.getString(R.string.label_iv_index_empty_error)
+                } else {
+                    runCatching {
+                        onIvIndexChanged(
+                            ivIndexValue.text.toUIntOrNull() ?: 0u,
+                            ivIndexUpdateState
+                        )
+                    }.onSuccess {
+                        showIvIndexDialog = false
+                    }.onFailure {
+                        isError = true
+                        errorMessage = if (it is IvIndexTooSmall) {
+                            context.getString(R.string.label_iv_index_too_small_error)
+                        } else {
+                            context.getString(R.string.label_unknown_error)
+                        }
                     }
                 }
             },
@@ -151,9 +156,7 @@ private fun IvIndex(
                             )
                         },
                         value = ivIndexValue,
-                        onValueChanged = {
-                            ivIndexValue = it
-                        },
+                        onValueChanged = { ivIndexValue = it },
                         label = { Text(text = context.getString(R.string.label_iv_index)) },
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,

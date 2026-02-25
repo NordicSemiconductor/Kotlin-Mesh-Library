@@ -7,4 +7,5 @@
     <string name="label_change_iv_index">Change IV Index</string>
     <string name="label_iv_index_too_small_error">IV Index too small</string>
     <string name="label_unknown_error">Unknown error</string>
+    <string name="label_iv_index_empty_error">IV Index cannot be empty</string>
 </resources>
