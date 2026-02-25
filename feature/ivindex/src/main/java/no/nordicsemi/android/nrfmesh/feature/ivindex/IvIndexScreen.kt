@@ -135,7 +135,6 @@ private fun IvIndex(
             },
             onDismissClick = { showIvIndexDialog = false },
             icon = Icons.Outlined.FormatListNumbered,
-            properties = DialogProperties(usePlatformDefaultWidth = true),
             iconColor = AlertDialogDefaults.iconContentColor,
             title = stringResource(R.string.label_change_iv_index),
             content = {

@@ -255,7 +255,6 @@ private fun AddRangeDialog(
     var supportingErrorTextEnd by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
-        properties = DialogProperties(usePlatformDefaultWidth = true),
         onConfirmClick = {
             val startValue = start.text.trim()
             val endValue = end.text.trim()
