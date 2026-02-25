@@ -125,7 +125,7 @@ private fun Controls(
         title = stringResource(R.string.label_default_transition_delay),
         titleAction = {
             Switch(
-                modifier = Modifier.padding(start = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 enabled = !messageState.isInProgress(),
                 checked = defaultTransitionEnabled,
                 onCheckedChange = { defaultTransitionEnabled = it },
@@ -290,6 +290,7 @@ private fun Status(
         title = stringResource(R.string.label_current),
         titleAction = {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(
                     id = (messageState.response as? GenericOnOffStatus)?.let {
                         if (it.isOn) R.string.label_on else R.string.label_off
