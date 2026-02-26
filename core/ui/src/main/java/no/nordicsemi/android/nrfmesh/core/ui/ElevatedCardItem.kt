@@ -329,7 +329,7 @@ fun ElevatedCardItemTextField(
 fun ElevatedCardItemHexTextField(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
-    prefix: @Composable (() -> Unit)? = null,
+    showPrefix: Boolean = true,
     title: String,
     subtitle: String = "",
     placeholder: String = "",
@@ -357,9 +357,9 @@ fun ElevatedCardItemHexTextField(
             )
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
-                    true -> MeshOutlinedTextField(
+                    true -> MeshOutlinedHexTextField(
                         modifier = Modifier.padding(start = 16.dp),
-                        prefix = prefix,
+                        showPrefix = showPrefix,
                         onFocus = onEditClick,
                         value = value,
                         onValueChanged = { value = it },
@@ -436,7 +436,7 @@ fun ElevatedCardItemHexTextField(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
-                        subtitle = if (prefix != null) "0x${value.text}" else value.text,
+                        subtitle = if (showPrefix) "0x${value.text}" else value.text,
                         trailingComposable = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
