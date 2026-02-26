@@ -240,7 +240,9 @@ private fun UnicastAddressRow(
         supportingText = {
             if (isError)
                 Text(text = supportingErrorText)
-        }
+        },
+        regex = Regex(pattern = "[0-9A-Fa-f]{0,4}"),
+        validator = Regex(pattern = "[0-9A-Fa-f]{4}")
     )
 }
 
