@@ -12,14 +12,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.SceneData
-import no.nordicsemi.android.nrfmesh.feature.scenes.scene.SceneViewModel
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
-import javax.inject.Inject
 
 @HiltViewModel(assistedFactory = ScenesViewModel.Factory::class)
 internal class ScenesViewModel @AssistedInject internal constructor(
@@ -114,14 +110,7 @@ internal class ScenesViewModel @AssistedInject internal constructor(
                 network.remove(sceneNumber = scene.number)
             }
         }
-        save()
-    }
-
-    /**
-     * Saves the network.
-     */
-    private fun save() {
-        viewModelScope.launch { repository.save() }
+        repository.save()
     }
 
     internal fun selectScene(number: SceneNumber) {

@@ -5,6 +5,10 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -115,5 +119,30 @@ fun ApplicationKeyRow(
         title = title,
         titleAction = titleAction,
         subtitle = subtitle
+    )
+}
+
+@Composable
+fun KeyRow(
+    modifier: Modifier = Modifier,
+    title: String,
+    key: ByteArray,
+    onKeyChanged: (ByteArray) -> Unit,
+    isEditable: Boolean,
+    onEditableStateChanged: () -> Unit,
+) {
+    var isError by rememberSaveable { mutableStateOf(false) }
+    ElevatedCardItemHexTextField(
+        modifier = modifier,
+        showPrefix = false,
+        imageVector = Icons.Outlined.VpnKey,
+        title = title,
+        subtitle = key.toHexString(format = HexFormat.UpperCase),
+        onValueChanged = { onKeyChanged(it.hexToByteArray(HexFormat.UpperCase)) },
+        isError = isError,
+        isEditable = isEditable,
+        onEditableStateChanged = onEditableStateChanged,
+        regex = Regex(pattern = "[0-9A-Fa-f]{0,32}"),
+        validator = Regex(pattern = "[0-9A-Fa-f]{32}")
     )
 }

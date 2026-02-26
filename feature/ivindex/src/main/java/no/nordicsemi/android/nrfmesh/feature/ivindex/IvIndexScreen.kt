@@ -29,7 +29,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
@@ -117,25 +116,29 @@ private fun IvIndex(
         MeshAlertDialog(
             onDismissRequest = { showIvIndexDialog = false },
             onConfirmClick = {
-                runCatching {
-                    onIvIndexChanged(
-                        ivIndexValue.text.toUIntOrNull() ?: 0u,
-                        ivIndexUpdateState
-                    )
-                }.onSuccess {
-                    showIvIndexDialog = false
-                }.onFailure {
+                if(ivIndexValue.text.isBlank()){
                     isError = true
-                    errorMessage = if (it is IvIndexTooSmall) {
-                        context.getString(R.string.label_iv_index_too_small_error)
-                    } else {
-                        context.getString(R.string.label_unknown_error)
+                    errorMessage = context.getString(R.string.label_iv_index_empty_error)
+                } else {
+                    runCatching {
+                        onIvIndexChanged(
+                            ivIndexValue.text.toUIntOrNull() ?: 0u,
+                            ivIndexUpdateState
+                        )
+                    }.onSuccess {
+                        showIvIndexDialog = false
+                    }.onFailure {
+                        isError = true
+                        errorMessage = if (it is IvIndexTooSmall) {
+                            context.getString(R.string.label_iv_index_too_small_error)
+                        } else {
+                            context.getString(R.string.label_unknown_error)
+                        }
                     }
                 }
             },
             onDismissClick = { showIvIndexDialog = false },
             icon = Icons.Outlined.FormatListNumbered,
-            properties = DialogProperties(usePlatformDefaultWidth = true),
             iconColor = AlertDialogDefaults.iconContentColor,
             title = stringResource(R.string.label_change_iv_index),
             content = {
@@ -152,9 +155,7 @@ private fun IvIndex(
                             )
                         },
                         value = ivIndexValue,
-                        onValueChanged = {
-                            ivIndexValue = it
-                        },
+                        onValueChanged = { ivIndexValue = it },
                         label = { Text(text = context.getString(R.string.label_iv_index)) },
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,

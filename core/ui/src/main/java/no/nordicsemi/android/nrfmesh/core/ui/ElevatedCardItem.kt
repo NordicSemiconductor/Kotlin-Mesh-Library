@@ -329,7 +329,7 @@ fun ElevatedCardItemTextField(
 fun ElevatedCardItemHexTextField(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
-    prefix: @Composable (() -> Unit)? = null,
+    showPrefix: Boolean = true,
     title: String,
     subtitle: String = "",
     placeholder: String = "",
@@ -340,6 +340,7 @@ fun ElevatedCardItemHexTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
+    validator: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle),
     supportingText: @Composable (() -> Unit)? = null,
 ) {
@@ -357,9 +358,9 @@ fun ElevatedCardItemHexTextField(
             )
             Crossfade(targetState = onEditClick, label = "textfield") { state ->
                 when (state) {
-                    true -> MeshOutlinedTextField(
+                    true -> MeshOutlinedHexTextField(
                         modifier = Modifier.padding(start = 16.dp),
-                        prefix = prefix,
+                        showPrefix = showPrefix,
                         onFocus = onEditClick,
                         value = value,
                         onValueChanged = { value = it },
@@ -412,15 +413,27 @@ fun ElevatedCardItemHexTextField(
                             )
                             IconButton(
                                 modifier = Modifier.padding(end = 8.dp),
-                                enabled = value.text.isNotBlank() && regex?.matches(value.text) ?: true,
+                                enabled = value.text.isNotBlank() && validator?.matches(value.text) ?: true,
                                 onClick = {
-                                    onEditClick = !onEditClick
-                                    onEditableStateChanged()
-                                    value = TextFieldValue(
-                                        text = value.text.trim(),
-                                        selection = TextRange(value.text.trim().length)
-                                    )
-                                    onValueChanged(value.text)
+                                    validator?.let {
+                                        if (it.matches(value.text)) {
+                                            onEditClick = !onEditClick
+                                            onEditableStateChanged()
+                                            value = TextFieldValue(
+                                                text = value.text.trim(),
+                                                selection = TextRange(value.text.trim().length)
+                                            )
+                                            onValueChanged(value.text)
+                                        }
+                                    } ?: run {
+                                        onEditClick = !onEditClick
+                                        onEditableStateChanged()
+                                        value = TextFieldValue(
+                                            text = value.text.trim(),
+                                            selection = TextRange(value.text.trim().length)
+                                        )
+                                        onValueChanged(value.text)
+                                    }
                                 },
                                 content = {
                                     Icon(
@@ -436,7 +449,7 @@ fun ElevatedCardItemHexTextField(
                     false -> MeshTwoLineListItem(
                         modifier = Modifier.padding(start = 16.dp, end = 8.dp),
                         title = title,
-                        subtitle = if (prefix != null) "0x${value.text}" else value.text,
+                        subtitle = if (showPrefix) "0x${value.text}" else value.text,
                         trailingComposable = {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),

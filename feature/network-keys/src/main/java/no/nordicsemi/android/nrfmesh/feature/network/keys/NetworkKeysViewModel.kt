@@ -2,8 +2,6 @@ package no.nordicsemi.android.nrfmesh.feature.network.keys
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,7 +10,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
@@ -98,7 +95,7 @@ class NetworkKeysViewModel @Inject internal constructor(
             )
         }
         network.removeNetworkKeyWithIndex(index = key.index)
-        // In addition lets remove the keys queued for deletion as well.
+        // In addition, lets remove the keys queued for deletion as well.
         removeKeys()
     }
 
@@ -111,16 +108,7 @@ class NetworkKeysViewModel @Inject internal constructor(
                 network.removeNetworkKeyWithIndex(index = keyData.index)
             }
         }
-        save()
-    }
-
-    /**
-     * Saves the network.
-     */
-    private fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
+        repository.save()
     }
 
     internal fun selectKeyIndex(keyIndex: KeyIndex) {

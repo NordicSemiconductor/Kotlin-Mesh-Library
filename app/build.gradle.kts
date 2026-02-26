@@ -28,7 +28,7 @@ dependencies {
     implementation("androidx.compose.material3:material3-adaptive-navigation-suite-android:1.4.0")
 
     implementation(libs.timber)
-    implementation(libs.slf4j.simple)
+    implementation(libs.slf4j.timber)
 
     implementation(project(":core:ui"))
     implementation(project(":core:common"))

@@ -14,8 +14,6 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Verified
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -113,7 +111,7 @@ private fun Controls(
         title = stringResource(R.string.label_default_transition_delay),
         titleAction = {
             Switch(
-                modifier = Modifier.padding(start = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 enabled = !messageState.isInProgress(),
                 checked = defaultTransitionEnabled,
                 onCheckedChange = { defaultTransitionEnabled = it },
@@ -247,6 +245,7 @@ private fun Status(
         title = stringResource(R.string.label_current),
         titleAction = {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(
                     id = (messageState.response as? GenericOnOffStatus)?.let {
                         if (it.isOn) R.string.label_on else R.string.label_off
@@ -263,22 +262,21 @@ private fun Status(
         title = stringResource(R.string.label_target),
         titleAction = {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = (messageState.response as? GenericOnOffStatus)?.let {
                     it.remainingTime
-                    when {
-                        it.targetState == true && it.remainingTime != null -> stringResource(
+                    when (it.targetState) {
+                        true if it.remainingTime != null -> stringResource(
                             R.string.label_on_with_remaining_time,
                             it.remainingTime.toString()
                         )
-
-                        it.targetState == false && it.remainingTime != null -> stringResource(
+                        false if it.remainingTime != null -> stringResource(
                             R.string.label_off_with_remaining_time,
                             it.remainingTime.toString()
                         )
-
                         else -> stringResource(R.string.label_na)
                     }
-                } ?: stringResource(R.string.label_unknown),
+                } ?: stringResource(R.string.label_unknown).uppercase(),
             )
         }
     )

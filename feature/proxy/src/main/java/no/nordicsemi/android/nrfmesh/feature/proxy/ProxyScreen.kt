@@ -301,7 +301,7 @@ private fun FilterSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 16.dp)
+                .padding(horizontal = 16.dp)
                 .padding(vertical = 8.dp),
         ) {
             SectionTitle(
@@ -352,7 +352,7 @@ private fun FilterSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 16.dp)
+                .padding(horizontal = 16.dp)
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
             verticalAlignment = Alignment.CenterVertically

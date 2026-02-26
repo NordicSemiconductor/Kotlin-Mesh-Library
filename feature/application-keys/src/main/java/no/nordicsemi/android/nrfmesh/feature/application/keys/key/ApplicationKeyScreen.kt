@@ -38,9 +38,9 @@ import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
 import no.nordicsemi.android.nrfmesh.core.ui.ApplicationKeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
+import no.nordicsemi.android.nrfmesh.core.ui.KeyRow
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.application.keys.R
-import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.KeyIndex
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -102,6 +102,7 @@ internal fun ApplicationKeyContent(
         )
         Key(
             key = applicationKey.key,
+            isInUse = applicationKey.isInUse,
             onKeyChanged = {
                 key.setKey(key = it)
                 save()
@@ -168,6 +169,7 @@ private fun Name(
 @Composable
 private fun Key(
     key: ByteArray,
+    isInUse: Boolean,
     onKeyChanged: (ByteArray) -> Unit,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
@@ -175,10 +177,10 @@ private fun Key(
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboard.current
     val applicationKeyLabel = stringResource(id = R.string.label_application_key)
-    ElevatedCardItemTextField(
+    KeyRow(
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .clickable {
+            .clickable(enabled = isCurrentlyEditable) {
                 copyToClipboard(
                     scope = scope,
                     clipboard = clipboard,
@@ -186,13 +188,11 @@ private fun Key(
                     label = applicationKeyLabel
                 )
             },
-        imageVector = Icons.Outlined.VpnKey,
         title = stringResource(id = R.string.label_key),
-        subtitle = key.toHexString(format = HexFormat.UpperCase),
-        onValueChanged = { onKeyChanged(it.toByteArray()) },
-        isEditable = isCurrentlyEditable,
-        onEditableStateChanged = onEditableStateChanged,
-        regex = Regex("[0-9A-Fa-f]{32}")
+        key = key,
+        onKeyChanged = onKeyChanged,
+        isEditable = isCurrentlyEditable && !isInUse,
+        onEditableStateChanged = onEditableStateChanged
     )
 }
 

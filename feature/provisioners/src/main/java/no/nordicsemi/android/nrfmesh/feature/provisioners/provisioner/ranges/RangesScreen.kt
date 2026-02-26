@@ -52,7 +52,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.ui.AddressRangeLegendsForRanges
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -69,7 +68,6 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastRange
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
 @Composable
 fun RangesScreen(
-    snackbarHostState: SnackbarHostState,
     title: String,
     ranges: List<Range>,
     otherRanges: List<Range>,
@@ -133,7 +131,7 @@ fun RangesScreen(
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             if (ranges.isNotEmpty()) {
-                items(items = ranges, key = { it.hashCode() }) { range ->
+                items(items = ranges, key = { "${it.low}_${it.high}_${it::class.simpleName}" }) { range ->
                     // Hold the current state from the Swipe to Dismiss composable
                     // val currentItem by rememberUpdatedState(newValue = range)
                     val dismissState = rememberSwipeToDismissBoxState()
@@ -255,7 +253,6 @@ private fun AddRangeDialog(
     var supportingErrorTextEnd by rememberSaveable { mutableStateOf("") }
     MeshAlertDialog(
         onDismissRequest = { onDismissRequest() },
-        properties = DialogProperties(usePlatformDefaultWidth = true),
         onConfirmClick = {
             val startValue = start.text.trim()
             val endValue = end.text.trim()
