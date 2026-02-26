@@ -8,19 +8,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.ProvisionerData
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import kotlin.uuid.Uuid
-import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @HiltViewModel(assistedFactory = ProvisionersViewModel.Factory::class)
@@ -79,7 +76,7 @@ internal class ProvisionersViewModel @AssistedInject internal constructor(
                 provisioner.allocate(range)
             }
             add(provisioner = provisioner, address = null)
-            save()
+            repository.save()
         }
     }
 
@@ -121,7 +118,7 @@ internal class ProvisionersViewModel @AssistedInject internal constructor(
             )
         }
         network.removeProvisionerWithUuid(uuid = provisioner.uuid)
-        // In addition lets remove the provisioners queued for deletion as well.
+        // In addition, lets remove the provisioners queued for deletion as well.
         removeProvisioners()
     }
 
@@ -134,14 +131,7 @@ internal class ProvisionersViewModel @AssistedInject internal constructor(
                 network.removeProvisionerWithUuid(uuid = provisioner.uuid)
             }
         }
-        save()
-    }
-
-    /**
-     * Saves the network.
-     */
-    private fun save() {
-        viewModelScope.launch { repository.save() }
+        repository.save()
     }
 
     @OptIn(ExperimentalUuidApi::class)
