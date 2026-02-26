@@ -217,14 +217,11 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // unicast ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(!range.overlaps(otherRanges = otherSceneRanges)) {
+            if (!isRangeAvailableForAllocation(range = range)) {
                 throw OverlappingProvisionerRanges()
             }
-            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
-            _allocatedUnicastRanges.add(range).also { network.updateTimestamp() }
-        } ?: run {
-            _allocatedUnicastRanges.add(range)
         }
+        _allocatedUnicastRanges.add(range)
     }
 
     /**
@@ -238,12 +235,11 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // group ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(!range.overlaps(otherRanges = otherGroupRanges)) {
+            if (!isRangeAvailableForAllocation(range = range)) {
                 throw OverlappingProvisionerRanges()
             }
-            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
-            _allocatedGroupRanges.add(range).also { network.updateTimestamp() }
-        } ?: run { _allocatedGroupRanges.add(range) }
+        }
+        _allocatedGroupRanges.add(range)
     }
 
     /**
@@ -257,12 +253,11 @@ data class Provisioner internal constructor(
         // If the provisioner is not a part of network we don't have to validate for overlapping
         // scene ranges. This will be validated when the provisioner is added to the network.
         network?.let { network ->
-            require(!range.overlaps(otherRanges = otherSceneRanges)) {
+            if (!isRangeAvailableForAllocation(range = range)) {
                 throw OverlappingProvisionerRanges()
             }
-            require(!hasAllocatedRange(range)) { throw RangeAlreadyAllocated() }
-            _allocatedSceneRanges.add(range).also { network.updateTimestamp() }
-        } ?: run { _allocatedSceneRanges.add(range) }
+        }
+        _allocatedSceneRanges.add(range)
     }
 
     /**
