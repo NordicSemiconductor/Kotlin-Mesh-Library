@@ -65,7 +65,7 @@ internal fun NetworkKeyScreen(
 
 @OptIn(ExperimentalTime::class)
 @Composable
-internal fun NetworkKeyContent(
+private fun NetworkKeyContent(
     key: NetworkKey,
     save: () -> Unit,
 ) {
@@ -93,7 +93,10 @@ internal fun NetworkKeyContent(
         )
         Key(
             key = key.key,
-            onKeyChanged = { },
+            onKeyChanged = {
+                key.setKey(it)
+                save()
+            },
             isCurrentlyEditable = isCurrentlyEditable,
             onEditableStateChanged = { isCurrentlyEditable = !isCurrentlyEditable }
         )
