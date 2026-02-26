@@ -348,6 +348,12 @@ data class Provisioner internal constructor(
     }
 
     /**
+     * Removes the given list of ranges from the allocated ranges.
+     * @param ranges Ranges to be removed.
+     */
+    fun remove(ranges: List<Range>) = ranges.forEach { remove(range = it) }
+
+    /**
      * Returns the maximum number of elements that can be assigned to a Node with the given Unicast
      * address.
      *
