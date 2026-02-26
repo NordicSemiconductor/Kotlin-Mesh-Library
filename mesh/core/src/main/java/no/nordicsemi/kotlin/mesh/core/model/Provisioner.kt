@@ -541,28 +541,25 @@ data class Provisioner internal constructor(
      * @param ranges Ranges to be allocated.
      * @return true if the given ranges are not in use by another provisioner or false otherwise.
      */
-    fun areRangesAvailableForAllocation(ranges: List<Range>) = let { provisioner ->
-        try {
-            network?.run {
-                when (ranges.first()) {
-                    is UnicastRange ->
-                        provisioners
-                            .filter { it.uuid != provisioner.uuid }
-                            .none { it._allocatedUnicastRanges.overlaps(ranges) }
+    fun areRangesAvailableForAllocation(ranges: List<Range>) = network?.run {
+        when (ranges.firstOrNull()) {
+            is UnicastRange ->
+                provisioners
+                    .filter { it.uuid != this@Provisioner.uuid }
+                    .none { it._allocatedUnicastRanges.overlaps(ranges) }
 
-                    is GroupRange ->
-                        provisioners
-                            .filter { it.uuid != provisioner.uuid }
-                            .none { it._allocatedGroupRanges.overlaps(ranges) }
+            is GroupRange ->
+                provisioners
+                    .filter { it.uuid != this@Provisioner.uuid }
+                    .none { it._allocatedGroupRanges.overlaps(ranges) }
 
-                    is SceneRange ->
-                        provisioners
-                            .filter { it.uuid != provisioner.uuid }
-                            .none { it._allocatedSceneRanges.overlaps(ranges) }
-                }
-            } ?: false
-        } catch (e: NoSuchElementException) {
-            false
+            is SceneRange ->
+                provisioners
+                    .filter { it.uuid != this@Provisioner.uuid }
+                    .none { it._allocatedSceneRanges.overlaps(ranges) }
+
+            else -> false
         }
-    }
+    } ?: false
+
 }
