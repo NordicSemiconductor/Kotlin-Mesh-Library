@@ -514,26 +514,22 @@ data class Provisioner internal constructor(
      * @throws DoesNotBelongToNetwork if the provisioner does not belong to the network.
      */
     @Throws(DoesNotBelongToNetwork::class)
-    fun isRangeAvailableForAllocation(range: Range) = let { provisioner ->
-        network?.run {
-            when (range) {
-                is UnicastRange ->
-                    provisioners
-                        .filter { it.uuid != provisioner.uuid }
-                        .none { it._allocatedUnicastRanges.overlaps(range) }
+    fun isRangeAvailableForAllocation(range: Range): Boolean = network?.run {
+        when (range) {
+            is UnicastRange -> provisioners
+                .filter { it.uuid != this@Provisioner.uuid }
+                .none { it._allocatedUnicastRanges.overlaps(other = range) }
 
-                is GroupRange ->
-                    provisioners
-                        .filter { it.uuid != provisioner.uuid }
-                        .none { it._allocatedGroupRanges.overlaps(range) }
+            is GroupRange -> provisioners
+                .filter { it.uuid != this@Provisioner.uuid }
+                .none { it._allocatedGroupRanges.overlaps(other = range) }
 
-                is SceneRange ->
-                    provisioners
-                        .filter { it.uuid != provisioner.uuid }
-                        .none { it._allocatedSceneRanges.overlaps(range) }
-            }
-        } ?: false
-    }
+            is SceneRange -> provisioners
+                .filter { it.uuid != this@Provisioner.uuid }
+                .none { it._allocatedSceneRanges.overlaps(other = range) }
+        }
+
+    } ?: true
 
     /**
      * Check if the given list of ranges are allocatable to a provisioner.
