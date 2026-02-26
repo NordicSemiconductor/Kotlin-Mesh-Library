@@ -109,9 +109,9 @@ data class Provisioner internal constructor(
      */
     constructor(uuid: Uuid = Uuid.random()) : this(
         uuid = uuid,
-        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
-        _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _allocatedUnicastRanges = mutableListOf(),
+        _allocatedGroupRanges = mutableListOf(),
+        _allocatedSceneRanges = mutableListOf(),
         _name = "nRF Mesh Provisioner"
     )
 
@@ -123,9 +123,9 @@ data class Provisioner internal constructor(
      */
     constructor(uuid: Uuid = Uuid.random(), name: String) : this(
         uuid = uuid,
-        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
-        _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _allocatedUnicastRanges = mutableListOf(),
+        _allocatedGroupRanges = mutableListOf(),
+        _allocatedSceneRanges = mutableListOf(),
         _name = name
     )
 
@@ -136,9 +136,9 @@ data class Provisioner internal constructor(
      */
     constructor(name: String) : this(
         uuid = Uuid.random(),
-        _allocatedUnicastRanges = mutableListOf<UnicastRange>(),
-        _allocatedGroupRanges = mutableListOf<GroupRange>(),
-        _allocatedSceneRanges = mutableListOf<SceneRange>(),
+        _allocatedUnicastRanges = mutableListOf(),
+        _allocatedGroupRanges = mutableListOf(),
+        _allocatedSceneRanges = mutableListOf(),
         _name = name
     )
 
@@ -267,10 +267,11 @@ data class Provisioner internal constructor(
      * @param newRange New range.
      */
     fun update(range: Range, newRange: Range) {
-        when {
-            range is UnicastRange && newRange is UnicastRange -> update(range, newRange)
-            range is GroupRange && newRange is GroupRange -> update(range, newRange)
-            range is SceneRange && newRange is SceneRange -> update(range, newRange)
+        when (range) {
+            is UnicastRange if newRange is UnicastRange -> update(range, newRange)
+            is GroupRange if newRange is GroupRange -> update(range, newRange)
+            is SceneRange if newRange is SceneRange -> update(range, newRange)
+            else -> return
         }
     }
 
@@ -347,7 +348,7 @@ data class Provisioner internal constructor(
     }
 
     /**
-     * Returns the maximum number of elements that can be assigned to a Node with he given Unicast
+     * Returns the maximum number of elements that can be assigned to a Node with the given Unicast
      * address.
      *
      * This method ensures that the addresses are ina single Unicast Address range allocated to the
