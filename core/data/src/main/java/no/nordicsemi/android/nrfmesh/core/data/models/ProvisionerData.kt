@@ -45,8 +45,8 @@ data class ProvisionerData(
         ttl = provisioner.node?.defaultTTL?.toInt() ?: 0,
         deviceKey = provisioner.node?.deviceKey?.toHexString()?.uppercase(),
         unicastRanges = provisioner.allocatedUnicastRanges.toList(),
-        groupRanges = provisioner.allocatedGroupRanges,
-        sceneRanges = provisioner.allocatedSceneRanges,
+        groupRanges = provisioner.allocatedGroupRanges.toList(),
+        sceneRanges = provisioner.allocatedSceneRanges.toList(),
         hasConfigurationCapabilities = provisioner.hasConfigurationCapabilities
     )
 }
