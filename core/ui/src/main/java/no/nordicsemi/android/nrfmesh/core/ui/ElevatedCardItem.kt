@@ -340,6 +340,7 @@ fun ElevatedCardItemHexTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     regex: Regex? = null,
+    validator: Regex? = null,
     isError: Boolean = regex != null && !regex.matches(subtitle),
     supportingText: @Composable (() -> Unit)? = null,
 ) {
@@ -412,15 +413,27 @@ fun ElevatedCardItemHexTextField(
                             )
                             IconButton(
                                 modifier = Modifier.padding(end = 8.dp),
-                                enabled = value.text.isNotBlank() && regex?.matches(value.text) ?: true,
+                                enabled = value.text.isNotBlank() && validator?.matches(value.text) ?: true,
                                 onClick = {
-                                    onEditClick = !onEditClick
-                                    onEditableStateChanged()
-                                    value = TextFieldValue(
-                                        text = value.text.trim(),
-                                        selection = TextRange(value.text.trim().length)
-                                    )
-                                    onValueChanged(value.text)
+                                    validator?.let {
+                                        if (it.matches(value.text)) {
+                                            onEditClick = !onEditClick
+                                            onEditableStateChanged()
+                                            value = TextFieldValue(
+                                                text = value.text.trim(),
+                                                selection = TextRange(value.text.trim().length)
+                                            )
+                                            onValueChanged(value.text)
+                                        }
+                                    } ?: run {
+                                        onEditClick = !onEditClick
+                                        onEditableStateChanged()
+                                        value = TextFieldValue(
+                                            text = value.text.trim(),
+                                            selection = TextRange(value.text.trim().length)
+                                        )
+                                        onValueChanged(value.text)
+                                    }
                                 },
                                 content = {
                                     Icon(
