@@ -13,6 +13,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.navigation.ApplicationKeyContentKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysKey
+import no.nordicsemi.android.nrfmesh.feature.developer.navigation.DeveloperSettingsContentKey
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContentKey
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelKey
@@ -53,6 +54,7 @@ class MeshAppState(
             is ApplicationKeysContentKey,
             is ScenesContentKey,
             is IvIndexContentKey,
+            is DeveloperSettingsContentKey,
                 -> isCompactWidth
 
             is ProvisionerContentKey,

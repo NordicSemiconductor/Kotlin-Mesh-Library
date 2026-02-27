@@ -12,6 +12,7 @@ import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.key.navigation.ApplicationKeyContentKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysKey
+import no.nordicsemi.android.nrfmesh.feature.developer.navigation.DeveloperSettingsContentKey
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContentKey
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelKey
@@ -130,7 +131,9 @@ internal fun title(
         context.getString(R.string.label_iv_index)
     else context.getString(R.string.label_settings)
 
-    is ProvisioningKey -> context.getString(R.string.label_add_node)
-    is IvIndexContentKey -> context.getString(R.string.label_iv_index)
+    is DeveloperSettingsContentKey -> if (isCompactWidth)
+        context.getString(R.string.label_developer_settings)
+    else context.getString(R.string.label_settings)
+
     else -> context.getString(R.string.label_unknown)
 }

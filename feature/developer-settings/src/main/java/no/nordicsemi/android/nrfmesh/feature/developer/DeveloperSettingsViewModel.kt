@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
 import javax.inject.Inject
@@ -30,6 +31,18 @@ class DeveloperSettingsViewModel @Inject constructor(
                 state.copy(settings = it)
             }
         }.launchIn(scope = viewModelScope)
+    }
+
+    fun onQuickProvisioningEnabled(flag: Boolean) {
+        viewModelScope.launch {
+            repository.toggleQuickProvisioning(flag = flag)
+        }
+    }
+
+    fun onAlwaysReconfigure(flag: Boolean) {
+        viewModelScope.launch {
+            repository.toggleAlwaysReconfigure(flag = flag)
+        }
     }
 }
 
