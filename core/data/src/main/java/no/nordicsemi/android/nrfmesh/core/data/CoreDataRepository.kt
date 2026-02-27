@@ -74,6 +74,7 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.io.BufferedReader
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -382,6 +383,18 @@ class CoreDataRepository @Inject constructor(
      */
     fun save() {
         ioScope.launch { meshNetworkManager.save() }
+    }
+
+    suspend fun toggleQuickProvisioning(flag: Boolean): Unit = withContext(context = ioDispatcher) {
+        preferences.edit { preferences ->
+            preferences[PreferenceKeys.QUICK_PROVISIONING] = flag
+        }
+    }
+
+    suspend fun toggleAlwaysReconfigure(flag: Boolean): Unit = withContext(context = ioDispatcher) {
+        preferences.edit { preferences ->
+            preferences[PreferenceKeys.ALWAYS_RECONFIGURE] = flag
+        }
     }
 
     /**
