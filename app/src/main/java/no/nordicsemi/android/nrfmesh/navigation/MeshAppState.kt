@@ -52,13 +52,13 @@ class MeshAppState(
             is NetworkKeysContentKey,
             is ApplicationKeysContentKey,
             is ScenesContentKey,
+            is IvIndexContentKey,
                 -> isCompactWidth
 
             is ProvisionerContentKey,
             is NetworkKeyContentKey,
             is ApplicationKeyContentKey,
             is SceneContentKey,
-            is IvIndexContentKey,
             is GroupKey,
             is NodeKey,
             is ConfigNetKeysKey,
