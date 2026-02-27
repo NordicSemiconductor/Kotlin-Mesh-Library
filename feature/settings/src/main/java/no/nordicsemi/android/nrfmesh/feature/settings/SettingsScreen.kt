@@ -283,8 +283,7 @@ private fun LastModifiedTimeRow(timestamp: Instant) {
 private fun DeveloperSettingsRow(onDeveloperSettingsPressed: () -> Unit) {
     ElevatedCardItem(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+            .padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.DeveloperMode,
         title = stringResource(R.string.label_developer_settings),
         onClick = onDeveloperSettingsPressed
