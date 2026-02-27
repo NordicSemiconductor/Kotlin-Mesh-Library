@@ -114,7 +114,7 @@ private fun IvIndex(
 
     if (showIvIndexDialog) {
         MeshAlertDialog(
-            onDismissRequest = { showIvIndexDialog = false },
+            onDismissRequest = { showIvIndexDialog = !showIvIndexDialog },
             onConfirmClick = {
                 if(ivIndexValue.text.isBlank()){
                     isError = true
@@ -126,9 +126,9 @@ private fun IvIndex(
                             ivIndexUpdateState
                         )
                     }.onSuccess {
-                        showIvIndexDialog = false
+                        showIvIndexDialog = !showIvIndexDialog
                     }.onFailure {
-                        isError = true
+                        isError = !isError
                         errorMessage = if (it is IvIndexTooSmall) {
                             context.getString(R.string.label_iv_index_too_small_error)
                         } else {
@@ -137,7 +137,7 @@ private fun IvIndex(
                     }
                 }
             },
-            onDismissClick = { showIvIndexDialog = false },
+            onDismissClick = { showIvIndexDialog = !showIvIndexDialog },
             icon = Icons.Outlined.FormatListNumbered,
             iconColor = AlertDialogDefaults.iconContentColor,
             title = stringResource(R.string.label_change_iv_index),
