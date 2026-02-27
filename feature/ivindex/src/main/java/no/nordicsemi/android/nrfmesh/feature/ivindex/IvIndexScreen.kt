@@ -79,7 +79,7 @@ private fun IvIndex(
     onIvIndexChanged: (UInt, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
-    var showIvIndexDialog by remember { mutableStateOf(false) }
+    var showIvIndexDialog by rememberSaveable { mutableStateOf(false) }
     var ivIndexValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(
