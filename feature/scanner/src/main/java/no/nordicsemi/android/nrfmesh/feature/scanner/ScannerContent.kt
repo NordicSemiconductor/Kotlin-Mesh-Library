@@ -1,6 +1,6 @@
 package no.nordicsemi.android.nrfmesh.feature.scanner
 
- import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.WavingHand
@@ -44,17 +44,16 @@ fun ScannerContent(
                     runCatching {
                         UnprovisionedDevice
                             .from(advertisementData = scanResult.advertisingData.raw)
-                            .let { device ->
-                                DeviceListItem(
-                                    iconPainter = rememberVectorPainter(Icons.Outlined.Bluetooth),
-                                    title = when {
-                                        scanResult.advertisingData.name.isNullOrEmpty() -> device.name
-                                        else -> scanResult.advertisingData.name
-                                            ?: stringResource(R.string.label_unknown_device)
-                                    },
-                                    subtitle = device.uuid.toString().uppercase()
-                                )
-                            }
+                    }.onSuccess { device ->
+                        DeviceListItem(
+                            iconPainter = rememberVectorPainter(Icons.Outlined.Bluetooth),
+                            title = when {
+                                scanResult.advertisingData.name.isNullOrEmpty() -> device.name
+                                else -> scanResult.advertisingData.name
+                                    ?: stringResource(R.string.label_unknown_device)
+                            },
+                            subtitle = device.uuid.toString().uppercase()
+                        )
                     }
                 }
 
@@ -74,15 +73,16 @@ fun ScannerContent(
                                     )
                                 )
                             } ?: run {
-                                networkIdentity()?.matches(networkKeys = networkKeys)?.let { netKey ->
-                                    DeviceListItem(
-                                        iconPainter = painterResource(drawable.ic_mesh),
-                                        title = scanResult.advertisingData.name
-                                            ?: scanResult.peripheral.name
-                                            ?: stringResource(R.string.label_unknown_device),
-                                        subtitle = netKey.name
-                                    )
-                                }
+                                networkIdentity()?.matches(networkKeys = networkKeys)
+                                    ?.let { netKey ->
+                                        DeviceListItem(
+                                            iconPainter = painterResource(drawable.ic_mesh),
+                                            title = scanResult.advertisingData.name
+                                                ?: scanResult.peripheral.name
+                                                ?: stringResource(R.string.label_unknown_device),
+                                            subtitle = netKey.name
+                                        )
+                                    }
                             }
                         }
 
