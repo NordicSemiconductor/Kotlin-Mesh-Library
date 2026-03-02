@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
+import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connecting
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Disconnected
@@ -58,6 +60,7 @@ class ProvisioningViewModel @Inject constructor(
 
     init {
         observeNetwork()
+        observeDeveloperSettings()
     }
 
     /**
@@ -75,6 +78,14 @@ class ProvisioningViewModel @Inject constructor(
                 )
             }
             .launchIn(scope = viewModelScope)
+    }
+
+    private fun observeDeveloperSettings() {
+        repository.developerSettingsStateFlow.onEach {
+            _uiState.update { state ->
+                state.copy(developerSettings = it)
+            }
+        }.launchIn(scope = viewModelScope)
     }
 
     internal fun beginProvisioning(result: ScanResult) {
@@ -294,4 +305,5 @@ internal data class ProvisioningScreenUiState(
     val networkKeys: List<NetworkKey> = emptyList(),
     val nodes: List<Node> = emptyList(),
     val provisionerState: ProvisionerState,
+    val developerSettings: DeveloperSettings = DeveloperSettings(),
 )

@@ -49,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.theme.nordicGreen
+import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
@@ -159,18 +160,7 @@ private fun ProvisionerContent(
                 MeshOutlinedButton(
                     modifier = Modifier.padding(end = 16.dp),
                     enabled = uiState.provisionerState is ProvisionerState.Provisioning,
-                    onClick = {
-                        runCatching { showAuthenticationDialog = true }
-                            .onFailure {
-                                scope.launch {
-
-                                    snackbarHostState.showSnackbar(
-                                        message = it.message
-                                            ?: context.getString(R.string.label_unknown_error)
-                                    )
-                                }
-                            }
-                    },
+                    onClick = { showAuthenticationDialog = !showAuthenticationDialog },
                     buttonIcon = Icons.Outlined.SyncLock,
                     buttonIconTint = nordicGreen,
                     text = stringResource(id = R.string.label_provision),
@@ -192,6 +182,7 @@ private fun ProvisionerContent(
                     provisionerState = uiState.provisionerState,
                     networkKeys = uiState.networkKeys,
                     snackbarHostState = snackbarHostState,
+                    developerSettings = uiState.developerSettings,
                     showAuthenticationDialog = showAuthenticationDialog,
                     onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
                     onNameChanged = onNameChanged,
@@ -215,6 +206,7 @@ private fun ProvisioningContent(
     provisionerState: ProvisionerState,
     networkKeys: List<NetworkKey>,
     snackbarHostState: SnackbarHostState,
+    developerSettings: DeveloperSettings,
     showAuthenticationDialog: Boolean,
     onAuthenticationDialogDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -257,6 +249,7 @@ private fun ProvisioningContent(
             networkKeys = networkKeys,
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
+            developerSettings = developerSettings,
             showAuthenticationDialog = showAuthenticationDialog,
             onAuthenticationDialogDismissed = onAuthenticationDialogDismissed,
             onNameChanged = onNameChanged,
@@ -320,6 +313,7 @@ private fun ProvisioningStateInfo(
     networkKeys: List<NetworkKey>,
     unprovisionedDevice: UnprovisionedDevice,
     snackbarHostState: SnackbarHostState,
+    developerSettings: DeveloperSettings,
     showAuthenticationDialog: Boolean,
     onAuthenticationDialogDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
@@ -343,6 +337,7 @@ private fun ProvisioningStateInfo(
             snackbarHostState = snackbarHostState,
             networkKeys = networkKeys,
             unprovisionedDevice = unprovisionedDevice,
+            isQuickProvisioningEnabled = developerSettings.quickProvisioning,
             showAuthenticationDialog = showAuthenticationDialog,
             onAuthenticationDialogDismissed = onAuthenticationDialogDismissed,
             onNameChanged = onNameChanged,
