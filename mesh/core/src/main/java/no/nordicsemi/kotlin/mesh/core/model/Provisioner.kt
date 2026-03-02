@@ -505,7 +505,7 @@ data class Provisioner internal constructor(
      * still retain it's provisioning capabilities.
      */
     fun disableConfigurationCapabilities() {
-        network?.removeNode(uuid)
+        network?.remove(uuid = uuid)
     }
 
     /**
