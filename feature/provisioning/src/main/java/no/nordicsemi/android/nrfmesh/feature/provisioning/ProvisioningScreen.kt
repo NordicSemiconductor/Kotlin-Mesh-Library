@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -121,12 +120,11 @@ private fun ProvisionerContent(
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var openDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
     val capabilitiesSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showAuthenticationDialog by remember { mutableStateOf(false) }
+    var showAuthenticationBottomSheet by rememberSaveable { mutableStateOf(false) }
     ScannerContent(
         nodes = uiState.nodes,
         networkKeys = uiState.networkKeys,
@@ -160,7 +158,7 @@ private fun ProvisionerContent(
                 MeshOutlinedButton(
                     modifier = Modifier.padding(end = 16.dp),
                     enabled = uiState.provisionerState is ProvisionerState.Provisioning,
-                    onClick = { showAuthenticationDialog = !showAuthenticationDialog },
+                    onClick = { showAuthenticationBottomSheet = !showAuthenticationBottomSheet },
                     buttonIcon = Icons.Outlined.SyncLock,
                     buttonIconTint = nordicGreen,
                     text = stringResource(id = R.string.label_provision),
@@ -183,8 +181,8 @@ private fun ProvisionerContent(
                     networkKeys = uiState.networkKeys,
                     snackbarHostState = snackbarHostState,
                     developerSettings = uiState.developerSettings,
-                    showAuthenticationDialog = showAuthenticationDialog,
-                    onAuthenticationDialogDismissed = { showAuthenticationDialog = false },
+                    showAuthenticationBottomSheet = showAuthenticationBottomSheet,
+                    onAuthenticationBottomSheetDismissed = { showAuthenticationBottomSheet = false },
                     onNameChanged = onNameChanged,
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
@@ -207,8 +205,8 @@ private fun ProvisioningContent(
     networkKeys: List<NetworkKey>,
     snackbarHostState: SnackbarHostState,
     developerSettings: DeveloperSettings,
-    showAuthenticationDialog: Boolean,
-    onAuthenticationDialogDismissed: (Boolean) -> Unit,
+    showAuthenticationBottomSheet: Boolean,
+    onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -250,8 +248,8 @@ private fun ProvisioningContent(
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
             developerSettings = developerSettings,
-            showAuthenticationDialog = showAuthenticationDialog,
-            onAuthenticationDialogDismissed = onAuthenticationDialogDismissed,
+            showAuthenticationBottomSheet = showAuthenticationBottomSheet,
+            onAuthenticationBottomSheetDismissed = onAuthenticationBottomSheetDismissed,
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
@@ -314,8 +312,8 @@ private fun ProvisioningStateInfo(
     unprovisionedDevice: UnprovisionedDevice,
     snackbarHostState: SnackbarHostState,
     developerSettings: DeveloperSettings,
-    showAuthenticationDialog: Boolean,
-    onAuthenticationDialogDismissed: (Boolean) -> Unit,
+    showAuthenticationBottomSheet: Boolean,
+    onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -338,8 +336,8 @@ private fun ProvisioningStateInfo(
             networkKeys = networkKeys,
             unprovisionedDevice = unprovisionedDevice,
             isQuickProvisioningEnabled = developerSettings.quickProvisioning,
-            showAuthenticationDialog = showAuthenticationDialog,
-            onAuthenticationDialogDismissed = onAuthenticationDialogDismissed,
+            showAuthenticationBottomSheet = showAuthenticationBottomSheet,
+            onAuthenticationBottomSheetDismissed = onAuthenticationBottomSheetDismissed,
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
