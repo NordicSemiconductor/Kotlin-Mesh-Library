@@ -70,6 +70,7 @@ internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
     snackbarHostState: SnackbarHostState,
     unprovisionedDevice: UnprovisionedDevice,
+    isQuickProvisioningEnabled: Boolean,
     networkKeys: List<NetworkKey>,
     showAuthenticationDialog: Boolean,
     onAuthenticationDialogDismissed: (Boolean) -> Unit,
@@ -165,11 +166,15 @@ internal fun DeviceCapabilities(
     }
 
     if (showAuthenticationDialog) {
-        AuthSelectionBottomSheet(
-            capabilities = state.capabilities,
-            onConfirmClicked = { onAuthenticationMethodSelected(it) },
-            onDismissRequest = { onAuthenticationDialogDismissed(false) },
-        )
+        if (isQuickProvisioningEnabled && state.capabilities.supportedAuthMethods.contains(AuthenticationMethod.NoOob)) {
+            onAuthenticationMethodSelected(AuthenticationMethod.NoOob)
+        } else {
+            AuthSelectionBottomSheet(
+                capabilities = state.capabilities,
+                onConfirmClicked = { onAuthenticationMethodSelected(it) },
+                onDismissRequest = { onAuthenticationDialogDismissed(false) },
+            )
+        }
     }
 }
 
