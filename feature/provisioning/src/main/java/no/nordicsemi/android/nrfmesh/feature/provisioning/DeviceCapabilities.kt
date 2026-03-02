@@ -72,8 +72,8 @@ internal fun DeviceCapabilities(
     unprovisionedDevice: UnprovisionedDevice,
     isQuickProvisioningEnabled: Boolean,
     networkKeys: List<NetworkKey>,
-    showAuthenticationDialog: Boolean,
-    onAuthenticationDialogDismissed: (Boolean) -> Unit,
+    showAuthenticationBottomSheet: Boolean,
+    onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
     isValidAddress: (UShort) -> Boolean,
@@ -165,14 +165,14 @@ internal fun DeviceCapabilities(
         Spacer(modifier = Modifier.size(size = 16.dp))
     }
 
-    if (showAuthenticationDialog) {
+    if (showAuthenticationBottomSheet) {
         if (isQuickProvisioningEnabled && state.capabilities.supportedAuthMethods.contains(AuthenticationMethod.NoOob)) {
             onAuthenticationMethodSelected(AuthenticationMethod.NoOob)
         } else {
             AuthSelectionBottomSheet(
                 capabilities = state.capabilities,
                 onConfirmClicked = { onAuthenticationMethodSelected(it) },
-                onDismissRequest = { onAuthenticationDialogDismissed(false) },
+                onDismissRequest = { onAuthenticationBottomSheetDismissed(false) },
             )
         }
     }

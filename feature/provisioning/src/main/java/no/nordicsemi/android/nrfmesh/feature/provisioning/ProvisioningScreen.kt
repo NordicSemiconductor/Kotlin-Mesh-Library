@@ -56,7 +56,6 @@ import no.nordicsemi.android.common.scanner.view.DeviceListItem
 import no.nordicsemi.android.common.scanner.view.ScannerView
 import no.nordicsemi.android.common.theme.nordicGreen
 import no.nordicsemi.android.common.theme.nordicSun
-import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
