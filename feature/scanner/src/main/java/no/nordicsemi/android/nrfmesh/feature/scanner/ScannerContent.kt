@@ -25,7 +25,6 @@ import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 import kotlin.uuid.ExperimentalUuidApi
 
-
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ScannerContent(
