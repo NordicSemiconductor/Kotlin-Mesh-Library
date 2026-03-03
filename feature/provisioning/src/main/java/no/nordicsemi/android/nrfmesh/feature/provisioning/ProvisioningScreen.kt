@@ -129,13 +129,7 @@ private fun ProvisionerContent(
     var openDeviceCapabilitiesSheet by rememberSaveable { mutableStateOf(false) }
     val capabilitiesSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showAuthenticationBottomSheet by rememberSaveable { mutableStateOf(false) }
-    ScannerContent(
-        nodes = uiState.nodes,
-        networkKeys = uiState.networkKeys,
-        service = MeshProvisioningService,
-        onScanResultSelected = {
-            beginProvisioning(it)
-            openDeviceCapabilitiesSheet = true
+    var showReprovisionDialog by rememberSaveable { mutableStateOf(false) }
     ScannerView(
         modifier = Modifier.padding(horizontal = 16.dp),
         state = rememberFilterState(filter = { ServiceUuid(uuid = MeshProvisioningService.uuid) }),
