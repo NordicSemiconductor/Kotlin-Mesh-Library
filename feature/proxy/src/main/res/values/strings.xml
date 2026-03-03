@@ -22,4 +22,5 @@
     <string name="label_elements">Elements</string>
     <string name="label_groups">Groups</string>
     <string name="label_fixed_group_addresses">Fixed Groups</string>
+    <string name="label_unknown_device">Unknown Device</string>
 </resources>

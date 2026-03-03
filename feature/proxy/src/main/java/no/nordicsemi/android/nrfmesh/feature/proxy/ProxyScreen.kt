@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,11 +53,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.common.permissions.ble.RequireBluetooth
 import no.nordicsemi.android.common.permissions.ble.RequireLocation
+import no.nordicsemi.android.common.scanner.R.drawable
+import no.nordicsemi.android.common.scanner.rememberFilterState
+import no.nordicsemi.android.common.scanner.view.DeviceListItem
+import no.nordicsemi.android.common.scanner.view.ScannerView
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
@@ -68,7 +75,6 @@ import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.MeshTwoLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
-import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProxyService
 import no.nordicsemi.kotlin.mesh.core.ProxyFilterType
@@ -87,6 +93,9 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.element
 import no.nordicsemi.kotlin.mesh.core.model.fixedGroupAddresses
+import no.nordicsemi.kotlin.mesh.core.util.networkIdentity
+import no.nordicsemi.kotlin.mesh.core.util.nodeIdentity
+import kotlin.uuid.ExperimentalUuidApi
 
 @Composable
 internal fun ProxyScreen(
@@ -170,7 +179,7 @@ private fun ProxyContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
 @Composable
 private fun ProxyFilterInfo(
     nodes: List<Node>,
@@ -199,10 +208,39 @@ private fun ProxyFilterInfo(
                 title = stringResource(R.string.label_proxies),
                 style = MaterialTheme.typography.titleMedium,
             )
-            ScannerContent(
-                nodes = nodes,
-                networkKeys = networkKeys,
-                service = MeshProxyService,
+            ScannerView(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                state = rememberFilterState(filter = { ServiceUuid(uuid = MeshProxyService.uuid) }),
+                onScanningStateChanged = {},
+                deviceItem = { scanResult ->
+                    scanResult.advertisingData.serviceData[MeshProxyService.uuid]
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.run {
+                            nodeIdentity()?.matches(nodes = nodes)?.let {
+                                DeviceListItem(
+                                    iconPainter = rememberVectorPainter(Icons.Outlined.WavingHand),
+                                    title = it.name,
+                                    subtitle = it.primaryUnicastAddress.address.toHexString(
+                                        format = HexFormat {
+                                            number.prefix = "Address: 0x"
+                                            upperCase = true
+                                        }
+                                    )
+                                )
+                            } ?: run {
+                                networkIdentity()?.matches(networkKeys = networkKeys)
+                                    ?.let { netKey ->
+                                        DeviceListItem(
+                                            iconPainter = painterResource(drawable.ic_mesh),
+                                            title = scanResult.advertisingData.name
+                                                ?: scanResult.peripheral.name
+                                                ?: stringResource(R.string.label_unknown_device),
+                                            subtitle = netKey.name
+                                        )
+                                    }
+                            }
+                        }
+                },
                 onScanResultSelected = { result ->
                     onScanResultSelected(result)
                     scope.launch {
