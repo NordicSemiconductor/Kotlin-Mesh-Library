@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:scanner"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:bearer-gatt"))
 }
