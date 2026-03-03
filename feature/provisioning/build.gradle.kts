@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:scanner"))
     implementation(project(":mesh:core"))
     implementation(project(":mesh:provisioning"))
     implementation(project(":mesh:bearer-pbgatt"))
