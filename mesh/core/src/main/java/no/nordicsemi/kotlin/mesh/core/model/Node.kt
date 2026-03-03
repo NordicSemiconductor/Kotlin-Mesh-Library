@@ -258,7 +258,7 @@ data class Node internal constructor(
         provisioner = provisioner,
         unicastAddress = unicastAddress,
         deviceKey = Crypto.generateRandomKey(),
-        elements = emptyList<Element>(),
+        elements = emptyList(),
         netKeys = emptyList<NetworkKey>(),
         appKeys = emptyList<ApplicationKey>(),
     )
@@ -480,7 +480,7 @@ data class Node internal constructor(
     /**
      * Sets the given list of Network Keys to the Node.
      *
-     * Note: This is overwrite any existing keys.
+     * Note: This is over write any existing keys.
      * @param keys List of Network Keys to set.
      */
     internal fun assignNetKeys(keys: List<NetworkKey>) {
@@ -491,7 +491,7 @@ data class Node internal constructor(
     /**
      * Sets the given list of Network Keys to the Node.
      *
-     * Note: This is overwrite any existing keys.
+     * Note: This is over write any existing keys.
      * @param keys List of Network Keys to set.
      */
     internal fun assignNetKeyIndexes(keys: List<KeyIndex>) {
@@ -598,7 +598,7 @@ data class Node internal constructor(
     /**
      * Sets the given list of Application Keys to the Node.
      *
-     * Note: This is overwrite any existing keys.
+     * Note: This is over write any existing keys.
      * @param keys List of Application Keys to set.
      */
     internal fun assignAppKeys(keys: List<ApplicationKey>) {
@@ -609,7 +609,7 @@ data class Node internal constructor(
     /**
      * Sets the given list of Application Keys to the Node.
      *
-     * Note: This is overwrite any existing keys.
+     * Note: This overwrites any existing keys.
      * @param keys List of Application Keys to set.
      */
     internal fun assignAppKeyIndexes(keys: List<KeyIndex>) {
