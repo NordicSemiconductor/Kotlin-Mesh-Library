@@ -44,9 +44,13 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.scanner.rememberFilterState
+import no.nordicsemi.android.common.scanner.view.DeviceListItem
+import no.nordicsemi.android.common.scanner.view.ScannerView
 import no.nordicsemi.android.common.theme.nordicGreen
 import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -132,6 +136,32 @@ private fun ProvisionerContent(
         onScanResultSelected = {
             beginProvisioning(it)
             openDeviceCapabilitiesSheet = true
+    ScannerView(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        state = rememberFilterState(filter = { ServiceUuid(uuid = MeshProvisioningService.uuid) }),
+        onScanningStateChanged = {},
+        deviceItem = { scanResult ->
+            runCatching {
+                UnprovisionedDevice.from(advertisementData = scanResult.advertisingData.raw)
+            }.onSuccess { device ->
+                DeviceListItem(
+                    iconPainter = rememberVectorPainter(Icons.Outlined.Bluetooth),
+                    title = when {
+                        scanResult.advertisingData.name.isNullOrEmpty() -> device.name
+                        else -> scanResult.advertisingData.name
+                            ?: stringResource(R.string.label_unknown_device)
+                    },
+                    subtitle = device.uuid.toString().uppercase()
+                )
+            }
+        },
+        onScanResultSelected = { scanResult ->
+            if (isDeviceAlreadyProvisioned(scanResult)) {
+                showReprovisionDialog = true
+            } else {
+                beginProvisioning()
+                openDeviceCapabilitiesSheet = true
+            }
         }
     )
     if (openDeviceCapabilitiesSheet) {
