@@ -252,17 +252,24 @@ class ProvisioningManager(
 
             awaitComplete().also {
                 emit(value = ProvisioningState.Complete)
-                meshNetwork.add(
-                    node = Node(
-                        name = unprovisionedDevice.name,
-                        uuid = unprovisionedDevice.uuid,
-                        deviceKey = provisioningData.deviceKey,
-                        unicastAddress = configuration.unicastAddress!!,
-                        elementCount = capabilities.numberOfElements,
-                        assignedNetworkKey = configuration.networkKey,
-                        security = provisioningData.security
-                    )
+                // If the node was reprovisioned we need to remove it from the network and add it
+                // again.
+                // In version 0.9.1 and before the behavior of reprovisioning node was as follows
+                // - If the same node was reprovisioned, the library threw an error after
+                //   provisioning was complete without adding it to the network
+                // However, post 0.9.1 the library was explicitly remove any existing nodes upon
+                // reprovisioning and adds the new node to the network.
+                val node = Node(
+                    name = unprovisionedDevice.name,
+                    uuid = unprovisionedDevice.uuid,
+                    deviceKey = provisioningData.deviceKey,
+                    unicastAddress = configuration.unicastAddress!!,
+                    elementCount = capabilities.numberOfElements,
+                    assignedNetworkKey = configuration.networkKey,
+                    security = provisioningData.security
                 )
+                meshNetwork.remove(uuid = node.uuid)
+                meshNetwork.add(node = node)
             }
 
         } catch (error: RemoteError) {

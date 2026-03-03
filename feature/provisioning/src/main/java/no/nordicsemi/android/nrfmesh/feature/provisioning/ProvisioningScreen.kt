@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bluetooth
+import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.SyncLock
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Error
@@ -31,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,15 +55,13 @@ import no.nordicsemi.android.common.scanner.rememberFilterState
 import no.nordicsemi.android.common.scanner.view.DeviceListItem
 import no.nordicsemi.android.common.scanner.view.ScannerView
 import no.nordicsemi.android.common.theme.nordicGreen
-import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
+import no.nordicsemi.android.common.theme.nordicSun
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
-import no.nordicsemi.android.nrfmesh.feature.scanner.ScannerContent
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
-import no.nordicsemi.kotlin.mesh.core.exception.NodeAlreadyExists
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
@@ -74,9 +75,9 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun ProvisioningScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (ScanResult) -> Unit,
+    beginProvisioning: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
@@ -84,6 +85,7 @@ internal fun ProvisioningScreen(
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
+    isDeviceAlreadyProvisioned: (ScanResult) -> Boolean,
 ) {
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
@@ -105,7 +107,8 @@ internal fun ProvisioningScreen(
         authenticate = authenticate,
         onProvisioningComplete = onProvisioningComplete,
         onProvisioningFailed = onProvisioningFailed,
-        disconnect = disconnect
+        disconnect = disconnect,
+        isDeviceAlreadyProvisioned = isDeviceAlreadyProvisioned
     )
 }
 
@@ -113,9 +116,9 @@ internal fun ProvisioningScreen(
 @Composable
 private fun ProvisionerContent(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (ScanResult) -> Unit,
+    beginProvisioning: () -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
@@ -123,6 +126,7 @@ private fun ProvisionerContent(
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
+    isDeviceAlreadyProvisioned: (ScanResult) -> Boolean,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -150,7 +154,7 @@ private fun ProvisionerContent(
             }
         },
         onScanResultSelected = { scanResult ->
-            if (isDeviceAlreadyProvisioned(scanResult)) {
+            if (isDeviceAlreadyProvisioned(scanResult) && !uiState.developerSettings.quickProvisioning) {
                 showReprovisionDialog = true
             } else {
                 beginProvisioning()
@@ -158,11 +162,58 @@ private fun ProvisionerContent(
             }
         }
     )
+    if (showReprovisionDialog) {
+        MeshAlertDialog(
+            icon = Icons.Outlined.GroupWork,
+            iconColor = nordicSun,
+            title = stringResource(R.string.label_warning),
+            text = stringResource(R.string.label_warning_provisioning_rationale),
+            onDismissRequest = { showReprovisionDialog = !showReprovisionDialog },
+            content = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(
+                        onClick = {
+                            // TODO()
+                            // beginProvisioning()
+                            // showReprovisionDialog = !showReprovisionDialog
+                            // openDeviceCapabilitiesSheet = true
+                        },
+                        content = { Text(text = stringResource(R.string.label_reprovision_configure)) }
+                    )
+                    Row(
+                        modifier = Modifier
+                            .weight(weight = 1f),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = {
+                                showReprovisionDialog = !showReprovisionDialog
+                            },
+                            content = { Text(text = stringResource(R.string.label_cancel)) }
+                        )
+                        TextButton(
+                            onClick = {
+                                beginProvisioning()
+                                showReprovisionDialog = !showReprovisionDialog
+                                openDeviceCapabilitiesSheet = true
+                            },
+                            content = { Text(text = stringResource(R.string.label_reprovision)) }
+                        )
+                    }
+                }
+            }
+        )
+    }
     if (openDeviceCapabilitiesSheet) {
         ModalBottomSheet(
             onDismissRequest = {
                 disconnect()
-                openDeviceCapabilitiesSheet = false
+                openDeviceCapabilitiesSheet = !openDeviceCapabilitiesSheet
             },
             sheetState = capabilitiesSheetState,
             contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Top) }
@@ -181,7 +232,7 @@ private fun ProvisionerContent(
                 )
                 MeshOutlinedButton(
                     modifier = Modifier.padding(end = 16.dp),
-                    enabled = uiState.provisionerState is ProvisionerState.Provisioning,
+                    enabled = uiState.provisionerState is ProvisionerState.Provisioning && !uiState.developerSettings.quickProvisioning,
                     onClick = { showAuthenticationBottomSheet = !showAuthenticationBottomSheet },
                     buttonIcon = Icons.Outlined.SyncLock,
                     buttonIconTint = nordicGreen,
@@ -196,7 +247,7 @@ private fun ProvisionerContent(
                     .padding(vertical = 16.dp)
                     .verticalScroll(state = rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(
-                    8.dp,
+                    space = 8.dp,
                     alignment = Alignment.CenterVertically
                 )
             ) {
@@ -204,9 +255,10 @@ private fun ProvisionerContent(
                     provisionerState = uiState.provisionerState,
                     networkKeys = uiState.networkKeys,
                     snackbarHostState = snackbarHostState,
-                    developerSettings = uiState.developerSettings,
                     showAuthenticationBottomSheet = showAuthenticationBottomSheet,
-                    onAuthenticationBottomSheetDismissed = { showAuthenticationBottomSheet = false },
+                    onAuthenticationBottomSheetDismissed = {
+                        showAuthenticationBottomSheet = false
+                    },
                     onNameChanged = onNameChanged,
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
@@ -228,11 +280,10 @@ private fun ProvisioningContent(
     provisionerState: ProvisionerState,
     networkKeys: List<NetworkKey>,
     snackbarHostState: SnackbarHostState,
-    developerSettings: DeveloperSettings,
     showAuthenticationBottomSheet: Boolean,
     onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClick: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
@@ -241,9 +292,6 @@ private fun ProvisioningContent(
     onProvisioningFailed: () -> Unit,
     dismissCapabilitiesSheet: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
-
     when (provisionerState) {
         is ProvisionerState.Connecting -> ProvisionerStateInfo(
             text = stringResource(
@@ -271,7 +319,6 @@ private fun ProvisioningContent(
             networkKeys = networkKeys,
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
-            developerSettings = developerSettings,
             showAuthenticationBottomSheet = showAuthenticationBottomSheet,
             onAuthenticationBottomSheetDismissed = onAuthenticationBottomSheetDismissed,
             onNameChanged = onNameChanged,
@@ -281,7 +328,7 @@ private fun ProvisioningContent(
             authenticate = authenticate,
             onProvisioningComplete = onProvisioningComplete,
             onProvisioningFailed = onProvisioningFailed,
-            onInputComplete = { scope.launch { sheetState.hide() } },
+            onInputComplete = { },
             onAuthenticationMethodSelected = onAuthenticationMethodSelected,
             dismissCapabilitiesSheet = dismissCapabilitiesSheet
         )
@@ -304,13 +351,7 @@ private fun ProvisioningContent(
                     icon = Icons.Rounded.ErrorOutline,
                     iconColor = MaterialTheme.colorScheme.error,
                     title = stringResource(R.string.label_status),
-                    text = when (provisionerState.throwable) {
-                        is NodeAlreadyExists -> stringResource(
-                            id = R.string.label_provisioning_completed_node_already_exists
-                        )
-
-                        else -> provisionerState.throwable.toString()
-                    }
+                    text = provisionerState.throwable.toString()
                 )
             }
         }
@@ -335,11 +376,10 @@ private fun ProvisioningStateInfo(
     networkKeys: List<NetworkKey>,
     unprovisionedDevice: UnprovisionedDevice,
     snackbarHostState: SnackbarHostState,
-    developerSettings: DeveloperSettings,
     showAuthenticationBottomSheet: Boolean,
     onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
@@ -359,7 +399,6 @@ private fun ProvisioningStateInfo(
             snackbarHostState = snackbarHostState,
             networkKeys = networkKeys,
             unprovisionedDevice = unprovisionedDevice,
-            isQuickProvisioningEnabled = developerSettings.quickProvisioning,
             showAuthenticationBottomSheet = showAuthenticationBottomSheet,
             onAuthenticationBottomSheetDismissed = onAuthenticationBottomSheetDismissed,
             onNameChanged = onNameChanged,
@@ -385,9 +424,7 @@ private fun ProvisioningStateInfo(
         }
 
         ProvisioningState.InputComplete -> {
-            ProvisionerStateInfo(
-                text = stringResource(R.string.label_provisioning_authentication_completed)
-            )
+            ProvisionerStateInfo(text = stringResource(R.string.label_provisioning_authentication_completed))
             onInputComplete()
         }
 

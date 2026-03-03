@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(nordic.permissions.ble)
+    implementation(nordic.scanner.ble)
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

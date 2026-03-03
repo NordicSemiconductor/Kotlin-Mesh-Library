@@ -64,18 +64,16 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
-
 @Composable
 internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
     snackbarHostState: SnackbarHostState,
     unprovisionedDevice: UnprovisionedDevice,
-    isQuickProvisioningEnabled: Boolean,
     networkKeys: List<NetworkKey>,
     showAuthenticationBottomSheet: Boolean,
     onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
@@ -166,15 +164,11 @@ internal fun DeviceCapabilities(
     }
 
     if (showAuthenticationBottomSheet) {
-        if (isQuickProvisioningEnabled && state.capabilities.supportedAuthMethods.contains(AuthenticationMethod.NoOob)) {
-            onAuthenticationMethodSelected(AuthenticationMethod.NoOob)
-        } else {
-            AuthSelectionBottomSheet(
-                capabilities = state.capabilities,
-                onConfirmClicked = { onAuthenticationMethodSelected(it) },
-                onDismissRequest = { onAuthenticationBottomSheetDismissed(false) },
-            )
-        }
+        AuthSelectionBottomSheet(
+            capabilities = state.capabilities,
+            onConfirmClicked = { onAuthenticationMethodSelected(it) },
+            onDismissRequest = { onAuthenticationBottomSheetDismissed(false) },
+        )
     }
 }
 
@@ -205,7 +199,7 @@ private fun UnicastAddressRow(
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address = UnicastAddress(1u).address,
-    onAddressChanged: (Int) -> Result<Boolean>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,
