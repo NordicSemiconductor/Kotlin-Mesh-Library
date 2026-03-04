@@ -45,6 +45,7 @@ include(":feature:provisioners")
 include(":feature:provisioning")
 include(":feature:scenes")
 include(":feature:ivindex")
+include(":feature:developer-settings")
 
 include(":mesh:core")
 include(":mesh:crypto")
@@ -67,4 +68,3 @@ include(":mesh:bearer-gatt")
 // if (file("../Kotlin-BLE-Library").exists()) {
 //     includeBuild("../Kotlin-BLE-Library")
 // }
-include(":feature:developer-settings")
