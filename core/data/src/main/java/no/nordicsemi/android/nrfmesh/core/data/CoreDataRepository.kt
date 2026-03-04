@@ -204,13 +204,13 @@ class CoreDataRepository @Inject constructor(
                 )
             }
 
-            for (group in 0 until configuration.groups!!) {
+            for (group in 0 until configuration.groups) {
                 val groupAddress = meshNetwork.nextAvailableGroup(
                     provisioner = meshNetwork.provisioners.first()
                 ) ?: continue
                 meshNetwork.add(group = Group(_name = "Group ${group + 1}", address = groupAddress))
             }
-            val groupSize = meshNetwork.groups.size + (configuration.virtualGroups ?: 0)
+            val groupSize = meshNetwork.groups.size + configuration.virtualGroups
             for (index in meshNetwork.groups.size until groupSize) {
                 meshNetwork.add(
                     group = Group(
@@ -220,7 +220,7 @@ class CoreDataRepository @Inject constructor(
                 )
             }
 
-            for (scene in 0 until configuration.scenes!!) {
+            for (scene in 0 until configuration.scenes) {
                 val sceneAddress = meshNetwork.nextAvailableScene(
                     provisioner = meshNetwork.provisioners.first()
                 ) ?: continue
