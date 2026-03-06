@@ -2,6 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,12 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Numbers
@@ -26,10 +29,13 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -42,7 +48,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
@@ -50,9 +60,12 @@ import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
 import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedButton
+import no.nordicsemi.android.nrfmesh.core.ui.MeshOutlinedTextField
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.nodes.R
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlSet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxyGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigGattProxySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
@@ -415,6 +428,19 @@ private fun DefaultTtlRow(
     messageState: MessageState,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
+    val context = LocalContext.current
+    var showDefaultTtlDialog by rememberSaveable { mutableStateOf(false) }
+    var ttlInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue(
+                text = ttl?.toInt()?.toString() ?: "127",
+                selection = TextRange((ttl?.toInt()?.toString() ?: "127").length)
+            )
+        )
+    }
+    var isError by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
+
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
@@ -423,21 +449,76 @@ private fun DefaultTtlRow(
         supportingText = stringResource(R.string.label_default_ttl_rationale)
     ) {
         MeshOutlinedButton(
-            onClick = { send(ConfigGattProxyGet()) },
+            onClick = { send(ConfigDefaultTtlGet()) },
             text = stringResource(R.string.label_get_ttl),
             buttonIcon = Icons.Outlined.Download,
             enabled = !messageState.isInProgress(),
             isOnClickActionInProgress = messageState.isInProgress()
-                    && messageState.message is ConfigGattProxyGet
+                    && messageState.message is ConfigDefaultTtlGet
         )
         Spacer(modifier = Modifier.padding(horizontal = 8.dp))
         MeshOutlinedButton(
-            onClick = { send(ConfigGattProxySet(FeatureState.Enabled)) },
+            onClick = { showDefaultTtlDialog = !showDefaultTtlDialog },
             text = stringResource(R.string.label_set_ttl),
             buttonIcon = Icons.Outlined.Upload,
             enabled = !messageState.isInProgress(),
             isOnClickActionInProgress = messageState.isInProgress()
-                    && messageState.message is ConfigGattProxySet
+                    && messageState.message is ConfigDefaultTtlSet
+        )
+    }
+
+    if (showDefaultTtlDialog) {
+        MeshAlertDialog(
+            onDismissRequest = { showDefaultTtlDialog = !showDefaultTtlDialog },
+            onConfirmClick = {
+                if (ttlInput.text.isBlank()) {
+                    isError = !isError
+                    errorMessage = context.getString(R.string.label_default_ttl_empty_error)
+                } else {
+                    showDefaultTtlDialog = !showDefaultTtlDialog
+                    send(ConfigDefaultTtlSet(ttl = ttlInput.text.toUByte()))
+                }
+            },
+            onDismissClick = { showDefaultTtlDialog = !showDefaultTtlDialog },
+            icon = Icons.Outlined.Timer,
+            iconColor = AlertDialogDefaults.iconContentColor,
+            title = stringResource(R.string.label_default_ttl),
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
+                    Text(text = stringResource(R.string.label_default_ttl_definition))
+                    MeshOutlinedTextField(
+                        externalLeadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .padding(end = 8.dp),
+                                imageVector = Icons.Outlined.FormatListNumbered,
+                                contentDescription = null
+                            )
+                        },
+                        value = ttlInput,
+                        onValueChanged = {
+                            ttlInput = it
+                            if(it.text.isNotEmpty()){
+                                isError = false
+                                errorMessage = ""
+                            }
+                        },
+                        label = { Text(text = context.getString(R.string.label_default_ttl)) },
+                        keyboardOptions = KeyboardOptions(
+                            autoCorrectEnabled = false,
+                            keyboardType = KeyboardType.Number
+                        ),
+                        isError = isError,
+                        supportingText = {
+                            if (isError) {
+                                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        regex = Regex("^$|^(0|[1-9]\\d?|1[01]\\d|12[0-7])$")
+                    )
+                }
+            }
         )
     }
 }
@@ -478,16 +559,16 @@ private fun ProxyStateRow(
     }
     if (showProxyStateDialog) {
         MeshAlertDialog(
-            onDismissRequest = { showProxyStateDialog = false },
+            onDismissRequest = { showProxyStateDialog = !showProxyStateDialog },
             icon = Icons.Outlined.Hub,
             title = stringResource(R.string.label_disable_proxy_feature),
             text = stringResource(R.string.label_are_you_sure_rationale),
             iconColor = Color.Red,
             onConfirmClick = {
                 send(ConfigGattProxySet(state = FeatureState.Disabled))
-                showProxyStateDialog = false
+                showProxyStateDialog = !showProxyStateDialog
             },
-            onDismissClick = { showProxyStateDialog = false }
+            onDismissClick = { showProxyStateDialog = !showProxyStateDialog }
         )
     }
 }
