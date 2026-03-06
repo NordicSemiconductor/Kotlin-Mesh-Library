@@ -189,7 +189,7 @@ data class Node internal constructor(
             network?.updateTimestamp()
         }
 
-    var defaultTTL: UByte? = 127u
+    var defaultTTL: UByte? = null
         internal set(value) {
             field = value
             network?.updateTimestamp()

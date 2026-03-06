@@ -28,6 +28,7 @@ import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -106,6 +107,8 @@ internal class NodeViewModel @AssistedInject internal constructor(
             if (it.connectionState is NetworkConnectionState.Connected) {
                 // Add a small delay to ensure proxy filter is set up before sending the message.
                 if (!selectedNode.isCompositionDataReceived) {
+                    delay(timeMillis = 1000)
+                    send(message = ConfigDefaultTtlGet())
                     delay(timeMillis = 1000)
                     onRefresh()
                 }
