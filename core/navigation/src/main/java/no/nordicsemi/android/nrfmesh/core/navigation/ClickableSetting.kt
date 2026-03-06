@@ -12,5 +12,6 @@ enum class ClickableSetting {
     NETWORK_KEYS,
     APPLICATION_KEYS,
     SCENES,
-    IV_INDEX
+    IV_INDEX,
+    DEVELOPER_SETTINGS
 }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import no.nordicsemi.android.nrfmesh.core.common.Configuration
@@ -73,12 +74,15 @@ import no.nordicsemi.kotlin.mesh.logger.Logger
 import java.io.BufferedReader
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 private object PreferenceKeys {
     val PROXY_AUTO_CONNECT = booleanPreferencesKey("proxy_auto_connect")
+    val QUICK_PROVISIONING = booleanPreferencesKey("quick_provisioning")
+    val ALWAYS_RECONFIGURE = booleanPreferencesKey("always_reconfigure")
 }
 
 class CoreDataRepository @Inject constructor(
@@ -90,6 +94,9 @@ class CoreDataRepository @Inject constructor(
 ) : Logger {
     private var _proxyConnectionStateFlow = MutableStateFlow(ProxyConnectionState())
     val proxyConnectionStateFlow = _proxyConnectionStateFlow.asStateFlow()
+
+    private var _developerSettingsStateFlow = MutableStateFlow(value = DeveloperSettings())
+    val developerSettingsStateFlow = _developerSettingsStateFlow.asStateFlow()
 
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
@@ -117,6 +124,7 @@ class CoreDataRepository @Inject constructor(
         observeNetworkChanges()
         // Observe proxy connection state changes
         observerAutomaticProxyConnectionState()
+        observeDeveloperSettingsState()
     }
 
     private fun observeNetworkChanges() {
@@ -133,6 +141,20 @@ class CoreDataRepository @Inject constructor(
             _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                 autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
             )
+        }.launchIn(scope = ioScope)
+    }
+
+    /**
+     * Observe changes to the developer settings.
+     */
+    private fun observeDeveloperSettingsState() {
+        preferences.data.onEach { preferences ->
+            _developerSettingsStateFlow.update { state ->
+                state.copy(
+                    quickProvisioning = preferences[PreferenceKeys.QUICK_PROVISIONING] == true,
+                    alwaysReconfigure = preferences[PreferenceKeys.ALWAYS_RECONFIGURE] == true
+                )
+            }
         }.launchIn(scope = ioScope)
     }
 
@@ -182,13 +204,13 @@ class CoreDataRepository @Inject constructor(
                 )
             }
 
-            for (group in 0 until configuration.groups!!) {
+            for (group in 0 until configuration.groups) {
                 val groupAddress = meshNetwork.nextAvailableGroup(
                     provisioner = meshNetwork.provisioners.first()
                 ) ?: continue
                 meshNetwork.add(group = Group(_name = "Group ${group + 1}", address = groupAddress))
             }
-            val groupSize = meshNetwork.groups.size + (configuration.virtualGroups ?: 0)
+            val groupSize = meshNetwork.groups.size + configuration.virtualGroups
             for (index in meshNetwork.groups.size until groupSize) {
                 meshNetwork.add(
                     group = Group(
@@ -198,7 +220,7 @@ class CoreDataRepository @Inject constructor(
                 )
             }
 
-            for (scene in 0 until configuration.scenes!!) {
+            for (scene in 0 until configuration.scenes) {
                 val sceneAddress = meshNetwork.nextAvailableScene(
                     provisioner = meshNetwork.provisioners.first()
                 ) ?: continue
@@ -363,6 +385,18 @@ class CoreDataRepository @Inject constructor(
         ioScope.launch { meshNetworkManager.save() }
     }
 
+    suspend fun toggleQuickProvisioning(flag: Boolean): Unit = withContext(context = ioDispatcher) {
+        preferences.edit { preferences ->
+            preferences[PreferenceKeys.QUICK_PROVISIONING] = flag
+        }
+    }
+
+    suspend fun toggleAlwaysReconfigure(flag: Boolean): Unit = withContext(context = ioDispatcher) {
+        preferences.edit { preferences ->
+            preferences[PreferenceKeys.ALWAYS_RECONFIGURE] = flag
+        }
+    }
+
     /**
      * Enables or disables automatic connectivity to a proxy node.
      *
@@ -465,7 +499,7 @@ class CoreDataRepository @Inject constructor(
         centralManager
             .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
             .onCompletion {
-                if(it is CancellationException) {
+                if (it is CancellationException) {
                     _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
                         connectionState = NetworkConnectionState.Disconnected
                     )

@@ -415,7 +415,7 @@ data class MeshNetwork internal constructor(
         val provisioner = _provisioners
             .removeAt(index = index)
             .also {
-                removeNode(uuid = it.uuid)
+                remove(uuid = it.uuid)
                 it.network = null
             }
 
@@ -563,7 +563,7 @@ data class MeshNetwork internal constructor(
      * @param provisioner Provisioner of whose configurations are to be disabled.
      */
     fun disableConfigurationCapabilities(provisioner: Provisioner) {
-        removeNode(provisioner.uuid)
+        remove(provisioner.uuid)
     }
 
     /**
@@ -870,7 +870,7 @@ data class MeshNetwork internal constructor(
      * @param node Node to be removed.
      */
     fun remove(node: Node) {
-        removeNode(uuid = node.uuid)
+        remove(uuid = node.uuid)
     }
 
     /**
@@ -878,7 +878,7 @@ data class MeshNetwork internal constructor(
      *
      * @param uuid Uuid of the node to be removed.
      */
-    internal fun removeNode(uuid: Uuid) {
+    fun remove(uuid: Uuid) {
         _nodes
             .find { it.uuid == uuid }
             ?.let { node ->

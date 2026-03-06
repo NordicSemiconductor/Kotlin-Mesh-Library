@@ -21,6 +21,8 @@ import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.core.ui.isCompactWidth
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.applicationKeysEntry
+import no.nordicsemi.android.nrfmesh.feature.developer.navigation.DeveloperSettingsContentKey
+import no.nordicsemi.android.nrfmesh.feature.developer.navigation.developerSettingsEntry
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContentKey
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.ivIndexEntry
 import no.nordicsemi.android.nrfmesh.feature.network.keys.navigation.NetworkKeysContentKey
@@ -87,6 +89,10 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
             navigateToIvIndex = {
                 viewModel.onItemSelected(ClickableSetting.IV_INDEX)
                 navigator.navigate(key = IvIndexContentKey)
+            },
+            navigateToDeveloperSettings = {
+                viewModel.onItemSelected(ClickableSetting.DEVELOPER_SETTINGS)
+                navigator.navigate(key = DeveloperSettingsContentKey)
             }
         )
     }
@@ -95,4 +101,5 @@ fun EntryProviderScope<NavKey>.settingsEntry(appState: AppState, navigator: Navi
     applicationKeysEntry(appState = appState, navigator = navigator)
     scenesEntry(appState = appState, navigator = navigator)
     ivIndexEntry()
+    developerSettingsEntry(appState = appState)
 }
