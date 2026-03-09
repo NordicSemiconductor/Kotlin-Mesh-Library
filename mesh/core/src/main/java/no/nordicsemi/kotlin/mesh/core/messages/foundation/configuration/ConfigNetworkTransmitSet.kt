@@ -4,6 +4,7 @@ import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import kotlin.experimental.and
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -26,6 +27,16 @@ class ConfigNetworkTransmitSet(val count : UByte, val steps: UByte) : Acknowledg
 
     val interval: Duration
         get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
+
+    /**
+     * Convenience constructor
+     *
+     * @param networkTransmit Network Transmit to be set
+     */
+    constructor(networkTransmit: NetworkTransmit) : this(
+        count = networkTransmit.count,
+        steps = networkTransmit.steps
+    )
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigNetworkTransmitSet(opCode: 0x${opCode.toHexString()})"
