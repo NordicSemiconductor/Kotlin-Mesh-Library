@@ -2,6 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages
 
+import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.layers.access.AccessPdu
 
 /**
@@ -35,11 +36,6 @@ class UnknownMessage(
                 number.prefix = "0x"
                 upperCase = true
             }
-        )}, parameters: 0x${parameters.toHexString(
-            format = HexFormat {
-                bytes.bytePrefix = "0x"
-                upperCase = true
-            }
-        )})"
+        )}, parameters: ${parameters.toHexString(prefixOx = true, format = HexFormat.UpperCase)})"
     }
 }
