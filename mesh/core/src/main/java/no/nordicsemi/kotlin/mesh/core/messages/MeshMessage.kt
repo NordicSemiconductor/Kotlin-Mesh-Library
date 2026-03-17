@@ -33,7 +33,7 @@ sealed class MeshMessageSecurity {
         }
 
     /**
-     * Message will be send with 64-bit Transport MIC.
+     * Message will be sent with 64-bit Transport MIC.
      *
      * Note: Unsegmented messages cannot be sent with 64-bit Transport MIC.
      */
@@ -42,7 +42,7 @@ sealed class MeshMessageSecurity {
     }
 
     /**
-     * Message will be send with 32-bit Transport MIC.
+     * Message will be sent with 32-bit Transport MIC.
      */
     object Low : MeshMessageSecurity() {
         override fun toString() = "Low (32-bit TransMIC)"
@@ -128,7 +128,7 @@ interface MeshMessage : BaseMeshMessage, HasOpCode {
 
 
 /**
- * The base interface for unacknowledged unacknowledged messages.
+ * The base interface for unacknowledged messages.
  */
 interface UnacknowledgedMeshMessage : MeshMessage
 
