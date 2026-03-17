@@ -29,6 +29,7 @@ import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.VendorModelIds.LE_PAIRING_INITIATOR
 import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidGattBearer
 import no.nordicsemi.android.nrfmesh.core.data.bearer.AndroidPbGattBearer
+import no.nordicsemi.android.nrfmesh.core.data.configurator.Messengers
 import no.nordicsemi.android.nrfmesh.core.data.meshnetwork.simpleonoff.SimpleOnOffClientHandler
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericDefaultTransitionTimeServer
 import no.nordicsemi.android.nrfmesh.core.data.modeleventhandlers.GenericOnOffClientEventHandler
@@ -97,6 +98,8 @@ class CoreDataRepository @Inject constructor(
 
     private var _developerSettingsStateFlow = MutableStateFlow(value = DeveloperSettings())
     val developerSettingsStateFlow = _developerSettingsStateFlow.asStateFlow()
+
+    val messengers = Messengers(meshNetworkManager = meshNetworkManager)
 
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
@@ -230,7 +233,7 @@ class CoreDataRepository @Inject constructor(
             meshNetwork = it
             onMeshNetworkChanged()
             ioScope.launch {
-                startAutomaticConnectivity(it)
+                startAutomaticConnectivity(meshNetwork = it)
             }
         }
     }

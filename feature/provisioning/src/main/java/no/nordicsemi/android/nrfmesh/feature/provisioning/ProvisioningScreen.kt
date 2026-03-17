@@ -178,6 +178,7 @@ private fun ProvisionerContent(
                 ) {
                     TextButton(
                         onClick = {
+                            beginProvisioning()
                             // TODO()
                             // beginProvisioning()
                             // showReprovisionDialog = !showReprovisionDialog

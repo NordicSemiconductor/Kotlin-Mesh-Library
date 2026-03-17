@@ -1,5 +1,7 @@
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +19,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.di.IoDispatcher
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.DeveloperSettings
+import no.nordicsemi.android.nrfmesh.core.data.configurator.ConfigTask
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connected
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Connecting
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Disconnected
@@ -26,6 +29,7 @@ import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Scann
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -40,6 +44,7 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
@@ -50,6 +55,8 @@ class ProvisioningViewModel @Inject constructor(
     private var provisioningManager: ProvisioningManager? = null
     private var unprovisionedDevice: UnprovisionedDevice? = null
     private var selectedScanResult: ScanResult? = null
+    private var selectedNode: Node? = null
+
 
     private val _uiState = MutableStateFlow(
         value = ProvisioningScreenUiState(provisionerState = Scanning)
@@ -77,7 +84,8 @@ class ProvisioningViewModel @Inject constructor(
                 _uiState.value = ProvisioningScreenUiState(
                     networkKeys = it.networkKeys.toList(),
                     nodes = it.nodes.toList(),
-                    provisionerState = state.provisionerState
+                    provisionerState = state.provisionerState,
+                    developerSettings = state.developerSettings
                 )
             }
             .launchIn(scope = viewModelScope)
@@ -101,7 +109,9 @@ class ProvisioningViewModel @Inject constructor(
     internal fun isDeviceAlreadyProvisioned(scanResult: ScanResult) = try {
         val device = UnprovisionedDevice.from(advertisementData = scanResult.advertisingData.raw)
         selectedScanResult = scanResult
-        meshNetwork?.node(uuid = device.uuid) != null
+        meshNetwork?.node(uuid = device.uuid)?.also {
+            selectedNode = it
+        } != null
     } catch (_: Exception) {
         false
     }
@@ -115,24 +125,23 @@ class ProvisioningViewModel @Inject constructor(
             val device = UnprovisionedDevice
                 .from(advertisementData = scanResult.advertisingData.raw)
                 .also { this@ProvisioningViewModel.unprovisionedDevice = it }
-
-            _uiState.value = _uiState.value.copy(
-                provisionerState = Connecting(unprovisionedDevice = device)
-            )
+            _uiState.update {
+                it.copy(provisionerState = Connecting(unprovisionedDevice = device))
+            }
             val pbGattBearer = repository.connectOverPbGattBearer(device = scanResult.peripheral)
             pbGattBearer.state
                 .takeWhile { it !is BearerEvent.Closed }
                 .onEach {
                     if (it is BearerEvent.Opened) {
-                        _uiState.value = _uiState.value.copy(
-                            provisionerState = Connected(unprovisionedDevice = device)
-                        )
+                        _uiState.update {
+                            it.copy(provisionerState = Connected(unprovisionedDevice = device))
+                        }
                         identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
                     }
                 }.onCompletion {
-                    _uiState.value = _uiState.value.copy(
-                        provisionerState = Disconnected(unprovisionedDevice = device)
-                    )
+                    _uiState.update {
+                        it.copy(provisionerState = Disconnected(unprovisionedDevice = device))
+                    }
                 }.launchIn(scope = this)
         }
     }
@@ -160,12 +169,14 @@ class ProvisioningViewModel @Inject constructor(
 
             provisioningManager.provision(attentionTimer = 10u)
                 .onEach { state ->
-                    _uiState.value = _uiState.value.copy(
-                        provisionerState = Provisioning(
-                            unprovisionedDevice = unprovisionedDevice,
-                            state = state
-                        ),
-                    )
+                    _uiState.update { uiState ->
+                        uiState.copy(
+                            provisionerState = Provisioning(
+                                unprovisionedDevice = unprovisionedDevice,
+                                state = state
+                            ),
+                        )
+                    }
                     state.run {
                         if (this is ProvisioningState.CapabilitiesReceived) {
                             if (capabilities.supportedAuthMethods.contains(AuthenticationMethod.NoOob) &&
@@ -185,7 +196,10 @@ class ProvisioningViewModel @Inject constructor(
                         level = LogLevel.ERROR
                     )
                     _uiState.value = _uiState.value.copy(
-                        provisionerState = Error(unprovisionedDevice, throwable)
+                        provisionerState = Error(
+                            unprovisionedDevice = unprovisionedDevice,
+                            throwable = throwable
+                        )
                     )
                 }.onCompletion { throwable ->
                     _uiState.value.provisionerState.let { provisionerState ->
@@ -206,9 +220,7 @@ class ProvisioningViewModel @Inject constructor(
     internal fun disconnect() {
         viewModelScope.launch {
             repository.disconnect()
-            _uiState.value = ProvisioningScreenUiState(
-                provisionerState = Scanning
-            )
+            _uiState.update { it.copy(provisionerState = Scanning) }
         }
     }
 
@@ -243,7 +255,9 @@ class ProvisioningViewModel @Inject constructor(
                 _uiState.value.provisionerState as Provisioning
             val state = provisionerState.state as ProvisioningState.CapabilitiesReceived
             state.parameters.unicastAddress = unicastAddress
-            _uiState.value = _uiState.value.copy(provisionerState = provisionerState)
+            _uiState.update {
+                it.copy(provisionerState = provisionerState)
+            }
         }
     }
 
@@ -264,13 +278,15 @@ class ProvisioningViewModel @Inject constructor(
             val provisioningParameters = provisioningState
                 .parameters
                 .apply { networkKey = key }
-            _uiState.value = _uiState.value.copy(
-                provisionerState = provisionerState.copy(
-                    state = provisioningState.copy(
-                        parameters = provisioningParameters
+            _uiState.update {
+                it.copy(
+                    provisionerState = provisionerState.copy(
+                        state = provisioningState.copy(
+                            parameters = provisioningParameters
+                        )
                     )
                 )
-            )
+            }
         }
     }
 
@@ -315,7 +331,29 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Invoked when the provisioning process completes and navigates to the list of nodes.
      */
-    internal fun onProvisioningComplete() {
+    @OptIn(ExperimentalUuidApi::class)
+    internal fun onProvisioningComplete(uuid: Uuid) {
+        // Queue ConfigCompositionDataGet and ConfigDefaultTtl
+        // When provisioning is complete we enqueue the next configuration tasks that can be resumed
+        repository.messengers.createMessenger(nodeUuid = uuid)
+        selectedNode?.let { selectedNode ->
+            // If always reconfigure is checked then queue the reconfiguration messages
+            println("AAA Checking if reconfiguration is enabled")
+            if (_uiState.value.developerSettings.alwaysReconfigure) {
+                repository.messengers.messenger(uuid)?.run {
+                    enqueueTask(
+                        task = ConfigTask(
+                            icon = Icons.Outlined.DeviceHub,
+                            label = "Reading composition of the node",
+                            message = ConfigCompositionDataGet(page = 0x00u)
+                        )
+                    )
+                    enqueueReconfigurationWith(originalNode = selectedNode)
+                }
+
+                println("AAA Queueing reconfiguration")
+            }
+        }
         disconnect()
     }
 
@@ -341,8 +379,10 @@ sealed class ProvisionerState {
         val state: ProvisioningState,
     ) : ProvisionerState()
 
-    data class Error(val unprovisionedDevice: UnprovisionedDevice, val throwable: Throwable) :
-        ProvisionerState()
+    data class Error(
+        val unprovisionedDevice: UnprovisionedDevice,
+        val throwable: Throwable,
+    ) : ProvisionerState()
 
     data class Disconnected(val unprovisionedDevice: UnprovisionedDevice) : ProvisionerState()
 }
