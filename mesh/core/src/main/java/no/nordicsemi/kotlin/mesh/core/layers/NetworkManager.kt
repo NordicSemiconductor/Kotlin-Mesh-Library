@@ -382,7 +382,10 @@ internal class NetworkManager internal constructor(
             destination = destination,
             initialTtl = initialTtl,
             networkKey = networkKey
-        )
+        ).also {
+            // Added to clear the outgoing message list
+            mutex.withLock { outgoingMessages.remove(meshAddress) }
+        }
     }
 
     /**
@@ -419,7 +422,10 @@ internal class NetworkManager internal constructor(
             destination = destination,
             initialTtl = initialTtl,
             networkKey = networkKey
-        )
+        ).also {
+            // Added to clear the outgoing message list
+            mutex.withLock { outgoingMessages.remove(meshAddress) }
+        }
     }
 
     /**
