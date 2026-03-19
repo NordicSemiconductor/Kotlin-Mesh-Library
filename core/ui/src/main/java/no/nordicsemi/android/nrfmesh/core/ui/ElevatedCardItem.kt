@@ -19,6 +19,8 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -45,6 +48,7 @@ fun ElevatedCardItem(
     titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
     subtitlesMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
@@ -58,6 +62,7 @@ fun ElevatedCardItem(
             titleAction = titleAction,
             subtitle = subtitle,
             subtitleMaxLines = subtitlesMaxLines,
+            subtitleTextColor = subtitleTextColor,
             supportingText = supportingText,
             body = body,
             actions = actions
@@ -73,6 +78,8 @@ fun ElevatedCardItem(
             titleAction = titleAction,
             subtitle = subtitle,
             supportingText = supportingText,
+            subtitleMaxLines = subtitlesMaxLines,
+            subtitleTextColor = subtitleTextColor,
             body = body,
             actions = actions
         )
@@ -88,6 +95,7 @@ private fun NonClickableElevatedCardItem(
     titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
@@ -101,6 +109,7 @@ private fun NonClickableElevatedCardItem(
             title = title,
             subtitle = subtitle,
             subtitleMaxLines = subtitleMaxLines,
+            subtitleTextColor = subtitleTextColor,
             trailingComposable = titleAction
         )
         if (supportingText != null)
@@ -144,6 +153,7 @@ private fun ClickableElevatedCardItem(
     titleAction: @Composable () -> Unit = {},
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     supportingText: String? = null,
     body: @Composable (ColumnScope?.() -> Unit)? = null,
     actions: @Composable (RowScope?.() -> Unit)? = null,
@@ -160,6 +170,7 @@ private fun ClickableElevatedCardItem(
             title = title,
             subtitle = subtitle,
             subtitleMaxLines = subtitleMaxLines,
+            subtitleTextColor = subtitleTextColor,
             trailingComposable = titleAction
         )
         if (supportingText != null)
