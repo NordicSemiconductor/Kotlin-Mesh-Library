@@ -115,7 +115,9 @@ internal class NetworkManager internal constructor(
         bearer?.pdus
             ?.onEach {
                 runCatching { handle(incomingPdu = it.data, type = it.type) }
-                    .onFailure { logger?.e(LogCategory.BEARER) { "Bearer error: $it" } }
+                    .onFailure {throwable ->
+                        logger?.e(LogCategory.BEARER) { "Bearer error: $throwable" }
+                    }
             }?.launchIn(scope = scope)
     }
 
@@ -167,7 +169,7 @@ internal class NetworkManager internal constructor(
     )
 
     /**
-     * Awaits for a response to a sent message.
+     * Awaits for a response for a previously sent message.
      *
      * @param destination Destination address of the message.
      * @param timeout     Timeout duration.
@@ -180,9 +182,22 @@ internal class NetworkManager internal constructor(
     ): ReceivedMessage? = incomingMeshMessages
         .timeout(timeout = timeout)
         .catch {
-            // If its a timeout exception that's thrown we should log it in the bearer
+            // If it's a timeout exception that's thrown we should log it in the bearer
             if (it is TimeoutCancellationException) {
-                logger?.w(LogCategory.BEARER) { "Timed out waiting for a response: $it" }
+                logger?.w(LogCategory.BEARER) {
+                    "Timed out waiting for a response with response opCode 0x${
+                        responseOpcode.toHexString(
+                            format = HexFormat.UpperCase
+                        )
+                    } from ${
+                        destination.address.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
+                    }: $it"
+                }
             }
             throw it
         }
