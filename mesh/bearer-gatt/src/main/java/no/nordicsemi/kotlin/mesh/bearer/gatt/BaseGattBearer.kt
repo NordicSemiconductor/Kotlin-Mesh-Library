@@ -150,7 +150,6 @@ abstract class BaseGattBearer<
 
     override suspend fun close() {
         onClosed()
-        servicesObserver?.cancel()
         peripheral.disconnect()
     }
 
@@ -170,6 +169,7 @@ abstract class BaseGattBearer<
     private fun onClosed() {
         if (isOpen) {
             isOpen = false
+            servicesObserver?.cancel()
             _state.value = BearerEvent.Closed(error = BearerError.Closed())
             logger?.v(LogCategory.BEARER) { "Bearer closed" }
         }
@@ -183,7 +183,9 @@ abstract class BaseGattBearer<
             .forEach {
                 dataInCharacteristic
                     ?.also {
-                        logger?.v(LogCategory.BEARER) { "-> ${pdu.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
+                        logger?.v(LogCategory.BEARER) {
+                            "-> ${pdu.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}"
+                        }
                     }
                     ?.write(data = it, writeType = WriteType.WITHOUT_RESPONSE)
                     ?: run {
@@ -203,7 +205,13 @@ abstract class BaseGattBearer<
         // Call subscribe first before setting notifying to avoid missing packets
         dataOutCharacteristic.subscribe()
             .onEach {
-                logger?.v(LogCategory.BEARER) { "<- ${it.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
+                logger?.v(LogCategory.BEARER) {
+                    "<- ${
+                        it.toHexString(format = HexFormat {
+                            number.prefix = "0x"; upperCase = true
+                        })
+                    }"
+                }
                 proxyProtocolHandler
                     .reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }
