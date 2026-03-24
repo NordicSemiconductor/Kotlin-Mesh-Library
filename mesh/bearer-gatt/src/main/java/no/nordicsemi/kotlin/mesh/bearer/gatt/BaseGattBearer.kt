@@ -206,11 +206,7 @@ abstract class BaseGattBearer<
         dataOutCharacteristic.subscribe()
             .onEach {
                 logger?.v(LogCategory.BEARER) {
-                    "<- ${
-                        it.toHexString(format = HexFormat {
-                            number.prefix = "0x"; upperCase = true
-                        })
-                    }"
+                    "<- ${it.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}"
                 }
                 proxyProtocolHandler
                     .reassemble(data = it)
