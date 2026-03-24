@@ -557,7 +557,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 // Is this message targeting the local Node?
                 if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from : ${
+                        "$message received from: ${
                             accessPdu.source.toHexString(
                                 format = HexFormat {
                                     number.prefix = "0x"
