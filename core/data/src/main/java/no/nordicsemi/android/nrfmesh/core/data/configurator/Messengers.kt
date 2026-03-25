@@ -538,7 +538,6 @@ class Messenger(
                     }
                 } ?: run { tempTask = tempTask.copy(status = TaskStatus.Skipped) }
             } catch (e: Exception) {
-                println("AAA Exception occurred while reconfiguring: $e")
                 tempTask = tempTask.copy(
                     status = TaskStatus.Error(
                         error = e.message ?: "Unknown Error"

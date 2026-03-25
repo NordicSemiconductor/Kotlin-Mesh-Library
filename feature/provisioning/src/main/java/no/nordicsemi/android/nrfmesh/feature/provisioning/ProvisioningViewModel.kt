@@ -347,7 +347,6 @@ class ProvisioningViewModel @Inject constructor(
         if (_uiState.value.developerSettings.alwaysReconfigure) {
             selectedNode?.let {
                 messenger.enqueueReconfigurationWith(originalNode = it)
-                println("AAA Queueing reconfiguration")
             }
         } else {
             messenger.enqueueTask(

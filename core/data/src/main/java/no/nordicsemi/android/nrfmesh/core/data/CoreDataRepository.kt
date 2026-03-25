@@ -434,11 +434,9 @@ class CoreDataRepository @Inject constructor(
                     connectToProxy(meshNetwork = meshNetwork)?.let { bearer ->
                         // Wait for the bearer to disconnect
                         val state = bearer.state.first { it is BearerEvent.Closed }
-                        println("AAA Disconnection detected $state")
                         _proxyConnectionStateFlow.update {
                             it.copy(connectionState = NetworkConnectionState.Disconnected)
                         }
-                        println("AAA Disconnection state updated")
                         this@CoreDataRepository.bearer = null
                         meshNetworkManager.proxyFilter.proxyDidDisconnect()
                         // We add a slight delay here before connecting again if the connection drops
