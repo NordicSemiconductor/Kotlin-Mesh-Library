@@ -138,6 +138,8 @@ abstract class BaseGattBearer<
                 .onCompletion {
                     // Let's clear the reference to the observer after cancellation
                     servicesObserver = null
+                    logger?.v(LogCategory.BEARER) { "Service observer completed. Setting bearer state to closed." }
+                    _state.value = BearerEvent.Closed(error = BearerError.Closed())
                 }
                 .launchIn(scope = scope)
         }
@@ -170,7 +172,8 @@ abstract class BaseGattBearer<
         if (isOpen) {
             isOpen = false
             servicesObserver?.cancel()
-            _state.value = BearerEvent.Closed(error = BearerError.Closed())
+            // Following line has been moved to the service observer flow onCompletion
+            // _state.value = BearerEvent.Closed(error = BearerError.Closed())
             logger?.v(LogCategory.BEARER) { "Bearer closed" }
         }
     }
