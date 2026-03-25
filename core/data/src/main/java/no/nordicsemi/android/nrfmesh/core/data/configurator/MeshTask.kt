@@ -86,5 +86,5 @@ sealed class TaskStatus {
     /**
      * The task has failed.
      */
-    data class Error(val error: Throwable) : TaskStatus()
+    data class Error(val error: String) : TaskStatus()
 }

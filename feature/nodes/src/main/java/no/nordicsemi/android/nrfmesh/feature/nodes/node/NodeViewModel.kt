@@ -25,10 +25,10 @@ import no.nordicsemi.android.nrfmesh.core.common.unknownApplicationKeys
 import no.nordicsemi.android.nrfmesh.core.common.unknownNetworkKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.NetworkConnectionState
+import no.nordicsemi.android.nrfmesh.core.data.configurator.MeshTask
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeReset
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
@@ -46,6 +46,7 @@ internal class NodeViewModel @AssistedInject internal constructor(
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
     private val nodeUuid = Uuid.parse(uuidString = uuid)
+    private val messenger = repository.messengers.messenger(uuid = nodeUuid)
 
     private val _uiState = MutableStateFlow(NodeScreenUiState())
     val uiState: StateFlow<NodeScreenUiState> = _uiState
@@ -58,7 +59,13 @@ internal class NodeViewModel @AssistedInject internal constructor(
     init {
         observeNetworkChanges()
         observeConfigNodeReset()
-        requestConfigCompositionData()
+        observeMessenger()
+        executeTasks()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        messenger?.clear()
     }
 
     private fun observeNetworkChanges() {
@@ -89,8 +96,7 @@ internal class NodeViewModel @AssistedInject internal constructor(
             if (it is ConfigNodeReset) {
                 _uiState.value = _uiState.value.copy(
                     nodeState = NodeState.Error(
-                        throwable =
-                            Throwable("Node has been reset and is no longer available.")
+                        throwable = Throwable("Node has been reset and is no longer available.")
                     ),
                     isRefreshing = false
                 )
@@ -99,21 +105,37 @@ internal class NodeViewModel @AssistedInject internal constructor(
     }
 
     /**
+     * Observes messenger to handle incoming messages from the repository.
+     */
+    private fun observeMessenger() {
+        messenger?.meshTaskFlow
+            ?.onEach { tasks ->
+                _uiState.update { it.copy(tasks = tasks.toList()) }
+            }?.launchIn(scope = viewModelScope)
+    }
+
+    /**
      * Requests the composition data for the selected node when the network is connected.
      */
-    private fun requestConfigCompositionData() {
+    private fun executeTasks() {
         // Request the composition data when the network is connected if it has not been requested yet.
         repository.proxyConnectionStateFlow.onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
                 // Add a small delay to ensure proxy filter is set up before sending the message.
                 if (!selectedNode.isCompositionDataReceived) {
                     delay(timeMillis = 1000)
-                    send(message = ConfigDefaultTtlGet())
-                    delay(timeMillis = 1000)
-                    onRefresh()
+                    messenger?.execute(meshNetwork = meshNetwork, newNode = selectedNode)
                 }
             }
         }.launchIn(scope = viewModelScope)
+    }
+
+    internal fun onReconfigCompletePressed() {
+        messenger?.clear()
+    }
+
+    internal fun onRetryPressed() {
+        messenger?.retry(node = selectedNode)
     }
 
     /**
@@ -213,4 +235,5 @@ internal data class NodeScreenUiState(
     val nodeIdentityStates: List<NodeIdentityStatus> = emptyList(),
     val availableNetworkKeys: List<NetworkKey> = emptyList(),
     val availableAppKeys: List<ApplicationKey> = emptyList(),
+    val tasks: List<MeshTask> = emptyList(),
 )

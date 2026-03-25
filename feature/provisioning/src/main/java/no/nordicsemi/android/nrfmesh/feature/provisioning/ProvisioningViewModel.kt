@@ -30,6 +30,7 @@ import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.BearerEvent
 import no.nordicsemi.kotlin.mesh.bearer.provisioning.ProvisioningBearer
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigCompositionDataGet
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigDefaultTtlGet
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -335,26 +336,30 @@ class ProvisioningViewModel @Inject constructor(
     internal fun onProvisioningComplete(uuid: Uuid) {
         // Queue ConfigCompositionDataGet and ConfigDefaultTtl
         // When provisioning is complete we enqueue the next configuration tasks that can be resumed
-        repository.messengers.createMessenger(nodeUuid = uuid)
-        selectedNode?.let { selectedNode ->
-            // If always reconfigure is checked then queue the reconfiguration messages
-            println("AAA Checking if reconfiguration is enabled")
-            if (_uiState.value.developerSettings.alwaysReconfigure) {
-                repository.messengers.messenger(uuid)?.run {
-                    enqueueTask(
-                        task = ConfigTask(
-                            icon = Icons.Outlined.DeviceHub,
-                            label = "Reading composition of the node",
-                            message = ConfigCompositionDataGet(page = 0x00u)
-                        )
-                    )
-                    enqueueReconfigurationWith(originalNode = selectedNode)
-                }
-
+        val messenger = repository.messengers.createMessenger(nodeUuid = uuid)
+        messenger.enqueueTask(
+            task = ConfigTask(
+                icon = Icons.Outlined.DeviceHub,
+                label = "Reading composition of the node",
+                message = ConfigCompositionDataGet(page = 0x00u)
+            )
+        )
+        if (_uiState.value.developerSettings.alwaysReconfigure) {
+            selectedNode?.let {
+                messenger.enqueueReconfigurationWith(originalNode = it)
                 println("AAA Queueing reconfiguration")
             }
+        } else {
+            messenger.enqueueTask(
+                task = ConfigTask(
+                    icon = Icons.Outlined.DeviceHub,
+                    label = "Reading composition of the node",
+                    message = ConfigDefaultTtlGet()
+                )
+            )
         }
         disconnect()
+        repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
     }
 
     /**

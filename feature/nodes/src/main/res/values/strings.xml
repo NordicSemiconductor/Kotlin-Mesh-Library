@@ -58,4 +58,7 @@
     <string name="label_default_ttl_empty_error">TTL value cannot be empty</string>
     <string name="label_default_ttl">Default TTL</string>
     <string name="label_default_ttl_definition">Set the Default TTL of the Node. TTL limits the number of times a message can be relayed. Max value is 127</string>
+    <string name="label_configuration">Configuration</string>
+    <string name="label_done">Done</string>
+    <string name="label_retry">Retry</string>
 </resources>

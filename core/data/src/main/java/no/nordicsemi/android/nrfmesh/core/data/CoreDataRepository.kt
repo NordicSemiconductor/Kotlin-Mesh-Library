@@ -99,8 +99,6 @@ class CoreDataRepository @Inject constructor(
     private var _developerSettingsStateFlow = MutableStateFlow(value = DeveloperSettings())
     val developerSettingsStateFlow = _developerSettingsStateFlow.asStateFlow()
 
-    val messengers = Messengers(meshNetworkManager = meshNetworkManager)
-
     val network: SharedFlow<MeshNetwork>
         get() = meshNetworkManager.meshNetwork
 
@@ -117,6 +115,8 @@ class CoreDataRepository @Inject constructor(
         get() = meshNetworkManager.networkParameters.ivUpdateTestMode
 
     private val ioScope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
+
+    val messengers = Messengers(meshNetworkManager = meshNetworkManager, scope = ioScope)
 
     private var connectivityJob: Job? = null
 
@@ -140,10 +140,10 @@ class CoreDataRepository @Inject constructor(
     }
 
     private fun observerAutomaticProxyConnectionState() {
-        preferences.data.onEach {
-            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                autoConnect = it[PreferenceKeys.PROXY_AUTO_CONNECT] == true
-            )
+        preferences.data.onEach { prefs ->
+            _proxyConnectionStateFlow.update {state ->
+                state.copy(autoConnect = prefs[PreferenceKeys.PROXY_AUTO_CONNECT] == true)
+            }
         }.launchIn(scope = ioScope)
     }
 
@@ -322,7 +322,7 @@ class CoreDataRepository @Inject constructor(
         }
         // Disconnect
         disconnect()
-        cancelAutomaticConnectivity()
+        // cancelAutomaticConnectivity()
 
         val network = withContext(ioDispatcher) {
             val networkJson = contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -427,12 +427,26 @@ class CoreDataRepository @Inject constructor(
      * @param meshNetwork Mesh network required to match the proxy node.
      */
     fun startAutomaticConnectivity(meshNetwork: MeshNetwork?) {
-        val autoConnectProxy = _proxyConnectionStateFlow.value.autoConnect
-        if (!autoConnectProxy) return
         // If the connectivity job is not null and is not active let's start a new one
         if (connectivityJob == null || connectivityJob?.isActive == false) {
             connectivityJob = ioScope.launch {
-                connectToProxy(meshNetwork)
+                while(_proxyConnectionStateFlow.value.autoConnect){
+                    connectToProxy(meshNetwork = meshNetwork)?.let { bearer ->
+                        // Wait for the bearer to disconnect
+                        val state = bearer.state.first { it is BearerEvent.Closed }
+                        println("AAA Disconnection detected $state")
+                        _proxyConnectionStateFlow.update {
+                            it.copy(connectionState = NetworkConnectionState.Disconnected)
+                        }
+                        println("AAA Disconnection state updated")
+                        this@CoreDataRepository.bearer = null
+                        meshNetworkManager.proxyFilter.proxyDidDisconnect()
+                        // We add a slight delay here before connecting again if the connection drops
+                        // Note: connection will only be established if automatic connectivity is
+                        // enabled as per the implementation.
+                        delay(timeMillis = 1500)
+                    }
+                }
             }
         }
     }
@@ -447,10 +461,10 @@ class CoreDataRepository @Inject constructor(
      *
      * @param meshNetwork Mesh network required to match the proxy node.
      */
-    private suspend fun connectToProxy(meshNetwork: MeshNetwork?) {
-        require(meshNetwork != null) { return }
-        require(bearer == null || !bearer!!.isOpen) { return }
-        if (connectionRequested) return
+    private suspend fun connectToProxy(meshNetwork: MeshNetwork?): AndroidGattBearer? {
+        require(meshNetwork != null) { return null }
+        require(bearer == null || !bearer!!.isOpen) { return null }
+        if (connectionRequested) return null
         connectionRequested = true
         val peripheral = scanForProxy(meshNetwork)
         // If the peripheral is null, it means that the proxy node was not found or scanning failed.
@@ -461,31 +475,30 @@ class CoreDataRepository @Inject constructor(
                 category = LogCategory.BEARER,
                 level = LogLevel.INFO
             )
-            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Disconnected
-            )
+            _proxyConnectionStateFlow.update {
+                it.copy(connectionState = NetworkConnectionState.Disconnected)
+            }
             connectionRequested = false
-            return
+            return null
         }
         try {
             // Connect to the proxy node over GATT bearer. This method is blocking and will only
             // return once the connection is established or failed.
-            connectOverGattBearer(peripheral = peripheral)
+            println("Connecting to peripheral: ${peripheral.address}")
+            return connectOverGattBearer(peripheral = peripheral)
         } catch (e: Exception) {
             log(
                 message = { "Failed to connect to proxy node: ${e.message}" },
                 category = LogCategory.BEARER,
                 level = LogLevel.ERROR
             )
-            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Disconnected
-            )
+            _proxyConnectionStateFlow.update {
+                it.copy(connectionState = NetworkConnectionState.Disconnected)
+            }
         } finally {
             connectionRequested = false
         }
-        // Let's observe the connectivity in the connectOverGattBearer to restart connecting
-        // // Retry connecting
-        // connectToProxy(meshNetwork)
+        return null
     }
 
     /**
@@ -496,16 +509,16 @@ class CoreDataRepository @Inject constructor(
      */
     @OptIn(ExperimentalUuidApi::class)
     suspend fun scanForProxy(meshNetwork: MeshNetwork?) = try {
-        _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-            connectionState = NetworkConnectionState.Scanning
-        )
+        _proxyConnectionStateFlow.update {
+            it.copy(connectionState = NetworkConnectionState.Scanning)
+        }
         centralManager
             .scan { ServiceUuid(uuid = MeshProxyService.uuid) }
             .onCompletion {
                 if (it is CancellationException) {
-                    _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                        connectionState = NetworkConnectionState.Disconnected
-                    )
+                    _proxyConnectionStateFlow.update {
+                        it.copy(connectionState = NetworkConnectionState.Disconnected)
+                    }
                 }
             }
             .first {
@@ -551,14 +564,12 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverPbGattBearer(device: Peripheral) =
         withContext(context = ioDispatcher) {
             if (bearer is AndroidGattBearer) bearer?.close()
-            AndroidPbGattBearer(
-                centralManager = centralManager,
-                peripheral = device
-            ).also {
-                it.logger = this@CoreDataRepository
-                it.open()
-                bearer = it
-            }
+            AndroidPbGattBearer(centralManager = centralManager, peripheral = device)
+                .also {
+                    it.logger = this@CoreDataRepository
+                    it.open()
+                    bearer = it
+                }
         }
 
     /**
@@ -570,9 +581,9 @@ class CoreDataRepository @Inject constructor(
     suspend fun connectOverGattBearer(peripheral: Peripheral) =
         withContext(context = ioDispatcher) {
             if (bearer is AndroidPbGattBearer) bearer?.close()
-            _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                connectionState = NetworkConnectionState.Connecting(peripheral = peripheral)
-            )
+            _proxyConnectionStateFlow.update {
+                it.copy(connectionState = NetworkConnectionState.Connecting(peripheral = peripheral))
+            }
             AndroidGattBearer(
                 centralManager = centralManager,
                 peripheral = peripheral,
@@ -582,22 +593,9 @@ class CoreDataRepository @Inject constructor(
                 meshNetworkManager.meshBearer = it
                 bearer = it
                 it.open()
-                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow
-                    .value.copy(
-                        connectionState = NetworkConnectionState.Connected(
-                            peripheral = peripheral
-                        )
-                    )
-
-                // Wait for the bearer to disconnect
-                it.state.first { it is BearerEvent.Closed }
-                bearer = null
-                meshNetworkManager.proxyFilter.proxyDidDisconnect()
-                // We add a slight delay here before connecting again if the connection drops
-                // Note: connection will only be established if automatic connectivity is
-                // enabled as per the implementation.
-                delay(timeMillis = 1500)
-                startAutomaticConnectivity(meshNetwork)
+                _proxyConnectionStateFlow.update {
+                    it.copy(connectionState = NetworkConnectionState.Connected(peripheral = peripheral))
+                }
             }
         }
 
@@ -609,9 +607,9 @@ class CoreDataRepository @Inject constructor(
             if (bearer.isOpen) {
                 bearer.close()
                 // bearer.state.first { it is BearerEvent.Closed }
-                _proxyConnectionStateFlow.value = _proxyConnectionStateFlow.value.copy(
-                    connectionState = NetworkConnectionState.Disconnected
-                )
+                _proxyConnectionStateFlow.update {
+                    it.copy(connectionState = NetworkConnectionState.Disconnected)
+                }
             }
         }.also {
             // Bearer null

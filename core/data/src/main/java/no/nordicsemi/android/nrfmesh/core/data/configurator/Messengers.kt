@@ -1,7 +1,9 @@
 package no.nordicsemi.android.nrfmesh.core.data.configurator
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Diversity1
+import androidx.compose.material.icons.outlined.GroupWork
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.NetworkCell
@@ -9,12 +11,17 @@ import androidx.compose.material.icons.outlined.NetworkPing
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.WifiTethering
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigBeaconSet
@@ -32,27 +39,31 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
+import no.nordicsemi.kotlin.mesh.core.model.FixedGroupAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.PublicationAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
 import no.nordicsemi.kotlin.mesh.core.model.knownTo
-import kotlin.collections.set
 import kotlin.math.min
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class Messengers(private val meshNetworkManager: MeshNetworkManager) {
+class Messengers(
+    private val meshNetworkManager: MeshNetworkManager,
+    private val scope: CoroutineScope,
+) {
     private var _messengers = mutableMapOf<Uuid, Messenger>()
 
     /**
      * Creates a new configurator for the given node.
      */
-    fun createMessenger(nodeUuid: Uuid) {
-        _messengers[nodeUuid] = Messenger(meshNetworkManager = meshNetworkManager)
-    }
+    fun createMessenger(nodeUuid: Uuid) =
+        Messenger(meshNetworkManager = meshNetworkManager, scope = scope).also {
+            _messengers[nodeUuid] = it
+        }
 
     fun messenger(uuid: Uuid) = _messengers[uuid]
 
@@ -69,32 +80,48 @@ class Messengers(private val meshNetworkManager: MeshNetworkManager) {
  * @param originalNode       Original Node to be configured.
  */
 @OptIn(ExperimentalUuidApi::class)
-class Messenger(private val meshNetworkManager: MeshNetworkManager) {
-    private val _configTasks = mutableListOf<ConfigTask>()
-    private val _reconfigTasks = mutableListOf<ConfigTask>()
-    private val _appTasks = mutableListOf<AppTask>()
+class Messenger(
+    private val meshNetworkManager: MeshNetworkManager,
+    private val scope: CoroutineScope,
+) {
 
-    private val _configTaskFlow = MutableStateFlow<List<ConfigTask>>(_configTasks)
-    private val _reconfigTaskFlow = MutableStateFlow<List<MeshTask>>(_reconfigTasks)
-    private val _appTaskFlow = MutableStateFlow<List<MeshTask>>(_appTasks)
+    private val _configTasksFlow = MutableStateFlow<List<ConfigTask>>(mutableListOf())
+    private val _reconfigTasksFlow = MutableStateFlow<List<ConfigTask>>(mutableListOf())
+    private val _appTasksFlow = MutableStateFlow<List<AppTask>>(mutableListOf())
 
-    val tasks: List<MeshTask>
-        get() = _configTasks + _reconfigTasks + _appTasks
-    val isReconfigurationRequested: Boolean
-        get() = _reconfigTasks.isNotEmpty()
     private var originalNode: Node? = null
+    private var job: Job? = null
 
-    fun meshTaskFlow() = combine(_configTaskFlow, _reconfigTaskFlow, _appTaskFlow) {
-        _configTaskFlow.value + _reconfigTaskFlow.value + _appTaskFlow.value
-    }
+    private val isCompleted: Boolean
+        get() = _configTasksFlow.value.none {
+            it.status !is TaskStatus.Completed
+        } && _appTasksFlow.value.none {
+            it.status !is TaskStatus.Completed
+        }
+
+
+    val meshTaskFlow: Flow<List<MeshTask>>
+        get() = combine(
+            flow = _configTasksFlow,
+            flow2 = _reconfigTasksFlow,
+            flow3 = _appTasksFlow
+        ) { configTasks, reconfigTasks, appTasks ->
+            configTasks + reconfigTasks + appTasks
+        }
 
     /**
      * Enqueues the configuration tasks
      */
     fun enqueueTask(task: MeshTask) {
         when (task) {
-            is ConfigTask -> _configTasks.add(element = task)
-            is AppTask -> _appTasks.add(element = task)
+            is ConfigTask ->
+                _configTasksFlow.update {
+                    (it + task).toMutableList()
+                }
+
+            is AppTask -> _appTasksFlow.update {
+                (it + task).toMutableList()
+            }
         }
     }
 
@@ -108,29 +135,30 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
     @OptIn(ExperimentalUuidApi::class)
     private fun enqueueReconfiguration(meshNetwork: MeshNetwork, newNode: Node) {
         originalNode?.run {
+            val reconfigTasks = mutableListOf<ConfigTask>()
             defaultTTL?.let {
-                _reconfigTasks.add(
+                reconfigTasks.add(
                     element = ConfigTask(
                         icon = Icons.Outlined.Timer,
-                        label = "Set default TTL to $it",
+                        label = "Set Default TTL to $it on ${newNode.name}",
                         message = ConfigDefaultTtlSet(ttl = it)
                     )
                 )
             }
             secureNetworkBeacon?.let {
-                _reconfigTasks.add(
+                reconfigTasks.add(
                     element = ConfigTask(
                         icon = Icons.Outlined.WifiTethering,
-                        label = "${if (it) "Enable" else "Disable"} Secure Network Beacon state",
+                        label = "${if (it) "Enable" else "Disable"} Secure Network Beacon  on ${newNode.name}",
                         message = ConfigBeaconSet(enable = it)
                     )
                 )
             }
             networkTransmit?.let {
-                _reconfigTasks.add(
+                reconfigTasks.add(
                     element = ConfigTask(
                         icon = Icons.Outlined.NetworkPing,
-                        label = "Set default TTL",
+                        label = "Set Network Transmit",
                         message = ConfigNetworkTransmitSet(networkTransmit = it)
                     )
                 )
@@ -140,20 +168,20 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                     when (relay.state) {
                         FeatureState.Enabled -> {
                             relayRetransmit?.let {
-                                _reconfigTasks.add(
+                                reconfigTasks.add(
                                     element = ConfigTask(
                                         icon = Icons.Outlined.NetworkPing,
-                                        label = "Setting retransmit to $it",
+                                        label = "Set Retransmit to ${it.timeInterval} on ${newNode.name}",
                                         message = ConfigRelaySet(relayRetransmit = it)
                                     )
                                 )
                             }
                         }
 
-                        FeatureState.Disabled -> _reconfigTasks.add(
+                        FeatureState.Disabled -> reconfigTasks.add(
                             element = ConfigTask(
                                 icon = Icons.Outlined.NetworkCell,
-                                label = "Disabling relay feature",
+                                label = "Disable Relay Feature on ${newNode.name}",
                                 message = ConfigRelaySet()
                             )
                         )
@@ -166,10 +194,10 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
 
                 proxy?.let { proxy ->
                     if (proxy.state is FeatureState.Unsupported) {
-                        _reconfigTasks.add(
+                        reconfigTasks.add(
                             element = ConfigTask(
                                 icon = Icons.Outlined.Hub,
-                                label = "${if (proxy.state is FeatureState.Enabled) "Enabling" else "Disabling"} Gatt Proxy state",
+                                label = "${if (proxy.state is FeatureState.Enabled) "Enabling" else "Disabling"} Gatt Proxy on ${newNode.name}",
                                 message = ConfigGattProxySet(enable = proxy.state is FeatureState.Enabled)
                             )
                         )
@@ -178,48 +206,55 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
 
                 friend?.let { friend ->
                     if (friend.state != FeatureState.Unsupported) {
-                        _reconfigTasks.add(
+                        reconfigTasks.add(
                             element = ConfigTask(
                                 icon = Icons.Outlined.Diversity1,
-                                label = "${if (friend.state is FeatureState.Enabled) "Enabling" else "Disabling"} Friend feature state",
+                                label = "${if (friend.state is FeatureState.Enabled) "Enabling" else "Disabling"} Friend Feature on ${newNode.name}",
                                 message = ConfigFriendSet(enable = friend.state is FeatureState.Enabled)
                             )
                         )
                     }
                 }
             }
-            meshNetwork.networkKeys.knownTo(this).forEach {
-                _reconfigTasks.add(
-                    element = ConfigTask(
-                        icon = Icons.Outlined.VpnKey,
-                        label = "Adding $it",
-                        message = ConfigNetKeyAdd(key = it)
+            meshNetwork.networkKeys
+                .knownTo(node = this)
+                // During provisioning a network key is already added let's filter it out.
+                .filter { !newNode.knows(key = it) }
+                .forEach {
+                    reconfigTasks.add(
+                        element = ConfigTask(
+                            icon = Icons.Outlined.VpnKey,
+                            label = "Add ${it.name} to ${newNode.name}",
+                            message = ConfigNetKeyAdd(key = it)
+                        )
                     )
-                )
-            }
-            meshNetwork.applicationKeys.knownTo(this).forEach {
-                _reconfigTasks.add(
-                    element = ConfigTask(
-                        icon = Icons.Outlined.VpnKey,
-                        label = "Adding $it",
-                        message = ConfigAppKeyAdd(key = it)
+                }
+            meshNetwork.applicationKeys
+                .knownTo(this)
+                .forEach {
+                    reconfigTasks.add(
+                        element = ConfigTask(
+                            icon = Icons.Outlined.VpnKey,
+                            label = "Add ${it.name} to ${newNode.name}",
+                            message = ConfigAppKeyAdd(key = it)
+                        )
                     )
-                )
-            }
-
-            heartbeatPublication?.let { publication ->
-                meshNetwork.networkKey(publication.index)?.let {
-                    _reconfigTasks.add(
+                }
+            heartbeatPublication?.let { heartbeat ->
+                meshNetwork.networkKey(heartbeat.index)?.let {
+                    reconfigTasks.add(
                         element = ConfigTask(
                             icon = Icons.Outlined.MonitorHeart,
-                            label = "Setting up heartbeat publications",
+                            label = "Set up Heartbeat Publications to 0x${
+                                heartbeat.address.address.toHexString(HexFormat.UpperCase)
+                            }",
                             message = ConfigHeartbeatPublicationSet(
-                                index = publication.index,
-                                destination = publication.address,
+                                index = heartbeat.index,
+                                destination = heartbeat.address,
                                 countLog = 0u,
                                 periodLog = 0u,
-                                ttl = publication.ttl,
-                                features = publication.features
+                                ttl = heartbeat.ttl,
+                                features = heartbeat.features
                             )
                         )
                     )
@@ -243,10 +278,10 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                                 meshNetwork.applicationKeys
                                     .filter { it.isBoundTo(originalModel) }
                                     .forEach { key ->
-                                        _reconfigTasks.add(
+                                        reconfigTasks.add(
                                             element = ConfigTask(
-                                                icon = Icons.Outlined.VpnKey,
-                                                label = "Binding $key to ${targetModel.modelId}",
+                                                icon = Icons.Outlined.AddLink,
+                                                label = "Bind ${key.name} to ${targetModel.name}",
                                                 message = ConfigModelAppBind(
                                                     model = targetModel,
                                                     applicationKey = key
@@ -276,10 +311,12 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                                             newNode = newNode
                                         )
                                     )
-                                    _reconfigTasks.add(
+                                    reconfigTasks.add(
                                         element = ConfigTask(
                                             icon = Icons.Outlined.VpnKey,
-                                            label = "Publishing to ${publish.address}",
+                                            label = "Set Publications to 0x${
+                                                publish.address.address.toHexString(HexFormat.UpperCase)
+                                            }",
                                             message = if (publish.address is VirtualAddress) {
                                                 ConfigModelPublicationVirtualAddressSet(
                                                     publish = newPublication,
@@ -312,10 +349,24 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                                     .subscribe
                                     .filter { it !is AllNodes }
                                     .forEach { address ->
-                                        _reconfigTasks.add(
+                                        reconfigTasks.add(
                                             element = ConfigTask(
-                                                icon = Icons.Outlined.VpnKey,
-                                                label = "Subscribing to ${address.address}",
+                                                label = "Subscribe ${targetModel.name} to ${
+                                                    if (address is FixedGroupAddress) {
+                                                        address.name()
+                                                    } else {
+                                                        meshNetwork
+                                                            .group(address = address.address)
+                                                            ?.name
+                                                            ?: address.address.toHexString(
+                                                                format = HexFormat {
+                                                                    number.prefix = "0x"
+                                                                    upperCase = true
+                                                                }
+                                                            )
+                                                    }
+                                                }",
+                                                icon = Icons.Outlined.GroupWork,
                                                 message = if (address is VirtualAddress) {
                                                     ConfigModelSubscriptionVirtualAddressAdd(
                                                         virtualAddress = address,
@@ -352,10 +403,10 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                                 newNode = newNode
                             )
                         )
-                        _reconfigTasks.add(
+                        reconfigTasks.add(
                             element = ConfigTask(
                                 icon = Icons.Outlined.VpnKey,
-                                label = "Publishing to ${publish.address}",
+                                label = "Publish to ${publish.address}",
                                 message = if (publish.address is VirtualAddress) {
                                     ConfigModelPublicationVirtualAddressSet(
                                         publish = newPublication,
@@ -371,9 +422,19 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
                         )
                     }
                 }
+            _reconfigTasksFlow.update {
+                (it + reconfigTasks).toMutableList()
+            }
         }
     }
 
+    /**
+     * Translates the publication address to the new node.
+     *
+     * @param address    Address to be translated.
+     * @param oldNode    Original Node.
+     * @param newNode    New Node.
+     */
     private fun translate(
         address: PublicationAddress,
         oldNode: Node,
@@ -391,69 +452,156 @@ class Messenger(private val meshNetworkManager: MeshNetworkManager) {
      * @param meshNetwork MeshNetwork to be configured.
      * @param newNode     Node to be configured.
      */
-    suspend fun execute(meshNetwork: MeshNetwork, newNode: Node) =
-        withContext(context = Dispatchers.IO) {
-            _configTasks.forEachIndexed { index, task ->
-                _configTasks[index] = task.copy(status = TaskStatus.InProgress)
-                try {
-                    meshNetworkManager.send(
-                        message = task.message,
-                        node = newNode,
-                        initialTtl = null
-                    )?.let {
-                        _configTasks[index] = task.copy(status = TaskStatus.Completed)
-                    } ?: run {
-                        _configTasks[index] = task.copy(status = TaskStatus.Skipped)
-                    }
-                } catch (e: Exception) {
-                    _configTasks[index] = task.copy(status = TaskStatus.Error(error = e))
-                }
-            }
+    fun execute(meshNetwork: MeshNetwork, newNode: Node) {
+        job = scope.launch {
+            executeConfigurationTasks(newNode = newNode)
             enqueueReconfiguration(meshNetwork = meshNetwork, newNode = newNode)
-            _reconfigTasks.forEachIndexed { index, task ->
-                _reconfigTasks[index] = task.copy(status = TaskStatus.InProgress)
-                try {
-                    meshNetworkManager.send(
-                        message = task.message,
-                        node = newNode,
-                        initialTtl = null
-                    )?.let {
-                        _reconfigTasks[index] = task.copy(status = TaskStatus.Completed)
-                    } ?: run {
-                        _reconfigTasks[index] = task.copy(status = TaskStatus.Skipped)
-                    }
-                } catch (e: Exception) {
-                    _reconfigTasks[index] = task.copy(status = TaskStatus.Error(error = e))
-                }
+            executeReconfigurationTasks(newNode = newNode)
+            executeAppTasks()
+        }
+    }
+
+    fun retry(node: Node){
+        job?.cancel()
+        job = scope.launch {
+            executeReconfigurationTasks(newNode = node)
+            executeAppTasks()
+        }
+    }
+
+    fun clear() {
+        job?.cancel()
+        _configTasksFlow.value = emptyList()
+        _reconfigTasksFlow.value = emptyList()
+        _appTasksFlow.value = emptyList()
+    }
+
+    private suspend fun executeConfigurationTasks(newNode: Node) {
+        _configTasksFlow.value.forEachIndexed { index, task ->
+            var tempTask = task
+            _configTasksFlow.update {
+                tempTask = tempTask.copy(status = TaskStatus.InProgress)
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
             }
-            _appTasks.forEachIndexed { index, task ->
-                _appTasks[index] = task.copy(status = TaskStatus.InProgress)
-                try {
-                    if(task.message is AcknowledgedMeshMessage){
-                        meshNetworkManager.send(
-                            message = task.message,
-                            model = task.model,
-                            localElement = task.element,
-                            applicationKey = task.applicationKey,
-                            initialTtl = null
-                        )?.let {
-                            _appTasks[index] = task.copy(status = TaskStatus.Completed)
-                        } ?: run {
-                            _appTasks[index] = task.copy(status = TaskStatus.Skipped)
+            try {
+                meshNetworkManager.send(
+                    message = task.message,
+                    node = newNode,
+                    initialTtl = null
+                )?.let {
+                    if (it is ConfigStatusMessage) {
+                        tempTask = when (it.isSuccess) {
+                            true -> tempTask.copy(status = TaskStatus.Completed)
+                            else -> tempTask.copy(status = TaskStatus.Error(error = it.message))
                         }
                     } else {
-                        meshNetworkManager.send(
-                            message = task.message as UnacknowledgedMeshMessage,
-                            model = task.model,
-                            localElement = task.element,
-                            applicationKey = task.applicationKey,
-                            initialTtl = null
-                        )
-                        _appTasks[index] = task.copy(status = TaskStatus.Completed)
+                        tempTask = tempTask.copy(status = TaskStatus.Completed)
                     }
-                } catch (e: Exception) {
-                    _appTasks[index] = task.copy(status = TaskStatus.Error(error = e))
+
+                } ?: run { tempTask = tempTask.copy(status = TaskStatus.Skipped) }
+            } catch (e: Exception) {
+                tempTask =
+                    tempTask.copy(status = TaskStatus.Error(error = e.message ?: "Unknown Error"))
+                _configTasksFlow.update {
+                    it.toMutableList()
+                        .apply { this[index] = tempTask }
                 }
+                return@forEachIndexed
+            }
+            _configTasksFlow.update {
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
             }
         }
+    }
+
+    private suspend fun executeReconfigurationTasks(newNode: Node) {
+        for ((index, task) in _reconfigTasksFlow.value.withIndex()) {
+            if (task.status is TaskStatus.Completed)
+                continue
+            var tempTask = task
+            _reconfigTasksFlow.update {
+                tempTask = tempTask.copy(status = TaskStatus.InProgress)
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
+            }
+            try {
+                meshNetworkManager.send(
+                    message = task.message,
+                    node = newNode,
+                    initialTtl = null
+                )?.let {
+                    tempTask = when ((it as ConfigStatusMessage).isSuccess) {
+                        true -> tempTask.copy(status = TaskStatus.Completed)
+                        else -> tempTask.copy(status = TaskStatus.Error(error = it.message))
+                    }
+                } ?: run { tempTask = tempTask.copy(status = TaskStatus.Skipped) }
+            } catch (e: Exception) {
+                println("AAA Exception occurred while reconfiguring: $e")
+                tempTask = tempTask.copy(
+                    status = TaskStatus.Error(
+                        error = e.message ?: "Unknown Error"
+                    )
+                )
+                _reconfigTasksFlow.update {
+                    it.toMutableList()
+                        .apply { this[index] = tempTask }
+                }
+                break
+            }
+            _reconfigTasksFlow.update {
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
+            }
+        }
+    }
+
+    private suspend fun executeAppTasks() {
+        _appTasksFlow.value.forEachIndexed { index, task ->
+            var tempTask = task
+            _appTasksFlow.update {
+                tempTask = task.copy(status = TaskStatus.InProgress)
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
+            }
+            try {
+                if (task.message is AcknowledgedMeshMessage) {
+                    meshNetworkManager.send(
+                        message = task.message,
+                        model = task.model,
+                        localElement = task.element,
+                        applicationKey = task.applicationKey,
+                        initialTtl = null
+                    )?.let {
+                        tempTask = tempTask.copy(status = TaskStatus.Completed)
+                    } ?: run {
+                        tempTask =
+                            tempTask.copy(status = TaskStatus.Error(error = "Response not received!"))
+                    }
+                } else {
+                    meshNetworkManager.send(
+                        message = task.message as UnacknowledgedMeshMessage,
+                        model = task.model,
+                        localElement = task.element,
+                        applicationKey = task.applicationKey,
+                        initialTtl = null
+                    )
+                    tempTask = tempTask.copy(status = TaskStatus.Completed)
+                }
+            } catch (e: Exception) {
+                tempTask =
+                    tempTask.copy(status = TaskStatus.Error(error = e.message ?: "Unknown Error"))
+                _appTasksFlow.update {
+                    it.toMutableList()
+                        .apply { this[index] = tempTask }
+                }
+                return@forEachIndexed
+            }
+            _appTasksFlow.update {
+                it.toMutableList()
+                    .apply { this[index] = tempTask }
+            }
+        }
+    }
 }
