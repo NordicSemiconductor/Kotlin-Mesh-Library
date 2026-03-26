@@ -27,7 +27,7 @@ import kotlin.time.toDuration
 /**
  * Defines the behaviour of the Upper Transport Layer of the Mesh Networking Stack.
  */
-internal class UpperTransportLayer(private val networkManager: NetworkManager) {
+internal class UpperTransportLayer(private val networkManager: NetworkManager) : AutoCloseable{
 
     private val meshNetwork = networkManager.meshNetwork
     private val logger: Logger?
@@ -35,6 +35,11 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
     private val queue: MutableMap<Address, MutableList<MessageData>> = mutableMapOf()
     private val mutex = Mutex()
     private var heartbeatPublisher: Timer? = null
+
+    override fun close() {
+        heartbeatPublisher?.cancel()
+        heartbeatPublisher?.purge()
+    }
 
     /**
      * Handles a received Lower Transport Pdu.
@@ -161,7 +166,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      *         complete before calling this method.
      */
     fun isReceivingResponse(address: Address): Boolean {
-        return networkManager.lowerTransportLayer.isReceivingMessage(address)
+        return networkManager.lowerTransportLayer.isReceivingMessage(address = address)
     }
 
     /**
@@ -180,7 +185,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         }
 
         // Try to send the next one
-        sendNext(destination)
+        sendNext(destination = destination)
     }
 
     /**
@@ -189,7 +194,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      */
     fun refreshHeartbeatPublisher() {
         heartbeatPublisher?.let {
-            logger?.i(LogCategory.UPPER_TRANSPORT) {
+            logger?.i(category = LogCategory.UPPER_TRANSPORT) {
                 "Publishing periodic Heartbeat messages cancelled"
             }
             it.cancel()
@@ -199,7 +204,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
             it.isPeriodicHeartbeatStateEnabled
         }?.let { heartbeatPublication ->
             heartbeatPublication.state?.let {
-                logger?.i(LogCategory.UPPER_TRANSPORT) {
+                logger?.i(category = LogCategory.UPPER_TRANSPORT) {
                     "Publishing periodic Heartbeat messages initiated."
                 }
                 val interval = heartbeatPublication.period.toInt()
@@ -213,7 +218,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     val localNode = requireNotNull(meshNetwork.localProvisioner?.node) {
                         layer.heartbeatPublisher?.cancel()
                         layer.heartbeatPublisher?.purge()
-                        logger?.i(LogCategory.UPPER_TRANSPORT) {
+                        logger?.i(category = LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
                         return@timer
@@ -224,7 +229,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     ) {
                         layer.heartbeatPublisher?.cancel()
                         layer.heartbeatPublisher?.purge()
-                        logger?.i(LogCategory.UPPER_TRANSPORT) {
+                        logger?.i(category = LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
                         return@timer
@@ -235,7 +240,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     ) {
                         layer.heartbeatPublisher?.cancel()
                         layer.heartbeatPublisher?.purge()
-                        logger?.i(LogCategory.UPPER_TRANSPORT) {
+                        logger?.i(category = LogCategory.UPPER_TRANSPORT) {
                             "Publishing periodic Heartbeat messages cancelled."
                         }
                         return@timer
@@ -256,7 +261,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
                     )
 
                     networkManager.scope.launch {
-                        send(heartbeat, networkKey)
+                        send(heartbeat = heartbeat, networkKey = networkKey)
                     }
                     // If the last periodic Heartbeat message has been sent, cancel the timer.
                     if (!state.shouldSendMorePeriodicHeartbeatMessages()) {
@@ -290,11 +295,17 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
         var count: Int
         mutex.withLock {
             queue[destination] = queue[destination] ?: mutableListOf()
-            queue[destination]!!.add(MessageData(pdu, initialTtl, networkKey))
+            queue[destination]!!.add(
+                element = MessageData(
+                    pdu = pdu,
+                    ttl = initialTtl,
+                    networkKey = networkKey
+                )
+            )
             count = queue[destination]!!.size
         }
 
-        if (count == 1) sendNext(destination)
+        if (count == 1) sendNext(destination = destination)
     }
 
     /**
@@ -302,7 +313,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) {
      * is empty or does not exist.
      */
     private suspend fun sendNext(destination: Address) {
-        val messageData = requireNotNull(mutex.withLock {
+        val messageData = requireNotNull(value = mutex.withLock {
             queue[destination]?.firstOrNull()
         }) {
             return
