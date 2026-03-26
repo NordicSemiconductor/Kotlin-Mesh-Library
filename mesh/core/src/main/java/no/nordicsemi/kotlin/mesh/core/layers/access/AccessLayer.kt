@@ -691,7 +691,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             delay = initialDelay,
             repeatBlock = {
                 networkManager.takeIf {
-                    it.upperTransportLayer.isReceivingResponse(address = pdu.destination.address)
+                    !it.upperTransportLayer.isReceivingResponse(address = pdu.destination.address)
                 }?.let {
                     scope.launch {
                         logger?.w(LogCategory.ACCESS) { "Resending $pdu" }
