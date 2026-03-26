@@ -314,7 +314,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
      * from the given address.
      *
      * @param address Address of the sender.
-     * @return true if some, but not all packets ofr a segmented message were received from the
+     * @return true if some, but not all packets for a segmented message were received from the
      *         given source address or false if no packets were received or the message was complete
      *         before calling this method.
      */
