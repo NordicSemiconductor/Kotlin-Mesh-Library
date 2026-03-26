@@ -207,7 +207,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             mutex.withLock {
                 val context = reliableMessageContexts.removeAt(index)
                 request = context.request
-                context.timeoutTimer.cancel()
+                context.invalidate()
             }
             logger?.i(LogCategory.ACCESS) {
                 "Response $accessPdu received (decrypted using key: $keySet)."
