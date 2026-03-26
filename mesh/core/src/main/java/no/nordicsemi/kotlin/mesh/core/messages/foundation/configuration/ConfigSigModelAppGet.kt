@@ -10,7 +10,12 @@ import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import java.nio.ByteOrder
 
 /**
- * This message is used to get the list of models bound to an application key.
+ * This message is used to get the list of application keys bound to a given  Bluetooth SIG model.
+ * The response to this message is a [ConfigSigModelAppList]
+ *
+ * @property modelId         Bluetooth SIG model identifier.
+ * @property elementAddress  Address of the Element containing the model.
+ * @constructor Constructs the ConfigSigModelAppGet message.
  */
 class ConfigSigModelAppGet(
     override val modelId: SigModelId,
