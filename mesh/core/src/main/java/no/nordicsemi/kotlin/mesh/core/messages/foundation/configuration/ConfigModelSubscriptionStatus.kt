@@ -177,7 +177,7 @@ class ConfigModelSubscriptionStatus(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
-            "elementAddress: 0x${
+            "elementAddress: ${
                 elementAddress.address.toHexString(
                     format = HexFormat {
                         number.prefix = "0x"
