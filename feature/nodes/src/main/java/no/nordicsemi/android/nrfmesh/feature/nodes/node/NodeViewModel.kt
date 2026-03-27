@@ -134,6 +134,10 @@ internal class NodeViewModel @AssistedInject internal constructor(
         messenger?.clear()
     }
 
+    internal fun onCancelPressed() {
+        messenger?.clear()
+    }
+
     internal fun onRetryPressed() {
         messenger?.retry(node = selectedNode)
     }

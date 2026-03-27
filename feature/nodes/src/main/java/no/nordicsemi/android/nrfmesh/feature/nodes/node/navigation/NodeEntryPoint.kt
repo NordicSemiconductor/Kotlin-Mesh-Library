@@ -83,6 +83,7 @@ fun EntryProviderScope<NavKey>.nodeEntry(
                     removeNode = viewModel::removeNode,
                     tasks = uiState.tasks,
                     onReconfigCompletePressed = viewModel::onReconfigCompletePressed,
+                    onCancelPressed = viewModel::onCancelPressed,
                     onRetryPressed = viewModel::onRetryPressed
                 )
             }

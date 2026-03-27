@@ -61,4 +61,5 @@
     <string name="label_configuration">Configuration</string>
     <string name="label_done">Done</string>
     <string name="label_retry">Retry</string>
+    <string name="label_cancel">Cancel</string>
 </resources>

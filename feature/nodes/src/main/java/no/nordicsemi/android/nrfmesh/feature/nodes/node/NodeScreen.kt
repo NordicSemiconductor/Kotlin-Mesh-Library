@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
@@ -49,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -62,6 +64,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
@@ -111,13 +114,16 @@ internal fun NodeScreen(
     removeNode: () -> Unit,
     tasks: List<MeshTask>,
     onReconfigCompletePressed: () -> Unit,
+    onCancelPressed: () -> Unit,
     onRetryPressed: () -> Unit,
 ) {
-    val state = rememberPullToRefreshState()
+    val scope = rememberCoroutineScope()
+    val pullToRefreshState = rememberPullToRefreshState()
     var showConfigurationTasks by rememberSaveable { mutableStateOf(tasks.isNotEmpty()) }
+    val reconfigBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
-        state = state,
+        state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
@@ -250,12 +256,14 @@ internal fun NodeScreen(
                 )
             }
         }
-        val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         if (showConfigurationTasks) {
             ModalBottomSheet(
-                sheetState = state,
-                onDismissRequest = { },
-                sheetGesturesEnabled = false,
+                sheetState = reconfigBottomSheetState,
+                onDismissRequest = {
+                    showConfigurationTasks = !showConfigurationTasks
+                    onReconfigCompletePressed()
+                },
+                sheetGesturesEnabled = !tasks.any { it.status !is TaskStatus.Completed },
                 properties = ModalBottomSheetProperties(
                     shouldDismissOnBackPress = false,
                     shouldDismissOnClickOutside = false
@@ -282,13 +290,22 @@ internal fun NodeScreen(
                         text = stringResource(R.string.label_retry)
                     )
                     MeshOutlinedButton(
-                        enabled = !tasks.any { it.status !is TaskStatus.Completed },
                         onClick = {
-                            onReconfigCompletePressed()
-                            showConfigurationTasks = false
+                            scope.launch {
+                                reconfigBottomSheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!reconfigBottomSheetState.isVisible) {
+                                    if (!tasks.any { it.status !is TaskStatus.Completed }) {
+                                        onReconfigCompletePressed()
+                                    } else {
+                                        onCancelPressed()
+                                    }
+                                    showConfigurationTasks = !showConfigurationTasks
+                                }
+                            }
                         },
-                        buttonIcon = Icons.Outlined.AutoFixHigh,
-                        text = stringResource(R.string.label_done)
+                        buttonIcon = if (!tasks.any { it.status !is TaskStatus.Completed }) Icons.Outlined.AutoFixHigh else Icons.Outlined.Cancel,
+                        text = stringResource(if (!tasks.any { it.status !is TaskStatus.Completed }) R.string.label_done else R.string.label_cancel),
                     )
                 }
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
