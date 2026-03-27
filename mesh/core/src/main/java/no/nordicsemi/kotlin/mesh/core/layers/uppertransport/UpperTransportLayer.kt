@@ -124,7 +124,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
 
     /**
      * Cancels sending all segmented messages matching given handle. Unsegmented messages are sent
-     * almost instantaneously and cannot be cancelled.
+     * almost instantaneously and cannot be canceled.
      *
      * @param handle Message handle.
      */
@@ -150,7 +150,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
                         it.pdu.destination == handle.destination
             }
         }
-        // If sending a message was cancelled, try sending another one.
+        // If sending a message was canceled, try sending another one.
         if (shouldSendNext) {
             onLowerTransportLayerSent(handle.destination.address)
         }
@@ -173,7 +173,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
      * Invoked by the lower transport layer when a segmented message has been sent to the
      * destination or failed.
      *
-     * This removes the sent PDU from the queue and sends the next one if available.
+     * This removes the PDU that was sent from the queue and sends the next one if available.
      *
      * @param destination Destination address.
      */
